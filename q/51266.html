@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>cg::51266</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>3015</td><td>Rust</td><td>230722T090454Z</td><td><a href="https://codegolf.stackexchange.com/questions/51266/extending-oeis-counting-diamond-tilings/263177#263177">138 Aspe</a></td></tr>
+<tr d-ix="1"><td>nan</td><td></td><td>230610T081012Z</td><td><a href="https://codegolf.stackexchange.com/questions/51266/extending-oeis-counting-diamond-tilings/261724#261724">138 Aspe</a></td></tr>
+<tr d-ix="2"><td>nan</td><td>Algebra</td><td>150612T224447Z</td><td><a href="https://codegolf.stackexchange.com/questions/51266/extending-oeis-counting-diamond-tilings/51662#51662">Peter Ta</a></td></tr>
+<tr d-ix="3"><td>nan</td><td></td><td>150611T225025Z</td><td><a href="https://codegolf.stackexchange.com/questions/51266/extending-oeis-counting-diamond-tilings/51609#51609">Level Ri</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>Rust, 0.03 s for n=0..=15</h1>
+<p>Port of <a href="https://codegolf.stackexchange.com/a/51662/110802">@Peter Taylor's Java answer</a> in Rust.</p>
+<p>Run it on <a href="https://play.rust-lang.org/?version=stable&amp;mode=debug&amp;edition=2021&amp;gist=d9b5191802f5b1785460efb68e8eecb5" rel="nofollow noreferrer">RustPlayground</a>!</p>
+<hr />
+<h3><code>src/main.rs</code></h3>
+<pre class="lang-rust prettyprint-override"><code>use std::collections::HashMap;
+use num_bigint::BigUint;
+use num_traits::{Zero, One, Pow};
+
+fn main() {
+    for n in 0..16 {
+        println!(&quot;{}\t{}&quot;, n, count(n));
+    }
+}
+
+fn count(n: usize) -&gt; BigUint {
+    if n == 0 { return BigUint::one() }
+
+    let mut minp = vec![0; 3 * n];
+
+    for index in 2..3 * n {
+        minp[index] = (2..=index).find(|p| index % p == 0).unwrap_or(2);
+    }
+
+    let e = count_e(n, &amp;minp);
+    // println!(&quot;n={:?}  e={:?}&quot;, n, e);
+    let r2 = count_r2(n, &amp;minp);
+    // println!(&quot;n={:?}  r2={:?}&quot;, n, r2);
+    let f = count_f(n, &amp;minp);
+    // println!(&quot;n={:?}  f={:?}&quot;, n, f);
+    let r3 = count_r3(n, &amp;minp);
+    // println!(&quot;n={:?}  r3={:?}&quot;, n, r3);
+    let r = count_r(n, &amp;minp);
+    // println!(&quot;n={:?}  r={:?}&quot;, n, r);
+    let fr = count_fr(n, &amp;minp);
+    // println!(&quot;n={:?}  fr={:?}&quot;, n, fr);
+
+    let sum = e
+        + r3
+        + (r2 + r.clone()) * BigUint::from(2u8)
+        + (f + fr) * BigUint::from(3u8);
+
+    sum / BigUint::from(12u8)
+}
+
+fn count_e(n: usize, minp: &amp;[usize]) -&gt; BigUint {
+    let mut w = vec![0; 3 * n];
+
+    for i in 0..n {
+        for j in (i + 1)..=(i + n) { w[j] -= 1 }
+        for j in (i + n + 1)..=(i + 2 * n) { w[j] += 1 }
+    }
+
+    // println!(&quot;w={:?}  minp={:?}&quot;,w, minp);
+
+    power_prod(&amp;mut w, minp)
+}
+
+fn count_r2(n: usize, minp: &amp;[usize]) -&gt; BigUint {
+    let mut w = vec![0; 3 * n];
+
+    for i in 0..n {
+        w[3 * i + 2] += 1;
+        for j in (3 * i + 1)..=(2 * i + n + 1) { w[j] -= 1 }
+        for j in (2 * i + n + 1)..=(i + 2 * n) { w[j] += 1 }
+    }
+
+    power_prod(&amp;mut w, minp)
+}
+
+fn count_f(n: usize, minp: &amp;[usize]) -&gt; BigUint {
+    let mut w = vec![0; 3 * n];
+
+    for i in 0..n {
+        for j in (2 * i + 1)..=(2 * i + n) { w[j] -= 1 }
+        for j in (i + n + 1)..=(i + 2 * n) { w[j] += 1 }
+    }
+
+    power_prod(&amp;mut w, minp)
+}
+
+fn count_r3(n: usize, minp: &amp;[usize]) -&gt; BigUint {
+    if n &amp; 1 == 1 { return BigUint::zero() }
+    let res = count_e(n / 2, minp);
+    res.pow(2u8)
+}
+
+fn count_r(n: usize, minp: &amp;[usize]) -&gt; BigUint {
+    if n &amp; 1 == 1 { return BigUint::zero() }
+    let m = n / 2;
+    // let mut w = vec![0; 3 * m - 1];
+    let mut w = vec![0; 3 * m - 1];
+
+    for i in 0..m {
+        for j in 1..=(3 * i + 1) { w[j] += 2 }
+        for j in 1..=(i + m) { w[j] -= 2 }
+    }
+
+    // power_prod(&amp;w, minp)
+    power_prod(&amp;mut w, minp)
+}
+
+fn count_fr(n: usize, minp: &amp;[usize]) -&gt; BigUint {
+    if n &amp; 1 == 1 { return BigUint::zero() }
+    let m:i32 = n as i32 / 2;
+    let mut w = vec![0; 3 * n - 2];
+    // println!(&quot;n={:?}   m={:?}&quot;, n, m);
+
+    for j in 1..=m { w[j as usize] -= 1 }
+    for j in (2 * m)..(3 * m) { w[j as usize] += 1 }
+    for i in 0..=(2 * m - 3) {
+        // println!(&quot;start{:?}    end{:?}&quot;, (i + 2 * m + 1),  (i + 4 * m));
+        for j in (i + 2 * m + 1)..=std::cmp::min(w.len() as i32 - 1, i + 4 * m) { w[j as usize] += 1 }
+        // println!(&quot;start{:?}    end{:?}&quot;, (2 * i + 3),  (2 * i + 2 * m + 2));
+        for j in (2 * i + 3)..=std::cmp::min(w.len() as i32 - 1, (2 * i + 2 * m + 2)) { w[j as usize] -= 1 }
+        // println!(&quot;i={:?}&quot;,i);
+    }
+
+    power_prod(&amp;mut w, minp)
+}
+
+fn power_prod(w: &amp;mut [i32], minp: &amp;[usize]) -&gt; BigUint {
+    let mut result = BigUint::one();
+    // println!(&quot;left={:?}   right={:?}&quot;, 2, w.len());
+    for x in (2..w.len()).rev() {
+        if w[x] != 0 {
+            let p = minp[x];
+            if p == x {
+                result *= BigUint::from(p as u8).pow(w[p] as u32);
+            } else {
+                w[p] += w[x];
+                w[x / p] += w[x];
+            }
+        }
+        // println!(&quot;x={:?}&quot;, x);
+    }
+    result
+}
+
+</code></pre>
+<h3><code>Cargo.toml</code></h3>
+<pre><code>[package]
+name = &quot;rust_hello&quot;
+version = &quot;0.1.0&quot;
+edition = &quot;2021&quot;
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+num-bigint = &quot;0.3&quot;
+num-traits = &quot;0.2&quot;
+
+[profile.release]
+lto = &quot;y&quot;
+panic = &quot;abort&quot;
+</code></pre>
+<h3>Build and run</h3>
+<pre><code>$ cargo build --release
+$ cargo run --release
+
+    Finished release [optimized] target(s) in 0.03s
+     Running `target\release\rust_hello.exe`
+0       1
+1       1
+2       6
+3       113
+4       20174
+5       22306955
+6       123222909271
+7       3283834214485890
+8       421263391026827547540
+9       260028731850596651411721718
+10      772086476515163830856527013278243
+11      11025620741283840573496993339545350520150
+12      757129347300072898736973484532998417574513923224
+13      249988147151001673705019407088899436686198854480028470000
+14      396838668136562149340506906750722486726178589993407032745345886384
+15      3028477458789741699983305448780147795991274413836547758038383842702471625120
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>Scala</h1>
+<p>A port of <a href="https://codegolf.stackexchange.com/a/51662/110802">@Peter Taylor's Java answer</a> in Scala.</p>
+<p><a href="https://tio.run/##zVZbb9MwFH5efsXRNJANLN1SxMNEJ22olXihqPDERShr3NYjcSLbaTJN/e3l2E7SZPQCiNtLm5yc63e@Yx81DeNwveZJlkoNyrz50zSO2VTzVPhJrsObmPlXUoZ31/lsxqTX0U1CvfC/1LLbcFmJrvn8tdBsjvpeenOL7mCcaZ5wxaJXaY6fJLBSMxEpuMoyuPcAMsmXoWawDCUkXGQwgFZcf8bjmASUnFEPlfkMSCjnyo@ZmOsFXMIZtV4ArDgJM/MdBpfGr9CxIFMT1wh9nWJylFJUXwGLFassyRmgCo/h/AX1Z6lk4XRBRNuHOj4Rn/TJvfMl6OrYefFa@UdsBtX3CzCBLmADBxblYpkC0PXA5C2ZzqVoafnjN0OvUTNg1HW@hD48AVHXCohWDAWPrOfv4HK6BjKnjDUB4SJiJbw8hbradgAKN3dwTp1Lp0rRs9Go3ryjo6NerwbEmiZf32l8n5PjZw4PC2Y7bRfIOq0D1QDDPZQIcWUF0OvBCCOBXjBQSYhcVNpgmzAoFhz1I75EPwrKxsQlaxMlAegUSvSOPkgJj@CLA9mfMz2WQ2w2kqiyXFX/FdusG@/H6lu59hj0h2hq@z1EQjTSSVCLJ0FbPqrFo452v9Hud@SNuOOjEY86cpUn@GFYVeWHUUQmfdp5DdwfxdGONc/iO9JiHfrI2XiGANGO1cj9HrDq11aYhu@atE3tPNgzMsO9M2O5fpjnzRiLNsn4hmSEcHhqWI5UsY@Cbub91sx7QW4pnA5Qp2MiumaBDbvN9Glj6jiWpQWTb2UakQJPH5v/bhAMYf4CCoU1sHW4hJtSa3lValC9uuoPI9XV/9Nojf4SZYIdoPxf1OkfvHTw1nlsMhmYOFuung/Dydgq1wMJPSSIj2m4g3NH4N8X17TMnGM28OEmJnCKDr9rZLKrkee2BxuK7@hBc0lUBkY52dXr4NfZ@@@AEwhcsAHOlpnsJ7NlfVIhbMHfz2DsBjoNqi719x7HTqszJM9thP0h2qPZ745m7TE4MKI/17aW3oUD9iN24vOu40dixxTemih6sN9VgFarUbMWSbZkUrHt65HhQ2E3Hbs4khqD1hJb9z2r17aSNnJjnhnbkm7Scg97r/bMzX@BD3Tj7UFQu7pNWMQVLks3OcLFtQ/vF1yBWqR5HAETKpe4xjEIlymPQLB5qPmSKb/lxAQx/S3aiRtxibTe8mnVWebcryvJdm/lrdffAA" rel="nofollow noreferrer">TIO</a></p>
+<pre class="lang-scala prettyprint-override"><code>import scala.collection.mutable.ArrayBuffer
+import scala.math._
+import java.math.BigInteger
+
+object OptimisedCounter extends App {
+  private var minp = ArrayBuffer.fill(2)(0)
+
+  if (args.length &gt; 0) {
+    args.map(arg =&gt; println(count(arg.toInt)))
+  } else {
+    (0 until 16).foreach(n =&gt; println(s&quot;$n\t${count(n)}&quot;))
+  }
+
+  private def count(n: Int): BigInteger = {
+    if (n == 0) return BigInteger.ONE
+
+    if (minp.length &lt; 3 * n) {
+      val wider = ArrayBuffer.fill(3 * n)(0)
+      for (index &lt;- 0 until (minp.length) by 1) wider(index) = minp(index)
+            //println(minp.mkString(&quot;,&quot;))
+      (minp.length until wider.length).foreach { x =&gt;
+        // Find the smallest prime which divides x
+        wider(x) = (2 to x).find(x % _ == 0).getOrElse(2)
+      }
+      minp = wider
+
+            //println(minp.mkString(&quot;,&quot;))
+    }
+
+    val E = countE(n)
+    val R2 = countR2(n)
+    val F = countF(n)
+    val R3 = countR3(n)
+    val R = countR(n)
+    val FR = countFR(n)
+    val sum = E
+      .add(R3)
+      .add(R2.add(R).multiply(BigInteger.valueOf(2)))
+      .add(F.add(FR).multiply(BigInteger.valueOf(3)))
+    sum.divide(BigInteger.valueOf(12))
+  }
+
+  private def countE(n: Int): BigInteger = {
+    val w = ArrayBuffer.fill(3 * n)(0)
+    (0 until n).foreach { i =&gt;
+      ((i + 1) to (i + n)).foreach(j =&gt; w(j) -= 1)
+      ((i + n + 1) to (i + 2 * n)).foreach(j =&gt; w(j) += 1)
+    }
+    powerProd(w.toArray)
+  }
+
+  private def countR2(n: Int): BigInteger = {
+    val w = ArrayBuffer.fill(3 * n)(0)
+    (0 until n).foreach { i =&gt;
+      w(3 * i + 2) += 1
+      ((3 * i + 1) to (2 * i + n + 1)).foreach(j =&gt; w(j) -= 1)
+      ((2 * i + n + 1) to (i + 2 * n)).foreach(j =&gt; w(j) += 1)
+    }
+    powerProd(w.toArray)
+  }
+
+  private def countF(n: Int): BigInteger = {
+    val w = ArrayBuffer.fill(3 * n)(0)
+    (0 until n).foreach { i =&gt;
+      ((2 * i + 1) to (2 * i + n)).foreach(j =&gt; w(j) -= 1)
+      ((i + n + 1) to (i + 2 * n)).foreach(j =&gt; w(j) += 1)
+    }
+    powerProd(w.toArray)
+  }
+
+  private def countR3(n: Int): BigInteger = {
+    if ((n &amp; 1) == 1) return BigInteger.ZERO
+    countE(n / 2).pow(2)
+  }
+
+  private def countR(n: Int): BigInteger = {
+    if ((n &amp; 1) == 1) return BigInteger.ZERO
+    val m = n / 2
+    val w = ArrayBuffer.fill(3 * m - 1)(0)
+    (0 until m).foreach { i =&gt;
+      (1 to (3 * i + 1)).foreach(j =&gt; w(j) += 2)
+      (1 to (i + m)).foreach(j =&gt; w(j) -= 2)
+    }
+    powerProd(w.toArray)
+  }
+
+  private def countFR(n: Int): BigInteger = {
+    if ((n &amp; 1) == 1) return BigInteger.ZERO
+    val m = n / 2
+    val w = ArrayBuffer.fill(3 * n - 2)(0)
+    (1 to m).foreach(j =&gt; w(j) -= 1)
+    (2 * m until 3 * m).foreach(j =&gt; w(j) += 1)
+    (0 to 2 * m - 3).foreach { i =&gt;
+      ((i + 2 * m + 1) to (i + 4 * m)).foreach(j =&gt; w(j) += 1)
+      ((2 * i + 3) to (2 * i + 2 * m + 2)).foreach(j =&gt; w(j) -= 1)
+    }
+    powerProd(w.toArray)
+  }
+
+  private def powerProd(w: Array[Int]): BigInteger = {
+    var result = BigInteger.ONE
+    (2 until w.length).reverse.foreach { x =&gt;
+      if (w(x) == 0) ()
+      else {
+        val p = minp(x)
+        if (p == x) result = result.multiply(BigInteger.valueOf(p).pow(w(p)))
+        else {
+          // Redistribute it. This should ensure we avoid negatives.
+          w(p) += w(x)
+          w(x / p) += w(x)
+        }
+      }
+    }
+    result
+  }
+}
+</code></pre>
+</div>
+<div id="pu2" class="pu"><h2>Algebra, graph theory, Möbius inversion, research, and Java</h2>
+
+<p>The symmetry group of the hexagon is the dihedral group of order 12, and is generated by a 60 degree rotation and a mirror flip across a diameter. It has 16 subgroups, but some of them are in non-trivial conjugacy groups (the ones which only have reflections have 3 choices of axis), so there are 10 fundamentally different symmetries which a tiling of the hexagon can have:</p>
+
+<p><img src="https://i.stack.imgur.com/hPWBZ.png" alt="Images of the 10 symmetries"></p>
+
+<p>The number of diamond tilings of a subset of a triangular lattice can be <a href="https://en.wikipedia.org/wiki/FKT_algorithm">calculated as a determinant</a>, so my initial approach was to set up one determinant for each of the symmetries of the hexagon, to calculate the number of tilings which have <em>at least</em> those symmetries; and then use Möbius inversion in the <a href="https://en.wikipedia.org/wiki/Incidence_algebra">incidence algebra</a> of their poset (basically a generalisation of the inclusion-exclusion principle) to work out the number of tilings whose symmetry group is <em>exactly</em> each of the 10 cases. However, some of the symmetries have nasty edge conditions, so I was forced to sum over exponentially many determinants. Fortunately, the values obtained for <code>n &lt; 10</code> gave me enough data to be able to identify relevant sequences in OEIS and piece together a closed form (for some value of "closed" which allows finite products). There's a bit of discussion of the sequences, and references to proofs, in the <a href="http://cheddarmonk.org/papers/distinct-dimer-hex-tilings.pdf">formal writeup</a> which I prepared to justify the OEIS sequence updates.</p>
+
+<p>Once the double-counting is taken care of, it turns out that four of the ten values cancel out neatly, so we only have to calculate the remaining six and then do a weighted sum.</p>
+
+<p>This code takes under 30 seconds for <code>N=1000</code> on my machine.</p>
+
+<pre class="lang-java prettyprint-override"><code>import java.math.BigInteger;
+
+public class OptimisedCounter {
+    private static int[] minp = new int[2];
+
+    public static void main(String[] args) {
+        if (args.length &gt; 0) {
+            for (String arg : args) System.out.println(count(Integer.parseInt(arg)));
+        }
+        else {
+            for (int n = 0; n &lt; 16; n++) {
+                System.out.format("%d\t%s\n", n, count(n));
+            }
+        }
+    }
+
+    private static BigInteger count(int n) {
+        if (n == 0) return BigInteger.ONE;
+
+        if (minp.length &lt; 3*n) {
+            int[] wider = new int[3*n];
+            System.arraycopy(minp, 0, wider, 0, minp.length);
+            for (int x = minp.length; x &lt; wider.length; x++) {
+                // Find the smallest prime which divides x
+                for (wider[x] = 2; x % wider[x] != 0; wider[x]++) { /* Do nothing */ }
+            }
+            minp = wider;
+        }
+
+        BigInteger E = countE(n), R2 = countR2(n), F = countF(n), R3 = countR3(n), R = countR(n), FR = countFR(n);
+        BigInteger sum = E.add(R3);
+        sum = sum.add(R2.add(R).multiply(BigInteger.valueOf(2)));
+        sum = sum.add(F.add(FR).multiply(BigInteger.valueOf(3)));
+        return sum.divide(BigInteger.valueOf(12));
+    }
+
+    private static BigInteger countE(int n) {
+        int[] w = new int[3*n];
+        for (int i = 0; i &lt; n; i++) {
+            for (int j = i + 1; j &lt;= i + n; j++) w[j]--;
+            for (int j = i + n + 1; j &lt;= i + 2*n; j++) w[j]++;
+        }
+        return powerProd(w);
+    }
+
+    private static BigInteger countR2(int n) {
+        int[] w = new int[3*n];
+        for (int i = 0; i &lt; n; i++) {
+            w[3*i+2]++;
+            for (int j = 3*i + 1; j &lt;= 2*i + n + 1; j++) w[j]--;
+            for (int j = 2*i + n + 1; j &lt;= i + n + n; j++) w[j]++;
+        }
+        return powerProd(w);
+    }
+
+    private static BigInteger countF(int n) {
+        int[] w = new int[3*n];
+        for (int i = 0; i &lt; n; i++) {
+            for (int j = 2*i + 1; j &lt;= 2*i + n; j++) w[j]--;
+            for (int j = i + n + 1; j &lt;= i + 2*n; j++) w[j]++;
+        }
+        return powerProd(w);
+    }
+
+    private static BigInteger countR3(int n) {
+        if ((n &amp; 1) == 1) return BigInteger.ZERO;
+        return countE(n / 2).pow(2);
+    }
+
+    private static BigInteger countR(int n) {
+        if ((n &amp; 1) == 1) return BigInteger.ZERO;
+        int m = n / 2;
+        int[] w = new int[3*m-1];
+        for (int i = 0; i &lt; m; i++) {
+            for (int j = 1; j &lt;= 3*i+1; j++) w[j] += 2;
+            for (int j = 1; j &lt;= i + m; j++) w[j] -= 2;
+        }
+        return powerProd(w);
+    }
+
+    private static BigInteger countFR(int n) {
+        if ((n &amp; 1) == 1) return BigInteger.ZERO;
+        int m = n / 2;
+        int[] w = new int[3*n-2];
+        for (int j = 1; j &lt;= m; j++) w[j]--;
+        for (int j = 2*m; j &lt;= 3*m-1; j++) w[j]++;
+        for (int i = 0; i &lt;= 2*m-3; i++) {
+            for (int j = i + 2*m + 1; j &lt;= i + 4*m; j++) w[j]++;
+            for (int j = 2*i + 3; j &lt;= 2*i + 2*m + 2; j++) w[j]--;
+        }
+        return powerProd(w);
+    }
+
+    private static BigInteger powerProd(int[] w) {
+        BigInteger result = BigInteger.ONE;
+        for (int x = w.length - 1; x &gt; 1; x--) {
+            if (w[x] == 0) continue;
+
+            int p = minp[x];
+            if (p == x) result = result.multiply(BigInteger.valueOf(p).pow(w[p]));
+            else {
+                // Redistribute it. This should ensure we avoid negatives.
+                w[p] += w[x];
+                w[x / p] += w[x];
+            }
+        }
+
+        return result;
+    }
+}
+</code></pre>
+</div>
+<div id="pu3" class="pu"><h1>C</h1>
+<p><strong>Introduction</strong></p>
+<p>As commented by David Carraher, the simplest way of analysing the hexagon tiling seemed to be to take advantage of its isomorphism with the 3 dimensional Young Diagram, essentially an x,y square filled with integer height bars whose z heights must stay the same or increase as the z axis is approached.</p>
+<p>I started with an algorithm for finding the totals which is more amenable to adaptation for symmetry counting than the published algorithm, which is based on a bias to one of the three cartesian axes.</p>
+<p><strong>Algorithm</strong></p>
+<p>I start by filling the cells of the x,y, and z planes with 1's, while the rest of the area contains zeroes. Once that is done, I build up the pattern layer by layer, with each layer containing the cells which have a common 3D manhattan distance from the origin. A cell can only contain a 1 if the three cells below it also contain a 1. if any of them contains a 0, then the cell must be a 0.</p>
+<p>The advantage of building the pattern up in this way is that each layer is symmetrical about the x=y=z line. This means that each layer can be checked independently for symmetry.</p>
+<p><strong>Symmetry checking</strong></p>
+<p>The symmetries of the solid are as follows: 3 fold rotation about the x=y=z line --&gt; 3 fold rotation about the hexagon centre; and 3 x reflections about the 3 planes containing the x=y=z line and each of the axes x,y,z --&gt; reflection about the lines through the hexagon corners.</p>
+<p>This adds up only to 6 fold symmetry. To get the full symmetry of the hexagon, another kind of symmetry must be considered. Each solid (built from 1's) has a complementary solid (built from 0's). Where N is odd, the complementary solid must be different from the original solid (because it is not possible for them to have the same number of cubes). Yet when the complementary solid is turned round, it will be found that its 2D representation as a diamond tiling is identical (except for a 2-fold symmetry operation) to the original solid. Where N is even, it is possible for the solid to be self-inverse.</p>
+<p>This can be seen in the examples for N=2 in the question. If viewed from the left, the first hexagon looks like a solid cube with 8 small cubes, while the last hexagon looks like an empty shell with 0 small cubes. If viewed from the right, the reverse is true. The 3rd, 4th and 5th hexagons and the 16th, 17th and 18th hexagons look like they contain either 2 or 6 cubes, and thus they complement each other in 3 dimensions. They are related to each other in 2 dimensions by a 2-fold symmetry operation (2-fold rotation, or reflection about an axis through the hexagon's edges.) On the other hand the 9th,10th,11th and 12th hexagons show 3D patterns which are their own complements, and therefore have a higher symmetry (these are therefore the only patterns with odd multiplicity).</p>
+<p>Note that having (N^3)/2 cubes is a necessary condition to be self complement, but in general it is not a sufficient condition if N&gt;2. The result of all this is that for odd N, tilings always occur in pairs (N^3)/2 cubes must be carefully inspected.</p>
+<p><strong>Current code (generates the right total for N=1,2,3,5. Error as discussed for N=4.)</strong></p>
+<pre><code>int n;                     //side length
+
+char t[11][11][11];        //grid sized for N up to 10
+
+int q[29][192], r[29];     //tables of coordinates for up to 10*3-2=28 layers 
+
+int c[9];                  //counts arrangements found by symmetry class. c[8] contains total.
+
+
+//recursive layer counting function. m= manhattan distance, e= number of cells in previous layers, s=symmetry class.
+void f(int m,int e,int s){
+    
+  int u[64], v[64], w[64]; //shortlists for x,y,z coordinates of cells in this layer
+  int j=0;                 
+  int x,y,z;
+
+  for (int i=r[m]*3; i; i-=3){
+    // get a set of coordinates for a cell in the current layer.
+    x=q[m][i-3]; y= q[m][i-2]; z= q[m][i-1];
+    // if the three cells in the previous layer are filled, add it to the shortlist u[],v[],w[]. j indicates the length of the shortlist.
+    if (t[x][y][z-1] &amp;&amp; t[x][y-1][z] &amp;&amp; t[x-1][y][z]) u[j]=x, v[j]=y, w[j++]=z ;
+  }
+
+
+  // there are 1&lt;&lt;j possible arrangements for this layer.   
+  for (int i = 1 &lt;&lt; j; i--;) {
+
+    int d = 0;
+
+    // for each value of i, set the 1's bits of t[] to the 1's bits of i. Count the number of 1's into d as we go.
+    for (int k = j; k--;) d+=(t[u[k]][v[k]][w[k]]=(i&gt;&gt;k)&amp;1);
+
+    // we have no interest in i=0 as it is the empty layer and therefore the same as the previous recursion step. 
+    // Still we loop through it to ensure t[] is properly cleared.      
+ 
+    if(i&gt;0){
+      int s1=s;    //local copy of symmetry class. 1's bit for 3 fold rotation, 2's bit for reflection in y axis.
+      int sc=0;    //symmetry of self-complement.
+
+      //if previous layers were symmetrical, test if the symmetry has been reduced by the current layer 
+      if (s1) for (int k = j; k--;) s1 &amp;= (t[u[k]][v[k]][w[k]]==t[w[k]][u[k]][v[k]]) | (t[u[k]][v[k]][w[k]]==t[w[k]][v[k]][u[k]])&lt;&lt;1;
+
+      //if exactly half the cells are filled, test for self complement
+      if ((e+d)*2==n*n*n){
+        sc=1;
+        for(int A=1; A&lt;=(n&gt;&gt;1); A++)for(int B=1; B&lt;=n; B++)for(int C=1; C&lt;=n; C++) sc&amp;=t[A][B][C]^t[n+1-A][n+1-B][n+1-C];
+      }
+
+      //increment counters for total and for symmetry class.
+      c[8]++; c[s1+(sc&lt;&lt;2)]++;
+
+      //uncomment for graphic display of each block stacking with metadata. not recommended for n&gt;3.
+      //printf(&quot;m=%d  j=%d  i=%d c1=%d-2*%d=%d c3=%d cy=%d(cs=%d) c3v=%d ctot=%d\n&quot;,m,j,i,c[0],c[2],c[0]-2*c[2],c[1],c[2],c[2]*3,c[3],c[8]);
+      //printf(&quot;m=%d  j=%d  i=%d C1=%d-2*%d=%d C3=%d CY=%d(CS=%d) C3V=%d ctot=%d\n&quot;,m,j,i,c[4],c[6],c[4]-2*c[6],c[5],c[6],c[6]*3,c[7],c[8]);
+      //for (int A = 0; A&lt;4; A++, puts(&quot;&quot;))for (int B = 0; B&lt;4; B++, printf(&quot; &quot;))for (int C = 0; C&lt;4; C++) printf(&quot;%c&quot;,34+t[A][B][C]);
+
+      //recurse to next level.
+      if(m&lt;n*3-2)f(m + 1,e+d,s1);
+
+    }
+  } 
+}
+
+main()
+{
+  scanf(&quot;%d&quot;,&amp;n);
+
+  int x,y,z;
+
+  // Fill x,y and z planes of t[] with 1's
+  for (int a=0; a&lt;9; a++) for (int b=0; b&lt;9; b++) t[a][b][0]= t[0][a][b]= t[b][0][a]= 1;
+
+  // Build table of coordinates for each manhattan layer
+  for (int m=1; m &lt; n*3-1; m++){
+    printf(&quot;m=%d : &quot;,m);
+    int j=0;
+    for (x = 1; x &lt;= n; x++) for (y = 1; y &lt;= n; y++) {
+      z=m+2-x-y;
+      if (z&gt;0 &amp;&amp; z &lt;= n) q[m][j++] = x, q[m][j++] = y, q[m][j++]=z, printf(&quot; %d%d%d &quot;,x,y,z);
+      r[m]=j/3;
+    }
+    printf(&quot; : r=%d\n&quot;,r[m]);
+  }
+  
+  // Set count to 1 representing the empty box (symmetry c3v)
+  c[8]=1; c[3]=1; 
+
+  // Start searching at f=1, with 0 cells occupied and symmetry 3=c3v
+  f(1,0,3); 
+
+  // c[2 and 6] only contain reflections in y axis, therefore must be multiplied by 3.
+  // Similarly the reflections in x and z axis must be subtracted from c[0] and c[4].
+  c[0]-=c[2]*2; c[2]*=3; 
+  c[4]-=c[6]*2; c[6]*=3;
+  
+
+
+  int cr[9];cr[8]=0;
+  printf(&quot;non self-complement                   self-complement\n&quot;);
+  printf(&quot;c1  %9d/12=%9d           C1  %9d/6=%9d\n&quot;,   c[0], cr[0]=c[0]/12,     c[4], cr[4]=c[4]/6);
+  if(cr[0]*12!=c[0])puts(&quot;c1 division error&quot;);if(cr[4]*6!=c[4])puts(&quot;C1 division error&quot;);
+
+  printf(&quot;c3  %9d/4 =%9d           C3  %9d/2=%9d\n&quot;,   c[1], cr[1]=c[1]/4,      c[5], cr[5]=c[5]/2);
+  if(cr[1]*4!=c[1])puts(&quot;c3 division error&quot;);if(cr[5]*2!=c[5])puts(&quot;C3 division error&quot;);
+
+  printf(&quot;cs  %9d/6 =%9d           CS  %9d/3=%9d\n&quot;,   c[2], cr[2]=c[2]/6,      c[6], cr[6]=c[6]/3);
+  if(cr[2]*6!=c[2])puts(&quot;cs division error&quot;);if(cr[6]*3!=c[6])puts(&quot;CS division error&quot;);
+
+  printf(&quot;c3v %9d/2 =%9d           C3V %9d/1=%9d\n&quot;,   c[3], cr[3]=c[3]/2,      c[7], cr[7]=c[7]);
+  if(cr[3]*2!=c[3])puts(&quot;c3v division error&quot;);  
+
+  for(int i=8;i--;)cr[8]+=cr[i]; 
+  printf(&quot;total =%d unique =%d&quot;,c[8],cr[8]);    
+}
+</code></pre>
+<p><strong>Output</strong></p>
+<p>The program generates an output table of 8 entries, in accordance with the 8 symmetries of the solid. The solid can have any of 4 symmetries as follows (Schoenflies notation)</p>
+<pre><code>c1: no symmetry
+c3: 3-fold axis of rotation (produces 3-fold axis of rotation in hexagon tiling)
+cs: plane of reflection (produces line of reflection in hexagon tiling)
+c3v both of the above (produces 3-fold axis of rotation and three lines of reflection through the hexagon corners)
+</code></pre>
+<p>Additionally, when the solid has exactly half the cells with 1's and half with 0's, there exists the possibility of flipping all the 1's and 0's, then inverting the coordinates through the centre of the cube space. This is what I am calling self-complement, but a more mathematical term would be &quot;antisymmetric with respect to a centre of inversion.&quot;</p>
+<p>This symmetry operation gives a 2-fold axis of rotation in the hexagon tiling.</p>
+<p>Patterns which have this symmetry are listed in a separate column. They only occur where N is even.</p>
+<p>My count seems to be slightly off for N=4. In discussion with Peter Taylor it appears that I am not detecting tilings which only have a symmetry of a line through the hexagon edges. This is presumably because I have not tested for self complement (antisymmetry) for operations other than (inversion)x(identity.) Testing for self complement for the operatons (inversion)x(reflection) and (inversion)x(3-fold rotation) may uncover the missing symmetries. I would then expect the first line of the data for N=4 to look like this (16 less in c1 and 32 more in C1):</p>
+<pre><code>c1   224064/12=18672          C1  534/6=89
+</code></pre>
+<p>This would bring the totals in line with Peter's answer and <a href="https://oeis.org/A066931/a066931.txt" rel="noreferrer">https://oeis.org/A066931/a066931.txt</a></p>
+<p>current output is as follows.</p>
+<pre><code>N=1
+non self-complement     self-complement
+c1      0/12= 0           C1  0/6= 0
+c3      0/4 = 0           C3  0/2= 0
+cs      0/6 = 0           CS  0/3= 0
+c3v     2/2 = 1           C3V 0/1= 0
+total =2 unique =1
+
+non self-complement     self-complement
+N=2
+c1      0/12= 0           C1  0/6= 0
+c3      0/4 = 0           C3  0/2= 0
+cs     12/6 = 2           CS  3/3= 1
+c3v     4/2 = 2           C3V 1/1= 1
+total =20 unique =6
+
+N=3
+non self-complement     self-complement
+c1    672/12=56           C1  0/6= 0
+c3      4/4 = 1           C3  0/2= 0
+cs    288/6 =48           CS  0/3= 0
+c3v    16/2 = 8           C3V 0/1= 0
+total =980 unique =113
+
+N=4 (errors as discussed)
+non self-complement     self-complement
+c1   224256/12=18688          C1  342/6=57
+c3       64/4 =16             C3  2/2= 1
+cs     8064/6 =1344           CS  54/3=18
+c3v      64/2 =32             C3V 2/1= 2
+total =232848 unique =20158
+
+N=5
+non self-complement     self-complement
+c1  266774112/12=22231176        C1  0/6= 0
+c3       1100/4 =275             C3  0/2= 0
+cs     451968/6 =75328           CS  0/3= 0
+c3v       352/2 =176             C3V 0/1= 0
+total =267227532 unique =22306955
+</code></pre>
+<p><strong>To-do list (updated)</strong></p>
+<blockquote>
+<p>Tidy up current code.</p>
+</blockquote>
+<p>Done, more or less</p>
+<blockquote>
+<p>Implement symmetry checking for current layer, and pass a parameter for the symmetry of the previous layer (no point in checking if the last layer was asymmetrical.)</p>
+</blockquote>
+<p>Done, results for odd N agree with published data</p>
+<blockquote>
+<p>Add an option to suppress counting asymmetrical figures (should run much faster)</p>
+</blockquote>
+<p>This can be done by adding another condition to the recursion call: <code>if(s1 &amp;&amp; m&lt;n*3-2)f(m + 1,e+d,s1)</code> It reduces the run time for N=5 from 5 minutes down to about a second. As a result the first line of the output becomes total garbage (as do the overall totals) but if the total is already known from OEIS the number of asymmetric tilings can be reconstituted, at least for odd N.</p>
+<p>But for even N, the number of asymmetric (according to c3v symmetries) solids that are self-complement would be lost. For this case, a separate program dedicated to solids with exactly (N**3)/2 cells with a 1 may be useful. With this available (and counting correctly) it may be possible to try N=6, but it will take a long time to run.</p>
+<blockquote>
+<p>Implement counting of cells to reduce search to up to (N^3)/2 cubes.</p>
+</blockquote>
+<p>Not done, savings expected to be marginal</p>
+<blockquote>
+<p>Implement symmetry (complementary solid) checking for patterns containing exactly (N^3)/2 cubes.</p>
+</blockquote>
+<p>Done, but seems to have omissions, see N=4.</p>
+<blockquote>
+<p>Find a way to pick the lexically lowest figure from an asymetrical one.</p>
+</blockquote>
+<p>Savings are not expected to be that great. Supressing asymmetrical figures eliminates most of this. The only reflection that is checked is the plane through the y axis (x and z are calculated later by multiplying by 3.) Figures with only rotational symmetry are counted in both their enantiomeric forms. Perhaps it would run nearly twice as fast if only one was counted.</p>
+<blockquote>
+<p>To facilitate this, possibly improve the way the coordinates in each layer are listed (they form degenerate groups of 6 or 3, with possibly a group of 1 in the exact centre of the layer.)</p>
+</blockquote>
+<p>Interesting but probably there are other questions on the site to explore.</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../index.html">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/51266/">51266</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
