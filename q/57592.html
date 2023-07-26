@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="g.js"></script>
+    <title>cg::57592</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>nan</td><td></td><td>230726T164854Z</td><td><a href="https://codegolf.stackexchange.com/questions/57592/find-the-digit-occurring-the-most-in-a-range-of-prime-numbers/263376#263376">FarSeenN</a></td></tr>
+<tr d-ix="1"><td>003</td><td>Python</td><td>150911T230419Z</td><td><a href="https://codegolf.stackexchange.com/questions/57592/find-the-digit-occurring-the-most-in-a-range-of-prime-numbers/57723#57723">Zach Gat</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>Mathematica</h1>
+<pre><code> Print[&quot;&quot;&lt;&gt;IntegerString[MaximalBy[Tally[Join@@IntegerDigits[Prime[Range[PrimePi[#1]+1,PrimePi[#2]]]]],Last][[;;,1]]&amp;@@FromDigits/@StringSplit@InputString[]]]
+</code></pre>
+<h2>Time Specs</h2>
+<p>Using Mathematica's builtin timer, <code>AbsoluteTiming</code>, I got these times for each listed range.</p>
+<pre><code>f=MaximalBy[Tally[Join@@IntegerDigits[Prime[Range[PrimePi[#1]+1,PrimePi[#2]]]]],Last][[;;,1]]&amp;
+Grid[Table[{1,10^x+1,AbsoluteTiming[f[1,10^x+1]][[1]]},{x,1,7}]]
+</code></pre>
+<p>Returns:</p>
+<pre><code>1        11   0.0003388
+1       101   0.0003645
+1      1001   0.0016222
+1     10001   0.0040902
+1    100001   0.0267737
+1   1000001   0.211297
+1  10000001   4.55387
+1 100000001  43.9889
+</code></pre>
+<p>It can go over a range of a hundred million numbers in under a minute.</p>
+<h2>Usage</h2>
+<pre><code>wolframscript -f primedigitcount.wls
+? 21 41
+3
+wolframscript -f primedigitcount.wls
+? 51 89
+7
+wolframscript -f primedigitcount.wls
+? 201 501
+3
+</code></pre>
+<h2>Ungolfed</h2>
+<p>Takes the space-seperated input and converts it to two integers</p>
+<pre><code>a = FromDigits/@StringSplit@InputString[]
+</code></pre>
+<p>PrimePi is the inverse function of Prime, so this gets all the primes between the two a's. The <code>+1</code> is that if the operand is not prime, it gets the first prime below it, but we want a prime above the smaller number.</p>
+<pre><code>b = Prime[Range[PrimePi[#1]+1,PrimePi[#2]]&amp;@@a
+</code></pre>
+<p>Turns every number in the list into a list of it's digits, and then concatenates all the lists into one list of all the digits</p>
+<pre><code>c = Join@@IntegerDigits[b]
+</code></pre>
+<p>Mathematica has a nice built-in for turning a list into unique items and their counts.</p>
+<pre><code>d = Tally[c]
+</code></pre>
+<p>Takes a list of the item (or items) who has the largest count, and strips off the tally.</p>
+<pre><code>e = MaximalBy[d,Last][[;;,1]]
+</code></pre>
+<p>Converts every number in the list to a string, concatenates them, and prints it.</p>
+<pre><code>Print[&quot;&quot;&lt;&gt;IntegerString[e]]
+</code></pre>
+<h2>Conjecture:</h2>
+<p>In hope that somebody more mathematically inclined could find this to be an O(n) problem, I leave you this conjecture:</p>
+<p>If the first number is kept as 1, and the 2nd number tends to be large (n&gt;100), the result will be no more than two of 1, 3, or 7.</p>
+</div>
+<div id="pu1" class="pu"><h1>Python 3</h1>
+
+<pre><code>import collections
+p=lambda n:n&gt;1 and all(n%i for i in range(int(n**0.5),1,-1))
+print(collections.Counter(''.join(map(str,filter(p,range(*map(int,raw_input().split(' '))))))).most_common(1)[0][0])
+</code></pre>
+
+<p>Probably not the best way it can be done, but a start. (<strong>196 bytes</strong>)</p>
+
+<h2>Time Specs</h2>
+
+<p>Using Python's builtin code timer module, <code>timeit</code>, I got these times for each listed range.</p>
+
+<pre><code>(1,       11):      0.000084381103520
+(1,      101):      0.000338881015778
+(1,     1001):      0.003911740779880
+(1,    10001):      0.071979818344100
+(1,   100001):      1.785329985620000
+(1,  1000001):     54.977741956700000
+(1, 10000001):   1700.231099130000000
+</code></pre>
+
+<p>It can go over a range of a million numbers in under a minute.</p>
+
+<h2>Usage</h2>
+
+<pre><code>$ python test.py
+21 41
+3
+$ python test.py
+51 89
+7
+$ python test.py
+201 501
+3
+</code></pre>
+
+<h2>Ungolfed</h2>
+
+<pre><code>import collections
+
+def is_it_prime(n):
+    if n &gt; 1:
+        if all(n % i for i in range(int(n ** 0.5), 1, -1)):
+            return True
+    return False
+
+start, stop = raw_input.split(' ', 1)
+
+primes = ""
+for p in range(int(start), int(stop)):
+    if is_it_prime(p):
+        primes += str(p)
+
+counter = collections.Counter(primes).most_common(1)
+print(counter[0][0])
+</code></pre>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../index.html">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/57592/">57592</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
