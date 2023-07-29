@@ -26,12 +26,34 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>204</td><td>Rust</td><td>230729T140042Z</td><td><a href="https://codegolf.stackexchange.com/questions/263496/can-you-perform-swaps/263499#263499">mousetai</a></td></tr>
+<tr d-ix="0"><td>110</td><td>JavaScript</td><td>230729T144258Z</td><td><a href="https://codegolf.stackexchange.com/questions/263496/can-you-perform-swaps/263501#263501">bsoelch</a></td></tr>
+<tr d-ix="1"><td>nan</td><td>Rust</td><td>230729T140042Z</td><td><a href="https://codegolf.stackexchange.com/questions/263496/can-you-perform-swaps/263499#263499">mousetai</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.rust-lang.org" rel="nofollow noreferrer">Rust</a>, 204 bytes</h1>
-<pre class="lang-rust prettyprint-override"><code>|a,b|a.into_iter().zip(b).fold(vec![(0,0)],|c,(d,e)|c.into_iter().flat_map(|f:(i8,i8)|[(d,e),(e,d)].into_iter().map(move|g|(f.0+g.0,f.1+g.1)).filter(|g|g.0&gt;=0&amp;&amp;g.1&gt;=0)).collect()).iter().any(|&amp;q|q==(0,0))
+<div id="pu0" class="pu"><h1>JavaScript, 110 bytes</h1>
+<pre><code>b=(x,k=0n)=&gt;k&lt;0?0:x?b(x/4n,k+(x&amp;1n)-(x&amp;2n)):!k
+f=(l,r,k=0n)=&gt;b(l^k&amp;(r^l))&amp;&amp;b(r^k&amp;(r^l))||(k&gt;l+r?0n:f(l,r,++k))
 </code></pre>
-<p><a href="https://ato.pxeger.com/run?1=jVNBbsIwEJR6a15hckC2akcJpyg09Be9oAiFxEaWjA3BoLaYl_TCoX1Cf9EP0NfUJJAQBKWRk13PzI52pc37R7Fc6K-hSwjNueZKuhi4Pb8XuMmOMAmmKZcQgbUjqAYsYhI-0-yRhwN8iIgMxkoJEH8uNSPh7tukeGxSj0utRlzTAiLvjc_gGHlMiRyuaNYZQh_7KMEmwzDHFJmsJWci1aNpOoOGRZCHmIfIDEshhhTnKGmp98KpWlEzMZB5_sPE8zHzAhsDZL242MssafFB7He7FrfRUpkSgmYa2vRglcpXaLpzM4_jskNUzfRzJ_vAcZgqgKYLPcrSBQVcgqFzX40TJBiUCdlnLBUL22pNYkBqwfGii2VbUh1Sv62CmrtaTv6ov1VOTgoP52J1bXw2IGnx5w1cZf_lctvpsttNs2bWZsQTm8RuPLDPrLCrJmQHuuvoaQPKD32Z2bWheVRe7f9SL4WXCSUpRNYHNqDfwA0YHMEW2kN9Z-NsqrXbbqv4Cw" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<p>Encodes expressions as base four numbers with <code>1</code> for <code>(</code> and <code>3</code>  for <code>)</code>,
+return falsey (<code>0</code> or <code>false</code>) for false and <code>true</code> for true.</p>
+<p>Helper functions for converting strings to the corresponding base 4 numbers</p>
+<pre><code>e=(s)=&gt;s?4n*e(s.slice(1))+(s[0]=='('?1n:3n):0n
+h=(x,y)=&gt;f(e(x),e(y))
+
+h(&quot;)))(((&quot;,&quot;((()))&quot;) // -&gt; 0n
+</code></pre>
+<p><em>I was unable to verify the last two Test-cases, as the function exceeded the maximum recursion depth (which as far as I known is allowed for code-golf)
+if this is not allowed I will rewrite the function to use a for-loop.</em></p>
+<h1>Explanation</h1>
+<p><code>b</code> checks if a given number is balanced, by counting the <code>1</code> and <code>3</code> digits and returning 0 if the intermediate count goes below zero,
+or if the final count is not exactly zero.</p>
+<p><code>f</code> checks for all binary numbers <code>k</code> (up to <code>l+r</code>) if swapping the bits of the two inputs at the positions that are one in <code>k</code> will result in a pair of balanced strings.
+Swapping a bit has no effect if it is the low bit of a base 4 digit where both numbers have a <code>1</code> bit, if it is the high bit it will swap the characters that the given positions in the strings.</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.rust-lang.org" rel="nofollow noreferrer">Rust</a>, <del>204</del> 179 bytes</h1>
+<pre class="lang-rust prettyprint-override"><code>|a,b|a.into_iter().zip(b).fold(vec![(0,0)],|c,(d,e)|c.into_iter().flat_map(
+|f:(i8,i8)|[(f.0+d,f.1+e),(f.0+e,f.0+d)]).filter(|g|g.0&gt;=0&amp;&amp;g.1&gt;=0).collect()).iter().any(|&amp;q|q==(0,0))
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=jVNBbsIwEJR6a15hckC2sK2EUwSF_qIXFKGQ2MiScUJiqraYl_TCoX1B1cfQ19QkkBAEpZGT9c7ujHalyftHvir098QlhCVCi1S5GLh9r--74Y5wBRaRUBCBtSOZBnzAFXxi8YMIxvgQERnP0lSC0edKcxLsvkyEZyaiQul0KjTLIaJvIoMzRHkqE_jM4s4EethDITYxhglmyMStdi4jPV1EGXQMH0ARYBEgM4Gcer0Ec-r3GMJlxnCJodByhNyTzdzMqTceed3unPo2IhqnUrJYQ4ToQT9Sr9B0l2Y5GpWDoGr0nzs1BI7D0xxoVuhpHBUMCAUmzn01tR9iUF7I_sYjWdhB6iIGpG44JjpftVuqQ-q3RahrV-nkD_4tOjkhHs5Fdi18tiBp1c8HuFr9l8ptpctqN8WaXZsVT2RCa2xgnyy3_pOqA9314HEDyg97yaxtWDIoU_tb1KagsUwVg8jqwAb0GrgB_SPYQvto6GycTWW77baKvw" rel="nofollow noreferrer">Attempt This Online!</a></p>
 <p>Uses <code>1</code> to represent an opening parenthesis and <code>-1</code> for closing. Simple brute-force solution.</p>
 </div>
 
