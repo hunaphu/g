@@ -26,18 +26,12 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>nan</td><td>Rust</td><td>230729T140042Z</td><td><a href="https://codegolf.stackexchange.com/questions/263496/can-you-perform-swaps/263499#263499">mousetai</a></td></tr>
-<tr d-ix="1"><td>011</td><td>Jelly</td><td>230729T164305Z</td><td><a href="https://codegolf.stackexchange.com/questions/263496/can-you-perform-swaps/263509#263509">Jonathan</a></td></tr>
+<tr d-ix="0"><td>011</td><td>Jelly</td><td>230729T164305Z</td><td><a href="https://codegolf.stackexchange.com/questions/263496/can-you-perform-swaps/263509#263509">Jonathan</a></td></tr>
+<tr d-ix="1"><td>nan</td><td>Rust</td><td>230729T140042Z</td><td><a href="https://codegolf.stackexchange.com/questions/263496/can-you-perform-swaps/263499#263499">mousetai</a></td></tr>
 <tr d-ix="2"><td>165</td><td>Scala</td><td>230729T153542Z</td><td><a href="https://codegolf.stackexchange.com/questions/263496/can-you-perform-swaps/263502#263502">138 Aspe</a></td></tr>
 <tr d-ix="3"><td>109</td><td>JavaScript</td><td>230729T144258Z</td><td><a href="https://codegolf.stackexchange.com/questions/263496/can-you-perform-swaps/263501#263501">bsoelch</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.rust-lang.org" rel="nofollow noreferrer">Rust</a>, <del>204</del> <del>179</del> 160 bytes</h1>
-<pre class="lang-rust prettyprint-override"><code>|a,b|a.into_iter().zip(b).fold(([0,0],true),|([c,d],f),e|(match e{(1,1)|(-1,-1)=&gt;[c+e.0,d+e.1],_=&gt;[(c+1).min(d-1),(c+1).max(d-1)]},f&amp;&amp;c&gt;=0&amp;&amp;d&gt;=0))==([0,0],true)
-</code></pre>
-<p><a href="https://ato.pxeger.com/run?1=jVNBboMwEJR6K69wOCBbWSPIKUoK_UUvCEXE2KolYiJwqqiBl_SSQ_uEPqZ9TV1IgERJU2TW3tmd8a60fnsvNqX-jGxKeSq1zJUNyJ54E9-Ov6hQaJVIhQnaWRnXSMyEwk-cPchpCIed0HCZ5xkKPjZa0OnXvkpgWSWuVDpfSM0LTNxXucZL4oo8SzGOPPBi0MWGE6hwxCCNQRDgFV4lmj0jvsM--KTC1AfqkyCM2Ji7HqTG-jEsDIDZ2CfuylSWmgw4uMm2ceMahOOwMPAcJzWWkCAYXtrW-X2n5siyRF4gzUu9YEnJkVQosu7xC2ejyFyFmgP9PYkkK029XRAQ7RKOTtvSIKVdtPtPCF3sKp3-wb9FpwPiYV1kd8JnDdKT-HkBV6P_UrmtdFntpljfa9_iQCY2U4zMty7MbGZqhO3d7LFGjeHbNWeap7PGNW-gGwqXZbnimBgd3INeD_egfwRP0AmZW7VVt2O337f7Dw" rel="nofollow noreferrer">Attempt This Online!</a>
-Uses <code>1</code> to represent an opening parenthesis and <code>-1</code> for closing. Slightly smarter now.</p>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 11 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
+<div id="pu0" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 11 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
 <pre><code>ZŒpÄ«/€oṚ$Ạ
 </code></pre>
 <p>A monadic Link that accepts a pair of lists of <span class="math-container">\$\{1,-1\}\$</span> representing <code>(</code> and <code>)</code> respectively and yields <span class="math-container">\$0\$</span> if balancable or <span class="math-container">\$1\$</span> if not (i.e. outputs the inverse).</p>
@@ -52,9 +46,15 @@ Z           - transpose
     «       -     minimum
          $  - last two links as a monad:
         Ṛ   -   reverse
-       o    -   logical OR
+       o    -   logical OR (vectorises)
           Ạ - all?
 </code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.rust-lang.org" rel="nofollow noreferrer">Rust</a>, <del>204</del> <del>179</del> 147 bytes</h1>
+<pre class="lang-rust prettyprint-override"><code>|a,b|a.into_iter().zip(b).fold(([0,0],false),|([c,d],f),(e,g)|(if e==g{[c+e,d+e]}else{[(c+1).min(d-1),(c+1).max(d-1)]},f||c&lt;0||d&lt;0))==([0,0],false)
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=jVLRboIwFE32Nr6i8tTGloBPRsX9xV4IMVhuTRMsBupiBnzFHvfiw_YJ-xj3NetAQYzONS3tOfeew73Jff_Itrn-CmzGIJZapsqmyB65I88OD0wotI6kwgQVVgIaiYlQ-Bn4TI7n9HgTNl-maYL8z60WbHx4KyO6LCNHKp0upIYME-dVbvCSOCJNYowDl7ohFVGSA6ElDjiNDSQUA12REkuBwPdXRcCHQOMhhBWYzCLAfOgRZ22qiZlnshsY7WoYVlSUJZ-5ZRnPXEJ8v_ebprTvBzVFliXSDGnI9YJHOSCpUGA94hfgg8ALKaof7Pd1rLANUsTahBPQ2baf0mzWnp6gjd2Usz_09-TsTHjcV9Wt8UWDrBe_LOBm9F8u952uu90163rtWjyzCc3gIrM2mRnHRA2wXUyeKlR_YLcBriGe1NCMfTsUDk9SBZgYH9yRbkd3pHcie-yITK3Kqpqx2--b-wc" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<p>Uses <code>1</code> to represent an opening parenthesis and <code>-1</code> for closing. Slightly smarter now.</p>
 </div>
 <div id="pu2" class="pu"><h1><a href="https://www.scala-lang.org/" rel="nofollow noreferrer">Scala</a>, 165 bytes</h1>
 <p>Port of <a href="https://codegolf.stackexchange.com/a/263499/110802">@mousetail's Rust answer</a> in Scala.</p>
