@@ -26,13 +26,41 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>096</td><td>C gcc</td><td>230729T193245Z</td><td><a href="https://codegolf.stackexchange.com/questions/263496/can-you-perform-swaps/263518#263518">SNBeast</a></td></tr>
-<tr d-ix="1"><td>098</td><td>JavaScript</td><td>230729T144258Z</td><td><a href="https://codegolf.stackexchange.com/questions/263496/can-you-perform-swaps/263501#263501">bsoelch</a></td></tr>
+<tr d-ix="0"><td>098</td><td>JavaScript</td><td>230729T144258Z</td><td><a href="https://codegolf.stackexchange.com/questions/263496/can-you-perform-swaps/263501#263501">bsoelch</a></td></tr>
+<tr d-ix="1"><td>096</td><td>C gcc</td><td>230729T193245Z</td><td><a href="https://codegolf.stackexchange.com/questions/263496/can-you-perform-swaps/263518#263518">SNBeast</a></td></tr>
 <tr d-ix="2"><td>013</td><td>Jelly</td><td>230729T164305Z</td><td><a href="https://codegolf.stackexchange.com/questions/263496/can-you-perform-swaps/263509#263509">Jonathan</a></td></tr>
 <tr d-ix="3"><td>nan</td><td>Rust</td><td>230729T140042Z</td><td><a href="https://codegolf.stackexchange.com/questions/263496/can-you-perform-swaps/263499#263499">mousetai</a></td></tr>
 <tr d-ix="4"><td>165</td><td>Scala</td><td>230729T153542Z</td><td><a href="https://codegolf.stackexchange.com/questions/263496/can-you-perform-swaps/263502#263502">138 Aspe</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C (gcc)</a>, <strike>103</strike> <strike>102</strike> 96 bytes</h1>
+<div id="pu0" class="pu"><h1>JavaScript, <s>109</s> <s>107</s> <s>105</s> <s>101</s> 98 bytes</h1>
+<p><em>Thanks to @Arnauld for saving 2 bytes</em></p>
+<pre class="lang-javascript prettyprint-override"><code>b=(x,k=0n)=&gt;k&lt;0?0:x?b(x/4n,k+x%4n-2n):!k
+f=(l,r,k=0n,x=k&amp;(r^l))=&gt;b(l^x)&amp;b(r^x)||k&lt;l+r&amp;&amp;f(l,r,++k)
+</code></pre>
+<p>returns <code>false</code> (for <code>false</code>) or <code>1</code> (for <code>true</code>).</p>
+<p>Encodes expressions as base four numbers with <code>3</code> for <code>(</code> and <code>1</code>  for <code>)</code></p>
+<p>Helper functions for converting strings to the corresponding base 4 numbers</p>
+<pre class="lang-javascript prettyprint-override"><code>e=(s)=&gt;s?4n*e(s.slice(1))+(s[0]=='('?3n:1n):0n
+h=(x,y)=&gt;f(e(x),e(y))
+
+h(&quot;)))(((&quot;,&quot;((()))&quot;) // -&gt; 0
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=dZHRTsMgFIbjLW9hE7v_CFu72QvTDPsGvoBxF0zqFghNiiYs2Zt4swt9KH0aabtpoh3cAN_3n0Pg7d01T_pw-Hh9qae3n0pJBGFk7kjemWVe5WWoFEJWOGF4uCrcdOGovDSslrCi7VURpEnRrizFkIJdBUpV3Afa783S8jZN617m3BAbOn1d3DMt4WPCV4W71vAzb7drjTkRh3_IH6WcYFLduHIeO-aObbqr7WKghkYgobEjYmzdON9YPbPNMzZIkIiEkgj-nlMEGCUA0UC7OZo9GThjRBzZ0aDeyLL_zlDluDjv_ErjFn4s9KOzhmc9feQ3" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<p><em>I was unable to verify the last two Test-cases, as the function exceeded the maximum recursion depth (which as far as I known is allowed for code-golf)</em></p>
+<h1>Explanation</h1>
+<p><code>b</code> checks if a the expression encoded by the given number is balanced, by counting the difference of <code>3</code> digits minus <code>1</code> digits and returning 0 if the intermediate count goes below zero,
+or if the final count is not exactly zero.</p>
+<p><code>f</code> checks for all binary numbers <code>k</code> (up to <code>l+r</code>) if swapping the bits of the two inputs at the positions that are one in <code>k</code> will result in a pair of balanced strings.
+Swapping a bit has no effect if it is the low bit of a base 4 digit where both numbers have a <code>1</code> bit, if it is the high bit it will swap the characters that the given positions in the strings.</p>
+<hr />
+<h1>JavaScript, 114 bytes</h1>
+<pre class="lang-javascript prettyprint-override"><code>b=(x,k=0n)=&gt;k&lt;0?0:x?b(x/4n,k+x%4n-2n):!k
+f=(l,r)=&gt;{v=0;for(k=0n;k&lt;l+r;k++)v|=b(l^k&amp;(r^l))&amp;&amp;b(r^k&amp;(r^l));return v}
+</code></pre>
+<p>uses for-loop to prevent crash due to recursion limit</p>
+<p><a href="https://ato.pxeger.com/run?1=dZFBTsMwEEXF1qeASKR_SFpcyAIlNdlyB0QXaZ0W2XIku41SASdh0wUcCk6DQxohocTezPi_P_6y3z9MtZbH4-d-V07vvmwh0MRKcEPiXi14ztMmL9BcJyZWUXOZmOmNofRCsVJAx9ZTL7XgWVlZtK5MLXRkMxVFVL-KAnqpQtilJgrDwhd9l1m521tzXr-x7ubvswcmBZwf6PLEXEm4mdPPK4k5UQT3yJ-EmGCS35p07hNww7Zt1IM3lJBoKJY4EDG2qoyrtJzpaoMtAgRxQIEX_p-TFzCoAESd2u5Bb09ghPCy104EjRDdjFMxRvwhw0l6Br-rZboH7b_0Bw" rel="nofollow noreferrer">Attempt This Online!</a></p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C (gcc)</a>, <strike>103</strike> <strike>102</strike> 96 bytes</h1>
 
 <pre class="lang-c prettyprint-override"><code>c;n;i;r=1;t(a,b,l)int*a;int*b;{for(;i&lt;l;c+=a[i],n+=b[i],r&amp;=c&gt;=0&amp;t&gt;=0,n=c+=b[i++]);r&amp;=!c&amp;!(l&amp;1);}
 </code></pre>
@@ -66,34 +94,6 @@ int test (int* a, int* b, int length) {
 <p>A completion of this argument or a counterexample would be appreciated. I decided I had spent too long banging my head on the wall trying to construct a counterexample and trying to complete the proof. This does pass all of the test cases.</p>
 <p>Edit 1: -1 byte due to minor logic optimization (<code>!(a | b)</code> vs <code>!a &amp; !b</code>).</p>
 <p>Edit 2: -6 bytes due to realizing that at the end of the loop n and c will be the same.</p>
-</div>
-<div id="pu1" class="pu"><h1>JavaScript, <s>109</s> <s>107</s> <s>105</s> <s>101</s> 98 bytes</h1>
-<p><em>Thanks to @Arnauld for saving 2 bytes</em></p>
-<pre class="lang-javascript prettyprint-override"><code>b=(x,k=0n)=&gt;k&lt;0?0:x?b(x/4n,k+x%4n-2n):!k
-f=(l,r,k=0n,x=k&amp;(r^l))=&gt;b(l^x)&amp;b(r^x)||k&lt;l+r&amp;&amp;f(l,r,++k)
-</code></pre>
-<p>returns <code>false</code> (for <code>false</code>) or <code>1</code> (for <code>true</code>).</p>
-<p>Encodes expressions as base four numbers with <code>3</code> for <code>(</code> and <code>1</code>  for <code>)</code></p>
-<p>Helper functions for converting strings to the corresponding base 4 numbers</p>
-<pre class="lang-javascript prettyprint-override"><code>e=(s)=&gt;s?4n*e(s.slice(1))+(s[0]=='('?3n:1n):0n
-h=(x,y)=&gt;f(e(x),e(y))
-
-h(&quot;)))(((&quot;,&quot;((()))&quot;) // -&gt; 0
-</code></pre>
-<p><a href="https://ato.pxeger.com/run?1=dZFBTsMwEEXF1rcgEu0f7DYpZIEi3NyACyC6SHEosuVIMUiu1Juw6QIOBadhkrQgQWpvbL_3Zyz77d03j2a__3h9qWc3n6bSiMrqzJNe2tuszIpYVohp7pWV8SL3sytPxbkVtYZTba-qqO0E7coRhyq4VaRJxftIux3s0smWy9S9LqUlEkOzr7M7YTQCh0KZ-0uDMA_ueW2wIJII99mD1lNMy2tfLLhp5sWmu92WAzUMIimDLZcT68aHxpm5a56wQYJEJZQw-HtODDBKAKKBdnM0ezRwwmDM7GBQb6Tpf2eoclicdn6lcQs_FvrRWcOzHv_yGw" rel="nofollow noreferrer">Attempt This Online!</a></p>
-<p><em>I was unable to verify the last two Test-cases, as the function exceeded the maximum recursion depth (which as far as I known is allowed for code-golf)</em></p>
-<h1>Explanation</h1>
-<p><code>b</code> checks if a the expression encoded by the given number is balanced, by counting the difference of <code>3</code> digits minus <code>1</code> digits and returning 0 if the intermediate count goes below zero,
-or if the final count is not exactly zero.</p>
-<p><code>f</code> checks for all binary numbers <code>k</code> (up to <code>l+r</code>) if swapping the bits of the two inputs at the positions that are one in <code>k</code> will result in a pair of balanced strings.
-Swapping a bit has no effect if it is the low bit of a base 4 digit where both numbers have a <code>1</code> bit, if it is the high bit it will swap the characters that the given positions in the strings.</p>
-<hr />
-<h1>JavaScript, 114 bytes</h1>
-<pre class="lang-javascript prettyprint-override"><code>b=(x,k=0n)=&gt;k&lt;0?0:x?b(x/4n,k+x%4n-2n):!k
-f=(l,r)=&gt;{v=0;for(k=0n;k&lt;l+r;k++)v|=b(l^k&amp;(r^l))&amp;&amp;b(r^k&amp;(r^l));return v}
-</code></pre>
-<p>uses for-loop to prevent crash due to recursion limit</p>
-<p><a href="https://ato.pxeger.com/run?1=dZFBTsMwEEXF1qeASKR_SFpcyAIlNdlyB0QXaZ0W2XIku41SASdh0wUcCk6DQxohocTezPi_P_6y3z9MtZbH4-d-V07vvmwh0MRKcEPiXi14ztMmL9BcJyZWUXOZmOmNofRCsVJAx9ZTL7XgWVlZtK5MLXRkMxVFVL-KAnqpQtilJgrDwhd9l1m521tzXr-x7ubvswcmBZwf6PLEXEm4mdPPK4k5UQT3yJ-EmGCS35p07hNww7Zt1IM3lJBoKJY4EDG2qoyrtJzpaoMtAgRxQIEX_p-TFzCoAESd2u5Bb09ghPCy104EjRDdjFMxRvwhw0l6Br-rZboH7b_0Bw" rel="nofollow noreferrer">Attempt This Online!</a></p>
 </div>
 <div id="pu2" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 13 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
 <pre><code>ZŒpÄṂȯṪƊ€oṚ$Ạ
