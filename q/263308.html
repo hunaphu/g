@@ -26,8 +26,8 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>041</td><td>Bash+coreutils</td><td>230729T045115Z</td><td><a href="https://codegolf.stackexchange.com/questions/263308/make-a-k-skip-j-range/263489#263489">roblogic</a></td></tr>
-<tr d-ix="1"><td>126</td><td>C++</td><td>230728T142727Z</td><td><a href="https://codegolf.stackexchange.com/questions/263308/make-a-k-skip-j-range/263469#263469">Toby Spe</a></td></tr>
+<tr d-ix="0"><td>125</td><td>C++</td><td>230728T142727Z</td><td><a href="https://codegolf.stackexchange.com/questions/263308/make-a-k-skip-j-range/263469#263469">Toby Spe</a></td></tr>
+<tr d-ix="1"><td>041</td><td>Bash+coreutils</td><td>230729T045115Z</td><td><a href="https://codegolf.stackexchange.com/questions/263308/make-a-k-skip-j-range/263489#263489">roblogic</a></td></tr>
 <tr d-ix="2"><td>011</td><td>J</td><td>230726T013417Z</td><td><a href="https://codegolf.stackexchange.com/questions/263308/make-a-k-skip-j-range/263342#263342">Bubbler</a></td></tr>
 <tr d-ix="3"><td>043</td><td>Perl 5 p</td><td>230727T112912Z</td><td><a href="https://codegolf.stackexchange.com/questions/263308/make-a-k-skip-j-range/263415#263415">Nahuel F</a></td></tr>
 <tr d-ix="4"><td>048</td><td>Scala</td><td>230726T094038Z</td><td><a href="https://codegolf.stackexchange.com/questions/263308/make-a-k-skip-j-range/263350#263350">t9dupuy</a></td></tr>
@@ -58,32 +58,26 @@
 <tr d-ix="29"><td>048</td><td>><> Fish</td><td>230725T133052Z</td><td><a href="https://codegolf.stackexchange.com/questions/263308/make-a-k-skip-j-range/263312#263312">mousetai</a></td></tr>
 <tr d-ix="30"><td>040</td><td>Swift</td><td>230725T132734Z</td><td><a href="https://codegolf.stackexchange.com/questions/263308/make-a-k-skip-j-range/263310#263310">Bbrk24</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.gnu.org/software/bash/" rel="nofollow noreferrer">Bash</a>+coreutils, 41 bytes</h1>
-
-<pre class="lang-bash prettyprint-override"><code>seq 1 $3|xargs -n$[$1+$2]|cut -d\  -f1-$1
-</code></pre>
-<p><a href="https://tio.run/##Xc5NCgIxDAXgvad4iy4UKTRNndKzqIvxp7oSnCoI1rPXFIRpJVl95CU5jOla4nL1RknnOwiK82ucLgn6praK1sru8/H5gD7tAB1JKyqfRYQFI3jkKUnICLDQgAaoFjVQIxT@YegiDq6fcLC2AzIgnmEDkjbdWXnFz@BlB7d/hFCbflC@" rel="nofollow noreferrer" title="Bash – Try It Online">Try it online!</a></p>
-<p><sub><s><a href="https://tio.run/##Xc69DsIgEAfw3af4Dwxt0KQH2AYp8UGMgxKJpENjGbXPjjQxaTF30@8@77f4TL6q30jOMmn8OFVVsGRCb50J3DLiTNS5Hh8vsAB2GWzgjA60H3p3Hk7uauY07zwEJHSHzxRBaDLITC02QEvQBpYR0v/QFiMKquxQEKIAakByhSMoZ1Ocza90K3R5h9z@ofWS9IP0BQ" rel="nofollow noreferrer" title="Bash – Try It Online">59 bytes</a></s>: <code>c=$3;for((i=1;i&lt;=c;i+=$1+$2)){ seq $i $[k=i+$1-1,k&lt;c?k:c];}</code></sub></p>
-</div>
-<div id="pu1" class="pu"><h1>C++, 126 bytes</h1>
-<p>It's never going to be a code-golf winner, but with C++23 nearing standardisation, it's interesting to see what the new <code>std::views</code> classes offer us:</p>
+<div id="pu0" class="pu"><h1>C++, 125 bytes</h1>
+<p>It's never going to be a code-golf winner, but with C++23 nearing standardisation, it's interesting to see what the new <a href="https://en.cppreference.com/w/cpp/ranges" rel="nofollow noreferrer"><code>std::views</code> classes</a> offer us:</p>
 <pre><code>#include&lt;ranges&gt;
-using namespace std::views;
-auto f(int a,int b,int n){return iota(1,n+1)|chunk(a+b)|transform(take(a))|join;}
+auto f(int a,int b,int n){using namespace std::views;return iota(1,n+1)|chunk(a+b)|transform(take(a))|join;}
 </code></pre>
+<p>This simply divides the input range into chunks of size <code>a+b</code>, taking the first <code>a</code> elements from each chunk, and then reassembles the chunks back into a single range.</p>
 <p>Self-test of the question's examples:</p>
 <pre><code>#include &lt;algorithm&gt;
 #include &lt;iterator&gt;
 #include &lt;vector&gt;
 auto k_skip_j(int a,int b,int n)
 {
-    // If my standard library implementation was complete, we could simply
-    //   return f(a,b,n) | std::ranges::to&lt;std::vector&gt;();
-
+#ifdef __cpp_lib_ranges_to_container
+    return f(a,b,n) | std::ranges::to&lt;std::vector&gt;();
+#else
     auto r = f(a,b,n);
     auto result = std::vector&lt;int&gt;();
     std::ranges::copy(r, std::back_inserter(result));
     return result;
+#endif
 }
 
 #include &lt;gtest/gtest.h&gt;
@@ -106,6 +100,13 @@ TEST(k_skip_j, two_three_twenty) {
     EXPECT_EQ(result, expected);
 }
 </code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.gnu.org/software/bash/" rel="nofollow noreferrer">Bash</a>+coreutils, 41 bytes</h1>
+
+<pre class="lang-bash prettyprint-override"><code>seq 1 $3|xargs -n$[$1+$2]|cut -d\  -f1-$1
+</code></pre>
+<p><a href="https://tio.run/##Xc5NCgIxDAXgvad4iy4UKTRNndKzqIvxp7oSnCoI1rPXFIRpJVl95CU5jOla4nL1RknnOwiK82ucLgn6praK1sru8/H5gD7tAB1JKyqfRYQFI3jkKUnICLDQgAaoFjVQIxT@YegiDq6fcLC2AzIgnmEDkjbdWXnFz@BlB7d/hFCbflC@" rel="nofollow noreferrer" title="Bash – Try It Online">Try it online!</a></p>
+<p><sub><s><a href="https://tio.run/##Xc69DsIgEAfw3af4Dwxt0KQH2AYp8UGMgxKJpENjGbXPjjQxaTF30@8@77f4TL6q30jOMmn8OFVVsGRCb50J3DLiTNS5Hh8vsAB2GWzgjA60H3p3Hk7uauY07zwEJHSHzxRBaDLITC02QEvQBpYR0v/QFiMKquxQEKIAakByhSMoZ1Ocza90K3R5h9z@ofWS9IP0BQ" rel="nofollow noreferrer" title="Bash – Try It Online">59 bytes</a></s>: <code>c=$3;for((i=1;i&lt;=c;i+=$1+$2)){ seq $i $[k=i+$1-1,k&lt;c?k:c];}</code></sub></p>
 </div>
 <div id="pu2" class="pu"><h1><a href="https://www.jsoftware.com" rel="nofollow noreferrer">J</a>, <sup><s>12</s></sup> 11 bytes</h1>
 <pre><code>&gt;:@I.@$1-I.
