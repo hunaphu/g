@@ -26,11 +26,58 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>nan</td><td>Rust</td><td>230729T140042Z</td><td><a href="https://codegolf.stackexchange.com/questions/263496/can-you-perform-swaps/263499#263499">mousetai</a></td></tr>
-<tr d-ix="1"><td>165</td><td>Scala</td><td>230729T153542Z</td><td><a href="https://codegolf.stackexchange.com/questions/263496/can-you-perform-swaps/263502#263502">138 Aspe</a></td></tr>
-<tr d-ix="2"><td>109</td><td>JavaScript</td><td>230729T144258Z</td><td><a href="https://codegolf.stackexchange.com/questions/263496/can-you-perform-swaps/263501#263501">bsoelch</a></td></tr>
+<tr d-ix="0"><td>107</td><td>JavaScript</td><td>230729T144258Z</td><td><a href="https://codegolf.stackexchange.com/questions/263496/can-you-perform-swaps/263501#263501">bsoelch</a></td></tr>
+<tr d-ix="1"><td>013</td><td>Jelly</td><td>230729T164305Z</td><td><a href="https://codegolf.stackexchange.com/questions/263496/can-you-perform-swaps/263509#263509">Jonathan</a></td></tr>
+<tr d-ix="2"><td>nan</td><td>Rust</td><td>230729T140042Z</td><td><a href="https://codegolf.stackexchange.com/questions/263496/can-you-perform-swaps/263499#263499">mousetai</a></td></tr>
+<tr d-ix="3"><td>165</td><td>Scala</td><td>230729T153542Z</td><td><a href="https://codegolf.stackexchange.com/questions/263496/can-you-perform-swaps/263502#263502">138 Aspe</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.rust-lang.org" rel="nofollow noreferrer">Rust</a>, <del>204</del> <del>179</del> <del>147</del> 132 bytes</h1>
+<div id="pu0" class="pu"><h1>JavaScript, <s>109</s> 107 bytes</h1>
+<p><em>-2 bytes thanks to @Arnauld</em></p>
+<pre><code>b=(x,k=0n)=&gt;k&lt;0?0:x?b(x/4n,k+x%2n-(x&amp;2n)):!k
+f=(l,r,k=0n)=&gt;b(l^k&amp;(r^l))&amp;&amp;b(r^k&amp;(r^l))||(k&gt;l+r?0:f(l,r,++k))
+</code></pre>
+<p>Encodes expressions as base four numbers with <code>1</code> for <code>(</code> and <code>3</code>  for <code>)</code>,
+return falsey (<code>0</code> or <code>false</code>) for false and <code>true</code> for true.</p>
+<p>Helper functions for converting strings to the corresponding base 4 numbers</p>
+<pre><code>e=(s)=&gt;s?4n*e(s.slice(1))+(s[0]=='('?1n:3n):0n
+h=(x,y)=&gt;f(e(x),e(y))
+
+h(&quot;)))(((&quot;,&quot;((()))&quot;) // -&gt; 0
+</code></pre>
+<p><em>I was unable to verify the last two Test-cases, as the function exceeded the maximum recursion depth (which as far as I known is allowed for code-golf)</em></p>
+<h1>Explanation</h1>
+<p><code>b</code> checks if a the expression encoded by the given number is balanced, by counting the difference of <code>1</code> digits minus <code>3</code> digits and returning 0 if the intermediate count goes below zero,
+or if the final count is not exactly zero.</p>
+<p><code>f</code> checks for all binary numbers <code>k</code> (up to <code>l+r</code>) if swapping the bits of the two inputs at the positions that are one in <code>k</code> will result in a pair of balanced strings.
+Swapping a bit has no effect if it is the low bit of a base 4 digit where both numbers have a <code>1</code> bit, if it is the high bit it will swap the characters that the given positions in the strings.</p>
+<hr />
+<h1>JavaScript, 117 bytes</h1>
+<pre><code>b=(x,k=0n)=&gt;k&lt;0?0:x?b(x/4n,k+x%2n-(x&amp;2n)):!k
+f=(l,r)=&gt;{v=0;for(k=0n;k&lt;l+r;k++)v|=b(l^k&amp;(r^l))&amp;&amp;b(r^k&amp;(r^l));return v}
+</code></pre>
+<p>uses for-loop to prevent crash due to recursion limit</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 13 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
+<pre><code>ZŒpÄṂȯṪƊ€oṚ$Ạ
+</code></pre>
+<p>A monadic Link that accepts a pair of lists of <span class="math-container">\$\{1,-1\}\$</span> representing <code>(</code> and <code>)</code> respectively and yields <span class="math-container">\$0\$</span> if balancable or <span class="math-container">\$1\$</span> if not (i.e. outputs the inverse).</p>
+<p><strong><a href="https://tio.run/##y0rNyan8/z/q6KSCwy0PdzadWP9w56pjXY@a1uQ/3DlL5eGuBf///4@ONtRR0AViKAXBsToK0RAxZNnYWAA" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></strong> Or see the <a href="https://tio.run/##y0rNyan8/z/q6KSCwy0PdzadWP9w56pjXY@a1uQ/3DlL5eGuBf8f7t5yaOvDHZv8dbUeNcxJS8wpTn3UMBfILCkqBbEOt9tbA3kKNroKQJ61ZuT//xoKmlwamgoaQFJDQ1MTxAJBLhAB4mmAeUAmkKUAUQLigeQgFJQH44J0QvgaYAA2SQNkqgYA" rel="nofollow noreferrer" title="Jelly – Try It Online">test-suite</a>.</p>
+<h3>How?</h3>
+<pre><code>ZŒpÄṂȯṪƊ€oṚ$Ạ - Link: pair of lists of -1 and 1 := ) and ( respectively
+Z             - transpose
+ Œp           - Cartesian product
+   Ä          - cumulative sums (vectorises)
+       Ɗ€     - for each: last three links as a monad:
+      Ṫ       -   tail
+    Ṃ         -   minimum (of the rest)
+     ȯ        -   {minimum} logical OR {tail}
+           $  - last two links as a monad:
+          Ṛ   -   reverse
+         o    -   logical OR (vectorises)
+            Ạ - all?
+</code></pre>
+</div>
+<div id="pu2" class="pu"><h1><a href="https://www.rust-lang.org" rel="nofollow noreferrer">Rust</a>, <del>204</del> <del>179</del> <del>147</del> 132 bytes</h1>
 <pre class="lang-rust prettyprint-override"><code>|a,b|a.into_iter().zip(b).fold((0,0,0),|(c,d,f),(mut e,mut g)|{(e,g)=(e.min(g)+d,e.max(g)+c);(e.min(g),g.max(e),f.min(c))})==(0,0,0)
 </code></pre>
 <p><a href="https://ato.pxeger.com/run?1=jVJBbsIwEJR6a16x5GSr6wg4IWjoL3pBCBnHjiyFBCVOhUo4VOoveuHQPqGPoa-pQ0IgCEoTO96d3Zl4pfn4TPPMfE9cxmSgjU5iF8Htd_s9d7pjKoYF1zGhsHYiaUANVUyepXjUgzHWJ2XjeZJE4H_lRrHB7r3gOC-4p2OTzLSRKaHeq16SOfVUEgWEdNG-FAsiMEBFkSxyAxLLb0iLNZEYUp9Ib2F_HNKHAG3IV2Uo6KjBMdyjkqLaI4LSDfX9Wr26y8_d2wgcRyUpGJmZmeCZBB3DxLknL1J0Jr0pwj5gZaR4lFm9pojAmoZDYtK83VIt1uwWoaldpbM_-Lfo7IRYr4vsRvhsQNaqn1_gavVfKreVLqvdFDvOehzxRGZqnQr2WabWf1HcIS4XJufRENbDpw3I1VIKI4M6LV0BpSuq3FpfkcYpXtcTURJLQvFoH693AFto_zQ5NIycjbOpnLjdVucv" rel="nofollow noreferrer">Attempt This Online!</a></p>
@@ -38,7 +85,7 @@
 <p>Then all that remains is checking if we ever go negative. <code>f</code> the simply the lowest value <code>c</code> ever holds. We can check if it equals 0.</p>
 <p>Uses <code>1</code> to represent an opening parenthesis and <code>-1</code> for closing. Slightly smarter now.</p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://www.scala-lang.org/" rel="nofollow noreferrer">Scala</a>, 165 bytes</h1>
+<div id="pu3" class="pu"><h1><a href="https://www.scala-lang.org/" rel="nofollow noreferrer">Scala</a>, 165 bytes</h1>
 <p>Port of <a href="https://codegolf.stackexchange.com/a/263499/110802">@mousetail's Rust answer</a> in Scala.</p>
 <hr />
 <p>Golfed version. <a href="https://tio.run/##rVRRS8NADH73VwSRkbBbWSsoDFtwPgnuafgkY9y6u1I529k7RTf622fasTl1HWVY6DWX5Eu@lCQ2lkau89mzih2MZJrB6gxgrjS88AVlkdgB3BaF/HwauyLNkgkN4DFLHYTsya4A79KAHgCO1evT8NOpiYCdSBBGMMxzo2TGiDVKMaMwQgnLdAEz8nRu5g9KuxqN95kTwAdNEPuiT0QrjMWSEbGnjXQjuVjpMGJfRO1N/e6SD8FSUEkBiZ022Gl9otLTqXGqwCSMEtZEYb/TYSFggY3qI7XO4jQMN0nX26qcsu5OWmWZepWzLhfqStH3XF6VSHW1iD2fvjVaGsvfQ/4Cfroes7nirTHKIWkP3Xw5lrMx2CkM28RtTdL/P4atCBzO6J9M70ihf5ulaleDV4R//kiDpSnEdWOIa2rfsgTdLrSj9RtyMEmdgzbLQ@cF4HbO4Kb3PXNUb6LqWfDecSZDe36x2pp5ikvYvwYlqI8FbzE1H/wwXJYCktxVSo17cAF7YCrPN7TKs@ot118" rel="nofollow noreferrer">Try it online!</a></p>
@@ -73,31 +120,6 @@
 }
 
 </code></pre>
-</div>
-<div id="pu2" class="pu"><h1>JavaScript, 109 bytes</h1>
-<pre><code>b=(x,k=0n)=&gt;k&lt;0?0:x?b(x/4n,k+(x&amp;1n)-(x&amp;2n)):!k
-f=(l,r,k=0n)=&gt;b(l^k&amp;(r^l))&amp;&amp;b(r^k&amp;(r^l))||(k&gt;l+r?0:f(l,r,++k))
-</code></pre>
-<p>Encodes expressions as base four numbers with <code>1</code> for <code>(</code> and <code>3</code>  for <code>)</code>,
-return falsey (<code>0</code> or <code>false</code>) for false and <code>true</code> for true.</p>
-<p>Helper functions for converting strings to the corresponding base 4 numbers</p>
-<pre><code>e=(s)=&gt;s?4n*e(s.slice(1))+(s[0]=='('?1n:3n):0n
-h=(x,y)=&gt;f(e(x),e(y))
-
-h(&quot;)))(((&quot;,&quot;((()))&quot;) // -&gt; 0
-</code></pre>
-<p><em>I was unable to verify the last two Test-cases, as the function exceeded the maximum recursion depth (which as far as I known is allowed for code-golf)</em></p>
-<h1>Explanation</h1>
-<p><code>b</code> checks if a the expression encoded by the given number is balanced, by counting the difference of <code>1</code> digits minus <code>3</code> digits and returning 0 if the intermediate count goes below zero,
-or if the final count is not exactly zero.</p>
-<p><code>f</code> checks for all binary numbers <code>k</code> (up to <code>l+r</code>) if swapping the bits of the two inputs at the positions that are one in <code>k</code> will result in a pair of balanced strings.
-Swapping a bit has no effect if it is the low bit of a base 4 digit where both numbers have a <code>1</code> bit, if it is the high bit it will swap the characters that the given positions in the strings.</p>
-<hr />
-<h1>JavaScript, 119 bytes</h1>
-<pre><code>b=(x,k=0n)=&gt;k&lt;0?0:x?b(x/4n,k+(x&amp;1n)-(x&amp;2n)):!k
-f=(l,r)=&gt;{v=0;for(k=0n;k&lt;l+r;k++)v|=b(l^k&amp;(r^l))&amp;&amp;b(r^k&amp;(r^l));return v}
-</code></pre>
-<p>uses for-loop to prevent crash due to recursion limit</p>
 </div>
 
 <table id="st">
