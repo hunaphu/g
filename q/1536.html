@@ -26,7 +26,7 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>172</td><td>Swift</td><td>230715T011453Z</td><td><a href="https://codegolf.stackexchange.com/questions/1536/hello-world-0-0/262840#262840">macOSist</a></td></tr>
+<tr d-ix="0"><td>126</td><td>Swift</td><td>230715T011453Z</td><td><a href="https://codegolf.stackexchange.com/questions/1536/hello-world-0-0/262840#262840">macOSist</a></td></tr>
 <tr d-ix="1"><td>022</td><td>ForWhile</td><td>230712T173632Z</td><td><a href="https://codegolf.stackexchange.com/questions/1536/hello-world-0-0/262724#262724">bsoelch</a></td></tr>
 <tr d-ix="2"><td>180</td><td>Python</td><td>230712T134740Z</td><td><a href="https://codegolf.stackexchange.com/questions/1536/hello-world-0-0/262713#262713">The Empt</a></td></tr>
 <tr d-ix="3"><td>nan</td><td></td><td>230531T174848Z</td><td><a href="https://codegolf.stackexchange.com/questions/1536/hello-world-0-0/261443#261443">Dadsdy</a></td></tr>
@@ -134,9 +134,8 @@
 <tr d-ix="105"><td>201</td><td>PHP</td><td>110312T000208Z</td><td><a href="https://codegolf.stackexchange.com/questions/1536/hello-world-0-0/1547#1547">Kevin Br</a></td></tr>
 <tr d-ix="106"><td>146</td><td>C++</td><td>110311T221647Z</td><td><a href="https://codegolf.stackexchange.com/questions/1536/hello-world-0-0/1540#1540">LorenVS</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Swift, <s>193</s> <s>174</s> 172 bytes</h1>
-<p><strong>EDIT: Original submission was invalid due to utilizing <code>&quot;0&quot;</code> instead of <code>0</code>. This has now been fixed, at the cost of <s>7</s> 2 bytes.</strong></p>
-<pre class="lang-swift prettyprint-override"><code>enum h:String{case Hello,World};print(h.Hello.rawValue,h.World.rawValue+String(UnicodeScalar(Character(&quot;O&quot;).asciiValue!-Character(&quot;\(0)&quot;).asciiValue!+UInt8([0,0].count))))
+<div id="pu0" class="pu"><h1>Swift, <s>193</s> <s>174</s> <s>172</s> 126 bytes</h1>
+<pre class="lang-swift prettyprint-override"><code>enum h:String{case Hello,World};print(h.Hello,h.World.rawValue+&quot;\(UnicodeScalar(&quot;OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO&quot;.count)!)&quot;)
 </code></pre>
 <p>Ungolfed:</p>
 <pre class="lang-swift prettyprint-override"><code>enum HelloWorld: String {
@@ -144,12 +143,11 @@
     case World
 }
 
-let exclamationPoint = String(UnicodeScalar(
-    Character(&quot;O&quot;).asciiValue!
-    - Character(&quot;\(0)&quot;).asciiValue!
-    + UInt8([0, 0].count)
-))
-print(HelloWorld.Hello.rawValue, HelloWorld.World.rawValue + exclamationPoint)
+let exclamationPoint = &quot;\(UnicodeScalar(
+    String(repeating: &quot;O&quot;, count: 33).count
+)!)&quot;
+
+print(HelloWorld.Hello, HelloWorld.World.rawValue + exclamationPoint)
 </code></pre>
 <p>Let's go through this step by step:</p>
 <pre class="lang-swift prettyprint-override"><code>enum HelloWorld: String {
@@ -158,22 +156,20 @@ print(HelloWorld.Hello.rawValue, HelloWorld.World.rawValue + exclamationPoint)
 }
 </code></pre>
 <p>The <code>String</code> protocol is identical to <code>RawRepresentable</code> with <code>RawValue = String</code>. The <code>rawValue</code> for these types defaults to the case name, capitalization and all. So we use 2 cases, named <code>Hello</code> and <code>World</code>. Accessing the <code>rawValue</code> for these cases will return <code>&quot;Hello&quot;</code> and <code>&quot;World&quot;</code>, respectively.</p>
-<pre class="lang-swift prettyprint-override"><code>let exclamationPoint = String(UnicodeScalar(
-    Character(&quot;O&quot;).asciiValue!
-    - Character(&quot;\(0)&quot;).asciiValue!
-    + UInt8([0, 0].count)
-))
+<pre class="lang-swift prettyprint-override"><code>let exclamationPoint = &quot;\(UnicodeScalar(
+    String(repeating: &quot;O&quot;, count: 33).count
+)!)&quot;
 </code></pre>
-<p>Since we can't use exclamation points in identifiers, we'll have to do something else. Basically what's going on here is that we're converting <code>&quot;O&quot;</code> to its ASCII value – 79 – and subtracting <code>&quot;0&quot;</code>'s ASCII value – 48 – giving us 31 (after converting <code>0</code> to a <code>String</code> via string interpolation). The ASCII value of <code>&quot;!&quot;</code> is 33, so we need to procure a 2 somehow.</p>
-<p>We can simply create a two-element array; accessing the <code>count</code> property of that gives us 2, which we add to 31 to get 33.</p>
-<p>Finally, we convert that value back to a string.</p>
-<pre class="lang-swift prettyprint-override"><code>print(HelloWorld.Hello.rawValue, HelloWorld.World.rawValue + exclamationPoint)
+<p>Since we can't use exclamation points in identifiers, we'll have to do something else. The ASCII value of <code>&quot;!&quot;</code> is 33, so creating a 33-character <code>String</code> and getting its <code>count</code> property will do the job.</p>
+<pre class="lang-swift prettyprint-override"><code>print(HelloWorld.Hello, HelloWorld.World.rawValue + exclamationPoint)
 </code></pre>
-<p>The <code>print</code> call here has 2 arguments: <code>HelloWorld.Hello.rawValue</code> and <code>HelloWorld.World.rawValue + exclamationPoint</code>, equivalent to <code>&quot;Hello&quot;</code> and <code>&quot;World&quot; + &quot;!&quot;</code>. By default, <code>print</code> separates its arguments with a space. This gives us our final result of <code>&quot;Hello World!&quot;</code>. (There's actually a newline at the end because <code>print</code>'s default terminator is a newline.)</p>
+<p>The <code>print</code> call here has 2 arguments: <code>HelloWorld.Hello</code> and <code>HelloWorld.World.rawValue + exclamationPoint</code>, equivalent to <code>&quot;Hello&quot;</code> and <code>&quot;World&quot; + &quot;!&quot;</code>. We don't need to specify <code>.rawValue</code> for the first argument. (Why? I don't know.) But we need it for the second argument to perform string concatenation.</p>
+<p>By default, <code>print</code> separates its arguments with a space. This gives us our final result of <code>&quot;Hello World!&quot;</code>. (There's actually a newline at the end because <code>print</code>'s default terminator is a newline.)</p>
 <h2>Golfing Log</h2>
 <ol>
 <li><strong><a href="https://codegolf.stackexchange.com/users/118665/macosisthebestos">macOSisthebestOS</a> saved 19 bytes, from 193 to 174.</strong> Replaced the <code>CaseIterable</code> conformance with a simple 2-element array.</li>
 <li><strong><a href="https://codegolf.stackexchange.com/users/118665/macosisthebestos">macOSisthebestOS</a> saved 2 bytes, from 174 to 172.</strong> Replaced the <code>String</code> initializer with a string interpolation.</li>
+<li><strong><a href="https://codegolf.stackexchange.com/users/118665/macosisthebestos">macOSisthebestOS</a> saved 46 bytes, from 172 to 126.</strong> Replaced the ASCII value arithmetic with a simple 33-character <code>String</code>. Also replaced the other <code>String</code> initializer with a string interpolation, and got rid of the first <code>rawValue</code> reference.</li>
 </ol>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://esolangs.org/wiki/ForWhile" rel="nofollow noreferrer">ForWhile</a> 22 bytes</h1>
