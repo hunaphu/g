@@ -59,9 +59,10 @@
 <tr d-ix="30"><td>040</td><td>Swift</td><td>230725T132734Z</td><td><a href="https://codegolf.stackexchange.com/questions/263308/make-a-k-skip-j-range/263310#263310">Bbrk24</a></td></tr>
 </table>
 <div id="pu0" class="pu"><h1>C++, 125 bytes</h1>
-<p>It's never going to be a code-golf winner, but with C++23 nearing standardisation, it's interesting to see what the new <a href="https://en.cppreference.com/w/cpp/ranges" rel="nofollow noreferrer"><code>std::views</code> classes</a> offer us:</p>
+<p>It's never going to be a code-golf winner, but with C++23 nearing standardisation, it's interesting to showcase what the new <a href="https://en.cppreference.com/w/cpp/ranges" rel="nofollow noreferrer"><code>std::views</code> classes</a> offer us:</p>
 <pre><code>#include&lt;ranges&gt;
-auto f(int a,int b,int n){using namespace std::views;return iota(1,n+1)|chunk(a+b)|transform(take(a))|join;}
+auto f(int a,int b,int n){using namespace std::views;return
+iota(1,n+1)|chunk(a+b)|transform(take(a))|join;}
 </code></pre>
 <p>This simply divides the input range into chunks of size <code>a+b</code>, taking the first <code>a</code> elements from each chunk, and then reassembles the chunks back into a single range.</p>
 <p>Self-test of the question's examples:</p>
@@ -99,6 +100,12 @@ TEST(k_skip_j, two_three_twenty) {
     auto expected = std::vector{1,2,6,7,11,12,16,17};
     EXPECT_EQ(result, expected);
 }
+</code></pre>
+<hr />
+<p>For comparison, the C++20 version weighs 140 bytes:</p>
+<pre><code>#include&lt;ranges&gt;
+auto f(int a,int b,int n){return
+std::views::iota(1,n+1)|std::views::filter([n=-1,a,b](auto)mutable{return(++n%=a+b)&lt;a;});}
 </code></pre>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://www.gnu.org/software/bash/" rel="nofollow noreferrer">Bash</a>+coreutils, 41 bytes</h1>
@@ -220,11 +227,11 @@ f        # now use this to filter elements of
           # (after which the result is output implicitly)
 </code></pre>
 </div>
-<div id="pu9" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C (gcc)</a>, 54 bytes</h1>
+<div id="pu9" class="pu"><h1><a href="https://gcc.gnu.org/" rel="noreferrer">C (gcc)</a>, 54 bytes</h1>
 
 <pre class="lang-c prettyprint-override"><code>i;f(a,b,m){for(i=0;i&lt;m;i++%(a+b)&lt;a&amp;&amp;printf(&quot;%d &quot;,i));}
 </code></pre>
-<p><a href="https://tio.run/##DchBCoAgEADAc75CgmQXNygKOmw9xgxjD1pEdJHebs1xfLt7X4pwAEcrRczhuECWjmWOLNY24OyKszPmvCTdAepm0zUJIr/lDx2dJHgO2VBlVQWYSI@khx5ZveUD" rel="nofollow noreferrer" title="C (gcc) – Try It Online">Try it online!</a></p>
+<p><a href="https://tio.run/##DchBCoAgEADAc75CgmQXNygKOmw9xgxjD1pEdJHebs1xfLt7X4pwAEcrRczhuECWjmWOLNY24OyKszPmvCTdAepm0zUJIr/lDx2dJHgO2VBlVQWYSI@khx5ZveUD" rel="noreferrer" title="C (gcc) – Try It Online">Try it online!</a></p>
 </div>
 <div id="pu10" class="pu"><h1><a href="https://www.zsh.org/" rel="noreferrer">Zsh</a>, 59 bytes</h1>
 <pre class="lang-bash prettyprint-override"><code>for ((;i&lt;$1&amp;&amp;i++&lt;$3;))l+=({$i..$3..$[$1+$2]})
