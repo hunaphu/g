@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::260800</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>159</td><td>R</td><td>230513T210053Z</td><td><a href="https://codegolf.stackexchange.com/questions/260800/calculate-the-smith-normal-form-of-an-integer-matrix/260900#260900">Kirill L</a></td></tr>
+<tr d-ix="1"><td>nan</td><td>Octave</td><td>230601T093330Z</td><td><a href="https://codegolf.stackexchange.com/questions/260800/calculate-the-smith-normal-form-of-an-integer-matrix/261452#261452">138 Aspe</a></td></tr>
+<tr d-ix="2"><td>056</td><td>Wolfram Language Mathematica</td><td>230510T150445Z</td><td><a href="https://codegolf.stackexchange.com/questions/260800/calculate-the-smith-normal-form-of-an-integer-matrix/260852#260852">Parcly T</a></td></tr>
+<tr d-ix="3"><td>470</td><td>C++ with the Eigen3 library</td><td>230510T191016Z</td><td><a href="https://codegolf.stackexchange.com/questions/260800/calculate-the-smith-normal-form-of-an-integer-matrix/260862#260862">Daniel S</a></td></tr>
+<tr d-ix="4"><td>024</td><td>SageMath</td><td>230510T071507Z</td><td><a href="https://codegolf.stackexchange.com/questions/260800/calculate-the-smith-normal-form-of-an-integer-matrix/260827#260827">Kevin Cr</a></td></tr>
+<tr d-ix="5"><td>020</td><td>PARI/GP</td><td>230510T000903Z</td><td><a href="https://codegolf.stackexchange.com/questions/260800/calculate-the-smith-normal-form-of-an-integer-matrix/260817#260817">alephalp</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1><a href="https://www.r-project.org" rel="nofollow noreferrer">R</a>, <s>165</s> <s>163</s> 159 bytes</h1>
+<pre class="lang-r prettyprint-override"><code>\(m,x,y,R=Reduce,C=combn)R(\(l,k)R(`?`&lt;-\(x,y,z=y%%x)`if`(x&amp;z,z?x,x)+y*!x,sort(abs(C(x,k,\(i)C(y,k,\(j)round(det(t(m[i,j]))))))))/max(1,l),1:min(x,y),1,,T)[-1]
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=ZY9daoNAFIXfu4s-pNzbXmk0GtpQyYM7EN9iQONPmSSjYEYY3UofagvdS7fQ3XRmlJC0cwbOhfkO98zbRzN8lv5XK0rr6ec9Bk6SOgr9sMjbrKDAz2q-qzCEGI50UJ6skxcrBk31fjebSUxYmYC866lfS5L40N3fSjrVjYB0d4JAoQeKgWEAnZn22NRtlUNeCBDAN4z2W5zOI08l2HREslecVXqNGoki3Fj2dqr5XQJPRcMUuXqmhVKE2vDm_JDBkuy5uR6SoxQZ00jO0tcz4OH_qGMClvM3eAW4tDQQzSfSHUn3ilyYeq6Rp4WXfcf_DMPovw" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<p>-2 bytes thanks to pajonk and further -4 thanks to Giuseppe.</p>
+<p>Takes input as matrix <code>m</code> and its dimensions <code>x,y</code>, outputs SNF diagonal.</p>
+<h3>Explanation</h3>
+<p>Uses the same algorithm as <a href="https://codegolf.stackexchange.com/a/260852/78274">Parcly Taxel's answer</a>.</p>
+<p>For each <code>k</code> in <code>1:min(x,y)</code> compute the minors:</p>
+<p><code>combn(x,k,\(i)...)</code> generate all combinations <code>i</code> of <code>k</code> row indices</p>
+<p><code>combn(y,k,\(j)...)</code> generate all combinations <code>j</code> of <code>k</code> column indices</p>
+<p><code>round(det(m[i,j]))</code> calculate the determinants of submatrices and round, as otherwise floating point inaccuracies lead to problems in GCD</p>
+<p><code>sort(abs(...)</code> discard the signs and sort in order expected by GCD</p>
+<p><code>Reduce('?'&lt;-..., ...)</code> Reduce by GCD. Overall, a lot of bytes are wasted due to no built-in GCD in R...</p>
+<p><code>Reduce(\(l,k)) .../max(1,l), init=1, accumulate=T)</code> Divide each term by the previous one, unless it's zero</p>
+<p><code>..[-1]</code> Drop the initializer <code>1</code> and return.</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.gnu.org/software/octave/" rel="nofollow noreferrer">Octave</a>, <del>237</del> <del>229</del> <del>227</del> 225 bytes.</h1>
+<p><em>Saved 10 bytes thanks to the comment of @ceilingcat</em></p>
+<hr />
+<p>Use the formula in <a href="https://en.wikipedia.org/wiki/Smith_normal_form#Definition" rel="nofollow noreferrer">Wikipedia</a>.</p>
+<blockquote>
+<p>The invariant factors <span class="math-container">\$\alpha_i\$</span> can be computed as
+<span class="math-container">$$\alpha_i = \frac{d_i(A)}{d_{i-1}(A)} $$</span>
+where <span class="math-container">\$d_i(A)\$</span> equals the greatest common divisor of the determinants of all <span class="math-container">\$i\times i\$</span> minors of the matrix <em>A</em> and <span class="math-container">\$d_0(A)=1\$</span>.<br />
+<span class="math-container">\$ \text{Note that here } d_i(A)\geq 1 \$</span></p>
+</blockquote>
+<hr />
+<p>Golfed version. <a href="https://tio.run/##ZY/fToMwFMbveYpzt1bPIjCZf05q3BN45dVCTFeK6YQyChiyZb767MCJiW2anv6@r/16KtXKT31ShZYOZFGQKqpG/1SKTnlnVWsqC1Ls2YqvS7SpaMxeMylWVyGnTESUVw6MiB5LY5k3cKrFOh2oE6oqN/aDeRENnw1QTdAO0NtrynTLVsyh4jwlbbNhne1b/7LtSl2wmlMv5KZhrupsxmq25ZyTE4ce3lXm7/b8eGDbp4hfR8fhvskh@xIhSWZ8knA347OZcJeIqcOqa0FAKXdvZ8RK2TqjdMODUVC6KLzAnkel57C/VAgXM8Ls1Rr/6/Kla3ddO0PIZdFoToHPCoKLTxwC8GMdYYwLusUEl3SH9/iQ4igsMQoJohCjZEIhhuTJuP2VYowpxnn8e4YY4BaWQDHMYwhhkha4GBL9pMTnJunAjxRkptmx/@1zOn0D" rel="nofollow noreferrer">Try it online!</a></p>
+<pre><code>function a=z(A)[m,n]=size(a=A*0);d=1;for i=1:min(m,n);q=[];for r=combnk(1:m,i)';for c=combnk(1:n,i)';q=[q;det(A(r,c))];end;end;for j=1:numel(q);x=abs(round(q(j)));r={x gcd(r,x)}{(j&gt;1)+1};end;if d~=0;a(i,i)=r/d;end;d=r;end;end
+</code></pre>
+<p>Ungolfed version. <a href="https://tio.run/##fVTdb9MwEH/vX3EvqI7wRJOtA2oFUSGBeOKJp6mqPMddrSVOsR3WjcG/Xu6cr3ZFuKp8ud99/u6SWgX5Ux8OE1Vq6UCWpVBl7XUnKTGZbBqrgqktFDp4yKEytnZrfGBLDiaZAJ5X8Gmr1T2YDSzBeJDgfzTSaahkcGYPtQNbh2h6U3GwK4zjzZNmy0REbRfl6wYM@d85LYN2ELbSgrSPUJhKW09V1JiCg9OhcQSBdq520d2Q8weo4Pk5CjZq6UQbNjWgpMU64FafZghbPWbwMcW0K0zb4rjALzoQNaDq6tZYGXp7A65@wL5tgVDZVNZHh6jMo7W9Z@miIsbawGh2AtkR6smwJhhZIk2xQOmcfKRcSL12OAVpQ5ulG8zN6sT9M5Kupdoe10ruLwvlZLBrQpvlKHiMs8EoDoOnizgvcuaQJgO1hKsRp65OcDpxY9BmGd2Z44uEx/6ZQrFruj9YwLp3oCWL8rlNbJhuMXqsRqt@bHTT/2iNpfUPmqKTBhdwUuTEHDUCJscZGcu63WzbGBZ@YP3FW9DPzWlCXN3Ygslbz84dWZr0/VI@Ywu9R5dsYZtKl/9wGIlsg9@pgqHE/58lxk2GVD0ZBUPpdZrkGEFEWrD1lBfYfUtK/qRd7YfuW1KIE3ZMStK/bQUzyZ98NpTYBmEGCckRw0xvyEScTCJOYxhG3QQiU@7WcRrxc6E0tt0CSpclAuxji@wTGM32uES9PYfpd2uw2upbE3CXpxw2svQ6Ed306fTG@a/2Q5TyjF@KKz7n1@Itf8ffr3gLXPN0JiCd8XQ@qmZ8JlDTXsdQxjOR8YtseIYM4AquQWRwkcEMRuiSX8aM@BNzzDtfRf1vMSmM37FzGhJxOPwF" rel="nofollow noreferrer">Try it online!</a></p>
+<pre><code>clear all;close all;clc;
+
+function dets = minor_det(A, i)
+    % Check if A is a square matrix or not
+    [m, n] = size(A);
+    
+    % If i is greater than any dimension of A, return an error
+    if i &gt; m || i &gt; n
+        error('i cannot be greater than the dimensions of A');
+    end
+    
+    % Get all combinations of i rows and columns
+    rows = combnk(1:m, i);
+    cols = combnk(1:n, i);
+    
+    % Initialize the array of determinants
+    dets = [];
+    
+    % For each combination of rows and columns, compute the determinant
+    for r = 1:size(rows, 1)
+        for c = 1:size(cols, 1)
+            minor = A(rows(r,:), cols(c,:));
+            det_minor = det(minor);
+            dets = [dets; det_minor];
+        end
+    end
+end
+
+function answer = func(A)
+d=[];
+for  i=1:min(size(A))
+    minor_determinants = minor_det(A,i);
+    res = round(abs(minor_determinants(1)));
+    for index = 2:numel(minor_determinants)
+        res = gcd(res, round(abs(minor_determinants(index))));
+    end
+    d(end+1)=res;
+end
+d=[1,d];
+answer=zeros(size(A));
+for i=1:(min(size(A)))
+    if d(i)~=0
+        answer(i,i)=d(i+1)/d(i);
+    end
+end
+end
+
+function out = map_func(matrices)
+out = cellfun(@(matrix) func(matrix), matrices, 'UniformOutput', false);
+end
+
+matrices={
+    [1,2,3;4,5,6;7,8,9],
+    [6,10; 10,15],
+    [6,0,0;0,10,0;0,0,15],
+    [2,2;2,-2],
+    [2 2  4 6 ;2 -2 0 -2],
+    [3,3,3;4,4,4;5,5,5]
+    };
+disp(map_func(matrices));
+</code></pre>
+</div>
+<div id="pu2" class="pu"><h1><a href="https://www.wolfram.com/wolframscript/" rel="nofollow noreferrer">Wolfram Language (Mathematica)</a>, no SNF builtin, 56 bytes</h1>
+<p>-35 from att</p>
+<pre><code>(i=0;(!i+1)/1~Max~!i++&amp;/.!a_:&gt;GCD@@Join@@#~Minors~a)/@#&amp;
+</code></pre>
+<p><a href="https://tio.run/##LY3dCoIwAIVfJRFE8djc/MkKY1AQBEL3ETEiaRcqmBfBmK@@Znp1Dt/54DRieL8aMcinMHVpfFnGe9@RIQ0IHSvxHW0PPbJ2xGN3OB9PnF862XLujpVsu/4zioBw1zPXXrbDrSZcKUXBkGioFBlymxsU2GqNlVLMTukfMkQMMdjMC1DLoslfvBTpRHLkoMw2GltElzlBsjzMWmafMq313fwA" rel="nofollow noreferrer" title="Wolfram Language (Mathematica) – Try It Online">Try it online!</a></p>
+<p>From <a href="https://en.wikipedia.org/wiki/Smith_normal_form#Definition" rel="nofollow noreferrer">Wikipedia</a>:</p>
+<blockquote>
+<p>The invariant factors <span class="math-container">\$\alpha_i\$</span> can be computed as
+<span class="math-container">$$\alpha_i = \frac{d_i(A)}{d_{i-1}(A)}$$</span>
+where <span class="math-container">\$d_i(A)\$</span> equals the greatest common divisor of the determinants of all <span class="math-container">\$i\times i\$</span> minors of the matrix <em>A</em> and <span class="math-container">\$d_0(A)=1\$</span>.</p>
+</blockquote>
+</div>
+<div id="pu3" class="pu"><h1>C++ with the <a href="https://eigen.tuxfamily.org/index.php?title=Main_Page" rel="nofollow noreferrer">Eigen3 library</a>, 470 bytes</h1>
+<p>Since we were not getting submissions using the Gaussian elimination style solution, I thought I would take a crack at implementing and golfing a solution myself.  (I won't count a self-answer as a competitor, but if somebody wants to pick this up and run with it, that would be fine with me.)</p>
+<pre><code>#include&lt;Eigen/Core&gt;
+#define r M.row
+#define c M.col
+#define G goto R;
+void f(auto&amp;M){int m=M.rows(),n=M.cols(),i,j,k,P,v;for(k=0;k&lt;m&amp;&amp;k&lt;n;++k){R:if(M(k,k)&lt;0)r(k)*=-1;P=M(k,k);for(i=k;i&lt;m;++i)for(j=k;j&lt;n;++j){v=abs(M(i,j));if((v&lt;P||!P)&amp;&amp;v){r(k).swap(r(i));c(k).swap(c(j));G}}if(P){for(i=k+1;i&lt;m;++i){r(i)-=M(i,k)/P*r(k);if(M(i,k))G}for(j=k+1;j&lt;n;++j){c(j)-=M(k,j)/P*c(k);if(M(k,j))G}for(i=k+1;i&lt;m;++i)for(j=k+1;j&lt;n;++j){if(M(i,j)%P){r(i)+=r(k);c(j)-=M(i,j)/P*c(k);G}}}}}
+</code></pre>
+<p>For some test code, append this:</p>
+<pre><code>
+#include &lt;iostream&gt;
+void test(Eigen::MatrixXi M) {
+    std::cout &lt;&lt; &quot;Input:\n&quot; &lt;&lt; M;
+    f(M);
+    std::cout &lt;&lt; &quot;\nOutput:\n&quot; &lt;&lt; M &lt;&lt; &quot;\n\n&quot;;
+}
+
+int main() {
+    Eigen::MatrixXi M(3,3);
+    M&lt;&lt;1,2,3,4,5,6,7,8,9;
+    test(M);
+
+    Eigen::MatrixXi M2(2,2);
+    M2&lt;&lt;6,10,10,15;
+    test(M2);
+
+    Eigen::MatrixXi M3(3,3);
+    M3&lt;&lt;6,0,0,0,10,0,0,0,15;
+    test(M3);
+
+    Eigen::MatrixXi M4(2,2);
+    M4&lt;&lt;2,2,2,-2;
+    test(M4);
+
+    Eigen::MatrixXi M5(2,4);
+    M5&lt;&lt;2,2,4,6,2,-2,0,-2;
+    test(M5);
+
+    Eigen::MatrixXi M6(3,3);
+    M6&lt;&lt;3,3,3,4,4,4,5,5,5;
+    test(M6);
+
+    return 0;
+}
+</code></pre>
+</div>
+<div id="pu4" class="pu"><h1><a href="https://www.sagemath.org/" rel="nofollow noreferrer">SageMath</a>, <s>26</s> 24 bytes</h1>
+
+<pre class="lang-python prettyprint-override"><code>lambda m:m.smith_form(0)
+</code></pre>
+<p><a href="https://doc.sagemath.org/html/en/reference/matrices/sage/matrix/constructor.html" rel="nofollow noreferrer">SageMath matrix</a> as I/O.</p>
+<p><a href="https://sagecell.sagemath.org/?z=eJx9zkEKwjAQBdB9IHcIXTXwlSTWqgUP4MoDxCAVKQacWmoKHt-0YrEgnc3MfB7DVPsTZ_eSLtdSUEHLJ_lwO1ePllIlOeMsjoKEr4WlMrT-lVqrYbBysBnWyGPfYIudcxKcibFGnUOriLSCXs8ghV5F9B1mvYGJyGBh5giy4b-exXODdcUHN62vQ5oc6qYLhUjkb0qTLTl24Q-qIpsE8g17k1Ju&amp;lang=sage&amp;interacts=eJyLjgUAARUAuQ==" rel="nofollow noreferrer">Try it online.</a></p>
+<p><strong>Explanation:</strong></p>
+<p>Should speak for itself, but I'll add it anyway.</p>
+<pre class="lang-python prettyprint-override"><code>lambda m:          # Lambda function with matrix as argument:
+  m.smith_form( )  #  Get the Smith Normal Form of the given matrix,
+               0   #  but only return its diagonal matrix D
+</code></pre>
+<p><a href="https://doc.sagemath.org/html/en/reference/matrices/sage/matrix/matrix_integer_sparse.html#sage.matrix.matrix_integer_sparse.Matrix_integer_sparse.smith_form" rel="nofollow noreferrer"><code>smith_form()</code></a> will output a tuple of three matrices <span class="math-container">\$(D,P,Q)\$</span> by default. But by overriding its first argument with <code>False</code>, it'll result in just its diagonal matrix <span class="math-container">\$D\$</span>, hence the need for the <code>0</code>-argument.</p>
+</div>
+<div id="pu5" class="pu"><h1><a href="https://pari.math.u-bordeaux.fr" rel="nofollow noreferrer">PARI/GP</a>, 20 bytes</h1>
+<p>-25 bytes thanks to <a href="https://codegolf.stackexchange.com/users/73487/daniel-schepler">@Daniel Schepler</a> and <a href="https://codegolf.stackexchange.com/users/110698/parcly-taxel">@Parcly Taxel</a>.</p>
+<pre><code>m-&gt;Vecrev(matsnf(m))
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=m728ILEoMz69YMHiNAXbpaUlaboWW3J17cJSk4tSyzRyE0uK89I0cjU1IVI3axMLCnIqNXIVdO0UCooy80qATCUQR0kBrExHITraUMdIx9jaRMdUx8zaXMdCxzIWKGqmY2hgbWigY2gK4RnoGFgDeRAKJmykY2RtpKNrBGXrmABNAPGBCoCCsVBHLFgAoQE" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<p><a href="https://codegolf.stackexchange.com/questions/175090/repeat-this-gcd-operation/175095#175095">Related</a>.</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/260800/">260800</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
