@@ -26,12 +26,36 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>nan</td><td></td><td>230730T142350Z</td><td><a href="https://codegolf.stackexchange.com/questions/263530/compute-the-logarithm-of-a-matrix/263543#263543">bsoelch</a></td></tr>
-<tr d-ix="1"><td>029</td><td>Octave</td><td>230731T062615Z</td><td><a href="https://codegolf.stackexchange.com/questions/263530/compute-the-logarithm-of-a-matrix/263558#263558">alephalp</a></td></tr>
-<tr d-ix="2"><td>022</td><td>Scala + jeigen</td><td>230730T140149Z</td><td><a href="https://codegolf.stackexchange.com/questions/263530/compute-the-logarithm-of-a-matrix/263541#263541">corvus_1</a></td></tr>
-<tr d-ix="3"><td>030</td><td>Python + scipy</td><td>230730T130622Z</td><td><a href="https://codegolf.stackexchange.com/questions/263530/compute-the-logarithm-of-a-matrix/263538#263538">SuperSto</a></td></tr>
+<tr d-ix="0"><td>061</td><td>R</td><td>230731T143351Z</td><td><a href="https://codegolf.stackexchange.com/questions/263530/compute-the-logarithm-of-a-matrix/263573#263573">Dominic </a></td></tr>
+<tr d-ix="1"><td>nan</td><td></td><td>230730T142350Z</td><td><a href="https://codegolf.stackexchange.com/questions/263530/compute-the-logarithm-of-a-matrix/263543#263543">bsoelch</a></td></tr>
+<tr d-ix="2"><td>029</td><td>Octave</td><td>230731T062615Z</td><td><a href="https://codegolf.stackexchange.com/questions/263530/compute-the-logarithm-of-a-matrix/263558#263558">alephalp</a></td></tr>
+<tr d-ix="3"><td>022</td><td>Scala + jeigen</td><td>230730T140149Z</td><td><a href="https://codegolf.stackexchange.com/questions/263530/compute-the-logarithm-of-a-matrix/263541#263541">corvus_1</a></td></tr>
+<tr d-ix="4"><td>030</td><td>Python + scipy</td><td>230730T130622Z</td><td><a href="https://codegolf.stackexchange.com/questions/263530/compute-the-logarithm-of-a-matrix/263538#263538">SuperSto</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Built-in solutions</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.r-project.org/" rel="nofollow noreferrer">R</a>, 61 bytes</h1>
+
+<pre class="lang-r prettyprint-override"><code>function(m,e=eigen(m))e$ve%*%diag(log(e$va+0i))%*%solve(e$ve)
+</code></pre>
+<p><a href="https://tio.run/##bZDRbsMgDEXf9xWWtkqwEmoHEsJDPiZLWYXUJtXWVfv7zNAtmpI8Ab724fp@TOfxdGmn96@hv8VxEBcV2hBPgW9Shpd72L3ujrE7Ce4T/O72GKXk4ud4vodUCTIzBPRvcTiKXgAplKoXqICkBAnP0M4iJg3yIZ9Wc2WaMwrsaq5AbSq0sIdSG08UFaD2pbdQAGn0pomJSyxazLXaYs1dLFpTeR5E7Zjg4urjYjZcbBm@xiQW15g8w@EA4bvrbxuMP8qMQ15oyTOaLCVjHM9vFMurrr2hamWT41Emga2qlH0kVaoNx7pGU/LCpCuHTU7Kka@9Ak4RPT7yyVqikLYcWupqnEGXIkuFvPSy/x9r@Q37nX4A" rel="nofollow noreferrer" title="R – Try It Online">Try it online!</a></p>
+<p>Uses <a href="https://en.wikipedia.org/wiki/Logarithm_of_a_matrix#Calculating_the_logarithm_of_a_diagonalizable_matrix" rel="nofollow noreferrer">this method from Wikipedia</a> for finding the logarithm of a diagonalizable (and so invertible) matrix.</p>
+<hr />
+<h1><a href="https://www.r-project.org/" rel="nofollow noreferrer">R</a>, 105 bytes*</h1>
+<p><strong>(*)Only for matrices <code>M</code> for which <code>norm(M-I)&lt;1</code></strong></p>
+
+<pre class="lang-r prettyprint-override"><code>function(m,i=diag(nrow(m)),R=Reduce)R(`+`,lapply(1:1e3,function(n)-(-1)^n*R(`%*%`,rep(list(m-i),n),i)/n))
+</code></pre>
+<p><a href="https://tio.run/##fY3BCoMwEETv/YpAEXbtSg29CfkJP6CoMZWFZJU0tvTrrXrwUuhlBmbmMXHx4xDM8pjFJh4FArHpuR1A4viGgEi1qV0/W4c1NJeGfDtN/gO60u5GByZYQKHxLvm6yvKsoegm8PxMEApGEiTGqyDuf6Bsx9KDBaWpRLJQktKICtVZmaMst07thqcfTv/h9MGtsYzJVZsqlpeLiTvvli8" rel="nofollow noreferrer" title="R – Try It Online">Try it online!</a></p>
+<p>I didn't initially spot the 'invertible' in the challenge specification, so tried to use <a href="https://en.wikipedia.org/wiki/Logarithm_of_a_matrix#Power_series_expression" rel="nofollow noreferrer">this other method from Wikipedia</a> which works for non-diagonalizable matrices <code>M</code>, but with the restriction that <code>norm(M-I)</code> must be <code>&lt;1</code>.<br />
+In many cases, this can be extended to matrices with larger-valued elements, using <code>L ==  log( M %*% X) == log( M ) + log( X )</code>: in these cases, we divide the matrix <code>M</code> by a sufficiently-large power-of-2 <code>l</code>, and add <code>l</code> times the log of 2x the identity matrix to the result.<br />
+Nevertheless, this is not fully-general, and fails for matrices <code>M</code> that cannot be scaled to satisfy <code>norm(M-I)&lt;1</code> (for instance, the matrix <code>[[1,2],[3,4]]</code>).</p>
+<h1><a href="https://www.r-project.org/" rel="nofollow noreferrer">R</a>, 158 bytes*</h1>
+<p><strong>(*)Only for matrices <code>M</code> for which <code>norm(M*l-I)&lt;1</code> for some value <code>l</code></strong></p>
+
+<pre class="lang-r prettyprint-override"><code>function(m,i=diag(nrow(m)),l=log2(norm(m)*2)%/%1,f=function(m,R=Reduce)R(`+`,lapply(1:1e3,function(n)-(-1)^n*R(`%*%`,rep(list(m-i),n),i)/n)))f(m/2^l)+l*f(i*2)
+</code></pre>
+<p><a href="https://tio.run/##pY5dasMwEITfewpBMew6K1k/ppSALuEDBCeOHASSbFynpad3ZdOGkrwU@rLLsjPfzLSE4RLt0l9TN/shQSRvz/54gTQNHxARKdgs0ZCGKea71FhUhaLe/rI0tnHna@ewgXbXUjiOY/gEtVfO0E2WkANXeEhlVhVl0dLkRgj@bYbIPVJC8lglROwhVvoQcBfKHnxO3EoC604@naEDpkgidSCJKUSG7JnZ21OuP7YtfLr3SdI/TiMfrFoYSUqob4AR9aqxLA2z26@T@fTuptmfgrtHa6pXsCZWP3C5EVJRLV43sM5Y4lK8qD/Dc2@uZWXWBG5klVPU/@ovXw" rel="nofollow noreferrer" title="R – Try It Online">Try it online!</a></p>
+</div>
+<div id="pu1" class="pu"><h1>Built-in solutions</h1>
 <h2><a href="https://www.wolfram.com/wolframscript/" rel="nofollow noreferrer">Wolfram Language (Mathematica)</a>, 9 bytes</h2>
 <pre><code>MatrixLog
 </code></pre>
@@ -41,20 +65,20 @@
 </code></pre>
 <p><a href="https://tio.run/##y08uSSxL/Z9m66Cnp/c/Jz8993@aRrShgoG1goGCYawmF5hnZK1grGAC4elCJXUNEXyocghloGAE16dgbK1gomCqYAIywAhk4H8A" rel="nofollow noreferrer" title="Octave – Try It Online">Try it online!</a></p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://www.gnu.org/software/octave/" rel="nofollow noreferrer">Octave</a>, 29 bytes</h1>
+<div id="pu2" class="pu"><h1><a href="https://www.gnu.org/software/octave/" rel="nofollow noreferrer">Octave</a>, 29 bytes</h1>
 
 <pre class="lang-matlab prettyprint-override"><code>@(a)(a^1e-9-eye(size(a)))*1e9
 </code></pre>
 <p><a href="https://tio.run/##y08uSSxL/Z9mq6en999BI1FTIzHOMFXXUje1MlWjOLMqFSikqallmGr5Pyc/PVcj2lDBwFrBQMEwVpMrDYUHkzayVjBWMIFJw3kQaV2oBl2ofhQ@QgnUVAhloGCEUIxFBm6xgrG1gomCqYIJyE4jhBOxSPwHAA" rel="nofollow noreferrer" title="Octave – Try It Online">Try it online!</a></p>
 <p>Based on <a href="https://codegolf.stackexchange.com/a/262714/9288">@Jos Woolley's Excel answer to the Vanilla Natural Logarithm Challenge</a>.</p>
 </div>
-<div id="pu2" class="pu"><h1>Scala + <a href="https://github.com/hughperkins/jeigen/" rel="nofollow noreferrer">jeigen</a>, 22 bytes</h1>
+<div id="pu3" class="pu"><h1>Scala + <a href="https://github.com/hughperkins/jeigen/" rel="nofollow noreferrer">jeigen</a>, 22 bytes</h1>
 <pre class="lang-scala prettyprint-override"><code>import jeigen.*
 _.mlog
 </code></pre>
 <p><a href="https://scastie.scala-lang.org/70XxNAAWSf6aYo50FWW89w" rel="nofollow noreferrer">Try it online</a></p>
 </div>
-<div id="pu3" class="pu"><h1>Python + scipy, 30 bytes</h1>
+<div id="pu4" class="pu"><h1>Python + scipy, 30 bytes</h1>
 <pre class="lang-py prettyprint-override"><code>from scipy.linalg import*
 logm
 </code></pre>
