@@ -26,11 +26,11 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>053</td><td>PARISC 1.1 machine language on HPUX 10.20</td><td>230529T022317Z</td><td><a href="https://codegolf.stackexchange.com/questions/55422/hello-world/261306#261306">ceilingc</a></td></tr>
-<tr d-ix="1"><td>040</td><td>Alpha AXP machine language on OSF/1</td><td>230326T082049Z</td><td><a href="https://codegolf.stackexchange.com/questions/55422/hello-world/259467#259467">ceilingc</a></td></tr>
-<tr d-ix="2"><td>036</td><td>m68k machine language</td><td>221102T153257Z</td><td><a href="https://codegolf.stackexchange.com/questions/55422/hello-world/254051#254051">ceilingc</a></td></tr>
-<tr d-ix="3"><td>045</td><td>32 bit SPARC machine language on SunOS</td><td>190507T060508Z</td><td><a href="https://codegolf.stackexchange.com/questions/55422/hello-world/185263#185263">ceilingc</a></td></tr>
-<tr d-ix="4"><td>039</td><td>DEC VAX machine language on UNIX</td><td>230730T214706Z</td><td><a href="https://codegolf.stackexchange.com/questions/55422/hello-world/263551#263551">ceilingc</a></td></tr>
+<tr d-ix="0"><td>039</td><td>DEC VAX machine language on UNIX</td><td>230730T214706Z</td><td><a href="https://codegolf.stackexchange.com/questions/55422/hello-world/263551#263551">ceilingc</a></td></tr>
+<tr d-ix="1"><td>053</td><td>PARISC 1.1 machine language on HPUX 10.20</td><td>230529T022317Z</td><td><a href="https://codegolf.stackexchange.com/questions/55422/hello-world/261306#261306">ceilingc</a></td></tr>
+<tr d-ix="2"><td>040</td><td>Alpha AXP machine language on OSF/1</td><td>230326T082049Z</td><td><a href="https://codegolf.stackexchange.com/questions/55422/hello-world/259467#259467">ceilingc</a></td></tr>
+<tr d-ix="3"><td>036</td><td>m68k machine language</td><td>221102T153257Z</td><td><a href="https://codegolf.stackexchange.com/questions/55422/hello-world/254051#254051">ceilingc</a></td></tr>
+<tr d-ix="4"><td>045</td><td>32 bit SPARC machine language on SunOS</td><td>190507T060508Z</td><td><a href="https://codegolf.stackexchange.com/questions/55422/hello-world/185263#185263">ceilingc</a></td></tr>
 <tr d-ix="5"><td>031</td><td>Koka</td><td>230710T234706Z</td><td><a href="https://codegolf.stackexchange.com/questions/55422/hello-world/262618#262618">alephalp</a></td></tr>
 <tr d-ix="6"><td>171</td><td>Perl 5</td><td>230622T171956Z</td><td><a href="https://codegolf.stackexchange.com/questions/55422/hello-world/262092#262092">Wallace</a></td></tr>
 <tr d-ix="7"><td>nan</td><td>Hippopotomonstrosesquipedalian 2</td><td>230411T123158Z</td><td><a href="https://codegolf.stackexchange.com/questions/55422/hello-world/259959#259959">The Empt</a></td></tr>
@@ -986,7 +986,27 @@
 <tr d-ix="957"><td>017</td><td>Zsh</td><td>150828T124458Z</td><td><a href="https://codegolf.stackexchange.com/questions/55422/hello-world/55433#55433">jimmy230</a></td></tr>
 <tr d-ix="958"><td>014</td><td>Pyth</td><td>150828T123956Z</td><td><a href="https://codegolf.stackexchange.com/questions/55422/hello-world/55430#55430">orlp</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://en.m.wikipedia.org/wiki/PA-RISC" rel="nofollow noreferrer">PA-RISC</a> 1.1 machine language on <a href="https://en.m.wikipedia.org/wiki/HP-UX" rel="nofollow noreferrer">HP-UX</a> 10.20, 53 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://en.m.wikipedia.org/wiki/VAX" rel="nofollow noreferrer">DEC VAX</a> machine language on UNIX, <s>40</s> 39 bytes</h1>
+<pre><code>00  00 00                                 ;entry mask
+02  dd 0d                pushl $0xd       ;len of string
+04  df ef 10 00 00 00    pushal $0x1a     ;addr of string
+0a  dd 01                pushl $0x1       ;file descriptor=1
+0c  9a 04 50             movzbl $0x4,%r0  ;select write() syscall
+0f  fb 03 ef ff ff ff ff calls $3,0x15    ;call syscall
+16  04                   ret
+17  bc 50                chmk %r0         ;syscall
+19  04                   ret
+1a  48 65 6c 6c 6f 2c 20 &quot;Hello, World&quot;
+    57 6f 72 6c 64 21
+</code></pre>
+<p>The entry mask specifies which regs are saved and other runtime characteristics of the procedure. Because of the way syscalls work on VAX, the golfiest way to make one (as far I know) is a two step procedure. I have also overlapped the end of the &quot;call&quot; instruction with the start of the entry mask of the syscall procedure.</p>
+<p>In honor of the 39th anniversary of <a href="https://lainsystems.com/posts/exploring-mullender-dot-c/#looking-at-the-vax-code" rel="nofollow noreferrer">mullender.c</a> you can try out the above code by compiling and running the following C program on an actual or emulated VAX.</p>
+<pre><code>char main[]={0x00,0x00,0xdd,0x0d,0xdf,0xef,0x10,0x00,0x00,0x00,0xdd,0x01
+,0x9a,0x04,0x50,0xfb,0x03,0xef,0xff,0xff,0xff,0xff,0x04,0xbc,0x50,0x04,
+0x48,0x65,0x6c,0x6c,0x6f,0x2c,0x20,0x57,0x6f,0x72,0x6c,0x64,0x21};
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://en.m.wikipedia.org/wiki/PA-RISC" rel="nofollow noreferrer">PA-RISC</a> 1.1 machine language on <a href="https://en.m.wikipedia.org/wiki/HP-UX" rel="nofollow noreferrer">HP-UX</a> 10.20, 53 bytes</h1>
 <pre><code>00:       eb 20 00 00     bl &lt;08&gt;,r25     ; load address of label 0c to %r25
 04:       34 1a 00 02     ldi 1,r26       ; branch delay slot, fd=1 to %r26
 08:       b7 39 00 3a     addi 1d,r25,r25 ; pointer to string to %r25
@@ -1011,7 +1031,7 @@ int main(){
 }
 </code></pre>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://en.m.wikipedia.org/wiki/DEC_Alpha" rel="nofollow noreferrer">Alpha AXP</a> machine language on <a href="https://en.m.wikipedia.org/wiki/OSF/1" rel="nofollow noreferrer">OSF/1</a>, 40 bytes</h1>
+<div id="pu2" class="pu"><h1><a href="https://en.m.wikipedia.org/wiki/DEC_Alpha" rel="nofollow noreferrer">Alpha AXP</a> machine language on <a href="https://en.m.wikipedia.org/wiki/OSF/1" rel="nofollow noreferrer">OSF/1</a>, 40 bytes</h1>
 <pre><code>0x00:   d2200004    bsr a1, 0x14(zero)    # Set a1 to pointer of string
 0x04:   6c6c6548    &quot;Hello, World!\0\0\0&quot;
 0x08:   57202c6f
@@ -1028,7 +1048,7 @@ int main(){
             0x43e09400,0x43e03410,0x43e1b412,0x83,0x6bfa8001};
 </code></pre>
 </div>
-<div id="pu2" class="pu"><h1><a href="https://en.m.wikipedia.org/wiki/Motorola_68000_series" rel="nofollow noreferrer">m68k</a> machine language, <s>42 40</s> 36 bytes, tested on <a href="https://en.m.wikipedia.org/wiki/SunOS" rel="nofollow noreferrer">SunOS</a> 4.1.4</h1>
+<div id="pu3" class="pu"><h1><a href="https://en.m.wikipedia.org/wiki/Motorola_68000_series" rel="nofollow noreferrer">m68k</a> machine language, <s>42 40</s> 36 bytes, tested on <a href="https://en.m.wikipedia.org/wiki/SunOS" rel="nofollow noreferrer">SunOS</a> 4.1.4</h1>
 <pre><code>0x00 4878000d pea 13            ; push length of string to stack
 0x04 610e     bsr 0x14          ; push address of string to stack
 0x06 48656c6c &quot;Hello, World!\0&quot; ; string
@@ -1049,7 +1069,7 @@ int main(){
 0x6c642100,0x48780001,0x48780001,0x48780004,0x4e404e40};
 </code></pre>
 </div>
-<div id="pu3" class="pu"><h1>32 bit <a href="https://en.m.wikipedia.org/wiki/SPARC" rel="nofollow noreferrer">SPARC</a> machine language on <a href="https://en.m.wikipedia.org/wiki/Oracle_Solaris" rel="nofollow noreferrer">SunOS</a>, <s>48</s> 45 bytes</h1>
+<div id="pu4" class="pu"><h1>32 bit <a href="https://en.m.wikipedia.org/wiki/SPARC" rel="nofollow noreferrer">SPARC</a> machine language on <a href="https://en.m.wikipedia.org/wiki/Oracle_Solaris" rel="nofollow noreferrer">SunOS</a>, <s>48</s> 45 bytes</h1>
 <pre><code>0x00:  40 00 00 02    call 0x8            ! PC relative jump, return addr to %o7
 0x04:  82 10 20 04    mov  4, %g1         ! delay slot; select write() syscall
 0x08:  90 10 20 01    mov  1, %o0         ! stdout is fd=1
@@ -1068,26 +1088,6 @@ int main(){
 <pre><code>const char main[]=&quot;\x40\x00\x00\x02\x82\x10\x20\x04\x90\x10\x20\x01\x92\x03\xe0\x20\x94\x10\x20\x0d\x91\xd0\x20\x08\x82\x10\x20\x01\x91\xd0\x20\x08Hello, World!&quot;;
 </code></pre>
 <p>EDIT: To try this on Linux (for SPARC), change the argument of the trap instruction to 16 for 32 bit mode and 109 for 64 bit mode.</p>
-</div>
-<div id="pu4" class="pu"><h1>DEC VAX machine language on UNIX, <s>40</s> 39 bytes</h1>
-<pre><code>00  00 00                                 ;entry mask
-02  dd 0d                pushl $0xd       ;len of string
-04  df ef 10 00 00 00    pushal $0x1a     ;addr of string
-0a  dd 01                pushl $0x1       ;file descriptor=1
-0c  9a 04 50             movzbl $0x4,%r0  ;select write() syscall
-0f  fb 03 ef ff ff ff ff calls $3,0x15    ;call syscall
-16  04                   ret
-17  bc 50                chmk %r0         ;syscall
-19  04                   ret
-1a  48 65 6c 6c 6f 2c 20 &quot;Hello, World&quot;
-    57 6f 72 6c 64 21
-</code></pre>
-<p>The entry mask specifies which regs are saved and other runtime characteristics of the procedure. Because of the way syscalls work on VAX, the golfiest way to make one (as far I know) is a two step procedure. I have also overlapped the end of the &quot;call&quot; instruction with the start of the entry mask of the syscall procedure.</p>
-<p>In honor of the 39th anniversary of <a href="https://lainsystems.com/posts/exploring-mullender-dot-c/#looking-at-the-vax-code" rel="nofollow noreferrer">mullender.c</a> you can try out the above code by compiling and running the following C program on an actual or emulated VAX.</p>
-<pre><code>char main[]={0x00,0x00,0xdd,0x0d,0xdf,0xef,0x10,0x00,0x00,0x00,0xdd,0x01
-,0x9a,0x04,0x50,0xfb,0x03,0xef,0xff,0xff,0xff,0xff,0x04,0xbc,0x50,0x04,
-0x48,0x65,0x6c,0x6c,0x6f,0x2c,0x20,0x57,0x6f,0x72,0x6c,0x64,0x21};
-</code></pre>
 </div>
 <div id="pu5" class="pu"><h1><a href="https://koka-lang.github.io" rel="nofollow noreferrer">Koka</a>, 31 bytes</h1>
 <pre><code>fun main()print(&quot;Hello world!&quot;)
