@@ -40,16 +40,21 @@
 <tr d-ix="11"><td>nan</td><td>Scala</td><td>230729T153542Z</td><td><a href="https://codegolf.stackexchange.com/questions/263496/can-you-perform-swaps/263502#263502">138 Aspe</a></td></tr>
 <tr d-ix="12"><td>013</td><td>Jelly</td><td>230729T164305Z</td><td><a href="https://codegolf.stackexchange.com/questions/263496/can-you-perform-swaps/263509#263509">Jonathan</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.rust-lang.org" rel="nofollow noreferrer">Rust</a>, <del>204</del> <del>179</del> <del>147</del> <del>132</del> 123 bytes</h1>
-<pre class="lang-rust prettyprint-override"><code>|a,b|a.iter().zip(b).fold((0,0,0),|(c,d,f),(&amp;e,g)|{let(h,i)=(e.min(g)+d,e.max(g)+c);(h.min(i),h.max(i),f.min(c))})==(0,0,0)
+<div id="pu0" class="pu"><h1><a href="https://www.rust-lang.org" rel="nofollow noreferrer">Rust</a>, <del>204</del> <del>179</del> <del>147</del> <del>132</del> <del>123</del> 98 bytes</h1>
+<pre class="lang-rust prettyprint-override"><code>|a,b|a.iter().zip(b).fold((0,0,true),|(c,d,f),(&amp;e,g)|(c+e+g,d^((e^!g)+1)/2,f&amp;&amp;c-d&gt;=0))==(0,0,true)
 </code></pre>
-<p><a href="https://ato.pxeger.com/run?1=jVNLTsMwEF2wIqeYZoFsYYe2q6ql5QiwQGyqCrnOmFpynSpxUEXbk7BhAUfgMHAa3KRNv1ASR57fe5nRzLy-p3nmPvsh5xhrpxMbMgib9WYjHHxxZWEstCUUZoFBB6qtLHlAea1bPba6Ke8Nk8RA9yN3ire-ZnPBhnMRaYcpodGLnpAhjVRiYkLqzL-UzYlkMVOUkQtkT3Q-89xkxDTtEozG_n9P9DJmXhTTpShph4wKu6ZsVFi9oAqLpHRBu90Vc5nC91mjA0GgkhQcZu5RigxBW-gH5-QZZa3fGDAoBL6UlDAZUlY5GfAqYK24NN8NKQ-vvh1A5fsVzv_An4LzLeDqHEVXxHsF8h3_fgK_ev_FcprpONtJsk2tmxK3aMA_V1dw79sNy3ZncHsH0gg9zkCkCDLJrZ9HnIrxxGBWxJNjxAedPEjn2CjsBx0w76MHfqGWOUxSbZ2xNRIK6XJh2jBr3ywApxOUDuOV6tZllbrfUEWqyY7qkTSJRULZZtyjxtq4Y21uK-uATrAIFuXmvL2V9w8" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<p><a href="https://ato.pxeger.com/run?1=jVNLbsIwEF101ZxiyALZwg4BqRLiu--mXVTdIKiCYyNLwUGJqVALJ-mGRXuEHqY9TR0FkpAmpZEtez7veUZ58_YebWL9ObUp5b7UMlQ2Abvrdjv27IsKBStPKoTh1Qq4BtEXCj1yNpS9MTmemI4XYRjA6GOjBe19LXYeMduRmkcIOy9yjRbYEWHgI-QSl-howzHZIUZ8IjBBTU6W2Jgt3loSf44QnzeWuNXB7S4RzSaj_njkYjwa5ej0pe-r2wFYlggj0DzWT8yLOUgFUwvMh545a0w7MwLZRXhBbJ62rksxWhUkQHPw0UhLL6Ski2b7DJDFauH0D_wlOC0Aj6sSnRGXGqRn8XIBtdF_sVxmqma7SJb3mrdYoEn-e7sND0YNkKghhrt7YIEnVzF4EQcWbpRRJd96q3XA46JOKljrS6qRQjnpF3MZPTNjldSwjqTSgWogW6CtmbX-8GayB93PbqeGEs9kbyZUoEzyjuuwIFQcYZLPgdM5Oc-83aJxShhYe2ufjtThkJ4_" rel="nofollow noreferrer">Attempt This Online!</a></p>
 <ul>
 <li>-9 bytes thanks to <a href="https://codegolf.stackexchange.com/users/110585/suterliakov">SUTerliankov</a></li>
 </ul>
-<p>It is always safe to swap parenthesis so that the nesting level moves towards the median. <code>c,d</code> are the nesting levels. We guarentee that <code>c</code> has the lowest nesting level, so if we add the <em>highest</em> parenthesis value to it and add the <em>lowest</em> to <code>c</code> we go towards the middle.</p>
-<p>Then all that remains is checking if we ever go negative. <code>f</code> the simply the lowest value <code>c</code> ever holds. We can check if it equals 0.</p>
-<p>Uses <code>1</code> to represent an opening parenthesis and <code>-1</code> for closing. Slightly smarter now.</p>
+<p>Radically new algorithm. We know the only possible failure case is if:</p>
+<ul>
+<li>We get 2 simultaneous closing parenthesis when the nesting level is 0</li>
+<li>We get 2 different closing parenthesis when the nesting level is 0</li>
+</ul>
+<p>We use <code>d</code> to store if there currently is an odd or even number of unequal pairs. If the nesting level <code>c-d</code> is negative, we fail. If the nesting level is not 0 or the number of unequal pairs is not even at the end we fail.</p>
+<p><code>d^((e^!g)+1)/2</code> should be 1 if e=g and 0 otherwise.</p>
+<p>Uses <code>1</code> to represent an opening parenthesis and <code>-1</code> for closing.</p>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://github.com/AlephAlpha/Nekomata" rel="nofollow noreferrer">Nekomata</a> + <code>-e</code>, 8 bytes</h1>
 <pre><code>Ťᵐ↕∫Ɔž∑≤
