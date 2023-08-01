@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::26554</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>nan</td><td></td><td>230801T133619Z</td><td><a href="https://codegolf.stackexchange.com/questions/26554/dither-a-grayscale-image/263614#263614">Peter</a></td></tr>
+<tr d-ix="1"><td>028</td><td>JavaScript Node.js</td><td>230801T194609Z</td><td><a href="https://codegolf.stackexchange.com/questions/26554/dither-a-grayscale-image/263617#263617">l4m2</a></td></tr>
+<tr d-ix="2"><td>nan</td><td></td><td>210706T113122Z</td><td><a href="https://codegolf.stackexchange.com/questions/26554/dither-a-grayscale-image/231043#231043">LdBeth</a></td></tr>
+<tr d-ix="3"><td>nan</td><td></td><td>140504T171802Z</td><td><a href="https://codegolf.stackexchange.com/questions/26554/dither-a-grayscale-image/26574#26574">Glenn Ra</a></td></tr>
+<tr d-ix="4"><td>nan</td><td></td><td>160218T015501Z</td><td><a href="https://codegolf.stackexchange.com/questions/26554/dither-a-grayscale-image/73457#73457">Moogie</a></td></tr>
+<tr d-ix="5"><td>nan</td><td></td><td>150802T213159Z</td><td><a href="https://codegolf.stackexchange.com/questions/26554/dither-a-grayscale-image/54198#54198">flawr</a></td></tr>
+<tr d-ix="6"><td>nan</td><td></td><td>150802T193628Z</td><td><a href="https://codegolf.stackexchange.com/questions/26554/dither-a-grayscale-image/54196#54196">SuperJed</a></td></tr>
+<tr d-ix="7"><td>nan</td><td></td><td>140506T151345Z</td><td><a href="https://codegolf.stackexchange.com/questions/26554/dither-a-grayscale-image/26694#26694">leonbloy</a></td></tr>
+<tr d-ix="8"><td>nan</td><td></td><td>140506T134440Z</td><td><a href="https://codegolf.stackexchange.com/questions/26554/dither-a-grayscale-image/26690#26690">Averroes</a></td></tr>
+<tr d-ix="9"><td>nan</td><td></td><td>140504T000319Z</td><td><a href="https://codegolf.stackexchange.com/questions/26554/dither-a-grayscale-image/26559#26559">Οurous</a></td></tr>
+<tr d-ix="10"><td>nan</td><td>I apologize for the code style</td><td>140506T002342Z</td><td><a href="https://codegolf.stackexchange.com/questions/26554/dither-a-grayscale-image/26661#26661">Quadmast</a></td></tr>
+<tr d-ix="11"><td>nan</td><td></td><td>140504T114658Z</td><td><a href="https://codegolf.stackexchange.com/questions/26554/dither-a-grayscale-image/26569#26569">semi-ext</a></td></tr>
+<tr d-ix="12"><td>nan</td><td></td><td>140505T110859Z</td><td><a href="https://codegolf.stackexchange.com/questions/26554/dither-a-grayscale-image/26616#26616">user2846</a></td></tr>
+<tr d-ix="13"><td>nan</td><td></td><td>140504T140741Z</td><td><a href="https://codegolf.stackexchange.com/questions/26554/dither-a-grayscale-image/26572#26572">aditsu q</a></td></tr>
+<tr d-ix="14"><td>nan</td><td></td><td>140503T215220Z</td><td><a href="https://codegolf.stackexchange.com/questions/26554/dither-a-grayscale-image/26556#26556">Joe Z.</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>Python</h1>
+<p>The code is quite bad, so I'll try to explain the algorithm. For each pixel, it stores the brightness of the pixel in the variable <code>brightness</code>, and changes <code>brightness</code> based on the values of <code>x % 2</code> and <code>y % 2</code>, where <code>x</code> and <code>y</code> are coordinates of that pixel. This creates a typical two by two regular dithering pattern. Then, <code>brightness</code> is randomly changed by some amount to hide banding and strongly visible patterns created by the dithering algorithm.</p>
+<p>Finally, <code>brightness</code> is changed by the difference between the average brightness of the current pixel and the average brightness of the pixel around it. This makes details and outlines more visible, since small groups of pixels that are very different from their surroundings are more likely to get a different color than their surroundings. The brightness is then rounded to 0 (black) or 1 (white).</p>
+<p>The program has four parameters that can be changed to change the result: <code>dither_details</code>, which determines how likely pixels with a different brightness than their surroundings are to get a different color than their surroundings; <code>dither_regular</code>, which determines how strong the typical two by two dithering pattern is, <code>dither_random</code>, which determines the strength of the random dithering; and <code>s</code>, which determines how big an area of its surrounding the pixels are compared to.</p>
+<img src="https://i.stack.imgur.com/J4uiY.png" width="406" height="367">
+<pre class="lang-python prettyprint-override"><code>import matplotlib.image as mplimg
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import numpy
+
+image = mplimg.imread(&quot;pup.png&quot;)
+
+new_im = [
+    [0 for x in range(len(image[0]))]
+for y in range(len(image))]
+
+def avg(x, y, f):
+    sum_ = 0
+    n = 0
+    
+    for x1 in range(x, x + f):
+        for y1 in range(y, y + f):
+            
+            if x1 &lt; 0 or x1 &gt;= len(image[0]) or y1 &lt; 0 or y1 &gt;= len(image):
+                continue
+            
+            n += 1
+            sum_ += image[y1][x1]
+
+    return sum_ / n
+
+dither_details = 3.0
+dither_regular = 0.15
+dither_random = 0.03
+s = 3
+
+for x in range(len(image[0])):
+    for y in range(len(image)):
+        
+        brightness = image[y][x]
+        
+        if x % 2 == 0 and y % 2 == 0:
+            brightness += dither_regular
+        elif x % 2 == 1 and y % 2 == 1:
+            brightness += dither_regular / 2
+        elif x % 2 == 0 and y % 2 == 1:
+            brightness -= dither_regular
+        elif x % 2 == 1 and y % 2 == 0:
+            brightness -= dither_regular / 2
+        
+        brightness += numpy.random.normal(scale = dither_random)
+        
+        average_brightness = avg(x - s, y - s, s * 2 + 1)
+        brightness += image[y][x] * dither_details - average_brightness * dither_details
+        
+        new_im[y][x] = 0 if brightness &lt; 0.5 else 1
+    
+dpi = 16
+mpl.rcParams['savefig.dpi'] = dpi * 16
+plt.figure(figsize=(len(image[0]) / dpi, len(image) / dpi), dpi = dpi * 16)
+plt.axis(&quot;off&quot;)
+plt.imshow(new_im, cmap = &quot;gray&quot;, interpolation = &quot;nearest&quot;)
+plt.savefig(&quot;dither.png&quot;, bbox_inches=&quot;tight&quot;)
+plt.show()
+<span class="math-container">```</span>
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 28 bytes</h1>
+
+<pre class="lang-javascript prettyprint-override"><code>x=&gt;x.map(t=&gt;t&gt;Math.random())
+</code></pre>
+<p><a href="https://tio.run/##RY8/T8MwFMR3PoUXGhu5jxbIFNkDAylDAYl2iipkOX7FVf4Y@xXKpw9BLUW67XS/u9uZT5Ns9IGmXV@7AdVwUPoArQmclCa9NPQO0XR133IhhgKTiu5j76PjGaZMFBelwgTRmfrBN@71u7M8e3x6Wa8ghPbXX6gKAMoNoG/IRc7fpBdKez2/Y5MJ85e3Ss3EufH6Js/H1Mj8ip7cP/R5vfqjyvs9ootg@84a4lUJqfHW8Zmc50Kyk4tx3Ix8IQAbQ8sjv6IrNTZIkrQRYlQxILbBbdnUs@PuXdiy84Mf" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<p><a href="https://i.stack.imgur.com/j7rnS.png" rel="nofollow noreferrer"><img src="https://i.stack.imgur.com/j7rnS.png" alt="enter image description here" /></a></p>
+<p>Trying to golf one</p>
+</div>
+<div id="pu2" class="pu"><h1>Dyalog APL</h1>
+<p>This is an implementation of ordered dither with a special dither array.</p>
+<p>The input format is a restricted form of raster PGM while it is also the default style produced by Netpbm programs that requires no comment line, file header separated by newline character rather than arbitrary whitespace, and assumes &quot;maxval&quot; to be 255, so the file can be handled easily with APL's <code>⎕MAP</code> system function.</p>
+<p>The output format satisfies raster PBM specification.</p>
+<p>This program can dither images as large as 3000×2000 in very short time, however for larger image it needs more than default workspace size.</p>
+<pre><code>∇img←readpgm file;data;size
+ data←83 ¯1 ⎕MAP file
+⍝ drop magic
+ data←(⊢↓⍨⍳∘10)data
+ size←⌽⍎⎕UCS ¯1↓(⊢↑⍨⍳∘10)data
+ img←size⍴256|(⊢↓⍨⍳∘10)⍣2⊢data
+∇
+
+∇img writepbm file;data;size;h;s;tie
+ tie←file(⎕NCREATE⍠'IfExists' 'Error')0
+ h←10,⍨⎕UCS'P4 ',⍕size←⌽⍴img
+ tie ⎕ARBOUT h
+ s←8×⌈8÷⍨⊃size
+ data←,⍉s↑⍉img
+ data←2⊥⍉data⍴⍨8,⍨8÷⍨≢data
+ tie ⎕ARBOUT data
+ ⎕NUNTIE tie
+∇
+
+da←1 8⍴51 25 61 10 45 57 8 16
+da⍪←58 6 34 23 1 36 49 30
+da⍪←44 32 29 14 41 62 20 12
+da⍪←2 21 60 52 47 4 24 55
+da⍪←50 9 18 7 38 28 15 40
+da⍪←37 56 26 43 59 11 53 35
+da⍪←46 13 31 3 48 22 5 63
+da⍪←0 19 33 54 17 39 27 42
+
+dither←{
+    ⎕IO←0
+    x y←⍴⍵
+    a b←⍴⍺
+    (63×⍵÷255)&lt;(,⍺)[(x y⍴y⍴⍳b)+⍉y x⍴x⍴b×⍳a]
+}
+
+'out.pbm' writepbm⍨ da dither readpgm 'input.pgm'
+</code></pre>
+<p><a href="https://i.stack.imgur.com/sRShq.png" rel="nofollow noreferrer"><img src="https://i.stack.imgur.com/sRShq.png" alt="input image" /></a></p>
+<p><a href="https://i.stack.imgur.com/gGPv9.png" rel="nofollow noreferrer"><img src="https://i.stack.imgur.com/gGPv9.png" alt="output image" /></a></p>
+<p><a href="https://i.stack.imgur.com/2st8g.png" rel="nofollow noreferrer"><img src="https://i.stack.imgur.com/2st8g.png" alt="OP's image for completeness" /></a></p>
+</div>
+<div id="pu3" class="pu"><h2>GraphicsMagick/ImageMagick</h2>
+
+<h2>Ordered Dither:</h2>
+
+<pre><code>magick B2DBy.jpg -gamma .45455 -ordered-dither [all] 4x4 ordered4x4g45.pbm
+</code></pre>
+
+<p>Before complaining about my using an "established algorithm" please read the ChangeLog for GraphicsMagick and ImageMagick for April 2003 where you'll see that I implemented the algorithm in those applications.  Also, the combination of "-gamma .45455" with "-ordered-dither" is new.</p>
+
+<p>The "-gamma .45455" takes care of the image being too light.  The "all" parameter is only needed with GraphicsMagick.</p>
+
+<p>There's banding because there are only 17 graylevels in a 4x4 ordered-dither image.
+The appearance of banding can be reduced by using an 8x8 ordered-dither which has 65 levels.</p>
+
+<p>Here are the original image, the 4x4 and 8x8 ordered dithered output and the random-threshold output:
+<a href="https://i.stack.imgur.com/8Euxq.png" rel="noreferrer"><img src="https://i.stack.imgur.com/8Euxq.png" alt="enter image description here"></a></p>
+
+<p>I prefer the ordered-dither version, but am including the random-threshold version for completeness. </p>
+
+<pre><code>magick B2DBy.jpg -gamma .6 -random-threshold 10x90% random-threshold.pbm
+</code></pre>
+
+<p>The "10x90%" means to render below 10 percent intensity pixels as pure black and above 90 percent as pure white, to avoid having a few lonely specks in those areas.</p>
+
+<p>It's probably worth noting that both are as memory-efficient as they can possibly be.  Neither does any diffusion, so they work one pixel at a time, even when writing ordered-dither blocks, and don't need to know anything about the neighboring pixels.  ImageMagick and GraphicsMagick process a row at a time, but it's not necessary for these methods.  The ordered-dither conversions take less than .04 second real time on my old x86_64 computer.</p>
+</div>
+<div id="pu4" class="pu"><h2>Java (1.4+)</h2>
+
+<p>I am not sure as to whether I am re-inventing the wheel here but I think it may be unique...</p>
+
+<p><a href="https://i.stack.imgur.com/EW0r1.png" rel="nofollow noreferrer"><img src="https://i.stack.imgur.com/EW0r1.png" alt="with limited random sequences"></a></p>
+
+<p>With limited random sequences</p>
+
+<p><a href="https://i.stack.imgur.com/DoX3e.png" rel="nofollow noreferrer"><img src="https://i.stack.imgur.com/DoX3e.png" alt="Pure random dithering"></a></p>
+
+<p>Pure random dithering</p>
+
+<p><a href="https://i.stack.imgur.com/jUGcu.png" rel="nofollow noreferrer"><img src="https://i.stack.imgur.com/jUGcu.png" alt="enter image description here"></a></p>
+
+<p>City image from <a href="https://codegolf.stackexchange.com/a/26690/20193">Averroes's answer</a></p>
+
+<p>The algorithm uses the concept of localized luminosity energy and normalizing to retain features. The initial version then used a random jitter to produce a dithered look over areas of similar luminosity. However it was not that visually appealing. To counter this, a limited set of limited random sequences are mapped to raw input pixel luminosity and samples are used iteratively and repeatedly yielding dithered looking backgrounds.</p>
+
+<pre><code>import java.awt.image.BufferedImage;
+import java.io.File;
+import javax.imageio.ImageIO;
+
+public class LocalisedEnergyDitherRepeatRandom {
+
+    static private final float EIGHT_BIT_DIVISOR=1.0F/256;
+    private static final int KERNEL_SIZE_DIV_2 =4;
+    private static final double JITTER_MULTIPLIER=0.01;
+    private static final double NO_VARIANCE_JITTER_MULTIPLIER=1.5;
+    private static final int RANDOM_SEQUENCE_LENGTH=10;
+    private static final int RANDOM_SEQUENCE_COUNT=20;
+    private static final boolean USE_RANDOM_SEQUENCES=true;
+
+    public static void main(String args[]) throws Exception
+    {
+        BufferedImage image = ImageIO.read(new File("data/dog.jpg"));
+        final int width = image.getWidth();
+        final int height = image.getHeight();
+        float[][][] yuvImage =convertToYUVImage(image);
+        float[][][] outputYUVImage = new float[width][height][3];
+        double circularKernelLumaMean,sum,jitter,outputLuma,variance,inputLuma;
+        int circularKernelPixelCount,y,x,kx,ky;
+        double[][] randomSequences = new double[RANDOM_SEQUENCE_COUNT][RANDOM_SEQUENCE_LENGTH];
+        int[] randomSequenceOffsets = new int[RANDOM_SEQUENCE_COUNT];
+
+        // Generate random sequences
+        for (y=0;y&lt;RANDOM_SEQUENCE_COUNT;y++)
+        {
+            for (x=0;x&lt;RANDOM_SEQUENCE_LENGTH;x++)
+            {
+                randomSequences[y][x]=Math.random();
+            }
+        }
+
+        for (y=0;y&lt;height;y++)
+        {
+            for (x=0;x&lt;width;x++)
+            {
+                circularKernelLumaMean=0;
+                sum=0;
+                circularKernelPixelCount=0;
+
+                /// calculate the mean of the localised surrounding pixels contained in 
+                /// the area of a circle surrounding the pixel.
+                for (ky=y-KERNEL_SIZE_DIV_2;ky&lt;y+KERNEL_SIZE_DIV_2;ky++)
+                {
+                    if (ky&gt;=0 &amp;&amp; ky&lt;height)
+                    {
+                        for (kx=x-KERNEL_SIZE_DIV_2;kx&lt;x+KERNEL_SIZE_DIV_2;kx++)
+                        {
+                            if (kx&gt;=0 &amp;&amp; kx&lt;width)
+                            {
+                                double distance= Math.sqrt((x-kx)*(x-kx)+(y-ky)*(y-ky));
+
+                                if (distance&lt;=KERNEL_SIZE_DIV_2)
+                                {
+                                    sum+=yuvImage[kx][ky][0];
+                                    circularKernelPixelCount++;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                circularKernelLumaMean=sum/circularKernelPixelCount;
+
+                /// calculate the variance of the localised surrounding pixels contained in 
+                /// the area of a circle surrounding the pixel.
+                sum =0;
+
+                for (ky=y-KERNEL_SIZE_DIV_2;ky&lt;y+KERNEL_SIZE_DIV_2;ky++)
+                {
+                    if (ky&gt;=0 &amp;&amp; ky&lt;height)
+                    {
+                        for (kx=x-KERNEL_SIZE_DIV_2;kx&lt;x+KERNEL_SIZE_DIV_2;kx++)
+                        {
+                            if (kx&gt;=0 &amp;&amp; kx&lt;width)
+                            {
+                                double distance= Math.sqrt((x-kx)*(x-kx)+(y-ky)*(y-ky));
+
+                                if (distance&lt;=KERNEL_SIZE_DIV_2)
+                                {
+                                    sum+=Math.abs(yuvImage[kx][ky][0]-circularKernelLumaMean);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                variance = sum/(circularKernelPixelCount-1);
+
+                if (variance==0)
+                {
+                    // apply some jitter to ensure there are no large blocks of single colour
+                    inputLuma=yuvImage[x][y][0];
+                    jitter = Math.random()*NO_VARIANCE_JITTER_MULTIPLIER;
+                }
+                else
+                {
+                    // normalise the pixel based on localised circular kernel
+                    inputLuma = outputYUVImage[x][y][0]=(float) Math.min(1.0, Math.max(0,yuvImage[x][y][0]/(circularKernelLumaMean*2)));
+                    jitter = Math.exp(variance)*JITTER_MULTIPLIER;
+                }
+
+                if (USE_RANDOM_SEQUENCES)
+                {
+                    int sequenceIndex =(int) (yuvImage[x][y][0]*RANDOM_SEQUENCE_COUNT);
+                    int sequenceOffset = (randomSequenceOffsets[sequenceIndex]++)%RANDOM_SEQUENCE_LENGTH;
+                    outputLuma=inputLuma+randomSequences[sequenceIndex][sequenceOffset]*jitter*2-jitter;
+                }
+                else
+                {
+                    outputLuma=inputLuma+Math.random()*jitter*2-jitter;
+                }
+
+
+                // convert 8bit luma to 2 bit luma
+                outputYUVImage[x][y][0]=outputLuma&lt;0.5?0:1.0f;
+            }
+        }
+
+        renderYUV(image,outputYUVImage);
+        ImageIO.write(image, "png", new File("data/dog.jpg.out.png"));
+    }
+
+      /**
+       * Converts the given buffered image into a 3-dimensional array of YUV pixels
+       * @param image the buffered image to convert
+       * @return 3-dimensional array of YUV pixels
+       */
+      static private float[][][] convertToYUVImage(BufferedImage image)
+      {
+        final int width = image.getWidth();
+        final int height = image.getHeight();
+        float[][][] yuv = new float[width][height][3];
+        for (int y=0;y&lt;height;y++)
+        {
+          for (int x=0;x&lt;width;x++)
+          {
+            int rgb = image.getRGB( x, y );
+            yuv[x][y]=rgb2yuv(rgb);
+          }
+        }
+        return yuv;
+      }
+
+      /**
+       * Renders the given YUV image into the given buffered image.
+       * @param image the buffered image to render to
+       * @param pixels the YUV image to render.
+       * @param dimension the
+       */
+      static private void renderYUV(BufferedImage image, float[][][] pixels)
+      {
+        final int height = image.getHeight();
+        final int width = image.getWidth();
+        int rgb;
+
+        for (int y=0;y&lt;height;y++)
+        {
+          for (int x=0;x&lt;width;x++)
+          {
+
+            rgb = yuv2rgb( pixels[x][y] );
+            image.setRGB( x, y,rgb );
+          }
+        }
+      }
+
+      /**
+       * Converts a RGB pixel into a YUV pixel
+       * @param rgb a pixel encoded as 24 bit RGB
+       * @return array representing a pixel. Consisting of Y,U and V components
+       */
+      static float[] rgb2yuv(int rgb)
+      {
+        float red = EIGHT_BIT_DIVISOR*((rgb&gt;&gt;16)&amp;0xFF);
+        float green = EIGHT_BIT_DIVISOR*((rgb&gt;&gt;8)&amp;0xFF);
+        float blue = EIGHT_BIT_DIVISOR*(rgb&amp;0xFF);
+
+        float Y = 0.299F*red + 0.587F * green + 0.114F * blue;
+        float U = (blue-Y)*0.565F;
+        float V = (red-Y)*0.713F;
+
+        return new float[]{Y,U,V};
+      }
+
+      /**
+       * Converts a YUV pixel into a RGB pixel
+       * @param yuv array representing a pixel. Consisting of Y,U and V components
+       * @return a pixel encoded as 24 bit RGB
+       */
+      static int yuv2rgb(float[] yuv)
+      {
+        int red = (int) ((yuv[0]+1.403*yuv[2])*256);
+        int green = (int) ((yuv[0]-0.344 *yuv[1]- 0.714*yuv[2])*256);
+        int blue = (int) ((yuv[0]+1.77*yuv[1])*256);
+
+        // clamp to 0-255 range
+        red=red&lt;0?0:red&gt;255?255:red;
+        green=green&lt;0?0:green&gt;255?255:green;
+        blue=blue&lt;0?0:blue&gt;255?255:blue;
+
+        return (red&lt;&lt;16) | (green&lt;&lt;8) | blue;
+      }
+
+}
+</code></pre>
+</div>
+<div id="pu5" class="pu"><h1>Python</h1>
+
+<p>The idea is following: The image gets divided in to <code>n x n</code> tiles. We calculate the average colour each of those tiles. Then we map the colour range <code>0 - 255</code> to the range <code>0 - n*n</code> which gives us a new value <code>v</code>. Then we colour all pixels from that tile black, and randomly colour <code>v</code> pixels within that tile white. It is far from optimal but still gives us recognizable results. Depending on the resolution, it works usually best at <code>n=2</code> or <code>n=3</code>. While in <code>n=2</code> you can already find artefacts from the 'simulated colour depth, in case <code>n=3</code> it can already get somewhat blurry. I assumed that the images should stay the same size, but you can of course also use this method and just double/triple the size of the generated image in order to get more details.</p>
+
+<p>PS: I know that I am a bit late to the party, I remember that I did not have any ideas when the challenge started but now just had this brain wave=)</p>
+
+<pre class="lang-python prettyprint-override"><code>from PIL import Image
+import random
+im = Image.open("dog.jpg") #Can be many different formats.
+new = im.copy()
+pix = im.load()
+newpix = new.load()
+width,height=im.size
+print([width,height])
+print(pix[1,1])
+
+window = 3 # input parameter 'n'
+
+area = window*window
+for i in range(width//window):     #loop over pixels
+    for j in range(height//window):#loop over pixels
+        avg = 0
+        area_pix = []
+        for k in range(window):
+            for l in range(window):
+                area_pix.append((k,l))#make a list of coordinates within the tile
+                try:
+                    avg += pix[window*i+k,window*j+l][0] 
+                    newpix[window*i+k,window*j+l] = (0,0,0) #set everything to black
+                except IndexError:
+                    avg += 255/2 #just an arbitrary mean value (when were outside of the image)
+                                # this is just a dirty trick for coping with images that have
+                                # sides that are not multiples of window
+        avg = avg/area
+        # val = v is the number of pixels within the tile that will be turned white
+        val = round(avg/255 * (area+0.99) - 0.5)#0.99 due to rounding errors
+        assert val&lt;=area,'something went wrong with the val'
+        print(val)
+        random.shuffle(area_pix) #randomize pixel coordinates
+        for m in range(val):
+            rel_coords = area_pix.pop()#find random pixel within tile and turn it white
+            newpix[window*i+rel_coords[0],window*j+rel_coords[1]] = (255,255,255)
+
+new.save('dog_dithered'+str(window)+'.jpg')
+</code></pre>
+
+<h2>Results:</h2>
+
+<p><code>n=2:</code></p>
+
+<p><a href="https://i.stack.imgur.com/S0NVq.jpg" rel="noreferrer"><img src="https://i.stack.imgur.com/S0NVq.jpg" alt="enter image description here"></a></p>
+
+<p><code>n=3:</code></p>
+
+<p><a href="https://i.stack.imgur.com/cyDZZ.jpg" rel="noreferrer"><img src="https://i.stack.imgur.com/cyDZZ.jpg" alt="enter image description here"></a></p>
+</div>
+<div id="pu6" class="pu"><h1>Java</h1>
+
+<p>Just a simple RNG-based algorithm, plus some logic for dealing with color images. Has probability <em>b</em> of setting any given pixel to white, sets it to black otherwise; where <em>b</em> is that pixel's original brightness.</p>
+
+<pre><code>import java.awt.Color;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.Random;
+import java.util.Scanner;
+
+import javax.imageio.ImageIO;
+
+
+public class Ditherizer {
+    public static void main(String[]a) throws IOException{
+        Scanner input=new Scanner(System.in);
+        Random rand=new Random();
+        BufferedImage img=ImageIO.read(new File(input.nextLine()));
+        for(int x=0;x&lt;img.getWidth();x++){
+            for(int y=0;y&lt;img.getHeight();y++){
+                Color c=new Color(img.getRGB(x, y));
+                int r=c.getRed(),g=c.getGreen(),b=c.getBlue();
+                double bright=(r==g&amp;&amp;g==b)?r:Math.sqrt(0.299*r*r+0.587*g*g+0.114*b*b);
+                img.setRGB(x,y,(rand.nextInt(256)&gt;bright?Color.BLACK:Color.WHITE).getRGB());    
+            }
+        }
+        ImageIO.write(img,"jpg",new File(input.nextLine()));
+        input.close();
+    }
+}
+</code></pre>
+
+<p>Here's a potential result for the dog image:</p>
+
+<p><a href="https://i.stack.imgur.com/TGfdN.jpg" rel="nofollow noreferrer"><img src="https://i.stack.imgur.com/TGfdN.jpg" alt="enter image description here"></a></p>
+</div>
+<div id="pu7" class="pu"><h2>Java</h2>
+
+<p>Low level code, using <a href="https://code.google.com/p/pngj/" rel="nofollow noreferrer">PNGJ</a> and a noise addition plus basic diffusion. This implementation requires a grayscale 8-bits PNG source.</p>
+
+<pre><code>import java.io.File;
+import java.util.Random;
+
+import ar.com.hjg.pngj.ImageInfo;
+import ar.com.hjg.pngj.ImageLineInt;
+import ar.com.hjg.pngj.PngReaderInt;
+import ar.com.hjg.pngj.PngWriter;
+
+public class Dither {
+
+    private static void dither1(File file1, File file2) {
+        PngReaderInt reader = new PngReaderInt(file1);
+        ImageInfo info = reader.imgInfo;
+        if( info.bitDepth != 8 &amp;&amp; !info.greyscale ) throw new RuntimeException("only 8bits grayscale valid");
+        PngWriter writer = new PngWriter(file2, reader.imgInfo);
+        ImageLineInt line2 = new ImageLineInt(info);
+        int[] y = line2.getScanline();
+        int[] ye = new int[info.cols];
+        int ex = 0;
+        Random rand = new Random();
+        while(reader.hasMoreRows()) {
+            int[] x = reader.readRowInt().getScanline();
+            for( int i = 0; i &lt; info.cols; i++ ) {
+                int t = x[i] + ex + ye[i];
+                y[i] = t &gt; rand.nextInt(256) ? 255 : 0;
+                ex = (t - y[i]) / 2;
+                ye[i] = ex / 2;
+            }
+            writer.writeRow(line2);
+        }
+        reader.end();
+        writer.end();
+    }
+
+    public static void main(String[] args) {
+        dither1(new File(args[0]), new File(args[1]));
+        System.out.println("See output in " + args[1]);
+    }
+
+}
+</code></pre>
+
+<p>(Add <a href="http://hjg.com.ar/pngj/releases/2.1.0/pngj-2.1.0.jar" rel="nofollow noreferrer">this jar</a> to your build path if you want to try it).</p>
+
+<p><img src="https://i.stack.imgur.com/SzIXw.png" alt="enter image description here"></p>
+
+<p>As a bonus: this is extremely efficient in memory usage (it only stores three rows) so it could be used for huge images.</p>
+</div>
+<div id="pu8" class="pu"><h2>JAVA</h2>
+
+<p>Here is my submission. Takes a JPG image, calculates pixel per pixel luminosity (thanks to Bonan in <a href="https://stackoverflow.com/questions/21205871/java-bufferedimage-get-single-pixel-brightness">this</a> SO question) and then check it against a random pattern for knowing if the resulting pixel will be black or white. Darkerst pixels will be always black and brightest pixels will be always white to preserve image details.</p>
+
+<pre><code>import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.Random;
+
+import javax.imageio.ImageIO;
+
+public class DitherGrayscale {
+
+    private BufferedImage original;
+    private double[] threshold = { 0.25, 0.26, 0.27, 0.28, 0.29, 0.3, 0.31,
+            0.32, 0.33, 0.34, 0.35, 0.36, 0.37, 0.38, 0.39, 0.4, 0.41, 0.42,
+            0.43, 0.44, 0.45, 0.46, 0.47, 0.48, 0.49, 0.5, 0.51, 0.52, 0.53,
+            0.54, 0.55, 0.56, 0.57, 0.58, 0.59, 0.6, 0.61, 0.62, 0.63, 0.64,
+            0.65, 0.66, 0.67, 0.68, 0.69 };
+
+
+    public static void main(String[] args) {
+        DitherGrayscale d = new DitherGrayscale();
+        d.readOriginal();
+        d.dither();
+
+    }
+
+    private void readOriginal() {
+        File f = new File("original.jpg");
+        try {
+            original = ImageIO.read(f);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void dither() {
+        BufferedImage imRes = new BufferedImage(original.getWidth(),
+                original.getHeight(), BufferedImage.TYPE_INT_RGB);
+        Random rn = new Random();
+        for (int i = 0; i &lt; original.getWidth(); i++) {
+            for (int j = 0; j &lt; original.getHeight(); j++) {
+
+                int color = original.getRGB(i, j);
+
+                int red = (color &gt;&gt;&gt; 16) &amp; 0xFF;
+                int green = (color &gt;&gt;&gt; 8) &amp; 0xFF;
+                int blue = (color &gt;&gt;&gt; 0) &amp; 0xFF;
+
+                double lum = (red * 0.21f + green * 0.71f + blue * 0.07f) / 255;
+
+                if (lum &lt;= threshold[rn.nextInt(threshold.length)]) {
+                    imRes.setRGB(i, j, 0x000000);
+                } else {
+                    imRes.setRGB(i, j, 0xFFFFFF);
+                }
+
+            }
+        }
+        try {
+            ImageIO.write(imRes, "PNG", new File("result.png"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+}
+</code></pre>
+
+<p><img src="https://i.stack.imgur.com/vEzep.png" alt="Processed image"></p>
+
+<p>Other examples:</p>
+
+<p><img src="https://i.stack.imgur.com/30qTv.jpg" alt="Original">
+<img src="https://i.stack.imgur.com/4kp0e.png" alt="Processed"></p>
+
+<p>Also works with full color images:</p>
+
+<p><img src="https://i.stack.imgur.com/lcQ0B.jpg" alt="Color image">
+<img src="https://i.stack.imgur.com/ncNDS.png" alt="Result"></p>
+</div>
+<div id="pu9" class="pu"><h1>Cobra</h1>
+
+<p>Takes a 24-bit or 32-bit PNG/BMP file (JPG produces output with some greys in it). It is also extensible to files containing color.</p>
+
+<p>It uses speed-optimized ELA to dither the image into 3-bit color, which will return as black/white when given your test image.</p>
+
+<p>Did I mention that it's really fast?</p>
+
+<pre><code>use System.Drawing
+use System.Drawing.Imaging
+use System.Runtime.InteropServices
+use System.IO
+
+class BW_Dither
+
+    var path as String = Directory.getCurrentDirectory to !
+    var rng = Random()
+
+    def main
+        file as String = Console.readLine to !
+        image as Bitmap = Bitmap(.path+"\\"+file)
+        image = .dither(image)
+        image.save(.path+"\\test\\image.png")
+
+    def dither(image as Bitmap) as Bitmap
+
+        output as Bitmap = Bitmap(image)
+
+        layers as Bitmap[] = @[ Bitmap(image), Bitmap(image), Bitmap(image),
+                                Bitmap(image), Bitmap(image), Bitmap(image),
+                                Bitmap(image)]
+
+        layers[0].rotateFlip(RotateFlipType.RotateNoneFlipX)
+        layers[1].rotateFlip(RotateFlipType.RotateNoneFlipY)
+        layers[2].rotateFlip(RotateFlipType.Rotate90FlipX)
+        layers[3].rotateFlip(RotateFlipType.Rotate90FlipY)
+        layers[4].rotateFlip(RotateFlipType.Rotate90FlipNone)
+        layers[5].rotateFlip(RotateFlipType.Rotate180FlipNone)
+        layers[6].rotateFlip(RotateFlipType.Rotate270FlipNone)
+
+        for i in layers.length, layers[i] = .dither_ela(layers[i])
+
+        layers[0].rotateFlip(RotateFlipType.RotateNoneFlipX)
+        layers[1].rotateFlip(RotateFlipType.RotateNoneFlipY)
+        layers[2].rotateFlip(RotateFlipType.Rotate270FlipY)
+        layers[3].rotateFlip(RotateFlipType.Rotate270FlipX)
+        layers[4].rotateFlip(RotateFlipType.Rotate270FlipNone)
+        layers[5].rotateFlip(RotateFlipType.Rotate180FlipNone)
+        layers[6].rotateFlip(RotateFlipType.Rotate90FlipNone)
+
+        vals = List&lt;of List&lt;of uint8[]&gt;&gt;()
+        data as List&lt;of uint8[]&gt; = .getData(output)
+        for l in layers, vals.add(.getData(l))
+        for i in data.count, for c in 3
+            x as int = 0
+            for n in vals.count, if vals[n][i][c] == 255, x += 1
+            if x &gt; 3.5, data[i][c] = 255 to uint8
+            if x &lt; 3.5, data[i][c] = 0 to uint8
+
+        .setData(output, data)
+        return output
+
+    def dither_ela(image as Bitmap) as Bitmap
+
+        error as decimal[] = @[0d, 0d, 0d]
+        rectangle as Rectangle = Rectangle(0, 0, image.width, image.height)
+        image_data as BitmapData = image.lockBits(rectangle, ImageLockMode.ReadWrite, image.pixelFormat) to !
+        pointer as IntPtr = image_data.scan0
+        bytes as uint8[] = uint8[](image_data.stride * image.height)
+        pfs as int = Image.getPixelFormatSize(image.pixelFormat) // 8
+        Marshal.copy(pointer, bytes, 0, image_data.stride * image.height)
+
+        for y as int in image.height, for x as int in image.width
+            position as int = (y * image_data.stride) + (x * pfs)
+            for i in 3
+                error[i] -= bytes[position + i]
+                if Math.abs(error[i] + 255 - bytes[position + i]) &lt; Math.abs(error[i] - bytes[position + i])
+                    bytes[position + i] = 255 to uint8
+                    error[i] += 255
+                else, bytes[position + i] = 0 to uint8
+
+        Marshal.copy(bytes, 0, pointer, image_data.stride * image.height)
+        image.unlockBits(image_data)
+        return image
+
+    def getData(image as Bitmap) as List&lt;of uint8[]&gt;
+
+        rectangle as Rectangle = Rectangle(0, 0, image.width, image.height)
+        image_data as BitmapData = image.lockBits(rectangle, ImageLockMode.ReadOnly, image.pixelFormat) to !
+        pointer as IntPtr = image_data.scan0
+        bytes as uint8[] = uint8[](image_data.stride * image.height)
+        pixels as List&lt;of uint8[]&gt; = List&lt;of uint8[]&gt;()
+        for i in image.width * image.height, pixels.add(nil)
+        pfs as int = Image.getPixelFormatSize(image.pixelFormat) // 8
+        Marshal.copy(pointer, bytes, 0, image_data.stride * image.height)
+
+        count as int = 0
+        for y as int in image.height, for x as int in image.width
+            position as int = (y * image_data.stride) + (x * pfs)
+            if pfs == 4, alpha as uint8 = bytes[position + 3]
+            else, alpha as uint8 = 255
+            pixels[count] = @[
+                                bytes[position + 2], #red
+                                bytes[position + 1], #green
+                                bytes[position],     #blue
+                                alpha]               #alpha
+            count += 1
+
+        image.unlockBits(image_data)
+        return pixels
+
+    def setData(image as Bitmap, pixels as List&lt;of uint8[]&gt;)
+        if pixels.count &lt;&gt; image.width * image.height, throw Exception()
+        rectangle as Rectangle = Rectangle(0, 0, image.width, image.height)
+        image_data as BitmapData = image.lockBits(rectangle, ImageLockMode.ReadWrite, image.pixelFormat) to !
+        pointer as IntPtr = image_data.scan0
+        bytes as uint8[] = uint8[](image_data.stride * image.height)
+        pfs as int = Image.getPixelFormatSize(image.pixelFormat) // 8
+        Marshal.copy(pointer, bytes, 0, image_data.stride * image.height)
+
+        count as int = 0
+        for y as int in image.height, for x as int in image.width
+            position as int = (y * image_data.stride) + (x * pfs)
+            if pfs == 4, bytes[position + 3] = pixels[count][3] #alpha
+            bytes[position + 2] = pixels[count][0]              #red
+            bytes[position + 1] = pixels[count][1]              #green
+            bytes[position] = pixels[count][2]                  #blue
+            count += 1
+
+        Marshal.copy(bytes, 0, pointer, image_data.stride * image.height)
+        image.unlockBits(image_data)
+</code></pre>
+
+<p><img src="https://i.stack.imgur.com/yqLn1.png" alt="Dog"></p>
+
+<p><img src="https://i.stack.imgur.com/VZF9y.jpg" alt="Trees"></p>
+</div>
+<div id="pu10" class="pu"><p>I apologize for the code style, I threw this together using some libraries we just built in my java class, and it has a bad case of copy-paste and magic numbers. The algorithm picks random rectangles in the image, and checks if the average brightness is greater in the dithered image or the original image. It then turns a pixel on or off to bring the brightnesses closer in line, preferentially picking pixels that are more different from the original image. I think it does a better job bringing out thin details like the puppy's hair, but the image is noisier because it tries to bring out details even in areas with none.</p>
+
+<p><img src="https://i.stack.imgur.com/ADqGq.png" alt="enter image description here"></p>
+
+<pre><code>public void dither(){
+    int count = 0;
+    ditheredFrame.suspendNotifications();
+    while(count &lt; 1000000){
+        count ++;
+        int widthw = 5+r.nextInt(5);
+        int heightw = widthw;
+        int minx = r.nextInt(width-widthw);
+        int miny = r.nextInt(height-heightw);
+
+
+
+            Frame targetCropped = targetFrame.crop(minx, miny, widthw, heightw);
+            Frame ditherCropped = ditheredFrame.crop(minx, miny, widthw, heightw);
+
+            if(targetCropped.getAverage().getBrightness() &gt; ditherCropped.getAverage().getBrightness() ){
+                int x = 0;
+                int y = 0;
+                double diff = 0;
+
+                for(int i = 1; i &lt; ditherCropped.getWidth()-1; i ++){
+                    for(int j = 1; j &lt; ditherCropped.getHeight()-1; j ++){
+                        double d = targetCropped.getPixel(i,  j).getBrightness() - ditherCropped.getPixel(i, j).getBrightness();
+                        d += .005* targetCropped.getPixel(i+1,  j).getBrightness() - .005*ditherCropped.getPixel(i+1, j).getBrightness();
+
+                        d += .005* targetCropped.getPixel(i-1,  j).getBrightness() - .005*ditherCropped.getPixel(i-1, j).getBrightness();
+
+                        d += .005* targetCropped.getPixel(i,  j+1).getBrightness() -.005* ditherCropped.getPixel(i, j+1).getBrightness();
+
+                        d += .005* targetCropped.getPixel(i,  j-1).getBrightness() - .005*ditherCropped.getPixel(i, j-1).getBrightness();
+
+                        if(d &gt; diff){
+                            diff = d;
+                            x = i;
+                            y = j;
+                        }
+                    }
+                    ditherCropped.setPixel(x,  y,  WHITE);
+                }
+
+            } else {
+                int x = 0;
+                int y = 0;
+                double diff = 0;
+
+                for(int i = 1; i &lt; ditherCropped.getWidth()-1; i ++){
+                    for(int j = 1; j &lt; ditherCropped.getHeight()-1; j ++){
+                        double d =  ditherCropped.getPixel(i, j).getBrightness() -targetCropped.getPixel(i,  j).getBrightness();
+                        d += -.005* targetCropped.getPixel(i+1,  j).getBrightness() +.005* ditherCropped.getPixel(i+1, j).getBrightness();
+
+                        d += -.005* targetCropped.getPixel(i-1,  j).getBrightness() +.005* ditherCropped.getPixel(i+1, j).getBrightness();
+
+                        d += -.005* targetCropped.getPixel(i,  j+1).getBrightness() + .005*ditherCropped.getPixel(i, j+1).getBrightness();
+
+                        d += -.005* targetCropped.getPixel(i,  j-1).getBrightness() + .005*ditherCropped.getPixel(i, j-1).getBrightness();
+
+
+
+                        if(d &gt; diff){
+                            diff = d;
+                            x = i;
+                            y = j;
+                        }
+                    }
+                    ditherCropped.setPixel(x,  y,  BLACK);
+                }
+            }
+
+
+    }
+    ditheredFrame.resumeNotifications();
+}
+</code></pre>
+</div>
+<div id="pu11" class="pu"><h1>Fortran</h1>
+
+<p>Okay, I'm using an obscure image format called FITS which is used for astronomy. This means there is a Fortran library for reading and writing such images. Also, ImageMagick and Gimp can both read/write FITS images.</p>
+
+<p>The algorithm I use is based on "Sierra Lite" dithering, but with two improvements:<br>
+a) I reduce the propagated error by a factor 4/5.<br>
+b) I introduce a random variation in the diffusion matrix while keeping its sum constant.<br>
+Together these almost completely elminiate the patterns seen in OPs example.</p>
+
+<p>Assuming you have the CFITSIO library installed, compile with</p>
+
+<blockquote>
+  <p>gfortran -lcfitsio dither.f90</p>
+</blockquote>
+
+<p>The file names are hard-coded (couldn't be bothered to fix this).</p>
+
+<p>Code:  </p>
+
+<pre><code>program dither
+  integer              :: status,unit,readwrite,blocksize,naxes(2),nfound
+  integer              :: group,npixels,bitpix,naxis,i,j,fpixel,un
+  real                 :: nullval,diff_mat(3,2),perr
+  real, allocatable    :: image(:,:), error(:,:)
+  integer, allocatable :: seed(:)
+  logical              :: anynull,simple,extend
+  character(len=80)    :: filename
+
+  call random_seed(size=Nrand)
+  allocate(seed(Nrand))
+  open(newunit=un,file="/dev/urandom",access="stream",&amp;
+       form="unformatted",action="read",status="old")
+  read(un) seed
+  close(un)
+  call random_seed(put=seed)
+  deallocate(seed)
+
+  status=0
+  call ftgiou(unit,status)
+  filename='PUPPY.FITS'
+  readwrite=0
+  call ftopen(unit,filename,readwrite,blocksize,status)
+  call ftgknj(unit,'NAXIS',1,2,naxes,nfound,status)
+  call ftgidt(unit,bitpix,status)
+  npixels=naxes(1)*naxes(2)
+  group=1
+  nullval=-999
+  allocate(image(naxes(1),naxes(2)))
+  allocate(error(naxes(1)+1,naxes(2)+1))
+  call ftgpve(unit,group,1,npixels,nullval,image,anynull,status)
+  call ftclos(unit, status)
+  call ftfiou(unit, status)
+
+  diff_mat=0.0
+  diff_mat(3,1) = 2.0 
+  diff_mat(1,2) = 1.0
+  diff_mat(2,2) = 1.0
+  diff_mat=diff_mat/5.0
+
+  error=0.0
+  perr=0
+  do j=1,naxes(2)
+    do i=1,naxes(1)
+      p=max(min(image(i,j)+error(i,j),255.0),0.0)
+      if (p &lt; 127.0) then
+        perr=p
+        image(i,j)=0.0
+      else
+        perr=p-255.0
+        image(i,j)=255.0
+      endif
+      call random_number(r)
+      r=0.6*(r-0.5)
+      error(i+1,j)=  error(i+1,j)  +perr*(diff_mat(3,1)+r)
+      error(i-1,j+1)=error(i-1,j+1)+perr*diff_mat(1,2)
+      error(i  ,j+1)=error(i ,j+1) +perr*(diff_mat(2,2)-r)
+    end do
+  end do
+
+  call ftgiou(unit,status)
+  blocksize=1
+  filename='PUPPY-OUT.FITS'
+  call ftinit(unit,filename,blocksize,status)
+  simple=.true.
+  naxis=2
+  extend=.true.
+  call ftphpr(unit,simple,bitpix,naxis,naxes,0,1,extend,status)
+  group=1
+  fpixel=1
+  call ftppre(unit,group,fpixel,npixels,image,status)
+  call ftclos(unit, status)
+  call ftfiou(unit, status)
+
+  deallocate(image)
+  deallocate(error)
+end program dither
+</code></pre>
+
+<p>Example output for the puppy image in OPs post:<br>
+<img src="https://i.stack.imgur.com/asMv8.png" alt="Dithered picture of puppy"><br>
+OPs example output:<br>
+<img src="https://i.stack.imgur.com/ivcwx.jpg" alt="OPs dithered picture of puppy">  </p>
+</div>
+<div id="pu12" class="pu"><h2>Ghostscript (with little help of ImageMagick)</h2>
+
+<p>Far from being my 'own new algorithm', but, sorry, could not resist it.</p>
+
+<pre><code>convert puppy.jpg puppy.pdf &amp;&amp; \
+convert puppy.jpg -depth 8 -colorspace Gray -resize 20x20! -negate gray:- | \
+gs -q -sDEVICE=ps2write -o- -c \
+    '&lt;&lt;/Thresholds (%stdin) (r) file 400 string readstring pop 
+       /HalftoneType 3 /Width 20 /Height 20
+     &gt;&gt;sethalftone' \
+    -f puppy.pdf | \
+gs -q -sDEVICE=pngmono -o puppy.png -
+</code></pre>
+
+<p><img src="https://i.stack.imgur.com/CzUYj.png" alt="enter image description here"></p>
+
+<p>Of course it works better without 'same size' restraint.</p>
+</div>
+<div id="pu13" class="pu"><h1>CJam</h1>
+
+<pre><code>lNl_~:H;:W;Nl;1N[{[{ri}W*]{2/{:+}%}:P~}H*]z{P}%:A;H{W{I2/A=J2/=210/[0X9EF]=I2%2*J2%+m&gt;2%N}fI}fJ
+</code></pre>
+
+<p>95 bytes :)<br>
+It uses the <a href="http://en.wikipedia.org/wiki/Netpbm_format">ASCII PGM (P2) format</a> with no comment line, for both input and output.</p>
+
+<p>The method is very basic: it adds up squares of 2*2 pixels, converts to the 0..4 range, then uses a corresponding pattern of 4 bits to generate 2*2 black-and-white pixels.<br>
+That also means that the width and height must be even.</p>
+
+<p>Sample:</p>
+
+<p><img src="https://i.stack.imgur.com/WnAbk.png" alt="deterministic puppy"></p>
+
+<p>And a random algorithm in only 27 bytes:</p>
+
+<pre><code>lNl_~*:X;Nl;1N{ri256mr&gt;N}X*
+</code></pre>
+
+<p>It uses the same file format.</p>
+
+<p>Sample:</p>
+
+<p><img src="https://i.stack.imgur.com/dnhMU.png" alt="random puppy"></p>
+
+<p>And finally a mixed approach: random dithering with a bias towards a checkerboard pattern; 44 bytes:</p>
+
+<pre><code>lNl_~:H;:W;Nl;1NH{W{ri128_mr\IJ+2%*+&gt;N}fI}fJ
+</code></pre>
+
+<p>Sample:</p>
+
+<p><img src="https://i.stack.imgur.com/rANkB.png" alt="mixed puppy"></p>
+</div>
+<div id="pu14" class="pu"><blockquote>
+  <p>Any file format you want is fine.</p>
+</blockquote>
+
+<p>Let's define a very compact, theoretical file format for this question as any of the existing file formats have too much overhead to write a quick answer for.</p>
+
+<p>Let the first four bytes of the image file define the width and height of the image in pixels, respectively:</p>
+
+<pre><code>00000001 00101100 00000001 00101100
+width: 300 px     height: 300 px
+</code></pre>
+
+<p>followed by <code>w * h</code> bytes of grayscale values from 0 to 255:</p>
+
+<pre><code>10000101 10100101 10111110 11000110 ... [89,996 more bytes]
+</code></pre>
+
+<p>Then, we can define a piece of code in Python (145 bytes) that will take this image and do:</p>
+
+<pre><code>import random
+f=open("a","rb");g=open("b","wb");g.write(f.read(4))
+for i in f.read():g.write('\xff' if ord(i)&gt;random.randint(0,255) else '\x00')
+</code></pre>
+
+<p>which "dithers" by returning white or black with probability equal to the grayscale value of that pixel.</p>
+
+<hr>
+
+<p>Applied on the sample image, it gives something like this:</p>
+
+<p><img src="https://i.stack.imgur.com/AexU2.png" alt="dithered dog"></p>
+
+<p>It's not too pretty, but it does look very similar when scaled down in a preview, and for just 145 bytes of Python, I don't think you can get much better.</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/26554/">26554</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
