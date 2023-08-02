@@ -26,43 +26,41 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>025</td><td>Jelly</td><td>230802T225528Z</td><td><a href="https://codegolf.stackexchange.com/questions/263645/repeating-occupied-pattern-in-hilberts-hotel/263648#263648">Jonathan</a></td></tr>
+<tr d-ix="0"><td>024</td><td>Jelly</td><td>230802T225528Z</td><td><a href="https://codegolf.stackexchange.com/questions/263645/repeating-occupied-pattern-in-hilberts-hotel/263648#263648">Jonathan</a></td></tr>
 <tr d-ix="1"><td>100</td><td>JavaScript ES6</td><td>230802T193410Z</td><td><a href="https://codegolf.stackexchange.com/questions/263645/repeating-occupied-pattern-in-hilberts-hotel/263646#263646">Arnauld</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, <s> 28 </s> 25 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
-<pre><code>N;`⁹¬Tm2Ʋ¦A¬ẹ¦ʋƒ0ṠsJ$EƇḢḢ
+<div id="pu0" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, <s> 28 </s> 24 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
+<pre><code>N;`⁹¬Tm2Ʋ¦A¬ẹ¦ʋƒ0ṠŒṖEƇḢḢ
 </code></pre>
 <p>A full program* that accepts the register list and prints a Jelly representation of the pattern list.</p>
 <p><sup>* Only a full program to handle specifically <code>[] =&gt; [0]</code> for which the monadic Link would yield the integer <code>0</code></sup></p>
-<p><strong><a href="https://tio.run/##y0rNyan8/9/POuFR485Da0JyjY5tOrTM8dCah7t2Hlp2qvvYJIOHOxcUe6m4Hmt/uGMREP3//z9a21BH20hHF0gaxwIA" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></strong></p>
+<p><strong><a href="https://tio.run/##y0rNyan8/9/POuFR485Da0JyjY5tOrTM8dCah7t2Hlp2qvvYJIOHOxccnfRw5zTXY@0PdywCov///0drG@poG@noAknjWAA" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></strong></p>
 <h3>How?</h3>
 <p>The idea is to process the <em>moves</em> in turn maintaining a prefix that starts at <code>[0]</code> and doubles in length at each <em>move</em> either occupying every other empty room with a copy of <em>move</em> or removing all occurrences of the negative of <em>move</em>. Once this is done we can then find the shortest prefix that repeats to give the same.</p>
 <p>Actually, the implementation is a little more convoluted...</p>
-<pre><code>N;`⁹¬Tm2Ʋ¦A¬ẹ¦ʋƒ0ṠsJ$EƇḢḢ - Main Link: list of moves, Moves
-N                         - negate {Moves} (vectorises)
-               ƒ0         - start with 0 and reduce {that} by:
-              ʋ           -   last four links as a dyad - f(Rooms, -Move)
- ;`                       -     {Rooms} concatenate {Rooms} -&gt; R2
-         ¦                -     sparse application...
-        Ʋ                 -     ...to indices: last four links as a monad - f(R2):
-    ¬                     -       logical NOT {R2}
-     T                    -       truthy indices of {that} -&gt; I
-       2                  -       two
-      m                   -       {I} modulo-slice {2
-                                    -&gt; indices of every other empty room
-   ⁹                      -     ...apply: set to chain's right argument = -Move
-          A               -     absolute value {that} (vectorises)
-             ¦            -     sparse application...
-            ẹ             -     ...to indices: indices of {-Move}
-           ¬              -     ...apply: logical NOT
-                 Ṡ        - signs {that} -&gt; occupied or not indicators
-                    $     - last two links as a monad - f(P=that long prefix):
-                   J      -   indices {P}
-                  s       -   split {P} into chunks of length {that} (vectorises)
-                      Ƈ   - keep those {splits} for which:
-                     E    -   all equal?
-                       Ḣ  - head {that} -&gt; equal-split with shortest chunks
-                        Ḣ - head -&gt; first such chunk = shortest prefix
+<pre><code>N;`⁹¬Tm2Ʋ¦A¬ẹ¦ʋƒ0ṠŒṖEƇḢḢ - Main Link: list of moves, Moves
+N                        - negate {Moves} (vectorises)
+               ƒ0        - start with 0 and reduce {that} by:
+              ʋ          -   last four links as a dyad - f(Rooms, -Move)
+ ;`                      -     {Rooms} concatenate {Rooms} -&gt; R2
+         ¦               -     sparse application...
+        Ʋ                -     ...to indices: last four links as a monad - f(R2):
+    ¬                    -       logical NOT {R2}
+     T                   -       truthy indices of {that} -&gt; I
+       2                 -       two
+      m                  -       {I} modulo-slice {2
+                                   -&gt; indices of every other empty room
+   ⁹                     -     ...apply: set to chain's right argument = -Move
+          A              -     absolute value {that} (vectorises)
+             ¦           -     sparse application...
+            ẹ            -     ...to indices: indices of {-Move}
+           ¬             -     ...apply: logical NOT
+                 Ṡ       - signs {that} -&gt; occupied or not indicators
+                  ŒṖ     - partitions {that}
+                     Ƈ   - keep those {patitions} for which:
+                    E    -   all equal? -&gt; repetitive partitions
+                      Ḣ  - head {that} -&gt; shortest repetitive partition
+                       Ḣ - head {that} -&gt; shortest possible prefix
 </code></pre>
 </div>
 <div id="pu1" class="pu"><h1>JavaScript (ES6), 100 bytes</h1>
