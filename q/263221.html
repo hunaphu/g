@@ -26,10 +26,143 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>006</td><td>Wolfram Language Mathematica 13.0</td><td>230726T014222Z</td><td><a href="https://codegolf.stackexchange.com/questions/263221/compute-the-chromatic-number-of-special-graphs/263344#263344">138 Aspe</a></td></tr>
-<tr d-ix="1"><td>005</td><td>Wolfram Language Mathematica</td><td>230725T104218Z</td><td><a href="https://codegolf.stackexchange.com/questions/263221/compute-the-chromatic-number-of-special-graphs/263302#263302">alephalp</a></td></tr>
+<tr d-ix="0"><td>005</td><td>Python 3 + Z3</td><td>230802T000647Z</td><td><a href="https://codegolf.stackexchange.com/questions/263221/compute-the-chromatic-number-of-special-graphs/263620#263620">Bubbler</a></td></tr>
+<tr d-ix="1"><td>006</td><td>Wolfram Language Mathematica 13.0</td><td>230726T014222Z</td><td><a href="https://codegolf.stackexchange.com/questions/263221/compute-the-chromatic-number-of-special-graphs/263344#263344">138 Aspe</a></td></tr>
+<tr d-ix="2"><td>005</td><td>Wolfram Language Mathematica</td><td>230725T104218Z</td><td><a href="https://codegolf.stackexchange.com/questions/263221/compute-the-chromatic-number-of-special-graphs/263302#263302">alephalp</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.wolfram.com/wolframscript/" rel="nofollow noreferrer">Wolfram Language (Mathematica 13.0)</a>, 392 bytes, <code>11,6</code> in a minute on my laptop</h1>
+<div id="pu0" class="pu"><h1>Python 3 + <a href="https://github.com/Z3Prover/z3" rel="nofollow noreferrer">Z3</a>, <code>8,5</code></h1>
+<pre class="lang-python prettyprint-override"><code>import z3
+
+def check(nodes, d, limit):
+    solver = z3.SolverFor('QF_FD')
+    for node in nodes:
+        solver.add(1 &lt;= node, node &lt;= limit)
+    l = len(nodes)
+    for i in range(l):
+        for j in range(l):
+            cnt = bin(i ^ j).count('1')
+            if d-1 &lt;= cnt &lt;= d:
+                solver.add(nodes[i] != nodes[j])
+    return solver.check() == z3.sat
+
+def solve(n, d, lower=1):
+    if d % 2: return 2
+    nodes = [z3.Int(f'a{i}') for i in range(2**(n-1))]
+    upper = (lower + 1) * 2
+    while lower + 1 &lt; upper:
+        mid = lower + 1
+        if mid == lower: mid += 1
+        result = check(nodes, d, mid)
+        print(n, d, mid, result)
+        if result: upper = mid
+        else: lower = mid
+    return upper
+
+def main():
+    from time import time
+    start = time()
+    n = 2
+    memo = [[0], [0]]
+    while True:
+        memo.append([0])
+        for d in range(1, n):
+            if d + 1 &lt; n: sol = solve(n, d, memo[n-1][d] - 1)
+            else: sol = solve(n, d)
+            print(n, d, '-&gt;', sol, '( elapsed:', time() - start, ')')
+            memo[n].append(sol)
+        n += 1
+
+main()
+</code></pre>
+<p>Output:</p>
+<pre><code>2 1 -&gt; 2 ( elapsed: 5.245208740234375e-06 )
+3 1 -&gt; 2 ( elapsed: 6.246566772460938e-05 )
+3 2 2 False
+3 2 3 False
+3 2 -&gt; 4 ( elapsed: 0.012233257293701172 )
+4 1 -&gt; 2 ( elapsed: 0.012252330780029297 )
+4 2 4 True
+4 2 -&gt; 4 ( elapsed: 0.019064903259277344 )
+4 3 -&gt; 2 ( elapsed: 0.01909017562866211 )
+5 1 -&gt; 2 ( elapsed: 0.01910543441772461 )
+5 2 4 False
+5 2 5 False
+5 2 6 False
+5 2 7 False
+5 2 -&gt; 8 ( elapsed: 6.083156585693359 )
+5 3 -&gt; 2 ( elapsed: 6.083175420761108 )
+5 4 2 False
+5 4 3 False
+5 4 -&gt; 4 ( elapsed: 6.109014987945557 )
+6 1 -&gt; 2 ( elapsed: 6.109039783477783 )
+6 2 8 True
+6 2 -&gt; 8 ( elapsed: 6.180561542510986 )
+6 3 -&gt; 2 ( elapsed: 6.180585145950317 )
+6 4 4 False
+6 4 5 False
+6 4 6 False
+6 4 7 True
+6 4 -&gt; 7 ( elapsed: 34.04813623428345 )
+6 5 -&gt; 2 ( elapsed: 34.048160791397095 )
+7 1 -&gt; 2 ( elapsed: 34.04817223548889 )
+7 2 8 True
+7 2 -&gt; 8 ( elapsed: 34.29183101654053 )
+7 3 -&gt; 2 ( elapsed: 34.29185700416565 )
+7 4 7 False
+7 4 8 True
+7 4 -&gt; 8 ( elapsed: 35.03852438926697 )
+7 5 -&gt; 2 ( elapsed: 35.0385627746582 )
+7 6 2 False
+7 6 3 False
+7 6 -&gt; 4 ( elapsed: 35.16324186325073 )
+8 1 -&gt; 2 ( elapsed: 35.1632719039917 )
+8 2 8 True
+8 2 -&gt; 8 ( elapsed: 35.805861949920654 )
+8 3 -&gt; 2 ( elapsed: 35.80588483810425 )
+8 4 8 True
+8 4 -&gt; 8 ( elapsed: 37.375497817993164 )
+8 5 -&gt; 2 ( elapsed: 37.37552309036255 )
+8 6 4 False
+</code></pre>
+<p>Looking at the timing, there were a couple of points where Z3 struggled badly:</p>
+<ul>
+<li>~5 seconds to prove <code>5,2</code> is not <code>7</code>-colorable</li>
+<li>~30 seconds to prove <code>6,4</code> is not <code>6</code>-colorable</li>
+<li>?? seconds to prove <code>8,6</code> is not <code>5</code>-colorable
+<ul>
+<li>Given that the answer is 7, it will require a major breakthrough to beat <code>8,6</code> in a minute. I'm pretty confident that naively plugging the graph into any SAT/SMT solver won't cut it.</li>
+</ul>
+</li>
+</ul>
+<p>Initially I tried binary search on the number of colors, but I realized that Z3 takes a pretty long time to provide a <code>k</code>-coloring when <code>k</code> is larger than optimal, so I replaced it with a sequential search from the lower bound. The lower bound is the same as alephalpha's:</p>
+<blockquote>
+<p>memoizes the result for <code>f[n,d]</code> as a lower bound for <code>f[n+1,d]</code>.</p>
+</blockquote>
+<p>An additional contribution of this answer is that, for even <code>d</code>, the graph has two connected components that are isomorphic, so we only need to compute the answer on one of them.</p>
+<p>Proof:</p>
+<ul>
+<li>If <code>d</code> is even, this means <code>a</code> and <code>b</code> have equal parity (in terms of the number of ones), i.e. there is no path from an even node to an odd node and vice versa. Also, since <code>d &lt; n</code>, there is always a way to flip two bits of a node in two steps (e.g. <code>10111...</code> and then <code>01111...</code>), so the graph has exactly two connected components.</li>
+<li>&quot;Hamming distance of <code>a</code> and <code>b</code> is <code>d</code>&quot; is the same as &quot;<code>a^b</code> has <code>d</code> ones&quot;. Assume <code>a</code> and <code>b</code> are even. Then the two are connected iff (if and only if) <code>a^b</code> has <code>d</code> ones. Now consider two odd nodes <code>a^1</code> and <code>b^1</code>. These two are connected iff <code>(a^1)^(b^1) == a^b</code> has <code>d</code> ones. The same holds when <code>a</code> and <code>b</code> are odd, so the two connected components have an isomorphism of <code>a &lt;=&gt; a^1</code>.</li>
+</ul>
+<p>The single connected component can be constructed with the rule of &quot;there is an edge between <code>a</code> and <code>b</code> iff <code>a^b</code> has <code>d</code> or <code>d-1</code> ones&quot;. Proof:</p>
+<ul>
+<li>Take the connected component of even nodes from the original graph. We can remove the least significant bit from all nodes to get the labels of 0 to <code>2**(n-1)</code>. The removed bit is the parity of the rest; I will call it the parity bit.</li>
+<li>Given the two nodes <code>a</code> and <code>b</code> in the original space, &quot;<code>a^b</code> has <code>d</code> ones&quot; has two possibilities:
+<ul>
+<li><code>a</code> and <code>b</code> have the same parity bit: <code>(a/2)^(b/2)</code> has <code>d</code> ones.</li>
+<li><code>a</code> and <code>b</code> have different parity bit: <code>(a/2)^(b/2)</code> has <code>d-1</code> ones.</li>
+</ul>
+</li>
+<li>The converse is also true:
+<ul>
+<li><code>(a/2)^(b/2)</code> must have <code>d</code> or <code>d-1</code> ones; otherwise <code>a^b</code> cannot have <code>d</code> ones.</li>
+<li>if <code>(a/2)^(b/2)</code> has <code>d</code> ones, <code>a/2</code> and <code>b/2</code> have the same parity, so <code>a^b</code> has <code>d</code> ones.</li>
+<li>if <code>(a/2)^(b/2)</code> has <code>d-1</code> ones, <code>a/2</code> and <code>b/2</code> have different parity, so <code>a^b</code> has <code>d</code> ones.</li>
+</ul>
+</li>
+</ul>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.wolfram.com/wolframscript/" rel="nofollow noreferrer">Wolfram Language (Mathematica 13.0)</a>, 392 bytes, <code>11,6</code> in a minute on my laptop</h1>
 <p>Just implementation.</p>
 <pre class="lang-mathematica prettyprint-override"><code>GetChromaticNumber[n_, d_] := 
  Module[{nodes, edges, g}, nodes = Tuples[{0, 1}, n];
@@ -68,7 +201,7 @@ Mathematica version: 12.0.1 for Linux x86 (64-bit) (October 16, 2019)
 Operating system: Unix
 </code></pre>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://www.wolfram.com/wolframscript/" rel="nofollow noreferrer">Wolfram Language (Mathematica)</a>, 370 bytes, <code>8,5</code> in a minute on TIO</h1>
+<div id="pu2" class="pu"><h1><a href="https://www.wolfram.com/wolframscript/" rel="nofollow noreferrer">Wolfram Language (Mathematica)</a>, 370 bytes, <code>8,5</code> in a minute on TIO</h1>
 <pre><code>f[n_, d_] :=
  f[n, d] =
   Block[{c, k}, k = If[n &lt; d + 1, 1, f[n - 1, d]];
