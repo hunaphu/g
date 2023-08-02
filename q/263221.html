@@ -26,11 +26,62 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>005</td><td>Python 3 + Z3</td><td>230802T000647Z</td><td><a href="https://codegolf.stackexchange.com/questions/263221/compute-the-chromatic-number-of-special-graphs/263620#263620">Bubbler</a></td></tr>
-<tr d-ix="1"><td>006</td><td>Wolfram Language Mathematica 13.0</td><td>230726T014222Z</td><td><a href="https://codegolf.stackexchange.com/questions/263221/compute-the-chromatic-number-of-special-graphs/263344#263344">138 Aspe</a></td></tr>
-<tr d-ix="2"><td>005</td><td>Wolfram Language Mathematica</td><td>230725T104218Z</td><td><a href="https://codegolf.stackexchange.com/questions/263221/compute-the-chromatic-number-of-special-graphs/263302#263302">alephalp</a></td></tr>
+<tr d-ix="0"><td>005</td><td>Python 3 + PySAT</td><td>230802T061921Z</td><td><a href="https://codegolf.stackexchange.com/questions/263221/compute-the-chromatic-number-of-special-graphs/263623#263623">alephalp</a></td></tr>
+<tr d-ix="1"><td>005</td><td>Python 3 + Z3</td><td>230802T000647Z</td><td><a href="https://codegolf.stackexchange.com/questions/263221/compute-the-chromatic-number-of-special-graphs/263620#263620">Bubbler</a></td></tr>
+<tr d-ix="2"><td>006</td><td>Wolfram Language Mathematica 13.0</td><td>230726T014222Z</td><td><a href="https://codegolf.stackexchange.com/questions/263221/compute-the-chromatic-number-of-special-graphs/263344#263344">138 Aspe</a></td></tr>
+<tr d-ix="3"><td>005</td><td>Wolfram Language Mathematica</td><td>230725T104218Z</td><td><a href="https://codegolf.stackexchange.com/questions/263221/compute-the-chromatic-number-of-special-graphs/263302#263302">alephalp</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Python 3 + <a href="https://github.com/Z3Prover/z3" rel="nofollow noreferrer">Z3</a>, <code>8,5</code></h1>
+<div id="pu0" class="pu"><h1><a href="http://python.org/" rel="nofollow noreferrer">Python 3</a> + <a href="https://pysathq.github.io/" rel="nofollow noreferrer">PySAT</a>, <code>8,5</code></h1>
+<pre class="lang-python prettyprint-override"><code>from pysat.solvers import Cadical153 as Solver
+from pysat.card import CardEnc
+from pysat.formula import IDPool
+import time
+
+
+chromatic_dict = {}
+
+
+def colorable(n, d, k):
+    s = Solver()
+    pool = IDPool(start_from=(k &lt;&lt; n) + 1)
+
+    for i in range(1 &lt;&lt; n):
+        cnf = CardEnc.equals(lits=[(i * k) + l + 1 for l in range(k)], vpool=pool)
+        s.append_formula(cnf.clauses)
+
+    for i in range(1 &lt;&lt; n):
+        for j in range(i + 1, 1 &lt;&lt; n):
+            if (i ^ j).bit_count() == d:
+                for l in range(k):
+                    s.add_clause([-(i * k) - l - 1, -(j * k) - l - 1])
+
+    return s.solve()
+
+
+def chromatic(n, d):
+    if (n - 1, d) in chromatic_dict:
+        k = chromatic_dict[(n - 1, d)]
+    else:
+        k = 1
+    while not colorable(n, d, k):
+        k += 1
+    chromatic_dict[(n, d)] = k
+    return k
+
+
+if __name__ == &quot;__main__&quot;:
+    n = 1
+    start_time = time.time()
+    while True:
+        n += 1
+        for d in range(1, n):
+            chromatic_number = chromatic(n, d)
+            time_elapsed = time.time() - start_time
+            print(f&quot;[{time_elapsed}] {n},{d} -&gt; {chromatic_number}&quot;)
+</code></pre>
+<p>A port of <a href="https://codegolf.stackexchange.com/a/263302/9288">My Mathemactica answer</a>, using <a href="https://pysathq.github.io/" rel="nofollow noreferrer">PySAT</a> with <a href="https://github.com/arminbiere/cadical" rel="nofollow noreferrer">Cadical</a> SAT solver.</p>
+</div>
+<div id="pu1" class="pu"><h1>Python 3 + <a href="https://github.com/Z3Prover/z3" rel="nofollow noreferrer">Z3</a>, <code>8,5</code></h1>
 <pre class="lang-python prettyprint-override"><code>import z3
 
 def check(nodes, d, limit):
@@ -172,7 +223,7 @@ main()
 <li>Take a coloring of <code>n-1,d</code> using <code>k</code> colors. There exists an <code>2k</code>-coloring of <code>n,d</code>: Color the first half using colors <code>1</code> to <code>k</code>. Color the rest using colors <code>k+1</code> to <code>2k</code>.</li>
 </ul>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://www.wolfram.com/wolframscript/" rel="nofollow noreferrer">Wolfram Language (Mathematica 13.0)</a>, 392 bytes, <code>11,6</code> in a minute on my laptop</h1>
+<div id="pu2" class="pu"><h1><a href="https://www.wolfram.com/wolframscript/" rel="nofollow noreferrer">Wolfram Language (Mathematica 13.0)</a>, 392 bytes, <code>11,6</code> in a minute on my laptop</h1>
 <p>Just implementation.</p>
 <pre class="lang-mathematica prettyprint-override"><code>GetChromaticNumber[n_, d_] := 
  Module[{nodes, edges, g}, nodes = Tuples[{0, 1}, n];
@@ -211,7 +262,7 @@ Mathematica version: 12.0.1 for Linux x86 (64-bit) (October 16, 2019)
 Operating system: Unix
 </code></pre>
 </div>
-<div id="pu2" class="pu"><h1><a href="https://www.wolfram.com/wolframscript/" rel="nofollow noreferrer">Wolfram Language (Mathematica)</a>, 370 bytes, <code>8,5</code> in a minute on TIO</h1>
+<div id="pu3" class="pu"><h1><a href="https://www.wolfram.com/wolframscript/" rel="nofollow noreferrer">Wolfram Language (Mathematica)</a>, 370 bytes, <code>8,5</code> in a minute on TIO</h1>
 <pre><code>f[n_, d_] :=
  f[n, d] =
   Block[{c, k}, k = If[n &lt; d + 1, 1, f[n - 1, d]];
