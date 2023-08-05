@@ -26,8 +26,8 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>008</td><td>Jelly</td><td>230805T173658Z</td><td><a href="https://codegolf.stackexchange.com/questions/263716/compute-the-convolution-of-two-strings/263755#263755">Jonathan</a></td></tr>
-<tr d-ix="1"><td>012</td><td>Jelly</td><td>230805T063654Z</td><td><a href="https://codegolf.stackexchange.com/questions/263716/compute-the-convolution-of-two-strings/263717#263717">hyper-ne</a></td></tr>
+<tr d-ix="0"><td>010</td><td>Jelly</td><td>230805T063654Z</td><td><a href="https://codegolf.stackexchange.com/questions/263716/compute-the-convolution-of-two-strings/263717#263717">hyper-ne</a></td></tr>
+<tr d-ix="1"><td>008</td><td>Jelly</td><td>230805T173658Z</td><td><a href="https://codegolf.stackexchange.com/questions/263716/compute-the-convolution-of-two-strings/263755#263755">Jonathan</a></td></tr>
 <tr d-ix="2"><td>121</td><td>Python3</td><td>230805T155832Z</td><td><a href="https://codegolf.stackexchange.com/questions/263716/compute-the-convolution-of-two-strings/263750#263750">Ajax1234</a></td></tr>
 <tr d-ix="3"><td>047</td><td>Retina</td><td>230805T121913Z</td><td><a href="https://codegolf.stackexchange.com/questions/263716/compute-the-convolution-of-two-strings/263732#263732">Neil</a></td></tr>
 <tr d-ix="4"><td>017</td><td>Charcoal</td><td>230805T120134Z</td><td><a href="https://codegolf.stackexchange.com/questions/263716/compute-the-convolution-of-two-strings/263731#263731">Neil</a></td></tr>
@@ -39,7 +39,37 @@
 <tr d-ix="10"><td>nan</td><td>J</td><td>230805T081415Z</td><td><a href="https://codegolf.stackexchange.com/questions/263716/compute-the-convolution-of-two-strings/263719#263719">Jonah</a></td></tr>
 <tr d-ix="11"><td>062</td><td>JavaScript Node.js</td><td>230805T070113Z</td><td><a href="https://codegolf.stackexchange.com/questions/263716/compute-the-convolution-of-two-strings/263718#263718">l4m2</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 8 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
+<div id="pu0" class="pu"><h1><a href="https://github.com/DennisMitchell/jellylanguage" rel="nofollow noreferrer">Jelly</a>, 10 bytes</h1>
+<pre><code>+þŒdṙL{UFṚ
+</code></pre>
+<p><a href="https://jht.hyper-neutrino.xyz/tio#WyIiLCIrw77FkmThuZlMe1VG4bmaIiwiIiwiIixbIistIiwiXCIxMjM0NVwiIl1d" rel="nofollow noreferrer">Try It Online!</a></p>
+<p>This can almost certainly be about half the length; I'll get back to this when I can.</p>
+<h2>Explanation</h2>
+<pre><code>+þŒdṙL{UFṚ    Main Link
++þ            Outer product table with sum
+  Œd          Matrix antidiagonals
+    ṙL{       Rotate left by the length of the left string
+       U      Reverse (vectorizing)
+        F     Flatten
+         Ṛ    Reverse the whole list
+</code></pre>
+<p>The reason I use <code>+þ</code> instead of just cartesian product is that cartesian product in Jelly returns a flat list of pairs.</p>
+<h2>Step-by-step</h2>
+<p>Let's start with <code>&quot;+-</code> and <code>&quot;12345&quot;</code>. First, we take the outer product table with sum which gives us <code>[['+1', '-1'], ['+2', '-2'], ['+3', '-3'], ['+4', '-4'], ['+5', '-5']]</code>. Normally, in Jelly, strings are arrays of their characters, but using <code>+</code> breaks that. This usually causes problems but in this case actually helps as getting the matrix antidiagonals would not work correctly if this had depth 3.</p>
+<p>Then, we take the matrix antidiagonals which start at the main anti-diagonal and go left, which gives <code>[[['-', '1'], ['+', '2']], [['+', '1']], [['-', '5']], [['-', '4'], ['+', '5']], [['-', '3'], ['+', '4']], [['-', '2'], ['+', '3']]]</code>. For some reason, this operation turns the strings back into normal Jelly strings.</p>
+<p>We then rotate to the left by the length of the left string, which puts the pair containing the first character in each string at the end, giving us <code>[[['-', '5']], [['-', '4'], ['+', '5']], [['-', '3'], ['+', '4']], [['-', '2'], ['+', '3']], [['-', '1'], ['+', '2']], [['+', '1']]]</code>.</p>
+<p>Now, all of our pairs are in inverse order, so we want to reverse the whole thing. However, because the pairs are at depth 2, we would also need to reverse each sublist. There are thus two ways to do this:</p>
+<ol>
+<li>We can reverse each pair and then flatten the whole thing and reverse it, removing the need to worry about depth. This is the solution Jonathan Allen came up with in his golf. We do this with <code>UFṚ</code> (<code>UFU</code> would do the same thing).</li>
+<li>We can reverse each sublist and then reverse the whole list, and the depth does not matter because Jelly will smashprint all of the characters onto one line at the end. We do this with any of <code>Ṛ€Ṛ</code>, <code>ṚṚ€</code>, or <code>Ṛ⁺€</code>.</li>
+</ol>
+<h2>Credits</h2>
+<ul>
+<li>-1 byte thanks to Jonathan Allan using <code>+þ</code> instead of <code>+€Ɱ</code></li>
+<li>-2 bytes thanks to Jonathan Allan by changing the way the ordering is done.</li>
+</ul>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 8 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
 <pre><code>Ẉp/SÞị&quot;€
 </code></pre>
 <p>A full program that accepts a pair of lists of characters and prints the result.</p>
@@ -58,24 +88,6 @@
      ị   -     index into {[A, B]}
          - implicit, smashing print
 </code></pre>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://github.com/DennisMitchell/jellylanguage" rel="nofollow noreferrer">Jelly</a>, <s>13</s> 12 bytes</h1>
-<pre><code>+þŒdṚ⁺€ṙL}ṙ-
-</code></pre>
-<p><a href="https://jht.hyper-neutrino.xyz/tio#WyIiLCIrw77FkmThuZrigbrigqzhuZlMfeG5mS0iLCIiLCIiLFsiKy0iLCJcIjEyMzQ1XCIiXV0=" rel="nofollow noreferrer">Try It Online!</a></p>
-<p>This can almost certainly be about half the length; I'll get back to this when I can.</p>
-<h2>Explanation</h2>
-<pre><code>+þŒdṚ⁺€ṙL}ṙ-    Main Link
-+þ              Outer product table with sum
-  Œd            Matrix antidiagonals
-    Ṛ           Reverse the entire list
-     ⁺€         Apply the last link (reverse) to each sublist
-       ṙL}      Rotate to the left by the length of the right string
-          ṙ-    Rotate to the left by -1 (rotate to the right once)
-</code></pre>
-<p>The input is automatically smash-printed meaning all elements of the multidimensional list are printed with no spaces, which happens to work perfectly for this challenge as it avoids the need for more string manipulation.</p>
-<p>The reason I use <code>+þ</code> instead of just cartesian product is that cartesian product in Jelly returns a flat list of pairs.</p>
-<p><sup>-1 byte thanks to Jonathan Allan using <code>+þ</code> instead of <code>+€Ɱ</code></sup></p>
 </div>
 <div id="pu2" class="pu"><h1>Python3, 121 bytes:</h1>
 <pre class="lang-py prettyprint-override"><code>E=enumerate
