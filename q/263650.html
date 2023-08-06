@@ -26,8 +26,8 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>244</td><td>Perl 5</td><td>230805T150004Z</td><td><a href="https://codegolf.stackexchange.com/questions/263650/s-n-a-k-e-a-r-o-u-n-d/263745#263745">good old</a></td></tr>
-<tr d-ix="1"><td>263</td><td>Javascript</td><td>230803T172940Z</td><td><a href="https://codegolf.stackexchange.com/questions/263650/s-n-a-k-e-a-r-o-u-n-d/263668#263668">ccprog</a></td></tr>
+<tr d-ix="0"><td>235</td><td>Javascript</td><td>230803T172940Z</td><td><a href="https://codegolf.stackexchange.com/questions/263650/s-n-a-k-e-a-r-o-u-n-d/263668#263668">ccprog</a></td></tr>
+<tr d-ix="1"><td>244</td><td>Perl 5</td><td>230805T150004Z</td><td><a href="https://codegolf.stackexchange.com/questions/263650/s-n-a-k-e-a-r-o-u-n-d/263745#263745">good old</a></td></tr>
 <tr d-ix="2"><td>188</td><td>JavaScript ES12</td><td>230804T175339Z</td><td><a href="https://codegolf.stackexchange.com/questions/263650/s-n-a-k-e-a-r-o-u-n-d/263704#263704">Arnauld</a></td></tr>
 <tr d-ix="3"><td>213</td><td>K ngn/k</td><td>230803T095734Z</td><td><a href="https://codegolf.stackexchange.com/questions/263650/s-n-a-k-e-a-r-o-u-n-d/263659#263659">doug</a></td></tr>
 <tr d-ix="4"><td>361</td><td>Python 3.8 prerelease</td><td>230805T212937Z</td><td><a href="https://codegolf.stackexchange.com/questions/263650/s-n-a-k-e-a-r-o-u-n-d/263766#263766">Donat</a></td></tr>
@@ -37,7 +37,64 @@
 <tr d-ix="8"><td>078</td><td>Pyth</td><td>230803T221935Z</td><td><a href="https://codegolf.stackexchange.com/questions/263650/s-n-a-k-e-a-r-o-u-n-d/263673#263673">CursorCo</a></td></tr>
 <tr d-ix="9"><td>061</td><td>Charcoal</td><td>230803T153908Z</td><td><a href="https://codegolf.stackexchange.com/questions/263650/s-n-a-k-e-a-r-o-u-n-d/263665#263665">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.perl.org/" rel="nofollow noreferrer">Perl 5</a>, <strike>255</strike> 244 bytes</h1>
+<div id="pu0" class="pu"><h2>Javascript, <s>384</s> <s>371</s> <s>304</s> <s>288</s> <s>263</s> 235 bytes</h2>
+<pre><code>s=(S,n)=&gt;(t=[...S],A=Array,a=A.from(A(n),r=&gt;A(2*n).fill(e=' ')),x=y=0,p=(b,d,f)=&gt;(a[y][x]=x&amp;1&amp;&amp;t.shift()||b[d],f?.(d)),i=2*n-1,m=d=&gt;(z=d&amp;2,d&amp;1?y+=1-z:x+=1-z,--i?p('-|-|',d,m):n&lt;2?p('&gt;&gt;&lt;&lt;',d):(i=d&amp;1?2*--n:n-1,p(&quot;..''&quot;,++d%4,m))),m(0),a)
+</code></pre>
+<p>-13 bytes saved thanks to Samathingamajig<br />
+-67 bytes by folding functions <code>u()</code> and <code>d()</code> into <code>v(±1)</code> and <code>l()</code> and <code>r()</code> into <code>h(±1)</code><br />
+-16 bytes with only one recursive function<br />
+-25 bytes because of <a href="https://codegolf.meta.stackexchange.com/questions/2447/default-for-code-golf-input-output-methods/25275#25275">this</a><br />
+-28 bytes with more golfing</p>
+<h3>Try out</h3>
+<p><div class="snippet" data-lang="js" data-hide="false" data-console="true" data-babel="false">
+<div class="snippet-code">
+<pre class="snippet-code-js lang-js prettyprint-override"><code>s=(S,n)=&gt;(t=[...S],A=Array,a=A.from(A(n),r=&gt;A(2*n).fill(e=' ')),x=y=0,p=(b,d,f)=&gt;(a[y][x]=x&amp;1&amp;&amp;t.shift()||b[d],f?.(d)),i=2*n-1,m=d=&gt;(z=d&amp;2,d&amp;1?y+=1-z:x+=1-z,--i?p('-|-|',d,m):n&lt;2?p('&gt;&gt;&lt;&lt;',d):(i=d&amp;1?2*--n:n-1,p("..''",++d%4,m))),m(0),a)
+
+;[
+  [ 'snake', 4 ],
+  [ 'snakearound', 5 ],
+  [ 'snakearoundandround', 6 ]
+]
+.forEach(([ S,n ]) =&gt; {
+  console.log(s(S,n).map(r=&gt;r.join('')).join('\n'))
+})</code></pre>
+</div>
+</div>
+</p>
+<h2>Ungolfed</h2>
+<pre><code>s = (S,n) =&gt; {
+  t = [...S];
+  a = Array.from(Array(n), r =&gt; Array(2*n).fill(e=' '));
+  x = y = 0;
+  p = (b,d,f) =&gt; {            // set letter in all odd positions until
+                              // exhausted, otherwise use snake
+    a[y][x] = x&amp;1 &amp;&amp; t.shift() || b[d];
+    f?.(d);                   // recurse unless end
+  }
+  i = 2*n-1;                  // counter for going in the same direction
+  m = d =&gt; {
+                              // the next position is set before p is called
+    z = d&amp;2;                  // forward or back?
+    if (d&amp;1) {                // vertical or horizontal?
+      y+=1-z;
+    } else {
+      x+=1-z;
+    }
+    if (--i) {               // go on
+      p('-|-|', d, m);
+    } else if (n&lt;2) {        // stop
+      p('&gt;&gt;&lt;&lt;', d);
+    } else {                 // next direction
+      i = d&amp;1 ? 2*--n : n-1; // set going length, decrement n if horizontal
+      p(&quot;..''&quot;, ++d%4, m);
+    }
+  }
+  m(0);
+  return a;
+}
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.perl.org/" rel="nofollow noreferrer">Perl 5</a>, <strike>255</strike> 244 bytes</h1>
 
 <pre class="lang-perl prettyprint-override"><code>sub r{$a='';$a.=$/while s/.$/$a.=$&amp;;''/emg;$_=$a}sub f{($s=pop.'-'x--($n=2*pop)**2)=~s/.\K/-/g;$k=local$_=($&quot;x$n.$/)x$n;r while s@ +$|&gt;(  )+@$_=substr$s,0,-1+length$&amp;,'';s/^-/$k&amp;2?&quot;'&quot;:'.'/e;$k++&amp;1&amp;&amp;y/-/|/;&quot;$_&gt;&quot;@me;$n&amp;2&amp;&amp;y/&gt;/&lt;/||r&amp;r;s/.\K.//g;r}
 </code></pre>
@@ -62,54 +119,6 @@ r
 <p>P.S. It's funny to watch how snake's head moves and serves as anchor where to place the next fragment.</p>
 <p><strong>Edit:</strong> Just a little bit shorter. Rotation subroutine is also slightly less ugly and can now handle rectangular (not just square) shapes (but of course there ought to be Perl golfing pre-fab somewhere for the purpose, 20-odd years old, so I'm re-inventing the wheel), which fact was immediately used and lead to another couple bytes off.</p>
 <p>In fact <code>local</code> can be ditched (-5) and TIO's footer written so that the <code>$_</code> doesn't hold read-only value while testing. And further couple bytes less if string is temporarily padded with arbitrarily large number of hyphens (<code>1E6</code>, say) instead of value computed from <code>n</code>. But I'm not that much desperate, yet :)</p>
-</div>
-<div id="pu1" class="pu"><h2>Javascript, <s>384</s> <s>371</s> <s>304</s> <s>288</s> 263 bytes</h2>
-<pre><code>s=(S,n)=&gt;(t=[...S],A=Array,a=A.from(A(n),r=&gt;A(2*n+1).fill(e=' ')),x=y=0,p=(b,c,d,f)=&gt;(g=b[c+d+1],a[y][x]=x&amp;1?t.shift()||g:g,f?.(c,d)),m=(c,d)=&gt;((c?(x+=c)&lt;2*n:(y+=d)&lt;n-1)&amp;&amp;a[y+d][x+2*c]==e?p(c?'---':'|||',c,d,m):a[y+c][x]!=e?p('&lt; &gt;',c,d):p(&quot;' .&quot;,-d,c,m)),m(1,0),a)
-</code></pre>
-<p>-13 bytes saved thanks to Samathingamajig</p>
-<p>-67 bytes by folding functions <code>u()</code> and <code>d()</code> into <code>v(±1)</code> and <code>l()</code> and <code>r()</code> into <code>h(±1)</code></p>
-<p>-16 bytes with only one recursive function</p>
-<p>-25 bytes because of <a href="https://codegolf.meta.stackexchange.com/questions/2447/default-for-code-golf-input-output-methods/25275#25275">this</a></p>
-<h3>Try out</h3>
-<p><div class="snippet" data-lang="js" data-hide="false" data-console="true" data-babel="false">
-<div class="snippet-code">
-<pre class="snippet-code-js lang-js prettyprint-override"><code>s=(S,n)=&gt;(t=[...S],A=Array,a=A.from(A(n),r=&gt;A(2*n+1).fill(e=' ')),x=y=0,p=(b,c,d,f)=&gt;(g=b[c+d+1],a[y][x]=x&amp;1?t.shift()||g:g,f?.(c,d)),m=(c,d)=&gt;((c?(x+=c)&lt;2*n:(y+=d)&lt;n-1)&amp;&amp;a[y+d][x+2*c]==e?p(c?'---':'|||',c,d,m):a[y+c][x]!=e?p('&lt; &gt;',c,d):p("' .",-d,c,m)),m(1,0),a)
-
-;[
-  [ 'snake', 4 ],
-  [ 'snakearound', 5 ],
-  [ 'snakearoundandround', 6 ]
-]
-.forEach(([ S,n ]) =&gt; {
-  console.log(s(S,n).map(r=&gt;r.join('')).join('\n'))
-})</code></pre>
-</div>
-</div>
-</p>
-<h2>Ungolfed</h2>
-<pre><code>s = (S,n) =&gt; {
-  t = [...S];
-  a = Array.from(Array(n), r =&gt; Array(2*n+1).fill(e=' '));
-  x = y = 0;
-  p= (b,c,d,f) =&gt; {
-    g = b[c+d+1];
-    a[y][x] = x&amp;1 ? t.shift() || g : g;
-    f?.(c,d);
-  }
-  m = (c,d) =&gt; {
-    if((c ? (x+=c) &lt; 2*n : (y+=d) &lt; n-1) &amp;&amp; a[y+d][x+2*c] == e) {
-      p(c?'---':'|||', c, d, m);
-    } else if (a[y+c][x] != e) {
-      p('&lt; &gt;',c,d);
-    } else {
-      p(&quot;' .&quot;, -d, c, m);
-    }
-  }
-  m(1, 0);
-  return a;
-}
-</code></pre>
-<p>The current coordinate moves along the spiral. <code>m(c,d)</code> represents a move in one direction. When a condition for direction change is reached, the next call swaps the parameters to <code>m(-d,c)</code>. The result is clockwise movement: <code>m(1, 0)</code> right –&gt; <code>m(0, 1)</code> down –&gt; <code>m(-1, 0)</code> left –&gt; <code>m(0, -1)</code> up and repeat.</p>
 </div>
 <div id="pu2" class="pu"><h1>JavaScript (ES12), 188 bytes</h1>
 <p>Expects <code>(string)(n)</code>. Returns a matrix of characters.</p>
