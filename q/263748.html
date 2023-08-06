@@ -26,9 +26,102 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>003</td><td>Python 3</td><td>230805T155641Z</td><td><a href="https://codegolf.stackexchange.com/questions/263748/compute-convolution-quickly-and-accurately/263749#263749">l4m2</a></td></tr>
+<tr d-ix="0"><td>003</td><td>C++ gcc</td><td>230806T221955Z</td><td><a href="https://codegolf.stackexchange.com/questions/263748/compute-convolution-quickly-and-accurately/263798#263798">dingledo</a></td></tr>
+<tr d-ix="1"><td>003</td><td>Python 3</td><td>230805T155641Z</td><td><a href="https://codegolf.stackexchange.com/questions/263748/compute-convolution-quickly-and-accurately/263749#263749">l4m2</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://docs.python.org/3/" rel="noreferrer">Python 3</a>, 3 seconds</h1>
+<div id="pu0" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C++ (gcc)</a>, ~0.03s</h1>
+
+<pre class="lang-cpp prettyprint-override"><code>#include &lt;algorithm&gt;
+#include &lt;cmath&gt;
+#include &lt;cstdint&gt;
+#include &lt;cstdio&gt;
+#include &lt;ctime&gt;
+
+struct C {
+    double x, y;
+    C() : x(0), y(0) {}
+    C(double x, double y) : x(x), y(y) {}
+    inline C operator+ (const C &amp;c) const { return C(x + c.x, y + c.y); }
+    inline C operator- (const C &amp;c) const { return C(x - c.x, y - c.y); }
+    inline C operator* (const C &amp;c) const { return C(x * c.x - y * c.y, x * c.y + y * c.x); }
+    inline C conj() const { return C(x, -y); }
+};
+
+constexpr double PI = acos(-1);
+constexpr int SIZE = 100000, B = 32 - __builtin_clz(SIZE * 2 - 1), N = 1 &lt;&lt; B;
+
+C w[N], f0[N], f1[N];
+int rev[N];
+
+void init_roots() {
+    w[1] = C(1, 0);
+    for (int len = 2; len &lt; N; len &lt;&lt;= 1) {
+        C wn(cos(PI / len), sin(PI / len));
+        for (int i = len; i &lt; len &lt;&lt; 1; i++)
+            w[i] = i &amp; 1 ? w[i &gt;&gt; 1] * wn : w[i &gt;&gt; 1];
+    }
+    for (int i = 0; i &lt; N; i++)
+        rev[i] = (rev[i &gt;&gt; 1] | (i &amp; 1) &lt;&lt; B) &gt;&gt; 1;
+}
+
+void fft(C *f) {
+    for (int i = 0; i &lt; N; i++)
+        if (i &lt; rev[i]) std::swap(f[i], f[rev[i]]);
+    for (int len = 1; len &lt; N; len &lt;&lt;= 1) {
+        for (int i = 0; i &lt; N; i += len &lt;&lt; 1) {
+            for (int j = 0; j &lt; len; j++) {
+                C u = f[i + j], v = f[i + j + len] * w[j + len];
+                f[i + j] = u + v;
+                f[i + j + len] = u - v;
+            }
+        }
+    }
+}
+
+void convolve(uint64_t *a) {
+    init_roots();
+    for (int i = 0; i &lt; SIZE; i++)
+        f0[i] = C(a[i] &amp; 4095, a[i] &gt;&gt; 12);
+    fft(f0);
+    for (int i = 0; i &lt;= N &gt;&gt; 1; i++) {
+        int j = -i &amp; (N - 1);
+        C c0 = (f0[i] + f0[j].conj());
+        C c1 = (f0[i] - f0[j].conj()) * C(0, -1);
+        f0[i] = c0 * c0 + (c0 * c1) * C(0, 1);
+        f0[j] = (c0 * c0).conj() + (c0 * c1).conj() * C(0, 1);
+        f1[i] = c1 * c1;
+        f1[j] = (c1 * c1).conj();
+    }
+    fft(f0); fft(f1);
+    for (int i = 0; i &lt; SIZE * 2 - 1; i++) {
+        int j = -i &amp; (N - 1);
+        uint64_t c0 = llround(f0[j].x / (N &lt;&lt; 2));
+        uint64_t c1 = llround(f0[j].y / (N &lt;&lt; 2));
+        uint64_t c2 = llround(f1[j].x / (N &lt;&lt; 2));
+        a[i] = c0 + (c1 &lt;&lt; 13) + (c2 &lt;&lt; 24);
+    }
+}
+
+uint64_t A[SIZE * 2 - 1];
+
+int main() {
+    for (int i = 0; i &lt; SIZE; i++) A[i] = 1e7;
+    clock_t start = clock();
+    convolve(A);
+    clock_t end = clock();
+    uint64_t checksum = 0;
+    for (int i = 0; i &lt; SIZE * 2 - 1; i++) checksum ^= A[i];
+    printf("checksum: %llu\n", checksum);
+    printf("cpu time: %.3fs\n", (double) (end - start) / CLOCKS_PER_SEC);
+    return 0;
+}
+
+</code></pre>
+<p><a href="https://tio.run/##lVZtc5pAEP7Or9hJp5lDJeVM2k7FpJMy@ZBpx2Sab7XWIQgJBsGBw2hT/3rt7h0gaIwNM@re3rPP7u3LiTudGneuu1q9CSI3zEYedJ3wLk4CcT8509ZKd@KI@5oiFaMgEluquKYRwcQ707RUJJkrwIYnDfAZxdlt6MG8BQtLKmymQwfmzNRRhd/wtMz1a2guLRRyLpGLEhlEYRB56CGeeokj4qQJzI2jlJweujoo@QkST2RJhMRzaIJ7RCFIYaFbsIPJ2MtkFEzGy0yNvUwNYkKahZQWLVAqilGp5tvsSDNmz7G1wFDBLC1Nk9vefJoUiby@hFNw3DhlBtetyj5WFW4uf1zgNjfpacEXlI/bGNdweJsFoQiioRv@ZhLVANrgWI8eWUC3C1/Qnw2P/d6gBb6pfjj@WBpxJ95MytosDkboLRDDJI5FimdQ7fHY5wOkshlvgamrDvHjBBhZh16Ee21LCl3o5UIXXRf2snPgMWJ0ODzmO4JgfGkQrZc5b407QGbcs1Do5rTAcdVs6iVYBRhQgAEc4nk/0xLOzgCDbqBXbM9SoXwstS0vpvLR2yCn1EhqJqWc9Q/akStd5laXWktb5gn0fcFsaPjF6f/HT@ATZTf3pwMObqeTPjpT5uMaq9VXO4Pns8/3ZX9XDNA8LfNaxddsxspmrGqAAka@gVUVzhCI8eJsjDHm2XqFH7SU5egXC2uLoDBFuwyF2U5EQUc4YxO31OrSsiwMTtQsDmcey/BUH06GAhpOcZBq11s7y0bztVE5HKdADYdDwiGcmJ/et0AuqC/aBR12hW/u5j7FaZV9JOkr6S0qYFDLsZ4cbasyVq5J7anCaFI448GRuoHqML6GGXUYlsVmeKkYVeLiXEjfoC@6vqXIS/wGXBYuB5l6Tl61K1TPmfPcG5fQ2kbOy2sktUHOU6sEvqd@xf34ykSXPSPzHYZJnEUjpvI4xysMDXCI2vqzJnzLZLHPpF014S94cco6NWWWaJSPVd7bEnxSJgsHoXRw3q8mg25/Ov/EwSv5pYtrPQHIIB1z76Pid8PYfUDmVDiJoIhoXVSqnL1zvY72otEmdp2Ee899SLOJdP@aopaGv05lmMp4mqClzw6K3Q68DcPsZ3TQKg30DeQ0A3pjQuTRsZ9KaP4GpAOj0A11XB1rY3@7sr/eDK8vvg9vLuycKf/zN@nvYbX66/qhc5eujCvfScU/" rel="nofollow noreferrer" title="C++ (gcc) – Try It Online">Try it online!</a></p>
+<p>Run with <code>-O3</code> or <code>-Ofast</code> enabled for best performance.</p>
+<p>Uses a standard floating-point FFT. Each input integer is split into two 12-bit chunks to avoid precision loss. Since the input comprises of only real numbers, we can get away with doing just a single FFT by using <code>a&gt;&gt;12</code> as the real part and <code>a&amp;4095</code> as the imaginary part. Upon converting back we still need two FFTs as the output space is twice as large.</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://docs.python.org/3/" rel="noreferrer">Python 3</a>, 3 seconds</h1>
 
 <pre class="lang-python prettyprint-override"><code>R = &quot;&quot;.join(&quot;%028o&quot;%x for x in A)
 B = int(R,8)**2 | (1 &lt;&lt; 599997*28)
