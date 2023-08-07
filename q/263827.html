@@ -26,11 +26,23 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>nan</td><td>BNFC + Haskell + Bash + coreutils</td><td>230807T161837Z</td><td><a href="https://codegolf.stackexchange.com/questions/263827/is-it-a-valid-go-type/263842#263842">matteo_c</a></td></tr>
-<tr d-ix="1"><td>205</td><td>Raku</td><td>230807T151536Z</td><td><a href="https://codegolf.stackexchange.com/questions/263827/is-it-a-valid-go-type/263839#263839">Sean</a></td></tr>
+<tr d-ix="0"><td>193</td><td>Raku</td><td>230807T151536Z</td><td><a href="https://codegolf.stackexchange.com/questions/263827/is-it-a-valid-go-type/263839#263839">Sean</a></td></tr>
+<tr d-ix="1"><td>nan</td><td>BNFC + Haskell + Bash + coreutils</td><td>230807T161837Z</td><td><a href="https://codegolf.stackexchange.com/questions/263827/is-it-a-valid-go-type/263842#263842">matteo_c</a></td></tr>
 <tr d-ix="2"><td>241</td><td>Regex PCRE</td><td>230807T135046Z</td><td><a href="https://codegolf.stackexchange.com/questions/263827/is-it-a-valid-go-type/263832#263832">mousetai</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://bnfc.readthedocs.io/" rel="nofollow noreferrer">BNFC</a> + <a href="https://www.haskell.org" rel="nofollow noreferrer">Haskell</a> + <a href="https://www.gnu.org/software/bash/" rel="nofollow noreferrer">Bash</a> + coreutils, 175 + 100 = 275 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://raku.org/" rel="nofollow noreferrer">Raku</a>, <s>205</s> 193 bytes</h1>
+<pre><code>*~~/^$(/:s \s*[bool|u?int|float[32|64]|complex[64|128]|byte|rune|string|\*&lt;~~&gt;|\[
+\d* \]&lt;~~&gt;|map \[&lt;~~&gt;\]&lt;~~&gt;|chan\s+&lt;~~&gt;|struct \{ &lt;~~&gt;*%\; \}|func \(&lt;~~&gt;*%\,\)[&lt;~~&gt;|
+\( &lt;~~&gt;*%\, \) ]?]\s*/)$/
+</code></pre>
+<p><a href="https://tio.run/##dVJtU@JADP7ur8g4eLRrlQOxp/ZOfshujqnYIh60TF9mjmHLX8fNvtBWhZnuJk@ehOTZbJNiHR43O/iRwp8jOxxGfwfe6KkEUTL@kudrWc9WWSXTdR5X/G4iwynKRb7ZrpP/PJzK8eQB5cuuSmRRZ4ksq2KVLaVgvw@HZyn4hXhlIFB7m3gLgpNpgcVbnInyWtsqsV5UIPZALrsSEYhGpnW2AOFZKBC@TpcXwnO0AIQPOEPV7sgfjI4RlPEOLvez1BvM/eYJBvNLSPMChjTMMIChmoYuO4PqnzxmUeZ@1udoJjI2RwfD@CcgcEA@ntwhMOD34S8NAH94pBgjPYirxuYqrVOIENC1iI7Qj7ivzUFyqX0kxcAFLUHJtldmZLgR8RqqZUPQdYgH@inDaQSsg@q0HtdeFIi66YybNloBGwXaosqk9mzf5tJF6SU9/2SpSkFNB330F34rwhmCZxhB72oruiwf9NFiHDsdfSI4Vy@EHurcYUlUyowCvQu/A@22Jcuk0G2SRBrbxMtVFhc7S2Bmu8wZl6/p8u39n95VzvG0cjfj7i6qtbud3odode@/ceBeoyunrzVtS1j6Kfx1Tw3jDKFxmlF/xw8" rel="nofollow noreferrer" title="Perl 6 – Try It Online">Try it online!</a></p>
+<p>This is an anonymous function that matches its argument against the giant regex following the leftmost <code>~~</code>.  That regex is of the form</p>
+<pre><code>/^$(/.../)$/
+</code></pre>
+<p>It interpolates the inner regex <code>$(/.../)</code> into the outer one.  The outer regex requires that the overall match be anchored at the beginning and end of the string.</p>
+<p>The inner regex matches a Go type.  It is recursive, calling itself using the expression <code>&lt;~~&gt;</code>.</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://bnfc.readthedocs.io/" rel="nofollow noreferrer">BNFC</a> + <a href="https://www.haskell.org" rel="nofollow noreferrer">Haskell</a> + <a href="https://www.gnu.org/software/bash/" rel="nofollow noreferrer">Bash</a> + coreutils, 175 + 96 = 271 bytes</h1>
 <pre><code>bool&quot;
 int&quot;
 uint&quot;
@@ -52,7 +64,7 @@ QT
 Q&quot;(&quot;[T2]&quot;)&quot;Z2&quot;,&quot;Z&quot;;&quot;;_.T2::=T
 </code></pre>
 <p>Compile with</p>
-<pre class="lang-bash prettyprint-override"><code>sed 's/Q/func&quot;&quot;(&quot;[T2]&quot;)&quot;/g;s/Z/;separator T/g'|awk '{print&quot;A&quot;NR&quot;.T::=\&quot;&quot;$0&quot;;&quot;}'&gt;g;bnfc --make g;make
+<pre class="lang-bash prettyprint-override"><code>sed 's/Q/func&quot;&quot;(&quot;[T2]&quot;)&quot;/g;s/Z/;separator T/g'|awk '{print&quot;A&quot;NR&quot;.T::=\&quot;&quot;$0&quot;;&quot;}'&gt;g;bnfc -m g;make
 </code></pre>
 <p>Produces an executable named <code>TestG</code> which accepts input from <code>stdin</code> and exits with code <code>0</code> if the parse was successfull, <code>1</code> otherwise.</p>
 <p>Possibly can be golfed more with a better use of sed and awk.</p>
@@ -60,16 +72,6 @@ Q&quot;(&quot;[T2]&quot;)&quot;Z2&quot;,&quot;Z&quot;;&quot;;_.T2::=T
 <p>Script to test it:</p>
 <pre class="lang-bash prettyprint-override"><code>cat truthy falsy | sed &quot;s|//.*||&quot; | xargs -d &quot;\n&quot; -I {} sh -c 'echo &quot;{}&quot; | ./TestG &gt;/dev/null ; echo $? &quot;{}&quot;'
 </code></pre>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://raku.org/" rel="nofollow noreferrer">Raku</a>, 205 bytes</h1>
-<pre><code>my rule t {\s*[bool|u?int|float[32|64]|complex[64|128]|byte|rune|string|\*&lt;&amp;t&gt;|\[
-\d* \] &lt;&amp;t&gt;|map \[ &lt;&amp;t&gt; \] &lt;&amp;t&gt;|chan\s+&lt;&amp;t&gt;|struct \{ &lt;&amp;t&gt;*%\; \}|func \(&lt;&amp;t&gt;*%\,\)[&lt;&amp;t&gt;|
-\( &lt;&amp;t&gt;*%\, \) ]?]\s*}
-*~~/^&lt;t&gt;$/
-</code></pre>
-<p><a href="https://tio.run/##dVLbctpADH3nKzQZGuyt2xRC3LROw4dotxkHbEJqbMaXmTJe59fJai/YbgMz3pWOjoR0VoekzMLT/gjXKfyCTQEtOWWTJVBDyyuGz0WRyWa1y2uZZkVc4@1Chksh18X@kCV/MVzK@eJeyOdjnciyyRNZ1eUu30rOHq7rR8lxwjcMuADt7uMDcNT2GVu/xDmvPmtbJTfrGnirQ@wTj4B3Mm3yNXDPQgH3UZMn3HO0ALgPYiVUy92Evb3d/H6oH6c3p25SxUe4alepN33yu58wfbqCtChhRoPNApipyeiy86hZyGMWZe5nfRRmOmOjcDDMv4EABIHzxa0ABngXftcA4P0PijHShrhKAVRpg0KEgK5FdAHjiPv6HEEutS9IOXBBS1DytcqMDDciXke1bAiGDvFAP2u4jIANUJ024tqLAtEwnaFpoxewU6Atqkxqz/ZtLl2UXtTzz5aqFDR00Ed/4fciXCB4hhGMrr6iy/JBHz2GYtDRPwTn6oXQQ106LIlKmVFgdImPQLttyTYpdZskkcb28XaXx@XREpjZLnPG1Sbdvrz@0buKKM4r92U@3EW1dl@Xd6Gwuo/fOHCvMZTT15r2JSz9HP5/Tw3jAqFzmlF/p3c" rel="nofollow noreferrer" title="Perl 6 – Try It Online">Try it online!</a></p>
-<p>This code defines a &quot;rule&quot; named <code>t</code> that matches a Go type.  The rule is recursive, with recursive calls into the same rule denoted by <code>&lt;&amp;t&gt;</code>.  A rule is similar to a regex, except that whitespace within the rule is significant, transformed into a match against zero or more whitespace characters.</p>
-<p><code>* ~~ /^&lt;t&gt;$/</code> is an anonymous function that matches a string against the rule, with the added requirement that the rule match at the start and end of the string.</p>
 </div>
 <div id="pu2" class="pu"><h2>Regex (PCRE), 241 bytes</h2>
 <pre><code>^(bool|u?int|float(32|64)|complex(64|128)|byte|rune|string|&amp;\s*(?1)|\*\s*(?1)|\[\s*\d*\s*\]\s*(?1)|map\s*\[\s*(?1)\s*\]\s*(?1)|chan (?1)|struct\s*\{\s*(|((?1);\s*)*\s*(?1)\s*;?\s*)\}|func\(\s*(|((?1),\s*)*(?1),?\s*)\)\s*(\s*(?1)|\((?6)\))?)$
