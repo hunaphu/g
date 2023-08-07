@@ -35,10 +35,52 @@
 <div id="pu0" class="pu"><h1>JavaScript (ES6), 171 bytes</h1>
 <p>Returns a string, using commas and linefeeds as separators.</p>
 
-<pre class="lang-javascript prettyprint-override"><code>f=([v,...a],p=[],c=p,b=[...p,c])=&gt;v?f(a,p,[...c,v])+(c+c&amp;&amp;f(a,b,[v])):b.some(c=&gt;c.some(d=m=p=v=&gt;m==(m|=1&lt;&lt;v)|p&lt;(p=v)^d|![d^=v&lt;2])|m+1&amp;m+2)?&quot;&quot;:b.map((a,i)=&gt;a.map(_=&gt;i))+`
+<pre class="lang-javascript prettyprint-override"><code>f=([v,...a],p=[],c=p,b=[...p,c])=&gt;v?f(a,p,[...c,v])+(c+c&amp;&amp;f(a,b,[v])):b.some(c=&gt;c.some(d=m=p=v=&gt;m==(m|=1&lt;&lt;v)|p&lt;(p=v)^d|![d^=v&lt;2])|m+1&amp;m+2)?&quot;&quot;:b.map((c,i)=&gt;c.map(_=&gt;i))+`
 `
 </code></pre>
-<p><a href="https://tio.run/##dZLPcoIwEMbvPkXqQZNhiwacHpTFUw99hkysMWhrx0hGLZfSZ6chgIy25bT7fb/9kx0@VKHO@rS3l8djnm2raodUFBCGoZJgUUjQaGGDwikWtGSYFssdVWChljQUkgVUB3o0qtUNCCew@SY852ZLNaa6iTI0aLHA1CBSUyJPkoKVNqFOZKusfBDZCoskkqw0AR@ZIGLL4dD1McpS13jvBiufvGK6ZyxYD9bVQgwIERwi4BKI/yYTIsQUpl5xAXeBrCnHQNyRV6oBPOnDjvY9f9E1EPV01CW8TdrSp26ZptSrMwfE3ZpXlfdkN6afH8Osx9ttW3tW9/LT/7S9@X9187j4xr57@82q3aV6uz7M3bm9LQfhLj89K/1OFcGUfBGdH8/5YRse8jc6fjnaz8t8DESxxY3jfh3mpG@2qH4A" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<p><a href="https://tio.run/##dZLPcoIwEMbvPkXqQZNhiwJOD8riqYc@QybWGLS1YySjlkvps9MkgIy25bT7fb/9kx0@ZCnP6rQ3l8djkW/reoeUlxCGoRRgkAtQaGCD3CoGlGCYlcsdlWDASQpKwQKqAjUaOXUD3ApsvgnPhd5ShZlqohw1Giwx04hUVxilackqk1IrslVePfB8hWUaC1bpIBrpIGbL4dD20dJQqmDPXCuXvGK2ZyxYD9b1gg8I4RHEEAkg/ptMCOdTmHrFBpENhKMsA0lHXqkG8KQPO9r3/EU7IO7puEuiNmlLn7plmlKvziyQdGte1agnuzH9/ARmPd5u29oz18tP/9P25v/VzeOSG/vu7TerdpfqbXeYu3N7WwzCXXF6luqdSoIZ@SKqOJ6LwzY8FG90/HI0n5f5GIhkixvH/jrMSt9sUf8A" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<h2>Commented</h2>
+<h3>Recursive part</h3>
+<p>We build all partitions of the input array <code>a[]</code>.</p>
+<pre class="lang-javascript prettyprint-override"><code>f = (                  // f is a recursive function taking:
+  [ v,                 // v = next piece number
+       ...a ],         // a[] = array of remaining values
+  p = [],              // p[] = current partition
+  c = p,               // c[] = current piece cluster
+  b = [...p, c]        // b[] = copy of p[] with c[] added
+) =&gt;                   //
+v ?                    // if v is defined:
+  f(a, p, [...c, v]) + //   do a recursive call with v added to c[]
+  (                    //
+    c + c &amp;&amp;           //   if c[] is not empty,
+    f(a, b, [v])       //   do another recursive call with p[] = b[]
+  )                    //   and c[] = [ v ]
+:                      // else:
+  ...                  //   final test (see below)
+</code></pre>
+<h3>Final test</h3>
+<p>We test whether the partition <code>b[]</code> is valid.</p>
+<pre class="lang-javascript prettyprint-override"><code>b.some(c =&gt;            // for each cluster c[] in b[]:
+  c.some(d = m = p =   //   initialize d, m and p to NaN'ish values
+  v =&gt;                 //   for each value v in c[]:
+    m == (m |= 1 &lt;&lt; v) //     set the bit at index v in m and make sure
+                       //     that m is modified by doing so
+    | p &lt; (p = v) ^ d  //     make sure that p and v are in the expected
+                       //     order and update p to v
+    | ![d ^= v &lt; 2]    //     update the direction if v = 1
+  )                    //   end of some()
+  | m + 1 &amp; m + 2      //   make sure that m consists of a sequence of
+                       //   consecutive bits set to 1, followed by a
+                       //   trailing 0
+)                      // end of some()
+?                      // if it failed:
+  &quot;&quot;                   //   append nothing
+:                      // else:
+  b.map((c, i) =&gt;      //   turn each value in each cluster c[] in b[]
+    c.map(_ =&gt; i)      //   into a roll number
+  ) +                  //   implicit coercion to a string
+  `\n`                 //   append a linefeed
+</code></pre>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 77 bytes</h1>
 <pre><code>⊞υ⟦…θ¹⟧ＦΦθκ«≔⟦⟧ηＦυ«⊞η⁺κ⟦⟦ι⟧⟧≔⊟κζ¿⁼№ζ¹›ι↨ζ⁰⊞η⁺κ⟦⁺ζ⟦ι⟧⟧»≔ηυ»ＥΦυ⬤ι⬤λ№λ⊕ξ⭆¹ΣＥιＥνξ
