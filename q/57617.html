@@ -26,11 +26,11 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>005</td><td>ARBLE</td><td>230524T002501Z</td><td><a href="https://codegolf.stackexchange.com/questions/57617/is-this-number-a-prime/261199#261199">ATaco</a></td></tr>
-<tr d-ix="1"><td>029</td><td>Trilangle 1.3</td><td>230215T045451Z</td><td><a href="https://codegolf.stackexchange.com/questions/57617/is-this-number-a-prime/257861#257861">Bbrk24</a></td></tr>
-<tr d-ix="2"><td>069</td><td>C gcc</td><td>230726T175550Z</td><td><a href="https://codegolf.stackexchange.com/questions/57617/is-this-number-a-prime/263381#263381">The Empt</a></td></tr>
-<tr d-ix="3"><td>008</td><td>Vyxal 3.0.0beta.2</td><td>230801T135652Z</td><td><a href="https://codegolf.stackexchange.com/questions/57617/is-this-number-a-prime/263615#263615">lyxal</a></td></tr>
-<tr d-ix="4"><td>116</td><td>floor</td><td>230801T120811Z</td><td><a href="https://codegolf.stackexchange.com/questions/57617/is-this-number-a-prime/263613#263613">bsoelch</a></td></tr>
+<tr d-ix="0"><td>105</td><td>floor</td><td>230801T120811Z</td><td><a href="https://codegolf.stackexchange.com/questions/57617/is-this-number-a-prime/263613#263613">bsoelch</a></td></tr>
+<tr d-ix="1"><td>005</td><td>ARBLE</td><td>230524T002501Z</td><td><a href="https://codegolf.stackexchange.com/questions/57617/is-this-number-a-prime/261199#261199">ATaco</a></td></tr>
+<tr d-ix="2"><td>029</td><td>Trilangle 1.3</td><td>230215T045451Z</td><td><a href="https://codegolf.stackexchange.com/questions/57617/is-this-number-a-prime/257861#257861">Bbrk24</a></td></tr>
+<tr d-ix="3"><td>069</td><td>C gcc</td><td>230726T175550Z</td><td><a href="https://codegolf.stackexchange.com/questions/57617/is-this-number-a-prime/263381#263381">The Empt</a></td></tr>
+<tr d-ix="4"><td>008</td><td>Vyxal 3.0.0beta.2</td><td>230801T135652Z</td><td><a href="https://codegolf.stackexchange.com/questions/57617/is-this-number-a-prime/263615#263615">lyxal</a></td></tr>
 <tr d-ix="5"><td>024</td><td>ForWhile</td><td>230727T114913Z</td><td><a href="https://codegolf.stackexchange.com/questions/57617/is-this-number-a-prime/263417#263417">bsoelch</a></td></tr>
 <tr d-ix="6"><td>031</td><td>Shasta v0.0.8</td><td>230604T025626Z</td><td><a href="https://codegolf.stackexchange.com/questions/57617/is-this-number-a-prime/261527#261527">noodle m</a></td></tr>
 <tr d-ix="7"><td>107</td><td>Rockstar</td><td>200911T135017Z</td><td><a href="https://codegolf.stackexchange.com/questions/57617/is-this-number-a-prime/210936#210936">Shaggy</a></td></tr>
@@ -387,7 +387,60 @@
 <tr d-ix="358"><td>nan</td><td>Ruby</td><td>150911T145056Z</td><td><a href="https://codegolf.stackexchange.com/questions/57617/is-this-number-a-prime/57630#57630">manatwor</a></td></tr>
 <tr d-ix="359"><td>054</td><td>Haskell</td><td>150911T143527Z</td><td><a href="https://codegolf.stackexchange.com/questions/57617/is-this-number-a-prime/57624#57624">nimi</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/TehFlaminTaco/ARBLE" rel="nofollow noreferrer">ARBLE</a>, 5 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://esolangs.org/wiki/Floor" rel="nofollow noreferrer">floor</a>, 105  bytes</h1>
+<pre><code>F:x-&gt;floor x
+r:x-&gt;1/(x-F x)
+I:x-&gt;1+F(F x-x)
+p:k-&gt;(F k*r k)+1/(r k-1)
+f:n-&gt;(n-1)*I(F p^(n-2)(1+1/(n-1))/n)
+</code></pre>
+<p>returns nonzero for primes and zero for non-primes</p>
+<h2>Explanation</h2>
+<p>Ungolfed version:</p>
+<pre><code>intPair: x y -&gt; x + 1/y
+left: x -&gt; floor x
+right: x -&gt; 1/(x-floor x)
+
+is_int: x -&gt; 1+floor(floor x - x)
+
+fakt_1: n_k -&gt; intPair ((left n_k)*(right n_k)) (right n_k - 1)
+
+f: n -&gt; (n-1)*is_int( (left fakt_1^(n-2) intPair 1 (n-1))/n)
+</code></pre>
+<p>Uses <a href="https://en.wikipedia.org/wiki/Wilson%27s_theorem" rel="nofollow noreferrer">Wilson's theorem</a> to determine if the input is a prime number</p>
+<p><code>fakt_1^(n-2) intPair 1 (n-1)</code> computes <code>(n-1)!+1</code> (abusing that storing one in the second component of a pair, will increase the first component by 1)</p>
+<p>The rest of f checks if <code>(n-1)!+1</code> is evenly divisible by <code>n</code> and returns <code>1</code> if yes and zero otherwise.
+The multiplication with <code>(n-1)</code> is to ensure that <code>1</code> is not falsely detected as prime</p>
+<h2>Implementation:</h2>
+<p>To run the program, execute the <a href="https://github.com/bsoelch/floorLang" rel="nofollow noreferrer">Python-script</a> with the arguments</p>
+<p><code>-f &lt;source-file&gt; -- &lt;input-number&gt;</code></p>
+<hr />
+<h1><a href="https://esolangs.org/wiki/Floor" rel="nofollow noreferrer">floor</a>, 116 bytes</h1>
+<pre><code>F:x-&gt;floor x
+r:x-&gt;1/(x-F x)
+I:x-&gt;-F(F x-x)
+s:p-&gt;I(F p/r p)*F p+1/(1+r p)
+f:n-&gt;-F((1-n)/((1-n)^2+1))*F s^(n-2)(n+1/2)
+</code></pre>
+<p>returns non-zero for primes and zero for composites</p>
+<h1>Explanation:</h1>
+<p>Ungolfed version:</p>
+<pre><code>lt: x y -&gt; -(floor((x-y)/((x-y)^2+1)))
+
+intPair: x y -&gt; x + 1/y
+left: x -&gt; floor x
+right: x -&gt; 1/(x-floor x)
+
+not_int: x -&gt; -floor(floor x - x)
+
+prime_step: n_k -&gt; intPair (not_int(left n_k / right n_k) * left n_k) (1+right n_k)
+f: n -&gt; (lt 1 n)*(left prime_step^(n-2)(intPair n 2))
+</code></pre>
+<p><code>prime_step</code> takes a pair of integers <code>(n,k)</code> (encoded as a single rational number) as input an returns <code>(0,k+1)</code> if k is a divisor of n, and <code>(n,k+1)</code> otherwise.</p>
+<p><code>f</code> applies <code>prime_step</code> <code>n-2</code> times to the pair <code>(n,2)</code> which will return 0 if <code>n</code> is divisible by any integer between <code>2</code> and <code>n-1</code> and <code>n</code> otherwise.
+The multiplication with <code>lt 1 n</code> is there to ensure that <code>f(1)</code> will return <code>0</code></p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/TehFlaminTaco/ARBLE" rel="nofollow noreferrer">ARBLE</a>, 5 bytes</h1>
 
 <pre class="lang-lua prettyprint-override"><code>prime
 </code></pre>
@@ -399,7 +452,7 @@
 <p>Returns falsey for primes, truthy for non-primes.</p>
 <p><a href="https://tio.run/##SyxKykn9/7@4NFejKDEvPVXDSCdP11CzJq9EI0@1QlPz////hqaGAA" rel="nofollow noreferrer" title="ARBLE – Try It Online">Try it online!</a></p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://github.com/bbrk24/Trilangle" rel="nofollow noreferrer">Trilangle</a> 1.3, <s>31</s> 29 bytes</h1>
+<div id="pu2" class="pu"><h1><a href="https://github.com/bbrk24/Trilangle" rel="nofollow noreferrer">Trilangle</a> 1.3, <s>31</s> 29 bytes</h1>
 <pre><code>&lt;'?&lt;#2%._zS&lt;.&gt;(&gt;.,)2-/\\_/!@@
 </code></pre>
 <p>Reads a single integer from STDIN, and prints <code>0</code> iff it's prime.</p>
@@ -447,7 +500,7 @@ int main() {
 <pre><code>'2.?..&lt;_.@j.2'2,&lt;|&gt;(%!.\S)S,,)S&lt;.....@&gt;-
 </code></pre>
 </div>
-<div id="pu2" class="pu"><h1>C (gcc), <s>119</s> <s>71</s> 69 bytes</h1>
+<div id="pu3" class="pu"><h1>C (gcc), <s>119</s> <s>71</s> 69 bytes</h1>
 <pre class="lang-c prettyprint-override"><code>p;main(a){for(scanf(&quot;%d&quot;,&amp;p);++a&lt;p;)p=p/a*a-p?p:1;puts(p-1?&quot;1&quot;:&quot;0&quot;);}
 </code></pre>
 <ul>
@@ -461,7 +514,7 @@ int main() {
 <p>My first C answer. To me, it's just a mix of Python and Assembly. Well, at least it's probably not as long as Java...</p>
 <p><a href="https://tio.run/##BcFBCoAgEAXQuwwUmkm5CpzCswyG0SL7ZK2is9t70W4x1go@ZM9K9JvOS5UoOSlqVupbaDZGZrDGgkE6sQjwjvHcRcG6QI48jaT5q9VNPw" rel="nofollow noreferrer"><code>printf(&quot;Try it online!&quot;)</code></a></p>
 </div>
-<div id="pu3" class="pu"><h1><a href="https://github.com/Vyxal/Vyxal/tree/version-3" rel="nofollow noreferrer">Vyxal 3.0.0-beta.2</a>, 8 bytes</h1>
+<div id="pu4" class="pu"><h1><a href="https://github.com/Vyxal/Vyxal/tree/version-3" rel="nofollow noreferrer">Vyxal 3.0.0-beta.2</a>, 8 bytes</h1>
 <pre><code>1?R%0C1=
 </code></pre>
 <p><a href="https://vyxal.github.io/#WyJsIiwiIiwiIiwiMSBpbnB1dCBhLT5iIG1vZCAwIGNvdW50IDEgZXF1YWw/IiwiMTEiXQ==" rel="nofollow noreferrer">Try it online! (link is to literate version)</a></p>
@@ -478,34 +531,6 @@ int main() {
 💎
 </code></pre>
 <p>Created with the help of <a href="https://vyxal.github.io/Luminespire" rel="nofollow noreferrer">Luminespire</a>.</p>
-</div>
-<div id="pu4" class="pu"><h1><a href="https://esolangs.org/wiki/Floor" rel="nofollow noreferrer">floor</a>, 116 bytes</h1>
-<pre><code>F:x-&gt;floor x
-r:x-&gt;1/(x-F x)
-I:x-&gt;-F(F x-x)
-s:p-&gt;I(F p/r p)*F p+1/(1+r p)
-f:n-&gt;-F((1-n)/((1-n)^2+1))*F s^(n-2)(n+1/2)
-</code></pre>
-<p>returns non-zero for primes and zero for composites</p>
-<h1>Explanation:</h1>
-<p>Ungolfed version:</p>
-<pre><code>lt: x y -&gt; -(floor((x-y)/((x-y)^2+1)))
-
-intPair: x y -&gt; x + 1/y
-left: x -&gt; floor x
-right: x -&gt; 1/(x-floor x)
-
-not_int: x -&gt; -floor(floor x - x)
-
-prime_step: n_k -&gt; intPair (not_int(left n_k / right n_k) * left n_k) (1+right n_k)
-f: n -&gt; (lt 1 n)*(left prime_step^(n-2)(intPair n 2))
-</code></pre>
-<p><code>prime_step</code> takes a pair of integers <code>(n,k)</code> (encoded as a single rational number) as input an returns <code>(0,k+1)</code> if k is a divisor of n, and <code>(n,k+1)</code> otherwise.</p>
-<p><code>f</code> applies <code>prime_step</code> <code>n-2</code> times to the pair <code>(n,2)</code> which will return 0 if <code>n</code> is divisible by any integer between <code>2</code> and <code>n-1</code> and <code>n</code> otherwise.
-The multiplication with <code>lt 1 n</code> is there to ensure that <code>f(1)</code> will return <code>0</code></p>
-<h2>Implementation:</h2>
-<p>To run the program, execute the <a href="https://github.com/bsoelch/floorLang" rel="nofollow noreferrer">Python-script</a> with the arguments</p>
-<p><code>-f &lt;source-file&gt; -- &lt;input-number&gt;</code></p>
 </div>
 <div id="pu5" class="pu"><h1><a href="https://esolangs.org/wiki/ForWhile" rel="nofollow noreferrer">ForWhile</a>, 24 bytes</h1>
 <p><code>9:`[_48=';+')1;[1+;;%)=#</code></p>
