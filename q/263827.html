@@ -32,7 +32,6 @@
 <tr d-ix="3"><td>241</td><td>Regex PCRE</td><td>230807T135046Z</td><td><a href="https://codegolf.stackexchange.com/questions/263827/is-it-a-valid-go-type/263832#263832">mousetai</a></td></tr>
 </table>
 <div id="pu0" class="pu"><h1>JavaScript (ES6), 216 bytes</h1>
-
 <pre class="lang-javascript prettyprint-override"><code>f=s=&gt;s!=(s=s[R='replace'](/chan |\[\d*\]|map\[T\]/g,'*')[R](/ /,'')[R](/bool|u?int|float(32|64)|complex(64|128)|byte|rune|string|\*T|struct{(T(;T)*)?}|func\((T(,T)*)?\)(T|\(T(,T)*\)|(?=[,;})\]])|$)/,'T'))?f(s):s=='T'
 </code></pre>
 <p><a href="https://tio.run/##jVXbctowEH3nK1SmM7Y8TigJoWk9Dk/tB2R4k/UgjDBKjORacihT8e1E8gVsgkmZwZJ29xwf7WrlF/JGZJyzTN1wsaSHwyqU4ZP8EroylOg5dHKapSSmDnZH8ZpwoCMULb0I6w3JIjSP8CjxHc@B6NlEgJHv1NOFEKkuZowrvUoFUe79nZ5OoI7FJkvpX3c60eO7R6gXO0V1XnCqpcoZT3Tkze20iNU/d@4Gc@jB2V6vCh5HrjH4pSGC7lxH9TKC2p2FyA/2MMIY6q/QyJg7EM5WroQ/ZRia1SEWXIqU3qYicR00zwu13mEHBgM0AGBo5Q59OzOKq0mt1Kis1t7R4zW/owXhSn2zQvjkAuNvAAMEMBrf3WPgAfQw/V4aAHr8YX2e3X8VbbKKDLRDZ22gZLQQDM59zf@Ew3Zpt4TLmjXOOsCm1kyDKjawcfuKrXaC7tLGgrKI00kAvJa1hJ5F14N1BW0CD1ViTmndG2NNa6ZWZK2@GmpaW3kXtuaGzS/sw/7ta2A7IT0hbhXjd4Y2a4ODoHycbAi3lJ0FNMv6wJTb63scwyxdtSnQGfAl47lC6NdDndpqFVTDHg4HeHC7EvkvEq9dCcIn0D72th2gOfGDTi9EHP0mqWw1g5FKE5oPfdDzG41AwV@52HKQ5WzDFHujpU5bzX5YP5BtSMI4yXd94F4gV961F1qgB7ZMrQEXQO0yWjXoVUyJ2jApTcltAhVhnC5baCKXq2T98ppepmmJPWIQrq6EK280rc2kOSdvJGVLYKoISJ6THUgpT9S6ZLkZH2@GPhZOE2KzYw@cNAz0OqO5k24nD1NcN@IHXsNYuj6nOjW733R1l62VVEk3LBap4GBB1ZZSc0fRzYLmZb5ku49h2cwXNt0uUSrKMTMSeUvKkeP8Vr0EXuTmM3cC92D3XbDIKD@C/Q9Vt43/WdUbqpz@KVhujtl2zRSVWa3GUnS/LlWvu//X64d3" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
@@ -48,12 +47,30 @@
 <li>primitive types: <code>/bool|u?int|float(32|64)|complex(64|128)|byte|rune|string/</code></li>
 <li>a type preceded with <code>*</code>: <code>/\*T/</code></li>
 <li>a <code>struct</code> type: <code>/struct{(T(;T)*)?}/</code></li>
-<li>a <code>func</code> type: <code>/func\((T(,T)*)?\)(T|\((T(,T)*)?\)|(?=[,;})\]])|$)/</code></li>
+<li>a <code>func</code> type: <code>/func\((T(,T)*)?\)(T|\(T(,T)*\)|(?=[,;})\]])|$)/</code></li>
 </ul>
 </li>
 </ul>
 <p>The <code>func</code> type is the trickiest one because we must not ignore a <em>return</em> statement that is not yet fully simplified. That's why we make sure that <code>func(...)</code> is followed by either a valid <em>return</em> statement or the end of the line or one of <code>,;}]</code>.</p>
 <p>This process is repeated recursively until there's nothing more to replace. If the input string is valid, we should end up with a single <code>&quot;T&quot;</code>.</p>
+<h3>Example</h3>
+<pre><code>map[map[map[int]string]map[bool]chan map[int]int]struct{int;string;bool}
+map[map[map[T]string]map[bool]*map[int]int]struct{int;string;bool}
+map[map[*T]map[bool]*map[int]int]struct{int;string;bool}
+map[map[T]map[bool]*map[int]int]struct{int;string;bool}
+map[*map[T]*map[int]int]struct{int;string;bool}
+map[***map[T]int]struct{int;string;bool}
+map[****T]struct{int;string;bool}
+map[***T]struct{int;string;bool}
+map[**T]struct{int;string;bool}
+map[*T]struct{int;string;bool}
+map[T]struct{int;string;bool}
+*struct{T;string;bool}
+*struct{T;T;bool}
+*struct{T;T;T}
+*T
+T
+</code></pre>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://raku.org/" rel="nofollow noreferrer">Raku</a>, <s>205</s> 193 bytes</h1>
 <pre><code>*~~/^$(/:s \s*[bool|u?int|float[32|64]|complex[64|128]|byte|rune|string|\*&lt;~~&gt;|\[
