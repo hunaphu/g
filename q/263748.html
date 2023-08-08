@@ -35,20 +35,25 @@
 use dashu::integer::UBig;
 use std::time::Instant;
 
-fn solve_num(input: &amp;[u64]) -&gt; Vec&lt;u64&gt; {
+fn solve_num(input: &amp;[u64]) -&gt; (Vec&lt;u64&gt;, u128) {
     let mut num = Vec::with_capacity(input.len() * 2);
     for &amp;x in input {
         num.push(x as u32);
         num.push(0);
     }
     let big = BigUint::from_slice(&amp;num);
+    let instant = Instant::now();
     let big2 = &amp;big * &amp;big;
-    big2.to_u64_digits()
+    let elapsed = instant.elapsed().as_micros();
+    (big2.to_u64_digits(), elapsed)
 }
 
-fn solve_dashu(input: &amp;[u64]) -&gt; Vec&lt;u64&gt; {
+fn solve_dashu(input: &amp;[u64]) -&gt; (Vec&lt;u64&gt;, u128) {
     let big = UBig::from_words(input);
-    big.square().as_words().to_vec()
+    let instant = Instant::now();
+    let square = big.square();
+    let elapsed = instant.elapsed().as_micros();
+    (square.as_words().to_vec(), elapsed)
 }
 
 fn main() {
@@ -57,15 +62,11 @@ fn main() {
         vec![1; 5]
     ).0;
 
-    let instant = Instant::now();
-    let result = solve_num(&amp;input);
-    let elapsed = instant.elapsed().as_micros();
+    let (result, elapsed) = solve_num(&amp;input);
     println!(&quot;elapsed: {}.{:06}&quot;, elapsed / 1000000, elapsed % 1000000);
     eprintln!(&quot;{:?}&quot;, result);
 
-    let instant = Instant::now();
-    let result = solve_dashu(&amp;input);
-    let elapsed = instant.elapsed().as_micros();
+    let (result, elapsed) = solve_dashu(&amp;input);
     println!(&quot;elapsed: {}.{:06}&quot;, elapsed / 1000000, elapsed % 1000000);
     eprintln!(&quot;{:?}&quot;, result);
 }
