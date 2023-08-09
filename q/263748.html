@@ -26,11 +26,73 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>003</td><td>C++ gcc</td><td>230806T221955Z</td><td><a href="https://codegolf.stackexchange.com/questions/263748/compute-convolution-quickly-and-accurately/263798#263798">dingledo</a></td></tr>
-<tr d-ix="1"><td>003</td><td>Rust + numbigint or dashu</td><td>230807T000749Z</td><td><a href="https://codegolf.stackexchange.com/questions/263748/compute-convolution-quickly-and-accurately/263803#263803">Bubbler</a></td></tr>
+<tr d-ix="0"><td>003</td><td>Rust + numbigint or dashu</td><td>230807T000749Z</td><td><a href="https://codegolf.stackexchange.com/questions/263748/compute-convolution-quickly-and-accurately/263803#263803">Bubbler</a></td></tr>
+<tr d-ix="1"><td>003</td><td>C++ gcc</td><td>230806T221955Z</td><td><a href="https://codegolf.stackexchange.com/questions/263748/compute-convolution-quickly-and-accurately/263798#263798">dingledo</a></td></tr>
 <tr d-ix="2"><td>003</td><td>Python 3</td><td>230805T155641Z</td><td><a href="https://codegolf.stackexchange.com/questions/263748/compute-convolution-quickly-and-accurately/263749#263749">l4m2</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C++ (gcc)</a>, ~0.03s</h1>
+<div id="pu0" class="pu"><h1>Rust + <a href="https://github.com/rust-num/num-bigint/tree/master" rel="nofollow noreferrer">num-bigint</a> or <a href="https://github.com/cmpute/dashu/tree/master" rel="nofollow noreferrer">dashu</a>, ~0.3 seconds locally</h1>
+<pre class="lang-rust prettyprint-override"><code>use num_bigint::BigUint;
+use dashu::integer::UBig;
+use std::time::Instant;
+
+fn solve_num(input: &amp;[u64]) -&gt; (Vec&lt;u64&gt;, u128) {
+    let mut num = Vec::with_capacity(input.len() * 2);
+    for &amp;x in input {
+        num.push(x as u32);
+        num.push(0);
+    }
+    let big = BigUint::from_slice(&amp;num);
+    let instant = Instant::now();
+    let big2 = &amp;big * &amp;big;
+    let elapsed = instant.elapsed().as_micros();
+    (big2.to_u64_digits(), elapsed)
+}
+
+fn solve_dashu(input: &amp;[u64]) -&gt; (Vec&lt;u64&gt;, u128) {
+    let big = UBig::from_words(input);
+    let instant = Instant::now();
+    let square = big.square();
+    let elapsed = instant.elapsed().as_micros();
+    (square.as_words().to_vec(), elapsed)
+}
+
+fn main() {
+    let input = (
+        vec![10_000_000u64; 100_000],
+        vec![1; 5]
+    ).0;
+
+    let (result, elapsed) = solve_num(&amp;input);
+    println!(&quot;elapsed: {}.{:06}&quot;, elapsed / 1000000, elapsed % 1000000);
+    eprintln!(&quot;{:?}&quot;, result);
+
+    let (result, elapsed) = solve_dashu(&amp;input);
+    println!(&quot;elapsed: {}.{:06}&quot;, elapsed / 1000000, elapsed % 1000000);
+    eprintln!(&quot;{:?}&quot;, result);
+}
+</code></pre>
+<p>Instructions to run:</p>
+<ul>
+<li>Create a cargo project with <code>cargo new cg263748</code></li>
+<li>Add dependencies in <code>Cargo.toml</code>:
+<pre><code>[dependencies]
+num-bigint = &quot;0.4&quot;
+dashu = &quot;0.3&quot;
+</code></pre>
+</li>
+<li>Replace the content of <code>src/main.rs</code> with the source above</li>
+<li>Run with <code>cargo run --release 2&gt;/dev/null</code></li>
+</ul>
+<p>Both num-bigint and dashu seem to use &quot;naive/Karatsuba/Toom-3 combo&quot; for inputs with different sizes. For the largest sizes, the main algorithm used is Toom-3. For an input vector of size <code>10^5</code>, num-bigint takes ~0.31s and dashu takes ~0.27s.</p>
+<hr />
+<p>I do have an NTT source code for personal use, but I highly doubt it will be competitive given that a term can go up to <code>10^19</code>, which means I have to either use 128-bit multiplication and division in the main algorithm, or convolve twice using two (or maybe three) different modulos and combine them using Chinese Remainder Theorem.</p>
+<p>EDIT: Apparently it is possible to do a single NTT with a prime very close to 2^64, using one of the algorithms described <a href="https://www.sciencedirect.com/science/article/pii/S0747717113001181" rel="nofollow noreferrer">in this paper</a>. e.g. one could choose <code>p = 10485760000033554433</code>, where <code>5</code> is a primitive root. Unfortunately the faster ones won't work because the prime must be under 2^63 for them.</p>
+<p>EDIT 2: I'm working on the NTT implementation on the paper. I realized I need to do elementwise <code>a * b % P</code> anyway, so I came up with a &quot;u128 division&quot;-less algorithm (<a href="https://godbolt.org/z/snafEn73z" rel="nofollow noreferrer">godbolt</a>) for a specific P = <code>71 * 2^57 + 1</code> = <code>10232178353385766913</code>. This is three times as fast as naive <code>(a as u128 * b as u128 % P as u128) as u64</code>:</p>
+<pre><code>slow mulmod             time:   [21.182 ns 21.185 ns 21.188 ns]
+fast mulmod             time:   [7.0764 ns 7.1222 ns 7.1864 ns]
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C++ (gcc)</a>, ~0.03s</h1>
 
 <pre class="lang-cpp prettyprint-override"><code>#include &lt;algorithm&gt;
 #include &lt;cmath&gt;
@@ -123,64 +185,6 @@ int main() {
 <p><a href="https://tio.run/##lVbfb9tGDH7XX0F0WHBnS6lOzloscgK0Qh6KDm6xvM1zDfUsJXJlydCP2F7mf30eeScpluQ0rR8sHu/jRx7JoyTXa@tOysPhlyiRcbkIYOzHd2kWFfera@NJKVd@cd9S5MUiSoqeKm1pimgVXBtGXmSlLMCDRwPwt0jLr3EAWxN2rlJ4jMMlbJnNUYX/8Liv9E/QStpp5FYhdw0ySuIoCdBDug4yv0izITCZJjk5PZMctPwIWVCUWYLEWxiCPKcQlLDjLjzDZL3IZNVM1veZBi8yDYgJaXZK2pmgVRSjVm377EizZKfYTLB0MHvXMNR2sF1ndSI/f4Ar8GWaM0tw92gfqwq3H/66wW1h08@E9yiPHIxrPv9aRnERJXMZ/8MUagC0IbAeE7KA8Rjeoz8PNtPJzITQ1g@BD9cg7ix4ULLxkEYL9BYV8yxNixzPoNtjM7VnSOUxYYLNdYeEaQaMrOMgITeuEsYwqYQx6mp71TmwSRgdDo/5GpjGgMMxzDxKetrKS8tThH4Q4aIwrpyQ32g45A1YhxtRuPjAPCBuhinZJJpwb/QobU046TBRVhQPUxJcX4OYwb9oB2d0NEorV1rX2Fe5C8OCeTAI64P/iJ8oJMpx5Y8D3tnLy3zjr1mIayzUVO/MfjzxznHi2zGYsGqHAsOrOpcObmJkR7ZV4YTK5gqD2TgkCkoo9sJm1Kwct2XUOF0iInLxMSZXunzLvhPtSNqIDqdLDURaG11K0VGKmdmzBZBOB@aQ7aijHM3cE359m4zROw4ePJYvyAwJcTk65Suv8ZbC5wrPJF07OeLoxmOYaMH7vtqHo/tukxv0aHaCJ0batGiTn0hxl04ok1zx5ZWJMDunryFWAxm1WfdGW9o3vY3z6CGNHwJWYl3fXMwLGPh1GY9nhvts59N06jQ/DqNIjxafhDO4sH//DStAC7paTk2HFyu0n@e@wlmnrqKiP2quugcturVsogaja3RbTkUxpOdydq7HdwtELcg0ymqhmmJbXVpbdwi@InBX2qJZCmpptRRq6faSgcYVPXWgLepF01emjkFDNeZU0@GI13yiplBjf1npWgOxyq8WxAtFrF8xvWw3raHSGsdZWiYLnTh8i76mAujx7p4wET2T3UsmzrGJ@I4Xv84s0GeIeidS/w/VrSXwBXef@r1x8G56fFx6RVI2Vj6@sE6OeNFtdGRQjkXwVvPLOJXfkDkv/KygiGhdd1tzxd7xNjpIFl3sUxLuA/ktL/VY/5myNYZfrlSY2nidoWXIXtW7l/BrHJd/J6/MxoB3kOsS6LMSkeejMFfQ6jORA6PQLX1cjrXx/vjkfbydf775c35741VM1ReSTS/Sw@E/Gcb@XX6wPoV@XvwP" rel="nofollow noreferrer" title="C++ (gcc) – Try It Online">Try it online!</a></p>
 <p>Run with <code>-O3</code> or <code>-Ofast</code> enabled for best performance.</p>
 <p>Uses a standard floating-point radix-4 FFT. Each input integer is split into two 12-bit chunks to avoid precision loss. Since the input comprises of only real numbers, we can get away with doing just a single FFT by using <code>a&amp;4095</code> as the real part and <code>a&gt;&gt;12</code> as the imaginary part. Upon converting back we still need two FFTs as the output space is twice as large.</p>
-</div>
-<div id="pu1" class="pu"><h1>Rust + <a href="https://github.com/rust-num/num-bigint/tree/master" rel="nofollow noreferrer">num-bigint</a> or <a href="https://github.com/cmpute/dashu/tree/master" rel="nofollow noreferrer">dashu</a>, ~0.3 seconds locally</h1>
-<pre class="lang-rust prettyprint-override"><code>use num_bigint::BigUint;
-use dashu::integer::UBig;
-use std::time::Instant;
-
-fn solve_num(input: &amp;[u64]) -&gt; (Vec&lt;u64&gt;, u128) {
-    let mut num = Vec::with_capacity(input.len() * 2);
-    for &amp;x in input {
-        num.push(x as u32);
-        num.push(0);
-    }
-    let big = BigUint::from_slice(&amp;num);
-    let instant = Instant::now();
-    let big2 = &amp;big * &amp;big;
-    let elapsed = instant.elapsed().as_micros();
-    (big2.to_u64_digits(), elapsed)
-}
-
-fn solve_dashu(input: &amp;[u64]) -&gt; (Vec&lt;u64&gt;, u128) {
-    let big = UBig::from_words(input);
-    let instant = Instant::now();
-    let square = big.square();
-    let elapsed = instant.elapsed().as_micros();
-    (square.as_words().to_vec(), elapsed)
-}
-
-fn main() {
-    let input = (
-        vec![10_000_000u64; 100_000],
-        vec![1; 5]
-    ).0;
-
-    let (result, elapsed) = solve_num(&amp;input);
-    println!(&quot;elapsed: {}.{:06}&quot;, elapsed / 1000000, elapsed % 1000000);
-    eprintln!(&quot;{:?}&quot;, result);
-
-    let (result, elapsed) = solve_dashu(&amp;input);
-    println!(&quot;elapsed: {}.{:06}&quot;, elapsed / 1000000, elapsed % 1000000);
-    eprintln!(&quot;{:?}&quot;, result);
-}
-</code></pre>
-<p>Instructions to run:</p>
-<ul>
-<li>Create a cargo project with <code>cargo new cg263748</code></li>
-<li>Add dependencies in <code>Cargo.toml</code>:
-<pre><code>[dependencies]
-num-bigint = &quot;0.4&quot;
-dashu = &quot;0.3&quot;
-</code></pre>
-</li>
-<li>Replace the content of <code>src/main.rs</code> with the source above</li>
-<li>Run with <code>cargo run --release 2&gt;/dev/null</code></li>
-</ul>
-<p>Both num-bigint and dashu seem to use &quot;naive/Karatsuba/Toom-3 combo&quot; for inputs with different sizes. For the largest sizes, the main algorithm used is Toom-3. For an input vector of size <code>10^5</code>, num-bigint takes ~0.31s and dashu takes ~0.27s.</p>
-<hr />
-<p>I do have an NTT source code for personal use, but I highly doubt it will be competitive given that a term can go up to <code>10^19</code>, which means I have to either use 128-bit multiplication and division in the main algorithm, or convolve twice using two (or maybe three) different modulos and combine them using Chinese Remainder Theorem.</p>
-<p>EDIT: Apparently it is possible to do a single NTT with a prime very close to 2^64, using one of the algorithms described <a href="https://www.sciencedirect.com/science/article/pii/S0747717113001181" rel="nofollow noreferrer">in this paper</a>. e.g. one could choose <code>p = 10485760000033554433</code>, where <code>5</code> is a primitive root. Unfortunately the faster ones won't work because the prime must be under 2^63 for them.</p>
 </div>
 <div id="pu2" class="pu"><h1><a href="https://docs.python.org/3/" rel="noreferrer">Python 3</a>, 3 seconds</h1>
 
