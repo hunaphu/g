@@ -26,8 +26,8 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>014</td><td>05AB1E</td><td>230808T072729Z</td><td><a href="https://codegolf.stackexchange.com/questions/263716/compute-the-convolution-of-two-strings/263866#263866">Kevin Cr</a></td></tr>
-<tr d-ix="1"><td>241</td><td>TSQL</td><td>230808T071744Z</td><td><a href="https://codegolf.stackexchange.com/questions/263716/compute-the-convolution-of-two-strings/263865#263865">DanielOn</a></td></tr>
+<tr d-ix="0"><td>323</td><td>TSQL</td><td>230808T071744Z</td><td><a href="https://codegolf.stackexchange.com/questions/263716/compute-the-convolution-of-two-strings/263865#263865">DanielOn</a></td></tr>
+<tr d-ix="1"><td>014</td><td>05AB1E</td><td>230808T072729Z</td><td><a href="https://codegolf.stackexchange.com/questions/263716/compute-the-convolution-of-two-strings/263866#263866">Kevin Cr</a></td></tr>
 <tr d-ix="2"><td>121</td><td>C</td><td>230806T192616Z</td><td><a href="https://codegolf.stackexchange.com/questions/263716/compute-the-convolution-of-two-strings/263795#263795">Ruud Hel</a></td></tr>
 <tr d-ix="3"><td>066</td><td>Haskell</td><td>230805T110022Z</td><td><a href="https://codegolf.stackexchange.com/questions/263716/compute-the-convolution-of-two-strings/263728#263728">matteo_c</a></td></tr>
 <tr d-ix="4"><td>078</td><td>Python</td><td>230806T162515Z</td><td><a href="https://codegolf.stackexchange.com/questions/263716/compute-the-convolution-of-two-strings/263794#263794">loopy wa</a></td></tr>
@@ -44,7 +44,34 @@
 <tr d-ix="15"><td>nan</td><td>J</td><td>230805T081415Z</td><td><a href="https://codegolf.stackexchange.com/questions/263716/compute-the-convolution-of-two-strings/263719#263719">Jonah</a></td></tr>
 <tr d-ix="16"><td>062</td><td>JavaScript Node.js</td><td>230805T070113Z</td><td><a href="https://codegolf.stackexchange.com/questions/263716/compute-the-convolution-of-two-strings/263718#263718">l4m2</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, 14 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
+<div id="pu0" class="pu"><h1><a href="https://learn.microsoft.com/en-us/sql/t-sql/language-reference?view=sql-server-ver16" rel="nofollow noreferrer"><strong>T-SQL</strong></a>, 323 bytes</h1>
+<p><code>DECLARE @n BIGINT=1;SELECT STRING_AGG(COALESCE(SUBSTRING(a,Y.value,1)+SUBSTRING(b,Z.value,1),''),'') WITHIN GROUP(ORDER BY Y.value+Z.value,Y.value)FROM(VALUES(@a,@b)) X(a,b)JOIN GENERATE_SERIES(@n,LEN(@a+'x')-1) Y ON LEN(@a+'x')&gt;1JOIN GENERATE_SERIES(@n,LEN(@b+'x')-1) Z ON LEN(@b+'x')&gt;1RIGHT JOIN (SELECT '' AS c) W ON 1=1 </code></p>
+<p>Explanation:</p>
+<pre><code>DECLARE @a VARCHAR(MAX) = 'split'; --Input string @a
+DECLARE @b VARCHAR(MAX) = ' '; --Input string @b
+DECLARE @n BIGINT=1; --GENERATE_SERIES requires all arguments have the same integer data type. LEN of a VARCHAR(MAX) returns BIGINT, need the value 1 (INT by default) to also be BIGINT.
+
+--This query shows the result set that STRING_AGG would act upon, in the correct order. (The final column would be aggregated) 
+SELECT 
+    Y.value --The 1-indexed index of string @a. NULL if either string is empty
+    , Z.value --The 1-indexed index of string @b. NULL if either string is empty
+    , Y.value+Z.value --The sum of indicies
+    , SUBSTRING(a,Y.value,1) --Single character of @a at the Y.value index. NULL if either string is empty
+    , SUBSTRING(a,Y.value,1) --Single character of @b at the Z.value index. NULL if either string is empty
+    , COALESCE(SUBSTRING(a,Y.value,1)+SUBSTRING(b,Z.value,1),'') --The concatenation of a character from @a and @b, empty string if either is NULL.
+FROM(VALUES(@a,@b)) X(a,b) --A single row table with each input string as its own column
+JOIN GENERATE_SERIES(@n,LEN(@a+'x')-1) Y --GENERATE_SERIES generates values from start to stop (With default step of 1). LEN function ignores TRAILING whitespace, so we concat a charcater and substract 1 from length.
+    ON LEN(@a+'x')&gt;1 --INNER JOIN ensures an empty result set if the length of the string is 0, otherwise a cartesian product.
+JOIN GENERATE_SERIES(@n,LEN(@b+'x')-1) Z --GENERATE_SERIES generates values from start to stop (With default step of 1). LEN function ignores TRAILING whitespace, so we concat a charcater and substract 1 from length.
+    ON LEN(@b+'x')&gt;1 --INNER JOIN ensures an empty result set if the length of the string is 0, otherwise a cartesian product.
+RIGHT JOIN (SELECT 1 AS c) W ON 1=1 --RIGHT JOIN ensures we always have at least one row. As STRING_AGG on an empty result set will result in NULL not an empty string.
+ORDER BY Y.value+Z.value,Y.value -- The order with which the final concatentation should take place: sum of indicies, then index of first string.
+</code></pre>
+<p>Returns:</p>
+<p><a href="https://i.stack.imgur.com/wcx0e.png" rel="nofollow noreferrer"><img src="https://i.stack.imgur.com/wcx0e.png" alt="enter image description here" /></a></p>
+<p>This will only work on SQL Sever 2022 or later (probably on Azure Database etc...) due to the compatibility of the new function, GENERATE_SERIES.</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, 14 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
 <pre><code>€.ā`âΣ€θO}€€н˜
 </code></pre>
 <p>Input as a pair of strings; output as a list of characters.</p>
@@ -64,24 +91,6 @@
          ˜  # Flatten the list of pairs of characters
             # (after which it is output implicitly as result)
 </code></pre>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://learn.microsoft.com/en-us/sql/t-sql/language-reference?view=sql-server-ver16" rel="nofollow noreferrer"><strong>T-SQL</strong></a>, 241 bytes</h1>
-<p><code>SELECT STRING_AGG(SUBSTRING(a,Y.value,1)+SUBSTRING(b,Z.value,1),'') WITHIN GROUP(ORDER BY Y.value+Z.value,Y.value)FROM(VALUES(@a,@b)) X(a,b)CROSS JOIN GENERATE_SERIES(1,LEN(@a)) Y CROSS JOIN GENERATE_SERIES(1,LEN(@b)) Z </code></p>
-<p>Explanation:</p>
-<pre><code>--Input strings
-DECLARE @a VARCHAR(4000) = 'Hello';
-DECLARE @b VARCHAR(4000) = 'World';
-
-SELECT STRING_AGG(SUBSTRING(a,Y.value,1)+SUBSTRING(b,Z.value,1),'') --4. Extracts a single character by index(from GENERATE_SERIES). Concats the two characters using +. All wrapped in a STRING_AGG windowed function, to perform concatenation vertically (down the column).
-    WITHIN GROUP(ORDER BY Y.value+Z.value,Y.value) --4. Specifies the order of the STRING_AGG windowed function (as concatenation is not symmetric)
-FROM(VALUES(@a,@b)) X(a,b) --1. A single row table with each input string as its own column
-CROSS JOIN GENERATE_SERIES(1,LEN(@a)) Y --2. A single column table, with values 1 up to the length of string @a, cartesian joined to the previous result set
-CROSS JOIN GENERATE_SERIES(1,LEN(@b)) Z --3. A single column table, with values 1 up to the length of string @b, cartesian joined to the previous result set
-</code></pre>
-<p>Returns:</p>
-<p>HWHoeWHreolWHlerlolWHdellrlooWedlllrooldllorldolod</p>
-<p>The limitation on 4000 byte input words is not necessary. But making it VARCHAR(MAX) would result in the LEN function to return a BIGINT datatype, instead of INT. GENERATE_SERIES requires all arguments be the exact same datatype, so more bytes would be required to CAST the 1's to BIGINTs.</p>
-<p>This will only work on SQL Sever 2022 or later (probably on Azure Database etc...) due to the compatibility of the new function, GENERATE_SERIES.</p>
 </div>
 <div id="pu2" class="pu"><h1>C, <s>123</s> 121 bytes</h1>
 <p>Very naive approach: 3 nested loops.</p>
