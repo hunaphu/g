@@ -26,11 +26,33 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>003</td><td>Rust + numbigint or dashu</td><td>230807T000749Z</td><td><a href="https://codegolf.stackexchange.com/questions/263748/compute-convolution-quickly-and-accurately/263803#263803">Bubbler</a></td></tr>
-<tr d-ix="1"><td>003</td><td>C++ gcc</td><td>230806T221955Z</td><td><a href="https://codegolf.stackexchange.com/questions/263748/compute-convolution-quickly-and-accurately/263798#263798">dingledo</a></td></tr>
-<tr d-ix="2"><td>003</td><td>Python 3</td><td>230805T155641Z</td><td><a href="https://codegolf.stackexchange.com/questions/263748/compute-convolution-quickly-and-accurately/263749#263749">l4m2</a></td></tr>
+<tr d-ix="0"><td>2364</td><td>Julia 1.9.2</td><td>230809T135724Z</td><td><a href="https://codegolf.stackexchange.com/questions/263748/compute-convolution-quickly-and-accurately/263934#263934">Ashlin H</a></td></tr>
+<tr d-ix="1"><td>003</td><td>Rust + numbigint or dashu</td><td>230807T000749Z</td><td><a href="https://codegolf.stackexchange.com/questions/263748/compute-convolution-quickly-and-accurately/263803#263803">Bubbler</a></td></tr>
+<tr d-ix="2"><td>003</td><td>C++ gcc</td><td>230806T221955Z</td><td><a href="https://codegolf.stackexchange.com/questions/263748/compute-convolution-quickly-and-accurately/263798#263798">dingledo</a></td></tr>
+<tr d-ix="3"><td>003</td><td>Python 3</td><td>230805T155641Z</td><td><a href="https://codegolf.stackexchange.com/questions/263748/compute-convolution-quickly-and-accurately/263749#263749">l4m2</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Rust + <a href="https://github.com/rust-num/num-bigint/tree/master" rel="nofollow noreferrer">num-bigint</a> or <a href="https://github.com/cmpute/dashu/tree/master" rel="nofollow noreferrer">dashu</a>, ~0.3 seconds locally</h1>
+<div id="pu0" class="pu"><h1>Julia 1.9.2, 2.364 ms locally</h1>
+<pre><code>using DSP
+using BenchmarkTools
+
+A = rand(1:10^7, 10^5)
+
+@btime conv(A,A)
+</code></pre>
+<p>Local system information:</p>
+<pre><code>julia&gt; versioninfo()
+Julia Version 1.9.2
+Commit e4ee485e909 (2023-07-05 09:39 UTC)
+Platform Info:
+  OS: macOS (arm64-apple-darwin22.4.0)
+  CPU: 12 × Apple M2 Max
+  WORD_SIZE: 64
+  LIBM: libopenlibm
+  LLVM: libLLVM-14.0.6 (ORCJIT, apple-m1)
+  Threads: 1 on 8 virtual cores
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>Rust + <a href="https://github.com/rust-num/num-bigint/tree/master" rel="nofollow noreferrer">num-bigint</a> or <a href="https://github.com/cmpute/dashu/tree/master" rel="nofollow noreferrer">dashu</a>, ~0.3 seconds locally</h1>
 <pre class="lang-rust prettyprint-override"><code>use num_bigint::BigUint;
 use dashu::integer::UBig;
 use std::time::Instant;
@@ -92,7 +114,7 @@ dashu = &quot;0.3&quot;
 fast mulmod             time:   [7.0764 ns 7.1222 ns 7.1864 ns]
 </code></pre>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C++ (gcc)</a>, ~0.03s</h1>
+<div id="pu2" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C++ (gcc)</a>, ~0.03s</h1>
 
 <pre class="lang-cpp prettyprint-override"><code>#include &lt;algorithm&gt;
 #include &lt;cmath&gt;
@@ -186,7 +208,7 @@ int main() {
 <p>Run with <code>-O3</code> or <code>-Ofast</code> enabled for best performance.</p>
 <p>Uses a standard floating-point radix-4 FFT. Each input integer is split into two 12-bit chunks to avoid precision loss. Since the input comprises of only real numbers, we can get away with doing just a single FFT by using <code>a&amp;4095</code> as the real part and <code>a&gt;&gt;12</code> as the imaginary part. Upon converting back we still need two FFTs as the output space is twice as large.</p>
 </div>
-<div id="pu2" class="pu"><h1><a href="https://docs.python.org/3/" rel="noreferrer">Python 3</a>, 3 seconds</h1>
+<div id="pu3" class="pu"><h1><a href="https://docs.python.org/3/" rel="noreferrer">Python 3</a>, 3 seconds</h1>
 
 <pre class="lang-python prettyprint-override"><code>R = &quot;&quot;.join(&quot;%028o&quot;%x for x in A)
 B = int(R,8)**2 | (1 &lt;&lt; 599997*28)
