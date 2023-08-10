@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::1933</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>436</td><td>OCaml + Batteries</td><td>110411T191558Z</td><td><a href="https://codegolf.stackexchange.com/questions/1933/solve-2-sat-boolean-satisfiability/2012#2012">Mat&#237</a></td></tr>
+<tr d-ix="1"><td>278</td><td>Haskell</td><td>110407T134824Z</td><td><a href="https://codegolf.stackexchange.com/questions/1933/solve-2-sat-boolean-satisfiability/1988#1988">MtnViewM</a></td></tr>
+<tr d-ix="2"><td>103</td><td>J</td><td>110404T070527Z</td><td><a href="https://codegolf.stackexchange.com/questions/1933/solve-2-sat-boolean-satisfiability/1947#1947">Jesse Mi</a></td></tr>
+<tr d-ix="3"><td>089</td><td>K</td><td>110404T202856Z</td><td><a href="https://codegolf.stackexchange.com/questions/1933/solve-2-sat-boolean-satisfiability/1959#1959">isawdron</a></td></tr>
+<tr d-ix="4"><td>253</td><td>Ruby</td><td>110404T113841Z</td><td><a href="https://codegolf.stackexchange.com/questions/1933/solve-2-sat-boolean-satisfiability/1950#1950">Matma Re</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>OCaml + Batteries, <strike>438</strike> 436 characters</h1>
+
+<p>Requires an OCaml Batteries Included top-level:</p>
+
+<pre><code>module L=List
+let(%)=L.mem
+let rec r v d c n=match d,c with[],[]-&gt;[String.join" "[?L:if x%v
+then"1"else"0"|x&lt;-1--n?]]|[],(x,_)::_-&gt;r(x::v)c[]n@r(-x::v)c[]n@["UNSOLVABLE"]|(x,y)::c,d-&gt;let(!)w=if-w%v
+then[]else r(w::v)(c@d)[]n in if x%v||y%v then r v c d n else if-x%v then!y else if-y%v then!x else r v c((x,y)::d)n
+let(v,_)::l=L.of_enum(IO.lines_of stdin|&gt;map(fun s-&gt;Scanf.sscanf s"%d %d"(fun x y-&gt;x,y)))in print_endline(L.hd(r[][]l v))
+</code></pre>
+
+<p>I must confess, this is a direct translation of the Haskell solution. In my defense, that in turn is a direct coding of the algorithm <a href="http://suraj.lums.edu.pk/~cs514s05/data/2SAT.pdf" rel="nofollow">presented here</a> [PDF], with the mutual <code>satisfy</code>-<code>eliminate</code> recursion rolled into a single function. An unobfuscated version of the code, minus the use of Batteries, is:</p>
+
+<pre><code>let rec satisfy v c d = match c, d with
+| (x, y) :: c, d -&gt;
+    let imply w = if List.mem (-w) v then raise Exit else satisfy (w :: v) (c @ d) [] in
+    if List.mem x v || List.mem y v then satisfy v c d else
+    if List.mem (-x) v then imply y else
+    if List.mem (-y) v then imply x else
+    satisfy v c ((x, y) :: d)
+| [], [] -&gt; v
+| [], (x, _) :: _ -&gt; try satisfy (x :: v) d [] with Exit -&gt; satisfy (-x :: v) d []
+
+let rec iota i =
+    if i = 0 then [] else
+    iota (i - 1) @ [i]
+
+let () = Scanf.scanf "%d %d\n" (fun k n -&gt;
+    let l = ref [] in
+    for i = 1 to n do
+        Scanf.scanf "%d %d\n" (fun x y -&gt; l := (x, y) :: !l)
+    done;
+    print_endline (try let v = satisfy [] [] !l in
+    String.concat " " (List.map (fun x -&gt; if List.mem x v then "1" else "0") (iota k))
+    with Exit -&gt; "UNSOLVABLE") )
+</code></pre>
+
+<p>(the <code>iota k</code> pun I hope you'll forgive).</p>
+</div>
+<div id="pu1" class="pu"><h2>Haskell, 278 characters</h2>
+
+<pre><code>(∈)=elem
+r v[][]=[(&gt;&gt;=(++" ").show.fromEnum.(∈v))]
+r v[]c@(a:b:_)=r(a:v)c[]++r(-a:v)c[]++[const"UNSOLVABLE"]
+r v(a:b:c)d|a∈v||b∈v=r v c d|(-a)∈v=i b|(-b)∈v=i a|1&lt;3=r v c(a:b:d)where i w|(-w)∈v=[]|1&lt;3=r(w:v)(c++d)[]
+t(n:_:c)=(r[][]c!!0)[1..n]++"\n"
+main=interact$t.map read.words
+</code></pre>
+
+<p>Not brute force. Runs in polynomial time. Solves the hard problem (60 variables, 99 clauses) quickly:</p>
+
+<pre><code>&gt; time (runhaskell 1933-2Sat.hs &lt; 1933-hard2sat.txt)
+1 1 1 0 0 0 0 0 0 1 1 0 0 1 0 1 1 1 0 1 1 0 0 1 0 0 1 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 1 0 0 1 0 1 0 0 0 0 1 0 1 1 1 1 0 
+
+real 0m0.593s
+user 0m0.502s
+sys  0m0.074s
+</code></pre>
+
+<p><em>And actually, most of that time is spent compiling the code!</em> </p>
+
+<p>Full source file, with test cases and quick-check tests <a href="https://bitbucket.org/mtnviewmark/haskell-playground/src/c4dd324f35f7/golf/1933-2Sat.hs" rel="nofollow">available</a>.</p>
+
+<p><strong>Ungolf'd:</strong></p>
+
+<pre><code>-- | A variable or its negation
+-- Note that applying unary negation (-) to a term inverts it.
+type Term = Int
+
+-- | A set of terms taken to be true.
+-- Should only contain  a variable or its negation, never both.
+type TruthAssignment = [Term]
+
+-- | Special value indicating that no consistent truth assignment is possible.
+unsolvable :: TruthAssignment
+unsolvable = [0]
+
+-- | Clauses are a list of terms, taken in pairs.
+-- Each pair is a disjunction (or), the list as a whole the conjuction (and)
+-- of the pairs.
+type Clauses = [Term]
+
+-- | Test to see if a term is in an assignment
+(∈) :: Term -&gt; TruthAssignment -&gt; Bool
+a∈v = a `elem` v;
+
+-- | Satisfy a set of clauses, from a starting assignment.
+-- Returns a non-exhaustive list of possible assignments, followed by
+-- unsolvable. If unsolvable is first, there is no possible assignment.
+satisfy :: TruthAssignment -&gt; Clauses -&gt; [TruthAssignment]
+satisfy v c@(a:b:_) = reduce (a:v) c ++ reduce (-a:v) c ++ [unsolvable]
+  -- pick a term from the first clause, either it or its negation must be true;
+  -- if neither produces a viable result, then the clauses are unsolvable
+satisfy v [] = [v]
+  -- if there are no clauses, then the starting assignment is a solution!
+
+-- | Reduce a set of clauses, given a starting assignment, then solve that
+reduce :: TruthAssignment -&gt; Clauses -&gt; [TruthAssignment]
+reduce v c = reduce' v c []
+  where
+    reduce' v (a:b:c) d
+        | a∈v || b∈v = reduce' v c d
+            -- if the clause is already satisfied, then just drop it
+        | (-a)∈v = imply b
+        | (-b)∈v = imply a
+            -- if either term is not true, the other term must be true
+        | otherwise = reduce' v c (a:b:d)
+            -- this clause is still undetermined, save it for later
+        where 
+          imply w
+            | (-w)∈v = []  -- if w is also false, there is no possible solution
+            | otherwise = reduce (w:v) (c++d)
+                -- otherwise, set w true, and reduce again
+    reduce' v [] d = satisfy v d
+        -- once all caluses have been reduced, satisfy the remaining
+
+-- | Format a solution. Terms not assigned are choosen to be false
+format :: Int -&gt; TruthAssignment -&gt; String
+format n v
+    | v == unsolvable = "UNSOLVABLE"
+    | otherwise = unwords . map (bit.(∈v)) $ [1..n]
+  where
+    bit False = "0"
+    bit True = "1"
+
+main = interact $ run . map read . words 
+  where
+    run (n:_:c) = (format n $ head $ satisfy [] c) ++ "\n"
+        -- first number of input is number of variables
+        -- second number of input is number of claues, ignored
+        -- remaining numbers are the clauses, taken two at a time
+</code></pre>
+
+<p>In the golf'd version, <code>satisfy</code> and <code>format</code> have been rolled into <code>reduce</code>, though in order to avoid passing <code>n</code>, <code>reduce</code> returns a function from a list of variables (<code>[1..n]</code>) to the string result.</p>
+
+<hr>
+
+<ul>
+<li>Edit: (330 -> 323) made <code>s</code> an operator, better handling of the newline</li>
+<li>Edit: (323 -> 313) first element from a lazy list of results is smaller than a custom short-circuit operator; renamed main solver function 'cause I like using <code>∮</code> as an operator!</li>
+<li>Edit: (313 -> 296) keep clauses as a single list, not a list of lists; process it two elements at a time</li>
+<li>Edit: (296 -> 291) merged the two mutually recursive functions; it was cheaper to inline <code>★</code> so test now renamed <code>∈</code></li>
+<li>Edit: (291 -> 278) inlined output formatting into results generation</li>
+</ul>
+</div>
+<div id="pu2" class="pu"><h1>J, <strike>119</strike> 103</h1>
+
+<pre><code>echo'UNSOLVABLE'"_`(#&amp;c)@.(*@+/)(3 :'*./+./"1(*&gt;:*}.i)=y{~"1 0&lt;:|}.i')"1 c=:#:i.2^{.,i=:0&amp;".;._2(1!:1)3
+</code></pre>
+
+<ul>
+<li><strike>Passes all test cases. No noticeable runtime.</strike></li>
+<li>Brute force. Passes test cases below, oh, N=20 or 30. Not sure.</li>
+<li>Tested via <a href="https://gist.github.com/901212" rel="nofollow">completely brain-dead test script</a> (By visual inspection)</li>
+</ul>
+
+<p><strong>Edit:</strong> Eliminated <code>(n#2)</code> and thus <code>n=:</code>, as well as eliminating some rank parens (thanks, isawdrones). Tacit->explicit and dyadic->monadic, eliminating a few more characters each. <code>}.}.</code> to <code>}.,</code>.</p>
+
+<p><strong>Edit:</strong> Whoops. Not only is this a non-solution for large N, but <code>i. 2^99x</code> -> "domain error" to add insult to stupidity.</p>
+
+<p>Here's the ungolfed original version and brief explanation.</p>
+
+<pre><code>input=:0&amp;".;._2(1!:1)3
+n =:{.{.input
+clauses=:}.input
+cases=:(n#2)#:i.2^n
+results =: clauses ([:*./[:+./"1*@&gt;:@*@[=&lt;:@|@[{"(0,1)])"(_,1) cases
+echo ('UNSOLVABLE'"_)`(#&amp;cases) @.(*@+/) results
+</code></pre>
+
+<ul>
+<li><code>input=:0&amp;".;._2(1!:1)3</code> cuts input on newlines and parses numbers on each line (accumulating the results into input).</li>
+<li>n is assigned to <code>n</code>, clause matrix assigned to <code>clauses</code> (don't need the clause count)</li>
+<li><code>cases</code> is 0..2<sup>n</sup>-1  converted to binary digits (all test cases)</li>
+<li><code>(Long tacit function)"(_,1)</code> is applied to each case in <code>cases</code> with all of <code>clauses</code>.</li>
+<li><code>&lt;:@|@[{"(0,1)]</code> gets a matrix of the operands of the clauses (by taking abs(op number) - 1 and dereferencing from case, which is an array)</li>
+<li><code>*@&gt;:@*@[</code> gets clause-shaped array of 'not not' bits (0 for not) via abuse of signum.</li>
+<li><code>=</code> applies the not bits to the operands.</li>
+<li><code>[:*./[:+./"1</code> applies <code>+.</code> (and) across the rows of the resulting matrix, and <code>*.</code> (or) across the result of that.</li>
+<li>All of those results end up as a binary array of 'answers' for each case.</li>
+<li><code>*@+/</code> applied to results gives a 0 if there are results and 1 if there are none.</li>
+<li><code>('UNSOLVABLE'"_)</code> <code>`(#&amp;cases) @.(*@+/) results</code> runs constant function giving 'UNSOLVABLE' if 0, and a copy of each 'solution' element of cases if 1.</li>
+<li><code>echo</code> magic-prints the result.</li>
+</ul>
+</div>
+<div id="pu3" class="pu"><h2><a href="https://github.com/kevinlawler/kona/" rel="nofollow">K</a> - 89</h2>
+
+<p>The same method as the J solution.</p>
+
+<pre><code>n:**c:.:'0:`;`0::[#b:t@&amp;&amp;/+|/''(0&lt;'c)=/:(t:+2_vs!_2^n)@\:-1+_abs c:1_ c;5:b;"UNSOLVABLE"]
+</code></pre>
+</div>
+<div id="pu4" class="pu"><h2>Ruby, 253</h2>
+
+<pre><code>n,v=gets.split;d=[];v.to_i.times{d&lt;&lt;(gets.split.map &amp;:to_i)};n=n.to_i;r=[1,!1]*n;r.permutation(n){|x|y=x[0,n];x=[0]+y;puts y.map{|z|z||0}.join ' 'or exit if d.inject(1){|t,w|t and(w[0]&lt;0?!x[-w[0]]:x[w[0]])||(w[1]&lt;0?!x[-w[1]]:x[w[1]])}};puts 'UNSOLVABLE'
+</code></pre>
+
+<p>But it's slow :(</p>
+
+<p>Pretty readable once expanded:</p>
+
+<pre><code>n,v=gets.split
+d=[]
+v.to_i.times{d&lt;&lt;(gets.split.map &amp;:to_i)} # read data
+n=n.to_i
+r=[1,!1]*n # create an array of n trues and n falses
+r.permutation(n){|x| # for each permutation of length n
+    y=x[0,n]
+    x=[0]+y
+    puts y.map{|z| z||0}.join ' ' or exit if d.inject(1){|t,w| # evaluate the data (magic!)
+        t and (w[0]&lt;0 ? !x[-w[0]] : x[w[0]]) || (w[1]&lt;0 ? !x[-w[1]] : x[w[1]])
+    }
+}
+puts 'UNSOLVABLE'
+</code></pre>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/1933/">1933</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
