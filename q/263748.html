@@ -26,12 +26,130 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>2401</td><td>Julia</td><td>230809T135724Z</td><td><a href="https://codegolf.stackexchange.com/questions/263748/compute-convolution-quickly-and-accurately/263934#263934">Ashlin H</a></td></tr>
-<tr d-ix="1"><td>003</td><td>Rust + numbigint or dashu</td><td>230807T000749Z</td><td><a href="https://codegolf.stackexchange.com/questions/263748/compute-convolution-quickly-and-accurately/263803#263803">Bubbler</a></td></tr>
-<tr d-ix="2"><td>003</td><td>C++ gcc</td><td>230806T221955Z</td><td><a href="https://codegolf.stackexchange.com/questions/263748/compute-convolution-quickly-and-accurately/263798#263798">dingledo</a></td></tr>
+<tr d-ix="0"><td>002</td><td>C++ gcc</td><td>230806T221955Z</td><td><a href="https://codegolf.stackexchange.com/questions/263748/compute-convolution-quickly-and-accurately/263798#263798">dingledo</a></td></tr>
+<tr d-ix="1"><td>2401</td><td>Julia</td><td>230809T135724Z</td><td><a href="https://codegolf.stackexchange.com/questions/263748/compute-convolution-quickly-and-accurately/263934#263934">Ashlin H</a></td></tr>
+<tr d-ix="2"><td>003</td><td>Rust + numbigint or dashu</td><td>230807T000749Z</td><td><a href="https://codegolf.stackexchange.com/questions/263748/compute-convolution-quickly-and-accurately/263803#263803">Bubbler</a></td></tr>
 <tr d-ix="3"><td>003</td><td>Python 3</td><td>230805T155641Z</td><td><a href="https://codegolf.stackexchange.com/questions/263748/compute-convolution-quickly-and-accurately/263749#263749">l4m2</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Julia, 2.4 ± 0.1 ms</h1>
+<div id="pu0" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C++ (gcc)</a>, ~0.02s</h1>
+
+<pre class="lang-cpp prettyprint-override"><code>#include &lt;algorithm&gt;
+#include &lt;cmath&gt;
+#include &lt;cstdint&gt;
+#include &lt;cstdio&gt;
+#include &lt;ctime&gt;
+
+struct C {
+    double x, y;
+    C() : x(0), y(0) {}
+    C(double x, double y) : x(x), y(y) {}
+    inline C operator+ (const C &amp;c) const { return C(x + c.x, y + c.y); }
+    inline C operator- (const C &amp;c) const { return C(x - c.x, y - c.y); }
+    inline C operator* (const C &amp;c) const { return C(x * c.x - y * c.y, x * c.y + y * c.x); }
+    inline C conj() const { return C(x, -y); }
+};
+
+constexpr double PI = acos(-1);
+constexpr int SIZE = 100000, B = 32 - __builtin_clz(SIZE * 2 - 1), N = 1 &lt;&lt; B;
+
+C w[N], f0[N], f1[N];
+int rev[N];
+
+void init_roots() {
+    w[0] = C(1, 0);
+    for (int len = 1; len &lt; N; len &lt;&lt;= 1) {
+        C wn(cos(PI / (len &lt;&lt; 2)), sin(PI / (len &lt;&lt; 2)));
+        for (int i = len; i &lt; len &lt;&lt; 1; i++)
+            w[i] = w[i - len] * wn;
+    }
+}
+
+void fft(C *f) {
+    for (int len = N &gt;&gt; 2; len; len &gt;&gt;= 2) {
+        for (int i = 0, m = 0; i &lt; N; i += len &lt;&lt; 2, m++) {
+            C w1 = w[m], w2 = w1 * w1, w3 = w1 * w2;
+            for (int j = i; j &lt; i + len; j++) {
+                C c0 = f[j + len * 0], c1 = f[j + len * 1] * w1,
+                  c2 = f[j + len * 2] * w2, c3 = f[j + len * 3] * w3;
+                C a02 = c0 + c2, a13 = c1 + c3,
+                  s02 = c0 - c2, s13 = (c1 - c3) * C(0, 1);
+                f[j + len * 0] = a02 + a13, f[j + len * 1] = a02 - a13;
+                f[j + len * 2] = s02 + s13, f[j + len * 3] = s02 - s13;
+            }
+        }
+    }
+}
+
+void ifft(C *f) {
+    for (int len = 1; len &lt; N; len &lt;&lt;= 2) {
+        for (int i = 0, m = 0; i &lt; N; i += len &lt;&lt; 2, m++) {
+            C w1 = w[m], w2 = w1 * w1, w3 = w1 * w2;
+            for (int j = i; j &lt; i + len; j++) {
+                C c0 = f[j + len * 0], c1 = f[j + len * 1],
+                  c2 = f[j + len * 2], c3 = f[j + len * 3];
+                C a02 = c0 + c1, a13 = c2 + c3,
+                  s02 = c0 - c1, s13 = (c2 - c3) * C(0, 1);
+                f[j + len * 0] = a02 + a13, f[j + len * 2] = (a02 - a13) * w2;
+                f[j + len * 1] = (s02 + s13) * w1, f[j + len * 3] = (s02 - s13) * w3;
+            }
+        }
+    }
+}
+
+void convolve(uint64_t *a) {
+    init_roots();
+    for (int i = 0; i &lt; SIZE; i++)
+        f0[i] = C(a[i] &amp; 4095, a[i] &gt;&gt; 12);
+    fft(f0);
+
+    f1[0] = C(4 * f0[0].y * f0[0].y, 0);
+    f1[1] = C(4 * f0[1].y * f0[1].y, 0);
+    f0[0] = C(4 * f0[0].x * f0[0].x, 4 * f0[0].x * f0[0].y);
+    f0[1] = C(4 * f0[1].x * f0[1].x, 4 * f0[1].x * f0[1].y);
+
+    for (int i = 2, msk = 0; i &lt; N; i += 2) {
+        msk |= i &gt;&gt; 1;
+        int j = i ^ msk;
+        C c0 = f0[i] + f0[j].conj();
+        C c1 = (f0[i] - f0[j].conj()) * C(0, -1);
+        C c00 = c0 * c0, c01 = c0 * c1, c11 = c1 * c1;
+        f0[i] = c00.conj() + c01.conj() * C(0, 1), f0[j] = c00 + c01 * C(0, 1);
+        f1[i] = c11.conj(), f1[j] = c11;
+    }
+
+    ifft(f0); ifft(f1);
+    for (int i = 0; i &lt; SIZE * 2 - 1; i++) {
+        uint64_t c0 = llround(f0[i].x / (N &lt;&lt; 2));
+        uint64_t c1 = llround(f0[i].y / (N &lt;&lt; 2));
+        uint64_t c2 = llround(f1[i].x / (N &lt;&lt; 2));
+        a[i] = c0 + (c1 &lt;&lt; 13) + (c2 &lt;&lt; 24);
+    }
+}
+
+uint64_t A[SIZE * 2 - 1];
+
+int main() {
+    for (int i = 1; i &lt; SIZE; i++) A[i] = 1e7;
+    clock_t start = clock();
+    convolve(A);
+    clock_t end = clock();
+    uint64_t checksum = 0;
+    for (int i = 0; i &lt; SIZE * 2 - 1; i++) checksum ^= A[i];
+    printf("checksum: %llu\n", checksum);
+    printf("cpu time: %.3fs\n", (double) (end - start) / CLOCKS_PER_SEC);
+    return 0;
+}
+
+</code></pre>
+<p><a href="https://tio.run/##3VdLb9tGEL7zVwxSNCAl0uWScl6UBSSCD0EKJahvVRWBoUibMkUKfFhiXf/1qjO7fJOxUqCn@uCdnf3mm9nZGe7K2e@1W8c5nX7yQyfINi5M7eA2iv30bjeTaqWzs9O7liJJN36Y9lRRS5P6O3cmSUkaZ04Kc3iUAP82UfYtcOGoQm5xxVxW4B0cZV1BFf6Hx6dCX0MLKRfII0fmFdIPAz900UO0d2M7jeIxyE4UJuT0paOAkB8hdtMsDpH4CGNwLigELuSKBd9h0s4yaSWT9jzT6CzTiJiQJudSroJQUYxCdeyzI81WHmJTQRPBPFmSxJfd4z4uE/nlI1yB7USJrDHFaqzjqcLNx9@vcZnp9KfCB5RNA@Nar79lfpD64doJ/pQ5agS0wPA8FmQB0yl8QH9zOCwXKxU8XQwMB0si7th94LL0EPkb9Oan6ziK0gT3IMrjsNRXSDWXmQq6IirEi2KQyTpwQ3JjcWEKi0KYoq6055UDh1CmzeE2fwFZYMBQMMzED3vawkvLk49@EGGhMC2ckF9/PFYqsAjXp3BxwDwgboUpOYSCEHNf7NPzUnkOI68MsrOhBcxmYFjCIalmsysMrLGjVlx4JjsaRHALGsZXZZAGLmKQDdsiI4yHucPjOBgkMooUk3wwq5lhtYwqp1tE@BYOU3Ilwtz2nQhHjo5ob7kVQKTV0aXDOkq2Eu57BACO0cEaHIsbc8zOislXTGsgDFsnGgwGGxxNbUa2GAZOzSGvSYnXOD7heBkNcG4q6GYuY96Z0vfV3iv1FVKNyaPa3bJY02jteR6DsAnnSbo8Zrmm0Vqb50lqS3UJ@mdqcKip/u8l@IPVN1h452qOVTVn/FDNsbrmjP@u5ngdyVXRKQMp7tLxMpWr2lOKM@pVoFyVoDLQhN8vRLxrHqLgwZUzPNdXk3UKI7s8xuZ90Pn0@3W50c3T@RTjReOLa8Mm4SVM9LeXeAI0wW8rM0o6bAKPrhUxY@VlM8EtIIe@ushrqXEBsSVrAVkFZG2g3mc81pIKQ@q8Nu55OdZSZdxS59VmmpmiFkzu@x3a6mhC/IVtxTNUH1/VbvCVIJbUbSye6zGN29WFeIC0QNRoskBpLVRV0hprW@i66AN85OCqo7Nqyqhxmfh009TqHTkaF/TUZzorJ1X3qCIGARWYodbCMxZ8rKTgD5dtoSuvdFGnZR0VEjtTreU7SVRt4wiqHuCZDYI4ysKNyB2eMb5SFsUbxRowYT2T/JyJ0TRhz3ixy@TCmN@C9PwxFT4xOHiiNB45lYP3y@Z26Z1H2djZ@Orq3Tu@uHXaHY0M3DFzXwt@J4ice2ROUjtOKSKalwVXfUveK220G2662DoJd65zn2Ti/vo3x1YZfr3iYQrjfYyWnvyiXH0HPwdB9kf4Qq0MlA5ynwH9NkLkheklHFr81lFAptA1sV0Fz2b@6@f5p5v1l@vf1jfX84KpeOZj@E/S6aSDLjFgl5IBbCKZeFDSBD950iUwJr3Cd7z0Gt5Kb@DN344X2LfJSfvs2Un6Dw" rel="nofollow noreferrer" title="C++ (gcc) – Try It Online">Try it online!</a></p>
+<p>Run with <code>-O3</code> or <code>-Ofast</code> enabled for best performance.</p>
+<p>Uses a standard floating-point radix-4 FFT. Each input integer is split into two 12-bit chunks to avoid precision loss. Since the input comprises of only real numbers, we can get away with doing just a single FFT by using <code>a&amp;4095</code> as the real part and <code>a&gt;&gt;12</code> as the imaginary part. Upon converting back we still need two FFTs as the output space is twice as large.</p>
+<p><strong>Update:</strong></p>
+<ul>
+<li>I realized that the bit reversal was unusually time consuming, so I got rid of it using a DIF-DIT scheme. DIF takes the input in normal order and outputs in bit-reversed order, while DIT takes a bit-reversed input and outputs in normal order. Thus, they magically cancel out :)</li>
+</ul>
+</div>
+<div id="pu1" class="pu"><h1>Julia, 2.4 ± 0.1 ms</h1>
 <pre><code>using DSP
 using BenchmarkTools
 
@@ -52,7 +170,7 @@ Platform Info:
   Threads: 1 on 8 virtual cores
 </code></pre>
 </div>
-<div id="pu1" class="pu"><h1>Rust + <a href="https://github.com/rust-num/num-bigint/tree/master" rel="nofollow noreferrer">num-bigint</a> or <a href="https://github.com/cmpute/dashu/tree/master" rel="nofollow noreferrer">dashu</a>, ~0.3 seconds locally</h1>
+<div id="pu2" class="pu"><h1>Rust + <a href="https://github.com/rust-num/num-bigint/tree/master" rel="nofollow noreferrer">num-bigint</a> or <a href="https://github.com/cmpute/dashu/tree/master" rel="nofollow noreferrer">dashu</a>, ~0.3 seconds locally</h1>
 <pre class="lang-rust prettyprint-override"><code>use num_bigint::BigUint;
 use dashu::integer::UBig;
 use std::time::Instant;
@@ -113,100 +231,6 @@ dashu = &quot;0.3&quot;
 <pre><code>slow mulmod             time:   [21.182 ns 21.185 ns 21.188 ns]
 fast mulmod             time:   [7.0764 ns 7.1222 ns 7.1864 ns]
 </code></pre>
-</div>
-<div id="pu2" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C++ (gcc)</a>, ~0.03s</h1>
-
-<pre class="lang-cpp prettyprint-override"><code>#include &lt;algorithm&gt;
-#include &lt;cmath&gt;
-#include &lt;cstdint&gt;
-#include &lt;cstdio&gt;
-#include &lt;ctime&gt;
-
-struct C {
-    double x, y;
-    C() : x(0), y(0) {}
-    C(double x, double y) : x(x), y(y) {}
-    inline C operator+ (const C &amp;c) const { return C(x + c.x, y + c.y); }
-    inline C operator- (const C &amp;c) const { return C(x - c.x, y - c.y); }
-    inline C operator* (const C &amp;c) const { return C(x * c.x - y * c.y, x * c.y + y * c.x); }
-    inline C conj() const { return C(x, -y); }
-};
-
-constexpr double PI = acos(-1);
-constexpr int SIZE = 100000, B = 32 - __builtin_clz(SIZE * 2 - 1), N = 1 &lt;&lt; B;
-
-C w[N], f0[N], f1[N];
-int rev[N];
-
-void init_roots() {
-    w[0] = C(1, 0);
-    for (int len = 1; len &lt; N; len &lt;&lt;= 1) {
-        C wn(cos(PI / (len &lt;&lt; 2)), sin(PI / (len &lt;&lt; 2)));
-        for (int i = len; i &lt; len &lt;&lt; 1; i++)
-            w[i] = w[i - len] * wn;
-    }
-    for (int i = 0; i &lt; N; i++)
-        rev[i] = (rev[i &gt;&gt; 1] | (i &amp; 1) &lt;&lt; B) &gt;&gt; 1;
-}
-
-void fft(C *f) {
-    for (int i = 0; i &lt; N; i++)
-        if (i &lt; rev[i]) std::swap(f[i], f[rev[i]]);
-    for (int len = 1; len &lt; N; len &lt;&lt;= 2) {
-        for (int i = 0, m = 0; i &lt; N; i += len &lt;&lt; 2, m++) {
-            C w1 = w[m], w2 = w1 * w1, w3 = w1 * w2;
-            for (int j = i; j &lt; i + len; j++) {
-                C c0 = f[j + len * 0], c1 = f[j + len * 1],
-                  c2 = f[j + len * 2], c3 = f[j + len * 3];
-                C a02 = c0 + c1, a13 = c2 + c3,
-                  s02 = c0 - c1, s13 = (c2 - c3) * C(0, 1);
-                f[j + len * 0] = a02 + a13, f[j + len * 2] = (a02 - a13) * w2;
-                f[j + len * 1] = (s02 + s13) * w1, f[j + len * 3] = (s02 - s13) * w3;
-            }
-        }
-    }
-}
-
-void convolve(uint64_t *a) {
-    init_roots();
-    for (int i = 0; i &lt; SIZE; i++)
-        f0[i] = C(a[i] &amp; 4095, a[i] &gt;&gt; 12);
-    fft(f0);
-    for (int i = 0; i &lt;= N &gt;&gt; 1; i++) {
-        int j = -i &amp; (N - 1);
-        C c0 = f0[i] + f0[j].conj();
-        C c1 = (f0[i] - f0[j].conj()) * C(0, -1);
-        C c00 = c0 * c0, c01 = c0 * c1, c11 = c1 * c1;
-        f0[i] = c00.conj() + c01.conj() * C(0, 1), f0[j] = c00 + c01 * C(0, 1);
-        f1[i] = c11.conj(), f1[j] = c11;
-    }
-    fft(f0); fft(f1);
-    for (int i = 0; i &lt; SIZE * 2 - 1; i++) {
-        uint64_t c0 = llround(f0[i].x / (N &lt;&lt; 2));
-        uint64_t c1 = llround(f0[i].y / (N &lt;&lt; 2));
-        uint64_t c2 = llround(f1[i].x / (N &lt;&lt; 2));
-        a[i] = c0 + (c1 &lt;&lt; 13) + (c2 &lt;&lt; 24);
-    }
-}
-
-uint64_t A[SIZE * 2 - 1];
-
-int main() {
-    for (int i = 1; i &lt; SIZE; i++) A[i] = 1e7;
-    clock_t start = clock();
-    convolve(A);
-    clock_t end = clock();
-    uint64_t checksum = 0;
-    for (int i = 0; i &lt; SIZE * 2 - 1; i++) checksum ^= A[i];
-    printf("checksum: %llu\n", checksum);
-    printf("cpu time: %.3fs\n", (double) (end - start) / CLOCKS_PER_SEC);
-    return 0;
-}
-
-</code></pre>
-<p><a href="https://tio.run/##lVbfb9tGDH7XX0F0WHBnS6lOzloscgK0Qh6KDm6xvM1zDfUsJXJlydCP2F7mf30eeScpluQ0rR8sHu/jRx7JoyTXa@tOysPhlyiRcbkIYOzHd2kWFfera@NJKVd@cd9S5MUiSoqeKm1pimgVXBtGXmSlLMCDRwPwt0jLr3EAWxN2rlJ4jMMlbJnNUYX/8Liv9E/QStpp5FYhdw0ySuIoCdBDug4yv0izITCZJjk5PZMctPwIWVCUWYLEWxiCPKcQlLDjLjzDZL3IZNVM1veZBi8yDYgJaXZK2pmgVRSjVm377EizZKfYTLB0MHvXMNR2sF1ndSI/f4Ar8GWaM0tw92gfqwq3H/66wW1h08@E9yiPHIxrPv9aRnERJXMZ/8MUagC0IbAeE7KA8Rjeoz8PNtPJzITQ1g@BD9cg7ix4ULLxkEYL9BYV8yxNixzPoNtjM7VnSOUxYYLNdYeEaQaMrOMgITeuEsYwqYQx6mp71TmwSRgdDo/5GpjGgMMxzDxKetrKS8tThH4Q4aIwrpyQ32g45A1YhxtRuPjAPCBuhinZJJpwb/QobU046TBRVhQPUxJcX4OYwb9oB2d0NEorV1rX2Fe5C8OCeTAI64P/iJ8oJMpx5Y8D3tnLy3zjr1mIayzUVO/MfjzxznHi2zGYsGqHAsOrOpcObmJkR7ZV4YTK5gqD2TgkCkoo9sJm1Kwct2XUOF0iInLxMSZXunzLvhPtSNqIDqdLDURaG11K0VGKmdmzBZBOB@aQ7aijHM3cE359m4zROw4ePJYvyAwJcTk65Suv8ZbC5wrPJF07OeLoxmOYaMH7vtqHo/tukxv0aHaCJ0batGiTn0hxl04ok1zx5ZWJMDunryFWAxm1WfdGW9o3vY3z6CGNHwJWYl3fXMwLGPh1GY9nhvts59N06jQ/DqNIjxafhDO4sH//DStAC7paTk2HFyu0n@e@wlmnrqKiP2quugcturVsogaja3RbTkUxpOdydq7HdwtELcg0ymqhmmJbXVpbdwi@InBX2qJZCmpptRRq6faSgcYVPXWgLepF01emjkFDNeZU0@GI13yiplBjf1npWgOxyq8WxAtFrF8xvWw3raHSGsdZWiYLnTh8i76mAujx7p4wET2T3UsmzrGJ@I4Xv84s0GeIeidS/w/VrSXwBXef@r1x8G56fFx6RVI2Vj6@sE6OeNFtdGRQjkXwVvPLOJXfkDkv/KygiGhdd1tzxd7xNjpIFl3sUxLuA/ktL/VY/5myNYZfrlSY2nidoWXIXtW7l/BrHJd/J6/MxoB3kOsS6LMSkeejMFfQ6jORA6PQLX1cjrXx/vjkfbydf775c35741VM1ReSTS/Sw@E/Gcb@XX6wPoV@XvwP" rel="nofollow noreferrer" title="C++ (gcc) – Try It Online">Try it online!</a></p>
-<p>Run with <code>-O3</code> or <code>-Ofast</code> enabled for best performance.</p>
-<p>Uses a standard floating-point radix-4 FFT. Each input integer is split into two 12-bit chunks to avoid precision loss. Since the input comprises of only real numbers, we can get away with doing just a single FFT by using <code>a&amp;4095</code> as the real part and <code>a&gt;&gt;12</code> as the imaginary part. Upon converting back we still need two FFTs as the output space is twice as large.</p>
 </div>
 <div id="pu3" class="pu"><h1><a href="https://docs.python.org/3/" rel="noreferrer">Python 3</a>, 3 seconds</h1>
 
