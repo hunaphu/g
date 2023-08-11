@@ -26,12 +26,129 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>002</td><td>Julia</td><td>230809T135724Z</td><td><a href="https://codegolf.stackexchange.com/questions/263748/compute-convolution-quickly-and-accurately/263934#263934">Ashlin H</a></td></tr>
-<tr d-ix="1"><td>002</td><td>C++ gcc</td><td>230806T221955Z</td><td><a href="https://codegolf.stackexchange.com/questions/263748/compute-convolution-quickly-and-accurately/263798#263798">dingledo</a></td></tr>
-<tr d-ix="2"><td>003</td><td>Rust + numbigint or dashu</td><td>230807T000749Z</td><td><a href="https://codegolf.stackexchange.com/questions/263748/compute-convolution-quickly-and-accurately/263803#263803">Bubbler</a></td></tr>
-<tr d-ix="3"><td>003</td><td>Python 3</td><td>230805T155641Z</td><td><a href="https://codegolf.stackexchange.com/questions/263748/compute-convolution-quickly-and-accurately/263749#263749">l4m2</a></td></tr>
+<tr d-ix="0"><td>039</td><td>Rust</td><td>230811T093824Z</td><td><a href="https://codegolf.stackexchange.com/questions/263748/compute-convolution-quickly-and-accurately/264008#264008">Bubbler</a></td></tr>
+<tr d-ix="1"><td>nan</td><td>Julia</td><td>230809T135724Z</td><td><a href="https://codegolf.stackexchange.com/questions/263748/compute-convolution-quickly-and-accurately/263934#263934">Ashlin H</a></td></tr>
+<tr d-ix="2"><td>002</td><td>C++ gcc</td><td>230806T221955Z</td><td><a href="https://codegolf.stackexchange.com/questions/263748/compute-convolution-quickly-and-accurately/263798#263798">dingledo</a></td></tr>
+<tr d-ix="3"><td>003</td><td>Rust + numbigint or dashu</td><td>230807T000749Z</td><td><a href="https://codegolf.stackexchange.com/questions/263748/compute-convolution-quickly-and-accurately/263803#263803">Bubbler</a></td></tr>
+<tr d-ix="4"><td>003</td><td>Python 3</td><td>230805T155641Z</td><td><a href="https://codegolf.stackexchange.com/questions/263748/compute-convolution-quickly-and-accurately/263749#263749">l4m2</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Julia, 0.002 s</h1>
+<div id="pu0" class="pu"><h1>Rust, ~0.048s locally; Rust + <a href="https://docs.rs/rayon/latest/rayon/index.html" rel="nofollow noreferrer">rayon</a>, ~0.039s locally</h1>
+<p>The main code (sequential, independent of rayon) is as follows:</p>
+<pre class="lang-rust prettyprint-override"><code>pub const P: u64 = 10232178353385766913;
+
+pub fn mulmod(a: u64, b: u64) -&gt; u64 {
+    let x = a as u128 * b as u128;
+    let y = x &gt;&gt; 57;
+    let y1 = (y &gt;&gt; 35) as u64;
+    let y2 = y as u64 &amp; ((1u64 &lt;&lt; 35) - 1);
+    let y_div_71 = y1 * 483939977 + (y1 + y2) / 71;
+    let sub = y_div_71 as u128 * P as u128;
+    let (res, borrow) = x.overflowing_sub(sub);
+    if borrow { (res as u64).wrapping_add(P) } else { res as u64 }
+}
+
+fn powmod(a: u64, p: u64) -&gt; u64 {
+    let mut cur = 1;
+    let mut pow = a;
+    let mut p = p;
+    while p &gt; 0 {
+        if p % 2 &gt; 0 {
+            cur = mulmod(cur, pow);
+        }
+        p /= 2;
+        pow = mulmod(pow, pow);
+    }
+    cur
+}
+
+fn ntt&lt;const INV: bool&gt;(input: &amp;mut [u64], omega_table: &amp;[u64], inv_p2: u64) {
+    // length is a power of 2
+    let len = input.len();
+    let l = len.trailing_zeros() as usize;
+    for i in 1..len {
+        let j = i.reverse_bits() &gt;&gt; (64 - l);
+        if i &lt; j { input.swap(i, j); }
+    }
+
+    let mut root_pow = len / 2;
+    for intvl_shift in 1..=l {
+        let intvl = 1usize &lt;&lt; intvl_shift;
+        input.chunks_exact_mut(intvl).for_each(|chunk| {
+            let mut root_idx = 0;
+            let (left, right) = chunk.split_at_mut(intvl / 2);
+            for (u, v) in left.into_iter().zip(right) {
+                let u2 = *u;
+                let v2 = mulmod(*v, omega_table[root_idx]);
+                let (mut x, overflow) = u2.overflowing_sub(P - v2);
+                if overflow { x = x.wrapping_add(P); }
+                *u = x;
+                let (mut y, overflow) = u2.overflowing_sub(v2);
+                if overflow { y = y.wrapping_add(P); }
+                *v = y;
+                root_idx = root_idx + root_pow; // &amp; len - 1;
+            }
+        });
+        root_pow /= 2;
+    }
+    if INV {
+        for x in input.into_iter() { *x = mulmod(*x, inv_p2); }
+    }
+}
+
+fn ntt_precompute(len: usize) -&gt; (Vec&lt;u64&gt;, Vec&lt;u64&gt;) {
+    let l = len.trailing_zeros();
+
+    let primitive_root = 3;
+    let omega = powmod(primitive_root, P &gt;&gt; l);
+    let mut omega_table = vec![1];
+    // let mut omega_table_prime = vec![((1u128 &lt;&lt; 64) / P as u128) as u64];
+    for i in 1..len {
+        // omega_table.push((omega_table[i-1] as u128 * omega as u128 % P as u128) as u64);
+        omega_table.push(mulmod(omega_table[i-1], omega));
+        // omega_table_prime.push((((omega_table[i] as u128) &lt;&lt; 64) / P as u128) as u64);
+    }
+    let mut inv_p2 = 1;
+    let mut inv_p2_table = vec![1];
+    for _ in 0..l {
+        if inv_p2 % 2 == 0 { inv_p2 /= 2; }
+        else { inv_p2 = inv_p2 / 2 + P / 2 + 1; }
+        inv_p2_table.push(inv_p2);
+    }
+    (omega_table, inv_p2_table)
+}
+
+pub fn solve_ntt(a: &amp;[u64]) -&gt; (Vec&lt;u64&gt;, u128) {
+    let instant = Instant::now();
+
+    let len_max = a.len().next_power_of_two() * 2;
+    let (mut omega_table, inv_p2_table) = ntt_precompute(len_max);
+    let inv_p2 = inv_p2_table[len_max.trailing_zeros() as usize];
+
+    let mut a2 = a.to_vec();
+    a2.resize(len_max, 0);
+    ntt::&lt;false&gt;(&amp;mut a2, &amp;omega_table, inv_p2);
+    for ax in a2.iter_mut() {
+        *ax = mulmod(*ax, *ax);
+    }
+    omega_table[1..].reverse();
+    ntt::&lt;true&gt;(&amp;mut a2, &amp;omega_table, inv_p2);
+    a2.truncate((a.len() * 2).saturating_sub(1));
+
+    let elapsed = instant.elapsed().as_micros();
+
+    (a2, elapsed)
+}
+</code></pre>
+<p>This is the version that takes ~0.048s.</p>
+<p>I also made three variations using <code>rayon</code> to parallelize parts of code when possible, with different heuristics. The entire code can be found at <a href="https://github.com/Bubbler-4/cg263748" rel="nofollow noreferrer">https://github.com/Bubbler-4/cg263748</a>. The functions are <code>solve_ntt</code>, <code>solve_ntt_par</code>, <code>solve_ntt_par2</code>, and <code>solve_ntt_par3</code> in <code>lib.rs</code>.</p>
+<p>Run instructions:</p>
+<ul>
+<li>Clone the repo</li>
+<li><code>cargo run --release</code> to see timings and check that the outputs match</li>
+<li><code>cargo bench</code> to run the benchmark using the same input (rayon-powered versions are showing very high variance on my local)</li>
+</ul>
+</div>
+<div id="pu1" class="pu"><h1>Julia, 0.0023s</h1>
 <pre><code>using DSP
 using BenchmarkTools
 
@@ -52,7 +169,7 @@ Platform Info:
   Threads: 1 on 8 virtual cores
 </code></pre>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C++ (gcc)</a>, ~0.02s</h1>
+<div id="pu2" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C++ (gcc)</a>, ~0.02s</h1>
 
 <pre class="lang-cpp prettyprint-override"><code>#include &lt;algorithm&gt;
 #include &lt;cmath&gt;
@@ -170,7 +287,7 @@ int main() {
 <li>I realized that the bit reversal was unusually time consuming, so I got rid of it using a DIF-DIT scheme. DIF takes the input in normal order and outputs in bit-reversed order, while DIT takes a bit-reversed input and outputs in normal order. Thus, they magically cancel out :)</li>
 </ul>
 </div>
-<div id="pu2" class="pu"><h1>Rust + <a href="https://github.com/rust-num/num-bigint/tree/master" rel="nofollow noreferrer">num-bigint</a> or <a href="https://github.com/cmpute/dashu/tree/master" rel="nofollow noreferrer">dashu</a>, ~0.3 seconds locally</h1>
+<div id="pu3" class="pu"><h1>Rust + <a href="https://github.com/rust-num/num-bigint/tree/master" rel="nofollow noreferrer">num-bigint</a> or <a href="https://github.com/cmpute/dashu/tree/master" rel="nofollow noreferrer">dashu</a>, ~0.3 seconds locally</h1>
 <pre class="lang-rust prettyprint-override"><code>use num_bigint::BigUint;
 use dashu::integer::UBig;
 use std::time::Instant;
@@ -232,7 +349,7 @@ dashu = &quot;0.3&quot;
 fast mulmod             time:   [7.0764 ns 7.1222 ns 7.1864 ns]
 </code></pre>
 </div>
-<div id="pu3" class="pu"><h1><a href="https://docs.python.org/3/" rel="noreferrer">Python 3</a>, 3 seconds</h1>
+<div id="pu4" class="pu"><h1><a href="https://docs.python.org/3/" rel="noreferrer">Python 3</a>, 3 seconds</h1>
 
 <pre class="lang-python prettyprint-override"><code>R = &quot;&quot;.join(&quot;%028o&quot;%x for x in A)
 B = int(R,8)**2 | (1 &lt;&lt; 599997*28)
