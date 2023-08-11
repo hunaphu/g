@@ -26,8 +26,8 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>064</td><td>Python</td><td>230809T122106Z</td><td><a href="https://codegolf.stackexchange.com/questions/263926/find-separating-sets/263933#263933">solid.py</a></td></tr>
-<tr d-ix="1"><td>065</td><td>Python</td><td>230809T204642Z</td><td><a href="https://codegolf.stackexchange.com/questions/263926/find-separating-sets/263955#263955">loopy wa</a></td></tr>
+<tr d-ix="0"><td>063</td><td>Python</td><td>230809T204642Z</td><td><a href="https://codegolf.stackexchange.com/questions/263926/find-separating-sets/263955#263955">loopy wa</a></td></tr>
+<tr d-ix="1"><td>064</td><td>Python</td><td>230809T122106Z</td><td><a href="https://codegolf.stackexchange.com/questions/263926/find-separating-sets/263933#263933">solid.py</a></td></tr>
 <tr d-ix="2"><td>079</td><td>JavaScript ES6</td><td>230809T111208Z</td><td><a href="https://codegolf.stackexchange.com/questions/263926/find-separating-sets/263929#263929">Arnauld</a></td></tr>
 <tr d-ix="3"><td>088</td><td>Haskell</td><td>230810T120335Z</td><td><a href="https://codegolf.stackexchange.com/questions/263926/find-separating-sets/263980#263980">matteo_c</a></td></tr>
 <tr d-ix="4"><td>089</td><td>Scala 3</td><td>230810T083125Z</td><td><a href="https://codegolf.stackexchange.com/questions/263926/find-separating-sets/263963#263963">138 Aspe</a></td></tr>
@@ -40,14 +40,15 @@
 <tr d-ix="11"><td>013</td><td>05AB1E</td><td>230809T111229Z</td><td><a href="https://codegolf.stackexchange.com/questions/263926/find-separating-sets/263930#263930">Kevin Cr</a></td></tr>
 <tr d-ix="12"><td>075</td><td>R</td><td>230809T121119Z</td><td><a href="https://codegolf.stackexchange.com/questions/263926/find-separating-sets/263931#263931">Dominic </a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 64 bytes</h1>
-<p>-8 bytes, -3 bytes, -2 bytes thanks to <code>Value Ink</code>, <code>loopy walt</code> and <code>xnor</code> respectively. Also, thanks to <code>Neil</code> and <code>bsoelch</code> for their suggestions.</p>
-<p>Takes as input a list of sets, and returns a pair (tuples) of separated sets. In the <code>not separable</code> case it raises an exception.</p>
-<pre class="lang-python prettyprint-override"><code>lambda l,p,q:[(u,v)for u in l for v in l if{p}-u=={q}-v==u&amp;v][0]
+<div id="pu0" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 63 bytes</h1>
+<pre class="lang-python prettyprint-override"><code>lambda l,*I:(O:=[min(l,key={c}.__xor__)for c in I])[0]&amp;O[1]or O
 </code></pre>
-<p><a href="https://ato.pxeger.com/run?1=pZLBasMgGMdhx77DwNMa4Qsk6TpKQehlhz2D85C0ygKZsdaElpAn2SUwtnfanmZR00vrThXUP_L7f35_k49vdTJvtRw-BXn9aoyIVz-bKn8vdjmqQMF-TaMGWixqjRpUSlQhK1svS9GpPm4I6fZ93BLSPLSMJszX-b27t2gOBWwtTmdoHJQeuIkwdEkPXTrOBNKewbgyCACQeWTcwxDYGhks_AqPZ9xpZtWlxdf06BKe_C2TdVJgz615cYt5GWo2mCKdov7Xr4uXnkPaBsLo9ZPdmD9jM7Z2dqNPXtihdClNJCL3bTF25_y45cqgF7njx2eta32Jz2Vt0IGrXOdFxefY_yXD4Pc_" rel="nofollow noreferrer">Attempt This Online!</a></p>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 65 bytes</h1>
+<p><a href="https://ato.pxeger.com/run?1=pZLNToQwEMcTj_sUPblgRrOwrjEkxPOeeIDakMKWLLEUUrrGDeFJvJAYfSd9GvvBxqxw0knoDP_5zTClff1ojmpfi-GtiB_fD6q4vv984LTKdhRxuNpGXhLFuCqFx-GJHeMu72_S9KWWaeoXtUQ5KgXaEh-vyGWCA6KlxLX5usgNQCEDC-EF0oZx10O30k9gPAQ9Ab0S-J2F0OW1nyHAVIewdivcnlgbExOd8a6b4zZw55SxbozA6KZy_efKzWTG6eTB2HN2Rruf4LQr890Zbvp3_rPbkCxIZGupPkIUo5Ypz3eCeaulYjuPgmTPTLYsDuwt4Ew4RrL2wJUGC88etFMrqvL9mHPNjeW0Zchg_o9mrJGlUFY_R9M5bClqpWdsqKQZZ0vf3bVhcP4b" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<p>This expects a list of sets for the topology. The list shall be ordered by descending length as allowed per OP. (Actually, it suffices that the longest set comes first.)</p>
+<h2>How?</h2>
+<p>This depends on the specific implementation of <code>min</code>. It assumes that <code>min</code> works left to right and updates the current minimum whenever the next element is smaller than it. In particular, elements that cannot be compared to the current minimum are ignored. We use this to have <code>min</code> ignore exactly the subsets that contain <code>c</code> by starting off with the full set minus <code>c</code>. As this is the opposite of what we actually need we <code>key</code> <code>min</code> with <code>^{c}</code>, so we can start with the full set and ignore all subsets <em>not</em> containing <code>c</code>.</p>
+<p>Other than that it works like the other versions.</p>
+<h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 65 bytes</h1>
 <pre class="lang-python prettyprint-override"><code>lambda l,*I:(O:=[min(l&amp;{x|{c}for x in l})for c in I])[0]&amp;O[1]or O
 </code></pre>
 <p><a href="https://ato.pxeger.com/run?1=pVLBaoNAEIUe8xV7StwwhWiaUgQPvTUnP2C7lI1dibCuohtIa_2SXoTS_lP7NXV2DSXVUzvgzuPNe-OM7utH-WT2he7e0uj-_WDSy5vPWyXy3aMgCpbb0IvDiOWZ9tS8Ob40SZsWFTmSTBPVUsQJ4i2nbMXnMfN5T8Wu0dfFHQoE7MCK2Iz0wVjTQrPqHx8z-C2H_uTwuwqBq_d5QgHoDmDtTrg6aS3miM70rpvTbeDaMYNvQIA8Otd_dm5GM44n94eekzPaffzTVvjeCd346_xn24DPeGi9ImqWuSi9tCqepa6lAUFbW6lkfVCGRCT17N-kls2FSfZDzXXASEQtCcroD4dRVpk2lj-XPkzJFrowpJalqMROyQV1F6rrXP4G" rel="nofollow noreferrer">Attempt This Online!</a></p>
@@ -60,6 +61,13 @@
 <p>Test harness stolen from @solid.py.</p>
 <h2>How?</h2>
 <p>Being a finite topology <code>l</code> contains the intersections of all sets containing <code>p=I[0]</code> and of all sets containing <code>q=I[1]</code>.  We need only check these. To obtain the intersections we use the fact that they are minimal within the subset of subsets containing <code>p</code> (or <code>q</code>). Note that it does not matter that typically some subsets will not be comparable (both <code>&lt;</code> and <code>&gt;=</code> return <code>False</code>). For the <code>min</code> function to succeed it suffices that there is a minimum, i.e. one element that is comparable to and smaller than all the others.</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 64 bytes</h1>
+<p>-8 bytes, -3 bytes and -2 bytes thanks to <code>Value Ink</code>, <code>loopy walt</code> and <code>xnor</code> respectively. Also, thanks to <code>Neil</code> and <code>bsoelch</code> for their suggestions.</p>
+<p>Takes as input a list of sets, and returns a pair (tuples) of separated sets. In the <code>not separable</code> case it raises an exception.</p>
+<pre class="lang-python prettyprint-override"><code>lambda l,p,q:[(u,v)for u in l for v in l if{p}-u=={q}-v==u&amp;v][0]
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=pZLBasMgGMdhx77DwNMa4Qsk6TpKQehlhz2D85C0ygKZsdaElpAn2SUwtnfanmZR00vrThXUP_L7f35_k49vdTJvtRw-BXn9aoyIVz-bKn8vdjmqQMF-TaMGWixqjRpUSlQhK1svS9GpPm4I6fZ93BLSPLSMJszX-b27t2gOBWwtTmdoHJQeuIkwdEkPXTrOBNKewbgyCACQeWTcwxDYGhks_AqPZ9xpZtWlxdf06BKe_C2TdVJgz615cYt5GWo2mCKdov7Xr4uXnkPaBsLo9ZPdmD9jM7Z2dqNPXtihdClNJCL3bTF25_y45cqgF7njx2eta32Jz2Vt0IGrXOdFxefY_yXD4Pc_" rel="nofollow noreferrer">Attempt This Online!</a></p>
 </div>
 <div id="pu2" class="pu"><h1>JavaScript (ES6), 79 bytes</h1>
 <p><em>-6 thanks to <a href="https://codegolf.stackexchange.com/users/76323/l4m2">@l4m2</a></em></p>
