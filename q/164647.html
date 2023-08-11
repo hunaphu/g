@@ -61,24 +61,32 @@
 type S&lt;A,B=[]&gt;=A extends`${infer C}${infer R}`?S&lt;R,[...B,C]&gt;:B;type A=S&lt;&quot;abcdefghijklmnopqrstuvwxyz&quot;&gt;;type R&lt;S,F,X&gt;=S extends`${infer A}${F}${infer B}`?R&lt;`${A}${X}${B}`,F,X&gt;:S;type C&lt;S&gt;=S extends A[any]?0:1;type K&lt;I,T=&quot;&quot;&gt;=I extends`${infer V}${infer W}${infer X}${infer Y}${infer Z}${infer L}`?K&lt;L,`${T}${A[S&lt;R&lt;R&lt;R&lt;`${C&lt;V&gt;}${C&lt;W&gt;}${C&lt;X&gt;}${C&lt;Y&gt;}${C&lt;Z&gt;}`,1,&quot;0*&quot;&gt;,&quot;*0&quot;,&quot;0**&quot;&gt;,0,&quot;&quot;&gt;&gt;[&quot;length&quot;]]}`&gt;:T;type P&lt;S,O=&quot;&quot;&gt;=S extends`${infer X}${infer R}`?P&lt;R,Lowercase&lt;X&gt;extends A[any]?`${O}${X}`:O&gt;:O;type B&lt;S,F&gt;=S extends`${infer A}_${infer C}`?F extends`${infer X}${infer R}`?B&lt;`${A}${X}${C}`,R&gt;:S:S;type F&lt;S&gt;=Lowercase&lt;B&lt;S,K&lt;P&lt;S&gt;&gt;&gt;&gt;
 </code></pre>
 <p><a href="https://www.typescriptlang.org/play?#code/PTAEAcCcHkHFIIYFkkEkB2BzUAFArgFoEA2ApgMqgBkoAxtACamgD6bLoAtKAGwDMAdlAAjAJ4AXUgGdQACjGgAAugD2KhmQC2CdAEoAUPpCLxUzgEtMqyKX3jR4ZuQA8AQQA0AIQC8AbQC6AHzerqCkAB6S6AxSAAYAJADe5ugAZqSQoADCAL5JKemZAEo5sQD8LkXuvgB0dZ7uWUEAXJ4A3PaOoK7eLgBECMK0TKmYABbmAFYA1sSaquAAjpBS4ngAbgDu4aIAXn2BHQ7MRc7k7gBi7gAawZQRUTEJyWkZ3XmJFx8Fb56lZadnq4PtcPn9YpcboFmuQjl0smc7mFIqRojJXL4dKJ-GUAAzNACMcOYAGlnKh3AAVbx9A7eVDIx5xfKvTIANW+rNAAHVOYVQKCWfyAJp8t4EMWZAAy-zJUvcz0pHwxlWcp0BSQRbMCHwR3J1muct11zmFBsSCIIOohBPcfVxACoDnaHbi+nbHU7Au5cXaDoFfH0yFhxGM+v5-KVoZTibgzu5oDS6fcUWjnj9MoKXvySuUcGr3FKVJsMrQEFJSEbAg9UTFupj0Niys9oCDSs1oNDoLHPPGLkia2mhW9gSxh5lcuULoza8zs28sxnQLmyr2gW3NaV3EVoeQYbGLojvEWS5AyxXnL3zmT8+RAvfAoZOsxKdJxLjQN5QIe+gAJUjEMQKgAIQHG0RhgKAoAAHplHYxygK+qwEp+37OH0UBwIgKAYNg+BEGQlA0PQTCsOwYEQVBMFwc+iFvgATKhP5jABUrQO4oCbCokDECwoGHJRUGwfBXRIeIfBMeh5igMgoCiCoACqmSpAglJjGwNQUSAVHCbRYkACySX0lL-qAiwKagWTTCIkDFug37QOEoAAFIKUg4AyCobIAKKZKGzDEAgbBkSwmkCdpQk0QhYkAKxGZ4GAIJALBaZB1H6EAA" rel="nofollow noreferrer">Try it at the TS Playground!</a></p>
-<p>Ungolfed version:</p>
-<pre class="lang-typescript prettyprint-override"><code>type Split&lt;
+<p>This was a fun one!</p>
+<p>Ungolfed version / Explanation:</p>
+<pre class="lang-typescript prettyprint-override"><code>// Split&lt;Str&gt; converts string Str to a tuple of characters.
+type Split&lt;
   Str extends string,
   Arr extends string[] = []
 &gt; = Str extends `${infer A}${infer R}` ? Split&lt;R, [...Arr, A]&gt; : Arr;
 
+// Lowercase alphabet tuple.
 type Alphabet = Split&lt;&quot;abcdefghijklmnopqrstuvwxyz&quot;&gt;;
 
+// To get the case of a letter:
+// if it is in the lowercase alphabet, return 0, else 1.
 type Case&lt;C extends string&gt; = C extends Alphabet[number] ? 0 : 1;
 
+// Replace all occurrences of Find with Rep in string Str.
 type Replace&lt;
   Str extends string,
   Find extends string,
   Rep extends string
 &gt; = Str extends `${infer Start}${Find}${infer Rest}`
+  // Recursively substitute until no more occurrences are found.
   ? Replace&lt;`${Start}${Rep}${Rest}`, Find, Rep&gt;
   : Str;
 
+// See https://esolangs.org/wiki/Binary_to_unary_conversion
 type BinToUn_1&lt;In extends string&gt; = Replace&lt;In, &quot;1&quot;, &quot;0*&quot;&gt;
 type BinToUn_2&lt;In extends string&gt; = Replace&lt;In, &quot;*0&quot;, &quot;0**&quot;&gt;
 type BinToUn_3&lt;In extends string&gt; = Replace&lt;In, &quot;0&quot;, &quot;&quot;&gt;
@@ -86,18 +94,26 @@ type BinaryToUnary&lt;Binary extends string&gt; = BinToUn_3&lt;
   BinToUn_2&lt;BinToUn_1&lt;Binary&gt;&gt;
 &gt;;
 
+
+// This type does the bulk of the work.
 type Chunk&lt;
   S extends string,
   T extends string = &quot;&quot;
+  // Map each chunk of five letters to:
 &gt; = S extends `${infer A}${infer B}${infer C}${infer D}${infer E}${infer R}`
   ? Chunk&lt;
       R,
-      `${T}${Alphabet[Split&lt;
-        BinaryToUnary&lt;`${Case&lt;A&gt;}${Case&lt;B&gt;}${Case&lt;C&gt;}${Case&lt;D&gt;}${Case&lt;E&gt;}`&gt;
-      &gt;[&quot;length&quot;]]}`
+      // The character of the alphabet at index
+      `${T}${Alphabet[
+        // convert from binary
+        Split&lt;BinaryToUnary&lt;
+          // the case of each character in the chunk.
+          `${Case&lt;A&gt;}${Case&lt;B&gt;}${Case&lt;C&gt;}${Case&lt;D&gt;}${Case&lt;E&gt;}`&gt;
+        &gt;[&quot;length&quot;]]}`
     &gt;
   : T;
 
+// Filter out non-alphabetic characters.
 type Alphabetics&lt;
   S extends string,
   O extends string = &quot;&quot;
@@ -105,6 +121,8 @@ type Alphabetics&lt;
   ? Alphabetics&lt;R, Lowercase&lt;A&gt; extends Alphabet[number] ? `${O}${A}` : O&gt;
   : O;
 
+// Fill each underscore with the corresponding character
+// of the fill string.
 type FillBlanks&lt;
   Str extends string,
   Fill extends string
@@ -114,9 +132,11 @@ type FillBlanks&lt;
     : Str
   : Str;
 
+// Final type that composes all of the above to a single type:
 type F&lt;S extends string&gt; = Lowercase&lt;FillBlanks&lt;S, Chunk&lt;Alphabetics&lt;S&gt;&gt;&gt;&gt;;
 </code></pre>
 <p><a href="https://www.typescriptlang.org/play?#code/C4TwDgpgBAymA2BLYAeAUFWwBOUIA9gIA7AEwGcpydFiBzAGgygEFtcCizLrta6A2gF0oAXijC0APjFYOhEhSgADACQBvWgDMIuFgF8N23VABK+5VAD8sBMhSmGEgHSu22JyyEyAXK3YA3GhooJCs8GAAFgCGAEYQwLJwSKgARHEAxqQQWnSRiABWANbwALbEAPZgAI7Y1ACuAG4A7vggAF6pUkEh4NAAwtHkECj9eArcVDT0MuJjnIqULBEx8cACxPWl8dgiNgAMUH4AjD2h0KYQCNEZI8wwOONcSrz8TJgAYrSkT4tTfPR3mYrr9Jq96NIko8FpM1JpiDpcA9othgIZ1F8yOjjLhLtQLMwbJdrrcUHDkaj0cSqRB8conJjSE5iVJmH4Htgzn0oAAhWgAFQqAFViAB9Y4oACSxFBL2mdFmwJJI2lTlSx1Sav2ACour0wnziIKRaKAExSmUwuUAhWyYnwG4q4hq7X7TVQVI63Ws868gXCsUAZgtsp48sV9sdFq17tSet9hpRIGNxCTKET2BAof+-EVhpTouDzHzAbN6f9JolGZAUlZ3WCvv6kXqxCK6EwMGz4MYzH5XflsjjkPEnatlDhONY2IRJh508RUH685MABFl7gAKLrswEzA2JsttvMTCYRzHk9w-no5ZROIJATJeznk9+1OZlNpuGDYYoFhSdHfiMPL-hogGjCB6hgSuEFgRu-7KKyL6YFIAipPAJB0MAkSpEIQi7ieiFHFA-JcmEN6rAkiAZOQ7awP2NpAgA8vR-CDqkw50WOKhGDOejbuYyiEuEt5rFRNGOFAAAyFTNLoGRDCMf7ZuRd7rJs2y6Hs3HqIx14WERjGEX4jGkdAXzwPAPIOq2NH3NCEzWm8zDmfALEQoqHLZhOvFYCiaKijxC54migl7lALleYFJgABr8fhYUuVZ0Q2WSGgUmiGixRowUWMyhGYOyOBsnIpnhSgo4OWGNqKtJsnYPJP6JdZRQ0TATgHq2v4rKpYnlbWtalfytLAIc4gfCgqQABIQBZFQAIRdEEAD0S0ngAelY+rQEN1DHLI42pGA2CMQA4tg0QALIXdKdBQAACvUABaj3oZ2ABkUAZIx2RQKKf2iotaAretm2+jtwCmvtE2RDNkmMU4zQVNg8Cigt9bA5gG1bcRw2BlDqSIFAl1QCAwq4Fo0T8pEf3OIDGNQFjYPDQALPj-LTVA1RCpK-RFFAsTYDJMofIx+BQAAUkKF1gJQFQAGobrgWHQA6f2-TTdOrZjoPcuDACs+M8tKKIA+jWsM5tQA" rel="nofollow noreferrer">Try it at the TS Playground!</a></p>
+<p>All of the recursive types used here are tail-recursive, increasing the recursion limit from 50 to 999.</p>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://stedolan.github.io/jq/" rel="nofollow noreferrer">jq</a>, <s>165</s> 159 bytes</h1>
 <p><em>Unnecessary space before <code>as</code>, and found a place where<code>(a|[thing])[]</code> could be replaced with <code>(a|thing)</code></em></p>
