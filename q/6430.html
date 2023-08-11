@@ -26,7 +26,7 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>7625</td><td>Binary Lambda Calculus</td><td>230808T150723Z</td><td><a href="https://codegolf.stackexchange.com/questions/6430/shortest-terminating-program-whose-output-size-exceeds-grahams-number/263884#263884">2014MELO</a></td></tr>
+<tr d-ix="0"><td>060</td><td>Binary Lambda Calculus</td><td>230808T150723Z</td><td><a href="https://codegolf.stackexchange.com/questions/6430/shortest-terminating-program-whose-output-size-exceeds-grahams-number/263884#263884">2014MELO</a></td></tr>
 <tr d-ix="1"><td>175</td><td>7</td><td>230727T014601Z</td><td><a href="https://codegolf.stackexchange.com/questions/6430/shortest-terminating-program-whose-output-size-exceeds-grahams-number/263392#263392">2014MELO</a></td></tr>
 <tr d-ix="2"><td>079</td><td>Python 3</td><td>230211T173641Z</td><td><a href="https://codegolf.stackexchange.com/questions/6430/shortest-terminating-program-whose-output-size-exceeds-grahams-number/257706#257706">EIG 520</a></td></tr>
 <tr d-ix="3"><td>053</td><td>Python 3</td><td>210922T204327Z</td><td><a href="https://codegolf.stackexchange.com/questions/6430/shortest-terminating-program-whose-output-size-exceeds-grahams-number/235610#235610">E. Z. L.</a></td></tr>
@@ -45,65 +45,90 @@
 <tr d-ix="16"><td>nan</td><td>Haskell</td><td>120625T112708Z</td><td><a href="https://codegolf.stackexchange.com/questions/6430/shortest-terminating-program-whose-output-size-exceeds-grahams-number/6456#6456">ceased t</a></td></tr>
 <tr d-ix="17"><td>nan</td><td>Python 111+n</td><td>120622T052512Z</td><td><a href="https://codegolf.stackexchange.com/questions/6430/shortest-terminating-program-whose-output-size-exceeds-grahams-number/6436#6436">beary605</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://tromp.github.io/cl/cl.html" rel="nofollow noreferrer">Binary Lambda Calculus</a>, 7.625 bytes, 61 bits</h1>
-<pre><code>0100011010000101100000000101011011101100110000001110011101010
+<div id="pu0" class="pu"><h1><a href="https://tromp.github.io/cl/cl.html" rel="nofollow noreferrer">Binary Lambda Calculus</a>, <s>7.625</s> 7.5 bytes, <s>61</s> 60 bits</h1>
+<pre><code>010001010110101010000000010101101110110011100000011100111010
 </code></pre>
 <p>This encodes:</p>
-<pre><code>(\x.x x) (\y.y (\h g m.m h g (m (\f n.f (f n)))) y)
+<pre><code>(\x.x x x x) (\h g m.m h g (g (\f n.f (f n)))
 </code></pre>
-<p>To simplify things a bit, let <code>H = (\h g m.m h g (m 2))</code> where [<code>2 = (\f n.f (f n))</code>]. These are the first few steps of the reduction:</p>
-<pre><code>(\x.x x) (\y.y H y)
-(\y.y H y) (\y.y H y)
-(\y.y H y) H (\y.y H y)
-H H H (\y.y H y)
-(\y.y H y) H H ((\y.y H y) 2)
-H H H H (2 H 2)
-H H H (H 2) (2 H 2)
-H 2 H H (H 2 2) (2 H 2)
-H 2 H (H 2) (H 2 2) (2 H 2)
-H 2 2 H (H 2 2) (H 2 2) (2 H 2)
-H 2 2 (H 2) (H 2 2) (H 2 2) (2 H 2)
-H 2 2 2 (H 2 2) (H 2 2) (H 2 2) (2 H 2)
-2 2 2 (2 2) (H 2 2) (H 2 2) (H 2 2) (2 H 2)
-4 2 4 (H 2 2) (H 2 2) (H 2 2) (2 H 2)
-16 4 (H 2 2) (H 2 2) (H 2 2) (2 H 2)
-2^32 (H 2 2) (H 2 2) (H 2 2) (2 H 2)
+<p>To simplify things a bit, let <code>H = (\h g m.m h g (g 2))</code> where <code>2</code> is the <a href="https://en.wikipedia.org/wiki/Church_encoding" rel="nofollow noreferrer">Church numeral</a> <code>(\f n.f (f n))</code>. These are the first few steps of the reduction:</p>
+<pre><code>(\x.x x x x) H
+H H H H
+H H H (H 2)
+H 2 H H (H 2)
+H 2 H (H 2) (H 2)
+H 2 2 H (H 2) (H 2)
+H 2 2 (2 2) (H 2) (H 2)
+2 2 2 2 (2 2) (H 2) (H 2)
+2^2^17 (H 2) (H 2)
 </code></pre>
-<p>An important thing to notice here is that <code>H 2 2 2</code> reduced to <span class="math-container">\$2^{32}\$</span>, this will be useful the next time <code>H 2 2 2</code> comes up. The next step would be applying the function <code>H 2 2</code> <span class="math-container">\$2^{32}\$</span> times to <code>H 2 2</code>, but the second <code>H 2 2</code> is not a number. To fix this we can use the fact that for any positive number <code>n</code>, <code>n f x = n-1 f (f x)</code>:</p>
-<pre><code>2^32 (H 2 2) (H 2 2)
-2^32-1 (H 2 2) (H 2 2 (H 2 2))
-2^32-1 (H 2 2) (H 2 2 2 2 (H 2 2 2))
-2^32-1 (H 2 2) (2^32 2 2^32)            // using (H 2 2 2 = 2^32) twice
-2^32-1 (H 2 2) 2^2^(2^32+5)             // &gt; 2^32-1 (H 2 2) 2^^6
+<p>Replacing <code>H</code> by its definition in <code>H 2</code> gives <code>(\h g m.m h g (g 2)) 2 = (\g m.m 2 g (g 2))</code>. Every time that <code>H 2</code> is used in this program, <code>m</code> is either a function or a number, this means that <code>m 2</code> is always a number and <code>(\g m.m 2 g (g 2))</code> can be rewritten as <code>(\g m.(m 2)+1 g 2)</code>.</p>
+<p>Before continuing the reduction, let's define a function <span class="math-container">\$h_a(n)\$</span> that behaves similarly to the <a href="https://en.wikipedia.org/wiki/Fast-growing_hierarchy" rel="nofollow noreferrer">fast growing hierarchy</a>, but with some differences:</p>
+<p><span class="math-container">$$h_0(n) = n^2$$</span>
+<span class="math-container">$$h_{a+1}(n) = h^n_a(2)$$</span>
+<span class="math-container">$$h_a(n) = h_{a[n]}(2)$$</span></p>
+<p>For indices <span class="math-container">\$k &lt; \omega\$</span>, <span class="math-container">\$h_k(n) \ge 2\uparrow^k(n+1)\$</span>. This means that Graham's number is less than <span class="math-container">\$h^{64}_\omega(5) &lt; h^{65}_\omega(2) = h_{\omega+1}(65)\$</span>. Let's also define a function <code>F_k = k (H 2) 2</code>, when given a number <code>n</code>, we have that <code>F_k n &gt;= h_k n</code>:</p>
+<pre><code>F_0 n = 0 (H 2) 2 n = 2 n = n^2 = h_0 n
+F_k+1 n = k+1 (H 2) 2 n = H 2 (k (H 2) 2) n &gt;= H 2 h_k n
+    = n 2 h_k (h_k 2) = 2^n+1 h_k 2 &gt; n h_k 2 = h_k+1 n
 </code></pre>
-<p>When the function <code>H 2 2</code> is applied to some number <code>2^^n</code>, the result is <code>H 2 2 2^^n = 2^^n 2 2 (2^^n 2) = 2^^(n+2) 2^^(n+1) &gt; 2^^(n+3)</code>. Repeating this <span class="math-container">\$2^{32}-1\$</span> more times to <span class="math-container">\$2\uparrow\uparrow6\$</span> results in <span class="math-container">\$2\uparrow\uparrow(6+3*(2^{32}-1)) &gt; 2\uparrow\uparrow2^{33}\$</span>. Going back to the full expression we still have <code>2^^2^33 (H 2 2) (2 H 2)</code>. Again <code>2 H 2</code> is not a number.</p>
-<pre><code>2^^2^33 (H 2 2) (2 H 2)
-2^^2^33-1 (H 2 2) (H 2 2 (2 H 2))
-2^^2^33-1 (H 2 2) (2 H 2 2 2 (2 H 2 2))
-2^^2^33-1 (H 2 2) (H (H 2) 2 2 (H (H 2) 2))
-2^^2^33-1 (H 2 2) (2 (H 2) 2 4 (H (H 2) 2))
-2^^2^33-1 (H 2 2) (H 2 (H 2 2) 4 (H (H 2) 2))
-2^^2^33-1 (H 2 2) (4 2 (H 2 2) 16 (H (H 2) 2))
-2^^2^33-1 (H 2 2) (16 (H 2 2) 2^^3 (H (H 2) 2)) // we can use what we learned about (H 2 2)
-2^^2^33-1 (H 2 2) (2^^51 (H (H 2) 2))           // still not a number
-2^^2^33-2 (H 2 2) (H 2 2 (2^^51 (H (H 2) 2)))
-2^^2^33-2 (H 2 2) (2^^51 (H (H 2) 2) 2 2 (2^^51 (H (H 2) 2) 2))
+<p>Going back to the expression:</p>
+<pre><code>2^2^17 (H 2) (H 2)
+2^2^17-1 (H 2) (H 2 (H 2))
+2^2^17-1 (H 2) ((\g m.(m 2)+1 g 2) (H 2))
+2^2^17-1 (H 2) (\m.(m 2)+1 (H 2) 2)
+2^2^17-1 (H 2) (\m.F_((m 2)+1))         // using F_k = k (H 2) 2
+2^2^17-1 (H 2) (\m.F_(m 2))             // the '+1' is irrelevant
+2^2^17-2 (H 2) (H 2 (\m.F_(m 2)))
+2^2^17-2 (H 2) (\m.(m 2)+1 (\m.F_(m 2)) 2)
 </code></pre>
-<p>The next step is evaluating <code>2^^51 (H (H 2) 2) 2</code>, we will finally need to talk about the [fast growing hierarchy]. Given a function <span class="math-container">\$f_a(n)\$</span>, <span class="math-container">\$f_{a+1}(n)\$</span> can be implemented as <code>f_a+1 n = n f_a n = (\g m.m g m) f_a n</code>. The function <code>(\g m.m g m)</code> has the effect of adding 1 to the index of the function. <span class="math-container">\$f_\omega(n)\$</span> can be reached by adding 1 <span class="math-container">\$n\$</span> times to the index of <span class="math-container">\$f_0(n)\$</span>: <code>f_w n = f_n n = n (\g m.m g m) f_0 n = (\h g m.m h g m) (\g m.m g m) f_0 n</code>. Instead of using <code>f_w = (\h g m.m h g m) (\g m.m g m) f_0</code> to reach <span class="math-container">\$g_{64}\$</span>, we will modify each term to make the code shorter.</p>
-<ul>
-<li><span class="math-container">\$f_0(n)=n+1\$</span> can be replaced by <span class="math-container">\$f_0(n)=n^2\$</span>, this can be written as <code>2</code>.</li>
-<li><code>(\g m.m g m)</code> can be replaced by <code>(\g m.m 2 g (m 2))</code>, this changes <span class="math-container">\$f_{a+1}(n)\$</span> from <span class="math-container">\$f^n_a(n)\$</span> to <span class="math-container">\$f^{2^n}_a(2^n)\$</span>, and can be written as <code>H 2</code>.</li>
-<li><code>(\h g m.m h g m)</code> can be replaced by <code>(\h g m.m h g (m 2))</code>, changing <span class="math-container">\$f_\omega(n)\$</span> from <span class="math-container">\$f_n(n)\$</span> to <span class="math-container">\$f_n(2^n)\$</span>, this is simply <code>H</code>.</li>
-</ul>
-<p>Putting everything together we have <code>f_w = H (H 2) 2</code>. Going back to the expression <code>2^^51 (H (H 2) 2) 2</code>, we can now rewrite it as <code>2^^51 f_w 2 = f^(2^^51)_w(2) ~ f_w+1(2^^51)</code>.</p>
-<pre><code>2^^2^33-2 (H 2 2) (2^^51 (H (H 2) 2) 2 2 (2^^51 (H (H 2) 2) 2))
-2^^2^33-2 (H 2 2) (f_w+1(2^^51) 2 f_w+1(2^^51))
-2^^2^33-2 (H 2 2) f_w+1(2^^51)
-f_w+1(2^^51)
+<p>For every <code>n &gt; 0</code>, <code>n (\m.F_(m 2)) 2 &gt; F_(h_w+1 n-1)</code>:</p>
+<pre><code>1 (\m.F_(m 2)) 2 = F_(2 2) = F_4 &gt; F_2 = F_(h_w+1 0)
+n+1 (\m.F_(m 2)) 2 = (\m.F_(m 2)) (n (\m.F_(m 2)) 2)
+    &gt; (\m.F_(m 2)) F_(h_w+1 (n-1)) = F_(F_(h_w+1 (n-1)) 2)
+    &gt;= F_(h_(h_w+1 (n-1)) 2) = F_(h_w (h_w+1 (n-1))) = F_(h_w+1 n)
 </code></pre>
-<p>The <code>H 2 2</code>s don't really change <span class="math-container">\$f_{\omega+1}(2\uparrow\uparrow51)\$</span> that much, so the output of the program is about as big as <span class="math-container">\$f_{\omega+1}(2\uparrow\uparrow51)\$</span> itself.</p>
-<p>[<code>2 = (\f n.f (f n))</code>]: <a href="https://en.wikipedia.org/wiki/Church_encoding" rel="nofollow noreferrer">https://en.wikipedia.org/wiki/Church_encoding</a>
-[fast growing hierarchy]: <a href="https://en.wikipedia.org/wiki/Fast-growing_hierarchy" rel="nofollow noreferrer">https://en.wikipedia.org/wiki/Fast-growing_hierarchy</a></p>
+<p>Using this we can advance one more step of the <span class="math-container">\$2^{2^{17}}-2\$</span> remaining:</p>
+<pre><code>2^2^17-2 (H 2) (\m.(m 2)+1 (\m.F_(m 2)) 2)
+2^2^17-2 (H 2) (\m.F_(h_w+1 (m 2)))
+2^2^17-3 (H 2) (H 2 (\m.F_(h_w+1 (m 2))))
+2^2^17-3 (H 2) (\m.(m 2)+1 (\m.F_(h_w+1 (m 2))) 2)
+</code></pre>
+<p>Now we can prove the more general case <code>n (\m.F_(h_a (m 2))) 2 &gt; F_(h_a+1 n)</code> (for <code>n &gt; 0</code> and <code>a &gt; w</code>):</p>
+<pre><code>1 (\m.F_(h_a (m 2))) 2 = F_(h_a (2 2)) = F_(h_a 4) &gt; F_(h_a 2) = F_(h_a+1 1)
+n+1 (\m.F_(h_a (m 2))) 2 = (\m.F_(h_a (m 2))) (n (\m.F_(h_a (m 2))) 2)
+    &gt; (\m.F_(h_a (m 2))) F_(h_a+1 n) = F_(h_a (F_(h_a+1 n) 2))
+    &gt;= F_(h_a (h_(h_a+1 n) 2)) = F_(h_a (h_w (h_a+1 n)))
+    &gt; F_(h_a (h_a+1 n)) = F_(h_a+1 n+1)
+</code></pre>
+<p>Applying this:</p>
+<pre><code>2^2^17-3 (H 2) (\m.(m 2)+1 (\m.F_(h_w+1 (m 2))) 2)
+2^2^17-3 (H 2) (\m.F_(h_w+2 ((m 2)+1)))
+2^2^17-3 (H 2) (\m.F_(h_w+2 (m 2)))
+2^2^17-4 (H 2) (\m.F_(h_w+3 (m 2)))
+2^2^17-5 (H 2) (\m.F_(h_w+4 (m 2)))
+...
+3 (H 2) (\m.F_(h_w+2^2^17-4 (m 2)))
+2 (H 2) (\m.F_(h_w+2^2^17-3 (m 2)))
+1 (H 2) (\m.F_(h_w+2^2^17-2 (m 2)))
+</code></pre>
+<p>We will stop before reaching <code>0</code> because we only have functions and no numbers. I don't think the size of these expressions is obvious yet.</p>
+<pre><code>1 (H 2) (\m.F_(h_w+2^2^17-2 (m 2)))
+H 2 (\m.F_(h_w+2^2^17-2 (m 2)))
+(\h g m.m h g (g 2)) 2 (\m.F_(h_w+2^2^17-2 (m 2)))
+(\m.m 2 (\m.F_(h_w+2^2^17-2 (m 2))) ((\m.F_(h_w+2^2^17-2 (m 2))) 2))
+(\m.m 2 (\m.F_(h_w+2^2^17-2 (m 2))) F_(h_w+2^2^17-2 (2 2)))
+(\m.m 2 (\m.F_(h_w+2^2^17-2 (m 2))) F_(h_w+2^2^17-2 4))
+(\m.m 2 (\m.F_(h_w+2^2^17-2 (m 2))) (H 2 F_((h_w+2^2^17-2 4)-1)))  // F_k = H 2 F_k-1
+(\m.m 2 (\m.F_(h_w+2^2^17-2 (m 2))) (H 2 F_(h_w+2^2^17-2 2)))
+(\m.m 2 (\m.F_(h_w+2^2^17-2 (m 2))) (H 2 F_(h_w*2 2^2^17-2)))
+(\m.m 2 (\m.F_(h_w+2^2^17-2 (m 2))) ((\h g m.m h g (g 2)) 2 F_(h_w*2 2^2^17-2)))
+(\m.m 2 (\m.F_(h_w+2^2^17-2 (m 2))) (\m.m 2 F_(h_w*2 2^2^17-2) (F_(h_w*2 2^2^17-2) 2))
+(\m.m 2 (\m.F_(h_w+2^2^17-2 (m 2))) (\m.m 2 F_(h_w*2 2^2^17-2) (h_(h_w*2 2^2^17-2) 2))
+(\m.m 2 (\m.F_(h_w+2^2^17-2 (m 2))) (\m.m 2 F_(h_w*2 2^2^17-2) (h_w (h_w*2 2^2^17-2)))
+(\m.m 2 (\m.F_(h_w+2^2^17-2 (m 2))) (\m.m 2 F_(h_w*2 2^2^17-2) (h_w*2 2^2^17-2))
+</code></pre>
+<p>The other <code>F_(h_w*2 2^2^17-2)</code> can also be reduced further, revealing more large numbers. The important thing here is that the normal form of this expression contains the number <span class="math-container">\$h_{\omega*2}(2^{2^{17}}-2)\$</span>.</p>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://esolangs.org/wiki/7" rel="nofollow noreferrer">7</a>, 17.5 bytes</h1>
 <pre><code>00000000: 505e 91e7 a3a4 63c8 edda 476d ea0b d556  P^....c...Gm...V
