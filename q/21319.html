@@ -26,14 +26,61 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>nan</td><td></td><td>140220T114111Z</td><td><a href="https://codegolf.stackexchange.com/questions/21319/detect-what-programming-language-a-snippet-is/21525#21525">Gaurang </a></td></tr>
-<tr d-ix="1"><td>035</td><td>Bash — about 50</td><td>140219T214328Z</td><td><a href="https://codegolf.stackexchange.com/questions/21319/detect-what-programming-language-a-snippet-is/21467#21467">user1525</a></td></tr>
-<tr d-ix="2"><td>nan</td><td></td><td>140219T022729Z</td><td><a href="https://codegolf.stackexchange.com/questions/21319/detect-what-programming-language-a-snippet-is/21351#21351">daniero</a></td></tr>
-<tr d-ix="3"><td>nan</td><td>This answer is a proof of concept</td><td>140219T093505Z</td><td><a href="https://codegolf.stackexchange.com/questions/21319/detect-what-programming-language-a-snippet-is/21372#21372">ufis</a></td></tr>
-<tr d-ix="4"><td>1002</td><td>18 programming languages</td><td>140219T015919Z</td><td><a href="https://codegolf.stackexchange.com/questions/21319/detect-what-programming-language-a-snippet-is/21348#21348">TimWolla</a></td></tr>
-<tr d-ix="5"><td>nan</td><td></td><td>140219T025259Z</td><td><a href="https://codegolf.stackexchange.com/questions/21319/detect-what-programming-language-a-snippet-is/21354#21354">Digital </a></td></tr>
+<tr d-ix="0"><td>nan</td><td>Python</td><td>230812T213525Z</td><td><a href="https://codegolf.stackexchange.com/questions/21319/detect-what-programming-language-a-snippet-is/264100#264100">Joao-3</a></td></tr>
+<tr d-ix="1"><td>nan</td><td></td><td>140220T114111Z</td><td><a href="https://codegolf.stackexchange.com/questions/21319/detect-what-programming-language-a-snippet-is/21525#21525">Gaurang </a></td></tr>
+<tr d-ix="2"><td>035</td><td>Bash — about 50</td><td>140219T214328Z</td><td><a href="https://codegolf.stackexchange.com/questions/21319/detect-what-programming-language-a-snippet-is/21467#21467">user1525</a></td></tr>
+<tr d-ix="3"><td>nan</td><td></td><td>140219T022729Z</td><td><a href="https://codegolf.stackexchange.com/questions/21319/detect-what-programming-language-a-snippet-is/21351#21351">daniero</a></td></tr>
+<tr d-ix="4"><td>nan</td><td>This answer is a proof of concept</td><td>140219T093505Z</td><td><a href="https://codegolf.stackexchange.com/questions/21319/detect-what-programming-language-a-snippet-is/21372#21372">ufis</a></td></tr>
+<tr d-ix="5"><td>1002</td><td>18 programming languages</td><td>140219T015919Z</td><td><a href="https://codegolf.stackexchange.com/questions/21319/detect-what-programming-language-a-snippet-is/21348#21348">TimWolla</a></td></tr>
+<tr d-ix="6"><td>nan</td><td></td><td>140219T025259Z</td><td><a href="https://codegolf.stackexchange.com/questions/21319/detect-what-programming-language-a-snippet-is/21354#21354">Digital </a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Javascript - 6 languages - high accuracy</h1>
+<div id="pu0" class="pu"><h1>Python, 4 languages, can you test how accurate this is?</h1>
+<p>Sorry, but you need to put the source code in a file.</p>
+<pre class="lang-python prettyprint-override"><code>import sys
+
+file = sys.argv[1]
+
+def detect(code: str):
+
+    python_keys = {&quot;#&quot;: 1, &quot;print&quot;: 2, &quot;def&quot;: 5, &quot;with&quot;: 5, &quot;in&quot;: 2, &quot;tuple&quot;: 5, &quot;:&quot;: 1.5, &quot;except&quot;:5, &quot;str&quot;: 1.5, &quot;complex&quot;: 4, &quot;_&quot;: 2, &quot;match&quot;: 3}
+    javascript_keys = {&quot;{&quot;: 3, &quot;function&quot;: 4, &quot;=&gt;&quot;: 5, &quot;catch&quot;: 2.5, &quot;switch&quot;: 2, &quot;var&quot;: 5, &quot;let&quot;: 5, &quot;const&quot;: 5, &quot;//&quot;: 2}
+    c_keys = {&quot;#include&quot;: 5, &quot;#pragma once&quot;: 5, &quot;#ifdef&quot;: 4.5, &quot;#ifndef&quot;: 4.5, &quot;*&quot;: 2, &quot;size_t&quot;: 3, &quot;{&quot;: 4, &quot;struct&quot;: 5, &quot;switch&quot;: 2, &quot;//&quot;: 2}
+    html_keys = {&quot;&lt;!--&quot;: 5, &quot;&lt;!DOCTYPE&quot;:5, &quot;html&quot;: 5, &quot;href&quot;: 5, &quot;.css&quot;: 4, &quot;&lt;/&quot;: 3, &quot;http&quot;: 3}
+
+    langs = [&quot;Python&quot;, &quot;JavaScript&quot;, &quot;C&quot;, &quot;HTML&quot;]
+    scores = {lang: 0 for lang in langs}
+
+    for lang in langs:
+        score = 0
+
+        for key, value in eval(f&quot;{lang.lower()}_keys&quot;).items():
+            score += value * code.count(key)
+
+        scores[lang] = score
+    
+    return scores
+
+with open(file) as file:
+    results = detect(file.read())
+
+if &quot;-l&quot; in sys.argv:
+    summed = sum(results.values())
+    for lang, score in results.items():
+        print(f&quot;{lang}: {100 * score / summed}% likely&quot;)
+else:
+    max_score = max(results.values())
+    print(*filter(lambda lang: results[lang] == max_score, results.keys()), sep=&quot;, &quot;)
+</code></pre>
+<p>This can also receive the <code>-l</code> flag to list how likely each language is.</p>
+<p>Here is it checking itself with the <code>-l</code> flag enabled (on powershell, current directory hidden for obvious reasons):</p>
+<pre><code>&gt;py langdetect.py langdetect.py -l
+Python: 49.022346368715084% likely
+JavaScript: 18.01675977653631% likely
+C: 23.18435754189944% likely
+HTML: 9.776536312849162% likely
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>Javascript - 6 languages - high accuracy</h1>
 
 <p>Current Languages: Java, C, HTML, PHP, CSS, Javascript</p>
 
@@ -231,7 +278,7 @@ if(all_zero){
 console.log("----------------");
 </code></pre>
 </div>
-<div id="pu1" class="pu"><h1>Bash — about <del>50</del> 35 bytes per compilable language</h1>
+<div id="pu2" class="pu"><h1>Bash — about <del>50</del> 35 bytes per compilable language</h1>
 <p>Trick is to just compile, then you don't have to worry about linking errors from missing libraries, and it's more forgiving if you just have code snippets.</p>
 <p>Thanks to Shahbaz for shorter forms!</p>
 <pre><code>gcc -c $1 &amp;&amp; (echo C; exit 0)
@@ -241,7 +288,7 @@ gfortran -c $1 &amp;&amp; (echo Fortran; exit 0)
 </code></pre>
 <p>etc...</p>
 </div>
-<div id="pu2" class="pu"><h1>Just a few broad generalizations.</h1>
+<div id="pu3" class="pu"><h1>Just a few broad generalizations.</h1>
 
 <p>I think it's fairly accurate.</p>
 
@@ -267,7 +314,7 @@ when /~]\.{,/
 end
 </code></pre>
 </div>
-<div id="pu3" class="pu"><p>This answer is a proof of concept, that will not likely receive any more work from myself.</p>
+<div id="pu4" class="pu"><p>This answer is a proof of concept, that will not likely receive any more work from myself.</p>
 
 <p>It falls short in several ways:</p>
 
@@ -372,7 +419,7 @@ end
 }
 </code></pre>
 </div>
-<div id="pu4" class="pu"><h1>18 programming languages, 1002 bytes, accuracy: test for yourself :)</h1>
+<div id="pu5" class="pu"><h1>18 programming languages, 1002 bytes, accuracy: test for yourself :)</h1>
 
 <p>(yep I know this is not code golf, but for the fun of it)</p>
 
@@ -423,7 +470,7 @@ Ruby
 Python
 </code></pre>
 </div>
-<div id="pu5" class="pu"><h1>234 text formats - Unix Shell</h1>
+<div id="pu6" class="pu"><h1>234 text formats - Unix Shell</h1>
 <p>(not all of them languages - I need to count them carefully)</p>
 <pre><code>file $1
 </code></pre>
