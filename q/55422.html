@@ -26,8 +26,8 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>039</td><td>DEC VAX machine language on UNIX v8</td><td>230730T214706Z</td><td><a href="https://codegolf.stackexchange.com/questions/55422/hello-world/263551#263551">ceilingc</a></td></tr>
-<tr d-ix="1"><td>034</td><td>PDP11 machine language on BSD 2.11</td><td>230810T092654Z</td><td><a href="https://codegolf.stackexchange.com/questions/55422/hello-world/263970#263970">ceilingc</a></td></tr>
+<tr d-ix="0"><td>034</td><td>PDP11 machine language on BSD 2.11</td><td>230810T092654Z</td><td><a href="https://codegolf.stackexchange.com/questions/55422/hello-world/263970#263970">ceilingc</a></td></tr>
+<tr d-ix="1"><td>039</td><td>DEC VAX machine language on UNIX v8</td><td>230730T214706Z</td><td><a href="https://codegolf.stackexchange.com/questions/55422/hello-world/263551#263551">ceilingc</a></td></tr>
 <tr d-ix="2"><td>002</td><td>H🌍</td><td>230806T080901Z</td><td><a href="https://codegolf.stackexchange.com/questions/55422/hello-world/263776#263776">The Empt</a></td></tr>
 <tr d-ix="3"><td>016</td><td>{High}</td><td>230806T050619Z</td><td><a href="https://codegolf.stackexchange.com/questions/55422/hello-world/263773#263773">Dadsdy</a></td></tr>
 <tr d-ix="4"><td>nan</td><td>{</td><td>230806T050442Z</td><td><a href="https://codegolf.stackexchange.com/questions/55422/hello-world/263772#263772">Dadsdy</a></td></tr>
@@ -993,7 +993,42 @@
 <tr d-ix="964"><td>017</td><td>Zsh</td><td>150828T124458Z</td><td><a href="https://codegolf.stackexchange.com/questions/55422/hello-world/55433#55433">jimmy230</a></td></tr>
 <tr d-ix="965"><td>014</td><td>Pyth</td><td>150828T123956Z</td><td><a href="https://codegolf.stackexchange.com/questions/55422/hello-world/55430#55430">orlp</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://en.m.wikipedia.org/wiki/VAX" rel="nofollow noreferrer">DEC VAX</a> machine language on <a href="https://en.wikipedia.org/wiki/Research_Unix#Versions" rel="nofollow noreferrer">UNIX v8</a>, <s>40</s> 39 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://en.wikipedia.org/wiki/PDP-11" rel="nofollow noreferrer">PDP-11</a> machine language on <a href="https://en.wikipedia.org/wiki/History_of_the_Berkeley_Software_Distribution#2BSD_(PDP-11)" rel="nofollow noreferrer">BSD 2.11</a>, <s>37</s> 34 bytes</h1>
+<pre><code>00: 15ce 000d mov $15,(sp) ; len of string on stack
+04: 09f7 000e jsr pc, 26   ; addr of string on stack
+10: 6548 6c6c              ; &quot;Hello, World!&quot;
+    2c6f 5720
+    726f 646c
+    0021
+26: 15e6 0001 mov $1,-(sp) ; stdout on stack
+32: 15e6 0001 mov $1,-(sp) ; stack padding
+36: 8904      trap 4       ; write() syscall
+40: 8901      trap 1       ; exit() syscall
+</code></pre>
+<p>Note that 2BSD does not use the same syscall convention as older AT&amp;T UNIXes for the PDP-11. As a result, some <a href="https://lainsystems.com/posts/exploring-mullender-dot-c/" rel="nofollow noreferrer">previous winners of the IOCCC</a> may not work out of the box on 2BSD.</p>
+<p>To try this on a real or emulated PDP-11 running BSD 2.x (this won't work on other operating systems), compile and run the following C program.</p>
+<pre><code>char main[]={0xce,0x15,0x0d,0x00,0xf7,0x09,0x0e,0x00,'H','e'
+,'l','l','o',',',' ','W','o','r','l','d','!',0x00,0xe6,0x15,
+0x01,0x00,0xe6,0x15,0x01,0x00,0x04,0x89,0x01,0x89};
+</code></pre>
+<h1>PDP-11 machine language on <a href="https://en.wikipedia.org/wiki/Version_7_Unix" rel="nofollow noreferrer">UNIX v7</a>, 36 bytes</h1>
+<pre><code>00: 15ce 8901 mov $104401,(sp) ; exit()
+04: 15e6 000d mov $15,-(sp)    ; len of string
+10: 09f7 000e jsr pc, 32       ; addr of string
+14: 6548 6c6c                  ; &quot;Hello, World!&quot;
+    2c6f 5720
+    726f 646c
+    0021
+32: 15e6 8904 mov $104404,-(sp); write()
+36: 15c0 0001 mov $01,r0       ; fd=1
+42: 004e      jmp sp           ; jump to stack
+</code></pre>
+<p>v7 and earlier UNIXes for the PDP-11 had a different syscall convention in which some of the arguments are placed right after the trap instruction. Therefore, almost every syscall requires some self modifying code! The approach here is to generate a &quot;Hello, World!&quot; program on the stack and then jump to the stack.</p>
+<p>To try this on a real or emulated PDP-11 running UNIX v7 or earlier, compile and run this C program (if the compiler is very old, remove the <code>=</code>).</p>
+<pre><code>char main[]={0xce, 0x15, 0x01, 0x89, 0xe6, 0x15, 0x0d, 0x00, 0xf7, 0x09, 0x0e, 0x00, 'H', 'e', 'l', 'l', 'o', ',', ' ', 'W', 'o', 'r', 'l', 'd', '!', 0x00, 0xe6, 0x15, 0x04, 0x89, 0xc0, 0x15, 0x01, 0x00, 0x4e, 0x00};&quot;&gt;f.c  
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://en.m.wikipedia.org/wiki/VAX" rel="nofollow noreferrer">DEC VAX</a> machine language on <a href="https://en.wikipedia.org/wiki/Research_Unix#Versions" rel="nofollow noreferrer">UNIX v8</a>, <s>40</s> 39 bytes</h1>
 <pre><code>00: 00 00                                 ;entry mask
 02: dd 0d                pushl $0xd       ;len of string
 04: df ef 10 00 00 00    pushal $0x1a     ;addr of string
@@ -1011,25 +1046,6 @@
 <pre><code>char main[]={0x00,0x00,0xdd,0x0d,0xdf,0xef,0x10,0x00,0x00,0x00,0xdd,0x01
 ,0x9a,0x04,0x50,0xfb,0x03,0xef,0xff,0xff,0xff,0xff,0x04,0xbc,0x50,0x04,
 0x48,0x65,0x6c,0x6c,0x6f,0x2c,0x20,0x57,0x6f,0x72,0x6c,0x64,0x21};
-</code></pre>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://en.wikipedia.org/wiki/PDP-11" rel="nofollow noreferrer">PDP-11</a> machine language on <a href="https://en.wikipedia.org/wiki/History_of_the_Berkeley_Software_Distribution#2BSD_(PDP-11)" rel="nofollow noreferrer">BSD 2.11</a>, <s>37</s> 34 bytes</h1>
-<pre><code>00: 15ce 000d mov $15,(sp) ; len of string on stack
-04: 09f7 000e jsr pc, 26   ; addr of string on stack
-10: 6548 6c6c              ; &quot;Hello, World!&quot;
-    2c6f 5720
-    726f 646c
-    0021
-26: 15e6 0001 mov $1,-(sp) ; stdout on stack
-32: 15e6 0001 mov $1,-(sp) ; stack padding
-36: 8904      trap 4       ; write() syscall
-40: 8901      trap 1       ; exit() syscall
-</code></pre>
-<p>Note that 2BSD does not use the same syscall convention as older AT&amp;T UNIXes for the PDP-11. As a result, some <a href="https://lainsystems.com/posts/exploring-mullender-dot-c/" rel="nofollow noreferrer">previous winners of the IOCCC</a> may not work out of the box on 2BSD.</p>
-<p>To try this on a real or emulated PDP-11 running BSD 2.x (this won't work on other operating systems), compile and run the following C program.</p>
-<pre><code>char main[]={0xce,0x15,0x0d,0x00,0xf7,0x09,0x0e,0x00,'H','e'
-,'l','l','o',',',' ','W','o','r','l','d','!',0x00,0xe6,0x15,
-0x01,0x00,0xe6,0x15,0x01,0x00,0x04,0x89,0x01,0x89};
 </code></pre>
 </div>
 <div id="pu2" class="pu"><h1><a href="https://esolangs.org/wiki/H%F0%9F%8C%8D" rel="nofollow noreferrer">H🌍</a>, 2 Bytes</h1>
