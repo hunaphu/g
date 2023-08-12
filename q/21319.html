@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::21319</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>nan</td><td></td><td>140220T114111Z</td><td><a href="https://codegolf.stackexchange.com/questions/21319/detect-what-programming-language-a-snippet-is/21525#21525">Gaurang </a></td></tr>
+<tr d-ix="1"><td>035</td><td>Bash — about 50</td><td>140219T214328Z</td><td><a href="https://codegolf.stackexchange.com/questions/21319/detect-what-programming-language-a-snippet-is/21467#21467">user1525</a></td></tr>
+<tr d-ix="2"><td>nan</td><td></td><td>140219T022729Z</td><td><a href="https://codegolf.stackexchange.com/questions/21319/detect-what-programming-language-a-snippet-is/21351#21351">daniero</a></td></tr>
+<tr d-ix="3"><td>nan</td><td>This answer is a proof of concept</td><td>140219T093505Z</td><td><a href="https://codegolf.stackexchange.com/questions/21319/detect-what-programming-language-a-snippet-is/21372#21372">ufis</a></td></tr>
+<tr d-ix="4"><td>1002</td><td>18 programming languages</td><td>140219T015919Z</td><td><a href="https://codegolf.stackexchange.com/questions/21319/detect-what-programming-language-a-snippet-is/21348#21348">TimWolla</a></td></tr>
+<tr d-ix="5"><td>nan</td><td></td><td>140219T025259Z</td><td><a href="https://codegolf.stackexchange.com/questions/21319/detect-what-programming-language-a-snippet-is/21354#21354">Digital </a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>Javascript - 6 languages - high accuracy</h1>
+
+<p>Current Languages: Java, C, HTML, PHP, CSS, Javascript</p>
+
+<p>I work on the principle that whenever an input satisfies a criteria, it is given a score, and based on that score results are given.</p>
+
+<h3>Features:</h3>
+
+<ul>
+<li>No built-in functions that determine language type used.</li>
+<li>Does not straightaway declare the input text is <code>x</code> language on seeing a keyword.</li>
+<li>Suggests other probable languages also.</li>
+</ul>
+
+<p>Should you feel that any of your inputs of the programs (that I have done till now) are not caught or get invalid results, then please report and I'd be happy to fix them.</p>
+
+<h3>Sample Input 1:</h3>
+
+<pre><code>class A{public static void main(String[]a){System.out.println("&lt;?php");}}
+</code></pre>
+
+<h3>Sample Output 1:</h3>
+
+<pre><code>My program thinks you have :
+Java with a chance of 100%
+Php with a chance of 25%
+----------------
+</code></pre>
+
+<h3>Explanation:</h3>
+
+<p>This should have failed the program and I would have printed <code>PHP</code>, but since my program works on the basis of scores, nothing fails and it easily identifies Java in the first place, followed by other possible results. </p>
+
+<h3>Sample Input 2:</h3>
+
+<pre><code>class A{public static void main(String[]a){System.out.println("HelloWorld!");}}
+</code></pre>
+
+<h3>Sample Output 2:</h3>
+
+<pre><code>Java
+----------------
+</code></pre>
+
+<h3>Sample Input 3:</h3>
+
+<pre><code>ABCDEFGHIJKLMNOPQRSTUVWXYZ
+</code></pre>
+
+<h3>Sample Output 3:</h3>
+
+<pre><code>Language not catched! Sorry.
+----------------
+</code></pre>
+
+<h3>The code:</h3>
+
+<pre class="lang-js prettyprint-override"><code>// Helper functions
+
+String.prototype.m = function(condition){
+  return this.match(condition);
+};
+
+String.prototype.capitalize = function(){
+  return this[0].toUpperCase() + this.substr(1);
+};
+
+function getFuncName(func){
+  var temp =  func.toString();
+  temp = temp.substr( "function ".length);
+  temp = temp.substr( 0, temp.indexOf("("));
+  return temp.capitalize();
+}
+
+// Get input
+var lang_input = prompt("Enter programming language");
+
+// Max score of 4 per lang
+
+function java(input){
+  var score = 0;
+  score += input.m(/class[\s\n]+[\w$]+[\s\n]*\{/) ? 1 : 0;
+  score += input.m(/public[\s\n]+static[\s\n]+void[\s\n]+main[\s\n]*/) ? 1 : 0;
+  score += input.m(/\}[\s\n]*\}[\s\n]*$/) ? 1 : 0;
+  score += input.m(/System[\s\n]*[.][\s\n]*out/) ? 1 : 0;
+  return score;
+}
+
+function c(input){
+  var score = 0;
+  // if java has passsed
+  if(checks[0][1] &gt;= 3)return 0;
+
+  score += input.m(/^#include\s+&lt;[\w.]+&gt;\s*\n/) ? 1 : 0;
+  score += input.m(/main[\s\n]*\([\s\n]*(void)?[\s\n]*\)[\s\n]*\{/) ? 1 : 0;
+  score += input.m(/printf[\s\n]+\(/) || input.m(/%d/) ? 1 : 0;
+  score += input.m(/#include\s+&lt;[\w.]+&gt;\s*\n/) || input.m(/(%c|%f|%s)/) ? 1 : 0;
+  return score;
+}
+
+function PHP(input){
+  var score = 0;
+  score += input.m(/&lt;\?php/) ? 1 : 0;
+  score += input.m(/\?&gt;/) ? 1 : 0;
+  score += input.m(/echo/) ? 1 : 0;
+  score += input.m(/$[\w]+\s*=\s*/) ? 1 : 0;
+  return score;
+}
+
+function HTML(input){
+  var score = 0;
+  // if php has passed
+  if(checks[2][1] &gt;= 2) return 0;
+
+  score += input.m(/&lt;!DOCTYPE ["' \w:\/\/]*&gt;/) ? 1 : 0;
+  score += input.m(/&lt;html&gt;/) &amp;&amp; input.m(/&lt;\/html&gt;/) ? 1 : 0;
+  score += input.m(/&lt;body&gt;/) &amp;&amp; input.m(/&lt;\/body/) ? 1 :  0;
+  score += input.m(/&lt;head&gt;/) &amp;&amp; input.m(/&lt;\/head&gt;/) ? 1 : 0;
+  return score;
+}
+
+function javascript(input){
+  var score = 0;
+  score += input.m(/console[\s\n]*[.][\s\n]*log[\s\n*]\(/) ? 1 : 0;
+  score += input.m(/[\s\n]*var[\s\n]+/) ? 1 : 0;
+  score += input.m(/[\s\n]*function[\s\n]+[\w]+[\s\n]+\(/) ? 1 : 0;
+  score += input.m(/document[\s\n]*[.]/) || 
+           ( input.m(/\/\*/) &amp;&amp; input.m(/\*\//) ) ||
+           ( input.m(/\/\/.*\n/) )? 1 : 0;
+  return score;
+}
+
+function CSS(input){
+  var score = 0;
+  score += input.m(/[a-zA-Z]+[\s\n]*\{[\w\n]*[a-zA-Z\-]+[\s\n]*:/) ? 1 : 0;
+  // since color is more common, I give it a separate place
+  score += input.m(/color/) ? 1 : 0;          
+  score += input.m(/height/) || input.m(/width/) ? 1 : 0;
+  score += input.m(/#[a-zA-Z]+[\s\n]*\{[\w\n]*[a-zA-Z\-]+[\s\n]*:/) ||
+           input.m(/[.][a-zA-Z]+[\s\n]*\{[\w\n]*[a-zA-Z\-]+[\s\n]*:/) ||
+           ( input.m(/\/\*/) &amp;&amp; input.m(/\*\//) ) ? 1 : 0;
+  return score;
+}
+
+// [Langs to check, scores]
+var checks = [[java, 0], [c, 0], [PHP, 0], [HTML, 0], [javascript, 0], [CSS, 0]];
+//Their scores
+
+// Assign scores
+for(var i = 0; i &lt; checks.length; i++){
+  var func = checks[i][0];
+  checks[i][1] = func(lang_input);
+}
+
+// Sort the scores
+checks.sort(function(a,b){ return b[1] - a[1]; });
+
+var all_zero = true;
+
+function check_all_zero(index){
+  if(checks[index][1] &gt; 0){ all_zero = false; return 0; } // someone is above zero
+
+  // check next index only if it defined, else return zero
+  if(checks[index + 1])
+    check_all_zero(index + 1);
+}
+
+check_all_zero(0);
+
+if(all_zero){
+  console.log("Language not catched! Sorry.");
+}else {
+  var new_arr = [];                   // temp
+
+  checks.map(function(value, index){
+    if(value[1] &gt; 0){
+      var temp = [getFuncName(value[0]), value[1]];
+      new_arr.push(temp);
+    }
+  });
+
+  checks = new_arr.slice(0);          // array copy, because of mutation
+
+  if(checks.length === 1){
+    console.log(checks[0][0]);
+  }else{
+    console.log("My program thinks you have :");
+    checks.map(function(value){
+      var prob = (value[1]/4 * 100);
+      console.log(value[0] + " with a chance of " + prob + "%");
+    });
+  }
+
+} // Main else block finish
+
+console.log("----------------");
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>Bash — about <del>50</del> 35 bytes per compilable language</h1>
+<p>Trick is to just compile, then you don't have to worry about linking errors from missing libraries, and it's more forgiving if you just have code snippets.</p>
+<p>Thanks to Shahbaz for shorter forms!</p>
+<pre><code>gcc -c $1 &amp;&amp; (echo C; exit 0)
+g++ -c $1 &amp;&amp; (echo C++; exit 0)
+gpc -c $1 &amp;&amp; (echo Pascal; exit 0)
+gfortran -c $1 &amp;&amp; (echo Fortran; exit 0)
+</code></pre>
+<p>etc...</p>
+</div>
+<div id="pu2" class="pu"><h1>Just a few broad generalizations.</h1>
+
+<p>I think it's fairly accurate.</p>
+
+<p>This is Ruby btw. Takes (multiline) input from stdin.</p>
+
+<pre class="lang-ruby prettyprint-override"><code>puts case $&lt;.read
+when /\)\)\)\)\)/
+  "Lisp"
+when /}\s+}\s+}\s+}/
+  "Java"
+when /&lt;&gt;/
+  "Perl"
+when /|\w+|/
+  "Ruby"
+when /\w+ :- \w+ \./
+  "Prolog"
+when /^[+-&lt;&gt;\[\],.]+$/
+  "brainfuck"
+when /\[\[.*\]\]/
+  "Bash"
+when /~]\.{,/
+  "golfscript"
+end
+</code></pre>
+</div>
+<div id="pu3" class="pu"><p>This answer is a proof of concept, that will not likely receive any more work from myself.</p>
+
+<p>It falls short in several ways:</p>
+
+<ul>
+<li>The output is not exactly as the question requests, but close enough and could easily be modified to produce the exact output required.</li>
+<li>There are several ways to make the code perform better and/or better ways to represent the data structures.</li>
+<li>and more</li>
+</ul>
+
+<p>The idea is to set a list of keywords/characters/phrases that can identify a specific language and assign a score to that keyword for each language. Then check the source file(s) for these keywords, and tally up the scores for each language that you find keywords for. In the end the language with the highest score is the likely winner. This also caters for polyglot programs as both (or all) the relevant languages will score high.</p>
+
+<p>The only thing to add more languages is to identify their "signatures" and add them to the mapping.</p>
+
+<p>You can also assign different scores to different keywords per language. For example, if you feel <code>volatile</code> is used more in Java than in C, set the score for <code>volatile</code> keyword to 2 for Java and 1 for C.</p>
+
+<pre class="lang-java prettyprint-override"><code>public class SourceTest {
+
+  public static void main(String[] args) {
+    if (args.length &lt; 1) {
+      System.out.println("No file provided.");
+      System.exit(0);
+    }
+    SourceTest sourceTest = new SourceTest();
+    for (String fileName : args) {
+      try {
+        sourceTest.checkFile(fileName);
+      } catch (FileNotFoundException e) {
+        System.out.println(fileName + " : not found.");
+      } catch (IOException e) {
+        System.out.println(fileName + " : could not read");
+      }
+    }
+    System.exit(0);
+  }
+
+  private Map&lt;String, LanguagePoints&gt; keyWordPoints;
+  private Map&lt;LANGUAGES, Integer&gt; scores;
+
+  private enum LANGUAGES {
+    C, HTML, JAVA;
+  }
+
+  public SourceTest() {
+    init();
+  }
+
+  public void checkFile(String fileName) throws FileNotFoundException, IOException {
+    String fileContent = getFileContent(fileName);
+    testFile(fileContent);
+    printResults(fileName);
+  }
+
+  private void printResults(String fileName) {
+    System.out.println(fileName);
+    for (LANGUAGES lang : scores.keySet()) {
+      System.out.println("\t" + lang + "\t" + scores.get(lang));
+    }
+  }
+
+  private void testFile(String fileContent) {
+    for (String key : keyWordPoints.keySet()) {
+      if (fileContent.indexOf(key) != -1) {
+        for (LANGUAGES lang : keyWordPoints.get(key).keySet()) {
+          scores.put(lang, scores.get(lang) == null ? new Integer(1) : scores.get(lang) + 1);
+        }
+      }
+    }
+  }
+
+  private String getFileContent(String fileName) throws FileNotFoundException, IOException {
+    File file = new File(fileName);
+    FileReader fr = new FileReader(file);// Using 1.6 so no Files
+    BufferedReader br = new BufferedReader(fr);
+    StringBuilder fileContent = new StringBuilder();
+    String line = br.readLine();
+    while (line != null) {
+      fileContent.append(line);
+      line = br.readLine();
+    }
+    return fileContent.toString();
+  }
+
+  private void init() {
+    scores = new HashMap&lt;LANGUAGES, Integer&gt;();
+
+    keyWordPoints = new HashMap&lt;String, LanguagePoints&gt;();
+    keyWordPoints.put("public class", new LanguagePoints().add(LANGUAGES.JAVA, 1));
+    keyWordPoints.put("public static void main", new LanguagePoints().add(LANGUAGES.JAVA, 1));
+    keyWordPoints.put("&lt;html", new LanguagePoints().add(LANGUAGES.HTML, 1));
+    keyWordPoints.put("&lt;body", new LanguagePoints().add(LANGUAGES.HTML, 1));
+    keyWordPoints.put("cout", new LanguagePoints().add(LANGUAGES.C, 1));
+    keyWordPoints.put("#include", new LanguagePoints().add(LANGUAGES.C, 1));
+    keyWordPoints.put("volatile", new LanguagePoints().add(LANGUAGES.JAVA, 1).add(LANGUAGES.C, 1));
+  }
+
+  private class LanguagePoints extends HashMap&lt;LANGUAGES, Integer&gt; {
+    public LanguagePoints add(LANGUAGES l, Integer i) {
+      this.put(l, i);
+      return this;
+    }
+  }
+}
+</code></pre>
+</div>
+<div id="pu4" class="pu"><h1>18 programming languages, 1002 bytes, accuracy: test for yourself :)</h1>
+
+<p>(yep I know this is not code golf, but for the fun of it)</p>
+
+<p>The program searches for iconic code snippets, the checks are ordered in a way that the most clear checks are at the top and programming languages embedded in other programming languages are below (e.g. HTML in PHP).</p>
+
+<p>This obviously fails for programs like <code>System.out.println('&lt;?php');</code></p>
+
+<pre class="lang-coffeescript prettyprint-override"><code>t = (p) -&gt;
+    h = (x) -&gt; -1 != p.indexOf x
+    s = (x) -&gt; 0 == p.indexOf x
+
+    if h "⍵" then "APL"
+    else if h "&lt;?php" then "PHP"
+    else if h("&lt;?xml") and h "&lt;html" then "XHTML"
+    else if h "&lt;html" then "HTML"
+    else if h "&lt;?xml" then "XML"
+    else if h("jQuery") or h "document.get" then "JavaScript"
+    else if h "def __init__(self" then "Python"
+    else if h "\\documentclass" then "TeX"
+    else if h("java.") or h "public class" then "Java"
+    else if s("SELE") or s("UPDATE") or s "DELE" then "SQL"
+    else if /[-\+\.,\[\]\&gt;\&lt;]{9}/.test p then "Brainfuck"
+    else if h "NSString" then "Objective-C"
+    else if h "do |" then "Ruby"
+    else if h("prototype") or h "$(" then "JavaScript"
+    else if h "(defun" then "Common Lisp"
+    else if /::\s*[a-z]+\s*-&gt;/i.test p then "Haskell"
+    else if h "using System" then "C#"
+    else if h "#include"
+        if h("iostream") or h "using namespace" then "C++"
+        else "C"
+    else "???"
+
+program = ""
+process.stdin.on 'data', (chunk) -&gt; program += chunk
+process.stdin.on 'end', -&gt; console.log t program
+</code></pre>
+
+<p>Usage on node: <code>coffee timwolla.coffee &lt; Example.java</code></p>
+
+<p>Demo (<a href="http://jsfiddle.net/TimWolla/wkJKY/" rel="noreferrer">Online-Demo on JSFiddle</a>):</p>
+
+<pre><code>[timwolla@~/workspace/js]coffee puzzle.coffee &lt; ../c/nginx/src/core/nginx.c 
+C
+[timwolla@~/workspace/js]coffee puzzle.coffee &lt; ../ruby/github-services/lib/service.rb
+Ruby
+[timwolla@~/workspace/js]coffee puzzle.coffee &lt; ../python/seafile/python/seaserv/api.py
+Python
+</code></pre>
+</div>
+<div id="pu5" class="pu"><h1>234 text formats - Unix Shell</h1>
+<p>(not all of them languages - I need to count them carefully)</p>
+<pre><code>file $1
+</code></pre>
+<p>I hesitate to post this somewhat smart-a$$ answer, but I don't see anything in the rules banning it and the <code>file</code> shell utility really does do a good job of this.  e.g:</p>
+<pre><code>$ file golfscript.rb 
+golfscript.rb: Ruby module source, ASCII text
+$ file template.c 
+template.c: ASCII C program text
+$ file adams.sh
+adams.sh: Bourne-Again shell script, ASCII text executable
+$ 
+</code></pre>
+<p>Furthermore you can use the <code>-k</code> option to &quot;keep going&quot; when testing a polyglot:</p>
+<pre><code> -k, --keep-going
+         Don't stop at the first match, keep going.  Subsequent matches
+         will be have the string ‘\012- ’ prepended.  (If you want a new‐
+         line, see the -r option.)
+</code></pre>
+<p>Also, the <code>-l</code> option will give you an idea of how good the algorithm is for differing languages:</p>
+<pre>
+$ file -l | grep shell
+unknown, 0: Warning: using regular magic file `/etc/magic'
+Strength = 280 : shell archive text [application/octet-stream]
+Strength = 250 : Tenex C shell script text executable [text/x-shellscript]
+Strength = 250 : Bourne-Again shell script text executable [text/x-shellscript]
+Strength = 240 : Paul Falstad's zsh script text executable [text/x-shellscript]
+Strength = 240 : Neil Brown's ash script text executable [text/x-shellscript]
+Strength = 230 : Neil Brown's ae script text executable [text/x-shellscript]
+Strength = 210 : Tenex C shell script text executable [text/x-shellscript]
+Strength = 210 : Bourne-Again shell script text executable [text/x-shellscript]
+Strength = 190 : Tenex C shell script text executable [text/x-shellscript]
+Strength = 190 : Bourne-Again shell script text executable [text/x-shellscript]
+Strength = 180 : Paul Falstad's zsh script text executable [text/x-shellscript]
+Strength = 150 : Tenex C shell script text executable [text/x-shellscript]
+Strength = 150 : Bourne-Again shell script text executable [text/x-shellscript]
+Strength = 140 : C shell script text executable [text/x-shellscript]
+Strength = 140 : Korn shell script text executable [text/x-shellscript]
+Strength = 140 : Paul Falstad's zsh script text executable [text/x-shellscript]
+Strength = 130 : POSIX shell script text executable [text/x-shellscript]
+Strength = 130 : Plan 9 rc shell script text executable []
+$ 
+</pre>
+<p>This is <code>file-5.09</code> (on Ubuntu 12.04)</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/21319/">21319</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+

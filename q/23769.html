@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::23769</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>039</td><td>Haskell</td><td>140312T155912Z</td><td><a href="https://codegolf.stackexchange.com/questions/23769/determine-the-critical-path/23892#23892">John Dvo</a></td></tr>
+<tr d-ix="1"><td>nan</td><td></td><td>140312T122005Z</td><td><a href="https://codegolf.stackexchange.com/questions/23769/determine-the-critical-path/23848#23848">Howard</a></td></tr>
+<tr d-ix="2"><td>nan</td><td>C#</td><td>140312T043349Z</td><td><a href="https://codegolf.stackexchange.com/questions/23769/determine-the-critical-path/23807#23807">Cominter</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>Haskell, 39 LoC</h1>
+
+<pre><code>import Control.Exception.Base (assert)
+import Data.List
+import Data.Maybe (fromJust)
+import Text.Printf
+
+splitBefore x = groupBy (\_ y -&gt; x /= y)
+
+data Activity = Activity {aName :: Char, aLength :: Int, depNames :: [Char]}
+                deriving (Eq, Ord, Show)
+
+instance Read Activity where
+  readsPrec _ ('[' : aName : ':' : rest1) = 
+    let [(aLength, rest2)] = reads rest1 :: [(Int, String)]
+        (rest3, ']':rest) = span (/= ']') rest2
+        depNames = map (\[_,x] -&gt; x) $ splitBefore ',' $ rest3
+    in  [(Activity {aName = aName, aLength = aLength, depNames = depNames},rest)]
+
+main = getLine &gt;&gt;= putStrLn . \input -&gt;
+  let activities = map read $ splitBefore '[' $ input :: [Activity]
+      activityByName a = fromJust . find ((a ==) . aName) $ activities
+      dependencies = map activityByName . depNames 
+      dependents a = filter ((a `elem`) . dependencies) $ activities
+      estart   a = case dependencies a of 
+                     [] -&gt; 0
+                     ds -&gt; maximum $ map efinish ds
+      efinish  a = estart a + aLength a
+      critLength = maximum $ map efinish $ activities
+      lfinish  a = case dependents a of
+                     [] -&gt; critLength
+                     ds -&gt; minimum $ map lstart ds
+      lstart   a = lfinish a - aLength a
+      critical a = estart a == lstart a
+      format   a = printf " %4c | %6d | %7d | %6d | %7d | %8c "
+                     (aName a) (estart a) (efinish a) (lstart a) (lfinish a) 
+                     (if critical a then 'Y' else 'N')
+
+  in  unlines $ " name | estart | efinish | lstart | lfinish | critical " 
+              : "------+--------+---------+--------+---------+----------"
+              : map format activities
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h3>GolfScript</h3>
+<p>A GolfScript solution - just because it can be done.</p>
+<pre><code># Parse input
+'['-']'%:I{[.1&lt;\2&gt;';'/(~\{','/{`{\1&lt;=}+I?I?}/}%0]}%
+
+# Determine estart iteratively
+{:A{[~{A=~@+\;\;}2$%+$-1=]}%.A=!}do
+
+# Invert dependencies
+A{~@+\;\;}%$-1=:M;
+[.,,]zip{[~{\~\2=@?0&lt;{;}*}+[A.,,]zip%\:^~;;@^3=M]}%
+
+# Determine lfinish iteratively
+{:A{[~{A=~\;\;\-\;}3$%+$0=]}%.A=!}do
+
+# Print results
+
+# Formats numbers (right aligned, 7 chars)
+{`&quot;       &quot;\+-7&gt;}:F; 
+
+&quot; name | estart | efinish | lstart | lfinish | critical \n&quot;
+&quot;------+--------+---------+--------+---------+----------\n&quot;
+@{&quot;    &quot;\(&quot; |&quot;@.2=F&quot; | &quot;@.~;@+\;F&quot; |&quot;@.~\;\;\-F&quot; | &quot;@.3=F&quot; |        &quot;@~-\;+!&quot;NY&quot;1/=n}%
+</code></pre>
+<p>Example (<a href="http://golfscript.apphb.com/?c=OyJbQToxNV1bQjo3XVtDOjk7QSxCXVtEOjM7QixDXVtFOjU7Q11bRjoxMTtEXVtHOjQ7RCxFLEZdIgoKIyBQYXJzZSBpbnB1dAonWyctJ10nJTpJe1suMTxcMj4nOycvKH5ceycsJy97YHtcMTw9fStJP0k%2FfS99JTBdfSUKCiMgRGV0ZXJtaW5lIGVzdGFydCBpdGVyYXRpdmVseQp7OkF7W357QT1%2BQCtcO1w7fTIkJSskLTE9XX0lLkE9IX1kbwoKIyBJbnZlcnQgZGVwZW5kZW5jaWVzCkF7fkArXDtcO30lJC0xPTpNOwpbLiwsXXppcHtbfntcflwyPUA%2FMDx7O30qfStbQS4sLF16aXAlXDpefjs7QF4zPU1dfSUKCiMgRGV0ZXJtaW5lIGxmaW5pc2ggaXRlcmF0aXZlbHkKezpBe1t%2Be0E9flw7XDtcLVw7fTMkJSskMD1dfSUuQT0hfWRvCgojIFByaW50IHJlc3VsdHMKCiMgRm9ybWF0cyBudW1iZXJzIChyaWdodCBhbGlnbmVkLCA3IGNoYXJzKQp7YCIgICAgICAgIlwrLTc%2BfTpGOyAKCiIgbmFtZSB8IGVzdGFydCB8IGVmaW5pc2ggfCBsc3RhcnQgfCBsZmluaXNoIHwgY3JpdGljYWwgXG4iCiItLS0tLS0rLS0tLS0tLS0rLS0tLS0tLS0tKy0tLS0tLS0tKy0tLS0tLS0tLSstLS0tLS0tLS0tXG4iCkB7IiAgICAiXCgiIHwiQC4yPUYiIHwgIkAufjtAK1w7RiIgfCJALn5cO1w7XC1GIiB8ICJALjM9RiIgfCAgICAgICAgIkB%2BLVw7KyEiTlkiMS89bn0lCg%3D%3D&amp;run=true" rel="nofollow noreferrer">online</a>):</p>
+<pre><code>&gt; [A:15][B:7][C:9;A,B][D:3;B,C][E:5;C][F:11;D][G:4;D,E,F]
+
+ name | estart | efinish | lstart | lfinish | critical 
+------+--------+---------+--------+---------+----------
+    A |      0 |      15 |      0 |      15 |        Y
+    B |      0 |       7 |      8 |      15 |        N
+    C |     15 |      24 |     15 |      24 |        Y
+    D |     24 |      27 |     24 |      27 |        Y
+    E |     24 |      29 |     33 |      38 |        N
+    F |     27 |      38 |     27 |      38 |        Y
+    G |     38 |      42 |     38 |      42 |        Y
+</code></pre>
+</div>
+<div id="pu2" class="pu"><h2>C#, many many characters.</h2>
+<pre class="lang-cpp prettyprint-override"><code>using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApplication2
+{
+    class Program
+    {
+        static char[] COLON = { ':' };
+        static char[] SEMI_COLON = { ';' };
+        static char[] COMMA = { ',' };
+        static char[] BRACE = { ']' };
+
+        static void Main(string[] args)
+        {
+            int step = 0;
+
+            List&lt;Activity&gt; i = new List&lt;Activity&gt;();
+            Console.Write(&quot;Enter input: &quot;);
+            string s = Console.ReadLine().Replace(&quot;[&quot;, null);
+            foreach (string x in s.Split(BRACE, StringSplitOptions.RemoveEmptyEntries))
+            {
+                string[] y = x.Split(SEMI_COLON);
+                Activity n = new Activity(x.Split(COLON)[0], Int32.Parse(y[0].Split(COLON)[1]));
+                n.Name = x.Split(COLON)[0];
+                n.Dependencies = (y.Length &gt; 1) ? y[1].Split(COMMA).ToList() : new List&lt;string&gt;();
+                i.Add(n);
+            }
+
+            do
+            {
+                List&lt;string&gt; d = i.Where(x =&gt; x.Done()).Select(y =&gt; y.Name).ToList();
+                foreach (Activity working in i.Where(x =&gt; x.Dependencies.Except(d).Count() == 0 &amp;&amp; !x.Done())) working.Step(step);
+                step++;
+            } while (i.Count(x =&gt; !x.Done()) &gt; 0);
+
+            foreach (Activity a in i)
+            {
+                Activity next = i.OrderBy(x =&gt; x.EFinish).Where(x =&gt; x.Dependencies.Contains(a.Name)).FirstOrDefault();
+                a.LFinish = (next == null) ? a.EFinish : next.EStart;
+                a.LStart = a.LFinish - a.Duration;
+            }
+
+            Console.WriteLine(&quot; name | estart | efinish | lstart | lfinish | critical&quot;);
+            Console.WriteLine(&quot;------+--------+---------+--------+---------+----------&quot;);
+            foreach (Activity a in i)
+            {
+                Console.Write(a.Name.PadLeft(5) + &quot; |&quot;);
+                Console.Write(a.EStart.ToString().PadLeft(7) + &quot; |&quot;);
+                Console.Write(a.EFinish.ToString().PadLeft(8) + &quot; |&quot;);
+                Console.Write(a.LStart.ToString().PadLeft(7) + &quot; |&quot;);
+                Console.Write(a.LFinish.ToString().PadLeft(8) + &quot; |&quot;);
+                string critical = (a.LFinish - a.EFinish == 0 &amp;&amp; a.LStart - a.EStart == 0) ? &quot;Y&quot; : &quot;N&quot;;
+                Console.WriteLine(critical.PadLeft(9));
+            }
+            Console.WriteLine(&quot;Hit any key to exit.&quot;);
+            Console.ReadKey();
+        }
+    }
+
+    class Activity
+    {
+        public string Name {get ; set;}
+        public int Duration {get ; set;}
+        public List&lt;string&gt; Dependencies {get ; set;} 
+        public int EStart {get ; set;}
+        public int EFinish {get ; set;}
+        public int LStart { get; set; }
+        public int LFinish { get; set; }
+        private int steps = 0;
+
+        public Activity(string name, int time)
+        {
+            EStart = -1;
+            EFinish = 0;
+            LStart = 0;
+            LFinish = 0;
+            Name = name;
+            Duration = time;
+            steps = time;
+        }
+
+        public void Step(int count)
+        {
+            EStart = (EStart == -1) ? count : EStart;
+            if (--steps == 0) EFinish = count + 1;
+        }
+
+        public bool Done()
+        {
+            return steps == 0;
+        }
+    }
+}
+</code></pre>
+<p>I would hesitate to call this &quot;the most elegant solution&quot;, but it trades the verbosity of C# for ease of parsing input and formatting output (and has Linq).</p>
+<p>I basically just loops through all of the activities and increments a time counter if all their dependencies have been completed until all of them are done.  That gives the earliest starts and earliest finishes.  The latest finish for each is simply the earliest start among activities that have it as a dependency, and the latest start is the activity duration minus the latest start.</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/23769/">23769</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
