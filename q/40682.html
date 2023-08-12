@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::40682</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>nan</td><td></td><td>141030T155018Z</td><td><a href="https://codegolf.stackexchange.com/questions/40682/underground-geek-rock-band-names/40707#40707">isaacg</a></td></tr>
+<tr d-ix="1"><td>nan</td><td></td><td>141030T153244Z</td><td><a href="https://codegolf.stackexchange.com/questions/40682/underground-geek-rock-band-names/40705#40705">Rip Leeb</a></td></tr>
+<tr d-ix="2"><td>003</td><td>Python</td><td>141030T083749Z</td><td><a href="https://codegolf.stackexchange.com/questions/40682/underground-geek-rock-band-names/40694#40694">Beta Dec</a></td></tr>
+<tr d-ix="3"><td>nan</td><td></td><td>141030T080242Z</td><td><a href="https://codegolf.stackexchange.com/questions/40682/underground-geek-rock-band-names/40692#40692">Peter Ta</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>Pyth</h1>
+<p>Encoder:</p>
+<pre><code>Jf-\'T'jdm@JdjswlJ
+</code></pre>
+<p>Takes two arguments: a dictionary on one line, and the date, in DDMMYYYY form on the next.</p>
+<p>Filters out words with apostrophes from the dictionary, then converts the current date into a number with base equal to the dictionary length, and then chooses words from the filtered dictionary with indexes of the digits, and prints them out, space separated.</p>
+<p>Today's result:</p>
+<pre><code>$ pyth -c &quot;Jf-\'T'jdm@JdjswlJ&quot; &lt;&lt;&lt; '/usr/share/dict/words
+30102014'
+Annam pals
+</code></pre>
+<p>Future results:</p>
+<pre><code>31102014
+Antarctica economical
+
+01112014
+Abernathy carousels
+
+02112014
+Acadia unsnarled
+
+03112014
+Actaeon oversimplifying
+
+04112014
+Adela dugouts
+
+0511204
+Adolph Maude
+</code></pre>
+<p>To decode, run the date through the program and see if the output matches the name given. I'm not going to list any more band names, but from how the program works it should be clear there are no repeats.</p>
+</div>
+<div id="pu1" class="pu"><h1>Javascript</h1>
+
+<p>Since the authorities forget names after 5 years, we can leave the millennium, century, and decade digits out of the year. We can also use day of year (DoY). This program accepts input in the form of YDoY</p>
+
+<p><br /></p>
+
+<h2>Encoder</h2>
+
+<p>The encoder converts the base 10 date to a base 26 string, then shifts it over 10 characters to remove any numbers. Then we add vowels, spaces, and capitalization to make the words look like english.</p>
+
+<pre><code>function encodeName(date){
+    var alphabet = '0123456789abcdefghijklmnopqrstuvwxyz';
+    var vowels = 'aeiou';
+    var rebased = date.toString(26);
+    var shifted = '';
+    var name = '';
+    for(var c in rebased){
+        var i = alphabet.indexOf(rebased[c]);
+        shifted += alphabet.substring(i+10, i+11)
+    }
+    for(var a in shifted)
+            name += a%2 == 0 ? shifted[a].toUpperCase() + vowels[a%vowels.length] : shifted[a] + ' ';
+
+    return name.trim();
+}
+</code></pre>
+
+<p><br /></p>
+
+<h2>Decoder</h2>
+
+<pre><code>function decodeName(name){
+    var alphabet = '0123456789abcdefghijklmnopqrstuvwxyz';
+    var vowels = 'aeiou';
+    var stripped = '';
+    var shifted = '';
+
+    for(var n in name)
+        stripped += vowels.indexOf(name[n]) &gt;= 0 || name[n] == ' ' ? '' : name[n].toLowerCase();
+
+    for(var n in stripped)
+        shifted += alphabet[alphabet.indexOf(stripped[n])-10];
+
+    return parseInt(shifted, 26);
+}
+</code></pre>
+
+<p><br /></p>
+
+<h2>Examples</h2>
+
+<p><div class="snippet" data-lang="js" data-hide="false">
+<div class="snippet-code">
+<pre class="snippet-code-js lang-js prettyprint-override"><code>function encodeName(b){b=b.toString(26);var a="",d="",c;for(c in b)var f="0123456789abcdefghijklmnopqrstuvwxyz".indexOf(b[c]),a=a+"0123456789abcdefghijklmnopqrstuvwxyz".substring(f+10,f+11);for(var e in a)d+=0==e%2?a[e].toUpperCase()+"aeiou"[e%5]:a[e]+" ";return d.trim()}
+function decodeName(b){var a="",d="",c;for(c in b)a+=0&lt;="aeiou".indexOf(b[c])||" "==b[c]?"":b[c].toLowerCase();for(c in a)d+="0123456789abcdefghijklmnopqrstuvwxyz"["0123456789abcdefghijklmnopqrstuvwxyz".indexOf(a[c])-10];return parseInt(d,26)};
+
+var date = 1003;
+alert(encodeName(date) + ' -- ' + decodeName(encodeName(date)));
+var date = 9123;
+alert(encodeName(date) + ' -- ' + decodeName(encodeName(date)));
+var date = 3333;
+alert(encodeName(date) + ' -- ' + decodeName(encodeName(date)));
+var date = 2321;
+alert(encodeName(date) + ' -- ' + decodeName(encodeName(date)));
+var date = 0345;
+alert(encodeName(date) + ' -- ' + decodeName(encodeName(date)));</code></pre>
+</div>
+</div>
+</p>
+</div>
+<div id="pu2" class="pu"><h1>Python 3</h1>
+
+<h2>Generator</h2>
+
+<p>This generates shorter names so they seem a little less obscure.</p>
+
+<pre><code>import string
+
+date = input()
+vowels = 'aeiou'
+name = ''
+consonants = ''.join(i for i in string.ascii_lowercase if not i in vowels)
+for i in range(0,len(date),2):
+    name += vowels[int(date[i])%len(vowels)]+consonants[int(date[i])%len(consonants)]
+print(name)
+</code></pre>
+
+<h3>Example</h3>
+
+<pre><code>Input:  30102014
+Output: ofecidec
+</code></pre>
+
+<h2>Validator</h2>
+
+<p>Just performs the above and compares the result with the supplied name.</p>
+
+<pre><code>import string
+
+date, name = input().split(',')
+vowels = 'aeiou'
+tname = ''
+consonants = ''.join(i for i in string.ascii_lowercase if not i in vowels)
+for i in range(0,len(date),2):
+    tname += vowels[int(date[i])%len(vowels)]+consonants[int(date[i])%len(consonants)]
+print(tname == name)
+</code></pre>
+
+<h3>Examples</h3>
+
+<pre><code>Input:  30102014,ofecidec
+Output: True
+
+Input:  30102014,ofocidoc
+Output: False
+</code></pre>
+
+<p>Input should be in the format:</p>
+
+<pre><code>DDMMYYYY,NAME
+</code></pre>
+</div>
+<div id="pu3" class="pu"><h3>Encoder</h3>
+
+<pre><code>{18+65}%
+</code></pre>
+
+<p>Expects input in the form <code>YYYYMMDD</code>. <a href="http://golfscript.apphb.com/?c=OycyMDE0MTAzMScKCnsxOCs2NX0l" rel="nofollow">Online demo</a></p>
+
+<h3>Decoder</h3>
+
+<pre><code>n/~{18+65}%=
+</code></pre>
+
+<p>Expects input in the form</p>
+
+<pre><code>BANDNAME
+YYYYMMDD
+</code></pre>
+
+<p><a href="http://golfscript.apphb.com/?c=OydEQUJBQ0FGQUNBQkFFQUNBCjIwMTQxMDMxJwoKbi9%2BezE4KzY1fSU9" rel="nofollow">Online demo</a></p>
+
+<p>I'm not going to post a list of 260 names because a) that would be a complete waste of space; b) it's easy to convince yourself that the encoder is an injection.</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/40682/">40682</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
