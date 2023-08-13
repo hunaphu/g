@@ -50,7 +50,49 @@ T`⠂-⣿`$0
 </code></pre>
 <p><a href="https://tio.run/##Hc85TsNQFIXh3qugSMGgRAlSVgElDZ0pKGgoEEUKFJnJzGAmM8N574GZwUxhJnv5N2LstFdX@r8zMTo5Nj5Sy7KK11@v9za8Yb/ho@kyru1VvK5S1Wv2@JW@/F6q@qVyzWt2D@QPMyjEBJgQRSjGRJgYCSUYYRKUohYmxbSwATbEBbgQG2FjXISLscImOOESbIpt4VJcyxucKvsVL88OFa0Ck@ezDAW5rVOfRXNovmBoAS2iJbSMVtAqWkPraKNj20RbaBvtoN2Cqj20jw7QITpCx@gEnaKzjt8gixw6RxfFHF2iK3SNbtAtukP36AE9djY@oWf0gl7RWzFZ7@gDfaIv9I1@0C/6Q@1/" rel="nofollow noreferrer" title="Retina – Try It Online">Try it online!</a></p>
 <p><em>-15 with another eval stage</em></p>
-<p>Shaves a few bytes off <a href="https://codegolf.stackexchange.com/a/264078/85334">direct transliteration</a> by spending 40 on an incredibly convoluted way of &quot;doubling&quot; the input so the final transliteration stage can use more ranges.</p>
+<p>Shaves a few bytes off <a href="https://codegolf.stackexchange.com/a/264078/85334">direct transliteration</a> by spending 40 on an incredibly convoluted way of &quot;doubling&quot; the input so the final transliteration stage can use more ranges. The doubling is necessary because every possible output is even; if the bits in a byte are <code>76543210</code> then the dots in the corresponding Braille character are</p>
+<pre><code>0 3
+1 4
+2 5
+6 7
+</code></pre>
+<p>(Although this handles longer inputs fine, in the explanation I'll assume only the single character input required by the challenge for the sake of simplicity.)</p>
+<h1>Explanation:</h1>
+<p>The entire program consists of two eval stages, which construct then run Retina programs:</p>
+<h2>Eval stage 1</h2>
+<pre><code>.
+255*x
+</code></pre>
+<p>Replace any and all characters in the input with 255 copies of the letter <code>x</code>.</p>
+<pre><code>Y`x`⠁-⣿
+</code></pre>
+<p>Cycling transliterate those into the range of all 255 nonzero Braille characters. This creates that range as a string.</p>
+<pre><code>.
+ $0
+</code></pre>
+<p>Prepend a space to every character in the range.</p>
+<pre><code>.+
+Y`$0`$-1
+</code></pre>
+<p>Interpolate the spaced range and the unspaced range into the string representation of a cyclic transliterate.</p>
+<h2>Eval stage 2</h2>
+<pre><code>K`⠂⠆⡀⡆⠐⠖⡐⡖⠠⠦⡠⡦⠰⠶⡰⡶⢀⢆⣀⣆⢐⢖⣐⣖⢠⢦⣠⣦⢰⢶⣰⣶
+</code></pre>
+<p>The literal string <code>⠂⠆⡀⡆⠐⠖⡐⡖⠠⠦⡠⡦⠰⠶⡰⡶⢀⢆⣀⣆⢐⢖⣐⣖⢠⢦⣠⣦⢰⢶⣰⣶</code>.</p>
+<pre><code>L|-`.
+</code></pre>
+<p>Join every character on hyphens.</p>
+<pre><code>.+
+T`⠂-⣿`$0
+</code></pre>
+<p>Append that result to <code><code>T</code>⠂-⣿`</code>.</p>
+<h2>What actually gets run on the input</h2>
+<pre><code>Y` ⠁ ⠂ ⠃ ⠄ ⠅ ⠆ ⠇ ⠈ ⠉ ⠊ ⠋ ⠌ ⠍ ⠎ ⠏ ⠐ ⠑ ⠒ ⠓ ⠔ ⠕ ⠖ ⠗ ⠘ ⠙ ⠚ ⠛ ⠜ ⠝ ⠞ ⠟ ⠠ ⠡ ⠢ ⠣ ⠤ ⠥ ⠦ ⠧ ⠨ ⠩ ⠪ ⠫ ⠬ ⠭ ⠮ ⠯ ⠰ ⠱ ⠲ ⠳ ⠴ ⠵ ⠶ ⠷ ⠸ ⠹ ⠺ ⠻ ⠼ ⠽ ⠾ ⠿ ⡀ ⡁ ⡂ ⡃ ⡄ ⡅ ⡆ ⡇ ⡈ ⡉ ⡊ ⡋ ⡌ ⡍ ⡎ ⡏ ⡐ ⡑ ⡒ ⡓ ⡔ ⡕ ⡖ ⡗ ⡘ ⡙ ⡚ ⡛ ⡜ ⡝ ⡞ ⡟ ⡠ ⡡ ⡢ ⡣ ⡤ ⡥ ⡦ ⡧ ⡨ ⡩ ⡪ ⡫ ⡬ ⡭ ⡮ ⡯ ⡰ ⡱ ⡲ ⡳ ⡴ ⡵ ⡶ ⡷ ⡸ ⡹ ⡺ ⡻ ⡼ ⡽ ⡾ ⡿ ⢀ ⢁ ⢂ ⢃ ⢄ ⢅ ⢆ ⢇ ⢈ ⢉ ⢊ ⢋ ⢌ ⢍ ⢎ ⢏ ⢐ ⢑ ⢒ ⢓ ⢔ ⢕ ⢖ ⢗ ⢘ ⢙ ⢚ ⢛ ⢜ ⢝ ⢞ ⢟ ⢠ ⢡ ⢢ ⢣ ⢤ ⢥ ⢦ ⢧ ⢨ ⢩ ⢪ ⢫ ⢬ ⢭ ⢮ ⢯ ⢰ ⢱ ⢲ ⢳ ⢴ ⢵ ⢶ ⢷ ⢸ ⢹ ⢺ ⢻ ⢼ ⢽ ⢾ ⢿ ⣀ ⣁ ⣂ ⣃ ⣄ ⣅ ⣆ ⣇ ⣈ ⣉ ⣊ ⣋ ⣌ ⣍ ⣎ ⣏ ⣐ ⣑ ⣒ ⣓ ⣔ ⣕ ⣖ ⣗ ⣘ ⣙ ⣚ ⣛ ⣜ ⣝ ⣞ ⣟ ⣠ ⣡ ⣢ ⣣ ⣤ ⣥ ⣦ ⣧ ⣨ ⣩ ⣪ ⣫ ⣬ ⣭ ⣮ ⣯ ⣰ ⣱ ⣲ ⣳ ⣴ ⣵ ⣶ ⣷ ⣸ ⣹ ⣺ ⣻ ⣼ ⣽ ⣾ ⣿`⠁⠂⠃⠄⠅⠆⠇⠈⠉⠊⠋⠌⠍⠎⠏⠐⠑⠒⠓⠔⠕⠖⠗⠘⠙⠚⠛⠜⠝⠞⠟⠠⠡⠢⠣⠤⠥⠦⠧⠨⠩⠪⠫⠬⠭⠮⠯⠰⠱⠲⠳⠴⠵⠶⠷⠸⠹⠺⠻⠼⠽⠾⠿⡀⡁⡂⡃⡄⡅⡆⡇⡈⡉⡊⡋⡌⡍⡎⡏⡐⡑⡒⡓⡔⡕⡖⡗⡘⡙⡚⡛⡜⡝⡞⡟⡠⡡⡢⡣⡤⡥⡦⡧⡨⡩⡪⡫⡬⡭⡮⡯⡰⡱⡲⡳⡴⡵⡶⡷⡸⡹⡺⡻⡼⡽⡾⡿⢀⢁⢂⢃⢄⢅⢆⢇⢈⢉⢊⢋⢌⢍⢎⢏⢐⢑⢒⢓⢔⢕⢖⢗⢘⢙⢚⢛⢜⢝⢞⢟⢠⢡⢢⢣⢤⢥⢦⢧⢨⢩⢪⢫⢬⢭⢮⢯⢰⢱⢲⢳⢴⢵⢶⢷⢸⢹⢺⢻⢼⢽⢾⢿⣀⣁⣂⣃⣄⣅⣆⣇⣈⣉⣊⣋⣌⣍⣎⣏⣐⣑⣒⣓⣔⣕⣖⣗⣘⣙⣚⣛⣜⣝⣞⣟⣠⣡⣢⣣⣤⣥⣦⣧⣨⣩⣪⣫⣬⣭⣮⣯⣰⣱⣲⣳⣴⣵⣶⣷⣸⣹⣺⣻⣼⣽⣾⣿
+</code></pre>
+<p>The program generated and run in eval stage 1. Transliterates the input to the character at twice its index in the Braille range, &quot;doubling&quot; it.</p>
+<pre><code>T`⠂-⣿`⠂-⠆-⡀-⡆-⠐-⠖-⡐-⡖-⠠-⠦-⡠-⡦-⠰-⠶-⡰-⡶-⢀-⢆-⣀-⣆-⢐-⢖-⣐-⣖-⢠-⢦-⣠-⣦-⢰-⢶-⣰-⣶
+</code></pre>
+<p>The program generated and run in eval stage 2. Transliterates the doubled input into a bunch of smaller ranges; every other hyphen simply exists for alignment and is parsed as a literal hyphen rather than part of a range.</p>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://github.com/DennisMitchell/jellylanguage" rel="nofollow noreferrer">Jelly</a>, 13 bytes</h1>
 <pre><code>Bṫ7⁽1¢œ?Ḅ+⁽$ṁ
