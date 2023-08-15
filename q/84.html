@@ -26,7 +26,7 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>100</td><td>X86_64/Linux Machine Code</td><td>230815T201325Z</td><td><a href="https://codegolf.stackexchange.com/questions/84/interpret-brainfuck/264220#264220">Noah</a></td></tr>
+<tr d-ix="0"><td>099</td><td>X86_64/Linux Machine Code</td><td>230815T201325Z</td><td><a href="https://codegolf.stackexchange.com/questions/84/interpret-brainfuck/264220#264220">Noah</a></td></tr>
 <tr d-ix="1"><td>660</td><td>niceexpr</td><td>230502T214536Z</td><td><a href="https://codegolf.stackexchange.com/questions/84/interpret-brainfuck/260645#260645">bigyihsu</a></td></tr>
 <tr d-ix="2"><td>234</td><td>Rattle</td><td>220208T005004Z</td><td><a href="https://codegolf.stackexchange.com/questions/84/interpret-brainfuck/242522#242522">Daniel H</a></td></tr>
 <tr d-ix="3"><td>148</td><td>Vyxal</td><td>220613T054245Z</td><td><a href="https://codegolf.stackexchange.com/questions/84/interpret-brainfuck/248543#248543">lyxαl</a></td></tr>
@@ -96,14 +96,14 @@
 <tr d-ix="67"><td>204</td><td>Windows PowerShell</td><td>110213T212506Z</td><td><a href="https://codegolf.stackexchange.com/questions/84/interpret-brainfuck/921#921">Joey</a></td></tr>
 <tr d-ix="68"><td>368</td><td>C</td><td>110131T002311Z</td><td><a href="https://codegolf.stackexchange.com/questions/84/interpret-brainfuck/267#267">jtjacque</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h2>X86_64/Linux Machine Code, <strike>104</strike> <strike>101</strike> 100</h2>
+<div id="pu0" class="pu"><h2>X86_64/Linux Machine Code, <strike>104</strike> <strike>101</strike> <strike>100</strike> 99</h2>
 <p><strong>Usage:</strong></p>
 <pre><code>$&gt; gcc -s -static -nostartfiles -nodefaultlibs -nostdlib -Wl,--build-id=none bf.S -o bf
 $&gt; ./bf &lt;input&gt;
 </code></pre>
 <h4>Notes</h4>
 <ul>
-<li>Size is measured in machine code (i.e 100 bytes of <code>.text</code>)</li>
+<li>Size is measured in machine code (i.e 99 bytes of <code>.text</code>)</li>
 <li>89 bytes if reads input prog from stdin</li>
 </ul>
 <pre><code>#define BF_LBRACE   91
@@ -136,11 +136,17 @@ _start:
     pop %rdi
     /* O_RDONLY is zero.  */
     syscall
+
     /* Error is okay, we will eventually just exit w.o executing.  */
     movl    %eax, %edi
-    xorl    %eax, %eax
-#endif
+    /* bss initialized memory is zero. This is cheapest way to zero
+       out eax.  */
     movl    $(G_mem + 65536), %esi
+    lodsl
+#else
+    movl    $(G_mem + 65536), %esi
+#endif
+
     /* eax/edi are already zero which happens to match
        SYS_read/STDIN_FILENO.  */
     syscall
@@ -164,6 +170,7 @@ _start:
        places).  */
     shrl    $15, %edx
 run_program:
+    /* Need to zero eax.  */
     movzbl  (%rcx), %eax
     incl    %ecx
     /* %al contains the program &quot;instruction&quot;. Its unique to one of
