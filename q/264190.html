@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::264190</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>040</td><td>05AB1E</td><td>230815T091556Z</td><td><a href="https://codegolf.stackexchange.com/questions/264190/iterate-over-strings-ii/264192#264192">Kevin Cr</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, 40 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
+<pre><code>A£©Î×ì2×œÙʒáÙ®Q}ʒÔág;Q}ʒS&gt;ƶ©þε®s¡`áÃgĀ}P
+</code></pre>
+<p>Brute-force, so very slow. Is able to output the result for <span class="math-container">\$n=2\$</span> in about 20 seconds on TIO.</p>
+<p><a href="https://tio.run/##yy9OTMpM/f/f8dDiQysP9x2efniN0eHpRycfnnlq0uGFh2ceWhdYC2RNObww3RrECrY7tg2ocN@5rYfWFR9amABU05x@pKE24P9/o/@6unn5ujmJVZUA" rel="nofollow noreferrer">Try it online.</a></p>
+<p><strong>Explanation:</strong></p>
+
+<p>Step 1: Create a string with the correct characters, to comply to the first and sixth rules (&quot;<em>Your string should contain exactly two each of the first <span class="math-container">\$n\$</span> letters of the alphabet.</em>&quot; and &quot;<em>It must contain exactly <span class="math-container">\$2n\$</span> zeros.</em>&quot;), and get all its unique permutations:</p>
+<pre class="lang-python prettyprint-override"><code>A               # Push the lowercase alphabet
+ £              # Pop and leave the (implicit) input amount of leading characters
+  ©             # Store it in variable `®` (without popping)
+   Î            # Push 0 and the input-integer
+    ×           # Pop both, and push a string with the input amount of 0s
+     ì          # Prepend it to the string
+      2×        # Double the entire string
+œ               # Pop and push a list of all its permutations
+ Ù              # Uniquify this list
+</code></pre>
+<p><a href="https://tio.run/##AScA2P9vc2FiaWX//0HCo8Kpw47Dl8OsMsOXxZPDmf//Mv8tLW5vLWxhenk" rel="nofollow noreferrer">Try just step 1 online.</a></p>
+<p>Step 2: Verify the fifth rule (&quot;<em>If there is a letter at index <code>i</code> in the string, all the letters earlier in the alphabet must occur somewhere at the indices <code>1..i-1</code>.</em>&quot;):</p>
+<pre class="lang-python prettyprint-override"><code>ʒ    }          # Filter this list of strings by:
+ á              #  Only keep its letters, removing the 0s
+  Ù             #  Uniquify it
+   ®Q           #  Check whether it's equal to string `®` of step 1
+</code></pre>
+<p><a href="https://tio.run/##ATEAzv9vc2FiaWX//0HCo8Kpw47Dl8OsMsOXxZPDmcqSw6HDmcKuUX3//zL/LS1uby1sYXp5" rel="nofollow noreferrer">Try the first two steps online.</a></p>
+<p>Step 3: Verify the second rule (&quot;<em>It should not contain the same letter twice in a row</em>&quot;):</p>
+<pre class="lang-python prettyprint-override"><code>ʒ     }         # Filter it again by:
+ Ô              #  Connected uniquify its characters
+  á             #  Then remove all 0s again by keeping letters
+   g;           #  Pop and push its length, and halve it
+     Q          #  Check if halve this length equals the (implicit) input-integer
+</code></pre>
+<p><a href="https://tio.run/##ATsAxP9vc2FiaWX//0HCo8Kpw47Dl8OsMsOXxZPDmcqSw6HDmcKuUX3KksOUw6FnO1F9//8y/y0tbm8tbGF6eQ" rel="nofollow noreferrer">Try the first three steps online.</a></p>
+<p>Step 4: Verify the seventh rule (&quot;<em>For each zero there must exist a pair of identical letters so that one of the pair is somewhere to its left and one of the pair is somewhere to its right in the string.</em>&quot;), which implicitly also verifies the third and fourth rules at the same time (&quot;<em>It must start with the letter <code>a</code>.</em>&quot; and &quot;<em>It must end with a letter</em>&quot;), and output the result:</p>
+<pre class="lang-python prettyprint-override"><code>ʒ               # Filter it once more:
+ S              #  Convert the string to a list of characters
+  &gt;             #  Increase all 0s to 1s (and keep the letters unchanged)
+   ƶ            #  Multiply all values by their 1-based index
+    ©           #  Store this list as new variable `®` (without popping)
+     þ          #  Pop and keep just its digits, removing the letters
+      ε         #  Map over this list of integers:
+       ®        #   Push list `®`
+        s       #   Swap so the current integer is at the top
+         ¡      #   Split list `®` by the current integer, leaving a pair of lists
+          `     #   Pop and push both lists to the stack
+           á    #   Only keep the letters of the second string
+            Ã   #   Only keep the letters from the first string that are also in the second
+             gĀ #   Check if what remains is NOT empty
+      }P        #  After the map: product to check if all are truthy
+                # (after which the result is output implicitly)
+</code></pre>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/264190/">264190</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
