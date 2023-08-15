@@ -105,6 +105,8 @@ $&gt; ./bf &lt;input&gt;
 <ul>
 <li>Size is measured in machine code (i.e 99 bytes of <code>.text</code>)</li>
 <li>89 bytes if reads input prog from stdin</li>
+<li>Save 4 more bytes without <code>BF_EXITCLEANLY</code> (it will segfault to exit).</li>
+<li>So minimum possible size <strong>85</strong> bytes.</li>
 </ul>
 <pre><code>#define BF_LBRACE   91
 #define BF_RBRACE   93
@@ -119,7 +121,7 @@ $&gt; ./bf &lt;input&gt;
 #define BF_RSHIFT   62
 
 #define BF_READFILE
-
+#define BF_EXITCLEANLY
     .global _start
     .text
 _start:
@@ -254,11 +256,13 @@ next_insn:
     cmpl    %ecx, %ebp
     jg  run_program
 
+#ifdef BF_EXITCLEANLY
     /* eax has zero upper 24 bits so we can cheat and use movb here.
        (This isn't exact correct, assuming no IO errors on last
        instruction).  */
     movb    $60, %al
     syscall
+#endif
 
     .section .bss
     .align  65536
