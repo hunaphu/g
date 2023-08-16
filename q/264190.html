@@ -26,15 +26,55 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>139</td><td>JavaScript V8</td><td>230815T132951Z</td><td><a href="https://codegolf.stackexchange.com/questions/264190/iterate-over-strings-ii/264206#264206">Arnauld</a></td></tr>
-<tr d-ix="1"><td>114</td><td>Retina</td><td>230815T220656Z</td><td><a href="https://codegolf.stackexchange.com/questions/264190/iterate-over-strings-ii/264223#264223">Neil</a></td></tr>
-<tr d-ix="2"><td>032</td><td>Jelly</td><td>230815T205122Z</td><td><a href="https://codegolf.stackexchange.com/questions/264190/iterate-over-strings-ii/264222#264222">Jonathan</a></td></tr>
+<tr d-ix="0"><td>035</td><td>Jelly</td><td>230815T205122Z</td><td><a href="https://codegolf.stackexchange.com/questions/264190/iterate-over-strings-ii/264222#264222">Jonathan</a></td></tr>
+<tr d-ix="1"><td>139</td><td>JavaScript V8</td><td>230815T132951Z</td><td><a href="https://codegolf.stackexchange.com/questions/264190/iterate-over-strings-ii/264206#264206">Arnauld</a></td></tr>
+<tr d-ix="2"><td>114</td><td>Retina</td><td>230815T220656Z</td><td><a href="https://codegolf.stackexchange.com/questions/264190/iterate-over-strings-ii/264223#264223">Neil</a></td></tr>
 <tr d-ix="3"><td>238</td><td>Perl 5</td><td>230815T172519Z</td><td><a href="https://codegolf.stackexchange.com/questions/264190/iterate-over-strings-ii/264215#264215">Kjetil S</a></td></tr>
 <tr d-ix="4"><td>215</td><td>Haskell</td><td>230815T132630Z</td><td><a href="https://codegolf.stackexchange.com/questions/264190/iterate-over-strings-ii/264204#264204">matteo_c</a></td></tr>
 <tr d-ix="5"><td>061</td><td>Charcoal</td><td>230815T101954Z</td><td><a href="https://codegolf.stackexchange.com/questions/264190/iterate-over-strings-ii/264194#264194">Neil</a></td></tr>
 <tr d-ix="6"><td>040</td><td>05AB1E</td><td>230815T091556Z</td><td><a href="https://codegolf.stackexchange.com/questions/264190/iterate-over-strings-ii/264192#264192">Kevin Cr</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://v8.dev/" rel="nofollow noreferrer">JavaScript (V8)</a>, 139 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 35 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
+<pre><code>Øaḣx2;Œ!ḟQṢƑɗƇɗJ$⁼ƝÐṂṣⱮf/ƇƑ¥ƇḤOnaƊQ
+</code></pre>
+<p>A monadic Link that accepts <span class="math-container">\$n\$</span> and yields a list of lists of characters.</p>
+<p><strong><a href="https://tio.run/##AU4Asf9qZWxsef//w5hh4bijeDI7xZIh4bifUeG5osaRyZfGh8mXSiTigbzGncOQ4bmC4bmj4rGuZi/Gh8aRwqXGh@G4pE9uYcaKUf/Dh1n//zI" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></strong> (Will time out for anything above two though!)</p>
+<h3>How?</h3>
+<p>Constructs all strings fulfilling the conditions with natural numbers in the place of zeros by filtering all permutations of the letters and numbers that, when deduplicated have their letters in order, maps the numbers back to zeros, and then deduplicates.</p>
+<pre><code>Øaḣx2;Œ!ḟQṢƑɗƇɗJ$⁼ƝÐṂṣⱮf/ƇƑ¥ƇḤOnaƊQ - Link: n
+Øa                                  - alphabet
+  ḣ                                 - head to {n}
+   x2                               - times two -&gt; &quot;aabb...&quot;
+                $                   - last two links as a monad f(Letters):
+               J                    -   indices -&gt; [1..2n]
+              ɗ                     -   last three links as a dyad - f(Letters, Indices)
+     ;                              -   {Letters} concatenate {Indices} -&gt; e.g. ['a','a','b','b',1,2,3,4]
+      Œ!                            -   all permutations
+             Ƈ                      -   keep those {Permuations} for which:
+            ɗ                       -     last three links as a dyad - f(Permutation, indices)
+        ḟ                           -       {Permutation} filter-discard {indices} (since &lt; is not defined between chars and ints :()
+         Q                          -       deduplicate
+           Ƒ                        -       is invariant under:
+          Ṣ                         -         sort
+                   ÐṂ               - keep those {Alphabet-Increaing-Permutations} minimal under:
+                  Ɲ                 -   for neighbouring pairs:
+                 ⁼                  -     equal?
+                            Ƈ       - keep those {Alphabet-Increasing-Adjacency-Different-Permutations} for which:
+                           ¥ Ḥ      -   last two links as a dyad - f(Permutation, 2n):
+                      Ɱ             -     map across {i in [1..2n]} with:
+                     ṣ              -       split {Permutation} at occurrence of {i}
+                          Ƒ         -     is that list of Splits invariant under?:
+                         Ƈ          -       filter keep {Splits} for which:
+                        /           -         reduce {Split=[L,R]} by:
+                       f            -           {L} filter keep {R}
+                                 Ɗ  - last three links as a monad - f(Valid-Permutations):
+                              O     -   cast {ValidPermutations} to ordinals (a no-op for integers) -&gt; Ords
+                               n    -   {Ords} not equal {ValidPermutations} (vectorises) -&gt; Mask
+                                a   -   {Mask} logical AND {ValidPermutations} (vectorises)
+                                  Q - deduplicate
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://v8.dev/" rel="nofollow noreferrer">JavaScript (V8)</a>, 139 bytes</h1>
 <p><em>The criterion on 0's is borrowed from <a href="https://codegolf.stackexchange.com/a/264194/58563">Neil's answer</a>. (&quot;There must be a letter that appears exactly once&quot; before a zero.)</em></p>
 <p>Prints the strings.</p>
 <pre class="lang-javascript prettyprint-override"><code>f=(n,s='',m=1,q=0,p,g=i=&gt;~i&amp;&amp;g(i-1,(b=1&lt;&lt;i*4,i?i!=p:q&amp;1118480&amp;&amp;n)*2&gt;q/b%16&amp;&amp;f(n,s+&quot;0abcde&quot;[i],m+(i==m&amp;m&lt;n),q+b,i)))=&gt;s[4*n-1]?print(s):g(m)
@@ -86,7 +126,7 @@ s[4 * n - 1] ?          // if the target length is reached:
   g(m)                  //   call g to generate more characters
 </code></pre>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://github.com/m-ender/retina/wiki/The-Language" rel="nofollow noreferrer">Retina</a>, 114 bytes</h1>
+<div id="pu2" class="pu"><h1><a href="https://github.com/m-ender/retina/wiki/The-Language" rel="nofollow noreferrer">Retina</a>, 114 bytes</h1>
 <pre><code>.+
 *
 Y`\_`l
@@ -118,40 +158,6 @@ $%`$1$4$3$7&lt;$2$5$%'
 
 </code></pre>
 <p>Remove the <code>&lt;&gt;</code> markers.</p>
-</div>
-<div id="pu2" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 32 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
-<pre><code>Øaḣx2;J$Œ!œsḤḢ⁼ƝÐṂṣⱮf/ƇƑ¥ƇḤOnaƊQ
-</code></pre>
-<p>A monadic Link that accepts <span class="math-container">\$n\$</span> and yields a list of lists of characters.</p>
-<p><strong><a href="https://tio.run/##AUgAt/9qZWxsef//w5hh4bijeDI7SiTFkiHFk3PhuKThuKLigbzGncOQ4bmC4bmj4rGuZi/Gh8aRwqXGh@G4pE9uYcaKUf/Dh1n//zI" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></strong> (Will time out for anything above two though!)</p>
-<h3>How?</h3>
-<p>Constructs all strings fulfilling the conditions with natural numbers in the place of zeros by filtering all permutations of the letters and numbers that start with <code>'a'</code>, maps the numbers back to zeros, and then deduplicates.</p>
-<pre><code>Øaḣx2;J$Œ!œsḤḢ⁼ƝÐṂṣⱮf/ƇƑ¥ƇḤOnaƊQ - Link: n
-Øa                               - alphabet
-  ḣ                              - head to {n}
-   x2                            - times two
-     ;J$                         - concatenate indices -&gt; e.g. ['a','a','b','b',1,2,3,4]
-        Œ!                       - all permutations
-            Ḥ                    - double {n}
-          œs                     - {Permutations} split evenly into {2n} chunks
-             Ḣ                   - head -&gt; those Permutations starting with 'a'
-                ÐṂ               - keep those minimal under:
-               Ɲ                 -   for neighbouring pairs:
-              ⁼                  -     equal?
-                         Ƈ       - keep those for which:
-                        ¥ Ḥ      -   last two links as a dyad - f(Permutation, 2n):
-                   Ɱ             -     map across {i in [1..2n]} with:
-                  ṣ              -       split {Permutation} at occurrence of {i}
-                       Ƒ         -     is that list of Splits invariant under?:
-                      Ƈ          -       filter keep {Splits} for which:
-                     /           -         reduce {Split=[L,R]} by:
-                    f            -           {L} filter keep {R}
-                              Ɗ  - last three links as a monad - f(ValidPermutations):
-                           O     -   cast {ValidPermutations} to ordinals (a no-op for integers) -&gt; Ords
-                            n    -   {Ords} not equal {ValidPermutations} (vectorises) -&gt; Mask
-                             a   -   {Mask} logical AND {ValidPermutations} (vectorises)
-                               Q - deduplicate
-</code></pre>
 </div>
 <div id="pu3" class="pu"><h1><a href="https://www.perl.org/" rel="nofollow noreferrer">Perl 5</a>, 238 bytes</h1>
 
