@@ -26,7 +26,7 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>099</td><td>X86_64/Linux Machine Code</td><td>230815T201325Z</td><td><a href="https://codegolf.stackexchange.com/questions/84/interpret-brainfuck/264220#264220">Noah</a></td></tr>
+<tr d-ix="0"><td>098</td><td>X86_64/Linux Machine Code</td><td>230815T201325Z</td><td><a href="https://codegolf.stackexchange.com/questions/84/interpret-brainfuck/264220#264220">Noah</a></td></tr>
 <tr d-ix="1"><td>660</td><td>niceexpr</td><td>230502T214536Z</td><td><a href="https://codegolf.stackexchange.com/questions/84/interpret-brainfuck/260645#260645">bigyihsu</a></td></tr>
 <tr d-ix="2"><td>234</td><td>Rattle</td><td>220208T005004Z</td><td><a href="https://codegolf.stackexchange.com/questions/84/interpret-brainfuck/242522#242522">Daniel H</a></td></tr>
 <tr d-ix="3"><td>148</td><td>Vyxal</td><td>220613T054245Z</td><td><a href="https://codegolf.stackexchange.com/questions/84/interpret-brainfuck/248543#248543">lyxαl</a></td></tr>
@@ -96,17 +96,17 @@
 <tr d-ix="67"><td>204</td><td>Windows PowerShell</td><td>110213T212506Z</td><td><a href="https://codegolf.stackexchange.com/questions/84/interpret-brainfuck/921#921">Joey</a></td></tr>
 <tr d-ix="68"><td>368</td><td>C</td><td>110131T002311Z</td><td><a href="https://codegolf.stackexchange.com/questions/84/interpret-brainfuck/267#267">jtjacque</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h2>X86_64/Linux Machine Code, <strike>104</strike> <strike>101</strike> <strike>100</strike> 99</h2>
+<div id="pu0" class="pu"><h2>X86_64/Linux Machine Code, <strike>104</strike> <strike>101</strike> <strike>100</strike> <strike>99</strike> 98</h2>
 <p><strong>Usage:</strong></p>
 <pre><code>$&gt; gcc -s -static -nostartfiles -nodefaultlibs -nostdlib -Wl,--build-id=none bf.S -o bf
 $&gt; ./bf &lt;input&gt;
 </code></pre>
 <h4>Notes</h4>
 <ul>
-<li>Size is measured in machine code (i.e 99 bytes of <code>.text</code>)</li>
-<li>89 bytes if reads input prog from stdin</li>
+<li>Size is measured in machine code (i.e 98 bytes of <code>.text</code>)</li>
+<li>88 bytes if reads input prog from stdin</li>
 <li>Save 4 more bytes without <code>BF_EXITCLEANLY</code> (it will segfault to exit).</li>
-<li>So minimum possible size <strong>85</strong> bytes.</li>
+<li>So minimum possible size <strong>84</strong> bytes.</li>
 </ul>
 <pre><code>#define BF_LBRACE   91
 #define BF_RBRACE   93
@@ -126,7 +126,6 @@ $&gt; ./bf &lt;input&gt;
     .text
 _start:
     /* All incoming registers at zero.  */
-
     /* read 32768 bytes.  */
     movb    $0x80, %dh
 #ifdef BF_READFILE
@@ -138,15 +137,17 @@ _start:
     pop %rdi
     /* O_RDONLY is zero.  */
     syscall
-
     /* Error is okay, we will eventually just exit w.o executing.  */
     movl    %eax, %edi
+
+    /* Align esi s.t lower bits will be 15. This allows us to use
+       %cl to shift %edx to get constant 1.  */
+    movl    $(G_mem + 65536 + 15 - 4), %esi
     /* bss initialized memory is zero. This is cheapest way to zero
        out eax.  */
-    movl    $(G_mem + 65536), %esi
     lodsl
 #else
-    movl    $(G_mem + 65536), %esi
+    movl    $(G_mem + 65536 + 15), %esi
 #endif
 
     /* eax/edi are already zero which happens to match
@@ -168,9 +169,10 @@ _start:
 
     /* Adjust esi + 32768 (max number of cells/program size).  */
     addl    %edx, %esi
+
     /* We have 32768 in edx, so get 1 in it (we need that in alot of
-       places).  */
-    shrl    $15, %edx
+       places).  Note cl low bits has 15 (setup via address of esi).  */
+    shr %cl, %edx
 run_program:
     /* Need to zero eax.  */
     movzbl  (%rcx), %eax
@@ -205,12 +207,11 @@ do_brace:
        have 1 cached in edx.  */
     cmpb    %dl, (%rsi)
     /* -1 if we want to start skipping.  */
-    sbb %ebx, %ebx
+    sbbb    %bl, %bl
 try_cont:
     /* we have set ebx s.t its either zero or has a value that makes
        any further matches impossible.  */
     orb %bl, %al
-
     /* For the rest of the ops we take advantage of the fact that
        the ascii values of the pairs '&lt;'/'&gt;', '+'/'-', and '.',','
        are all 2 apart. This allows use to test a pair with the
