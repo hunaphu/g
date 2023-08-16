@@ -26,7 +26,7 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>140</td><td>JavaScript V8</td><td>230815T132951Z</td><td><a href="https://codegolf.stackexchange.com/questions/264190/iterate-over-strings-ii/264206#264206">Arnauld</a></td></tr>
+<tr d-ix="0"><td>139</td><td>JavaScript V8</td><td>230815T132951Z</td><td><a href="https://codegolf.stackexchange.com/questions/264190/iterate-over-strings-ii/264206#264206">Arnauld</a></td></tr>
 <tr d-ix="1"><td>114</td><td>Retina</td><td>230815T220656Z</td><td><a href="https://codegolf.stackexchange.com/questions/264190/iterate-over-strings-ii/264223#264223">Neil</a></td></tr>
 <tr d-ix="2"><td>032</td><td>Jelly</td><td>230815T205122Z</td><td><a href="https://codegolf.stackexchange.com/questions/264190/iterate-over-strings-ii/264222#264222">Jonathan</a></td></tr>
 <tr d-ix="3"><td>238</td><td>Perl 5</td><td>230815T172519Z</td><td><a href="https://codegolf.stackexchange.com/questions/264190/iterate-over-strings-ii/264215#264215">Kjetil S</a></td></tr>
@@ -34,13 +34,23 @@
 <tr d-ix="5"><td>061</td><td>Charcoal</td><td>230815T101954Z</td><td><a href="https://codegolf.stackexchange.com/questions/264190/iterate-over-strings-ii/264194#264194">Neil</a></td></tr>
 <tr d-ix="6"><td>040</td><td>05AB1E</td><td>230815T091556Z</td><td><a href="https://codegolf.stackexchange.com/questions/264190/iterate-over-strings-ii/264192#264192">Kevin Cr</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://v8.dev/" rel="nofollow noreferrer">JavaScript (V8)</a>, 140 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://v8.dev/" rel="nofollow noreferrer">JavaScript (V8)</a>, 139 bytes</h1>
 <p>Prints the strings.</p>
 <p>The criterion on 0's is borrowed from <a href="https://codegolf.stackexchange.com/a/264194/58563">Neil's answer</a>.</p>
-
-<pre class="lang-javascript prettyprint-override"><code>f=(n,s='',m=1,q=0,p,g=i=&gt;~i&amp;&amp;g(i-1,(b=1&lt;&lt;i*5,i?i!=p:q&amp;34636832&amp;&amp;n)*2&gt;q/b%32&amp;&amp;f(n,s+&quot;0abcde&quot;[i],m+(i==m&amp;m&lt;n),q+b,i)))=&gt;s[4*n-1]?print(s):g(m)
+<pre class="lang-javascript prettyprint-override"><code>f=(n,s='',m=1,q=0,p,g=i=&gt;~i&amp;&amp;g(i-1,(b=1&lt;&lt;i*4,i?i!=p:q&amp;1118480&amp;&amp;n)*2&gt;q/b%16&amp;&amp;f(n,s+&quot;0abcde&quot;[i],m+(i==m&amp;m&lt;n),q+b,i)))=&gt;s[4*n-1]?print(s):g(m)
 </code></pre>
-<p><a href="https://tio.run/##TY3NjoIwFIX38xQdo7Wll9GKGqNcfBBjIiCQa2j5KXFj9NWZMqtZfTk/OeeRPlOX99QO4fMwjiUKCw6XSzCoocM1tFAhYfIhzitBoQaRoY5jCnZAZ/rG9tjxaLuP9odow7mVwSbpVtliEuW0pWbrNMvvxexCVzBKEKLhJrYSOpUBSSkxcZdtYEN9Pbc92UE4eayEkWPZ9KIuBmYZMn3yiJFFnkpJ9vpiLG@sa@rip24qcZtK85d93@TJR/76j/8r3niPvw" rel="nofollow noreferrer" title="JavaScript (V8) – Try It Online">Try it online!</a></p>
+<p><a href="https://tio.run/##TY3NboMwEITvfQo3ah0bLw3bogolLHmQKFKAAtoKmx@jXKL01anTU0@fNPNp5ru8lr6eeVzia7auLSkHnrZbsIQwUQIjdMRU/LCUneIYQVWEec5RCnzkZxr3k0TELM0SKZ2O3otpV73ip5TtY8pskrKqv5rNic9gjWIiK23uNEymAtZaU@FPaeRiPB/Hmd2ivN53yuq1HWbVN4twggQeAnISH4HGaHF7EqIenB/65q0fOnV5SC83d7/oQ6jC9R//KyG4r78" rel="nofollow noreferrer" title="JavaScript (V8) – Try It Online">Try it online!</a></p>
+<h3>How?</h3>
+<p>Because we have <span class="math-container">\$n\le5\$</span> and because a character may not appear more than <span class="math-container">\$10\$</span> times, we can store the character counts in a bitmask <span class="math-container">\$q\$</span> of <span class="math-container">\$6\times4\$</span> bits:</p>
+<pre><code>0000 0000 0000 0000 0000 0000
+\__/ \__/ \__/ \__/ \__/ \__/
+  e    d    c    b    a    0
+</code></pre>
+<p>(the 4-bit width is actually only required for 0's)</p>
+<p>When inserting a zero, we need to test whether there's at least one letter that appears exactly once. This is achieved by doing a bitwise AND of <span class="math-container">\$q\$</span> with:</p>
+<pre><code>0001 0001 0001 0001 0001 0000 = 1118480
+</code></pre>
+<p>All in all, this is shorter and faster than my initial method that was using an array.</p>
 <h3>Commented</h3>
 <pre class="lang-javascript prettyprint-override"><code>f = (                   // f is a recursive function taking:
   n,                    //   n = input
@@ -52,14 +62,14 @@
   ~i &amp;&amp; g(              //   unless i = -1, do a recursive call to g:
     i - 1,              //     decrement i
     (                   //     compute the max. count for this character:
-      b = 1 &lt;&lt; i * 5,   //       b = bit index
+      b = 1 &lt;&lt; i * 4,   //       b = character bitmask
       i ?               //       if this is a letter:
-        i ! =p          //         the max. count is 2 if i != p
+        i != p          //         the max. count is 2 if i != p
       :                 //       else (this is a zero):
-        q &amp; 34636832    //         the max. count is 2n if it's preceded
+        q &amp; 1118480     //         the max. count is 2n if it's preceded
         &amp;&amp; n            //         by a letter appearing exactly once
-    ) * 2 &gt; q / b % 32  //     abort if this char. appeared too many times
-    &amp;&amp; f(               //     otherwise do a recursive call to f:
+    ) * 2 &gt; q / b % 16  //     abort if this char. appeared too many times
+    &amp;&amp; f(               //     otherwise, do a recursive call to f:
       n,                //       pass n unchanged
       s + &quot;0abcde&quot;[i],  //       append the new character to s
       m +               //       increment m if ...
