@@ -26,9 +26,60 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>002</td><td>C</td><td>230817T190151Z</td><td><a href="https://codegolf.stackexchange.com/questions/264291/how-turing-complete-is-you-language/264302#264302">l4m2</a></td></tr>
+<tr d-ix="0"><td>nan</td><td>Incident</td><td>230817T212355Z</td><td><a href="https://codegolf.stackexchange.com/questions/264291/how-turing-complete-is-you-language/264310#264310">ais523</a></td></tr>
+<tr d-ix="1"><td>002</td><td>C</td><td>230817T190151Z</td><td><a href="https://codegolf.stackexchange.com/questions/264291/how-turing-complete-is-you-language/264302#264302">l4m2</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h2>C, 2</h2>
+<div id="pu0" class="pu"><h2><a href="https://esolangs.org/wiki/Incident" rel="nofollow noreferrer">Incident</a>, 128 or 557056</h2>
+<h3>If &quot;character&quot; means byte</h3>
+<p>Any set of two bytes is Turing-complete in Incident; thus it's possible to create 128 disjoint subsets, e.g. {0x00, 0x01}, {0x02, 0x03}, {0x04, 0x05}, and so on up to {0xFE, 0xFF}.</p>
+<p>The reason is that the language determines its token set at runtime: the set of tokens used by a program is the set of substrings of that program that appear exactly three times (without being contained within or overlapping other such substrings within the input program). The language gives meanings to tokens based on their relative positioning, rather than the bytes that make them up. As such, an Incident program is <code>tr</code>-invariant; you can change the character set it uses simply by consistently replacing bytes, because that doesn't change the token structure of the program.</p>
+<p>(The creation of Incident was actually inspired by this site: I wanted to find a way to avoid <a href="/questions/tagged/answer-chaining" class="post-tag" title="show questions tagged &#39;answer-chaining&#39;" aria-label="show questions tagged &#39;answer-chaining&#39;" rel="tag" aria-labelledby="tag-answer-chaining-tooltip-container">answer-chaining</a> <a href="/questions/tagged/restricted-code" class="post-tag" title="show questions tagged &#39;restricted-code&#39;" aria-label="show questions tagged &#39;restricted-code&#39;" rel="tag" aria-labelledby="tag-restricted-code-tooltip-container">restricted-code</a> questions getting stuck in a set of bytes that they had no way to get themselves out of. So being Turing-complete off any set of two bytes is a natural consequence of the way the language developed.)</p>
+<h3>If &quot;character&quot; means Unicode character</h3>
+<p>Incident doesn't attempt to parse its input into characters; it just looks at it as a single binary stream of bytes. However, that doesn't mean that you can't just simply feed a text file to the Incident interpreter. As such, it's meaningful to ask about what subsets of Unicode characters are Turing-complete if you put them into a text file, and ask the Incident interpreter to run the resulting text file as a program.</p>
+<p>Assuming that the two characters in question have no bytes in common in their encodings, you actually end up with the exact same case as when you're using two different bytes: the &quot;identify substrings that occur three times&quot; routine is invariant under the operation of replacing one byte with two or more, so long as each byte that appear within the encoding always uniquely comes from one of the same two original characters. As such, the goal is to find 557056 subsets (because there are 1114112 encodeable Unicode characters).</p>
+<p>This can be done fairly simply using UTF-8, choosing the two characters in each subset to always be the same length as each other:</p>
+<ul>
+<li><p>For ASCII (0x00 to 0x7F), simply pair the characters as bytes, as in the previous case;</p>
+</li>
+<li><p>For two-byte characters, sort the characters into four groups {00, 01, 10, 11}, based on the least significant bit of their leading byte and least significant bit of their trailing byte: all four groups are the same size. Characters in group 00 have no bytes in common with characters in group 11, so you can form a subset by pairing an arbitrary character in each group. Likewise, characters in group 01 have no bytes in common with characters in group 10, so those form subsets in the same way.</p>
+</li>
+<li><p>For three-byte characters, divide into groups based on the least significant bit of the leading byte and the least significant two bits of the trailing byte: this produces 32 groups which are all the same size. The groups can be paired into 16 pairs as follows:</p>
+<pre><code>0 00 00 with 1 11 11
+0 00 01 with 1 11 10
+0 00 10 with 1 11 01
+0 00 11 with 1 01 10
+0 01 00 with 1 10 11
+0 01 01 with 1 10 10
+0 01 10 with 1 00 11
+0 01 11 with 1 10 00
+0 10 00 with 1 01 11
+0 10 01 with 1 11 00
+0 10 10 with 1 01 01
+0 10 11 with 1 01 00
+0 11 00 with 1 10 01
+0 11 01 with 1 00 10
+0 11 10 with 1 00 01
+0 11 11 with 1 00 00
+</code></pre>
+<p>For each pair of groups, picking an arbitrary character from each group will produce a valid subset (i.e. no bytes that exist in one character in UTF-8 will exist in the other).</p>
+</li>
+<li><p>Four-byte characters use a similar construction, but now 1024 groups are used (taking one bit from the leading byte and three bits from each of the trailing bytes). Listing all the pairings wouldn't easily fit in the post, so here are the rules:</p>
+<ul>
+<li>Label the bits of each group as <code>A BCD EFG HIJ</code>.</li>
+<li>Consider the three values obtained by bitwise-XORing two of <code>BCD</code>, <code>EFG</code> and <code>HIJ</code>:
+<ul>
+<li>if none of them are 1 (001), XOR the group number with <code>1 001 001 001</code> to produce the group number it's paired with; otherwise,</li>
+<li>if none of them are 2 (010), XOR the group number with <code>1 010 010 010</code> to produce the group number it's paired with; otherwise,</li>
+<li>if none of them are 4 (100), XOR the group number with <code>1 100 100 100</code> to produce the group number it's paired with.</li>
+</ul>
+</li>
+</ul>
+<p>It is not possible for the three resulting values to be 1, 2 and 4 (if BCD xor EFG is 1 and EFG xor HIJ is 2, then BCD xor HIJ is BCD xor EFG xor EFG xor HIJ which is 3; likewise for other assigments of positions to values). So these rules will always produce a result. Additionally, the pairing is consistent (i.e. if X is paired with Y, then Y will be paired with X); this is because the same number is being XORed into all three of the relevant segments of the trailing bytes, so it won't change the result you get when you XOR two of those segments together. Finally, it will ensure that the two members of each subset have no bytes in common because their leading bytes have different parities, and there is no way for a trailing byte of one member to equal a trailing byte of the other member (which can be seen by considering the pairwise XORs of the two equal trailing bytes, and the bytes in the corresponding position of the other member).</p>
+</li>
+</ul>
+<p>There is some room for interpretation as to whether 557056 is actually the correct number of subsets here, depending on what exactly you consider a Unicode character to be. For example, the original version of UTF-8 allowed up to 2<sup>31</sup> different characters, meaning 2<sup>30</sup> subsets, but Unicode is nowadays capped at 1114112. Additionally, some of the characters may be considered invalid due to, e.g., being noncharacters or surrogates. However, the Incident interpreter doesn't care about any of this because it isn't trying to parse the UTF-8 anyway, and just looks at the bytes that make it up.</p>
+</div>
+<div id="pu1" class="pu"><h2>C, 2</h2>
 <p><a href="https://tio.run/##LcmxCoAwDIThvU/RUYfg3hJ8FskQhJhb3MRnj2lxuQ/@E1KRuI7Tl/UJg2u1Xqb49ZSNMoNBWZ2dMhZthUY2Hptg96bz3/JX3Kja440P" rel="nofollow noreferrer"><code>longt=-/ ?:;</code></a></p>
 <p><a href="https://tio.run/##S9ZNT07@/z9NI1EnSSdZs7qWKzcxM09DszozTSNNw0AHCDWBorX//wMA" rel="nofollow noreferrer">others</a></p>
 <p><sup>Body must be at least 30 characters; you entered 24.</sup></p>
