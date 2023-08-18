@@ -26,7 +26,7 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>099</td><td>Desmos</td><td>230817T211515Z</td><td><a href="https://codegolf.stackexchange.com/questions/77836/sort-an-integer-list/264308#264308">fwoosh</a></td></tr>
+<tr d-ix="0"><td>080</td><td>Desmos</td><td>230817T211515Z</td><td><a href="https://codegolf.stackexchange.com/questions/77836/sort-an-integer-list/264308#264308">fwoosh</a></td></tr>
 <tr d-ix="1"><td>009</td><td>Itr</td><td>230817T140818Z</td><td><a href="https://codegolf.stackexchange.com/questions/77836/sort-an-integer-list/264294#264294">bsoelch</a></td></tr>
 <tr d-ix="2"><td>175</td><td>Vyxal</td><td>230704T223819Z</td><td><a href="https://codegolf.stackexchange.com/questions/77836/sort-an-integer-list/262417#262417">lyxαl</a></td></tr>
 <tr d-ix="3"><td>002</td><td>Thunno 2 M</td><td>230704T190632Z</td><td><a href="https://codegolf.stackexchange.com/questions/77836/sort-an-integer-list/262414#262414">The Thon</a></td></tr>
@@ -82,33 +82,50 @@
 <tr d-ix="53"><td>007</td><td>Brachylog</td><td>160415T130910Z</td><td><a href="https://codegolf.stackexchange.com/questions/77836/sort-an-integer-list/77838#77838">Fatalize</a></td></tr>
 <tr d-ix="54"><td>010</td><td>Pyth</td><td>160415T125202Z</td><td><a href="https://codegolf.stackexchange.com/questions/77836/sort-an-integer-list/77837#77837">Maltysen</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.desmos.com/calculator" rel="nofollow noreferrer">Desmos</a>, 99 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.desmos.com/calculator" rel="nofollow noreferrer">Desmos</a>, <s>99</s> 80 bytes</h1>
+<p><em>-19 thanks to <a href="https://codegolf.stackexchange.com/u/96039/">Aiden Chow</a>!</em></p>
 <p>Unfortuantely Desmos does not have great capabilities for my <a href="https://en.wikipedia.org/wiki/Bogosort" rel="nofollow noreferrer">favorite sorting algorithm</a>, so here is an implementation of <strong><a href="https://en.wikipedia.org/wiki/Counting_sort" rel="nofollow noreferrer">counting sort</a></strong>!</p>
-<pre><code>m=A.\min
-r=[m...A.\max]
-a=(r,\sum_{n=m}^rA[A=n].\length)
-f(A)=[a[a.y=i][1].x\for i=[1...A.\length]]
+<pre><code>m=A.min
+r=[m...A.max]
+f(A)=[r[∑_{n=m}^rA[A=n].length=i][1]fori=[1...A.length]]
 </code></pre>
-<p><a href="https://www.desmos.com/calculator/00r5f6ogcf" rel="nofollow noreferrer">Try it on Desmos!</a></p>
+<p><a href="https://www.desmos.com/calculator/wi5kjzppcb?nographpaper" rel="nofollow noreferrer">Try it on Desmos!</a></p>
 <p><strong>How it works:</strong></p>
 <p><span class="math-container">\$m\$</span> is just a shorthand for <span class="math-container">\$A.\operatorname{min}\$</span> to shave off a few bytes from the code. Note that we are referring to <span class="math-container">\$A\$</span> even when it is not defined in this context, but this still works due to some <a href="https://codegolf.stackexchange.com/a/230106/94915">wacko variable scoping</a>.</p>
 <p><span class="math-container">\$r\$</span> is also a shorthand for the range <span class="math-container">\$[m\dots A.\operatorname{max}]\$</span>. This expression appears twice so we can also shave off yet a few more bytes with this.</p>
-<p><span class="math-container">\$a\$</span> associates each value with the index they should be placed at:</p>
-<pre><code>a=(r,\sum_{n=m}^rA[A=n].\length)
-a=(                            )    a is an ordered pair
-   r,                               with x∈[min,max]
-     \sum_{n=m}^r                   and y is sum for n=m→i, repeating for i∈[m,A.max]
-                 A[A=n].\length     that adds the number of times each n appears in A
+<p>Next comes the actual sorting procedure:</p>
+<pre><code>f(A)=[r[∑_{n=m}^rA[A=n].length=i][1]fori=[1...A.length]]
+     [                              fori=[1...A.length]]  repeat for i∈[1,A.length]
+      r[                        ]                         filter r
+        ∑_{n=m}^r                                         sum from min to r
+                 A[A=n].length                            # of occurrences of n
+                              =i                          sum=i
+                                 [1]                      take the first result 
 </code></pre>
-<p>Of course, some (most) values do not appear so we just ignore them.</p>
-<p>Since each value in <span class="math-container">\$A\$</span> appears at most once, we can determine where that value should appear in the sorted list by counting the number of values that go before it.</p>
-<p>Afterwards is <span class="math-container">\$f(A)\$</span>:</p>
-<pre><code>f(A)=[a[a.y=i][1].x\for i=[1...A.\length]]
-f(A)=[             \for i=[1...A.\length]]    f(A) repeats the following for i∈[1,A.length]:
-      a[a.y=i]                                find values that would appear at index i
-              [1].x                           take the value of the first result
+<p><em>Still doesn't make sense?</em> Let's review the algorithm:</p>
+<ul>
+<li>counting sort: count the occurrences of each value and reassemble them in order
+<ul>
+<li># of occurrences is always 0 or 1 since every element is distinct</li>
+</ul>
+</li>
+<li>instead of reassembling, we <strong>construct the sorted array on the spot</strong>
+<ul>
+<li>how? <em>figure out where each element should be</em></li>
+<li>since we know the number of times each element occurs, we can add up the past occurrences to get the sorted index of the current element</li>
+<li>now we just look for the element with the specified index (and repeat this for every index)</li>
+</ul>
+</li>
+</ul>
+<p>For example:</p>
+<pre><code>A = [ 3 2 9 5 ]
+
+             i -&gt;  1 2 3 4 5 6 7 8
+             r = [ 2 3 4 5 6 7 8 9 ]
+ A[A=i].length = [ 1 1 0 1 0 0 0 1 ]  number of occurrences
+∑A[A=i].length = [ 1 2 2 3 3 3 3 4 ]  cumulative sum/new index
 </code></pre>
-<p><span class="math-container">\$f(A)\$</span> assembles the indices determined in <span class="math-container">\$a\$</span> to yield a fully sorted list. It looks for the value that would appear in each index <span class="math-container">\$i\$</span>. As a result of the process used to find <span class="math-container">\$a\$</span>, a lot of values that should not appear would be selected. However, the first value will always be the correct one, so taking the x-component (value) of that would suffice.</p>
+<p>Now for each index <span class="math-container">\$i\$</span> in the final sorted array we look for the first item in <span class="math-container">\$r\$</span> for which <span class="math-container">\$\sum A[A=i].\operatorname{length}=i\$</span>. This gives all the elements in the original list, but in sorted order.</p>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://github.com/bsoelch/ItrLang" rel="nofollow noreferrer">Itr</a>, 9 bytes</h1>
 <p><code>äRm«â-ÍÌ+</code></p>
