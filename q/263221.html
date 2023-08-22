@@ -26,12 +26,452 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>006</td><td>Wolfram Language Mathematica 13.0</td><td>230726T014222Z</td><td><a href="https://codegolf.stackexchange.com/questions/263221/compute-the-chromatic-number-of-special-graphs/263344#263344">138 Aspe</a></td></tr>
-<tr d-ix="1"><td>005</td><td>Python 3 + PySAT</td><td>230802T061921Z</td><td><a href="https://codegolf.stackexchange.com/questions/263221/compute-the-chromatic-number-of-special-graphs/263623#263623">alephalp</a></td></tr>
-<tr d-ix="2"><td>005</td><td>Python 3 + Z3</td><td>230802T000647Z</td><td><a href="https://codegolf.stackexchange.com/questions/263221/compute-the-chromatic-number-of-special-graphs/263620#263620">Bubbler</a></td></tr>
-<tr d-ix="3"><td>005</td><td>Wolfram Language Mathematica</td><td>230725T104218Z</td><td><a href="https://codegolf.stackexchange.com/questions/263221/compute-the-chromatic-number-of-special-graphs/263302#263302">alephalp</a></td></tr>
+<tr d-ix="0"><td>076</td><td>Rust</td><td>230822T163253Z</td><td><a href="https://codegolf.stackexchange.com/questions/263221/compute-the-chromatic-number-of-special-graphs/264501#264501">gsitcia</a></td></tr>
+<tr d-ix="1"><td>006</td><td>Wolfram Language Mathematica 13.0</td><td>230726T014222Z</td><td><a href="https://codegolf.stackexchange.com/questions/263221/compute-the-chromatic-number-of-special-graphs/263344#263344">138 Aspe</a></td></tr>
+<tr d-ix="2"><td>005</td><td>Python 3 + PySAT</td><td>230802T061921Z</td><td><a href="https://codegolf.stackexchange.com/questions/263221/compute-the-chromatic-number-of-special-graphs/263623#263623">alephalp</a></td></tr>
+<tr d-ix="3"><td>005</td><td>Python 3 + Z3</td><td>230802T000647Z</td><td><a href="https://codegolf.stackexchange.com/questions/263221/compute-the-chromatic-number-of-special-graphs/263620#263620">Bubbler</a></td></tr>
+<tr d-ix="4"><td>005</td><td>Wolfram Language Mathematica</td><td>230725T104218Z</td><td><a href="https://codegolf.stackexchange.com/questions/263221/compute-the-chromatic-number-of-special-graphs/263302#263302">alephalp</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.wolfram.com/wolframscript/" rel="nofollow noreferrer">Wolfram Language (Mathematica 13.0)</a>, 392 bytes, <code>11,6</code> in a minute on my laptop</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.rust-lang.org/" rel="nofollow noreferrer">Rust</a>, <code>8,7</code> in 6 minutes on the Rust playground</h1>
+
+<pre class="lang-rust prettyprint-override"><code>use std::{collections::HashMap, hash::Hash};
+use std::time::Instant;
+
+#[derive(Clone, Copy, Debug)]
+struct Edge {
+    opposite_edge: u32,
+    opposite_color: u32,
+    opposite_vertex: u16,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+struct Color {
+    up: u32,
+    down: u32,
+    vertex: u16,
+    last_edge: u32,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+struct Vertex {
+    up: u32,
+    down: u32,
+    left: u16,
+    right: u16,
+    count_colors: u16,
+    count_edges: u16,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+struct Root {
+    padding_1: u64,
+    left: u16,
+    right: u16,
+    padding_2: u32,
+}
+
+impl Root {
+    fn new() -&gt; Self {
+        Self {
+            padding_1: 0,
+            left: 0,
+            right: 0,
+            padding_2: 0,
+        }
+    }
+}
+
+// the reason for repr(C) is so color/vertex up/down are in the same locations
+
+#[repr(C, align(16))]
+#[derive(Clone, Copy)]
+union Node {
+    edge: Edge,
+    color: Color,
+    vertex: Vertex,
+    root: Root,
+}
+
+impl Default for Node {
+    fn default() -&gt; Self {
+        Self { root: Root::new() }
+    }
+}
+
+struct GraphColoring {
+    nodes: Vec&lt;Node&gt;,
+    allowance: u32,
+    // num_checks: u64,
+    max_colors: u32,
+}
+
+impl GraphColoring {
+    fn edge_mut(&amp;mut self, idx: u32) -&gt; &amp;mut Edge {
+        unsafe { &amp;mut self.nodes.get_mut(idx as usize).unwrap_unchecked().edge }
+    }
+    fn color_mut(&amp;mut self, idx: u32) -&gt; &amp;mut Color {
+        unsafe { &amp;mut self.nodes.get_mut(idx as usize).unwrap_unchecked().color }
+    }
+    fn vertex_mut(&amp;mut self, idx: u16) -&gt; &amp;mut Vertex {
+        unsafe { &amp;mut self.nodes.get_mut(idx as usize).unwrap_unchecked().vertex }
+    }
+    fn edge(&amp;self, idx: u32) -&gt; Edge {
+        unsafe { self.nodes.get(idx as usize).unwrap_unchecked().edge }
+    }
+    fn color(&amp;self, idx: u32) -&gt; Color {
+        unsafe { self.nodes.get(idx as usize).unwrap_unchecked().color }
+    }
+    fn vertex(&amp;self, idx: u16) -&gt; Vertex {
+        unsafe { self.nodes.get(idx as usize).unwrap_unchecked().vertex }
+    }
+    fn pick_min_vertex(&amp;self) -&gt; Option&lt;(u16, u16)&gt; {
+        let mut idx = self.vertex(0).right;
+        if idx == 0 {
+            return None;
+        }
+        let mut fewest_colors = self.max_colors as _;
+        let mut most_edges = 0;
+        let mut bestidx = idx;
+        loop {
+            let vertex = self.vertex(idx);
+            if vertex.count_colors &lt; fewest_colors
+                || (vertex.count_colors == fewest_colors &amp;&amp; vertex.count_edges &gt; most_edges)
+            {
+                if vertex.count_colors == 0 {
+                    return Some((0, 0));
+                }
+                if vertex.count_colors == 1 {
+                    return Some((idx, 1));
+                }
+                fewest_colors = vertex.count_colors;
+                most_edges = vertex.count_edges;
+                bestidx = idx;
+            }
+            idx = vertex.right;
+            if idx == 0 {
+                break;
+            }
+        }
+        Some((bestidx, fewest_colors))
+    }
+    fn disconnect_color(&amp;mut self, color_idx: u32, color: Color) {
+        for idx in color_idx + 1..=color.last_edge {
+            let edge = self.edge(idx);
+
+            let opposite_edge_idx = edge.opposite_edge;
+            let opposite_color_idx = edge.opposite_color;
+            let opposite_color = self.color(opposite_color_idx);
+
+            debug_assert!(opposite_edge_idx &lt;= opposite_color.last_edge);
+            debug_assert!(opposite_edge_idx &gt;= opposite_color_idx);
+
+            if opposite_edge_idx &lt; opposite_color.last_edge {
+                // swap nodes at opposite_edge_idx and opposite_color.last_edge
+                // that means our pointer has to change, as well as last_edges oppoosite_edge has to change
+                let last_edge_idx = opposite_color.last_edge;
+                let last_edge = self.edge(last_edge_idx);
+                let last_edge_opposite_idx = last_edge.opposite_edge;
+                self.edge_mut(last_edge_opposite_idx).opposite_edge = opposite_edge_idx;
+                *self.edge_mut(opposite_edge_idx) = Edge {
+                    opposite_edge: last_edge_opposite_idx,
+                    opposite_color: last_edge.opposite_color,
+                    opposite_vertex: last_edge.opposite_vertex,
+                };
+                *self.edge_mut(last_edge_idx) = Edge {
+                    opposite_edge: idx,
+                    opposite_color: color_idx,
+                    opposite_vertex: color.vertex,
+                };
+                // self.edge_mut(last_edge_idx).opposite_edge = idx;
+                // self.edge_mut(last_edge_idx).opposite_color = color_idx;
+                self.edge_mut(idx).opposite_edge = last_edge_idx;
+            }
+
+            self.color_mut(opposite_color_idx).last_edge -= 1;
+            self.vertex_mut(opposite_color.vertex).count_edges -= 1;
+
+            debug_assert_eq!(
+                self.edge(idx).opposite_edge,
+                self.color(edge.opposite_color).last_edge + 1
+            );
+        }
+    }
+    fn reconnect_color(&amp;mut self, color_idx: u32, color: Color) {
+        for edge_idx in (color_idx + 1..=color.last_edge).rev() {
+            let edge = self.edge(edge_idx);
+
+            debug_assert_eq!(
+                edge.opposite_edge,
+                self.color(edge.opposite_color).last_edge + 1
+            );
+
+            self.color_mut(edge.opposite_color).last_edge += 1;
+
+            let color = self.color(edge.opposite_color);
+            self.vertex_mut(color.vertex).count_edges += 1;
+        }
+    }
+
+    #[inline]
+    fn remove_adjacent(&amp;mut self, color_idx: u32, color: Color) {
+        for edge_idx in (color_idx + 1..=color.last_edge).rev() {
+            let edge = self.edge(edge_idx);
+
+            let color1_idx = edge.opposite_color;
+            let color1 = self.color(color1_idx);
+
+            self.disconnect_color(color1_idx, color1);
+
+            self.color_mut(color1.up).down = color1.down;
+            self.color_mut(color1.down).up = color1.up;
+
+            let vertex = self.vertex_mut(color1.vertex);
+
+            vertex.count_colors -= 1;
+            vertex.count_edges -= (color1.last_edge - color1_idx) as u16;
+        }
+    }
+
+    fn reconnect_adjacent(&amp;mut self, color_idx: u32, color: Color) {
+        for edge_idx in color_idx + 1..=color.last_edge {
+            let edge = self.edge(edge_idx);
+
+            let color1_idx = edge.opposite_color;
+            let color1 = self.color(color1_idx);
+
+            self.reconnect_color(color1_idx, color1);
+
+            self.color_mut(color1.up).down = color1_idx;
+            self.color_mut(color1.down).up = color1_idx;
+            let vertex = self.vertex_mut(color1.vertex);
+            vertex.count_colors += 1;
+            vertex.count_edges += (color1.last_edge - color1_idx) as u16;
+        }
+    }
+
+    fn check&lt;const HAS_ALLOWANCE: bool&gt;(&amp;mut self) -&gt; bool {
+        let (vertex_idx, count) = match self.pick_min_vertex() {
+            None =&gt; {
+                return true;
+            }
+            Some(x) =&gt; x,
+        };
+
+        if count == 0 {
+            return false;
+        }
+
+        // self.num_checks += 1;
+
+        let vertex_idx = vertex_idx as u32;
+
+        let mut idx = self.color(vertex_idx).down;
+        while idx != vertex_idx {
+            let color = self.color(idx);
+            self.disconnect_color(idx, color);
+            idx = color.down;
+        }
+
+        let mut allowance = count as u32 - self.allowance;
+
+        let vertex = self.vertex(vertex_idx as _);
+
+        self.vertex_mut(vertex.left).right = vertex.right;
+        self.vertex_mut(vertex.right).left = vertex.left;
+
+        idx = vertex.down;
+
+        while idx != vertex_idx {
+            let color = self.color(idx);
+
+            if HAS_ALLOWANCE &amp;&amp; allowance == 0 {
+                self.allowance -= 1;
+            }
+
+            if (idx+1..=color.last_edge).all(|edge_idx|
+                self.vertex(self.edge(edge_idx).opposite_vertex).count_colors &gt; 1
+            ) {
+                self.remove_adjacent(idx, color);
+
+                if HAS_ALLOWANCE {
+                    if self.allowance &gt; 0 {
+                        if self.check::&lt;true&gt;() {
+                            return true;
+                        }
+                    } else if self.check::&lt;false&gt;() {
+                        return true;
+                    }
+                } else if self.check::&lt;false&gt;() {
+                    return true;
+                }
+
+                self.reconnect_adjacent(idx, color);
+            }
+
+            if HAS_ALLOWANCE &amp;&amp; allowance == 0 {
+                self.allowance += 1;
+                break;
+            }
+
+            idx = self.color(idx).down;
+
+            if HAS_ALLOWANCE {
+                allowance -= 1;
+            }
+        }
+
+        idx = self.color(vertex_idx).up;
+        while idx != vertex_idx {
+            let color = self.color(idx);
+            self.reconnect_color(idx, color);
+            idx = color.up;
+        }
+
+        self.vertex_mut(vertex.left).right = vertex_idx as _;
+        self.vertex_mut(vertex.right).left = vertex_idx as _;
+
+        false
+    }
+
+    fn new&lt;T, F&gt;(vertices: &amp;Vec&lt;T&gt;, adjacent: F, max_colors: u32) -&gt; GraphColoring
+    where
+        F: Fn(T, T) -&gt; bool,
+        T: Hash + Eq + Copy,
+    {
+        let mut this = GraphColoring {
+            nodes: vec![Node::default()],
+            allowance: max_colors,
+            // num_checks: 0,
+            max_colors,
+        };
+
+        let mut vertex_idxs = HashMap::new();
+
+        // add vertex nodes
+        for &amp;v in vertices {
+            let vertex_idx = this.nodes.len() as u16;
+            let left_idx = vertex_idx - 1;
+            let right_idx = 0;
+            let vertex = Vertex {
+                up: vertex_idx as _,
+                down: vertex_idx as _,
+                left: left_idx,
+                right: right_idx,
+                count_colors: 0,
+                count_edges: 0,
+            };
+            vertex_idxs.insert(v, vertex_idx);
+            this.nodes.push(Node { vertex });
+            this.vertex_mut(left_idx).right = vertex_idx;
+            this.vertex_mut(right_idx).left = vertex_idx;
+        }
+
+        let mut edge_to_idx = HashMap::new();
+
+        // add colors
+        for &amp;a in vertices {
+            let vertex_a_idx = vertex_idxs[&amp;a];
+            for k in 0..max_colors {
+                let color_a_idx = this.nodes.len() as _;
+                let up_idx = this.vertex(vertex_a_idx).up;
+                let down_idx = vertex_a_idx as _;
+                let color_a = Color {
+                    up: up_idx,
+                    down: down_idx,
+                    vertex: vertex_a_idx,
+                    last_edge: color_a_idx,
+                };
+                this.nodes.push(Node { color: color_a });
+                this.color_mut(up_idx).down = color_a_idx;
+                this.color_mut(down_idx).up = color_a_idx;
+                this.vertex_mut(vertex_a_idx).count_colors += 1;
+                // and edges
+                for &amp;b in vertices {
+                    if a == b {
+                        continue;
+                    }
+                    if adjacent(a, b) {
+                        let edge_a_idx = this.nodes.len() as _;
+                        let edge_a = match edge_to_idx.get(&amp;(b, a, k)) {
+                            Some(&amp;(edge_b_idx, color_b_idx, vertex_b_idx)) =&gt; {
+                                this.edge_mut(edge_b_idx).opposite_color = color_a_idx;
+                                this.edge_mut(edge_b_idx).opposite_edge = edge_a_idx;
+                                this.edge_mut(edge_b_idx).opposite_vertex = vertex_a_idx;
+                                Node {
+                                    edge: Edge {
+                                        opposite_color: color_b_idx,
+                                        opposite_edge: edge_b_idx,
+                                        opposite_vertex: vertex_b_idx,
+                                    },
+                                }
+                            }
+                            None =&gt; {
+                                edge_to_idx.insert((a, b, k), (edge_a_idx, color_a_idx, vertex_a_idx));
+                                Node::default()
+                            }
+                        };
+                        this.nodes.push(edge_a);
+                        this.color_mut(color_a_idx).last_edge = edge_a_idx;
+                        this.vertex_mut(vertex_a_idx).count_edges += 1;
+                    }
+                }
+            }
+        }
+
+        this
+    }
+
+    fn chromatic_number(n: u32, d: u32, max_colors: u32) -&gt; bool {
+        if d % 2 == 1 {
+            return max_colors &gt;= 2;
+        }
+        let mut g = GraphColoring::new(
+            &amp;(0_u32..1 &lt;&lt; n)
+                .filter(|&amp;i| i.count_ones() % 2 == 0)
+                .collect(),
+            |a, b| (a ^ b).count_ones() == d,
+            max_colors,
+        );
+        let out = g.check::&lt;true&gt;();
+        // println!("Num checks: {}", g.num_checks);
+        out
+    }
+}
+
+fn chromatic(n: u32, d: u32) -&gt; u32 {
+    for k in 2.. {
+        if GraphColoring::chromatic_number(n, d, k) {
+            return k;
+        }
+    }
+    panic!("You're never gonna reach this");
+}
+
+fn main() {
+    let start = Instant::now();
+    for n in 2..=8 {
+        for d in 1..n {
+            println!("{},{} -&gt; {}", n, d, chromatic(n, d));
+        }
+    }
+    println!("Finished in: {:?}", start.elapsed());
+}</code></pre>
+<p><a href="https://play.rust-lang.org/?version=nightly&amp;mode=release&amp;edition=2021&amp;gist=cc4ac4ee2afd6c1a30b7e356befc800a" rel="nofollow noreferrer">Try it online!</a></p>
+<p>Formulates the decision problem as an exact cover problem and then uses <a href="https://en.wikipedia.org/wiki/Dancing_Links" rel="nofollow noreferrer">dancing links</a> to solve it.</p>
+<p>Specifically, rows correspond to coloring a vertex a color. The columns correspond to the conditions that each vertex is covered by exactly one color, and that each edge has at most one vertex for any given color.</p>
+<p>There are two graph coloring specific optimizations:</p>
+<ul>
+<li><p>Colors are chosen in order. That is, when choosing the color for a vertex, only one of the colors that haven't yet been chosen must be considered. Without this optimization, proving that <code>f(8,6)</code> is not <code>5</code> takes 415 million steps, with the optimization it takes around 1 million steps (and it's presumably even more effective for proving the chromatic number is not 6, since it's pruning more colors in that case).</p>
+</li>
+<li><p>Ties are broken by finding the vertex with the maximum number of unassigned neighbors. This is also a pretty good optimization, without it (but with the previous) 4,225,666,594 steps are required to prove the chromatic number is not 6, with it only 299,285,005 steps are necessary.</p>
+</li>
+</ul>
+<p>If you run it on your own computer, make sure to compile with the <code>RUSTFLAGS=-Ctarget-cpu=native</code> environment variable.</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.wolfram.com/wolframscript/" rel="nofollow noreferrer">Wolfram Language (Mathematica 13.0)</a>, 392 bytes, <code>11,6</code> in a minute on my laptop</h1>
 <p>Just implementation.</p>
 <p>Use <code>VertexChromaticNumber</code> instead of <code>IGraphM`IGChromaticNumber</code> to get vertex-chromatic number, <span class="math-container">\$ \color{red}{\text{some results are not correct.}} \$</span></p>
 <pre class="lang-mathematica prettyprint-override"><code>GetChromaticNumber[n_, d_] := 
@@ -71,7 +511,7 @@ Mathematica version: 12.0.1 for Linux x86 (64-bit) (October 16, 2019)
 Operating system: Unix
 </code></pre>
 </div>
-<div id="pu1" class="pu"><h1><a href="http://python.org/" rel="nofollow noreferrer">Python 3</a> + <a href="https://pysathq.github.io/" rel="nofollow noreferrer">PySAT</a>, <code>8,5</code></h1>
+<div id="pu2" class="pu"><h1><a href="http://python.org/" rel="nofollow noreferrer">Python 3</a> + <a href="https://pysathq.github.io/" rel="nofollow noreferrer">PySAT</a>, <code>8,5</code></h1>
 <pre class="lang-python prettyprint-override"><code>from pysat.solvers import Cadical153 as Solver
 from pysat.card import CardEnc
 from pysat.formula import IDPool
@@ -121,7 +561,7 @@ if __name__ == &quot;__main__&quot;:
 </code></pre>
 <p>A port of <a href="https://codegolf.stackexchange.com/a/263302/9288">My Mathemactica answer</a>, using <a href="https://pysathq.github.io/" rel="nofollow noreferrer">PySAT</a> with <a href="https://github.com/arminbiere/cadical" rel="nofollow noreferrer">CaDiCaL</a> SAT solver.</p>
 </div>
-<div id="pu2" class="pu"><h1>Python 3 + <a href="https://github.com/Z3Prover/z3" rel="nofollow noreferrer">Z3</a>, <code>8,5</code></h1>
+<div id="pu3" class="pu"><h1>Python 3 + <a href="https://github.com/Z3Prover/z3" rel="nofollow noreferrer">Z3</a>, <code>8,5</code></h1>
 <pre class="lang-python prettyprint-override"><code>import z3
 
 def check(nodes, d, limit):
@@ -263,7 +703,7 @@ main()
 <li>Take a coloring of <code>n-1,d</code> using <code>k</code> colors. There exists an <code>2k</code>-coloring of <code>n,d</code>: Color the first half using colors <code>1</code> to <code>k</code>. Color the rest using colors <code>k+1</code> to <code>2k</code>.</li>
 </ul>
 </div>
-<div id="pu3" class="pu"><h1><a href="https://www.wolfram.com/wolframscript/" rel="nofollow noreferrer">Wolfram Language (Mathematica)</a>, 370 bytes, <code>8,5</code> in a minute on TIO</h1>
+<div id="pu4" class="pu"><h1><a href="https://www.wolfram.com/wolframscript/" rel="nofollow noreferrer">Wolfram Language (Mathematica)</a>, 370 bytes, <code>8,5</code> in a minute on TIO</h1>
 <pre><code>f[n_, d_] :=
  f[n, d] =
   Block[{c, k}, k = If[n &lt; d + 1, 1, f[n - 1, d]];
