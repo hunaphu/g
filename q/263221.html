@@ -26,16 +26,25 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>076</td><td>Rust</td><td>230822T163253Z</td><td><a href="https://codegolf.stackexchange.com/questions/263221/compute-the-chromatic-number-of-special-graphs/264501#264501">gsitcia</a></td></tr>
+<tr d-ix="0"><td>073</td><td>Rust</td><td>230822T163253Z</td><td><a href="https://codegolf.stackexchange.com/questions/263221/compute-the-chromatic-number-of-special-graphs/264501#264501">gsitcia</a></td></tr>
 <tr d-ix="1"><td>006</td><td>Wolfram Language Mathematica 13.0</td><td>230726T014222Z</td><td><a href="https://codegolf.stackexchange.com/questions/263221/compute-the-chromatic-number-of-special-graphs/263344#263344">138 Aspe</a></td></tr>
 <tr d-ix="2"><td>005</td><td>Python 3 + PySAT</td><td>230802T061921Z</td><td><a href="https://codegolf.stackexchange.com/questions/263221/compute-the-chromatic-number-of-special-graphs/263623#263623">alephalp</a></td></tr>
 <tr d-ix="3"><td>005</td><td>Python 3 + Z3</td><td>230802T000647Z</td><td><a href="https://codegolf.stackexchange.com/questions/263221/compute-the-chromatic-number-of-special-graphs/263620#263620">Bubbler</a></td></tr>
 <tr d-ix="4"><td>005</td><td>Wolfram Language Mathematica</td><td>230725T104218Z</td><td><a href="https://codegolf.stackexchange.com/questions/263221/compute-the-chromatic-number-of-special-graphs/263302#263302">alephalp</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.rust-lang.org/" rel="nofollow noreferrer">Rust</a>, <code>8,7</code> in 6 minutes on the Rust playground</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.rust-lang.org/" rel="nofollow noreferrer">Rust</a>, <code>8,7</code> in 3 minutes on the Rust playground</h1>
 
-<pre class="lang-rust prettyprint-override"><code>use std::{collections::HashMap, hash::Hash};
-use std::time::Instant;
+<pre class="lang-rust prettyprint-override"><code>use std::time::Instant;
+use std::{
+    collections::HashMap,
+    hash::Hash,
+    sync::atomic::{AtomicU32, Ordering},
+};
+
+use rayon::prelude::*;
+
+const MAX_THREADS: usize = 4;
+static NUM_TASKS: AtomicU32 = AtomicU32::new(0);
 
 #[derive(Clone, Copy, Debug)]
 struct Edge {
@@ -101,6 +110,7 @@ impl Default for Node {
     }
 }
 
+#[derive(Clone)]
 struct GraphColoring {
     nodes: Vec&lt;Node&gt;,
     allowance: u32,
@@ -252,7 +262,7 @@ impl GraphColoring {
         }
     }
 
-    fn check&lt;const HAS_ALLOWANCE: bool&gt;(&amp;mut self) -&gt; bool {
+    fn check(&amp;mut self) -&gt; bool {
         let (vertex_idx, count) = match self.pick_min_vertex() {
             None =&gt; {
                 return true;
@@ -284,56 +294,104 @@ impl GraphColoring {
 
         idx = vertex.down;
 
-        while idx != vertex_idx {
-            let color = self.color(idx);
+        let has_allowance = self.allowance &gt; 0;
 
-            if HAS_ALLOWANCE &amp;&amp; allowance == 0 {
-                self.allowance -= 1;
-            }
+        let x = count as u32 - self.allowance.saturating_sub(1);
+        let num_tasks = NUM_TASKS.load(Ordering::Relaxed);
+        let parallel = num_tasks &lt; MAX_THREADS as u32
+            &amp;&amp; NUM_TASKS
+                .compare_exchange_weak(
+                    num_tasks,
+                    num_tasks + x - 1,
+                    Ordering::SeqCst,
+                    Ordering::Relaxed,
+                )
+                .is_ok();
+        if parallel {
+            let mut tasks = Vec::new();
+            while idx != vertex_idx {
+                let color = self.color(idx);
 
-            if (idx+1..=color.last_edge).all(|edge_idx|
-                self.vertex(self.edge(edge_idx).opposite_vertex).count_colors &gt; 1
-            ) {
-                self.remove_adjacent(idx, color);
-
-                if HAS_ALLOWANCE {
-                    if self.allowance &gt; 0 {
-                        if self.check::&lt;true&gt;() {
-                            return true;
-                        }
-                    } else if self.check::&lt;false&gt;() {
-                        return true;
-                    }
-                } else if self.check::&lt;false&gt;() {
-                    return true;
+                if has_allowance &amp;&amp; allowance == 0 {
+                    self.allowance -= 1;
                 }
 
-                self.reconnect_adjacent(idx, color);
-            }
+                if (idx + 1..=color.last_edge).all(|edge_idx| {
+                    self.vertex(self.edge(edge_idx).opposite_vertex)
+                        .count_colors
+                        &gt; 1
+                }) {
+                    self.remove_adjacent(idx, color);
+                    tasks.push(self.clone());
 
-            if HAS_ALLOWANCE &amp;&amp; allowance == 0 {
-                self.allowance += 1;
-                break;
-            }
+                    self.reconnect_adjacent(idx, color);
+                }
 
-            idx = self.color(idx).down;
+                if has_allowance &amp;&amp; allowance == 0 {
+                    self.allowance += 1;
+                    break;
+                }
 
-            if HAS_ALLOWANCE {
+                idx = self.color(idx).down;
+
                 allowance -= 1;
             }
+
+            idx = self.color(vertex_idx).up;
+            while idx != vertex_idx {
+                let color = self.color(idx);
+                self.reconnect_color(idx, color);
+                idx = color.up;
+            }
+
+            self.vertex_mut(vertex.left).right = vertex_idx as _;
+            self.vertex_mut(vertex.right).left = vertex_idx as _;
+            let o = tasks.par_drain(..).any(|mut i| i.check());
+            NUM_TASKS.fetch_sub(x - 1, Ordering::Relaxed);
+            o
+        } else {
+            while idx != vertex_idx {
+                let color = self.color(idx);
+
+                if has_allowance &amp;&amp; allowance == 0 {
+                    self.allowance -= 1;
+                }
+
+                if (idx + 1..=color.last_edge).all(|edge_idx| {
+                    self.vertex(self.edge(edge_idx).opposite_vertex)
+                        .count_colors
+                        &gt; 1
+                }) {
+                    self.remove_adjacent(idx, color);
+
+                    if self.check() {
+                        return true;
+                    }
+
+                    self.reconnect_adjacent(idx, color);
+                }
+
+                if has_allowance &amp;&amp; allowance == 0 {
+                    self.allowance += 1;
+                    break;
+                }
+
+                idx = self.color(idx).down;
+
+                allowance -= 1;
+            }
+
+            idx = self.color(vertex_idx).up;
+            while idx != vertex_idx {
+                let color = self.color(idx);
+                self.reconnect_color(idx, color);
+                idx = color.up;
+            }
+
+            self.vertex_mut(vertex.left).right = vertex_idx as _;
+            self.vertex_mut(vertex.right).left = vertex_idx as _;
+            false
         }
-
-        idx = self.color(vertex_idx).up;
-        while idx != vertex_idx {
-            let color = self.color(idx);
-            self.reconnect_color(idx, color);
-            idx = color.up;
-        }
-
-        self.vertex_mut(vertex.left).right = vertex_idx as _;
-        self.vertex_mut(vertex.right).left = vertex_idx as _;
-
-        false
     }
 
     fn new&lt;T, F&gt;(vertices: &amp;Vec&lt;T&gt;, adjacent: F, max_colors: u32) -&gt; GraphColoring
@@ -409,7 +467,8 @@ impl GraphColoring {
                                 }
                             }
                             None =&gt; {
-                                edge_to_idx.insert((a, b, k), (edge_a_idx, color_a_idx, vertex_a_idx));
+                                edge_to_idx
+                                    .insert((a, b, k), (edge_a_idx, color_a_idx, vertex_a_idx));
                                 Node::default()
                             }
                         };
@@ -435,8 +494,8 @@ impl GraphColoring {
             |a, b| (a ^ b).count_ones() == d,
             max_colors,
         );
-        let out = g.check::&lt;true&gt;();
-        // println!("Num checks: {}", g.num_checks);
+        let out = g.check();
+        // println!(&quot;Num checks: {}&quot;, g.num_checks);
         out
     }
 }
@@ -447,19 +506,24 @@ fn chromatic(n: u32, d: u32) -&gt; u32 {
             return k;
         }
     }
-    panic!("You're never gonna reach this");
+    panic!(&quot;You're never gonna reach this&quot;);
 }
 
 fn main() {
     let start = Instant::now();
+    rayon::ThreadPoolBuilder::new()
+        .num_threads(MAX_THREADS)
+        .build_global()
+        .unwrap();
     for n in 2..=8 {
         for d in 1..n {
-            println!("{},{} -&gt; {}", n, d, chromatic(n, d));
+            println!(&quot;{},{} -&gt; {}&quot;, n, d, chromatic(n, d));
         }
     }
-    println!("Finished in: {:?}", start.elapsed());
-}</code></pre>
-<p><a href="https://play.rust-lang.org/?version=nightly&amp;mode=release&amp;edition=2021&amp;gist=cc4ac4ee2afd6c1a30b7e356befc800a" rel="nofollow noreferrer">Try it online!</a></p>
+    println!(&quot;Finished in: {:?}&quot;, start.elapsed());
+}
+</code></pre>
+<p><a href="https://play.rust-lang.org/?version=nightly&amp;mode=release&amp;edition=2021&amp;gist=14a09279c74c8fdfa2c9c85b430fd597" rel="nofollow noreferrer">Try it online!</a></p>
 <p>Formulates the decision problem as an exact cover problem and then uses <a href="https://en.wikipedia.org/wiki/Dancing_Links" rel="nofollow noreferrer">dancing links</a> to solve it.</p>
 <p>Specifically, rows correspond to coloring a vertex a color. The columns correspond to the conditions that each vertex is covered by exactly one color, and that each edge has at most one vertex for any given color.</p>
 <p>There are two graph coloring specific optimizations:</p>
@@ -469,7 +533,7 @@ fn main() {
 <li><p>Ties are broken by finding the vertex with the maximum number of unassigned neighbors. This is also a pretty good optimization, without it (but with the previous) 4,225,666,594 steps are required to prove the chromatic number is not 6, with it only 299,285,005 steps are necessary.</p>
 </li>
 </ul>
-<p>If you run it on your own computer, make sure to compile with the <code>RUSTFLAGS=-Ctarget-cpu=native</code> environment variable.</p>
+<p>If you run it on your own computer, make sure to run <code>cargo add rayon</code> and compile with the <code>RUSTFLAGS=-Ctarget-cpu=native</code> environment variable.</p>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://www.wolfram.com/wolframscript/" rel="nofollow noreferrer">Wolfram Language (Mathematica 13.0)</a>, 392 bytes, <code>11,6</code> in a minute on my laptop</h1>
 <p>Just implementation.</p>
