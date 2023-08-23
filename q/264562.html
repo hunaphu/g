@@ -26,12 +26,53 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>171</td><td>Retina 0.8.2</td><td>230823T184754Z</td><td><a href="https://codegolf.stackexchange.com/questions/264562/decode-chess-move/264563#264563">Neil</a></td></tr>
-<tr d-ix="1"><td>249</td><td>Ruby p</td><td>230823T211312Z</td><td><a href="https://codegolf.stackexchange.com/questions/264562/decode-chess-move/264572#264572">Value In</a></td></tr>
+<tr d-ix="0"><td>249</td><td>Ruby p</td><td>230823T211312Z</td><td><a href="https://codegolf.stackexchange.com/questions/264562/decode-chess-move/264572#264572">Value In</a></td></tr>
+<tr d-ix="1"><td>171</td><td>Retina 0.8.2</td><td>230823T184754Z</td><td><a href="https://codegolf.stackexchange.com/questions/264562/decode-chess-move/264563#264563">Neil</a></td></tr>
 <tr d-ix="2"><td>210</td><td>JavaScript ES6</td><td>230823T211106Z</td><td><a href="https://codegolf.stackexchange.com/questions/264562/decode-chess-move/264571#264571">Arnauld</a></td></tr>
 <tr d-ix="3"><td>146</td><td>Charcoal</td><td>230823T193956Z</td><td><a href="https://codegolf.stackexchange.com/questions/264562/decode-chess-move/264567#264567">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/m-ender/retina/wiki/The-Language/a950ad7d925ec9316e3e2fb2cf5d49fd15d23e3d" rel="nofollow noreferrer">Retina 0.8.2</a>, <s>176</s> <s>172</s> 171 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a> <code>-p</code>, 249 bytes</h1>
+<p><code>-p</code> flag loops over input, modifies it with these two fat regex functions, and spits it back out.</p>
+<pre class="lang-ruby prettyprint-override"><code>sub(/(^[a-g]?)?(.\d)?(x)?(?=.\d)|O(-O)+/){$4?%w(short long)[~/$//4]+' castle':&quot;#{$1&amp;&amp;?P}#{' '+$2if$2} #{$3?:takes:'to'} &quot;}
+gsub(/[#+=B-R]/){|m|m[/\W/]?' '+%w(mate promotes\ to\  _ check)[m.ord%5]:%w(King Queen Rook Bishop Pawn).find{_1[m]}||:Knight}
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=LVDLaoNAFN3PVwxqoiJG8mgrgkjdBmripotxGsZkfJDoBB2JRc2PdJNF23_Kp3TXSdPFORwu595zOR-fVRO_fyPJPEr48tXwxLSvP3UTa5b2hoiZYk_3tEm0E9wKeO5N94FmBrph6Z2y8EYnrc5YxeGBlamOzpZiWQtsqHBLan6gqiPJnTIdj73VIHcqVA1llifKbIBiPPccTva0dlTO1AFKA0j_spFsuL4ZYpHQF32BrOjVwt5tWaQVhFN4rFjBOK0jyFkE4QZuM7rd66iYsGo3esCOMC7zMoXrhtIShoztoZ-LR49wRU6lPknyctdtpqjAQ987yzJPMz7cC_jv4XJ9TtrUdtcG8OMnGQRmcIPgUIxB0tJHEBJbyJd4LoN1mwjTMpsCYrs-CGNbuO6XfgE" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<h3>Partially ungolfed</h3>
+<pre class="lang-ruby prettyprint-override"><code>sub(/(^[a-g]?)?(.\d)?(x)?(?=.\d)/) { # Replace the part that says which piece moves where
+ &quot;#{
+    $1&amp;&amp;?P                           # 'P' (Pawn) if group 1 is present
+                                     #  (matches if input starts with /[a-g]x/ or /.\d/)
+   }#{
+    ' '+$2if$2                       # Group 2 with leading space if present
+                                     #  (for Qb3e6 -&gt; Queen b3 to e6 etc.)
+   } #{
+    $3?:takes:'to'                   # 'takes' if group 3 (x) is present, else 'to'
+                                     #  (uses label notation :takes to save bytes)
+   } &quot;
+}
+sub(/O(-O)+/) { # Replace castling notation (original program checks for group 4)
+   %w(short long)                    # ['short', 'long']
+                 [
+                  ~/$/               # Index of end of input (3 if O-O, 5 if O-O-O)
+                      /4]            # Divide by 4 to get correct index for short vs long
+    + ' castle'                      # Add the ' castle' part
+}
+gsub(/[#+=B-R]/) {|m|                # Match checkmate, check, promotes, pieces
+   m[/\W/]?                          # If non-letter (checkmate, check, promote)
+    ' '+                             # Leading space
+    ['mate','promotes to ', nil, 'check'][m.ord%5]
+                                     # Match the corresponding phrase by using mod 5
+                                     # '#' -&gt; 0, '=' -&gt; 1, '+' -&gt; 3
+
+  :                                  # Otherwise (if letter)
+    %w(King Queen Rook Bishop Pawn).find{_1[m]}
+                                     # Find the piece that has that letter
+    ||:Knight                        # If none found, it's a Knight (N can't match)
+}
+<span class="math-container">```</span>
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/m-ender/retina/wiki/The-Language/a950ad7d925ec9316e3e2fb2cf5d49fd15d23e3d" rel="nofollow noreferrer">Retina 0.8.2</a>, <s>176</s> <s>172</s> 171 bytes</h1>
 <pre><code>(([A-Z])(..)?|(.?))(x)?(.\d)
 $2$#4$*P $3$#3$* to$5 $6
 ox
@@ -101,13 +142,6 @@ Pawn
 </code></pre>
 <p>Expand the piece names.</p>
 <p>Edit: Saved 4 bytes thanks to @Arnauld. Saved 1 byte thanks to @ValueInk.</p>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a> <code>-p</code>, 249 bytes</h1>
-<p><code>-p</code> flag loops over input, modifies it with these two fat regex functions, and spits it back out.</p>
-<pre class="lang-ruby prettyprint-override"><code>sub(/(^[a-g]?)?(.\d)?(x)?(?=.\d)|O(-O)+/){$4?%w(short long)[~/$//4]+' castle':&quot;#{$1&amp;&amp;?P}#{' '+$2if$2} #{$3?:takes:'to'} &quot;}
-gsub(/[#+=B-R]/){|m|m[/\W/]?' '+%w(mate promotes\ to\  _ check)[m.ord%5]:%w(King Queen Rook Bishop Pawn).find{_1[m]}||:Knight}
-</code></pre>
-<p><a href="https://ato.pxeger.com/run?1=LVDLaoNAFN3PVwxqoiJG8mgrgkjdBmripotxGsZkfJDoBB2JRc2PdJNF23_Kp3TXSdPFORwu595zOR-fVRO_fyPJPEr48tXwxLSvP3UTa5b2hoiZYk_3tEm0E9wKeO5N94FmBrph6Z2y8EYnrc5YxeGBlamOzpZiWQtsqHBLan6gqiPJnTIdj73VIHcqVA1llifKbIBiPPccTva0dlTO1AFKA0j_spFsuL4ZYpHQF32BrOjVwt5tWaQVhFN4rFjBOK0jyFkE4QZuM7rd66iYsGo3esCOMC7zMoXrhtIShoztoZ-LR49wRU6lPknyctdtpqjAQ987yzJPMz7cC_jv4XJ9TtrUdtcG8OMnGQRmcIPgUIxB0tJHEBJbyJd4LoN1mwjTMpsCYrs-CGNbuO6XfgE" rel="nofollow noreferrer">Attempt This Online!</a></p>
 </div>
 <div id="pu2" class="pu"><h1>JavaScript (ES6), 210 bytes</h1>
 <p>Takes some inspiration from <a href="https://codegolf.stackexchange.com/a/264563/58563">Neil's Retina answer</a>. But in the end, this is quite different.</p>
