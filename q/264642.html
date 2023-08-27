@@ -26,9 +26,65 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>182</td><td>Haskell</td><td>230826T193347Z</td><td><a href="https://codegolf.stackexchange.com/questions/264642/find-a-string-in-the-middle/264655#264655">matteo_c</a></td></tr>
+<tr d-ix="0"><td>469</td><td>Python</td><td>230827T190415Z</td><td><a href="https://codegolf.stackexchange.com/questions/264642/find-a-string-in-the-middle/264682#264682">bsoelch</a></td></tr>
+<tr d-ix="1"><td>182</td><td>Haskell</td><td>230826T193347Z</td><td><a href="https://codegolf.stackexchange.com/questions/264642/find-a-string-in-the-middle/264655#264655">matteo_c</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.haskell.org" rel="noreferrer">Haskell</a>, 182 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 469 bytes</h1>
+<pre class="lang-python prettyprint-override"><code>l=len
+def f(s,t):
+ m,n=l(s),l(t);w=m+n+1;M=[[([s],i+j)for j in range(n+1)]for i in range(m+1)]
+ for j in range(n):
+  for i in range(m):D,d=M[i][j+1];U,u=M[i+1][j];R,r=M[i][j];a=l(D:=D+[p[:d]+p[d+1:]])if(p:=D[-1])[:d]==t[:d]else w;b=l(U:=U+[p[:u]+[t[j]]+p[u:]])if(p:=U[-1])[:u]==t[:u]else w;c=l(R:=R+[[],[p[:r]+[t[r]]+p[r+1:]]][p[r]!=t[r]])if(p:=R[-1])[:r]==t[:r]else w;M[i+1][j+1]=[(D,d),(U,u+1),(R,r+1)][[a,b,c].index(min(a,b,c))]
+ return(p:=M[m][n][0])[(len(p)-1)//2]
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=XZKxboMwEIbVNU_hZoktO0npVIG8Zc2CxHS6gQRojcBBxijts3TJ0r5Rh_ZpegaiSAEJ8H_-_uPu_Pndffi3k71cvgZfrV_-Hn4a3ZR2UZQVq3ivvIgXrFVWN7wXquFeJGfdSiujZK8BOPSojKxFdXKsZsYyl9vXklNcYNDMTWuDtmD3O0MCdr9VxDtV6D0YhFpGmGRqCCv6hBqTVLk5hklOf7aL9U5CB3GBsoNCRjGiMBXvSId1hCJEtPbhVTZ9yc7JgbAs1tmIDSjBk1mghxubzewwscOVPRKbxjqVAKgC70bejbwbsyPJDh_1qM526WznJjt3tbvWRQ8NnOoWilO91C3FqdLQNYBcHdQRN8YW5TtvjeWjIEJDXekHZ0OGPbQIFuGJ0nCaIu_EOhLb7TNO0_2NOmes56vVpj6RR8Ub03u-PJg6b_N-SQOe1rmleynomsDr8fgH" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<h2>Explanation</h2>
+<p>Uses modified version of the <a href="https://en.wikipedia.org/wiki/Levenshtein_distance#Iterative_with_full_matrix" rel="nofollow noreferrer">dynamic programming algorithm</a> for the computation of the Levenshtein distance.
+Each cell stores the current prefix length and the path of all previous edits.
+At the end the cell in the middle of the path is returned.</p>
+<p>ungolfed code:</p>
+<pre class="lang-python prettyprint-override"><code>def levDist(s,t):
+  m,n=len(s),len(t)
+  w=m+n+1 # one larger than the largest possible Levenshtein distance
+  M=[[([s],(i==0)*j+(j==0)*i) for j in range(n+1)] for i in range(m+1)]
+
+  for j in range(0, n):
+    for i in range(0, m):
+      ## cell i,j -&gt; shortest edit path that:
+      ## 1) only modifies the first i characters in s 
+      ## 2) ends with a word starting with the first j characters in t 
+      D,d=M[i][j+1] # deletion
+      U,u=M[i+1][j] # insertion
+      R,r=M[i][j]   # substitution
+      # for each edit type see if the previous cell contains the correct prefix and if yes perform the repetitive edit
+      if (p:=D[-1])[:d]==t[:d]:
+        D=D+[p[:d]+p[d+1:]]
+        a=len(D)
+      else:
+        a=w
+      if (p:=U[-1])[:u]==t[:u]:
+        U=U+[p[:u]+[t[j]]+p[u:]]
+        b=len(U)
+      else:
+        b=w
+      if (p:=R[-1])[:r]==t[:r]:
+        if p[r]!=t[r]:
+          R=R+[p[:r]+[t[r]]+p[r+1:]]
+        c=len(R)
+      else:
+        c=w
+      x=min(a,b,c) # find operation with the shortest edit path
+      if x==a:
+        M[i+1][j+1] = (D,d)
+      elif x==b:
+        M[i+1][j+1] = (U,u+1)
+      else:
+        M[i+1][j+1] = (R,r+1)
+  return ((p:=M[m][n][0])[(len(p)-1)//2],M[m][n]) # the ungolfed version also returns the complete edit path
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=dVO7buMwECzS5Ss2SUOeaMS66iCAnVo3BlQRLCSLTihItMBHnPuWa9Ik_3T3NVlScqwYPggQyZldznDJ_fMx_vbPB_P29h78fvXr3w1t1R569VJq54ljnha3AAMzvFeGOMri4CliRz5kJstxtuFCEOEkI5rzNf3RZaRLE01hf7DQgTZga_OkCCZQmUB9BocI3uJGF8FrBibJw2UGMsPMAJSs5RuhpeiyXMIDtKpXXh_MTFcsRBo50UVaG6fsgt8yO6dLXD2AC43z2odFiN4DGQteilUuqShaybmPw8kBeuBlJsaIZaNos7yQ8ourU-lKOgOqd6pYkMfvItUsEiaRsBCpeJVEgsyER7tRKyyVmqRUXVdqLpW2s5KdlOxCCSNGYeUd4ksYi8W3yYJNFmyyYL8fd5dMbK-b2H2ZeOWDNqRmDdvRs69Xzutz9Ona4r1yIHjR512n4Oa_wXjt-KyumriIxAcwRVrlgzVAYnE2YpDCSLHGCpF4oJGucvr4-FOymaJTx_xdj1YbT04t08fffaO7eqjdPfbLtK4NfhoBOuedOu4T" rel="nofollow noreferrer">Attempt This Online!</a></p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.haskell.org" rel="noreferrer">Haskell</a>, 182 bytes</h1>
 <pre class="lang-haskell prettyprint-override"><code>import Data.List
 l=length
 (x:w)#(y:z)|x==y=map(x:)$w#z
