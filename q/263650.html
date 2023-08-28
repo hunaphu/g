@@ -49,7 +49,33 @@
 <pre class="lang-bash prettyprint-override"><code>s=$1 n=$2 l=${#s} N=$((n+n-1)); for ((p=0; p&lt;n*N; p++)); { S[p]=&quot; &quot;; }; printf -v T &quot;%${N}s&quot;; T=${T// /%s}; while ((n&gt;0)); do     b='.'; for ((j=1; j&lt;n; j++)); { t=${s:c:1} S[i]=${t:-$b} S[$((i+1))]=&quot;-&quot; b='-' h='&gt;'; ((i+=2)); ((c++)); }; ((n-=a)); b='.'; for ((j=1; j&lt;n; j++)); { t=${s:c:1} S[i]=${t:-$b} b='|'; ((i+=N)); ((c++)); }; b=&quot;'&quot;; for ((j=1; j&lt;n; j++)); { t=${s:c:1} S[i]=${t:-$b} S[$((i-1))]=&quot;-&quot; h='&lt;' b='-'; ((i-=2)); ((c++)); }; ((n--)); b=&quot;'&quot;; for ((j=1; j&lt;n; j++)); { t=${s:c:1} S[i]=${t:-$b} b='|'; ((i-=N)); ((c++)); }; a=1; done; S[i]=$h; printf &quot;$T\n&quot; &quot;${S[@]}&quot;
 </code></pre>
 <p><a href="https://tio.run/##nZLBboMwDIZfxcpSkQ5llF4mAan2BFzKreMAlAq6ziDCtgPLszNnjE5adyKHxI6T7/evJM90NY5acR9Q8S1cFB/utIFYcSHQRemv1yGcmg6EaNUmhDbC@5gW17WFAfaHNlUMWAiGdrsa@xPId0iArfgQG02FhJiJ54G30nTmo6ovJdFwt7GEYwN25Mp5cGahs/JDOEdI0yzTE0MHReAbUqxTyvpA8txm1GjtUpvUhmQWJB2olLMjnK2orSUIUUwoY2OUKrPJYlW6@Dnz47/8XDGHLfcir17IReRMjr615P9e5GRloeivFXlrJbOgY4Nl@HOruj4y48kz0sPzYX94Sg0b6Rth9lJmXfOGx6J5LfUUjo9f" rel="nofollow noreferrer" title="Bash – Try It Online">Try it online!</a></p>
+<p>Reduced to 349 bytes:</p>
+<pre class="lang-bash prettyprint-override"><code>s=$1 n=$2 N=$[n+n-1]; for ((p=0; p&lt;n*N; p++)); { S[p]=&quot; &quot;; }; printf -v T &quot;%${N}s&quot;; T=${T// /%s}; f(){ b=$1; for ((j=1; j&lt;n; j++)); { [[ $4 ]] &amp;&amp; h=$4 S[$[i+$2/2]]=-; t=${s:c:1} S[i]=${t:-$b} b=$3; ((i+=$2,c++)); }; }; while ((n&gt;0)); do f . 2 - \&gt;; ((n-=a)); f . $N \|; f \' -2 - \&lt;; ((n--)); f \' -$N \|; a=1; done; S[i]=$h; printf &quot;$T\n&quot; &quot;${S[@]}&quot;
+</code></pre>
+<p><a href="https://tio.run/##PVDLboMwEPyVEXLSpNQloZUqxXHUL@ASbsYHkoBwGi0RkPZA@Xa6zqOSZY9nZsfr3eVtNY6tFkuQFjESLQyFJJdWoawbzGZnvVA4r@k54SMM53OFHltztjpAoDAw2zjqSshvpAgmok@GloVUiz6NIkSTlj3lbN5jx888Yo@a4XFNvD1CjYF4h7WYTlFphlsjjAtFHMXWaqnQcWS72q@WA0vO8q1bSbEbfPCb4lAX8h9e9rfA4bp@KncqWKLNwpOHGiVeEUMi2/gSkjr3gmdFguzXw@wJ8mpZ3yzy5vD03ZP79g81FereSvU/h0CkGfFsRL81n3YIRp4v5V9F3tQXOpQX2neuJi49OSqa8eMP" rel="nofollow noreferrer">Try it online!</a></p>
 <p>And ungolfed for better readability:</p>
+<pre class="lang-bash prettyprint-override"><code>#!/bin/bash
+s=$1 n=$2 N=$[n+n-1]
+for ((p=0; p&lt;n*N; p++)); { S[p]=&quot; &quot;; }
+printf -v T &quot;%${N}s&quot;; T=${T// /%s}
+
+f(){
+    b=$1
+    for ((j=1; j&lt;n; j++)); {
+        [[ $4 ]] &amp;&amp; h=$4 S[$[i+$2/2]]=-
+        t=${s:c:1} S[i]=${t:-$b} b=$3
+        ((i+=$2,c++))
+    }
+}
+
+while ((n&gt;0)); do
+    f .  2    - \&gt;; ((n-=a))
+    f .  $N  \|
+    f \' -2   - \&lt;; ((n--))
+    f \' -$N \|   ;   a=1
+done; S[i]=$h; printf &quot;$T\n&quot; &quot;${S[@]}&quot;
+</code></pre>
+<p>First variant was:</p>
 <pre class="lang-bash prettyprint-override"><code>#!/bin/bash
 
 s=$1
