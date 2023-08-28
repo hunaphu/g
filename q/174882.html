@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::174882</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>798</td><td>Python</td><td>230828T161536Z</td><td><a href="https://codegolf.stackexchange.com/questions/174882/find-the-pattern/264711#264711">bsoelch</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 798 bytes</h1>
+<pre class="lang-python prettyprint-override"><code>I=int
+L=lambda k:len(bin(abs(k)))-2
+def S(s,x):
+ if type(x)==I:return L(x)
+ if x==&quot;i&quot;:return 1
+ if x[0]==&quot;@&quot;:return x[1]
+ if x[0]in&quot;+-*/%&quot;:return S(s,x[1])+S(s,x[2])+1
+def E(s,x,i):
+ if type(x)==I:return x
+ if x==&quot;i&quot;:return i+1
+ if x[0]==&quot;@&quot;:return s[i-x[1]]
+ l,r=E(s,x[1],i),E(s,x[2],i)
+ return[l+r,l-r,l*r,l//r,l%r][&quot;+-*/%&quot;.index(x[0])]
+def C(s,n,x):
+ try:return all(E(s,x,i)==s[i]for i in range(n,len(s)))
+ except:return 0
+def B(k,i):
+ if k==0:return&quot;i&quot;
+ if k&lt;=i:return[&quot;@&quot;,k]
+ k-=i;q,r=k//3,k%3
+ if r==0:return q
+ if r==1:return-q
+ r=bin(q//5);r=[I(r[2::2],2),I(&quot;0&quot;+r[3::2],2)]
+ return[&quot;+-*/%&quot;[q%5],B(r[0],i),B(r[1],i)]
+def F(s):
+ N=sum(map(L,s));n=len(s);o=N+n+1
+ for k in range(n*(2**N)):
+  k,i=k//n,k%n;b=sum(map(L,s[:i]))+i;x=B(k,i)
+  if C(s,i,x)and(k:=b+S(s,x))&lt;o:o=k;r=(s[:i],x)
+ return r
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=dVPNitswED705ocoIhCQbLmOnQ0s9g6ULVkIhFx6FD44jdMKOYojO-A8Sy97ad-p-zQdS7a7pd2DzOib3-8b6_vP-tZ-O-vn5x_X9hjev7x7vwGpW28LVXHaHwqi0qrUdC81LfYNVYyxMPEO5ZF8pg3vWOoReSTtrS5pxwA2qSnbq9Fki1fr6gBmcjbCscPEIkf44wR3Is4nj9SzIPSj-eS1nTCCBc5K0IrtDOv-zuWbU3T_GUEGbwzRCBn2bXCSihtYD12xPF8PfdH2iAsXVWB4FeLx8UQRfuYmF8PoH6Q-lB3te7DcjvoJS2gnWGtuY8-iquhIAgAnyI9nQySRmphCfy2p5r38DcrukbL7UtbtmLqwZR-pmvgrgMXgRb4OegA5QAKpcoXkVAgyuyBDFUVLruZLG2n-JJPLiMQDEiJioP8JLlG0YpkBsaFGJGmKmiSMb-hsMQuMWA5APqk06CEu81XOHzFnYQXtLSutE-cJGSKHHTTXEz0VNd1ypJxpcOSzM-wC3e-tV0e9Usenie_vWJ9MUIiekkZKOtu_LiVSmTMWyKwDpxdGS7cSiSsp9IGqFPbu92Ls4ZyeQSFJajN5Ny2dGPdMfkFt8JXQJypinvAlv8P63l_YHb__B1vylUVdkfHN_QY" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<p>Outputs the initial terms as an array followed by a nested array representing the expression.<br>
+Uses <code>[&quot;@&quot;,n]</code> for <code>f(i-n)</code> and <code>%</code> for <code>mod</code>, I can change it if the exact output format from the question is required.</p>
+<h2>Explanation</h2>
+<p>The main idea is to check all expressions up to a maximum size and choose the one with the lowest score. <br> Expressions are represented by nested arrays with the first element determining the type of expression</p>
+<ul>
+<li>int -&gt; int</li>
+<li><code>&quot;i&quot;</code> -&gt; index</li>
+<li><code>&quot;@&quot;</code> -&gt; previous element</li>
+<li><code>&quot;+&quot;</code> <code>&quot;-&quot;</code> <code>&quot;*&quot;</code> <code>&quot;/&quot;</code> <code>&quot;%&quot;</code> -&gt; operator)</li>
+</ul>
+<p><code>buildExpr</code> maps the integers to expressions</p>
+<p><code>check</code> and <code>evaluate</code> evaluate the expression to check if it generates the sequence</p>
+<p><code>score</code> computes the score of an expression</p>
+<p>ungolfed version:</p>
+<pre class="lang-python prettyprint-override"><code>l=lambda k:len(bin(abs(k)))-2 # score of integer
+
+def score(seq,expr):
+  if type(expr)==int:
+    return l(expr)
+  if expr==&quot;i&quot;:
+    return 1
+  if expr[0]==&quot;@&quot;:
+    return expr[1]
+  if expr[0] in &quot;+-*/%&quot;:
+    return score(seq,expr[1])+score(seq,expr[2])+1
+
+def evaluate(seq,expr,i):
+  if type(expr)==int:
+    return expr
+  if expr==&quot;i&quot;:
+    return i+1
+  if expr[0]==&quot;@&quot;:
+    return seq[i-expr[1]]
+  if expr[0]==&quot;+&quot;:
+    return evaluate(seq,expr[1],i)+evaluate(seq,expr[2],i)
+  if expr[0]==&quot;-&quot;:
+    return evaluate(seq,expr[1],i)-evaluate(seq,expr[2],i)
+  if expr[0]==&quot;*&quot;:
+    return evaluate(seq,expr[1],i)*evaluate(seq,expr[2],i)
+  if expr[0]==&quot;/&quot;:
+    return evaluate(seq,expr[1],i)//evaluate(seq,expr[2],i)
+  if expr[0]==&quot;%&quot;:
+    return evaluate(seq,expr[1],i)%evaluate(seq,expr[2],i)
+
+def check(seq,n_initTerms,expr):  ## check if expr is an expression for this sequence
+  try:
+    for i in range(n_initTerms,len(seq)):
+      if not evaluate(seq,expr,i)==seq[i]:
+        return False
+    return True
+  except:
+    return False
+
+split=lambda n:(int(bin(n)[2::2],2),int(&quot;0&quot;+bin(n)[3::2],2))
+
+def buildExpr(k,i):
+  if k==0:
+    return &quot;i&quot;
+  if k&lt;=i:
+    return [&quot;@&quot;,k]
+  k-=i
+  q,r=k//3,k%3
+  if r==0:
+    return q
+  if r==1:
+    return -q
+  r=split(q//5)
+  return [&quot;+-*/%&quot;[q%5],buildExpr(r[0],i),buildExpr(r[1],i)]
+
+def find(seq):
+  N=sum(map(l,seq))
+  n=len(seq)
+  opt=N+n+1
+  for k in range(n*(2**N)): ## should be large enough, n*(2**N)*(2**N) will be large enough but the program wont terminate for the testcases
+    k,i=k//n,k%n
+    base_score=sum(map(l,seq[:i]))+i # score of initial terms
+    expr=buildExpr(k,i)
+    if check(seq,i,expr) and (s:=base_score+score(seq,expr))&lt;opt:
+      opt=s
+      res=(seq[:i],expr)
+  return opt,res ## ungolfed version returns score and result
+<span class="math-container">```</span>
+</code></pre>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/174882/">174882</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
