@@ -42,11 +42,30 @@
 <p>Brute force.</p>
 <hr />
 <h1>17 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
-<p>Less brute force, but outputting the prefix codes sorted by their lengths.</p>
+<p>Less brute force, but outputting the prefix codes sorted by their lengths. Again <code>Ø.</code> could be replaced with <code>2</code> to save a byte. If the input were guaranteed to be sorted too, then <code>2ṗeƤẸ¥ÐḟḢṭð@ƒḟ</code> does the job at <span class="math-container">\$14\$</span> bytes.</p>
 <pre><code>Ø.ṗeƤẸ¥ÐḟḢṭ
 Ṣç@ƒḟ
 </code></pre>
 <p><strong><a href="https://tio.run/##y0rNyan8///wDL2HO6enHlvycNeOQ0sPT3i4Y/7DHYse7lzL9XDnosPLHY5NAor8//8/2kwHPzTSMYwFAA" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></strong></p>
+<h3>How?</h3>
+<pre><code>Ø.ṗeƤẸ¥ÐḟḢṭ - Link 1: integer NextCodeLength, list of codes, FoundAlready
+Ø.          - [0,1]
+  ṗ         - Cartesian power {NextCodeLength} -&gt; PotentialCodes
+       Ðḟ   - filter discard those for which:
+      ¥     -   last two links as a dyad - f(PotentialCode, FoundAlready)
+    Ƥ       -     for prefixes of {PotentialCode}
+   e        -       exists in {FoundAlready}?
+     Ẹ      -     any?
+         Ḣ  - head -&gt; first valid PotentialCode
+          ṭ - tack to {FoundAlready}
+
+Ṣç@ƒḟ - Main Link: list of integers, CodeLengths
+Ṣ     - sort {CodeLengths}
+    ḟ - {CodeLengths} filter discard {CodeLengths} -&gt; [] (initial FoundAlready)
+   ƒ  - starting with {[]} reduce {sorted CodeLengths} by:
+  @   -   with swapped arguments:
+ ç    -     call the dyadic helper above, Link 1 = f(NextCodeLength, FoundAlready)
+</code></pre>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 88 bytes</h1>
 <pre class="lang-python prettyprint-override"><code>lambda s,k=0,r=2:{j:bin(r:=(r&lt;&lt;-k+(k:=i))-1)[3:]for i,j in sorted(zip(s,range(len(s))))}
