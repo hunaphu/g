@@ -26,7 +26,7 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>039</td><td>x8616 machine code</td><td>190311T204827Z</td><td><a href="https://codegolf.stackexchange.com/questions/181318/they-call-me-inspector-morse/181336#181336">640KB</a></td></tr>
+<tr d-ix="0"><td>5435</td><td>IBM PC DOS</td><td>190311T204827Z</td><td><a href="https://codegolf.stackexchange.com/questions/181318/they-call-me-inspector-morse/181336#181336">640KB</a></td></tr>
 <tr d-ix="1"><td>nan</td><td>Nibbles</td><td>230814T140820Z</td><td><a href="https://codegolf.stackexchange.com/questions/181318/they-call-me-inspector-morse/264156#264156">Dominic </a></td></tr>
 <tr d-ix="2"><td>076</td><td>C++</td><td>230608T170451Z</td><td><a href="https://codegolf.stackexchange.com/questions/181318/they-call-me-inspector-morse/261672#261672">Toby Spe</a></td></tr>
 <tr d-ix="3"><td>019</td><td>Vyxal</td><td>230605T020636Z</td><td><a href="https://codegolf.stackexchange.com/questions/181318/they-call-me-inspector-morse/261553#261553">lyxαl</a></td></tr>
@@ -54,39 +54,125 @@
 <tr d-ix="25"><td>023</td><td>Jelly</td><td>190311T170106Z</td><td><a href="https://codegolf.stackexchange.com/questions/181318/they-call-me-inspector-morse/181323#181323">Erik the</a></td></tr>
 <tr d-ix="26"><td>051</td><td>Retina 0.8.2</td><td>190311T165619Z</td><td><a href="https://codegolf.stackexchange.com/questions/181318/they-call-me-inspector-morse/181322#181322">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>x86-16 machine code, 39 bytes</h1>
-<pre><code>00000000: bb19 01ac 241f d0d8 d772 0651 b104 d2e8  ....$....r.Q....
-00000010: 5924 0f2c 0302 e0e2 eac3 3534 4527 4125  Y$.,......54E'A%
-00000020: 1303 1462 4523 13                        ...bE#.
+<div id="pu0" class="pu"><h1>IBM PC DOS, 8088 assembly, <del>54</del> 35 bytes</h1>
+<p><em>-19 bytes using the difference method</em></p>
+<pre><code>ac2c 41d0 d8d7 7206 51b1 04d2 e859 240f 2c03 02e0 e2ea 3534 4527 4125 1303 1462 4523 13
 </code></pre>
-<p><strong>Listing:</strong></p>
-<pre><code>BB 0119     MOV  BX, OFFSET TBL[-1] ; BX = data offset by -1 for one-based index 
-        LETTER_LOOP: 
-AC          LODSB               ; load next char from DS:SI into AL, advance SI 
-24 1F       AND  AL, 1FH        ; convert ASCII letter to one-based index 
-D0 D8       RCR  AL, 1          ; divide index by 2, CF=1 if odd index 
-D7          XLAT                ; lookup letter in table 
-72 06       JC   ODD            ; odd index use low nibble; even use high
-51          PUSH CX             ; save loop counter 
-B1 04       MOV  CL, 4          ; set up right shift for 4 bits 
-D2 E8       SHR  AL, CL         ; bit shift right 
-59          POP  CX             ; restore loop counter 
-        ODD: 
-24 0F       AND  AL, 0FH        ; isolate low nibble 
-2C 03       SUB  AL, 3          ; dash/dot difference remove +3 positive bias 
-02 E0       ADD  AH, AL         ; add difference to sum, set result flags 
-E2 EA       LOOP LETTER_LOOP    ; loop until end of input 
-C3          RET                 ; return to caller
+<p>Unassembled:</p>
+<pre><code>; compare dashes and dots in a morse code string
+; input:
+;   I: pointer to input string (default SI)
+;   IL: length of input string (default CX)
+;   TBL: pointer to data table (default BX)
+; output:
+;   Sign/OF flags: Dot-heavy: SF == OF (JGE), Dash-heavy: SF != OF (JL)
+MORSE_DD    MACRO   I, IL, TBL
+            LOCAL   LOOP_LETTER, ODD
+        IFDIFI &lt;I&gt;,&lt;SI&gt;     ; skip if S is already SI
+    MOV  SI, I              ; load string into SI 
+        ENDIF
+        IFDIFI &lt;IL&gt;,&lt;CX&gt;    ; skip if IL is already CX
+    MOV  CX, IL             ; set up loop counter
+        ENDIF
+        IFDIFI &lt;TBL&gt;,&lt;BX&gt;   ; skip if TBL is already BX
+    MOV  BX, OFFSET TBL     ; load letter table into BX
+        ENDIF
+LOOP_LETTER:
+    LODSB                   ; load next char from DS:SI into AL, advance SI
+    ;AND  AL, 0DFH           ; uppercase the input letter (+2 bytes)
+    SUB  AL, 'A'            ; convert letter to zero-based index
+    RCR  AL, 1              ; divide index by 2, set CF if odd index
+    XLAT                    ; lookup letter in table
+    JC   ODD                ; if odd index use low nibble; if even use high nibble
+    PUSH CX                 ; save loop counter (since SHR can only take CL on 8088)
+    MOV  CL, 4              ; set up right shift for 4 bits
+    SHR  AL, CL             ; shift right
+    POP  CX                 ; restore loop counter
+ODD:
+    AND  AL, 0FH            ; mask low nibble
+    SUB  AL, 3              ; unbias dash/dot difference +3 positive
+    ADD  AH, AL             ; add letter difference to sum (set result flags)
+    LOOP LOOP_LETTER
+        ENDM
 
-        TBL:
-            DB   035H, 034H, 045H, 027H, 041H, 025H, 013H 
-            DB   003H, 014H, 062H, 045H, 023H, 013H 
+TBL DB 035H, 034H, 045H, 027H, 041H, 025H, 013H, 003H, 014H, 062H, 045H, 023H, 013H
 </code></pre>
 <p><strong>Explanation</strong></p>
-<p>Input string at <code>DS:SI</code> (upper or lower case OK). Output Truthy/Falsy result is <code>SF == OF</code> (use <code>JG</code> or <code>JL</code> to test).</p>
+<p>Implemented in Intel/MASM syntax as a MACRO (basically a function), using only 8088 compatible instructions.  Input as uppercase string (or +2 bytes to allow mixed-case), output Truthy/Falsy result is <code>SF == OF</code> (use <code>JG</code> or <code>JL</code> to test).</p>
 <p>The letter difference table values are stored as binary nibbles, so only takes 13 bytes in total.</p>
+<p><strong>Original (54 bytes):</strong></p>
+<pre><code>; compare dashes and dots in a Morse code string
+; input:
+;   I: pointer to input string (default SI)
+;   IL: length of input string (default CX)
+;   TBL: pointer to data table
+; output:
+;   Carry Flag: CF=1 (CY) if dot-heavy, CF=0 (NC) if dash-heavy
+MORSE_DD    MACRO   I, IL, TBL
+            LOCAL   LOOP_LETTER
+        IFDIFI &lt;I&gt;,&lt;SI&gt;     ; skip if S is already SI
+    MOV  SI, I              ; load string into SI 
+        ENDIF
+        IFDIFI &lt;IL&gt;,&lt;CX&gt;    ; skip if IL is already CX
+    MOV  CX, IL             ; set up loop counter
+        ENDIF
+    MOV  BX, OFFSET TBL     ; load score table into BX
+    XOR  DX, DX             ; clear DX to hold total score
+LOOP_LETTER:
+    LODSB                   ; load next char from DS:SI into AL, advance SI
+    ;AND  AL, 0DFH           ; uppercase the input letter (+2 bytes)
+    SUB  AL, 'A'            ; convert letter to zero-based index
+    XLAT                    ; lookup letter in table
+    MOV  AH, AL             ; examine dot nibble
+    AND  AH, 0FH            ; mask off dash nibble
+    ADD  DH, AH             ; add letter dot count to total
+    PUSH CX                 ; save loop counter (since SHR can only take CL)
+    MOV  CL, 4              ; set up right shift for 4 bits
+    SHR  AL, CL             ; shift right
+    POP  CX                 ; restore loop counter
+    ADD  DL, AL             ; add letter dash count to total
+    LOOP LOOP_LETTER
+    CMP  DL, DH             ; if dot-heavy CF=1, if dash-heavy CF=0
+        ENDM
+
+; data table A-Z: MSN = count of dash, LSN = count of dot
+TBL DB 011H, 013H, 022H, 012H, 001H, 013H, 021H, 004H, 002H 
+    DB 031H, 021H, 013H, 020H, 011H, 030H, 022H, 031H, 012H
+    DB 003H, 010H, 012H, 013H, 021H, 022H, 031H, 022H
+</code></pre>
+<p><strong>Explanation</strong></p>
+<p>Implemented in Intel/MASM syntax as a MACRO (basically a function), using only 8088 compatible instructions.  Input as string, output Truthy/Falsy result in Carry Flag.  Score table contains the number of dashes and dots per letter.</p>
+<p>Input is upper case. Add 2 bytes to take lower or mixed case.</p>
+<p><strong>Example Test Program (as IBM PC DOS standalone COM executable)</strong></p>
+<pre><code>    SHR  SI, 1              ; point SI to DOS PSP
+    LODSW                   ; load arg length into AL, advance SI to 82H
+    MOV  CL, AL             ; set up loop counter in CH
+    DEC  CX                 ; remove leading space from letter count
+
+    MORSE_DD SI, CX, TBL    ; execute above function, result is in CF
+
+    MOV  DX, OFFSET F       ; default output to &quot;Falsy&quot; string
+    JA   DISP_OUT           ; if CF=0, result is falsy, skip to output
+    MOV  DX, OFFSET T       ; otherwise CF=1, set output to &quot;Truthy&quot; string
+DISP_OUT:
+    MOV  AH, 09H            ; DOS API display string function
+    INT  21H
+    RET
+
+T   DB &quot;Truthy$&quot;
+F   DB &quot;Falsy$&quot;
+</code></pre>
 <p><strong>Example Output:</strong></p>
 <p><a href="https://i.stack.imgur.com/sehx1.png" rel="nofollow noreferrer"><img src="https://i.stack.imgur.com/sehx1.png" alt="enter image description here" /></a></p>
+<p><a href="https://stage.stonedrop.com/ppcg/DD.COM" rel="nofollow noreferrer">Download test program DD.COM</a></p>
+<p><strong>Or Try it Online!</strong>
+I'm not aware of an online TIO to direct link to a DOS executable, however you can use this with just a few steps:</p>
+<ol>
+<li>Download <a href="https://stage.stonedrop.com/ppcg/DD.ZIP" rel="nofollow noreferrer">DD.COM as a ZIP file</a></li>
+<li>Go to <a href="https://virtualconsoles.com/online-emulators/DOS/" rel="nofollow noreferrer">https://virtualconsoles.com/online-emulators/DOS/</a></li>
+<li>Upload the ZIP file you just downloaded, click Start</li>
+<li>Type <code>DD Hello</code> or <code>DD code</code> to your heart's content</li>
+</ol>
 </div>
 <div id="pu1" class="pu"><h1><a href="http://golfscript.com/nibbles/index.html" rel="nofollow noreferrer">Nibbles</a>, 16.5 bytes (33 nibbles)</h1>
 <pre><code>+.$-=$`D8 3 2954b0ccca54cb75c957
