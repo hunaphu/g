@@ -26,7 +26,7 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>154</td><td>Pascal</td><td>230901T190019Z</td><td><a href="https://codegolf.stackexchange.com/questions/28359/determine-if-all-decimal-digits-are-unique/264820#264820">Kai Burg</a></td></tr>
+<tr d-ix="0"><td>142</td><td>Pascal</td><td>230901T190019Z</td><td><a href="https://codegolf.stackexchange.com/questions/28359/determine-if-all-decimal-digits-are-unique/264820#264820">Kai Burg</a></td></tr>
 <tr d-ix="1"><td>024</td><td>Zsh</td><td>201208T191552Z</td><td><a href="https://codegolf.stackexchange.com/questions/28359/determine-if-all-decimal-digits-are-unique/216107#216107">roblogic</a></td></tr>
 <tr d-ix="2"><td>011</td><td>x8616 machine code</td><td>190102T172234Z</td><td><a href="https://codegolf.stackexchange.com/questions/28359/determine-if-all-decimal-digits-are-unique/178267#178267">640KB</a></td></tr>
 <tr d-ix="3"><td>002</td><td>Thunno 2</td><td>230607T172210Z</td><td><a href="https://codegolf.stackexchange.com/questions/28359/determine-if-all-decimal-digits-are-unique/261633#261633">The Thon</a></td></tr>
@@ -117,43 +117,37 @@
 <tr d-ix="88"><td>151</td><td>C</td><td>140521T194709Z</td><td><a href="https://codegolf.stackexchange.com/questions/28359/determine-if-all-decimal-digits-are-unique/28364#28364">bacchusb</a></td></tr>
 <tr d-ix="89"><td>059</td><td>C99</td><td>140521T192055Z</td><td><a href="https://codegolf.stackexchange.com/questions/28359/determine-if-all-decimal-digits-are-unique/28360#28360">Thomas</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h2>Pascal, 154 bytes</h2>
+<div id="pu0" class="pu"><h2>Pascal, 142 bytes</h2>
 <p>This <code>function</code> requires a processor compliant with Extended Pascal, ISO standard 10206.
-In particular the <code>string</code> schema data type, <code>writeStr</code> procedure and <code>card</code> function must be available.</p>
-<pre class="lang-pascal prettyprint-override"><code>function f(x:integer):Boolean;var d:set of char;s:string(11);i:1..11;begin d:=[];writeStr(s,x:1);i:=length(s);for i:=1 to i do d:=d+[s[i]];f:=i=card(d)end
+In particular the <code>card</code> function must be available.</p>
+<pre class="lang-pascal prettyprint-override"><code>function f(x:integer):Boolean;var d:set of 0..9;w:integer;begin d:=[];w:=0;repeat d:=d+[x mod 10];x:=x div 10;w:=w+1 until x=0;f:=w=card(d)end
 </code></pre>
 <p>Ungolfed:</p>
-<pre class="lang-pascal prettyprint-override"><code>    const
-        { Width of `maxInt` if represented as decimal number. }
-        maxIntWidth = succ(trunc(ln(maxInt) / ln(10)));
-    
-    type
+<pre class="lang-pascal prettyprint-override"><code>    type
         { This will permit a proper `function` domain restriction. }
-        integerNonNegative = 0‥maxInt;
+        integerNonNegative = 0..maxInt;
     
     { Returns `true` if `x` as decimal number contains no duplicate digits. }
-    function hasUniqueDecimalDigits(protected x: integerNonNegative): Boolean;
+    function hasUniqueDecimalDigits(x: integerNonNegative): Boolean;
         var
-            digits:  set of char value [];
-            decimal: string(maxIntWidth);
-            i:       1‥maxIntWidth;
+            { The decimal digits that appear in `x`. }
+            digits: set of 0‥9 value [];
+            { The total width of a decimal representation of `x`. }
+            width:  integer    value 0;
         begin
-            { The `:1` indicates the _minimum_ width (padded with spaces).
-              If omitted the processor supplements a default value.
-              This value could mean that `decimal` contains space characters.
-              Hence `:1` to prevent this. }
-            writeStr(decimal, x:1);
-            i ≔ length(s);
-            { NB: In Pascal `for`-loop limits are evaluated exactly once. }
-            for i ≔ 1 to i do
+            { If there are as many distinct decimal `digits` as
+              the total `width` of the decimal number,
+              we can tell that no digit appears twice. }
+            repeat
             begin
-                { Pascal’s sets are not multisets.
-                  Adding a member that is already present has no effect. }
-                digits ≔ digits + [decimal[i]];
-            end;
+                digits ≔ digits + [x mod 10];
+                x      ≔ x div 10;
+                width  ≔ width + 1;
+            end
+            until x = 0;
             { `card` returns the cardinalty of a set,
               that is the number of members in a set. }
-            hasUniqueDecimalDigits ≔ card(digits) = i;
+            hasUniqueDecimalDigits ≔ card(digits) = width;
         end;
 </code></pre>
 </div>
