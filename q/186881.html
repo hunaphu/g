@@ -26,7 +26,7 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>4945</td><td>x8616 machine code</td><td>230831T222753Z</td><td><a href="https://codegolf.stackexchange.com/questions/186881/first-occurrence-in-the-sixers-sequence/264804#264804">640KB</a></td></tr>
+<tr d-ix="0"><td>nan</td><td>x8616 machine code</td><td>230831T222753Z</td><td><a href="https://codegolf.stackexchange.com/questions/186881/first-occurrence-in-the-sixers-sequence/264804#264804">640KB</a></td></tr>
 <tr d-ix="1"><td>875</td><td>Vyxal</td><td>230826T230759Z</td><td><a href="https://codegolf.stackexchange.com/questions/186881/first-occurrence-in-the-sixers-sequence/264656#264656">lyxαl</a></td></tr>
 <tr d-ix="2"><td>009</td><td>Thunno 2</td><td>230826T163021Z</td><td><a href="https://codegolf.stackexchange.com/questions/186881/first-occurrence-in-the-sixers-sequence/264648#264648">The Thon</a></td></tr>
 <tr d-ix="3"><td>011</td><td>Husk</td><td>201017T025339Z</td><td><a href="https://codegolf.stackexchange.com/questions/186881/first-occurrence-in-the-sixers-sequence/213727#213727">LegionMa</a></td></tr>
@@ -62,20 +62,24 @@
 <tr d-ix="33"><td>017</td><td>CJam</td><td>190614T074428Z</td><td><a href="https://codegolf.stackexchange.com/questions/186881/first-occurrence-in-the-sixers-sequence/186886#186886">Luis Men</a></td></tr>
 <tr d-ix="34"><td>009</td><td>05AB1E</td><td>190614T073305Z</td><td><a href="https://codegolf.stackexchange.com/questions/186881/first-occurrence-in-the-sixers-sequence/186882#186882">Kevin Cr</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>x86-16 machine code, <del>49</del> 45 bytes</h1>
-<pre><code>00000000: 5033 c0b9 2701 5705 0600 50e8 0b00 58e2  P3..E.W...P...X.
-00000010: f65f 5849 f2af f7d1 c3bb 0a00 5233 d2f7  ._XI........R3..
-00000020: f385 c074 03e8 f4ff 92aa 5ac3            ...t......Z.
+<div id="pu0" class="pu"><h1>x86-16 machine code, <del>49</del> <del>45</del> 54 bytes</h1>
+<pre><code>00000000: 8bec 81ec e603 8bfc 5750 33c0 b927 0105  ........WP3..'..
+00000010: 0600 50e8 0d00 58e2 f658 5f49 f2af f7d1  ..P...X..X_I....
+00000020: 8be5 c3bb 0a00 5233 d2f7 f385 c074 03e8  ......R3.....t..
+00000030: f4ff 92aa 5ac3                           ....Z.
 </code></pre>
 <p><strong>Listing:</strong></p>
-<pre><code>50          PUSH  AX            ; save input value 
+<pre><code>8B EC       MOV   BP, SP        ; save stack pointer 
+81 EC 03E6  SUB   SP, 998       ; allocate 998 bytes from stack
+8B FC       MOV   DI, SP        ; DI = start of working buffer 
+50          PUSH  AX            ; save input value
+57          PUSH  DI            ; save buffer offset
 33 C0       XOR   AX, AX        ; counter in AX = 0 
 B9 0127     MOV   CX, 295       ; generate 295*6 multiples 
-57          PUSH  DI            ; save output buffer offset 
         SIX_LOOP: 
 05 0006     ADD   AX, 6         ; increment counter by 6 
 50          PUSH  AX            ; save AX (clobbered by OUT_DECU) 
-E8 000B     CALL  OUT_DECU      ; write AX to BCD at ES:DI 
+E8 000D     CALL  OUT_DECU      ; write AX to BCD at ES:DI 
 58          POP   AX 
 E2 F6       LOOP  SIX_LOOP      ; loop 295 times 
 5F          POP   DI            ; restore start of output buffer 
@@ -83,9 +87,10 @@ E2 F6       LOOP  SIX_LOOP      ; loop 295 times
 49          DEC   CX            ; loop count FFFFh (solution guaranteed)
 F2 AF       REPNZ SCASW         ; search for input value
 F7 D1       NOT   CX            ; ones complement sign without increment
+8B E5       MOV   SP, BP        ; restore stack pointer
 C3          RET 
-        OUT_DECU:               ; write unsigned word AX as decimal 
-                                ;  to buffer at ES:DI
+        OUT_DECU:               ; divide unsigned word AX into base 10
+                                ;  decimal digits to buffer at ES:DI
 BB 000A     MOV   BX, 10        ; decimal divisor = 10 
         OUT_DECU_R: 
 52          PUSH  DX            ; save remainder digit / caller DX 
@@ -95,12 +100,12 @@ F7 F3       DIV   BX            ; AX = DX:AX / 10, DX = DX:AX % 10
 74 03       JZ    OUT_DECU_DONE ; loop while AX &gt; 0 
 E8 FFF4     CALL  OUT_DECU_R    ; recursive call to next division
         OUT_DECU_DONE: 
-92          XCHG  AX, DX        ; AL = digit, AH = 0 
-AA          STOSB
+92          XCHG  AX, DX        ; AL = digit 
+AA          STOSB               ; write to work buffer
 5A          POP   DX            ; restore digit 
 C3          RET
 </code></pre>
-<p>Callable function, input value as little endian BCD in <code>AX</code>, caller-provided working buffer at <code>ES:DI</code>. Output 1-based index in <code>CX</code>.</p>
+<p>Callable function, input value as little endian BCD in <code>AX</code>. Output 1-based index in <code>CX</code>.</p>
 <p>The easy approach... generate the entire list and search it.</p>
 <p>Note: I found experimentally that <code>295*6</code> is sufficient to generate needed values: <code>295*6 = 1770</code> of which the <code>77</code> is the value for the highest index (497 or 498). This would produce a string of 997 digits long.</p>
 <p><strong>Tests:</strong></p>
