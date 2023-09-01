@@ -26,7 +26,7 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>049</td><td>x8616 machine code</td><td>230831T222753Z</td><td><a href="https://codegolf.stackexchange.com/questions/186881/first-occurrence-in-the-sixers-sequence/264804#264804">640KB</a></td></tr>
+<tr d-ix="0"><td>4945</td><td>x8616 machine code</td><td>230831T222753Z</td><td><a href="https://codegolf.stackexchange.com/questions/186881/first-occurrence-in-the-sixers-sequence/264804#264804">640KB</a></td></tr>
 <tr d-ix="1"><td>875</td><td>Vyxal</td><td>230826T230759Z</td><td><a href="https://codegolf.stackexchange.com/questions/186881/first-occurrence-in-the-sixers-sequence/264656#264656">lyxαl</a></td></tr>
 <tr d-ix="2"><td>009</td><td>Thunno 2</td><td>230826T163021Z</td><td><a href="https://codegolf.stackexchange.com/questions/186881/first-occurrence-in-the-sixers-sequence/264648#264648">The Thon</a></td></tr>
 <tr d-ix="3"><td>011</td><td>Husk</td><td>201017T025339Z</td><td><a href="https://codegolf.stackexchange.com/questions/186881/first-occurrence-in-the-sixers-sequence/213727#213727">LegionMa</a></td></tr>
@@ -62,11 +62,10 @@
 <tr d-ix="33"><td>017</td><td>CJam</td><td>190614T074428Z</td><td><a href="https://codegolf.stackexchange.com/questions/186881/first-occurrence-in-the-sixers-sequence/186886#186886">Luis Men</a></td></tr>
 <tr d-ix="34"><td>009</td><td>05AB1E</td><td>190614T073305Z</td><td><a href="https://codegolf.stackexchange.com/questions/186881/first-occurrence-in-the-sixers-sequence/186882#186882">Kevin Cr</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>x86-16 machine code, 49 bytes</h1>
-<pre><code>00000000: 5033 c0b9 4501 5705 0600 50e8 1000 58e2  P3..E.W...P...X.
-00000010: f65f 58b5 02f2 af81 e900 02f7 d9c3 bb0a  ._X.............
-00000020: 0052 33d2 f7f3 85c0 7403 e8f4 ff92 aa5a  .R3.....t......Z
-00000030: c3
+<div id="pu0" class="pu"><h1>x86-16 machine code, <del>49</del> 45 bytes</h1>
+<pre><code>00000000: 5033 c0b9 4501 5705 0600 50e8 0b00 58e2  P3..E.W...P...X.
+00000010: f65f 5849 f2af f7d1 c3bb 0a00 5233 d2f7  ._XI........R3..
+00000020: f385 c074 03e8 f4ff 92aa 5ac3            ...t......Z.
 </code></pre>
 <p><strong>Listing:</strong></p>
 <pre><code>50          PUSH  AX            ; save input value 
@@ -76,15 +75,14 @@ B9 0145     MOV   CX, 325       ; generate 325*6 multiples
         SIX_LOOP: 
 05 0006     ADD   AX, 6         ; increment counter by 6 
 50          PUSH  AX            ; save AX (clobbered by OUT_DECU) 
-E8 0010     CALL  OUT_DECU      ; write AX to BCD at ES:DI 
+E8 000B     CALL  OUT_DECU      ; write AX to BCD at ES:DI 
 58          POP   AX 
 E2 F6       LOOP  SIX_LOOP      ; loop 325 times 
 5F          POP   DI            ; restore start of output buffer 
 58          POP   AX            ; restore input number 
-B5 02       MOV   CH, HIGH 200H ; loop 512 times 
+49          DEC   CX            ; loop count FFFFh (solution guaranteed)
 F2 AF       REPNZ SCASW         ; search for input value
-81 E9 0200  SUB   CX, 200H      ; calculate end index from loop counter 
-F7 D9       NEG   CX 
+F7 D1       NOT   CX            ; ones complement sign without increment
 C3          RET 
         OUT_DECU:               ; write unsigned word AX as decimal 
                                 ;  to buffer at ES:DI
@@ -102,9 +100,10 @@ AA          STOSB
 5A          POP   DX            ; restore digit 
 C3          RET
 </code></pre>
-<p>Callable function, input to find in <code>AX</code>, caller-provided output buffer at <code>ES:DI</code>. Output 1-based index in <code>CX</code>.</p>
-<p><strong>Test Runs:</strong></p>
-<p><a href="https://i.stack.imgur.com/XIfZU.png" rel="nofollow noreferrer"><img src="https://i.stack.imgur.com/XIfZU.png" alt="enter image description here" /></a></p>
+<p>Callable function, input value as little endian BCD in <code>AX</code>, caller-provided working buffer at <code>ES:DI</code>. Output 1-based index in <code>CX</code>.</p>
+<p>The easy approach... generate the entire list and search it.</p>
+<p><strong>Tests:</strong></p>
+<p><a href="https://i.stack.imgur.com/FjNUA.png" rel="nofollow noreferrer"><img src="https://i.stack.imgur.com/FjNUA.png" alt="enter image description here" /></a></p>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://github.com/Vyxal/Vyxal" rel="nofollow noreferrer">Vyxal</a>, 70 <a href="https://github.com/Vyxal/Vyncode/blob/main/README.md" rel="nofollow noreferrer">bits<sup>v2</a></sup>, 8.75 bytes</h1>
 <pre><code>₁²6v*ṅ2ẇĖḟ
