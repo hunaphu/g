@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::8713</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>317</td><td>Pascal</td><td>230902T133724Z</td><td><a href="https://codegolf.stackexchange.com/questions/8713/perform-basic-operations-on-complex-numbers-in-a-language-without-native-support/264836#264836">Kai Burg</a></td></tr>
+<tr d-ix="1"><td>698</td><td>Haskell</td><td>121015T005702Z</td><td><a href="https://codegolf.stackexchange.com/questions/8713/perform-basic-operations-on-complex-numbers-in-a-language-without-native-support/8721#8721">walpen</a></td></tr>
+<tr d-ix="2"><td>082</td><td>APL 33 + 16 + 1 + 1 + 14 + 17 =</td><td>121014T221605Z</td><td><a href="https://codegolf.stackexchange.com/questions/8713/perform-basic-operations-on-complex-numbers-in-a-language-without-native-support/8719#8719">marinus</a></td></tr>
+<tr d-ix="3"><td>205</td><td>D</td><td>121014T202546Z</td><td><a href="https://codegolf.stackexchange.com/questions/8713/perform-basic-operations-on-complex-numbers-in-a-language-without-native-support/8717#8717">ratchet </a></td></tr>
+<tr d-ix="4"><td>nan</td><td></td><td>121014T193435Z</td><td><a href="https://codegolf.stackexchange.com/questions/8713/perform-basic-operations-on-complex-numbers-in-a-language-without-native-support/8716#8716">Mormegil</a></td></tr>
+<tr d-ix="5"><td>131</td><td>Python</td><td>121014T181026Z</td><td><a href="https://codegolf.stackexchange.com/questions/8713/perform-basic-operations-on-complex-numbers-in-a-language-without-native-support/8715#8715">Keith Ra</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h2>Pascal, 317 bytes</h2>
+<p>The simple data type <code>complex</code> belongs to Extended Pascal’s vocabulary (ISO standard 1026).
+However, Standard Pascal – as laid out by ISO standard 7185 – does not support <code>complex</code> numbers.
+Complying with the task specification, the following implementation is restricted to SP.</p>
+<p>Note, the routine <code>read</code> had to be renamed to <code>readComplex</code>, otherwise Pascal’s <em>built‑in</em> <code>read</code> procedure will become unavailable.
+Similarly, the word <code>div</code> is a <em>reserved word</em> (identifies the integer division operator) and had to be renamed, too (for the purposes of scoring a three-letter identifier has been chosen).</p>
+<pre class="lang-pascal prettyprint-override"><code>program basicOperationsOnComplexNumbers(input, output);
+    type
+        complex = record
+                r: real;
+                j: real;    
+            end;
+        { In _Standard_ Pascal a `function` can
+          only return _simple_ data type values. }
+        complexReference = ↑complex;
+    
+    var
+        { These are used for the test in the main block.
+          Standard Pascal has a strict block order
+          (`label` → `const` → `type` → `var` → routines → `begin … end`)
+          therefore these are “global” variables. }
+        x, y: complex;
+    
+    { Reads a `complex` in Cartesian (rectangular) format. }
+    procedure readComplex(var x: complex);
+        begin
+            { The `Ln` is necessary so the rest of the line
+              (in particular the `'i'`) is consumed, too. }
+            readLn(x.r,x.j)
+        end;
+    
+    { Prints a `complex` in Cartesian (rectangular) format. }
+    procedure print(x: complex);
+        begin
+            { For non-negative `real` values a space (`' '`) is printed.
+              Therefore we will need to print the plus sign ourselves. }
+            write(x.r);if x.j≥0 then write('+');write(x.j,'i')
+        end;
+    
+    { Returns the sum of two `complex` numbers. }
+    function add(x, y: complex): complexReference;
+        var
+            { The implicitly defined result variable
+              bearing the function’s name (here `'add'`)
+              accepts only _complete_ assignments
+              (this ensures there are no _partially_ defined results).
+              Therefore we will need a temporary result variable. }
+            z: complexReference;
+        begin
+            x.r≔x.r+y.r;x.j≔x.j+y.j;new(z);z↑≔x;add≔z
+        end;
+    
+    { Returns the difference of two `complex` numbers. }
+    function sub(x, y: complex): complexReference;
+        var
+            z: complexReference;
+        begin
+            x.r≔x.r−y.r;x.j≔x.j−y.j;new(z);z↑≔x;sub≔z
+        end;
+    
+    { Returns the product of two `complex` numbers. }
+    function mult(x, y: complex): complexReference;
+        var
+            z: complexReference;
+        begin
+            new(z);z↑.r≔x.r*y.r−x.j*y.j;z↑.j≔x.r*y.j+x.j*y.r;mult≔z
+        end;
+    
+    { Returns the quotient of two `complex` numbers.
+      CAUTION: DOES NOT CHECK FOR NON-ZERO DIVISOR. }
+    function quo(x, y: complex): complexReference;
+        var
+            z: complexReference;
+        begin
+            new(z);with z↑do begin
+            r≔y.r*y.r+y.j*y.j;j≔r;r≔(x.r*y.r+x.j*y.j)/r;j≔(x.j*y.r−x.r*y.j)/j
+            end;quo≔z
+        end;
+    
+    { === MAIN ========================================================= }
+    begin
+        readComplex(x);
+        readComplex(y);
+        
+        write('       sum: '); print( add(x, y)↑); writeLn;
+        write('difference: '); print( sub(x, y)↑); writeLn;
+        write('   product: '); print(mult(x, y)↑); writeLn;
+        write('  quotient: '); print( quo(x, y)↑); writeLn
+    end.
+</code></pre>
+<p>Example input:</p>
+<pre><code>-3.00 + 2.00i
+-2.72 + 0.00i
+</code></pre>
+<p>Example output:</p>
+<pre><code>       sum: -5.7200000000000006e+00+ 2.0000000000000000e+00i
+difference: -2.7999999999999980e-01+ 2.0000000000000000e+00i
+   product:  8.1600000000000001e+00-5.4400000000000004e+00i
+  quotient:  1.1029411764705881e+00-7.3529411764705876e-01i
+</code></pre>
+<p><a href="https://rosettacode.org/wiki/Arithmetic/Complex#Pascal" rel="nofollow noreferrer">RosettaCode</a> │
+<a href="https://wiki.FreePascal.org/complex_number" rel="nofollow noreferrer">FreePascal Compiler Wiki</a> │
+<a href="https://www.GNU-Pascal.de/gpc/Complex-Number-Operations.html" rel="nofollow noreferrer">GNU Pascal Compiler Programmer’s Guide</a></p>
+</div>
+<div id="pu1" class="pu"><h2>Haskell 698</h2>
+
+<p>Counted everything before <code>main</code>. This question struck me as being too 
+straight forward, so I did everything in my power to make my answer more
+interesting. Also Haskell borks if you redefine <code>Prelude</code> functions
+(div, print, read), so I renamed those.</p>
+
+<pre><code>import Control.Arrow 
+import Control.Monad
+import Control.Applicative
+import Data.List.Split
+a=uncurry(***)
+f!g=a(f,g)
+j=join(!)
+f%b=a$j f b
+add=((+)%)
+sub=((-)%)
+o=join
+g#h=(*)&lt;$&gt;g.fst&lt;*&gt;h.snd
+c=o.curry
+m=add&lt;$&gt;c((fst#fst)!(snd#fst))&lt;*&gt;c((negate.(snd#snd))!(fst#snd))
+mul=curry m
+b`d1v`c=b`mul`(j (/uncurry(+)(j(^2)c)).second negate$c)
+s :: (Show a) =&gt; (a, a) -&gt; String
+s=uncurry(++).first(++" ").second((++"i").(let g('-':x)="- "++x;g x="+ "++x in g)).j show
+pr1nt :: (Show a) =&gt; (a, a) -&gt; IO ()
+pr1nt=putStrLn.s
+t=filter(`notElem`" i")
+re4d :: (Read a, Num a) =&gt; String -&gt; (a, a)
+re4d s|elem '+'s=(\[x,y]-&gt;j(read.t)(x,y)).splitOn"+"$s
+      |0&lt;1=(\[x,y]-&gt;read!(negate.read.t)$(x,y)).splitOn"-"$s
+
+main= do
+  let p = pr1nt
+  a &lt;- fmap re4d getLine
+  b &lt;- fmap re4d getLine
+  p $ a `add` b
+  p $ a `sub` b
+  p $ a `mul` b
+  p $ a `d1v` b
+</code></pre>
+
+<p>This spits a "non-exhaustive pattern-match in input" if the input given
+does not match "a (+|-) bi".</p>
+</div>
+<div id="pu2" class="pu"><h2>APL (33 + 16 + 1 + 1 + 14 + 17 = <b>82</b>)</h2>
+
+<p>APL does have support for complex numbers if you use it (of the format <code>5J6</code>, like Python's <code>5+6j</code>), but it is of course not used. </p>
+
+<p>I represent complex numbers as a 2-tuple of regular numbers, (A B) where A is the real part and B is the imaginary part. This means I can use APL's <code>+</code> and <code>-</code> operators directly, as they can be used on multidimensional types. (i.e. <code>1+2 3 4</code> gives <code>3 4 5</code> and <code>1 2+20 10</code> gives <code>21 12</code>).</p>
+
+<p>An APL function is represented as <code>{body}</code>. Functions are first-class objects. I have counted the function body without the braces, except for <code>+</code> and <code>-</code> which I've counted as 1 each.</p>
+
+<pre><code>read  ← {⎕ML←3⋄(1,1-2×'-'∊⍵)×⍎¨⍵⊂⍨⍵∊'.',⎕D} ⍝ 33 chars
+print ← {⍕(⊃⍵)'+'(⊃⌽⍵)'i'}                   ⍝ 16 chars
+add   ← +                                      ⍝ 1 char
+sub   ← -                                      ⍝ 1 char
+mul   ← {(-/⍺×⍵),+/⍺×⌽⍵}                      ⍝ 14 chars
+div   ← {⍺mul 1 ¯1×⍵÷+/⍵*2}                   ⍝ 17 chars
+</code></pre>
+
+<p>Usage:
+(clarification: APL is evaluated right-to-left so this is actually calculating 8+9i ÷ 5+6i.)</p>
+
+<pre><code>      print (read⍞) div (read⍞)
+5 + 6i
+8 + 9i
+1.540983607 + ¯0.04918032787 i
+</code></pre>
+</div>
+<div id="pu3" class="pu"><h2>D (205 chars)</h2>
+
+<pre><code>import stdio;
+
+struct Complex{
+  real a,b;
+
+  this(real a,real b){
+      this.a=a;
+      this.b=b;
+  }
+
+  static Complex read(){
+      Complex c;
+      readf("%f%+fi",&amp;c.a,&amp;c.b);
+      return c;
+  }
+
+  /** does both addition and substraction */
+  Complex opOpBinary(op)(Complex o)if(op=="+"||op=="-"){
+    mixin("return Complex(a"~op~"o.a,b"~op~"o.b);");
+  }
+
+  Complex opBinary(op)(Complex o)if(op=="*"){
+    return Complex(a*o.a-b*o.b,a*o.b+b*o.a);
+  }
+
+  Complex opBinary(op)(Complex o)if(op=="/"){
+    real z=c**2+d**2
+    return this*Complex(o.a/z,-o.b/z);
+  }
+
+  void write(){
+     writef("%f%+fi",a,b);
+  }
+
+}
+</code></pre>
+
+<p>using operator overloading</p>
+
+<p>I didn't count the constructor</p>
+</div>
+<div id="pu4" class="pu"><h2>C# – 369 (I guess)</h2>
+
+<pre class="lang-cs prettyprint-override"><code>Func&lt;float,float,float[]&gt;C=(x,y)=&gt;new[]{x,y};
+Func&lt;float[]&gt;read=()=&gt;{var m=new Regex(@"(\d*(\.\d*)?) *([+-]) *(\d*(\.\d*)?)i").Match(Console.ReadLine()).Groups;return C(float.Parse(m[1].Value),float.Parse(m[2].Value+m[4].Value));};
+Action&lt;float[]&gt;print=x=&gt;{Console.WriteLine("{0} {1} {2}i",x[0],x[1]&gt;=0?"+":"-",Math.Abs(x[1]));};
+Func&lt;float[],float[],float[]&gt;add=(x,y)=&gt;C(x[0]+y[0],x[1]+y[1]);
+Func&lt;float[],float[],float[]&gt;sub=(x,y)=&gt;C(x[0]-y[0],x[1]-y[1]);
+Func&lt;float[],float[],float[]&gt;mul=(x,y)=&gt;C(x[0]*y[0]-x[1]*y[1],x[0]*y[1]+x[1]*y[0]);
+Func&lt;float[],float[],float[]&gt;div=(x,y)=&gt;mul(x,C(y[0],-y[1])).Select(_=&gt;_/(y[0]*y[0]+y[1]*y[1])).ToArray();
+
+var a = read();
+var b = read();
+var c = C(3, -7);
+var d = C(2, 5);
+var e = div(a,c);
+var f = mul(b,d);
+var g = add(e,f);
+print(g);
+</code></pre>
+
+<p>Not sure about the character counting definition, really…</p>
+</div>
+<div id="pu5" class="pu"><h2>Python, 131 chars</h2>
+
+<pre><code>add=lambda (a,b),(c,d):(a+c,b+d)
+sub=lambda (a,b),(c,d):(a-c,b-d)
+mul=lambda (a,b),(c,d):(a*c-b*d,a*d+b*c)
+def div(x,(c,d)):z=c**2+d**2;return mul(x,(c/z,-d/z))
+def _print(x):print"%f+%fi"%x
+read=lambda:tuple(map(float,raw_input()[:-1].split('+')))
+
+x=read()
+y=read()
+_print(add(x,y))
+_print(sub(x,y))
+_print(mul(x,y))
+_print(div(x,y))
+</code></pre>
+
+<p>Makes lots of use of lambda unpacking, which I'm not including in my "body" count.  (I'm counting everything after the first <code>:</code>).  Kinda cheating, but I'm not really sure how to count it otherwise.</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/8713/">8713</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
