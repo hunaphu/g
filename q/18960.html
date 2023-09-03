@@ -64,7 +64,7 @@ else begin write(input^);p:=p+1 end end;get(input)end end.
     
     type
         { A valid character index in an `input` line. }
-        lineIndex = 1..lineIndexMaximum;
+        lineIndex = 1‥lineIndexMaximum;
         { A set of valid character indices. }
         lineIndices = set of lineIndex;
     
@@ -84,26 +84,26 @@ else begin write(input^);p:=p+1 end end;get(input)end end.
         begin
             { A negative number will be caught by the `lineIndex` data type. }
             read(input, position);
-            tabulatorStop := [position];
+            tabulatorStop ≔ [position];
             
-            while input^ = ',' do
+            while input↑ = ',' do
             begin
                 { Skip comma. }
                 get(input);
                 
                 { “A `+` prefix indicates a relative difference
                    to the previous value in the comma-separated list.” }
-                if input^ = '+' then
+                if input↑ = '+' then
                 begin
                     read(input, column);
-                    position := position + column;
+                    position ≔ position + column;
                 end
                 else
                 begin
                     read(input, position);
                 end;
                 
-                tabulatorStop := tabulatorStop + [position];
+                tabulatorStop ≔ tabulatorStop + [position];
             end;
             
             { Discard the rest of the line, especially the end-of-line mark. }
@@ -111,13 +111,13 @@ else begin write(input^);p:=p+1 end end;get(input)end end.
             
             { “In the case of a single number, it is repeated as if
                multiples of it occurred in a comma-separated list.” }
-            if tabulatorStop - [position] = [] then
+            if tabulatorStop − [position] = [] then
             begin
-                for column := 1 to lineIndexMaximum do
+                for column ≔ 1 to lineIndexMaximum do
                 begin
                     if column mod position = 0 then
                     begin
-                        tabulatorStop := tabulatorStop + [column];
+                        tabulatorStop ≔ tabulatorStop + [column];
                     end;
                 end;
             end;
@@ -126,7 +126,7 @@ else begin write(input^);p:=p+1 end end;get(input)end end.
     { Expands `input` lines according to `tabulatorStop`. ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈ }
     procedure expandTabulatorCharacters;
         begin
-            position := 1;
+            position ≔ 1;
             
             while not EOF(input) do
             begin
@@ -140,13 +140,13 @@ else begin write(input^);p:=p+1 end end;get(input)end end.
                       emit an end-of-line character (sequence) is `writeLn`. }
                     writeLn(output);
                     { Reset `position` to the beginning of a new line. }
-                    position := 1;
+                    position ≔ 1;
                 end
                 else
                 begin
                     { Note, as this might not be properly displayed,
                       this checks for a tabulator character. }
-                    if input^ = '   ' then
+                    if input↑ = '   ' then
                     begin
                         { “Tabs should always expand to at least one space.”
                           Ergo elect a `repeat … until` loop. }
@@ -155,15 +155,15 @@ else begin write(input^);p:=p+1 end end;get(input)end end.
                             write(output, ' ');
                             { Cannot fail: “All expanded tabstops […] is
                               assumed to be a maximum of 80 columns wide.” }
-                            position := position + 1;
+                            position ≔ position + 1;
                         end
-                        until position - 1 in tabulatorStop;
+                        until position − 1 in tabulatorStop;
                     end
                     else
                     begin
-                        write(output, input^);
+                        write(output, input↑);
                         { Note, fatal error if exceding `lineIndexMaximum`. }
-                        position := position + 1;
+                        position ≔ position + 1;
                     end;
                 end;
                 { Advance the reading cursor. }
@@ -173,11 +173,15 @@ else begin write(input^);p:=p+1 end end;get(input)end end.
     
     { ─── MAIN ───────────────────────────────────────────────────────────── }
     begin
-        { “The first value in the list must be absolute (i. e. unprefixed)” }
-        if input^ &lt;&gt; '+' then
+        { Accessing `input↑` is invalid if `input` is an empty file. }
+        if not EOF(input) then
         begin
-            processTabulatorStopSpecification;
-            expandTabulatorCharacters;
+            { “The first value in the list must be absolute […]” }
+            if input↑ ≠ '+' then
+            begin
+                processTabulatorStopSpecification;
+                expandTabulatorCharacters;
+            end;
         end;
     end.
 </code></pre>
