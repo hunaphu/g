@@ -26,12 +26,12 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>442</td><td>Pascal</td><td>230903T120000Z</td><td><a href="https://codegolf.stackexchange.com/questions/18960/expand-tabs-implement-expand1/264851#264851">Kai Burg</a></td></tr>
+<tr d-ix="0"><td>441</td><td>Pascal</td><td>230903T120000Z</td><td><a href="https://codegolf.stackexchange.com/questions/18960/expand-tabs-implement-expand1/264851#264851">Kai Burg</a></td></tr>
 <tr d-ix="1"><td>145</td><td>Ruby</td><td>140121T000205Z</td><td><a href="https://codegolf.stackexchange.com/questions/18960/expand-tabs-implement-expand1/18972#18972">daniero</a></td></tr>
 <tr d-ix="2"><td>075</td><td>GolfScript</td><td>140124T233122Z</td><td><a href="https://codegolf.stackexchange.com/questions/18960/expand-tabs-implement-expand1/19344#19344">Peter Ta</a></td></tr>
 <tr d-ix="3"><td>228</td><td>C</td><td>140120T210949Z</td><td><a href="https://codegolf.stackexchange.com/questions/18960/expand-tabs-implement-expand1/18962#18962">FireFly</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h2>Pascal, 442 B</h2>
+<div id="pu0" class="pu"><h2>Pascal, 441 B</h2>
 <ul>
 <li>The Pascal programming language is standardized by ISO standards 7185 (“Standard Pascal”) and 10206 (“Extended Pascal”).
 Since the notion of command-line arguments something highly specific, not universally found on all computing systems, Pascal lacks of a standardized facility to access command-line arguments (if such exist).
@@ -48,11 +48,11 @@ It is unclear whether such vigorous enforcement is required by the task specific
 </ul>
 <pre class="lang-pascal prettyprint-override"><code>program e(input,output);var t:set of 1..80;c,p:1..80;begin
 read(p);t:=[p];while','=input^do begin
-get(input);if'+'=input^then begin read(c);p:=p+c;end else
+get(input);if'+'=input^then begin read(c);p:=p+c end else
 read(p);t:=t+[p]end;readLn;if[]=t-[p]then begin for c:=1
 to 80 do if c mod p=0 then t:=t+[c]end;p:=1;while not EOF
 do begin if EOLn then begin writeLn;p:=1 end else begin
-if' '=input^then repeat write(' ');p:=p+1 until p-1 in t
+if' '=input^then repeat p:=p+1;write(' ')until p-1 in t
 else begin write(input^);p:=p+1 end end;get(input)end end.
 </code></pre>
 <p>Ungolfed:</p>
@@ -64,7 +64,7 @@ else begin write(input^);p:=p+1 end end;get(input)end end.
     
     type
         { A valid character index in an `input` line. }
-        lineIndex = 1‥lineIndexMaximum;
+        lineIndex = 1..lineIndexMaximum;
         { A set of valid character indices. }
         lineIndices = set of lineIndex;
     
@@ -75,58 +75,58 @@ else begin write(input^);p:=p+1 end end;get(input)end end.
         { Where are we at in the currently processed line. }
         position: lineIndex;
     
-    { Processes an input line containing a tabulator stop specification. ┈ }
+    { Processes an input line containing a tabulator stop specification. ┈┈┈ }
     procedure processTabulatorStopSpecification;
         var
             { In Pascal `for`-loop counter variables must be declared
               in the _closest_ containing block. }
             column: lineIndex;
         begin
-            { A /negative/ number will be caught by the `lineIndex` data type. }
+            { A negative number will be caught by the `lineIndex` data type. }
             read(input, position);
-            tabulatorStop ≔ [position];
+            tabulatorStop := [position];
             
-            while input↑ = ',' do
+            while input^ = ',' do
             begin
                 { Skip comma. }
                 get(input);
                 
-                { “A `+` prefix indicates a relative difference to the previous
-                   value in the comma-separated list.” }
-                if input↑ = '+' then
+                { “A `+` prefix indicates a relative difference
+                   to the previous value in the comma-separated list.” }
+                if input^ = '+' then
                 begin
                     read(input, column);
-                    position ≔ position + column;
+                    position := position + column;
                 end
                 else
                 begin
                     read(input, position);
                 end;
                 
-                tabulatorStop ≔ tabulatorStop + [position];
+                tabulatorStop := tabulatorStop + [position];
             end;
             
-            { Discard the rest of the line, especially the end-of-line marker. }
+            { Discard the rest of the line, especially the end-of-line mark. }
             readLn(input);
             
             { “In the case of a single number, it is repeated as if
                multiples of it occurred in a comma-separated list.” }
-            if tabulatorStop − [position] = [] then
+            if tabulatorStop - [position] = [] then
             begin
-                for column ≔ 1 to lineIndexMaximum do
+                for column := 1 to lineIndexMaximum do
                 begin
                     if column mod position = 0 then
                     begin
-                        tabulatorStop ≔ tabulatorStop + [column];
+                        tabulatorStop := tabulatorStop + [column];
                     end;
                 end;
             end;
         end;
     
-    { Expands `input` lines according to `tabulatorStop`. ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈ }
+    { Expands `input` lines according to `tabulatorStop`. ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈ }
     procedure expandTabulatorCharacters;
         begin
-            position ≔ 1;
+            position := 1;
             
             while not EOF(input) do
             begin
@@ -140,30 +140,30 @@ else begin write(input^);p:=p+1 end end;get(input)end end.
                       emit an end-of-line character (sequence) is `writeLn`. }
                     writeLn(output);
                     { Reset `position` to the beginning of a new line. }
-                    position ≔ 1;
+                    position := 1;
                 end
                 else
                 begin
                     { Note, as this might not be properly displayed,
                       this checks for a tabulator character. }
-                    if input↑ = '   ' then
+                    if input^ = '   ' then
                     begin
                         { “Tabs should always expand to at least one space.”
                           Ergo elect a `repeat … until` loop. }
                         repeat
                         begin
                             write(output, ' ');
-                            { Cannot fail: “All expanded tabstops […] is assumed
-                              to be a maximum of 80 columns wide.” }
-                            position ≔ position + 1;
+                            { Cannot fail: “All expanded tabstops […] is
+                              assumed to be a maximum of 80 columns wide.” }
+                            position := position + 1;
                         end
-                        until position − 1 in tabulatorStop;
+                        until position - 1 in tabulatorStop;
                     end
                     else
                     begin
-                        write(output, input↑);
+                        write(output, input^);
                         { Note, fatal error if exceding `lineIndexMaximum`. }
-                        position ≔ position + 1;
+                        position := position + 1;
                     end;
                 end;
                 { Advance the reading cursor. }
@@ -171,17 +171,13 @@ else begin write(input^);p:=p+1 end end;get(input)end end.
             end;
         end;
     
-    { ─── MAIN ─────────────────────────────────────────────────────────── }
+    { ─── MAIN ───────────────────────────────────────────────────────────── }
     begin
-        { Accessing `input↑` is invalid if `input` is empty. }
-        if not EOF(input) then
+        { “The first value in the list must be absolute (i. e. unprefixed)” }
+        if input^ &lt;&gt; '+' then
         begin
-            { “The first value in the list must be absolute (i.e. unprefixed)” }
-            if input↑ ≠ '+' then
-            begin
-                processTabulatorStopSpecification;
-                expandTabulatorCharacters;
-            end;
+            processTabulatorStopSpecification;
+            expandTabulatorCharacters;
         end;
     end.
 </code></pre>
