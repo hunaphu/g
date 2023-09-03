@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::18960</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>442</td><td>Pascal</td><td>230903T120000Z</td><td><a href="https://codegolf.stackexchange.com/questions/18960/expand-tabs-implement-expand1/264851#264851">Kai Burg</a></td></tr>
+<tr d-ix="1"><td>145</td><td>Ruby</td><td>140121T000205Z</td><td><a href="https://codegolf.stackexchange.com/questions/18960/expand-tabs-implement-expand1/18972#18972">daniero</a></td></tr>
+<tr d-ix="2"><td>075</td><td>GolfScript</td><td>140124T233122Z</td><td><a href="https://codegolf.stackexchange.com/questions/18960/expand-tabs-implement-expand1/19344#19344">Peter Ta</a></td></tr>
+<tr d-ix="3"><td>228</td><td>C</td><td>140120T210949Z</td><td><a href="https://codegolf.stackexchange.com/questions/18960/expand-tabs-implement-expand1/18962#18962">FireFly</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h2>Pascal, 442 B</h2>
+<ul>
+<li>The Pascal programming language is standardized by ISO standards 7185 (“Standard Pascal”) and 10206 (“Extended Pascal”).
+Since the notion of command-line arguments something highly specific, not universally found on all computing systems, Pascal lacks of a standardized facility to access command-line arguments (if such exist).
+Therefore the following complete <code>program</code> expects the tabulator specification given on the first line of <code>input</code>.</li>
+<li>The tabulator stop specification reading algorithm uses the built‑in <code>read</code> procedure.
+Such will allow and ignore leading blanks.
+Thus <code>8, 12, 14, 15</code> is accepted, too.
+However, relative tabulator stop specifications are only processed correctly if the plus sign is immediately adjacent to the comma.</li>
+<li>With respect to (POSIX™ locale) blank characters, the Pascal programming language only guarantees there is <em>a</em> space character.
+The provision of a tabulator character is an implementation-defined characteristic.
+Obviously the following program requires that there is a horizontal tabulator character in the utilized implementation.</li>
+<li>The golfed version omits certain verification steps (non-empty <code>input</code>, first tabulator specification must be non-relative).
+It is unclear whether such vigorous enforcement is required by the task specification.</li>
+</ul>
+<pre class="lang-pascal prettyprint-override"><code>program e(input,output);var t:set of 1..80;c,p:1..80;begin
+read(p);t:=[p];while','=input^do begin
+get(input);if'+'=input^then begin read(c);p:=p+c;end else
+read(p);t:=t+[p]end;readLn;if[]=t-[p]then begin for c:=1
+to 80 do if c mod p=0 then t:=t+[c]end;p:=1;while not EOF
+do begin if EOLn then begin writeLn;p:=1 end else begin
+if' '=input^then repeat write(' ');p:=p+1 until p-1 in t
+else begin write(input^);p:=p+1 end end;get(input)end end.
+</code></pre>
+<p>Ungolfed:</p>
+<pre class="lang-pascal prettyprint-override"><code>program expand(input, output);
+    
+    const
+        { The character count of the longest line this program can process. }
+        lineIndexMaximum = 80;
+    
+    type
+        { A valid character index in an `input` line. }
+        lineIndex = 1‥lineIndexMaximum;
+        { A set of valid character indices. }
+        lineIndices = set of lineIndex;
+    
+    var
+        { This mimics a mechanical typewriter implementation
+          that has retractable pins installed catching the carriage. }
+        tabulatorStop: lineIndices;
+        { Where are we at in the currently processed line. }
+        position: lineIndex;
+    
+    { Processes an input line containing a tabulator stop specification. ┈ }
+    procedure processTabulatorStopSpecification;
+        var
+            { In Pascal `for`-loop counter variables must be declared
+              in the _closest_ containing block. }
+            column: lineIndex;
+        begin
+            { A /negative/ number will be caught by the `lineIndex` data type. }
+            read(input, position);
+            tabulatorStop ≔ [position];
+            
+            while input↑ = ',' do
+            begin
+                { Skip comma. }
+                get(input);
+                
+                { “A `+` prefix indicates a relative difference to the previous
+                   value in the comma-separated list.” }
+                if input↑ = '+' then
+                begin
+                    read(input, column);
+                    position ≔ position + column;
+                end
+                else
+                begin
+                    read(input, position);
+                end;
+                
+                tabulatorStop ≔ tabulatorStop + [position];
+            end;
+            
+            { Discard the rest of the line, especially the end-of-line marker. }
+            readLn(input);
+            
+            { “In the case of a single number, it is repeated as if
+               multiples of it occurred in a comma-separated list.” }
+            if tabulatorStop − [position] = [] then
+            begin
+                for column ≔ 1 to lineIndexMaximum do
+                begin
+                    if column mod position = 0 then
+                    begin
+                        tabulatorStop ≔ tabulatorStop + [column];
+                    end;
+                end;
+            end;
+        end;
+    
+    { Expands `input` lines according to `tabulatorStop`. ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈ }
+    procedure expandTabulatorCharacters;
+        begin
+            position ≔ 1;
+            
+            while not EOF(input) do
+            begin
+                if EOLn(input) then
+                begin
+                    { `Input` is a variable possessing the data type `text`.
+                      A `text` file automatically replaces
+                      the character (sequence) that indicates the end-of-line
+                      with a single space character (`' '`).
+                      The only /universally/ valid way to
+                      emit an end-of-line character (sequence) is `writeLn`. }
+                    writeLn(output);
+                    { Reset `position` to the beginning of a new line. }
+                    position ≔ 1;
+                end
+                else
+                begin
+                    { Note, as this might not be properly displayed,
+                      this checks for a tabulator character. }
+                    if input↑ = '   ' then
+                    begin
+                        { “Tabs should always expand to at least one space.”
+                          Ergo elect a `repeat … until` loop. }
+                        repeat
+                        begin
+                            write(output, ' ');
+                            { Cannot fail: “All expanded tabstops […] is assumed
+                              to be a maximum of 80 columns wide.” }
+                            position ≔ position + 1;
+                        end
+                        until position − 1 in tabulatorStop;
+                    end
+                    else
+                    begin
+                        write(output, input↑);
+                        { Note, fatal error if exceding `lineIndexMaximum`. }
+                        position ≔ position + 1;
+                    end;
+                end;
+                { Advance the reading cursor. }
+                get(input);
+            end;
+        end;
+    
+    { ─── MAIN ─────────────────────────────────────────────────────────── }
+    begin
+        { Accessing `input↑` is invalid if `input` is empty. }
+        if not EOF(input) then
+        begin
+            { “The first value in the list must be absolute (i.e. unprefixed)” }
+            if input↑ ≠ '+' then
+            begin
+                processTabulatorStopSpecification;
+                expandTabulatorCharacters;
+            end;
+        end;
+    end.
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>Ruby <strike>161</strike> 145</h1>
+
+<p>Reads the tabstop specification on the first line of input.</p>
+
+<pre><code>i=t=[]
+gets.scan(/(\+)?(\d+)/){t&lt;&lt;i=$2.to_i+($1?i:0)}
+81.times{|j|t&lt;&lt;j*i}
+while gets
+$_.sub!$&amp;," "*(t.find{|s|s&gt;i=$`.size}-i)while~/\t/
+print
+end
+</code></pre>
+
+<p>edit: Added two lines that makes the last read tabstop repeat so that tabstop specifications of a single number also works correctly</p>
+
+<p><code>i</code> is a temporary variable for holding the last parsed tabstop. <code>t</code> is the list of tabstobs, parsed from the <code>gets.scan</code> line. For good measure we add 81 multiples of the last parsed tabstop. the <code>while gets</code> loop keeps going until there is no more input. For each line of input we substitute tabs for spaces, one tab at the time because the string moves as we add the spaces and we must recalculate the correct tabstop.</p>
+</div>
+<div id="pu2" class="pu"><h2>GolfScript (<strike>77</strike> 75 chars)</h2>
+
+<pre><code>n/(','/{'+'/{~t++}*~:t}%81,{t*}%+:T;{[0\{.9={;T{1$&gt;}?(.)@-' '*}*\)}/;]n+}/;
+</code></pre>
+
+<p>I'm quite pleased with the tabspec parsing.</p>
+
+<pre><code># Split on commas
+','/
+# For each element:
+{
+    # Split on '+'
+    '+'/
+    # We now have either ["val"] or ["" "val"]
+    # The clever bit: fold
+    # Folding a block over a one-element array gives that element, so ["val"] =&gt; "val"
+    # Folding a block over a two-element array puts both elements on the stack and executes,
+    # so ["" "val"]{~t++}* evaluates as
+    #     "" "val" ~t++
+    # which evaluates val, adds the previous value, and concatenates with that empty string
+    {~t++}*
+    # Either way we now have a string containing one value. Eval it and assign to t
+    ~:t
+}%
+</code></pre>
+
+<p>Then I add multiples of the last element until I'm guaranteed to have enough to reach the end of the 80 columns:</p>
+
+<pre><code>81,{t*}%+
+</code></pre>
+
+<p>This gives the desired behaviour when only one tabstop was specified, and is otherwise only relevant in cases which the spec doesn't mention. (NB it makes the list of tab-stops dip back to 0 and then repeat the last parsed element, but that's irrelevant because when it comes to using the list I look for the first element greater than the current position).</p>
+
+<p>The rest is pretty straightforward.</p>
+</div>
+<div id="pu3" class="pu"><h2>C, 228 chars</h2>
+
+<p>Here is a C solution to start things off.  There's still a lot of golfing to do here (look at all those <code>if</code>s and <code>for</code>s and <code>putchar</code>s...).  Tested with the example testcase, as well as with the same input but <code>4</code> and <code>8</code> for the tab spec.</p>
+
+<pre class="lang-c prettyprint-override"><code>S[99],i;L,C;main(v){for(v=1;v;)v=scanf("+%d",&amp;C),v=v&gt;0?C+=L:scanf("%d",&amp;C),
+v&amp;&amp;(S[L=C]=++i,getchar());for(;i==1&amp;&amp;C&lt;80;)S[C+=L]=1;for(C=L=0;C=~getchar();)
+if(C+10)putchar(~C),L+=C+11?1:-L;else for(putchar(32);!S[++L];)putchar(32);}
+</code></pre>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/18960/">18960</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
