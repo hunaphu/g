@@ -26,9 +26,151 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>932</td><td>Python</td><td>230905T105938Z</td><td><a href="https://codegolf.stackexchange.com/questions/264775/pick-a-random-string-at-a-fixed-edit-distance/264928#264928">bsoelch</a></td></tr>
+<tr d-ix="0"><td>3441</td><td>Python</td><td>230905T183107Z</td><td><a href="https://codegolf.stackexchange.com/questions/264775/pick-a-random-string-at-a-fixed-edit-distance/264945#264945">gsitcia</a></td></tr>
+<tr d-ix="1"><td>932</td><td>Python</td><td>230905T105938Z</td><td><a href="https://codegolf.stackexchange.com/questions/264775/pick-a-random-string-at-a-fixed-edit-distance/264928#264928">bsoelch</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 932 bytes, <span class="math-container">\$O(|s|(|s|+k)(2|s|(|s|+k))^k)\$</span></h1>
+<div id="pu0" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 3441 bytes</h1>
+<pre class="lang-python prettyprint-override"><code>import random
+
+def skip():pass
+
+class State:
+    states = []
+    def __init__(self, accepting=False):
+        self.n = len(State.states)
+        State.states.append(self)
+        self.accepting = accepting
+        self.transitions = {}
+    def __repr__(self):
+        return f'q_{self.n}'
+    def add(self, c, s):
+        self.transitions.setdefault(c, set()).add(s)
+    def __eq__(self, o):
+        return self.n == o.n
+    def __hash__(self):
+        return hash((State, self.n))
+    def epsilon_helper(self):
+        z = {self}
+        if '' in self.transitions:
+            for s in self.transitions.pop(''):
+                z.update(s.epsilon_helper())
+        self.epsilon_helper = lambda:z
+        return z 
+    def remove_epsilon(self):
+        self.remove_epsilon = skip
+        for a in self.epsilon_helper():
+            a.remove_epsilon()
+            for x, S in a.transitions.items():
+                for b in list(S):
+                    b.remove_epsilon()
+                    for c in b.epsilon_helper():
+                        self.add(x, c)
+                        c.remove_epsilon()
+    def freeze(self):
+        self.freeze = lambda:None
+        for c, s in self.transitions.items():
+            for x in s:
+                x.freeze()
+            self.transitions[c] = frozenset(s)
+    def count_accepting(self):
+        x = self.accepting + sum(s.count_accepting() for S in self.transitions.values() for s in S)
+        self.count_accepting = lambda:x
+        return x
+    def accept(self, w):
+        if w == '': return self.accepting
+        return any(s.accept(w[1:]) for s in self.transitions.get(w[0],()))
+    def pick(self, i):
+        if self.accepting:
+            if i == 0: return ''
+            i -= 1
+        for j, s in self.transitions.items():
+            s = min(s)
+            x = s.count_accepting()
+            if i &lt; x:
+                return j + s.pick(i)
+            i -= x
+        raise IndexError
+
+def levenshtein(w, n):
+    A = set(w)
+    W = len(w)
+    states = [[State() for _ in w] + [State(True)] for _ in range(n+1)]
+    for i, c in enumerate(w):
+        for j in range(n):
+            s = states[j][i]
+            for x in A:
+                s.add(x, states[j+1][i])
+                if x != c:
+                    s.add(x, states[j+1][i+1])
+            s.add('', states[j+1][i+1])
+            s.add(c, states[j][i+1])
+        states[n][i].add(c, states[n][i+1])
+    for j in range(n):
+        s = states[j][W]
+        for x in A:
+            s.add(x, states[j+1][W])
+    s = states[0][0]
+    s.remove_epsilon()
+    s.freeze()
+    return s
+
+def union(states):
+    d = {}
+    accepting = False
+    for s in states:
+        for c, S in s.transitions.items():
+            d[c] = d.get(c, frozenset()) | S
+        if s.accepting:
+            accepting = True
+    return d, accepting
+
+def difference(q0, q1, D = None):
+    if D is None:
+        return difference(frozenset([q0]), frozenset([q1]), {})
+    if (q0, q1) in D:
+        return D[q0, q1]
+    d0, a0 = union(q0)
+    d1, a1 = union(q1)
+    Q0 = State(a0 and not a1)
+    D[q0, q1] = Q0
+    for i in set(d0) | set(d1):
+        Q0.transitions[i] = frozenset([difference(d0.get(i, frozenset()), d1.get(i, frozenset()), D)])
+    return Q0
+
+def exact(w, n):
+    if n == 0: raise ValueError
+    return difference(levenshtein(w, n), levenshtein(w, n-1))
+
+def f(w, n):
+    s = exact(w, n)
+    return s.pick(random.randrange(s.count_accepting()))
+
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=lVfNbuM2EL4b6DuwuUhEFEECemiD5rCAW6CXAoGL5mAIBi1RMbMyJYtU7DjNk-xlL-07tU_T4Y8lUtJmW8KwZXJm-M1w5hvq01_Ni9zV_PPnPztZ3nz_zzcHtm_qVqKW8KLeLxYFLZH4yJoQ3zZEiMUir-AHrSSR9HaBYAj1KNAdWmf6v9LYbBhncrMJBa3KCJE8p41k_PHuZ1IJio2iVob1mINyRXmojcbGHu5F3NmYNA3lhTaLfSP9HmCsf_ZFJDglmGQ1V3Bf3xy4LW1aC9dB11LZtRyVwWHzapC-Bb0SKQrrXh4hMfbJ2SsWVIIC6SoZKlEqQ4xjrY4dCPTQx6ueYrgE6g7VMXe0dkTsvghcLYYmrJG1gIctaSNYVfPNjlYNbccmzipEau6tn2IlCgLE-MTDQUuNsm6RmBOLm7oJgwD74nqzuGsKQBmKeIQKj47ZX1aJQ_bbgtyex76fUe9oS_f1M91Y1bGj2qwvAmZVzvciyiPSezRG6LtDRrZCPAnOKUIrZY14wWGS7sXY2kVlq-QrJmS4mpFQY_v-vq6xXBnbfsUPd5gCg4QF5Pm8XTXyeQjqCMqW0jOdDb1ZGk7y15pTL_KqZmbTaTZiOsBafOrPyW42is3Y8DrPAE7Z1mfKVbU6ZZrXHZebnl_GDp1U5vhsdI1Et4e8HmtijXQ169gzqToqrIj2fTUqg5G1IXqncR2cBsLS0pZijg5qqOujYpYguPXoZkqjdpXwF_DI2juu09sMv1P1j1QJJVkExTxEsmH5R4uF-Vj8vf1ThGWmoCY90iDwBdDNHUq9_Hn6X_mjWsOe8VD4OaJPdnqIU3A_otM08SzWJ5UNsfac4Sls5-wIExT9wgt6-qlt69b04Yo-Q0LuJAV4xwhxi_yDTjqIsTH5YLup_Tu057VuBDarNioixwwA2enf2o7ibFiDOD3SkF-n2LR1tcAiwx2Ud3vaKi03jXSsHdWZwBow66dszbL5qv0wDZ64UM9F-zpV-lMegvif0Ld3KJ9nsnk78DViAy0WBP9NLo9cpzwhO88V2JEsd2XfiZsfs4fMi_VcvGZ9fLAbOdaSDD5mcp60hU-VF1owidhxpvqouagZAMVwo3JZSd_3ei9NGWo1P21y2xHF1-uzMOxcaFoBvYGmMUZ_oJXHJF-iEReiSnzXx8K5rxp3C1aWtKU8p-EhidAhjdASFFWjsuBgryViQk9NbmGO-gB2fUgy7KJfH1I18fqGLxbtZlgFZjmxulybZXvphmeSAChzNIfEEi1AJekwnZrpeyVpyh6U4KaPeC1B0Kz2lkHoPhmK33CoDItEBVo_pc7h3CdeD2V-D107USgSfXjMP7wI0M7PL3HmZSGA0udCTySXLhNC0PilO2gG_V01UsOg8wcyodRowrI3KXQtvV_p7qWKyQHgVYmhePMKFasfU9kz_QNMmzevv1dNy7gMy_AqhZGoT3IV_QAC_YLcUXTowDTatvUR3kvqE3rq9o1AUL8tUssVOb-gon68itB3GBvTl5e7fwE" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<p>My attempt at implementing user1502040's idea of sampling the DFA.</p>
+<p>The algorithm runs in basically three stages:</p>
+<ul>
+<li>First it generates NFAs for <code>s,k</code> and <code>s,k-1</code> (where each accepts words with at most <code>k</code> or <code>k-1</code> errors respectively)
+<ul>
+<li>The NFAs have <span class="math-container">\$O(|s|\cdot k)\$</span> states, and building them takes time proportional to that (also proportional to the size of the alphabet)</li>
+</ul>
+</li>
+<li>Then it uses the algorithm outlined in <a href="https://cs.stackexchange.com/a/20053">this</a> cs.se answer to find a DFA for the difference of two NFAs
+<ul>
+<li>This takes the majority of the time, but I'm not sure of the actual complexity. Given that the algorithm is basically the powerset construction, it's worst case exponential, but it appears to do better than that. (I found an algorithm that can find a DFA for a given word with <code>&lt;=k</code> errors that takes time linear with respect to the length of the word (for fixed k). See Schulz and Mihov (2002)).</li>
+<li>I tried graphing the number of states in the DFA for <code>s=&quot;1111011012&quot;</code> and <code>k</code> from <code>1</code> to <code>30</code> and it appeared linear (especially for <code>k&gt;10</code>), but I also tried <code>s=&quot;the quick brown fox jumps over the lazy dog&quot;</code> and <code>k</code> from <code>1</code> to <code>7</code> and it appeared exponential. **</li>
+</ul>
+</li>
+<li>It counts the number of states, and picks a random index and chooses the path with that index in a preorder traversal of the DFA. (am I using my jargon right?)
+<ul>
+<li>This takes time linear in the size of the DFA (using dynamic programming).</li>
+</ul>
+</li>
+</ul>
+<p>In practice, the program appears to run quite quickly; it takes about 5 seconds for <code>s=&quot;the quick brown fox jumps over the lazy dog&quot;</code> and <code>k=5</code>.</p>
+<p>** For some reason the image feature isn't working for me, so here is the data: <code>[35, 101, 228, 436, 722, 1080, 1464, 1833, 2184, 2519, 2844, 3162, 3480, 3798, 4116, 4434, 4752, 5070, 5388, 5706, 6024, 6342, 6660, 6978, 7296, 7614, 7932, 8250, 8568]</code> and <code>[172, 669, 2579, 10226, 40094, 155722, 606044]</code></p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 932 bytes, <span class="math-container">\$O(|s|(|s|+k)(2|s|(|s|+k))^k)\$</span></h1>
 <pre class="lang-python prettyprint-override"><code>import random
 def levenshteinDistance(s,t):
   m=len(s);
