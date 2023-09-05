@@ -26,9 +26,41 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>084</td><td>Wolfram Language Mathematica</td><td>220614T065125Z</td><td><a href="https://codegolf.stackexchange.com/questions/248599/find-the-circle-tangent-polynomials/248603#248603">alephalp</a></td></tr>
+<tr d-ix="0"><td>233</td><td>Maxima</td><td>230905T014220Z</td><td><a href="https://codegolf.stackexchange.com/questions/248599/find-the-circle-tangent-polynomials/264900#264900">138 Aspe</a></td></tr>
+<tr d-ix="1"><td>084</td><td>Wolfram Language Mathematica</td><td>220614T065125Z</td><td><a href="https://codegolf.stackexchange.com/questions/248599/find-the-circle-tangent-polynomials/248603#248603">alephalp</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.wolfram.com/wolframscript/" rel="nofollow noreferrer">Wolfram Language (Mathematica)</a>, 84 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="http://maxima.sourceforge.net/" rel="nofollow noreferrer">Maxima</a>, 233 bytes</h1>
+<p>Port of <a href="https://codegolf.stackexchange.com/a/248603/110802">@alephalpha's Mathematica code</a> in Maxima.</p>
+<p>This is the first time that I write a Maxima program.</p>
+<hr />
+<p>Golfed version. <a href="https://tio.run/##PZDBboMwDIbve4ocdrBZUAvbiYoXGQIpTZPVIiRRCFv29MxttV4s65fl77MXVWhR@0zOgXIOT7sFj11/dkHPELt1W0ANNFZlIknyKD1K04lFzcbRmkEHYy2YEpW/QJnaN4hTWzdY5wpKXYZmxEfTchNTuGw6wz2gEaeWVzbS8zxKUSRhf7xD2ooxySgXvPvtctqM/GSVMwMtJa5rcN8GjFQxGgY/dW6q/5rPsDzC5hYOeUSGRcTX/VAJzTeT/xL5aoTdvM4UvPihfBW@fxfV4SUm8gyFD@TX/AE" rel="nofollow noreferrer">Try it online!</a></p>
+<pre><code>f(n):=block(p:sum(a[i]*x^i,i,0,n),e: makelist(coeff(expand(x^2+(p^2-1)-t*(x-x[1])*(x-x[2])*product((x-x[i])^2,i,1,n-1)), x,i)=0,i,0,2*n),realonly:true,Z:subst(first(solve(e,append(makelist(a[i],i,0,n),makelist(x[i],i,1,n),[t]))),p))$
+</code></pre>
+<p>Ungolfed version. <a href="https://tio.run/##ZVKxTsMwFNzzFW9gsENQaWBK1RkGWOhYpZKbOtSqY5v4BQI/H54dEoKQLOXZd7q7nN2IXjViGC5Kaya05pukZoYX26O21YUlAK4A3zVM7FWZ9geVAa3bDAzPCJRvnUBlzdPjroD@kMM1MEefG1j/wV8CTnsATFlPcL9fl3wacxoj6Fp76ipkP@eq5Ic8Gq7J8J9oAbJ3wpzYIgWRFp5EJ/4qhQeJgGcJlZV1rSolDXqwdTyb@EBS4EdiA2jhS7YW0tXC0RfQiIvUyiOLUrN1Bj0F5bAN3YwN5akZ/VsptDX6swBsO5nFQDuJqMwrPMf@g5trZS3bSAZvdRf9RvtpW4TpXc6mPgPhnKQG5lThmhZX9Bu3n4D1COyx5HM9u@7oUWGHMjZSq9bj7ArKhHhjFBE68IHOIotNLJJ0POFXSUJ6Fb2k8HdRrDNVlPlQeAazvQtCriVRVrN7zjfD8A0" rel="nofollow noreferrer">Try it online!</a></p>
+<pre><code>kill(all);
+f(n):=block(
+  p: sum(a[i]*x^i, i, 0, n),
+  equationLHS: x^2 + (p^2 - 1),
+  equationRHS: 
+    t*(x - x[1])*(x - x[2])*
+    product((x - x[i])^2, i, 1, n - 1),
+  equation: expand(equationLHS - equationRHS),
+
+  /* Get the coefficients of the equation and set them to zero */
+  equations: makelist(coeff(equation, x, i) = 0, i, 0, 2*n),
+
+  realonly: true,  /* Setting Maxima to prefer real solutions */
+  solution: solve(equations, append(makelist(a[i], i, 0, n), makelist(x[i], i, 1, n), [t])),
+
+  /* Substitute the first solution into p */
+  ans: subst(first(solution), p)
+)$
+
+/* calling the function with n=3 */
+print(f(4));
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.wolfram.com/wolframscript/" rel="nofollow noreferrer">Wolfram Language (Mathematica)</a>, 84 bytes</h1>
 <p>-18 bytes thanks to @att. Now returns a polynomial in <code>Quantifier`LocalVariable$1</code>.</p>
 <pre><code>p/.#&amp;@@Solve@ForAll[x,t#2#####&amp;@@(x-b/@2~Range~#)==x^2+(p=Sum[a@i*x^i,{i,0,#}])p-1]&amp;
 </code></pre>
