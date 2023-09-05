@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::264775</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>932</td><td>Python</td><td>230905T105938Z</td><td><a href="https://codegolf.stackexchange.com/questions/264775/pick-a-random-string-at-a-fixed-edit-distance/264928#264928">bsoelch</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 932 bytes, <span class="math-container">\$O(|s|(|s|+k)(2|s|(|s|+k))^k)\$</span></h1>
+<pre class="lang-python prettyprint-override"><code>import random
+def levenshteinDistance(s,t):
+  m=len(s);
+  n=len(t);
+  d=[(n+1)*[0]for _ in range(m+1)]
+  for i in range(m+1):
+    d[i][0]=i
+  for j in range(n+1):
+    d[0][j]=j
+  for j in range(n):
+    for i in range(m):
+      if s[i] == t[j]:
+        substitutionCost = 0
+      else:
+        substitutionCost = 1
+      d[i+1][j+1] = min(d[i][j+1] + 1,                # deletion
+                         d[i+1][j] + 1,               # insertion
+                         d[i][j] + substitutionCost)  # substitution
+  return d[m][n]
+
+def build(s,k,i0=0):
+  if k==0:
+    yield s;return
+  for i in range(i0,len(s)+1):
+    t=s[:i]+s[i+1:]
+    for q in build(t,k-1,i):
+     yield q
+    for c in set(s):
+      t=s[:i]+c+s[i+1:]
+      for q in build(t,k-1,i):
+       yield q 
+      t=s[:i]+c+s[i:]
+      for q in build(t,k-1,i):
+       yield q
+
+def f(s,k):
+  return random.choice([t for t in set(build(s,k))if levenshteinDistance(s,t)==k])
+
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=lZPBTsMwDIYP3PoUFrs0rKBU4oA25QRvUUUI1pR5a9PRuEg8C5cdgGfgWXganKYtMAYTUVWl9u_PiV0_vW4eaVnb7falpeL04v3oGatN3RA0Nzavqyg3BZTmwVi3JIP2Ch3d2IWJXUJiFgFUqjQ2dmLOe9vtqdvnKovtNBUnmdRF3cA1oPXMOxNXbNYs8Wb8bvZEjs1Qc5jCXrT6FNkvIqmzlVarPaJespugNwNgAY5zgFJAzBjMAK69dYTUEtb2snYECmTvNKUzfwrT3smnn6Z8NH6xtUIbd_fpvqeQJrCzJpCb0nhQtOsa18DcS5jwFZ1pDhL6-N2jC0_4amRIY6htLAdVOrM66v6C2xbLnPu-TlAq2dWS67hWSoayPKIpc3DzEPuzvyiT8KuMLSTlshnqqfO3m-mxZ_c-KKSjZH2aJjh0LuS4H5ULr3SGmDr0ZoAuvmEPgUc07MP8FxIKVvhidb6-nGGkzhbLGnmCMupwNFxhrK8Q-PvMKbXWIgrD-rZp0FJcxMcpL-kfeZycCxHcw0x_AA" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<p>Runs in <span class="math-container">\$O(|s|(|s|+k)(2|s|(|s|+k))^k\$</span></p>
+<p>Generates all possible strings reachable with k edits, then pick a random string with edit distance k.</p>
+<p>The filtering by edit distance is necessary to filter out combinations of edits the can be expressed by a shorter edit sequence
+(e.g. <code>Hello</code> -&gt; <code>HHello</code> -&gt; <code>Heello</code> -&gt; <code>Hello</code>), I did not find any generation rule that reliably avoids every possible way to generate a shorter edit sequence.</p>
+<h2>Running time:</h2>
+<p><em>I am not that familiar with estimating the exact running time of recursive functions, so there might be a mistake in my calculations</em></p>
+<p><code>levenshteinDistance(s,t)</code> runs in <span class="math-container">\$O(|s||t|)\$</span></p>
+<p><code>build(s,k,i)</code> runs in <span class="math-container">\$b(l,k,i)=O(\sum_{j=i}^{l}*(b(l-1,k-1,j)+|s|(b(l+1,k-1,j)+b(l,k-1,j)))\$</span>
+<span class="math-container">\$=\sum_{j=i}^{l}*O((2|s|+1)*b(l+1,k-1,j))=O(((|s|+k)*(2|s|+1))^k)\$</span></p>
+<p><code>f</code> runs in <span class="math-container">\$O(((|s|+k)*(2|s|+1))^k)*O(|s|(|s|+k))=O(|s|(|s|+k)(2|s|(|s|+k))^k)\$</span></p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/264775/">264775</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
