@@ -26,62 +26,11 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>242</td><td>Python</td><td>230906T000429Z</td><td><a href="https://codegolf.stackexchange.com/questions/264775/pick-a-random-string-at-a-fixed-edit-distance/264954#264954">Value In</a></td></tr>
-<tr d-ix="1"><td>3441</td><td>Python</td><td>230905T183107Z</td><td><a href="https://codegolf.stackexchange.com/questions/264775/pick-a-random-string-at-a-fixed-edit-distance/264945#264945">gsitcia</a></td></tr>
+<tr d-ix="0"><td>3453</td><td>Python</td><td>230905T183107Z</td><td><a href="https://codegolf.stackexchange.com/questions/264775/pick-a-random-string-at-a-fixed-edit-distance/264945#264945">gsitcia</a></td></tr>
+<tr d-ix="1"><td>242</td><td>Python</td><td>230906T000429Z</td><td><a href="https://codegolf.stackexchange.com/questions/264775/pick-a-random-string-at-a-fixed-edit-distance/264954#264954">Value In</a></td></tr>
 <tr d-ix="2"><td>932</td><td>Python</td><td>230905T105938Z</td><td><a href="https://codegolf.stackexchange.com/questions/264775/pick-a-random-string-at-a-fixed-edit-distance/264928#264928">bsoelch</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, <span class="math-container">\$\mathcal{O}((n+k)^{2k})\leq\mathcal{O}(4^k n^{2k})\$</span></h1>
-<pre class="lang-python prettyprint-override"><code>from random import choice
-from collections import deque
-from sys import stderr
-
-def randomWithFixedDistance(s: str, k: int) -&gt; str:
-  if k &lt;= 0: return s
-
-  chars: set[str]          = set(s)
-  distances: dict[str,int] = {s: 0}
-  queue                    = deque((s,))
-  valid: set[str]          = set()
-
-  while len(queue) &gt; 0:
-    current = queue.popleft()
-    nextdist = distances[current] + 1
-    for nxt in insertions(current, chars) | substitutions(current, chars) | removals(current):
-      if nxt in distances: continue
-      distances[nxt] = nextdist
-      if nextdist &lt; k:
-        queue.append(nxt)
-      else:
-        valid.add(nxt)
-
-  print(f&quot;DEBUG: Found {len(valid)} possible strings&quot;, file=stderr)
-  return choice(list(valid))
-
-def insertions(s: str, chars: set[str]) -&gt; set[str]:
-  result = set()
-  for i in range(len(s)+1):
-    result.update(s[:i] + c + s[i:] for c in chars)
-  return result
-
-def substitutions(s: str, chars: set[str]) -&gt; set[str]:
-  result = set()
-  for i in range(len(s)):
-    result.update(s[:i] + c + s[i+1:] for c in chars if c != s[i])
-  return result
-
-def removals(s:str) -&gt; set[str]:
-  return set(s[:i] + s[i+1:] for i in range(len(s)))
-</code></pre>
-<p><a href="https://ato.pxeger.com/run?1=rVRLbtswEN10pVNMsokIK669a4UoiyJNT1B0YWihkKOYiEyqJNU6SHOQopts2js1p-nwI9lNYqCLEjIMcd7MPL554o9f_a1ba_Xw8HNw7embx1ffW6M3YBol6E9uem0c8LWWHLMQ4brrkDuplR3DAj8PKWpvp13rBBqTZQLbVO6TdOtLuUVxIa1rFMfclgQzBdyUIJVjcHru38sMQLZwA2cVLEow6AajwGa0zdeN8UnoVgSsYVqV38stI4xI1QknJA_AgqrXhLmjvcU9YYjwgPDCquJp8twWzBf70nRSHG7IPKmva9khdKjyUJbBOdHOPIgPxqByBA6Rea_7Dluf5qMKt86T9U1HzquUUsMMlgHVagNq60ggeiyaIH2eYEVUhME3sMOVddINh-IGN5pOM4VYpBikTvX3lONaOalorBGz40dQr-TIfa_GeJozGmc2yhTP3fQ9KpFTLksR7CzuUEHleSMShPZ7QyPL2-OL9-8-fijhUg9KwJ3XOGDZPfTaWnlFwtNcpLq2xwW0NIcq-s73ScaJ7s074paSWXTlnpyjEZ_4KzoyvZShpB06Nw0_Tkd67cji19SECFo2WyZxI3w-9KJx5PZVKf1cOf3sSpZ1yOY-O05pxzkmRpp_D_b_Mv0XnrPlM6Z-3hyOKh-uD9Ce_GZL4vQCv_hV-6829dvv9ZwpizfU79fRGoeulJMlrYV_FicFvB3TxgvuDw" rel="nofollow noreferrer">Attempt This Online!</a></p>
-<p>Uses BFS to construct the sampling list, by using the principles of how Levenshtein distance is calculated to walk through the set of insertions, substitutions and deletions necessary. The process used actually looks somewhat similar to bsolech's answer, but without the need to check the Levenshtein distance of every resulting string at the end, since it keeps track of the growing distances while building the list. I believe this makes it faster than their answer by an order of about <span class="math-container">\$O(n^2)\$</span>, although it's still nowhere near close to gsitcia's answer. Oh well.</p>
-<p>Efficiency reasoning is as follows:</p>
-<ol>
-<li><span class="math-container">\$f(s,1)\$</span> looks at up to <span class="math-container">\$n\times(n+1)\$</span> insertions, which is <span class="math-container">\$\mathcal{O}(n^2)\$</span>. Substitutions and deletions are always fewer than insertions, being <span class="math-container">\$n\times(n-1)\$</span> and <span class="math-container">\$n\$</span> respectively, so they get wrapped into this big-O.</li>
-<li><span class="math-container">\$f(s,k)\$</span>, for each of the strings from <span class="math-container">\$f(s,k-1)\$</span>, looks at a number of strings on the order of <span class="math-container">\$\mathcal{O}((n+k)^2)\$</span>, so <span class="math-container">\$\mathcal{O}((n+k)^2 \times f(s,k-1))\$</span>.</li>
-<li>This means the entire function is <span class="math-container">\$\mathcal{O}(\prod_{i=1}^k (n+i)^2) = \mathcal{O}((n+k)^{2k})\$</span>. And since <span class="math-container">\$k\leq n\$</span> this can also be expressed as the (IMO) cleaner <span class="math-container">\$\mathcal{O}((2n)^{2k}) = \mathcal{O}(2^{2k} n^{2k}) = \mathcal{O}((2^2)^k n^{2k}) = \mathcal{O}(4^k n^{2k})\$</span>.</li>
-</ol>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 3441 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 3453 bytes</h1>
 <pre class="lang-python prettyprint-override"><code>import random
 
 def skip():pass
@@ -146,7 +95,7 @@ class State:
 def levenshtein(w, n):
     A = set(w)
     W = len(w)
-    states = [[State() for _ in w] + [State(True)] for _ in range(n+1)]
+    states = [[State(j &lt;= i) for j in range(len(w),-1,-1)] for i in range(n,-1,-1)]
     for i, c in enumerate(w):
         for j in range(n):
             s = states[j][i]
@@ -198,7 +147,7 @@ def f(w, n):
     return s.pick(random.randrange(s.count_accepting()))
 
 </code></pre>
-<p><a href="https://ato.pxeger.com/run?1=lVfNbuM2EL4b6DuwuUhEFEECemiD5rCAW6CXAoGL5mAIBi1RMbMyJYtU7DjNk-xlL-07tU_T4Y8lUtJmW8KwZXJm-M1w5hvq01_Ni9zV_PPnPztZ3nz_zzcHtm_qVqKW8KLeLxYFLZH4yJoQ3zZEiMUir-AHrSSR9HaBYAj1KNAdWmf6v9LYbBhncrMJBa3KCJE8p41k_PHuZ1IJio2iVob1mINyRXmojcbGHu5F3NmYNA3lhTaLfSP9HmCsf_ZFJDglmGQ1V3Bf3xy4LW1aC9dB11LZtRyVwWHzapC-Bb0SKQrrXh4hMfbJ2SsWVIIC6SoZKlEqQ4xjrY4dCPTQx6ueYrgE6g7VMXe0dkTsvghcLYYmrJG1gIctaSNYVfPNjlYNbccmzipEau6tn2IlCgLE-MTDQUuNsm6RmBOLm7oJgwD74nqzuGsKQBmKeIQKj47ZX1aJQ_bbgtyex76fUe9oS_f1M91Y1bGj2qwvAmZVzvciyiPSezRG6LtDRrZCPAnOKUIrZY14wWGS7sXY2kVlq-QrJmS4mpFQY_v-vq6xXBnbfsUPd5gCg4QF5Pm8XTXyeQjqCMqW0jOdDb1ZGk7y15pTL_KqZmbTaTZiOsBafOrPyW42is3Y8DrPAE7Z1mfKVbU6ZZrXHZebnl_GDp1U5vhsdI1Et4e8HmtijXQ169gzqToqrIj2fTUqg5G1IXqncR2cBsLS0pZijg5qqOujYpYguPXoZkqjdpXwF_DI2juu09sMv1P1j1QJJVkExTxEsmH5R4uF-Vj8vf1ThGWmoCY90iDwBdDNHUq9_Hn6X_mjWsOe8VD4OaJPdnqIU3A_otM08SzWJ5UNsfac4Sls5-wIExT9wgt6-qlt69b04Yo-Q0LuJAV4xwhxi_yDTjqIsTH5YLup_Tu057VuBDarNioixwwA2enf2o7ibFiDOD3SkF-n2LR1tcAiwx2Ud3vaKi03jXSsHdWZwBow66dszbL5qv0wDZ64UM9F-zpV-lMegvif0Ld3KJ9nsnk78DViAy0WBP9NLo9cpzwhO88V2JEsd2XfiZsfs4fMi_VcvGZ9fLAbOdaSDD5mcp60hU-VF1owidhxpvqouagZAMVwo3JZSd_3ei9NGWo1P21y2xHF1-uzMOxcaFoBvYGmMUZ_oJXHJF-iEReiSnzXx8K5rxp3C1aWtKU8p-EhidAhjdASFFWjsuBgryViQk9NbmGO-gB2fUgy7KJfH1I18fqGLxbtZlgFZjmxulybZXvphmeSAChzNIfEEi1AJekwnZrpeyVpyh6U4KaPeC1B0Kz2lkHoPhmK33CoDItEBVo_pc7h3CdeD2V-D107USgSfXjMP7wI0M7PL3HmZSGA0udCTySXLhNC0PilO2gG_V01UsOg8wcyodRowrI3KXQtvV_p7qWKyQHgVYmhePMKFasfU9kz_QNMmzevv1dNy7gMy_AqhZGoT3IV_QAC_YLcUXTowDTatvUR3kvqE3rq9o1AUL8tUssVOb-gon68itB3GBvTl5e7fwE" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<p><a href="https://ato.pxeger.com/run?1=lVfNbuM2EL4b6DuwuUjEKoIM9NAa68MCaYFeCgQumoMgGLRExczKlCxSieM0T9LLXtp32n2aDn8skZI22wqGLZMzw28-znyU_vqneZb7mn_69Hcny-sfv3z3yg5N3UrUEl7Uh8WioCUSH1kT4lVDhFgs8gp-0EYSSVcLBJdQtwKtUZrp_8pju2Wcye02FLQqI0TynDaS8fv1L6QSFBtH7QzzMQfnivJQB41NPNybuKMxaRrKCx0W-0H6NSBYf--bSEhKMMlqruC-vDpwW9q0Fq6DrqWyazkqg-P2xSB9DXonUhQ2vTxCYpyTs1YsqAQH0lUyVKZUhhjH2h07EOix56ueYrgQtUZ1zB2vPRH7rwJXk6GhNbIR8LAkbQSrar7d06qh7TjEWVGkxl77IVaiIECMTzIcvNRV1i0Sc2ZxUzdhEGDfXC8Wd00BKEMRj1Dh0Tb706pwyGFXkNV5nPsZ9Ym29FA_0q11HSeqw_omEFbVfG-iMiJ9RmOEfjpkFCvEE3JOEdqoaMQjh0l6EONoF5edsq-YkOFmxkJdu7fXdYPlKtjuG3m4l2kwKFhAns_HVVc-D0FtQdlSeqaz1JupYSd_qzn1mFc9M1tOs4xpgrX5NJ-TXWzEzThwmmcAp2zrM-WqW502zeuOy22vL-OETqpyfDV6h0R3gLoee2KNdDOb2COpOiqsic59M2qDUbSBvdO4D06DYGlrKzFPDmro6yelLEGw8uRmKqN2lvBnyMjGe0qXqwy_0fX3VBklWQTNPDDZsPyjxcJ8LP7a_i7CNFNQkx5pEPgG6HqNll79PPyv-lFHw4HxUPg1ond2uolTcO_RaVp4FuuDqoZYZ87wFLazd4QJin7lBT393LZ1a87hij5CQe4lBXhPEeIW-QdddMCxCXlnT1P7dzieU30QhA_o_RooN9QoXoCRexoal-h6CR-c6Vk2zPLLxOLCKouMjlDeHWirArslNQrOZ0g2wNKHLGXZfAd_mBIpLjJ08X63VP5TTYK9OKHv1yifV7X5OPA1UgZtFgT_zS6P3KQ8IzvOFdiRLXdt3-DN5-wu87ie42s2xzu7kBMtyeBjBucFXPiyeZEIU5QdZ-pMNQ9tBkAxPF25CqWf_fosTUtqN79scns6im_3amGUutASA36DZGOM_kQbT1W-JikuxN_bjro5Fs6zq0m3YGVJW8pzGh6TCB2XEboBR3VoWXCw1g1iQg9Nnsgc9wFsekwy7KJPj0s18PKKLxHtYlgRczOJepOaafsADvckAVBma46JFV2ASpbD8NIM3ypLowzgBE_9iNcSDM1sHxmMbpOh-Y2eyrBIFNH6bulszm3inafMP09Th4Ui0ZvH_M2LAO38-A3OvCoEUHpf6Ink0lVFII1fTgqtpn-oQ9Wo6fyGTOQ1miguKCA265XuWqqZHABelxi5N69TsfoxnT1zlkBo8xb2edO0jMuwDK-WcCXqk1xFP4FBPyH3FB07CI12bf0E7yj1CT10h0Yg6N8WqemKnJ9RUd9fRegHjE3oy4vevw" rel="nofollow noreferrer">Attempt This Online!</a></p>
 <p>My attempt at implementing user1502040's idea of sampling the DFA.</p>
 <p>The algorithm runs in basically three stages:</p>
 <ul>
@@ -221,6 +170,57 @@ def f(w, n):
 </ul>
 <p>In practice, the program appears to run quite quickly; it takes about 5 seconds for <code>s=&quot;the quick brown fox jumps over the lazy dog&quot;</code> and <code>k=5</code>.</p>
 <p>** For some reason the image feature isn't working for me, so here is the data: <code>[35, 101, 228, 436, 722, 1080, 1464, 1833, 2184, 2519, 2844, 3162, 3480, 3798, 4116, 4434, 4752, 5070, 5388, 5706, 6024, 6342, 6660, 6978, 7296, 7614, 7932, 8250, 8568]</code> and <code>[172, 669, 2579, 10226, 40094, 155722, 606044]</code></p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, <span class="math-container">\$\mathcal{O}((n+k)^{2k})\leq\mathcal{O}(4^k n^{2k})\$</span></h1>
+<pre class="lang-python prettyprint-override"><code>from random import choice
+from collections import deque
+from sys import stderr
+
+def randomWithFixedDistance(s: str, k: int) -&gt; str:
+  if k &lt;= 0: return s
+
+  chars: set[str]          = set(s)
+  distances: dict[str,int] = {s: 0}
+  queue                    = deque((s,))
+  valid: set[str]          = set()
+
+  while len(queue) &gt; 0:
+    current = queue.popleft()
+    nextdist = distances[current] + 1
+    for nxt in insertions(current, chars) | substitutions(current, chars) | removals(current):
+      if nxt in distances: continue
+      distances[nxt] = nextdist
+      if nextdist &lt; k:
+        queue.append(nxt)
+      else:
+        valid.add(nxt)
+
+  print(f&quot;DEBUG: Found {len(valid)} possible strings&quot;, file=stderr)
+  return choice(list(valid))
+
+def insertions(s: str, chars: set[str]) -&gt; set[str]:
+  result = set()
+  for i in range(len(s)+1):
+    result.update(s[:i] + c + s[i:] for c in chars)
+  return result
+
+def substitutions(s: str, chars: set[str]) -&gt; set[str]:
+  result = set()
+  for i in range(len(s)):
+    result.update(s[:i] + c + s[i+1:] for c in chars if c != s[i])
+  return result
+
+def removals(s:str) -&gt; set[str]:
+  return set(s[:i] + s[i+1:] for i in range(len(s)))
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=rVRLbtswEN10pVNMsokIK669a4UoiyJNT1B0YWihkKOYiEyqJNU6SHOQopts2js1p-nwI9lNYqCLEjIMcd7MPL554o9f_a1ba_Xw8HNw7embx1ffW6M3YBol6E9uem0c8LWWHLMQ4brrkDuplR3DAj8PKWpvp13rBBqTZQLbVO6TdOtLuUVxIa1rFMfclgQzBdyUIJVjcHru38sMQLZwA2cVLEow6AajwGa0zdeN8UnoVgSsYVqV38stI4xI1QknJA_AgqrXhLmjvcU9YYjwgPDCquJp8twWzBf70nRSHG7IPKmva9khdKjyUJbBOdHOPIgPxqByBA6Rea_7Dluf5qMKt86T9U1HzquUUsMMlgHVagNq60ggeiyaIH2eYEVUhME3sMOVddINh-IGN5pOM4VYpBikTvX3lONaOalorBGz40dQr-TIfa_GeJozGmc2yhTP3fQ9KpFTLksR7CzuUEHleSMShPZ7QyPL2-OL9-8-fijhUg9KwJ3XOGDZPfTaWnlFwtNcpLq2xwW0NIcq-s73ScaJ7s074paSWXTlnpyjEZ_4KzoyvZShpB06Nw0_Tkd67cji19SECFo2WyZxI3w-9KJx5PZVKf1cOf3sSpZ1yOY-O05pxzkmRpp_D_b_Mv0XnrPlM6Z-3hyOKh-uD9Ce_GZL4vQCv_hV-6829dvv9ZwpizfU79fRGoeulJMlrYV_FicFvB3TxgvuDw" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<p>Uses BFS to construct the sampling list, by using the principles of how Levenshtein distance is calculated to walk through the set of insertions, substitutions and deletions necessary. The process used actually looks somewhat similar to bsolech's answer, but without the need to check the Levenshtein distance of every resulting string at the end, since it keeps track of the growing distances while building the list. I believe this makes it faster than their answer by an order of about <span class="math-container">\$O(n^2)\$</span>, although it's still nowhere near close to gsitcia's answer. Oh well.</p>
+<p>Efficiency reasoning is as follows:</p>
+<ol>
+<li><span class="math-container">\$f(s,1)\$</span> looks at up to <span class="math-container">\$n\times(n+1)\$</span> insertions, which is <span class="math-container">\$\mathcal{O}(n^2)\$</span>. Substitutions and deletions are always fewer than insertions, being <span class="math-container">\$n\times(n-1)\$</span> and <span class="math-container">\$n\$</span> respectively, so they get wrapped into this big-O.</li>
+<li><span class="math-container">\$f(s,k)\$</span>, for each of the strings from <span class="math-container">\$f(s,k-1)\$</span>, looks at a number of strings on the order of <span class="math-container">\$\mathcal{O}((n+k)^2)\$</span>, so <span class="math-container">\$\mathcal{O}((n+k)^2 \times f(s,k-1))\$</span>.</li>
+<li>This means the entire function is <span class="math-container">\$\mathcal{O}(\prod_{i=1}^k (n+i)^2) = \mathcal{O}((n+k)^{2k})\$</span>. And since <span class="math-container">\$k\leq n\$</span> this can also be expressed as the (IMO) cleaner <span class="math-container">\$\mathcal{O}((2n)^{2k}) = \mathcal{O}(2^{2k} n^{2k}) = \mathcal{O}((2^2)^k n^{2k}) = \mathcal{O}(4^k n^{2k})\$</span>.</li>
+</ol>
 </div>
 <div id="pu2" class="pu"><h1><a href="https://www.python.org" rel="noreferrer">Python</a>, 932 bytes, <span class="math-container">\$O(|s|(|s|+k)(2|s|(|s|+k))^k)\$</span></h1>
 <pre class="lang-python prettyprint-override"><code>import random
