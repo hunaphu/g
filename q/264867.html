@@ -26,9 +26,45 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>049</td><td>Ruby</td><td>230904T115457Z</td><td><a href="https://codegolf.stackexchange.com/questions/264867/add-two-really-big-numbers/264887#264887">noodle m</a></td></tr>
+<tr d-ix="0"><td>211</td><td>TypeScript's Type System</td><td>230906T000322Z</td><td><a href="https://codegolf.stackexchange.com/questions/264867/add-two-really-big-numbers/264953#264953">noodle m</a></td></tr>
+<tr d-ix="1"><td>049</td><td>Ruby</td><td>230904T115457Z</td><td><a href="https://codegolf.stackexchange.com/questions/264867/add-two-really-big-numbers/264887#264887">noodle m</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a>, <s>78 67 59</s> 49 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.typescriptlang.org/" rel="nofollow noreferrer">TypeScript</a>'s Type System, 211 bytes</h1>
+<pre class="lang-typescript prettyprint-override"><code>//@ts-ignore
+type D&lt;A,B,C,X=[...A,...B,...C]&gt;=X extends[1,1,1,1,1,1,1,1,1,1,...infer R]?[[1],R]:[[],X]
+type F&lt;A,C=[]&gt;=A extends[[...infer G,infer X],[...infer H,infer Y]]?[...F&lt;[G,H],D&lt;X,Y,C&gt;[0]&gt;,D&lt;X,Y,C&gt;[1]]:[]
+</code></pre>
+<p><a href="https://www.typescriptlang.org/play?#code/PTAEEEBNNAXB3A9qATgUwIYBssE9QBGAlgOagB2ArgLYFooDOoAtKAEwCMHhusaDAKAEgAArAbNS5ROgGxcABzSgAIgB5wAGgBCmgMKaAGgF4A2gDpLWy+d029AXQB8xw6DQAPPuUgNTHTQCgwJDg4JsicgAzelAAJQcAflN-B00EgC4UtMMHOUVlADENfTNnY3B3LzQfPwtLSJiUUABxTUbY3M168w7mgAl26NiATQcknuLTNv609UNNEf0nUwAGZ015xeXUhyy84TAoxEQ+FCF5JVAAVXIMFFw1ADkq718KGjoUTVAAFVeau8OKYHKBjKAQU4wX9TAAiLA1EiwAAWsNBnjeTCeAlAoESfxxoAyNzuD2ePx6vx+HGcAG58lcAMqwFC-RC3e64FSkIjiNSMgG1UAMFmREhQ8ECjGApgAAwAJABvPqqHmwQW+QlUWj0AC+SpVcX4sF1ssJ+NMHLJ3JIvKcPxszNZ7NJXLVDDURpFTjyuOJIPpl2UAFkMAorbg2So0ABjIjUbDPDVMYEOSHQxWE0wAaVAkVAAGs0LhEFFQE89uWc2n4YiUWj6brAwVVbbxGynWKNMmPjqUOnwZVpULTISVSoe9qvppCRFhs04pPPvQQTPfXjQArFSp9dv3R3ReQSJ6nKbCcTYbDm1dfsbu8P3iKUGKftoe0+xRLW7yGAfn0e1EJEBQDECQpBkNBmHoFAZGJIhQEgRByAAcnVGI0CwUAsCIIsEMwbCj1AeBeWROBkSIJgUHIQlQ3DV0o1jeNEymJ02QjG0fw0e1QFYl1OQ4vltB9JwnAEJx6QZZRbxFbhwWk2A1FhLgADYAA5YR+WFVi4NhYXEw5cVAAA9RJJL+Y02GheTFLYABmDhtNspyNNALSOFUgBWVSAE4ABZ1P04DcRMsz5Nsqy71hNhfLYPzoo83zVl83yXKU5SAHZbO8vyODYVTfNsvSDOC0yg3MkVfIikVFNWbystU6LlP8vz7NUzzUtq2zVlq9LfO85TvJ6gr0qKoLjNKlt5I8qqFK01TbI81YGo85S2G6rLsoa2rdM01Zeo4AqDo4NS4t8xb0o4dLvNGsAStC41lJmxTLvs5SNqyrhbLYDzMqWoaOFS2KHKW7y2Der63o4UG1o8lbYpuwyQqAA" rel="nofollow noreferrer">Try it at the TypeScript Playground!</a></p>
+<p>This might be golfable under 200 bytes but my guess is that I'll only shave off at most four or five.</p>
+<p>This is a generic type <code>F</code> taking type <code>A</code> which is a tuple of two  lists of unary numbers (using unary not for the numbers themselves but for the individual digits, as allowed by OP) padded with leading zeroes (<code>[]</code>s) to the length of the output.</p>
+<p>For example: <code>F&lt;[[[1],[1],[1,1,1,1,1,1],[1,1,1,1,1,1,1,1]],[[],[1],[1],[1,1]]]&gt;</code> (1168 + 0112) <code>= [[1],[1,1],[1,1,1,1,1,1,1,1],[]]</code> (1280)</p>
+<h2>Explanation</h2>
+<pre class="lang-typescript prettyprint-override"><code>//@ts-ignore                  Ignore any compilation errors in
+type D&lt;                    // Helper type D to extract some repeated code
+  A,B,C,                   //   Input three unary numbers A,B,C
+  X=[...A,...B,...C]       //   X is their sum (by concatenating)
+&gt;=
+  X extends                //   Does X match the pattern
+    [/* ... */,...infer R] //     A tuple of ten 1s, selecting the rest as R
+                           //     (If X &gt;= 10, let R = X - 10)
+    ?[[1],R]:[[],X]        //   If so, return [1, R], else [0, X]
+                           //   (Returns [carry, digit])
+
+type F&lt;                    // Recursive main type F
+  A,                       //   A is tuple of two lists of unary digits
+  C=[]                     //   C is the digit to carry, default 0
+&gt;=
+  // Match A to get the last and other digits of each number
+  // X and Y are the current digits of each, G and H are the rest
+  A extends[[...infer G,infer X],[...inger H,infer Y]]
+    ?[                     // If it matched, return the list of
+      ...F&lt;                //   The rest, taken by recursing with
+        [G,H],D&lt;X,Y,C&gt;[0]  //     G and H, with the carry taken from D&lt;X,Y,C&gt;
+      &gt;,D&lt;X,Y,C&gt;[1]]       //   With the last digit (taken from D) appended
+    :[]                    // If the match failed, return the empty list
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a>, <s>78 67 59</s> 49 bytes</h1>
 <pre class="lang-ruby prettyprint-override"><code>-&gt;a,b{c=0;a.zip(b).map{s=_1+_2+c;c=s&gt;9?1:0;s%10}}
 </code></pre>
 <p><a href="https://ato.pxeger.com/run?1=TY_BTsMwDIbvfYpQBNq0rbLjtI03dTwIoKprMyga7dR0CNj2JFw4wJkLb8BT8DYkG0IcEsfO__22X966zeLp9WPVNjd5UVV1X7eNyN43_XKiv3EyL8aLbZnBrIie6_VgMYzui_XWZjmOcjkqZ2Vm53yBU5jZM4T9_hf87ExRrerG2MgU5a2oWrHz6S4QwseoMivTm9xulsv68WQQXjXh0P0VY7EQ2VFi16u6H4RiJMJDV7Hd2b7bCXdF5W3RWV8cnE_7Nq-HUWceTGfN3pmsN70V4enWu-ydm3v93-7SN7mO7tq6-aPCwDTVcfbX7y_ERLu2gCgDSQhIRIdcx5qVDqSSrKSKFSjl6pikxKxQakUBMLGWKlFOSah17EEmAE4VJ-wDpQFoikHLOJEAjnUEsPTKVKHDlBvg0AFSTDnAlDBxMmJEknFKoL0POkAyAmiWCZE7yFJC7Fz5uMsP" rel="nofollow noreferrer">Attempt This Online!</a></p>

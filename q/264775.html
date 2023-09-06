@@ -26,10 +26,62 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>3441</td><td>Python</td><td>230905T183107Z</td><td><a href="https://codegolf.stackexchange.com/questions/264775/pick-a-random-string-at-a-fixed-edit-distance/264945#264945">gsitcia</a></td></tr>
-<tr d-ix="1"><td>932</td><td>Python</td><td>230905T105938Z</td><td><a href="https://codegolf.stackexchange.com/questions/264775/pick-a-random-string-at-a-fixed-edit-distance/264928#264928">bsoelch</a></td></tr>
+<tr d-ix="0"><td>242</td><td>Python</td><td>230906T000429Z</td><td><a href="https://codegolf.stackexchange.com/questions/264775/pick-a-random-string-at-a-fixed-edit-distance/264954#264954">Value In</a></td></tr>
+<tr d-ix="1"><td>3441</td><td>Python</td><td>230905T183107Z</td><td><a href="https://codegolf.stackexchange.com/questions/264775/pick-a-random-string-at-a-fixed-edit-distance/264945#264945">gsitcia</a></td></tr>
+<tr d-ix="2"><td>932</td><td>Python</td><td>230905T105938Z</td><td><a href="https://codegolf.stackexchange.com/questions/264775/pick-a-random-string-at-a-fixed-edit-distance/264928#264928">bsoelch</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 3441 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, <span class="math-container">\$\mathcal{O}((n+k)^{2k})\leq\mathcal{O}(4^k n^{2k})\$</span></h1>
+<pre class="lang-python prettyprint-override"><code>from random import choice
+from collections import deque
+from sys import stderr
+
+def randomWithFixedDistance(s: str, k: int) -&gt; str:
+  if k &lt;= 0: return s
+
+  chars: set[str]          = set(s)
+  distances: dict[str,int] = {s: 0}
+  queue                    = deque((s,))
+  valid: set[str]          = set()
+
+  while len(queue) &gt; 0:
+    current = queue.popleft()
+    nextdist = distances[current] + 1
+    for nxt in insertions(current, chars) | substitutions(current, chars) | removals(current):
+      if nxt in distances: continue
+      distances[nxt] = nextdist
+      if nextdist &lt; k:
+        queue.append(nxt)
+      else:
+        valid.add(nxt)
+
+  print(f&quot;DEBUG: Found {len(valid)} possible strings&quot;, file=stderr)
+  return choice(list(valid))
+
+def insertions(s: str, chars: set[str]) -&gt; set[str]:
+  result = set()
+  for i in range(len(s)+1):
+    result.update(s[:i] + c + s[i:] for c in chars)
+  return result
+
+def substitutions(s: str, chars: set[str]) -&gt; set[str]:
+  result = set()
+  for i in range(len(s)):
+    result.update(s[:i] + c + s[i+1:] for c in chars if c != s[i])
+  return result
+
+def removals(s:str) -&gt; set[str]:
+  return set(s[:i] + s[i+1:] for i in range(len(s)))
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=rVRLbtswEN10pVNMsokIK669a4UoiyJNT1B0YWihkKOYiEyqJNU6SHOQopts2js1p-nwI9lNYqCLEjIMcd7MPL554o9f_a1ba_Xw8HNw7embx1ffW6M3YBol6E9uem0c8LWWHLMQ4brrkDuplR3DAj8PKWpvp13rBBqTZQLbVO6TdOtLuUVxIa1rFMfclgQzBdyUIJVjcHru38sMQLZwA2cVLEow6AajwGa0zdeN8UnoVgSsYVqV38stI4xI1QknJA_AgqrXhLmjvcU9YYjwgPDCquJp8twWzBf70nRSHG7IPKmva9khdKjyUJbBOdHOPIgPxqByBA6Rea_7Dluf5qMKt86T9U1HzquUUsMMlgHVagNq60ggeiyaIH2eYEVUhME3sMOVddINh-IGN5pOM4VYpBikTvX3lONaOalorBGz40dQr-TIfa_GeJozGmc2yhTP3fQ9KpFTLksR7CzuUEHleSMShPZ7QyPL2-OL9-8-fijhUg9KwJ3XOGDZPfTaWnlFwtNcpLq2xwW0NIcq-s73ScaJ7s074paSWXTlnpyjEZ_4KzoyvZShpB06Nw0_Tkd67cji19SECFo2WyZxI3w-9KJx5PZVKf1cOf3sSpZ1yOY-O05pxzkmRpp_D_b_Mv0XnrPlM6Z-3hyOKh-uD9Ce_GZL4vQCv_hV-6829dvv9ZwpizfU79fRGoeulJMlrYV_FicFvB3TxgvuDw" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<p>Uses BFS to construct the sampling list, by using the principles of how Levenshtein distance is calculated to walk through the set of insertions, substitutions and deletions necessary. The process used actually looks somewhat similar to bsolech's answer, but without the need to check the Levenshtein distance of every resulting string at the end, since it keeps track of the growing distances while building the list. I believe this makes it faster than their answer by an order of about <span class="math-container">\$O(n^2)\$</span>, although it's still nowhere near close to gsitcia's answer. Oh well.</p>
+<p>Efficiency reasoning is as follows:</p>
+<ol>
+<li><span class="math-container">\$f(s,1)\$</span> looks at up to <span class="math-container">\$n\times(n+1)\$</span> insertions, which is <span class="math-container">\$\mathcal{O}(n^2)\$</span>. Substitutions and deletions are always fewer than insertions, being <span class="math-container">\$n\times(n-1)\$</span> and <span class="math-container">\$n\$</span> respectively, so they get wrapped into this big-O.</li>
+<li><span class="math-container">\$f(s,k)\$</span>, for each of the strings from <span class="math-container">\$f(s,k-1)\$</span>, looks at a number of strings on the order of <span class="math-container">\$\mathcal{O}((n+k)^2)\$</span>, so <span class="math-container">\$\mathcal{O}((n+k)^2 \times f(s,k-1))\$</span>.</li>
+<li>This means the entire function is <span class="math-container">\$\mathcal{O}(\prod_{i=1}^k (n+i)^2) = \mathcal{O}((n+k)^{2k})\$</span>. And since <span class="math-container">\$k\leq n\$</span> this can also be expressed as the (IMO) cleaner <span class="math-container">\$\mathcal{O}((2n)^{2k}) = \mathcal{O}(2^{2k} n^{2k}) = \mathcal{O}((2^2)^k n^{2k}) = \mathcal{O}(4^k n^{2k})\$</span>.</li>
+</ol>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 3441 bytes</h1>
 <pre class="lang-python prettyprint-override"><code>import random
 
 def skip():pass
@@ -170,7 +222,7 @@ def f(w, n):
 <p>In practice, the program appears to run quite quickly; it takes about 5 seconds for <code>s=&quot;the quick brown fox jumps over the lazy dog&quot;</code> and <code>k=5</code>.</p>
 <p>** For some reason the image feature isn't working for me, so here is the data: <code>[35, 101, 228, 436, 722, 1080, 1464, 1833, 2184, 2519, 2844, 3162, 3480, 3798, 4116, 4434, 4752, 5070, 5388, 5706, 6024, 6342, 6660, 6978, 7296, 7614, 7932, 8250, 8568]</code> and <code>[172, 669, 2579, 10226, 40094, 155722, 606044]</code></p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 932 bytes, <span class="math-container">\$O(|s|(|s|+k)(2|s|(|s|+k))^k)\$</span></h1>
+<div id="pu2" class="pu"><h1><a href="https://www.python.org" rel="noreferrer">Python</a>, 932 bytes, <span class="math-container">\$O(|s|(|s|+k)(2|s|(|s|+k))^k)\$</span></h1>
 <pre class="lang-python prettyprint-override"><code>import random
 def levenshteinDistance(s,t):
   m=len(s);
@@ -210,7 +262,7 @@ def f(s,k):
   return random.choice([t for t in set(build(s,k))if levenshteinDistance(s,t)==k])
 
 </code></pre>
-<p><a href="https://ato.pxeger.com/run?1=lZPBTsMwDIYP3PoUFrs0rKBU4oA25QRvUUUI1pR5a9PRuEg8C5cdgGfgWXganKYtMAYTUVWl9u_PiV0_vW4eaVnb7falpeL04v3oGatN3RA0Nzavqyg3BZTmwVi3JIP2Ch3d2IWJXUJiFgFUqjQ2dmLOe9vtqdvnKovtNBUnmdRF3cA1oPXMOxNXbNYs8Wb8bvZEjs1Qc5jCXrT6FNkvIqmzlVarPaJespugNwNgAY5zgFJAzBjMAK69dYTUEtb2snYECmTvNKUzfwrT3smnn6Z8NH6xtUIbd_fpvqeQJrCzJpCb0nhQtOsa18DcS5jwFZ1pDhL6-N2jC0_4amRIY6htLAdVOrM66v6C2xbLnPu-TlAq2dWS67hWSoayPKIpc3DzEPuzvyiT8KuMLSTlshnqqfO3m-mxZ_c-KKSjZH2aJjh0LuS4H5ULr3SGmDr0ZoAuvmEPgUc07MP8FxIKVvhidb6-nGGkzhbLGnmCMupwNFxhrK8Q-PvMKbXWIgrD-rZp0FJcxMcpL-kfeZycCxHcw0x_AA" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<p><a href="https://ato.pxeger.com/run?1=lZPBTsMwDIYP3PoUFrs0rKBU4oA25QRvUUUI1pR5a9PRuEg8C5cdgGfgWXganKYtMAYTUVWl9u_PiV0_vW4eaVnb7falpeL04v3oGatN3RA0Nzavqyg3BZTmwVi3JIP2Ch3d2IWJXUJiFgFUqjQ2dmLOe9vtqdvnKovtNBUnmdRF3cA1oPXMOxNXbNYs8Wb8bvZEjs1Qc5jCXrT6FNkvIqmzlVarPaJespugNwNgAY5zgFJAzBjMAK69dYTUEtb2snYECmTvNKUzfwrT3smnn6Z8NH6xtUIbd_fpvqeQJrCzJpCb0nhQtOsa18DcS5jwFZ1pDhL6-N2jC0_4amRIY6htLAdVOrM66v6C2xbLnPu-TlAq2dWS67hWSoayPKIpc3DzEPuzvyiT8KuMLSTlshnqqfO3m-mxZ_c-KKSjZH2aJjh0LuS4H5ULr3SGmDr0ZoAuvmEPgUc07MP8FxIKVvhidb6-nGGkzhbLGnmCMupwNFxhrK8Q-PvMKbXWIgrD-rZp0FJcxMcpL-kfeZycCxHcw0x_AA" rel="noreferrer">Attempt This Online!</a></p>
 <p>Runs in <span class="math-container">\$O(|s|(|s|+k)(2|s|(|s|+k))^k\$</span></p>
 <p>Generates all possible strings reachable with k edits, then pick a random string with edit distance k.</p>
 <p>The filtering by edit distance is necessary to filter out combinations of edits the can be expressed by a shorter edit sequence
