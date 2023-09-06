@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::81046</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>172</td><td>Julia</td><td>230906T080344Z</td><td><a href="https://codegolf.stackexchange.com/questions/81046/self-referential-polynomials/264969#264969">138 Aspe</a></td></tr>
+<tr d-ix="1"><td>057</td><td>Pari/GP</td><td>181030T172737Z</td><td><a href="https://codegolf.stackexchange.com/questions/81046/self-referential-polynomials/174977#174977">alephalp</a></td></tr>
+<tr d-ix="2"><td>055</td><td>Mathematica</td><td>160601T114821Z</td><td><a href="https://codegolf.stackexchange.com/questions/81046/self-referential-polynomials/81066#81066">kennytm</a></td></tr>
+<tr d-ix="3"><td>074</td><td>Sage</td><td>160601T115556Z</td><td><a href="https://codegolf.stackexchange.com/questions/81046/self-referential-polynomials/81067#81067">Anders K</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1><a href="http://julialang.org/" rel="nofollow noreferrer">Julia</a>, 172 bytes</h1>
+<p>Similar to the Mathematica code in OEIS.</p>
+<hr />
+<p><a href="https://tio.run/##LU5BCsIwELznFUtPCbbYXKM5eBQ851IrxJqUrekqqYH@vibisLCzO8MwUwpo5bptaUEa4YLkbDyF0d2jZT7R8MEXgeckGGnaSWY0pRCWtx0c79C7sDj@BK1B1mX4BA1Iccu/sgX4V4QJkEAqquH5Z31Wz6JTtewZem46R4/@2AowujGHfDBu9rNdcU4zN0IUXTVSZXtmWwmlEtUq2TLIeEekDy89a6iuVImf7ws" rel="nofollow noreferrer">Try it online!</a></p>
+<pre><code>using LinearAlgebra
+function f(n)
+n=n+1
+V=nullspace([ifelse(k == 1, 1, (j - 1)^(k - 1)) for j in 1:n, k in 1:n] - I)[:,1]
+if(V[end]&lt;0) V=-V;end
+(V/maximum(V))[end:-1:1]
+end
+</code></pre>
+<hr />
+<p>Here coefficients are normalized accroding the maximum value of coefficients.</p>
+<p><strong>How to adjust the code?</strong></p>
+<pre><code>using LinearAlgebra
+
+function VM(n)
+    return [ifelse(k == 1, 1, (j - 1)^(k - 1)) for j in 1:n, k in 1:n]
+end
+
+function f(n)
+    V = nullspace(VM(n + 1) - I)
+    V = V[:, 1] # Get the first column
+    if V[end] &lt; 0
+        V = -V
+    end
+    return (V / maximum(V))[end:-1:1] # Normalize and reverse
+end
+
+for n in 0:10
+    print(f(n), &quot;\n&quot;)
+end
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="http://pari.math.u-bordeaux.fr/" rel="nofollow noreferrer">Pari/GP</a>, 57 bytes</h1>
+<pre><code>n-&gt;(a=matkerint(matrix(n++,,i,j,i--^j--)-1))*sign(a[n,1])
+</code></pre>
+<p><a href="https://tio.run/##HYsxCoAwDAC/EpwSTcA@oH5EFDrYEsVYqoO/r8Xhjlsuh6KSco3gq8mEwZ/hObai9mCroi/aMDAr76wi6y5C4oj6W5NhmI3dQjVeBQ08jAyukf/doAOZmiIaEdUP" rel="nofollow noreferrer" title="Pari/GP – Try It Online">Try it online!</a></p>
+<p>Returns the coefficients as a column vector.</p>
+</div>
+<div id="pu2" class="pu"><h1>Mathematica, 55 bytes</h1>
+
+<pre><code>NullSpace@Table[x^c-Boole[r==c]/.x-&gt;r,{r,0,#},{c,0,#}]&amp;
+</code></pre>
+
+<p>Output is the list coefficients, beginning from the constant term. Example:</p>
+
+<pre><code>In[1084] := Do[Print[%1077[n] // StandardForm], {n, 0, 7}]
+
+{{1}}
+
+{{0,1}}
+
+{{-1,-1,1}}
+
+{{19,-6,-29,10}}
+
+{{-19,423,287,-325,57}}
+
+{{-227362,-355855,44088,291323,-120862,12813}}
+
+{{145991969,64989065,-123338281,-85635661,79841909,-18146731,1286795}}
+
+{{-5958511844199,3384370785404,8437850634901,489428412300,-4499161007143,1776194531596,-258931801371,13131073916}}
+</code></pre>
+
+<hr>
+
+<p>This simply finds the vector such that <code>(A - I)v = 0</code>, similar to the MAPLE code in OEIS. The <code>NullSpace</code> method seems to always pick the minimal positive number for the last element, which matches the task description. </p>
+
+<p>The <code>x^c-…/.x-&gt;r</code> indirection is to prevent having <code>0^0 == Indeterminate</code>.</p>
+</div>
+<div id="pu3" class="pu"><h1><a href="http://www.sagemath.org/" rel="nofollow">Sage</a>, 74 bytes</h1>
+
+<pre class="lang-py prettyprint-override"><code>lambda n:kernel(matrix(n+1,[j^-i-(-i==j)for i in[-n..0]for j in[0..n]])).0
+</code></pre>
+
+<p>The <code>-i</code> and <code>[-n..0]</code> could be <code>i</code> and <code>[0..n]</code>, if not for the positive leading coefficient requirement.</p>
+
+<p><a href="http://sagecell.sagemath.org/?z=eJxLs81JzE1KSVTIs8pOLcpLzdHITSwpyqzQyNM21InOitPN1NXQzbS1zdJMyy9SyFTIzIvWzdPTM4gFcbNAXAM9vbzYWE1NPQNeLrgaoKBprFVBUWZeiUKaRqYmAMYlIAU=&amp;lang=sage" rel="nofollow">Try it on Sage Cell</a></p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/81046/">81046</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
