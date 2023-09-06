@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::132719</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>013</td><td>x8664 and x8632 machine code</td><td>170717T030113Z</td><td><a href="https://codegolf.stackexchange.com/questions/132719/the-chroma-key-to-success/132757#132757">Peter Co</a></td></tr>
+<tr d-ix="1"><td>090</td><td>SmileBASIC</td><td>180305T170853Z</td><td><a href="https://codegolf.stackexchange.com/questions/132719/the-chroma-key-to-success/157304#157304">12Me21</a></td></tr>
+<tr d-ix="2"><td>135</td><td>R</td><td>180301T092726Z</td><td><a href="https://codegolf.stackexchange.com/questions/132719/the-chroma-key-to-success/156949#156949">plannapu</a></td></tr>
+<tr d-ix="3"><td>083</td><td>OSL</td><td>170823T223031Z</td><td><a href="https://codegolf.stackexchange.com/questions/132719/the-chroma-key-to-success/140271#140271">Scott Mi</a></td></tr>
+<tr d-ix="4"><td>290</td><td>JavaScript ES6</td><td>170718T232545Z</td><td><a href="https://codegolf.stackexchange.com/questions/132719/the-chroma-key-to-success/133169#133169">Justin M</a></td></tr>
+<tr d-ix="5"><td>339</td><td>C++</td><td>170718T172531Z</td><td><a href="https://codegolf.stackexchange.com/questions/132719/the-chroma-key-to-success/133090#133090">ckjbgame</a></td></tr>
+<tr d-ix="6"><td>187</td><td>PHP</td><td>170717T180346Z</td><td><a href="https://codegolf.stackexchange.com/questions/132719/the-chroma-key-to-success/132950#132950">Titus</a></td></tr>
+<tr d-ix="7"><td>099</td><td>Processing</td><td>170716T194020Z</td><td><a href="https://codegolf.stackexchange.com/questions/132719/the-chroma-key-to-success/132723#132723">dzaima</a></td></tr>
+<tr d-ix="8"><td>027</td><td>Pyth</td><td>170717T080541Z</td><td><a href="https://codegolf.stackexchange.com/questions/132719/the-chroma-key-to-success/132780#132780">Jim</a></td></tr>
+<tr d-ix="9"><td>059</td><td>Matlab 2016b and Octave</td><td>170717T063558Z</td><td><a href="https://codegolf.stackexchange.com/questions/132719/the-chroma-key-to-success/132768#132768">Leander </a></td></tr>
+<tr d-ix="10"><td>045</td><td>Bash + ImageMagick</td><td>170717T050541Z</td><td><a href="https://codegolf.stackexchange.com/questions/132719/the-chroma-key-to-success/132763#132763">hobbs</a></td></tr>
+<tr d-ix="11"><td>031</td><td>MATL</td><td>170716T210239Z</td><td><a href="https://codegolf.stackexchange.com/questions/132719/the-chroma-key-to-success/132738#132738">Luis Men</a></td></tr>
+<tr d-ix="12"><td>035</td><td>Mathematica</td><td>170716T202152Z</td><td><a href="https://codegolf.stackexchange.com/questions/132719/the-chroma-key-to-success/132729#132729">DavidC</a></td></tr>
+<tr d-ix="13"><td>059</td><td>Python 3 + numpy</td><td>170716T194638Z</td><td><a href="https://codegolf.stackexchange.com/questions/132719/the-chroma-key-to-success/132724#132724">notjagan</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>x86-64 (and x86-32) machine code, <s>13</s> <s>15</s> 13 bytes</h1>
+<p>changelog:</p>
+<ol>
+<li><p>Bugfix: the first version was only checking G=0xff, not requiring R and B to be 0.  I changed to modifying the background in place so I could use <code>lodsd</code> on the foreground to have fg pixels in <code>eax</code> for the short-form <code>cmp eax, imm32</code> encoding (5 bytes), instead of <code>cmp dh,0xff</code> (3 bytes).</p>
+</li>
+<li><p>Save 2 bytes: noticed that modifying the bg in place allowed using a memory operand for <code>cmov</code>, saving a 2-byte <code>mov</code> load (and saving a register, in case that matters).</p>
+</li>
+</ol>
+<hr />
+<p>This is a function following the x86-64 System V calling convention, callable directly from C or C++ (on x86-64 non-Windows systems) with this signature:</p>
+<pre><code>void chromakey_blend_RGB32(uint32_t *background /*rdi*/,
+                     const uint32_t *foreground /*rsi*/,
+                  int dummy, size_t pixel_count /*rcx*/);
+</code></pre>
+<p><strong>The image format is RGB0 32bpp, with the green component at the 2nd lowest memory address within each pixel.</strong>  The <s>foreground</s> background image is modified in-place.  <code>pixel_count</code> is rows*columns.  It doesn't care about rows/columns; it just chromekey blends however many dwords of memory you specify.</p>
+<p>RGBA (with A required to be 0xFF) would require using a different constant, but no change in function size.  Foreground DWORDs are compared for exact equality against an arbitrary 32-bit constant stored in 4 bytes, so any pixel-order or chroma-key colour can be easily supported.</p>
+<p>The same machine code also works in 32-bit mode.  To assemble as 32-bit, change <code>rdi</code> to <code>edi</code> in the source.  All other registers that become 64-bit are implicit (lodsd/stosd, and loop), and the other explicit regs stay 32-bit.  But note that you'll need a wrapper to call from 32-bit C, because none of the standard x86-32 calling conventions use the same regs as x86-64 SysV.</p>
+<p>NASM listing (machine-code + source), commented for asm beginners with descriptions of what the more complex instructions do.  (Duplicating the instruction reference manual is bad style in normal usage.)</p>
+<pre><code> 1                       ;; inputs:
+ 2                       ;; Background image pointed to by RDI, RGB0 format  (32bpp)
+ 3                       ;; Foreground image pointed to by RSI, RGBA or RGBx (32bpp)
+ 4          machine      ;; Pixel count in RCX
+ 5          code         global chromakey_blend_RGB32
+ 6          bytes        chromakey_blend_RGB32:
+ 7 address               .loop:                      ;do {
+ 8 00000000 AD               lodsd                   ; eax=[rsi], esi+=4. load fg++
+ 9 00000001 3D00FF0000       cmp    eax, 0x0000ff00  ; check for chromakey
+10 00000006 0F4407           cmove  eax, [rdi]       ; eax = (fg==key) ? bg : fg
+11 00000009 AB               stosd                   ; [rdi]=eax, edi+=4. store into bg++
+12 0000000A E2F4             loop .loop              ;} while(--rcx)
+13                       
+14 0000000C C3               ret
+
+##  next byte starts at 0x0D, function length is 0xD = 13 bytes
+</code></pre>
+<p>To get the original NASM source out of this listing, strip the leading 26 characters of each line with <code>&lt;chromakey.lst cut -b 26- &gt; chromakey.asm</code>.  I generated this with<br />
+<code>nasm -felf64 chromakey-blend.asm -l /dev/stdout | cut -b -28,$((28+12))-</code>
+NASM listings leave more blank columns than I want between the machine-code and source.  To build an object file you can link with C or C++, use <code>nasm -felf64 chromakey.asm</code>.  (Or <code>yasm -felf64 chromakey.asm</code>).  To strip the addresses and line numbers as well, <code>cut -b16-30,41-</code> works well.</p>
+<p><strong>untested</strong>, but I'm pretty confident that the basic idea of load / load / cmov / store is sound, because it's so simple.</p>
+<p>I could save 3 bytes if I could require the caller to pass the chroma-key constant (0x00ff00) as an extra arg, instead of hard-coding the constant into the function.  I don't think the usual rules allow writing a more generic function that has the caller set up constants for it.  But if it did, the 3rd arg (currently <code>dummy</code>) is passed in <code>edx</code> in the x86-64 SysV ABI.  Just change <code>cmp eax, 0x0000ff00</code> (5B) to <code>cmp eax, edx</code> (2B).</p>
+<hr />
+<p>With SSE4 or AVX, you might do this faster (but larger code size) with <code>pcmpeqd</code> and <code>blendvps</code> to do a 32-bit element size variable-blend controlled by the compare mask.  (With <code>pand</code>, you could ignore the high byte).  For packed RGB24, you might use <code>pcmpeqb</code> and then 2x <code>pshufb</code>+<code>pand</code> to get TRUE in bytes where all 3 components of that pixel match, then <code>pblendvb</code>.</p>
+<p>(I know this is code-golf, but I did consider trying MMX before going with scalar integer.)</p>
+</div>
+<div id="pu1" class="pu"><h1>SmileBASIC, 90 bytes <sub><sub><sub><sup><sup><sup>whats the key</sup></sup></sup></sub></sub></sub></h1>
+<pre><code>DEF C I,J
+DIM T[LEN(I)]ARYOP.,T,I,16711936ARYOP 2,T,T,T
+ARYOP 6,T,T,0,1ARYOP 5,I,I,J,T
+END
+</code></pre>
+<p><code>I</code> is the foreground and output, <code>J</code> is the background.
+Both are integer arrays of pixels, in 32 bit ARGB format.</p>
+<h2>Ungolfed</h2>
+<pre><code>DEF C IMAGE,BACKGROUND 'function
+ DIM TEMP[LEN(IMAGE)]  'create array &quot;temp&quot;
+ ARYOP #AOPADD,TEMP,IMAGE,-RGB(0,255,0)    'temp = image - RGB(0,255,0)
+ ARYOP #AOPCLP,TEMP,TEMP,-1,1              'temp = clamp(temp, -1, 1)
+ ARYOP #AOPMUL,TEMP,TEMP,TEMP              'temp = temp * temp
+ ARYOP #AOPLIP,IMAGE,IMAGE,BACKGROUND,TEMP 'image = linear_interpolate(image, background, temp)
+END
+</code></pre>
+<h2>Explanation:</h2>
+<p>ARYOP is a function that applies a simple operation to every element in an array.<br />
+It is called like <code>ARYOP mode, output_array, input_array_1, input_array_2, ...</code></p>
+<p>First, to determine which pixels in the image are green, <code>-16711936</code> (the RGBA representation of the green color) is subtracted from each pixel in the foreground image. This gives an array where <code>0</code> represents green pixels, and any other number represents non-green pixels.</p>
+<p>To convert all nonzero values to <code>1</code>, they are squared (to remove negative numbers), then clamped to between <code>0</code> and <code>1</code>.</p>
+<p>This results in an array with only <code>0</code>s and <code>1</code>s.<br />
+<code>0</code>s represent green pixels in the foreground image, and should be replaced with pixels from the background.<br />
+<code>1</code>s represent non-green pixels, and those will need to be replaced with pixels from the foreground.</p>
+<p>This can easily be done using linear interpolation.</p>
+</div>
+<div id="pu2" class="pu"><h1>R, 135 bytes</h1>
+<pre><code>function(x,y,r=png::readPNG){a=r(x);m=apply(a,1:2,function(x)all(x==0:1));for(i in 1:4)a[,,i][m]=r(y)[,,i][m];png::writePNG(a,&quot;a.png&quot;)}
+</code></pre>
+<p>Anonymous function, takes 2 png file paths as arguments and output a png picture called <code>a.png</code>.</p>
+<p>Slightly ungolfed, with explanations:</p>
+<pre class="lang-r prettyprint-override"><code>function(x,y){
+    library(png)
+    # readPNG output a 3D array corresponding to RGBA values on a [0,1] scale:
+    a = readPNG(x)
+    # Logical mask, telling which pixel is equal to c(0, 1, 0, 1), 
+    # i.e. #00FF00 with an alpha of 1:
+    m = apply(a, 1:2, function(x) all(x==0:1))
+    # For each RGB layer, replace that part with the equivalent part of 2nd png:
+    for(i in 1:4) a[,,i][m] = readPNG(y)[,,i][m]
+    writePNG(a,&quot;a.png&quot;)
+}
+</code></pre>
+</div>
+<div id="pu3" class="pu"><h1><a href="https://github.com/imageworks/OpenShadingLanguage" rel="nofollow noreferrer">OSL</a>, 83 bytes</h1>
+<pre><code>shader a(color a=0,color b=0,output color c=0){if(a==color(0,1,0)){c=b;}else{c=a;}}
+</code></pre>
+<p>Takes two inputs. The first is the foreground, and the second, the background.</p>
+</div>
+<div id="pu4" class="pu"><h1>JavaScript (ES6), 290 bytes</h1>
+
+<pre class="lang-js prettyprint-override"><code>a=&gt;b=&gt;(c=document.createElement`canvas`,w=c.width=a.width,h=c.height=a.height,x=c.getContext`2d`,x.drawImage(a,0,0),d=x.getImageData(0,0,w,h),o=d.data,o.map((_,i)=&gt;i%4?0:o[i+3]=o[i++]|o[i++]&lt;255|o[i]?255:0),x.drawImage(b,0,0),createImageBitmap(d).then(m=&gt;x.drawImage(m,0,0)||c.toDataURL()))
+</code></pre>
+
+<p>Takes input as two <code>Image</code> objects (in currying syntax), which can be created with an HTML <code>&lt;image&gt;</code> element. Returns a Promise that resolves to the Base64 data URL of the resulting image, which can be applied to the <code>src</code> of an <code>&lt;image&gt;</code>.</p>
+
+<p>The idea here was to set the alpha value for each <code>#00FF00</code> pixel to <code>0</code> and then paint the foreground, with its background keyed out, on top of the background.</p>
+
+<h2>Test Snippet</h2>
+
+<p>Including the foreground and background by their data URLs was too large to post here, so it was moved to CodePen:</p>
+
+<p><a href="https://codepen.io/justinm53/pen/rwEaQw" rel="nofollow noreferrer">Try it online!</a></p>
+</div>
+<div id="pu5" class="pu"><h1>C++, 339 bytes</h1>
+<p>This uses CImg, and it can take files in other formats, too. The result is displayed in a window.</p>
+<pre><code>#include&lt;CImg.h&gt;
+using namespace cimg_library;
+int main(int g,char** v){CImg&lt;unsigned char&gt; f(v[1]),b(v[2]);for(int c=0;c&lt;f.width();c++){for(int r=0;r&lt;f.height();r++){if((f(c,r)==0)&amp;&amp;(f(c,r,0,1)==255)&amp;&amp;(f(c,r,0,2)==0)){f(c,r)=b(c,r);f(c,r,0,1)=b(c,r,0,1);f(c,r,0,2) = b(c,r,0,2);}}}CImgDisplay dis(f);while(!dis.is_closed()){dis.wait();}}
+</code></pre>
+<p>Compile with <code>g++ chromakey.cpp -g -L/usr/lib/i386-linux-gnu -lX11 -o chromakey -pthread</code>.</p>
+</div>
+<div id="pu6" class="pu"><h1>PHP, 187 bytes</h1>
+<pre class="lang-php prettyprint-override"><code>for($y=imagesy($a=($p=imagecreatefrompng)($argv[1]))-1,$b=$p($argv[2]);$x&lt;imagesx($a)?:$y--+$x=0;$x++)($t=imagecolorat)($b,$x,$y)-65280?:imagesetpixel($b,$x,$y,$t($a,$x,$y));imagepng($b);
+</code></pre>
+<p>assumes 24bit PNG files; takes file names from command lines arguments, writes to stdout.<br />
+Run with <code>-r</code>.</p>
+<p><strong>breakdown</strong></p>
+<pre class="lang-php prettyprint-override"><code>for($y=imagesy(                                 # 2. set $y to image height-1
+        $a=($p=imagecreatefrompng)($argv[1])    # 1. import first image to $a
+    )-1,
+    $b=$p($argv[2]);                            # 3. import second image to $b
+    $x&lt;imagesx($a)?:                            # Loop 1: $x from 0 to width-1
+        $y--+$x=0;                              # Loop 2: $y from height-1 to 0
+        $x++)
+            ($t=imagecolorat)($b,$x,$y)-65280?:     # if color in $b is #00ff00
+                imagesetpixel($b,$x,$y,$t($a,$x,$y));   # then copy pixel from $a to $b
+imagepng($b);                                   # 5. output
+</code></pre>
+</div>
+<div id="pu7" class="pu"><h1>Processing, <s>116</s> 99 bytes</h1>
+
+<pre class="lang-java prettyprint-override"><code>PImage f(PImage b,PImage f){int i=0;for(int c:f.pixels){if(c!=#00FF00)b.pixels[i]=c;i++;}return b;}
+</code></pre>
+<p>Unfortunately, processing doesn't support java 8 stuff, like lambdas.</p>
+<p>Example implementation: (saves image as <code>out.png</code> and also draws it on screen)</p>
+<pre class="lang-java prettyprint-override"><code>PImage bg;
+void settings() {
+  bg = loadImage(&quot;bg.png&quot;);
+  size(bg.width,bg.height);
+}
+void setup() {
+  image(f(bg, loadImage(&quot;fg.png&quot;)), 0, 0);
+  save(&quot;out.png&quot;);
+}
+PImage f(PImage b,PImage f){int i=0;for(int c:f.pixels){if(c!=#00FF00)b.pixels[i]=c;i++;}return b;}
+</code></pre>
+</div>
+<div id="pu8" class="pu"><h1><a href="https://github.com/isaacg1/pyth" rel="nofollow noreferrer">Pyth</a>, 27 bytes</h1>
+
+<pre><code>M?q(Z255Z)GHG.wmgVhded,V'E'
+</code></pre>
+
+<p>It takes quoted input. The input are the two paths of the image files. Output a file <code>o.png</code> Unfortunately that cannot be tested on the online interpreter for safety reason (<code>'</code> is disabled on it). You will need to get <a href="https://github.com/isaacg1/pyth" rel="nofollow noreferrer">Pyth</a> on your computer to test it.</p>
+
+<p><strong>Explanation</strong></p>
+
+<pre><code>M?q(Z255Z)GHG                  # Define a function g which takes two tuples G and H and returns G if G != (0, 255, 0), H otherwise
+                       V'E'    # Read the images. They are returned as lists of lists of colour tuples
+                      ,        # Zip both images
+               m  hded         # For each couple of lists in the zipped list...
+                gV             # Zip the lists using the function g
+             .w                # Write the resulting image to o.png
+</code></pre>
+</div>
+<div id="pu9" class="pu"><h1>Matlab 2016b and Octave, <s>62</s> 59 bytes</h1>
+<p>Input: A = MxNx3 unit8 foreground matrix, B = MxNx3 unit8 background matrix.</p>
+<pre><code>k=sum(A(:,:,2)-A(:,:,[1 3]),3)==510.*ones(1,1,3);A(k)=B(k);
+</code></pre>
+<p>Output: A = MxNx3 unit8 matrix</p>
+<p>Sample use:</p>
+<pre><code>A = imread('foreground.png');
+B = imread('backgroundimg.png');
+
+k=sum(A(:,:,2)-A(:,:,[1 3]),3)==510.*ones(1,1,3);A(k)=B(k);
+
+imshow(A)
+</code></pre>
+</div>
+<div id="pu10" class="pu"><h2>Bash + ImageMagick, 45 bytes</h2>
+
+<pre><code>convert $1 $2 -transparent lime -composite x:
+</code></pre>
+
+<p>Takes two images as arguments and displays the output on the screen. Change <code>x:</code> to <code>$3</code> to write to a third file argument instead. The method is simple: read the "background" image; read the "foreground" imagek; reinterpret the color "lime" (#00ff00) as transparency in the second image; then composite the second image onto the first and output.</p>
+
+<h2>ImageMagick: 28 bytes?</h2>
+
+<p>I could have submitted this as <a href="https://codegolf.meta.stackexchange.com/questions/8828/is-imagemagick-a-programming-language">an ImageMagick answer</a> but it's not clear how to deal with the arguments. If you want to posit that ImageMagick is a stack-based language (which is kinda sorta not really true but almost... it's weird) then <code>-transparent lime -composite</code> is a function that expects two images on the stack and leaves one merged image on the stack... maybe that's good enough to count?</p>
+</div>
+<div id="pu11" class="pu"><h1><a href="https://github.com/lmendo/MATL" rel="nofollow noreferrer">MATL</a>, <s>40</S> <s>37</s> 31 bytes</h1>
+<pre><code>,jYio255/]tFTF1&amp;!-&amp;3a*5M~b*+3YG
+</code></pre>
+<p>Example run with the offline interpreter. The images are input by their URL's (local filenames could also be provided).</p>
+<p><a href="https://i.stack.imgur.com/2s24A.gif" rel="nofollow noreferrer"><img src="https://i.stack.imgur.com/2s24A.gif" alt="enter image description here" /></a></p>
+<h3>Explanation</h3>
+<pre><code>,        % Do this twice
+  j      %   Input string with URL or filename
+  Yi     %   Read image as an M×N×3 uint8 array
+  o      %  Convert to double
+  255/   %   Divide by 255
+]        % End
+t        % Duplicate the second image
+FTF      % Push 1×3 vector [0 1 0]
+1&amp;!      % Permute dimensions to give a 1×1×3 vector
+-        % Subtract from the second image (M×N×3 array), with broadcast
+&amp;3a      % &quot;Any&quot; along 3rd dim. This gives a M×N mask that contains
+         % 0 for pure green and 1 for other colours
+*        % Mulltiply. This sets green pixels to zero
+5M       % Push mask M×N again
+~        % Negate
+b        % Bubble up the first image
+*        % Multiply. This sets non-green pixels to zero
++        % Add the two images
+3YG      % Show image in a window
+</code></pre>
+</div>
+<div id="pu12" class="pu"><h1>Mathematica <s>57</s> 35 bytes</h1>
+<p>update: by default, a green background is removed using <code>RemoveBackground</code>.  The first submission included the unnecessary second parameter, `{&quot;Background&quot;,Green}&quot;.</p>
+<hr />
+<pre><code>#~ImageCompose~RemoveBackground@#2&amp;
+</code></pre>
+<p>Removes the background of image 2 and composes the result with image 1.</p>
+<hr />
+<p><strong>Example</strong></p>
+<p><a href="https://i.stack.imgur.com/XFtX8.png" rel="noreferrer"><img src="https://i.stack.imgur.com/XFtX8.png" alt="i1" /></a></p>
+<p>The following, in prefix rather than infix form, shows more clearly how the code works.</p>
+<p><a href="https://i.stack.imgur.com/jHzme.png" rel="noreferrer"><img src="https://i.stack.imgur.com/jHzme.png" alt="i2" /></a></p>
+</div>
+<div id="pu13" class="pu"><h1><a href="https://docs.python.org/3/" rel="noreferrer">Python 3</a> + <a href="http://www.numpy.org/" rel="noreferrer">numpy</a>, 59 bytes</h1>
+
+<pre class="lang-python prettyprint-override"><code>lambda f,b:copyto(f,b,'no',f==[0,255,0])
+from numpy import*
+</code></pre>
+<p><a href="https://tio.run/##bVAxDoMwEJvLK24DqhtCAgUq8ZI0A7QKrdSQKKIDr6d3iIFKnWzHTmwlLPPTT2odu9v67t3w6MHicL37sMw@I4rp5FO0XacFyqpCYfLERu9g@riwwMsFH@fzaqGDPsZ@ybTWhUSQFYIyCLokIhXCpWYl2KETYQwmJ33QZLYIfFWV/5KFYgehFb8uiaYmVSA0rTE0bzhuoSA5kmOM@yhGhHJ/milCta0lpK1MGRHqPcOUGthgpB1bMyEViK13pP@CIU9CfE1zZvP1Cw" rel="noreferrer" title="Python 3 – Try It Online">Try it online!</a></p>
+<p>Input is given in the format of a <code>numpy</code> array, with integer triplets representing pixels (where <code>#00FF00</code> in hex color code is equivalent to <code>[0, 255, 0]</code>). The input array is modified in place, which is allowed <a href="https://codegolf.meta.stackexchange.com/a/4942">per meta</a>.</p>
+<h2>Example Images</h2>
+<h3>Input (from the question)</h3>
+<p>Background:</p>
+<p><a href="https://i.stack.imgur.com/hI4PZ.png" rel="noreferrer"><img src="https://i.stack.imgur.com/hI4PZ.png" alt="ckjbgames' profile picture" /></a></p>
+<p>Foreground:</p>
+<p><a href="https://i.stack.imgur.com/PW11T.png" rel="noreferrer"><img src="https://i.stack.imgur.com/PW11T.png" alt="Dennis' profile picture" /></a></p>
+<p>Foreground image after running the function:</p>
+<p><a href="https://i.stack.imgur.com/2ohU0.png" rel="noreferrer"><img src="https://i.stack.imgur.com/2ohU0.png" alt="Merged image with #00FF00 replaced with background pixels" /></a></p>
+<h2>Reference Implementation (uses <code>opencv</code> to read image files)</h2>
+<pre class="lang-python prettyprint-override"><code>g = lambda f,b:copyto(f,b,'no',f==[0,255,0])
+from numpy import*
+
+import cv2
+
+f = cv2.imread(&quot;fg.png&quot;)
+b = cv2.imread(&quot;bg.png&quot;)
+
+g(f, b)
+
+cv2.imshow(&quot;Output&quot;, f)
+cv2.imwrite(&quot;out.png&quot;, f)
+</code></pre>
+<p>Displays the image to the screen and writes it to an output file.</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/132719/">132719</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
