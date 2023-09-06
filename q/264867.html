@@ -26,39 +26,41 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>063</td><td>JavaScript Node.js</td><td>230905T093036Z</td><td><a href="https://codegolf.stackexchange.com/questions/264867/add-two-really-big-numbers/264925#264925">l4m2</a></td></tr>
-<tr d-ix="1"><td>010</td><td>x86 machine code</td><td>230906T031745Z</td><td><a href="https://codegolf.stackexchange.com/questions/264867/add-two-really-big-numbers/264960#264960">Peter Co</a></td></tr>
+<tr d-ix="0"><td>008</td><td>x86 machine code</td><td>230906T031745Z</td><td><a href="https://codegolf.stackexchange.com/questions/264867/add-two-really-big-numbers/264960#264960">Peter Co</a></td></tr>
+<tr d-ix="1"><td>063</td><td>JavaScript Node.js</td><td>230905T093036Z</td><td><a href="https://codegolf.stackexchange.com/questions/264867/add-two-really-big-numbers/264925#264925">l4m2</a></td></tr>
 <tr d-ix="2"><td>211</td><td>TypeScript's Type System</td><td>230906T000322Z</td><td><a href="https://codegolf.stackexchange.com/questions/264867/add-two-really-big-numbers/264953#264953">noodle m</a></td></tr>
 <tr d-ix="3"><td>049</td><td>Ruby</td><td>230904T115457Z</td><td><a href="https://codegolf.stackexchange.com/questions/264867/add-two-really-big-numbers/264887#264887">noodle m</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 63 bytes</h1>
+<div id="pu0" class="pu"><h1>x86 machine code, <s>10</s> 8 bytes</h1>
+<p>A function that adds two little-endian binary Bigintegers of the same (non-zero) length, updating the destination in-place, using add-with-carry as a building block as it was designed for this.</p>
+<p>It takes 2 pointer args and a count of how many bytes, like <code>add_bignum(uint8_t *edi_dst, uint8_t *esi_src, size_t count_ecx)</code>.  (That matches the x86-64 SysV calling convention if you use a dummy 3rd arg to fill the EDX slot.)  But this machine code only works in 32-bit mode; the <code>inc</code> would decode as a REX prefix in 64-bit mode (or need to be changed to the 2-byte encoding.  Or 3-byte to handle 64-bit pointers.)</p>
+<p>It returns CF = carry-out from the top element.  (If you want that to be part of the output, zero-extend the inputs with an extra 0 element at the top, and include that in the count.)</p>
+<pre><code>; NASM listing: machine code | source
+               add_bignum:
+ F8               clc                ; CF=0, no carry-in to the bottom.
+                                     ; Peeling a first iteration using ADD would cost more bytes
+               .loop:                ;do {
+ AC               lodsb                ; eax = [esi]; esi+=4
+ 10 07            adc   [edi], al 
+ 47               inc   edi            ; edi++ without affecting CF, only other FLAGS
+ E2 FA            loop  .loop        ; }while(--ecx);
+ C3               ret   
+</code></pre>
+<p>Normally you can use <code>scasd</code> to increment RDI by 4, as long as it's a valid pointer, but that does a compare as well as load which overwrite FLAGS, breaking the chain of carry propagation through CF.  Some shenanigans like pointing ESP at this array and using 1-byte <code>pop eax</code> then <code>adc [esi], eax</code> and a dummy <code>lodsd</code> to increment ESI might work, but would probably cost more bytes than <code>lea edi, [edi+4]</code> (and a signal handler could clobber the array).  Maybe we could expect our caller to pass one of the bigints by value on the stack.  And we'd still have to push the return address back again.</p>
+<p>So definitely the smallest (and lowest performing) is to use 1-byte &quot;limbs&quot;, making the pointer increment a single-byte (in 32-bit mode) <code>inc</code>, which sets the other FLAGS (all of SPAZO), but not CF.  Other code can process the same bigint in larger chunks; the limb size is only relevant to the count the caller passes, not anything else about the layout.</p>
+<hr />
+<p>Add-with-carry (<a href="https://www.felixcloutier.com/x86/adc" rel="nofollow noreferrer"><code>adc</code></a>) chains the carry-out from the top of one chunk into the carry-in for the next chunk.  As the loop iterates, it's like one wide <a href="https://en.wikipedia.org/wiki/Adder_(electronics)#Ripple-carry_adder" rel="nofollow noreferrer">ripple-carry adder</a> over the full width of the arrays.  (With carry-lookahead or whatever optimizations exist inside the CPU's ALUs happening within each chunk to run it with single-cycle latency.  But as far as the result is concerned, it's like one long chain of full-adders, with the same hardware reused by software feeding the carry-out of the last instruction to the carry-in of the next.  Carry only propagates from low to high in both addition and subtraction.  It doesn't matter what element-size you use for it, as long as you get all the bytes of your bigints and chain the carry correctly.)</p>
+<p>Bigint performance notes: the <code>loop</code> instruction is <a href="https://stackoverflow.com/questions/35742570/why-is-the-loop-instruction-slow-couldnt-intel-have-implemented-it-efficiently">slow except on recent AMD CPUs</a>, where it's actually really handy for loops that want to preserve FLAGS.  It's too bad Intel didn't make it fast. Normal bigint loops on Sandybridge and later use <code>dec ecx / jnz</code> which leaves only CF unmodified, because Sandybridge has cheap partial-flag merging instead of stalling.  And Broadwell and later don't merge at all; uops that want both parts of FLAGS just read it as 2 separate inputs, which is why <code>cmovbe</code> and <code>cmova</code> are still 2 uops while others are down to 1 uop.  So the bigint looping problem has been solved that way, <a href="https://stackoverflow.com/questions/32084204/problems-with-adc-sbb-and-inc-dec-in-tight-loops-on-some-cpus">unlike on older P6-family CPUs</a> where partial-flag stalls are a real problem.</p>
+<p>Also, for performance, memory <em>source</em> <code>adc</code> is better on Intel CPUs, with a separate <code>mov</code> store.  (Fun fact: memory destination <code>adc</code> has an extra uop beyond what you'd expect because of arcane microarchitectural reasons involving lack of TLB coherency across the uops of one instruction, <a href="https://stackoverflow.com/a/32258855/224132">according to Andy Glew</a>.)</p>
+<p>Also obviously using 64-bit operand-size would go twice as fast as 32-bit, or 8x as fast as bytes, for the same number of bytes.  (Instruction fetch/decode isn't the bottleneck on modern CPUs with a uop cache, so the code-size differences aren't very significant for a hot loop).  That costs an extra REX prefix on most instructions so I didn't use it in the initial version with 32-bit elements.</p>
+<p>TL:DR: un-golfing this code to something that performs well is more than just the obvious changes.  Look at the hand-written asm in GMP for production-quality example.  (e.g. <a href="https://github.com/sethtroisi/libgmp/blob/master/mpn/x86_64/coreisbr/aors_n.asm" rel="nofollow noreferrer">https://github.com/sethtroisi/libgmp/blob/master/mpn/x86_64/coreisbr/aors_n.asm</a> is the add-or-sub template for <code>adc</code> or <code>sbb</code> loops for Sandybridge-family.  It uses some <code>jrcxz</code> instead of just <code>dec/jnz</code> at the bottoms of loops, but I think the main unrolled loop uses <code>dec/jnz</code>.)</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 63 bytes</h1>
 
 <pre class="lang-javascript prettyprint-override"><code>f=(a,b,c=0)=&gt;(c-=~a.pop()+~b.pop()+2)||a+b?f(a,b,c/10|0)+c%10:a
 </code></pre>
 <p><a href="https://tio.run/##LZDrasJAEIX/71PkT2GXxDiXvU1L2gepUtcYpUVM0FIUxFdPN2kXljk78505sF/pJ13a8@fwvTj1u24c941O1bZqGzDNq24XzSPVQz9oUz62/4LM/Z7K7dv@j1wi3MGU7RPCcxpfNog@FmUBiKSIEZCZ53d0UWxUZEksWWfB2txHH1jEIkXLSlgiWW8zyBijy3NhAAlWvEyFg4rsIJLzBJCNmQehzAWL2WNz@LwdAgZRCNOZUmahMDD67GJBZHKBIU5bMRMkmYlCnjlfFCJwOUQ29bkbjqnttFrq1a40xaosZrE8VIX@qK7VLX9V258u/bGrj/1B7/V7XdfXdTWV29oYM/4C" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
 <p>no bigint</p>
-</div>
-<div id="pu1" class="pu"><h1>x86 machine code, 10 bytes</h1>
-<p>A function that adds two little-endian binary Bigintegers (arrays of dwords) of the same (non-zero) length, updating the destination in-place, using add-with-carry as a building block since it was designed for this.</p>
-<p>It takes 2 pointer args and a count of how many 32-bit elements, like <code>add_bignum(uint32_t *edi_dst, uint32_t *esi_src, size_t count_ecx)</code>.  (That matches the x86-64 SysV calling convention if you use a dummy 3rd arg to fill the EDX slot.)  The same machine code works in 32-bit mode, or 64-bit mode with 32-bit pointers (like the x32 ABI).  The source pointer can actually be 64-bit.</p>
-<p>It returns CF = carry-out from the top element.  (If you want that to be part of the output, zero-extend the inputs with an extra 0 element at the top, and include that in the count.)</p>
-<pre><code>; NASM listing: machine code | source
-                     add_bignum:
- F8                     clc                ; CF=0, no carry-in to the bottom
-                     .loop:                ;do {
- AD                      lodsd                ; eax = [rsi]; rsi+=4
- 11 07                   adc   [edi], eax
- 8D 7F 04                lea   edi, [edi+4]   ; RDI+=4 without affecting FLAGS
- E2 F8                   loop  .loop        ; }while(--ecx);
- C3                      ret 
-</code></pre>
-<p>Normally you can use <code>scasd</code> to increment RDI by 4, as long as it's a valid pointer, but that does a compare as well as load which overwrite FLAGS, breaking the chain of carry propagation through CF.  Some shenanigans like pointing ESP at this array and using 1-byte <code>pop eax</code> then <code>adc [esi], eax</code> and a dummy <code>lodsd</code> to increment ESI might work, but would probably cost more bytes (and a signal handler could clobber the array).  Maybe we could expect our caller to pass one of the bigints by value on the stack.  And we'd still have to push the return address back again.</p>
-<hr />
-<p>Add-with-carry (<a href="https://www.felixcloutier.com/x86/adc" rel="nofollow noreferrer"><code>adc</code></a>) chains the carry-out from the top of one chunk into the carry-in for the next chunk.  As the loop iterates, it's like one wide <a href="https://en.wikipedia.org/wiki/Adder_(electronics)#Ripple-carry_adder" rel="nofollow noreferrer">ripple-carry adder</a> over the full width of the arrays.  (With carry-lookahead or whatever optimizations exist inside the CPU's ALUs happening within each 32-bit chunk to run it with single-cycle latency.)</p>
-<p>Bigint performance notes: the <code>loop</code> instruction is <a href="https://stackoverflow.com/questions/35742570/why-is-the-loop-instruction-slow-couldnt-intel-have-implemented-it-efficiently">slow except on recent AMD CPUs</a>, where it's actually really handy for loops that want to preserve FLAGS.  It's too bad Intel didn't make it fast. Normal bigint loops on Sandybridge and later use <code>dec ecx / jnz</code> which leaves CF unmodified, because Sandybridge has cheap partial-flag merging instead of stalling.  And Broadwell and later don't merge at all; uops that want both parts of FLAGS just read it as 2 separate inputs, which is why <code>cmovbe</code> and <code>cmova</code> are still 2 uops while others are down to 1 uop.  So the bigint looping problem has been solved that way, <a href="https://stackoverflow.com/questions/32084204/problems-with-adc-sbb-and-inc-dec-in-tight-loops-on-some-cpus">unlike on older P6-family CPUs</a> where partial-flag stalls are a real problem.</p>
-<p>Also, for performance, memory <em>source</em> <code>adc</code> is better on Intel CPUs, with a separate <code>mov</code> store.  (Fun fact: memory destination <code>adc</code> has an extra uop beyond what you'd expect because of arcane microarchitectural reasons involving lack of TLB coherency across the uops of one instruction, <a href="https://stackoverflow.com/a/32258855/224132">according to Andy Glew</a>.)</p>
-<p>Also obviously using 64-bit operand-size would go twice as fast for the same number of bytes.  That costs an extra REX prefix on most instructions so I didn't use it.</p>
-<p>TL:DR: un-golfing this code to something that performs well is more than just the obvious changes.  Look at the hand-written asm in GMP for production-quality example.  (e.g. <a href="https://github.com/sethtroisi/libgmp/blob/master/mpn/x86_64/coreisbr/aors_n.asm" rel="nofollow noreferrer">https://github.com/sethtroisi/libgmp/blob/master/mpn/x86_64/coreisbr/aors_n.asm</a> is the add-or-sub template for <code>adc</code> or <code>sbb</code> loops for Sandybridge-family.  It uses some <code>jrcxz</code> instead of just <code>dec/jnz</code> at the bottoms of loops, but I think the main unrolled loop uses <code>dec/jnz</code>.)</p>
 </div>
 <div id="pu2" class="pu"><h1><a href="https://www.typescriptlang.org/" rel="nofollow noreferrer">TypeScript</a>'s Type System, 211 bytes</h1>
 <pre class="lang-typescript prettyprint-override"><code>//@ts-ignore
