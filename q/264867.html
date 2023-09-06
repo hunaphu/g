@@ -26,10 +26,33 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>211</td><td>TypeScript's Type System</td><td>230906T000322Z</td><td><a href="https://codegolf.stackexchange.com/questions/264867/add-two-really-big-numbers/264953#264953">noodle m</a></td></tr>
-<tr d-ix="1"><td>049</td><td>Ruby</td><td>230904T115457Z</td><td><a href="https://codegolf.stackexchange.com/questions/264867/add-two-really-big-numbers/264887#264887">noodle m</a></td></tr>
+<tr d-ix="0"><td>010</td><td>x86 machine code</td><td>230906T031745Z</td><td><a href="https://codegolf.stackexchange.com/questions/264867/add-two-really-big-numbers/264960#264960">Peter Co</a></td></tr>
+<tr d-ix="1"><td>211</td><td>TypeScript's Type System</td><td>230906T000322Z</td><td><a href="https://codegolf.stackexchange.com/questions/264867/add-two-really-big-numbers/264953#264953">noodle m</a></td></tr>
+<tr d-ix="2"><td>049</td><td>Ruby</td><td>230904T115457Z</td><td><a href="https://codegolf.stackexchange.com/questions/264867/add-two-really-big-numbers/264887#264887">noodle m</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.typescriptlang.org/" rel="nofollow noreferrer">TypeScript</a>'s Type System, 211 bytes</h1>
+<div id="pu0" class="pu"><h1>x86 machine code, 10 bytes</h1>
+<p>A function that adds two little-endian binary Bigintegers (arrays of dwords) of the same (non-zero) length, updating the destination in-place, using add-with-carry as a building block since it was designed for this.</p>
+<p>It takes 2 pointer args and a count of how many 32-bit elements, like <code>add_bignum(uint32_t *edi_dst, uint32_t *esi_src, size_t count_ecx)</code>.  (That matches the x86-64 SysV calling convention if you use a dummy 3rd arg to fill the EDX slot.)  The same machine code works in 32-bit mode, or 64-bit mode with 32-bit pointers (like the x32 ABI).  The source pointer can actually be 64-bit.</p>
+<p>It returns CF = carry-out from the top element.  (If you want that to be part of the output, zero-extend the inputs with an extra 0 element at the top, and include that in the count.)</p>
+<pre><code>; NASM listing: machine code | source
+                     add_bignum:
+ F8                     clc                ; CF=0, no carry-in to the bottom
+                     .loop:                ;do {
+ AD                      lodsd                ; eax = [rsi]; rsi+=4
+ 11 07                   adc   [edi], eax
+ 8D 7F 04                lea   edi, [edi+4]   ; RDI+=4 without affecting FLAGS
+ E2 F8                   loop  .loop        ; }while(--ecx);
+ C3                      ret 
+</code></pre>
+<p>Normally you can use <code>scasd</code> to increment RDI by 4, as long as it's a valid pointer, but that does a compare as well as load which overwrite FLAGS, breaking the chain of carry propagation through CF.  Some shenanigans like pointing ESP at this array and using 1-byte <code>pop eax</code> then <code>adc [esi], eax</code> and a dummy <code>lodsd</code> to increment ESI might work, but would probably cost more bytes (and a signal handler could clobber the array).  Maybe we could expect our caller to pass one of the bigints by value on the stack.  And we'd still have to push the return address back again.</p>
+<hr />
+<p>Add-with-carry (<a href="https://www.felixcloutier.com/x86/adc" rel="nofollow noreferrer"><code>adc</code></a>) chains the carry-out from the top of one chunk into the carry-in for the next chunk.  As the loop iterates, it's like one wide <a href="https://en.wikipedia.org/wiki/Adder_(electronics)#Ripple-carry_adder" rel="nofollow noreferrer">ripple-carry adder</a> over the full width of the arrays.  (With carry-lookahead or whatever optimizations exist inside the CPU's ALUs happening within each 32-bit chunk to run it with single-cycle latency.)</p>
+<p>Bigint performance notes: the <code>loop</code> instruction is <a href="https://stackoverflow.com/questions/35742570/why-is-the-loop-instruction-slow-couldnt-intel-have-implemented-it-efficiently">slow except on recent AMD CPUs</a>, where it's actually really handy for loops that want to preserve FLAGS.  It's too bad Intel didn't make it fast. Normal bigint loops on Sandybridge and later use <code>dec ecx / jnz</code> which leaves CF unmodified, because Sandybridge has cheap partial-flag merging instead of stalling.  And Broadwell and later don't merge at all; uops that want both parts of FLAGS just read it as 2 separate inputs, which is why <code>cmovbe</code> and <code>cmova</code> are still 2 uops while others are down to 1 uop.  So the bigint looping problem has been solved that way, <a href="https://stackoverflow.com/questions/32084204/problems-with-adc-sbb-and-inc-dec-in-tight-loops-on-some-cpus">unlike on older P6-family CPUs</a> where partial-flag stalls are a real problem.</p>
+<p>Also, for performance, memory <em>source</em> <code>adc</code> is better on Intel CPUs, with a separate <code>mov</code> store.  (Fun fact: memory destination <code>adc</code> has an extra uop beyond what you'd expect because of arcane microarchitectural reasons involving lack of TLB coherency across the uops of one instruction, <a href="https://stackoverflow.com/a/32258855/224132">according to Andy Glew</a>.)</p>
+<p>Also obviously using 64-bit operand-size would go twice as fast for the same number of bytes.  That costs an extra REX prefix on most instructions so I didn't use it.</p>
+<p>TL:DR: un-golfing this code to something that performs well is more than just the obvious changes.  Look at the hand-written asm in GMP for production-quality example.  (e.g. <a href="https://github.com/sethtroisi/libgmp/blob/master/mpn/x86_64/coreisbr/aors_n.asm" rel="nofollow noreferrer">https://github.com/sethtroisi/libgmp/blob/master/mpn/x86_64/coreisbr/aors_n.asm</a> is the add-or-sub template for <code>adc</code> or <code>sbb</code> loops for Sandybridge-family.  It uses some <code>jrcxz</code> instead of just <code>dec/jnz</code> at the bottoms of loops, but I think the main unrolled loop uses <code>dec/jnz</code>.)</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.typescriptlang.org/" rel="nofollow noreferrer">TypeScript</a>'s Type System, 211 bytes</h1>
 <pre class="lang-typescript prettyprint-override"><code>//@ts-ignore
 type D&lt;A,B,C,X=[...A,...B,...C]&gt;=X extends[1,1,1,1,1,1,1,1,1,1,...infer R]?[[1],R]:[[],X]
 type F&lt;A,C=[]&gt;=A extends[[...infer G,infer X],[...infer H,infer Y]]?[...F&lt;[G,H],D&lt;X,Y,C&gt;[0]&gt;,D&lt;X,Y,C&gt;[1]]:[]
@@ -64,7 +87,7 @@ type F&lt;                    // Recursive main type F
 </code></pre>
 <p>This might be golfable under 200 bytes but my guess is that I'll only shave off at most four or five.</p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a>, <s>78 67 59</s> 49 bytes</h1>
+<div id="pu2" class="pu"><h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a>, <s>78 67 59</s> 49 bytes</h1>
 <pre class="lang-ruby prettyprint-override"><code>-&gt;a,b{c=0;a.zip(b).map{s=_1+_2+c;c=s&gt;9?1:0;s%10}}
 </code></pre>
 <p><a href="https://ato.pxeger.com/run?1=TY_BTsMwDIbvfYpQBNq0rbLjtI03dTwIoKprMyga7dR0CNj2JFw4wJkLb8BT8DYkG0IcEsfO__22X966zeLp9WPVNjd5UVV1X7eNyN43_XKiv3EyL8aLbZnBrIie6_VgMYzui_XWZjmOcjkqZ2Vm53yBU5jZM4T9_hf87ExRrerG2MgU5a2oWrHz6S4QwseoMivTm9xulsv68WQQXjXh0P0VY7EQ2VFi16u6H4RiJMJDV7Hd2b7bCXdF5W3RWV8cnE_7Nq-HUWceTGfN3pmsN70V4enWu-ydm3v93-7SN7mO7tq6-aPCwDTVcfbX7y_ERLu2gCgDSQhIRIdcx5qVDqSSrKSKFSjl6pikxKxQakUBMLGWKlFOSah17EEmAE4VJ-wDpQFoikHLOJEAjnUEsPTKVKHDlBvg0AFSTDnAlDBxMmJEknFKoL0POkAyAmiWCZE7yFJC7Fz5uMsP" rel="nofollow noreferrer">Attempt This Online!</a></p>
