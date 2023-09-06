@@ -26,11 +26,65 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>3453</td><td>Python</td><td>230905T183107Z</td><td><a href="https://codegolf.stackexchange.com/questions/264775/pick-a-random-string-at-a-fixed-edit-distance/264945#264945">gsitcia</a></td></tr>
-<tr d-ix="1"><td>242</td><td>Python</td><td>230906T000429Z</td><td><a href="https://codegolf.stackexchange.com/questions/264775/pick-a-random-string-at-a-fixed-edit-distance/264954#264954">Value In</a></td></tr>
-<tr d-ix="2"><td>932</td><td>Python</td><td>230905T105938Z</td><td><a href="https://codegolf.stackexchange.com/questions/264775/pick-a-random-string-at-a-fixed-edit-distance/264928#264928">bsoelch</a></td></tr>
+<tr d-ix="0"><td>932</td><td>Python</td><td>230905T105938Z</td><td><a href="https://codegolf.stackexchange.com/questions/264775/pick-a-random-string-at-a-fixed-edit-distance/264928#264928">bsoelch</a></td></tr>
+<tr d-ix="1"><td>3453</td><td>Python</td><td>230905T183107Z</td><td><a href="https://codegolf.stackexchange.com/questions/264775/pick-a-random-string-at-a-fixed-edit-distance/264945#264945">gsitcia</a></td></tr>
+<tr d-ix="2"><td>242</td><td>Python</td><td>230906T000429Z</td><td><a href="https://codegolf.stackexchange.com/questions/264775/pick-a-random-string-at-a-fixed-edit-distance/264954#264954">Value In</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 3453 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 932 bytes, <span class="math-container">\$O(4^k\cdot n^{2k+1})\$</span></h1>
+<pre class="lang-python prettyprint-override"><code>import random
+def levenshteinDistance(s,t):
+  m=len(s);
+  n=len(t);
+  d=[(n+1)*[0]for _ in range(m+1)]
+  for i in range(m+1):
+    d[i][0]=i
+  for j in range(n+1):
+    d[0][j]=j
+  for j in range(n):
+    for i in range(m):
+      if s[i] == t[j]:
+        substitutionCost = 0
+      else:
+        substitutionCost = 1
+      d[i+1][j+1] = min(d[i][j+1] + 1,                # deletion
+                         d[i+1][j] + 1,               # insertion
+                         d[i][j] + substitutionCost)  # substitution
+  return d[m][n]
+
+def build(s,k,i0=0):
+  if k==0:
+    yield s;return
+  for i in range(i0,len(s)+1):
+    t=s[:i]+s[i+1:]
+    for q in build(t,k-1,i):
+     yield q
+    for c in set(s):
+      t=s[:i]+c+s[i+1:]
+      for q in build(t,k-1,i):
+       yield q 
+      t=s[:i]+c+s[i:]
+      for q in build(t,k-1,i):
+       yield q
+
+def f(s,k):
+  return random.choice([t for t in set(build(s,k))if levenshteinDistance(s,t)==k])
+
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=lZPBTsMwDIYP3PoUFrs0rKBU4oA25QRvUUUI1pR5a9PRuEg8C5cdgGfgWXganKYtMAYTUVWl9u_PiV0_vW4eaVnb7falpeL04v3oGatN3RA0Nzavqyg3BZTmwVi3JIP2Ch3d2IWJXUJiFgFUqjQ2dmLOe9vtqdvnKovtNBUnmdRF3cA1oPXMOxNXbNYs8Wb8bvZEjs1Qc5jCXrT6FNkvIqmzlVarPaJespugNwNgAY5zgFJAzBjMAK69dYTUEtb2snYECmTvNKUzfwrT3smnn6Z8NH6xtUIbd_fpvqeQJrCzJpCb0nhQtOsa18DcS5jwFZ1pDhL6-N2jC0_4amRIY6htLAdVOrM66v6C2xbLnPu-TlAq2dWS67hWSoayPKIpc3DzEPuzvyiT8KuMLSTlshnqqfO3m-mxZ_c-KKSjZH2aJjh0LuS4H5ULr3SGmDr0ZoAuvmEPgUc07MP8FxIKVvhidb6-nGGkzhbLGnmCMupwNFxhrK8Q-PvMKbXWIgrD-rZp0FJcxMcpL-kfeZycCxHcw0x_AA" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<p>Runs in <span class="math-container">\$O(n(n+k)(2n(n+k))^k\$</span></p>
+<p>Generates all possible strings reachable with k edits, then pick a random string with edit distance k.</p>
+<p>The filtering by edit distance is necessary to filter out combinations of edits the can be expressed by a shorter edit sequence
+(e.g. <code>Hello</code> -&gt; <code>HHello</code> -&gt; <code>Heello</code> -&gt; <code>Hello</code>), I did not find any generation rule that reliably avoids every possible way to generate a shorter edit sequence.</p>
+<h2>Running time:</h2>
+<p><em>I am not that familiar with estimating the exact running time of recursive functions, so there might be a mistake in my calculations</em></p>
+<p><code>levenshteinDistance(s,t)</code> runs in <span class="math-container">\$O(|s||t|)\$</span></p>
+<p>setting <span class="math-container">\$n=|s|\$</span></p>
+<p><code>build(s,k,i)</code> runs in <span class="math-container">\$b(l,k,i)=O(\sum_{j=i}^{l}*(b(l-1,k-1,j)+n(b(l+1,k-1,j)+b(l,k-1,j)))\$</span>
+<span class="math-container">\$=\sum_{j=i}^{l}*O((2n+1)*b(l+1,k-1,j))=O(((n+k)*(2n+1))^k)\$</span></p>
+<p><code>f</code> runs in <span class="math-container">\$O(((n+k)*(2n+1))^k)*O(n(n+k))=O(n(n+k)(2n(n+k))^k)\$</span></p>
+<p>or assuming <span class="math-container">\$k\le n\$</span> <span class="math-container">\$O(n(n+n)(2n(n+n))^k)=O(4^k\cdot n^{2k+1})\$</span></p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 3453 bytes</h1>
 <pre class="lang-python prettyprint-override"><code>import random
 
 def skip():pass
@@ -171,7 +225,7 @@ def f(w, n):
 <p>In practice, the program appears to run quite quickly; it takes about 5 seconds for <code>s=&quot;the quick brown fox jumps over the lazy dog&quot;</code> and <code>k=5</code>.</p>
 <p>** For some reason the image feature isn't working for me, so here is the data: <code>[35, 101, 228, 436, 722, 1080, 1464, 1833, 2184, 2519, 2844, 3162, 3480, 3798, 4116, 4434, 4752, 5070, 5388, 5706, 6024, 6342, 6660, 6978, 7296, 7614, 7932, 8250, 8568]</code> and <code>[172, 669, 2579, 10226, 40094, 155722, 606044]</code></p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, <span class="math-container">\$\mathcal{O}((n+k)^{2k})\leq\mathcal{O}(4^k n^{2k})\$</span></h1>
+<div id="pu2" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, <span class="math-container">\$\mathcal{O}((n+k)^{2k})\leq\mathcal{O}(4^k n^{2k})\$</span></h1>
 <pre class="lang-python prettyprint-override"><code>from random import choice
 from collections import deque
 from sys import stderr
@@ -221,58 +275,6 @@ def removals(s:str) -&gt; set[str]:
 <li><span class="math-container">\$f(s,k)\$</span>, for each of the strings from <span class="math-container">\$f(s,k-1)\$</span>, looks at a number of strings on the order of <span class="math-container">\$\mathcal{O}((n+k)^2)\$</span>, so <span class="math-container">\$\mathcal{O}((n+k)^2 \times f(s,k-1))\$</span>.</li>
 <li>This means the entire function is <span class="math-container">\$\mathcal{O}(\prod_{i=1}^k (n+i)^2) = \mathcal{O}((n+k)^{2k})\$</span>. And since <span class="math-container">\$k\leq n\$</span> this can also be expressed as the (IMO) cleaner <span class="math-container">\$\mathcal{O}((2n)^{2k}) = \mathcal{O}(2^{2k} n^{2k}) = \mathcal{O}((2^2)^k n^{2k}) = \mathcal{O}(4^k n^{2k})\$</span>.</li>
 </ol>
-</div>
-<div id="pu2" class="pu"><h1><a href="https://www.python.org" rel="noreferrer">Python</a>, 932 bytes, <span class="math-container">\$O(|s|(|s|+k)(2|s|(|s|+k))^k)\$</span></h1>
-<pre class="lang-python prettyprint-override"><code>import random
-def levenshteinDistance(s,t):
-  m=len(s);
-  n=len(t);
-  d=[(n+1)*[0]for _ in range(m+1)]
-  for i in range(m+1):
-    d[i][0]=i
-  for j in range(n+1):
-    d[0][j]=j
-  for j in range(n):
-    for i in range(m):
-      if s[i] == t[j]:
-        substitutionCost = 0
-      else:
-        substitutionCost = 1
-      d[i+1][j+1] = min(d[i][j+1] + 1,                # deletion
-                         d[i+1][j] + 1,               # insertion
-                         d[i][j] + substitutionCost)  # substitution
-  return d[m][n]
-
-def build(s,k,i0=0):
-  if k==0:
-    yield s;return
-  for i in range(i0,len(s)+1):
-    t=s[:i]+s[i+1:]
-    for q in build(t,k-1,i):
-     yield q
-    for c in set(s):
-      t=s[:i]+c+s[i+1:]
-      for q in build(t,k-1,i):
-       yield q 
-      t=s[:i]+c+s[i:]
-      for q in build(t,k-1,i):
-       yield q
-
-def f(s,k):
-  return random.choice([t for t in set(build(s,k))if levenshteinDistance(s,t)==k])
-
-</code></pre>
-<p><a href="https://ato.pxeger.com/run?1=lZPBTsMwDIYP3PoUFrs0rKBU4oA25QRvUUUI1pR5a9PRuEg8C5cdgGfgWXganKYtMAYTUVWl9u_PiV0_vW4eaVnb7falpeL04v3oGatN3RA0Nzavqyg3BZTmwVi3JIP2Ch3d2IWJXUJiFgFUqjQ2dmLOe9vtqdvnKovtNBUnmdRF3cA1oPXMOxNXbNYs8Wb8bvZEjs1Qc5jCXrT6FNkvIqmzlVarPaJespugNwNgAY5zgFJAzBjMAK69dYTUEtb2snYECmTvNKUzfwrT3smnn6Z8NH6xtUIbd_fpvqeQJrCzJpCb0nhQtOsa18DcS5jwFZ1pDhL6-N2jC0_4amRIY6htLAdVOrM66v6C2xbLnPu-TlAq2dWS67hWSoayPKIpc3DzEPuzvyiT8KuMLSTlshnqqfO3m-mxZ_c-KKSjZH2aJjh0LuS4H5ULr3SGmDr0ZoAuvmEPgUc07MP8FxIKVvhidb6-nGGkzhbLGnmCMupwNFxhrK8Q-PvMKbXWIgrD-rZp0FJcxMcpL-kfeZycCxHcw0x_AA" rel="noreferrer">Attempt This Online!</a></p>
-<p>Runs in <span class="math-container">\$O(|s|(|s|+k)(2|s|(|s|+k))^k\$</span></p>
-<p>Generates all possible strings reachable with k edits, then pick a random string with edit distance k.</p>
-<p>The filtering by edit distance is necessary to filter out combinations of edits the can be expressed by a shorter edit sequence
-(e.g. <code>Hello</code> -&gt; <code>HHello</code> -&gt; <code>Heello</code> -&gt; <code>Hello</code>), I did not find any generation rule that reliably avoids every possible way to generate a shorter edit sequence.</p>
-<h2>Running time:</h2>
-<p><em>I am not that familiar with estimating the exact running time of recursive functions, so there might be a mistake in my calculations</em></p>
-<p><code>levenshteinDistance(s,t)</code> runs in <span class="math-container">\$O(|s||t|)\$</span></p>
-<p><code>build(s,k,i)</code> runs in <span class="math-container">\$b(l,k,i)=O(\sum_{j=i}^{l}*(b(l-1,k-1,j)+|s|(b(l+1,k-1,j)+b(l,k-1,j)))\$</span>
-<span class="math-container">\$=\sum_{j=i}^{l}*O((2|s|+1)*b(l+1,k-1,j))=O(((|s|+k)*(2|s|+1))^k)\$</span></p>
-<p><code>f</code> runs in <span class="math-container">\$O(((|s|+k)*(2|s|+1))^k)*O(|s|(|s|+k))=O(|s|(|s|+k)(2|s|(|s|+k))^k)\$</span></p>
 </div>
 
 <table id="st">
