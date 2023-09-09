@@ -108,7 +108,6 @@ CNt©®ÐƊḌḶṃṄẒE
 <p>All that's needed after this is to handle halting, which here is done with an <code>if</code> statement, <code>Ñ5Ṗ?</code> (<code>?</code> specifies an <code>if</code> statement, and is preceded by the true case <code>Ñ</code>, the false case <code>5</code>, and the condition <code>Ṗ</code>). If the list has multiple elements, it'll be truthy when an element is removed with <code>Ṗ</code>, so <code>Ñ</code> is run, which is a recursive call to the main program. (This <code>Ṗ</code> does not actually affect the content of the list – it just provides a truth value to the <code>if</code> statement.) If the list does not have multiple elements, removing an element will produce an empty list, which is falsey, so <code>5</code> runs – that isn't a recursive call (it's an integer constant), so the program exits.</p>
 <p>There is something apparently missing in the above explanation: how does the initial string get there, given that the program is run with no argument? The behaviour of <code>ị</code> when given no useful input data is to return the last element of the list it's indexing into, so it's possible to simply append the input string (<code>[1,1,1]</code>)  to the end of the list that serves as the tag system's map, as an additional element that's never read once the program has started but will be used on the first iteration. (If <em>m</em>&gt;2, some of the elements at the end will get removed on the first pass through the program, but this can be compensated for by adding extra junk elements to the initial string.)</p>
 <p>One thing worth noting is that Jelly's list literal syntax is broken and doesn't support empty lists (<code>[]</code> seems like it should work, but actually causes the lexer to crash). Fortunately, this <a href="https://esolangs.org/wiki/UT22" rel="nofollow noreferrer">turns out not to matter</a>.</p>
-<p>although it is common to use empty productions when writing tag systems, they don't actually seem to be a necessary part of the language. (It is possible to add a &quot;null&quot; state that, when run, produces <em>m</em> copies of itself – an empty list can then be represented with <em>m</em> copies of that null state – but such programs can't get down to one element to halt. However, it is possible to start with such a program that has an explicit halt state, and find a corresponding program with twice the value of <em>m</em> that is able to halt itself correctly by getting down to one element; the idea is for both the data queue, and all the map elements, to alternate between commands used for running and commands used for halting.)</p>
 <p>As in the previous solution, it's possible to remove digits other than <code>5</code> from the character set by using only list elements whose indexes are 5, 55, 555, etc., with irrelevant data in the others. However, it's possible to go further with this, saving some valuable characters for other solutions:</p>
 <ul>
 <li>Because this solution uses <code>,</code> anyway (to write the list literals), it makes more sense to write <code>;</code> (append) as <code>,F</code> (pair and flatten), which does the same thing on one-dimensional lists.</li>
@@ -138,15 +137,16 @@ CNt©®ÐƊḌḶṃṄẒE
 ⁹           256
 </code></pre>
 <p>meaning that the first recursive call is a 2-argument recursive call with an empty list and 256 as the arguments (256 is a valid polynomial, but it has no roots because no value of <em>x</em> gives 256=0). On the second call, <code>⁹</code> means &quot;the right-hand argument&quot; (which is still 256), but the program now parses entirely differently:</p>
-<p>⁹…x⁹ḷÆr}⁹ç
-x           repeat each element a number of times equal to
-⁹            the right-hand argument
-Ær       calculate the roots of the polynomial
-}        specified by the right argument
-ḷ         but ignore the result
-ç    2-argument recursive call with
-⁹       the right argument as its left argument
-{and the result of x⁹ as its right argument}</p>
+<pre><code>⁹…x⁹ḷÆr}⁹ç
+  x           repeat each element a number of times equal to
+   ⁹            the right-hand argument
+     Ær       calculate the roots of the polynomial
+       }        specified by the right argument
+    ḷ         but ignore the result
+         ç    2-argument recursive call with
+        ⁹       the right argument as its left argument
+                {and the result of x⁹ as its right argument}
+</code></pre>
 <p>On this execution, the <code>€</code> interprets the 256 as a range from 1 to 256 inclusive, but the <code>&amp;</code> and <code>x</code> interpret it as just the number 256. The result is an array of 65536 elements, most of which are 0 (both 128 and 256 are possible elements in the resulting list, but the program queue can be designed to stop the 128s appearing). This is a valid data queue that creates a startup state that can be Turing-complete (as startup code can be added to the program queue, whilst retaining a power-of-2 length), so from the third iteration onwards, everything runs normally, and everything expected to be a list actually is a list.</p>
 <p><a href="https://tio.run/##y0rNyan8//9R485DQHhs7aGdHsfWHlv7qGmNGlCsAogVjk4qeriz5eikhztnKgD5h@dzGWGoNaowQlFndHj5//8A" rel="nofollow noreferrer" title="Jelly – Try It Online">Here's an example</a> of a program in action, using 2 rather than 256 (with added run-length-encoded debug output). And <a href="https://tio.run/##y0rNyan8//9R404Pj2NrQfjY2kdNa9SAAhVArPBwx/ajk4oe7mxRqQWxD7cV1SoAxQ8v//8fAA" rel="nofollow noreferrer" title="Jelly – Try It Online">here's an example</a> that demonstrates startup and halting with a trivial Echo Tag program, using the full 256.</p>
 <h3>A solution based on Blindfolded Arithmetic</h3>
