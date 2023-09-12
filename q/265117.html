@@ -26,8 +26,8 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>178</td><td>Python</td><td>230911T152440Z</td><td><a href="https://codegolf.stackexchange.com/questions/265117/how-many-ways-to-cut-a-number-into-an-equation/265122#265122">bsoelch</a></td></tr>
-<tr d-ix="1"><td>181</td><td>GNU sed E</td><td>230911T172203Z</td><td><a href="https://codegolf.stackexchange.com/questions/265117/how-many-ways-to-cut-a-number-into-an-equation/265128#265128">Philippo</a></td></tr>
+<tr d-ix="0"><td>171</td><td>GNU sed E</td><td>230911T172203Z</td><td><a href="https://codegolf.stackexchange.com/questions/265117/how-many-ways-to-cut-a-number-into-an-equation/265128#265128">Philippo</a></td></tr>
+<tr d-ix="1"><td>178</td><td>Python</td><td>230911T152440Z</td><td><a href="https://codegolf.stackexchange.com/questions/265117/how-many-ways-to-cut-a-number-into-an-equation/265122#265122">bsoelch</a></td></tr>
 <tr d-ix="2"><td>107</td><td>JavaScript ES6</td><td>230911T173117Z</td><td><a href="https://codegolf.stackexchange.com/questions/265117/how-many-ways-to-cut-a-number-into-an-equation/265129#265129">Arnauld</a></td></tr>
 <tr d-ix="3"><td>030</td><td>Vyxal</td><td>230912T041804Z</td><td><a href="https://codegolf.stackexchange.com/questions/265117/how-many-ways-to-cut-a-number-into-an-equation/265143#265143">emanresu</a></td></tr>
 <tr d-ix="4"><td>nan</td><td>For each expression that contains exactly one equality operator</td><td>230912T031952Z</td><td><a href="https://codegolf.stackexchange.com/questions/265117/how-many-ways-to-cut-a-number-into-an-equation/265140#265140">姜维平</a></td></tr>
@@ -36,7 +36,22 @@
 <tr d-ix="7"><td>061</td><td>Charcoal</td><td>230911T203820Z</td><td><a href="https://codegolf.stackexchange.com/questions/265117/how-many-ways-to-cut-a-number-into-an-equation/265133#265133">Neil</a></td></tr>
 <tr d-ix="8"><td>117</td><td>Ruby</td><td>230911T194208Z</td><td><a href="https://codegolf.stackexchange.com/questions/265117/how-many-ways-to-cut-a-number-into-an-equation/265131#265131">Value In</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 178 bytes</h1>
+<div id="pu0" class="pu"><h1>GNU <code>sed -E</code>, <s> 214 200 181 </s> 171 bytes</h1>
+<p>For some not-so-obvious reason, I decided to solve this by myself in <code>sed</code>, misusing the shell for expression evaluation with the <code>e</code> flag of the GNU version of the tool:</p>
+<pre><code>G:1;s/(\S*[0-9])([0-9]\S*\n)/\1_\2\1==\2\1+\2\1-\2\1*\2/;t1;s/_//g;:2;s/(\n|^)[^=]+\n/\n/;s/\S*==\S+==\S*//;t2;s/\S*/+$((&amp;))/g;s/\S*[ =*+-]0[0-9]\S*//g;s/.*/echo $((&amp;))/e
+</code></pre>
+<p><strong><a href="https://tio.run/##NY09DsIwDIWv0gGh/Cg4yUQbZUQcoGOcdoCqsKRILRtnJzgBJOuz3rOfvU5XNadnzmfXGbcCw14ErdrIWW0kMXFAM6JF432hLFAFAi24reRGgNl1tl5Ir4GHwUeJCajIoysU7WWBAIrYrwlyx9iec8pWHRovpIr6/xrq4CBgutyW5rc75dxqa476vTy2@5LWrE4f" rel="nofollow noreferrer" title="sed – Try It Online">Try it online!</a></strong></p>
+<ul>
+<li><code>G</code> appends the (empty) hold space, so it adds a newline to the end, which is used as a separator</li>
+<li><code>:1;s/(\S*[0-9])([0-9]\S*\n)/\1_\2\1==\2\1+\2\1-\2\1*\2/;t1</code> loops to add operators or <code>==</code> between each pair of digits, marking already considered pairs by <code>_</code></li>
+<li><code>s/_//g</code> removes the <code>_</code> markers</li>
+<li><code>:2;s/(\n|^)[^=]+\n/\n/;s/\S*==\S+==\S*//;t2</code> removes items without <code>==</code> or with more than one `==</li>
+<li><code>s/\S*/+$((&amp;))/g</code> turns each equation in to an arithmetic expansion <code>$(())</code></li>
+<li><code>s/\S*[ =*+-]0[0-9]\S*//g</code> is needed to remove all equations including a leading zero</li>
+<li>`s/.*/echo $((&amp;))/e<span class="math-container">`</span> finally evaluates the whole rubbish</li>
+</ul>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 178 bytes</h1>
 <p><em>-2 bytes, thanks to corvus_192</em></p>
 <pre class="lang-python prettyprint-override"><code>lambda s:len({*filter(eval,q(s,&quot;==&quot;))})
 q=lambda s,c:[l+c+r for i in range(1,len(s))for l in e(s[:i])for r in e(s[i:])]
@@ -46,23 +61,6 @@ e=lambda s:[s]*(s==str(int(s)))+q(s,&quot;+&quot;)+q(s,&quot;-&quot;)+q(s,&quot;
 <p><em>Takes the string representation of the number as input</em></p>
 <p>Generates all possible equations, uses <code>eval</code> to compare the results</p>
 <p>The <code>*(s==str(int(s)))</code> part prevents leading zeros</p>
-</div>
-<div id="pu1" class="pu"><h1>GNU <code>sed -E</code>, <s> 214 200 </s> 181 bytes</h1>
-<p>For some not-so-obvious reason, I decided to solve this by myself in <code>sed</code>, misusing the shell for expression evaluation with the <code>e</code> flag of the GNU version of the tool:</p>
-<pre><code>G;:1;s/^(\S*[0-9])([0-9]\S*\n)/\1_\2\1==\2/;t1;s/\S*//;s/_//g;:2;s/(\S*[0-9])([0-9]\S*\n)/\1#\2\1+\2\1-\2\1*\2/;t2;s/#//g;s/\S*/+$((&amp;))/g;s/\S*[ =*+-]0[0-9]\S*//g;s/.*/echo $((&amp;))/e
-</code></pre>
-<p><strong><a href="https://tio.run/##dYzNDoIwEIRfhQRj@pO6bU9C06PxATyyyEEJemlNiq9v7YIcvczsZOebNN7VFN45n11rXIIrw4votGp6zhYrEQMHNANaNN6jBTdTszwAig8Ak2ttuf6iNaGSRJGIZYOImth1Su4Y23O@5a7yQqpeb0Nr8SBgvD1i9euOOTfamqP@xNf8jCFldfoC" rel="nofollow noreferrer" title="sed – Try It Online">Try it online!</a></strong></p>
-<ul>
-<li><code>G</code> appends the (empty) hold space, so it adds a newline to the end, which is used as a separator</li>
-<li><code>:1;s/^(\S*[0-9])([0-9]\S*\n)/\1_\2\1==\2/;t1</code> loops to add <code>==</code> between each pair of digits, marking already considered pairs by <code>_</code></li>
-<li><code>s/\S*//</code> removes the part without <code>==</code></li>
-<li><code>s/_//g</code> removes the <code>_</code> marker</li>
-<li><code>s/(\S*[0-9])([0-9]\S*\n)/\1#\2\1+\2\1-\2\1*\2/;t2</code> expands each pair of digits to versions with <code>+</code>, <code>-</code>, <code>*</code> and a <code>#</code> for &quot;we can also leave them together&quot;</li>
-<li><code>s/#//g</code> another marker remover</li>
-<li><code>s/\S*/+$((&amp;))/g</code> turns each equation in to an arithmetic expansion <code>$(())</code></li>
-<li><code>s/\S*[ =*+-]0[0-9]\S*//g</code> is needed to remove all equations including a leading zero</li>
-<li><code>s/.*/echo $((&amp;))/e</code> finally evaluates the whole rubbish</li>
-</ul>
 </div>
 <div id="pu2" class="pu"><h1>JavaScript (ES6), 107 bytes</h1>
 <p><em>-26 bytes (!) thanks to <a href="https://codegolf.stackexchange.com/users/44718/tsh">@tsh</a></em></p>

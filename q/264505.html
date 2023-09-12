@@ -26,8 +26,8 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>056</td><td>Headass</td><td>230824T030152Z</td><td><a href="https://codegolf.stackexchange.com/questions/264505/repeat-your-program-to-print-fibonacci-numbers/264582#264582">thejonym</a></td></tr>
-<tr d-ix="1"><td>039</td><td>Lambda calculus Ben Lynn's Nat</td><td>230908T091938Z</td><td><a href="https://codegolf.stackexchange.com/questions/264505/repeat-your-program-to-print-fibonacci-numbers/265032#265032">Bubbler</a></td></tr>
+<tr d-ix="0"><td>046</td><td>Lambda calculus Ben Lynn's Nat</td><td>230908T091938Z</td><td><a href="https://codegolf.stackexchange.com/questions/264505/repeat-your-program-to-print-fibonacci-numbers/265032#265032">Bubbler</a></td></tr>
+<tr d-ix="1"><td>056</td><td>Headass</td><td>230824T030152Z</td><td><a href="https://codegolf.stackexchange.com/questions/264505/repeat-your-program-to-print-fibonacci-numbers/264582#264582">thejonym</a></td></tr>
 <tr d-ix="2"><td>014</td><td>Labyrinth</td><td>230908T060339Z</td><td><a href="https://codegolf.stackexchange.com/questions/264505/repeat-your-program-to-print-fibonacci-numbers/265025#265025">Bubbler</a></td></tr>
 <tr d-ix="3"><td>004</td><td>Itr</td><td>230822T180802Z</td><td><a href="https://codegolf.stackexchange.com/questions/264505/repeat-your-program-to-print-fibonacci-numbers/264506#264506">bsoelch</a></td></tr>
 <tr d-ix="4"><td>019</td><td>APL Dyalog</td><td>230826T175225Z</td><td><a href="https://codegolf.stackexchange.com/questions/264505/repeat-your-program-to-print-fibonacci-numbers/264652#264652">boltcapt</a></td></tr>
@@ -66,7 +66,57 @@
 <tr d-ix="37"><td>014</td><td>Charcoal</td><td>230822T194449Z</td><td><a href="https://codegolf.stackexchange.com/questions/264505/repeat-your-program-to-print-fibonacci-numbers/264518#264518">Neil</a></td></tr>
 <tr d-ix="38"><td>004</td><td>Thunno 2</td><td>230822T181626Z</td><td><a href="https://codegolf.stackexchange.com/questions/264505/repeat-your-program-to-print-fibonacci-numbers/264509#264509">The Thon</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://esolangs.org/wiki/Headass" rel="nofollow noreferrer">Headass</a>, 56 bytes</h1>
+<div id="pu0" class="pu"><h1>Lambda calculus (<a href="https://crypto.stanford.edu/%7Eblynn/lambda/crazyl.html" rel="nofollow noreferrer">Ben Lynn's Nat</a>), 46 bytes</h1>
+<pre><code>(\n.n(\px.Sp(BxSB))K(KI)I)\f.(\l.SB(lf)f)\g.KI
+</code></pre>
+<p><a href="https://crypto.stanford.edu/%7Eblynn/lambda/crazyl.html" rel="nofollow noreferrer">Try it online!</a> (Instructions: delete all the code there, copy the body n times and the footer on a single line, choose Nat, click Compile and then Run and see the Output.)</p>
+<p>The observation that</p>
+<blockquote>
+<p>Just realized that codes like <code>I\f.f</code> (a trailing lambda abstraction, which puts the next iteration inside its body) are accepted. This may change the conclusion about zero padding.</p>
+</blockquote>
+<p>was correct, and there was indeed a solution without any padding.</p>
+<p>The solution above has a structure of</p>
+<pre><code>x \f. y \g. z
+</code></pre>
+<p>and has the following property:</p>
+<pre><code>(\f. y \g. z) == 1
+(\f. y \g. z x \f. y \g. z) == 2
+(\f. y \g. z x \f. y \g. z x \f. y \g. z) == 3
+...
+</code></pre>
+<p><code>z</code> was chosen to be <code>KI</code> so that we can ignore <code>x</code> and the equation to solve simply becomes</p>
+<pre><code>(\f. y \g. n) == succ n == SBn
+</code></pre>
+<p>which can be solved with <code>y = \l.SB(lf)f</code>. Then, <code>x</code> should be a function that takes <code>n</code> and outputs <code>n</code>th fibonacci number. This is solved using <a href="https://codegolf.stackexchange.com/a/251463/78410">2014MELO03's construction</a> of iterating a pair.</p>
+<hr />
+<h1>Lambda calculus (<a href="https://crypto.stanford.edu/%7Eblynn/lambda/crazyl.html" rel="nofollow noreferrer">Ben Lynn's Nat</a>), 39 bytes, 1 byte footer</h1>
+<pre><code>(\a.a(\zbxf.f(a(SB)b)a)(\f.fI(KI)))(KI)
+</code></pre>
+<p>Footer:</p>
+<pre><code>K
+</code></pre>
+<p><a href="https://crypto.stanford.edu/%7Eblynn/lambda/crazyl.html" rel="nofollow noreferrer">Try it online!</a> (Instructions: delete all the code there, copy the body n times and the footer on a single line, choose Nat, click Compile and then Run and see the Output.)</p>
+<h3>How I got to this solution</h3>
+<p>First, <s>there is no solution without any header or footer</s>. This is because:</p>
+<ul>
+<li>any lambda term would be in the structure of <code>x1 x2 .. xn</code></li>
+<li>one copy must evaluate to 1 = <code>I</code></li>
+<li>but then 2 copies of the code evaluates to <code>x1 x2 .. xn x1 x2 .. xn</code> = <code>I x1 x2 .. xn</code> = <code>x1 x2 .. xn</code> = <code>I</code>, which is true for any number of copies, and 1 is clearly not <code>fib(i)</code> for larger <code>i</code> (number of copies).</li>
+</ul>
+<p><sub>This logic is false due to the subtlety of the grammar of Nat. See the no-padding solution at the top.</sub></p>
+<p>Given this, I aimed to find a solution with a single combinator as the footer. I chose K because it fits particularly well here; specifically, if repetitions of <code>x1 x2 .. xn</code> evaluate to a pair, applying K on it extracts the first element. Then to simplify the problem, I assumed that <code>n = 2</code>, i.e. the repeating part is <code>f x</code> for some <code>f</code> and <code>x</code>. It can be an answer if it satisfies the following: (<code>(x, y)</code> refers to the Church pair of <code>x</code> and <code>y</code>.)</p>
+<ul>
+<li><code>f x</code> evaluates to <code>(1, 0)</code>.</li>
+<li><code>(a, b) f x</code> = <code>f a b x</code> evaluates to <code>(a+b, a)</code>.</li>
+</ul>
+<p>Given that <code>a</code> in the second case is always a Church natural number ≥ 1, I decided to set <code>x</code> to zero (= <code>KI</code>). Then I can use a simple discriminator that returns <code>u</code> for 0 and <code>v</code> for 1 or greater:</p>
+<pre><code>0 (\z. v) u = u
+a (\z. v) u = v -- when a &gt;= 1
+</code></pre>
+<p>If the first argument is 0, we need to return <code>(1, 0)</code>, so <code>u = \f. f I (KI)</code>. Otherwise we take two more arguments <code>b</code> and <code>x</code>, ignore <code>x</code>, and construct a new pair <code>\f. f (a succ b) a</code>. This completes the construction of the answer above.</p>
+<p>About choosing the interpreter and the LC language: I initially wanted to compile this to SKI calculus, but I didn't have a good one, and the three copies of <code>a</code> in a single lambda would surely make a mess. So I reached out for a regular LC interpreter instead, and found Nat. After getting some syntax errors (I was trying to use <code>s</code> for a function name), I realized that it does support SKIBC combinators out of the box, so I went with it.</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://esolangs.org/wiki/Headass" rel="nofollow noreferrer">Headass</a>, 56 bytes</h1>
 <pre><code>U+O[+O[ORO[]]+E.U-):R-OU[UO]OUO[]]+E;U({])UU+O[]]E:?-(}.
 </code></pre>
 <p>Prints the word <code>debug</code> fib(n) times, where n is the number of copies, separated by newlines. This relies on the fact that DSO doesn't actually provide any debug info when the debug operation is called. it just prints the word 'debug'. Pretty funny stuff!</p>
@@ -139,32 +189,6 @@ U)  :           NE   while(i){
   UP                 print a
                   .  end code block
 </code></pre>
-</div>
-<div id="pu1" class="pu"><h1>Lambda calculus (<a href="https://crypto.stanford.edu/%7Eblynn/lambda/crazyl.html" rel="nofollow noreferrer">Ben Lynn's Nat</a>), 39 bytes, 1 byte footer</h1>
-<pre><code>(\a.a(\zbxf.f(a(SB)b)a)(\f.fI(KI)))(KI)
-</code></pre>
-<p>Footer:</p>
-<pre><code>K
-</code></pre>
-<p><a href="https://crypto.stanford.edu/%7Eblynn/lambda/crazyl.html" rel="nofollow noreferrer">Try it online!</a> (Instructions: delete all the code there, copy the body n times and the footer on a single line, choose Nat, click Compile and then Run and see the Output.)</p>
-<h3>How I got to this solution</h3>
-<p>First, there is no solution without any header or footer. This is because:</p>
-<ul>
-<li>any lambda term would be in the structure of <code>x1 x2 .. xn</code></li>
-<li>one copy must evaluate to 1 = <code>I</code></li>
-<li>but then 2 copies of the code evaluates to <code>x1 x2 .. xn x1 x2 .. xn</code> = <code>I x1 x2 .. xn</code> = <code>x1 x2 .. xn</code> = <code>I</code>, which is true for any number of copies, and 1 is clearly not <code>fib(i)</code> for larger <code>i</code> (number of copies).</li>
-</ul>
-<p>Given this, I aimed to find a solution with a single combinator as the footer. I chose K because it fits particularly well here; specifically, if repetitions of <code>x1 x2 .. xn</code> evaluate to a pair, applying K on it extracts the first element. Then to simplify the problem, I assumed that <code>n = 2</code>, i.e. the repeating part is <code>f x</code> for some <code>f</code> and <code>x</code>. It can be an answer if it satisfies the following: (<code>(x, y)</code> refers to the Church pair of <code>x</code> and <code>y</code>.)</p>
-<ul>
-<li><code>f x</code> evaluates to <code>(1, 0)</code>.</li>
-<li><code>(a, b) f x</code> = <code>f a b x</code> evaluates to <code>(a+b, a)</code>.</li>
-</ul>
-<p>Given that <code>a</code> in the second case is always a Church natural number ≥ 1, I decided to set <code>x</code> to zero (= <code>KI</code>). Then I can use a simple discriminator that returns <code>u</code> for 0 and <code>v</code> for 1 or greater:</p>
-<pre><code>0 (\z. v) u = u
-a (\z. v) u = v -- when a &gt;= 1
-</code></pre>
-<p>If the first argument is 0, we need to return <code>(1, 0)</code>, so <code>u = \f. f I (KI)</code>. Otherwise we take two more arguments <code>b</code> and <code>x</code>, ignore <code>x</code>, and construct a new pair <code>\f. f (a succ b) a</code>. This completes the construction of the answer above.</p>
-<p>About choosing the interpreter and the LC language: I initially wanted to compile this to SKI calculus, but I didn't have a good one, and the three copies of <code>a</code> in a single lambda would surely make a mess. So I reached out for a regular LC interpreter instead, and found Nat. After getting some syntax errors (I was trying to use <code>s</code> for a function name), I realized that it does support SKIBC combinators out of the box, so I went with it.</p>
 </div>
 <div id="pu2" class="pu"><h1><a href="https://github.com/m-ender/labyrinth" rel="nofollow noreferrer">Labyrinth</a>, 14 bytes</h1>
 <pre><code> #
