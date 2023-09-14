@@ -26,12 +26,45 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>206</td><td>JavaScript ES6</td><td>230823T211106Z</td><td><a href="https://codegolf.stackexchange.com/questions/264562/decode-chess-move/264571#264571">Arnauld</a></td></tr>
-<tr d-ix="1"><td>249</td><td>Ruby p</td><td>230823T211312Z</td><td><a href="https://codegolf.stackexchange.com/questions/264562/decode-chess-move/264572#264572">Value In</a></td></tr>
-<tr d-ix="2"><td>171</td><td>Retina 0.8.2</td><td>230823T184754Z</td><td><a href="https://codegolf.stackexchange.com/questions/264562/decode-chess-move/264563#264563">Neil</a></td></tr>
-<tr d-ix="3"><td>146</td><td>Charcoal</td><td>230823T193956Z</td><td><a href="https://codegolf.stackexchange.com/questions/264562/decode-chess-move/264567#264567">Neil</a></td></tr>
+<tr d-ix="0"><td>335</td><td>C# .NET console app</td><td>230914T084352Z</td><td><a href="https://codegolf.stackexchange.com/questions/264562/decode-chess-move/265210#265210">Igby Lar</a></td></tr>
+<tr d-ix="1"><td>206</td><td>JavaScript ES6</td><td>230823T211106Z</td><td><a href="https://codegolf.stackexchange.com/questions/264562/decode-chess-move/264571#264571">Arnauld</a></td></tr>
+<tr d-ix="2"><td>249</td><td>Ruby p</td><td>230823T211312Z</td><td><a href="https://codegolf.stackexchange.com/questions/264562/decode-chess-move/264572#264572">Value In</a></td></tr>
+<tr d-ix="3"><td>171</td><td>Retina 0.8.2</td><td>230823T184754Z</td><td><a href="https://codegolf.stackexchange.com/questions/264562/decode-chess-move/264563#264563">Neil</a></td></tr>
+<tr d-ix="4"><td>146</td><td>Charcoal</td><td>230823T193956Z</td><td><a href="https://codegolf.stackexchange.com/questions/264562/decode-chess-move/264567#264567">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>JavaScript (ES6), 206 bytes</h1>
+<div id="pu0" class="pu"><h1>C# .NET console app, 335 bytes</h1>
+<p>Assumes <code>using System; using System.Text.RegularExpressions;</code></p>
+<pre><code>string m=Regex.Replace(args[0],&quot;(?&lt;!x)([a-h])(?!.*[x|a-h])&quot;,&quot;t${0}&quot;),r=m[0]&gt;96?&quot;Pawn &quot;:m[0]&lt;49?(m.Length&gt;4?&quot;long&quot;:&quot;short&quot;)+&quot; castle &quot;:&quot;&quot;;foreach(var c in m){int i=&quot;-0RNBQKx+#=t&quot;.IndexOf(c);r+=&quot;,,,Rook ,Knight ,Bishop ,Queen ,King ,takes ,check,mate,promotes to ,to &quot;.Split(',')[i+1];if(c!=m[0]&amp;i&lt;0)r+=c+(c&lt;57?&quot; &quot;:&quot;&quot;);}Console.Write(r);
+</code></pre>
+<h2>Commented</h2>
+<pre><code>// add a 't' to the move string wherever &quot;to&quot; is needed
+string m = Regex.Replace(args[0], &quot;(?&lt;!x)([a-h])(?!.*[x|a-h])&quot;, &quot;t${0}&quot;), 
+
+// start with 'Pawn' if the first character is a file, to or takes
+    r = m[0] &gt; 96 ? &quot;Pawn &quot; 
+
+// decode castles now so we can ignore -,0 later
+    : m[0]&lt;49 ? (m.Length&gt;4 ? &quot;long&quot; : &quot;short&quot;) + &quot; castle &quot; : &quot;&quot;;
+    
+// iterate through the move string 
+foreach (var c in m) 
+{
+    // map each code to a word, with space where needed
+    // 0,- map to empty string
+    int i = &quot;-0RNBQKx+#=t&quot;.IndexOf(c);
+    r += &quot;,,,Rook ,Knight ,Bishop ,Queen ,King ,takes ,check,mate,promotes to ,to &quot;.Split(',')[i + 1];
+
+    // anything that doesn't map is assumed to be a square reference and added to the result
+    // except if it's the first character because if it's not x or t then it must be a file with no rank.
+    // also add a space if it's a digit
+    if (c != m[0] &amp; i &lt; 0)
+        r += c + (c &lt; 57 ? &quot; &quot; : &quot;&quot;);
+}
+
+Console.Write(r);
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>JavaScript (ES6), 206 bytes</h1>
 <p>Takes some inspiration from <a href="https://codegolf.stackexchange.com/a/264563/58563">Neil's Retina answer</a>. But in the end, this is quite different.</p>
 <pre class="lang-javascript prettyprint-override"><code>s=&gt;[/O-O-/,/O-/,/.\d/g,/to (?=.*o)/,/x to/,...&quot;=+#ORKBQN&quot;,/^.? /].map((r,j)=&gt;s=s.replace(r,`long/short/ to $&amp;// takes/ promotes to / check/ mate/ castle/Rook/King/Bishop/Queen/Knight/Pawn `.split`/`[j]))&amp;&amp;s
 </code></pre>
@@ -93,7 +126,7 @@ Pawn
 </code></pre>
 <p><a href="https://tio.run/##FU5BCsIwELzPKwJVEUo9qGgvRejFQ8HYnEWMdW1DayJtRH8fN4ednZ0dmBnJG6vDfHm8BZnJDIOzLXhPnRs9VpcHhHditkC2vjEBfnyzpnuaUEC8R/dynqbowiWFaDpqeiQQL@0JkgU9@YGgoJzrUaEynFCiNBzxRo36Q2RxQmVN23lcVweBs/5aEQJtoXSO56/NizpFed8n3E3GSSNkMoHiJztoF61MGaNyum8S6Lwo/w" rel="nofollow noreferrer" title="Retina 0.8.2 – Try It Online">Try it online!</a></p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a> <code>-p</code>, 249 bytes</h1>
+<div id="pu2" class="pu"><h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a> <code>-p</code>, 249 bytes</h1>
 <p><code>-p</code> flag loops over input, modifies it with these two fat regex functions, and spits it back out.</p>
 <pre class="lang-ruby prettyprint-override"><code>sub(/(^[a-g]?)?(.\d)?(x)?(?=.\d)|O(-O)+/){$4?%w(short long)[~/$//5]+' castle':&quot;#{$1&amp;&amp;?P}#{' '+$2if$2} #{$3?:takes:'to'} &quot;}
 gsub(/[#+=B-R]/){|m|m[/\W/]?' '+%w(mate promotes\ to\  _ check)[m.ord%5]:%w(King Queen Rook Bishop Pawn).find{_1[m]}||:Knight}
@@ -134,7 +167,7 @@ gsub(/[#+=B-R]/) {|m|                # Match checkmate, check, promotes, pieces
 <span class="math-container">```</span>
 </code></pre>
 </div>
-<div id="pu2" class="pu"><h1><a href="https://github.com/m-ender/retina/wiki/The-Language/a950ad7d925ec9316e3e2fb2cf5d49fd15d23e3d" rel="nofollow noreferrer">Retina 0.8.2</a>, <s>176</s> <s>172</s> 171 bytes</h1>
+<div id="pu3" class="pu"><h1><a href="https://github.com/m-ender/retina/wiki/The-Language/a950ad7d925ec9316e3e2fb2cf5d49fd15d23e3d" rel="nofollow noreferrer">Retina 0.8.2</a>, <s>176</s> <s>172</s> 171 bytes</h1>
 <pre><code>(([A-Z])(..)?|(.?))(x)?(.\d)
 $2$#4$*P $3$#3$* to$5 $6
 ox
@@ -205,7 +238,7 @@ Pawn
 <p>Expand the piece names.</p>
 <p>Edit: Saved 4 bytes thanks to @Arnauld. Saved 1 byte thanks to @ValueInk.</p>
 </div>
-<div id="pu3" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, <s>165</s> 146 bytes</h1>
+<div id="pu4" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, <s>165</s> 146 bytes</h1>
 <pre><code>ＦＳ≡ιx≔⊞ＯΦυ⊖Ｌκtakesυ-≔⟦⎇⊖Ｌυlong¦short⟧υ¿№βι≔⊞Ｏ⁺∨⁻υ⟦to⟧⟦Pawn⟧…⟦to⟧¬№υtakesιυ¿Σι⊞υ⁺⊟υι⊞υ§⪪”↶.⭆～»¤πη‽q∕¶lj,⊙↥⟲Qmº5σ¡²JＮ¤εlθw(LθΦG▶⁵@W｜]”¶⌕KQRBNO+#ι⪫υ 
 </code></pre>
 <p><a href="https://tio.run/##bVJLTwIxEL7zK5p6mUa4G4kHxZjgAxbw5nqoy7DbUKabdqoY42/H2QXjxdN8zUy/x7RVY2MVrD8cNiEqmFKbecXRUQ3GqPThuGoUOKO@BpVNqPReX6rrlFxNUOTUzFuMlkOEO@cZI@ShusUq4g6JcQ2PSDU3sDXGDJVmu8WkBWUzPtGN/uhenjGSjZ/wD0Hu7/tAtZaamhBZm9cj0Ro3Nnu@VG6jYBIyMbwNlRP7//ksfE4wj/DkSIDYfdEc9KvpQGE/qIeTz8rjpAktHLtDNQt84s5/QfpU7phHoZc8nYVV3kGn3sl2071iIVy5n/4d/W1f85TWuIdV6x2DfpDVl7TIiFTSMoRtSTdOArclPZCrGy5JNscepTZYSXtnWQ5tDLvAmJT4FYcldXu@c7QWysXyZjY/P9O9vGzse1DICzPcB0d9HiVZxvIF9vXF1eL8MHr3Pw" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code. Explanation:</p>
