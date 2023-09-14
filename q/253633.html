@@ -1,0 +1,1760 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::253633</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>nan</td><td></td><td>230914T172220Z</td><td><a href="https://codegolf.stackexchange.com/questions/253633/the-smallest-area-of-a-convex-grid-polygon/265224#265224">G&#252;n</a></td></tr>
+<tr d-ix="1"><td>323</td><td>Fortran n=17</td><td>221029T125913Z</td><td><a href="https://codegolf.stackexchange.com/questions/253633/the-smallest-area-of-a-convex-grid-polygon/253908#253908">Hugo Pfo</a></td></tr>
+<tr d-ix="2"><td>010</td><td>Python with restricted conditions n=26</td><td>221024T215157Z</td><td><a href="https://codegolf.stackexchange.com/questions/253633/the-smallest-area-of-a-convex-grid-polygon/253721#253721">arrmansa</a></td></tr>
+<tr d-ix="3"><td>nan</td><td>Rust + itertools + fasthash</td><td>221027T091656Z</td><td><a href="https://codegolf.stackexchange.com/questions/253633/the-smallest-area-of-a-convex-grid-polygon/253808#253808">corvus_1</a></td></tr>
+<tr d-ix="4"><td>162</td><td>C++ gcc</td><td>221026T165707Z</td><td><a href="https://codegolf.stackexchange.com/questions/253633/the-smallest-area-of-a-convex-grid-polygon/253788#253788">jdt</a></td></tr>
+<tr d-ix="5"><td>019</td><td>JavaScript Node.js</td><td>221023T151044Z</td><td><a href="https://codegolf.stackexchange.com/questions/253633/the-smallest-area-of-a-convex-grid-polygon/253655#253655">Arnauld</a></td></tr>
+</table>
+<div id="pu0" class="pu"><p>This is Python</p>
+<p>This can (rigorously) go up to 18-gons in 6 minutes, using pypy.
+CPython is slightly slower.
+Up to 19-gons (and 20-gons) takes 40 minutes with CPython and pypy,
+on my laptop.</p>
+<p>The approach is rigorous.
+The program is a bit paranoic, and continues the computation all the way
+up to a height where a very weak bound is enough to
+exclude the possibility of further progress. I hope some more insights might cut this down.</p>
+<p>The min-area values are actually found rather quickly (also when trying
+larger target values of N, for N-gons).
+Judging by the actual &quot;heights&quot; of the (presumed) optimal polygons,
+the program reaches N=50 within seconds.</p>
+<p>The target value of N can be given on the command line.</p>
+<pre><code>N_target = 19
+
+&quot;&quot;&quot;
+Lemma 1: Every edge is a primitive vector.
+
+
+Lemma 2:
+Every n-gon P has an edge e such that the longest segment parallel
+to e that is contained in P has length
+at most |e| * 1/tan(pi/n) ~ |e| * n / pi
+
+Proof:
+Affine transformation s.t. B_1 \subset P \subset B_2.
+(Affine transformation does not affect length ratios on parallel lines.)
+
+Longest edge &gt;= 2/tan(pi/n)
+Longest segment in P &lt;= 2 
+QED.
+
+[ A similar lemma shows that there is an edge such that
+the longest parallel segment in P is AT LEAST 1/4 the above quantity.
+(Just take the shortest edge after the transformation.
+Bound might be improved by more careful arguments, using that P must touch B1
+in &gt;=3 points if B1 is the affine image of the largest contained ellipse;
+then no gap between touching points can be larger than 120°.)
+This may be more useful, in order to bound the height.
+But then some other argument must be used to bound the horizontal
+advancement of the point q. For example, that nothing can be gained
+by further advancement. ]
+
+We fix the edge e from Lemma 2 to be the segment
+(0,0),(1,0), calling it the BASE EDGE,
+and the polygon lies above the x-axis.
+O=(0,0) is the origin.
+By Lemma 2, we know that P contains no horizontal segment
+longer than W := 1/tan(pi/n).
+(This property is used but not enforced by the algorithm.)
+
+The approach is by dynamic programming.
+
+For each pair of points p and q and every k, we remember the smallest
+counterclockwise k-gon (0,0),(1,0), .... , q, p
+
+Restrictions:
+* p,q are in the upper half-plane
+* p is strictly higher than q. (Thus, p is the top point, and
+  there is a &quot;long edge&quot; from O to p.)
+  (Polygons with a horizontal upper edge will be treated specially.)
+
+By horizontal lattice-preserving shearing transformations, it suffices to
+consider the range 0 &lt;= px &lt; py.
+
+We know that there is no horizontal segment of width &gt;W, hence
+for every qy, only W+1 values qx must be tried, starting from
+the intersection of the line 0p with the horizontal line at qy,
+and going at most W steps to the right.
+These values are always contained in the range
+    1&lt;= qx &lt;= qy+W
+
+===========================
+
+In the end we put together a counterclockwise k-gon ending in p
+with a counterclockwise k'-gon ending in p or in p-(1,0).
+Overlapping areas due to the shared bottom edge have to be adjusted.
+
+Main data structure:
+====================
+min_gon is a dictionary
+min_gon[(px,py)] is a dictionary
+
+min_gon[(px,py)][k] is a list of pairs (f,vol)=((fx,fy),vol), where
+f=(fx,fy)=q-p is a primitive vector (pointing upwards, fy&gt;0) and
+vol = 2 * min-area of a k-gon ((0,0),(1,0), .... ,q,p).
+In the list, the vectors f are sorted clockwise by direction,
+and the corresponding values &quot;vol&quot; are strictly increasing.
+(If pairs don't fit this order, we can eliminate one of them as DOMINATED.)
+
+&quot;vol&quot; is TWICE the area.
+
+OEIS:
+1,2,5,6,13,14,21,28,43,48,65,80,103,118, / 151,174,213,242,289,328,387,420,497
+
+&quot;&quot;&quot;
+
+from math import tan,pi,gcd
+import sys
+
+if len(sys.argv)&gt;1:
+    N_target = int(sys.argv[1])
+
+W = int(1/tan(pi/N_target))
+
+min_gon = dict()
+record_area = [n**3 for n in range(N_target+1)] # loose upper bound as start value
+height = [0 for n in range(N_target+1)] # smallest height of a min-area polygon
+# AS FOUND BY THE PROGRAM (given the bottom edge).
+# It might not be the true minimum because of the special choice of the bottom
+# edge e and the assumption on W that is used to restrict the computation.
+
+confirmed = [True]*3 + [False]*(N_target+1-3) # checks which entries are confirmed.
+how_achieved = [None]*(N_target+1)
+
+# Auxiliary procedures to construct the solution, once the optimal
+# area has been determined
+def find_polygon(px,py,k,alpha0=0):
+    # find the smallest k-gon ending in (px,py) by backtracing
+    # 0&lt;px&lt;py. The two point (0,0),(1,0) are not produced
+    alphaT = alpha0
+    result = [(px+alphaT*py,py)]
+    (fx,fy),vol = min_gon[px,py][k][0]
+    for k in range (k-1,2,-1):
+        qx,qy = px-fx,py-fy
+        vol -= qx*py-qy*px
+        alpha =  qx//qy
+        px,py = qx-alpha*qy,qy
+        alphaT += alpha # alpha is accumulated
+        result.append((px+alphaT*py,py))
+        for (fx,fy),vol2 in min_gon[px,py][k]:
+            if vol2==vol: # this must be the right entry
+                break
+        else:
+            error(&quot;not found&quot;,k,px,py)
+    return result
+
+def print_solution(k):
+    how,px,py,k1,k2 = how_achieved[k]
+    if how==&quot;LONG EDGE&quot;:
+        if k1&gt;3:
+            error(&quot;not implemented&quot;)
+        return
+    p1 = find_polygon(px,py,k1)
+    p1.reverse()
+    if how==&quot;DIAGONAL&quot;:
+        top_point = px
+    else:
+        top_point = px-1
+    ppx = (1-top_point)%py
+    alpha0 = (1-top_point - ppx) // py # usually, alpha0==-1
+    p2 = [(1-x,y) for x,y in find_polygon(ppx,py,k2,alpha0)]
+    #print(f&quot;-- {how=} {alpha0=}, {p2[0][0]=},{top_point=},{ppx=},{px=},{py=},{k=}&quot;)
+    assert p2[0][0]==top_point
+    if how==&quot;DIAGONAL&quot;:
+        p2 = p2[1:] #eliminate the common point
+    print (&quot;--- smallest %d-gon,&quot;%k, &quot;area = %d/2:&quot;%record_area[k],
+           [(0,0),(1,0)]+p1+p2) # counterclockwise
+
+## Start the computation
+
+py = 1 # proceed row by row
+while not all(confirmed):
+    for px in range(py): # triangles are the base case.
+        min_gon[px,py]={3:[((px-1,py),py)]}
+        # or perhaps rather start 2-gons?
+
+    collect = {} # We will first *collect* the contributions to row py before
+                 # sorting and processing them.         
+    for qy in range(1,py):
+        # collect all contributions from point q on row qy to points p on row py:
+        Delta_y = py-qy # &gt;0
+        for qx in range(qy+W+1):
+            # This range of qx is sufficient, by the choice of base edge e.
+            alpha = qx//qy # normalize (qx,qy) to 0&lt;=qy&lt;qx by horizontal shearing
+            for k,sides in min_gon[qx-alpha*qy,qy].items():
+                if k==N_target:
+                    continue
+                if k+1 not in collect:
+                    collect[k+1]=[[] for px in range(py)]
+                current_collect = collect[k+1]
+                px = 0
+                for (fx,fy),vol in sides:
+                    # sweep clockwise around q; vol is increasing.
+                    # simultaneously sweep the point p on
+                    # row py from left to right, clockwise around q.
+                    ffx = fx+alpha*fy # apply the reverse shearing by -alpha
+                    while (# vector q-&gt;p is counterclockwise from (ffx,fy):
+                           # Delta_x/Delta_y &lt; ffx/fy 
+                           (px-qx) * fy &lt; ffx * Delta_y ):
+                        # store this:
+                        Delta_x = px-qx
+                        if gcd(Delta_x,Delta_y)==1:
+                            current_collect[px].append(
+                                (vol + qx*py-qy*px, Delta_x,Delta_y))
+                        px += 1
+                        if px&gt;=py: break # py-1 is largest value of px
+                    if px&gt;=py: break
+
+    # Now, consolidate the lists
+    for k,collection in collect.items():
+        for px,triples in enumerate(collection):
+            if not triples:
+                continue
+            result = []
+            prev_fx,prev_fy = -1,0 # ensure that test is true at the first iteration
+            for vol,fx,fy in (sorted(triples)):
+                # smallest area first &lt;==&gt; clockwise sweep.
+                if (# this is the first time OR (fx,fy) is clockwise from prev:
+                    # fx/fy &gt; prev_fx/prev_fy  
+                     fx*prev_fy &gt; prev_fx*fy):
+                    result.append(((fx,fy),vol))
+                    prev_fx,prev_fy = fx,fy
+            min_gon[px,py][k]=result
+            if 0:
+                #print(f&quot;p=({px},{py}) {k=}&quot;)
+                for t in result: print(&quot;  &quot;,t)
+
+    # compute new record areas, if any.
+    def check_record(k, vol, how, text=&quot;&quot;):
+        if k&lt;=N_target and vol&lt;record_area[k]:
+            #if text: print(text)
+            record_area[k] = vol
+            how_achieved[k] = how
+            height[k] = py
+
+    # Combine a &quot;right&quot; k1-gons with &quot;left&quot; k2-gons
+    for px in range(py):
+        ppx = (1-px)%py # exact match along long edge (0,0)-(px,py)
+        for k1,best1 in min_gon[px,py].items():
+            _,vol1 = best1[0] # no combination, take right polygon as is.
+            check_record(k1, vol1, (&quot;LONG EDGE&quot;,px,py,k1,0))
+
+            for k2,best2 in min_gon[ppx,py].items():
+                _,vol2 = best2[0]
+                check_record(k1+k2-3,
+                             vol1+vol2-py, (&quot;DIAGONAL&quot;,px,py,k1,k2))
+                    # adjust for double-counted base triangle ((0,0),(1,0),top)
+                 #f&quot;DIAG k={k1+k2-3} {k1=} {k2=} {vol1=} {vol2=} p=({px},{py})&quot;)
+                    
+        ppx = (2-px)%py # horizontal edge of length 1 at the top
+        for k1,best1 in min_gon[px,py].items():
+            _,vol1 = best1[0]
+            #print(px,py,k1,vol1,find_polygon(px,py,k1))
+            for k2,best2 in min_gon[ppx,py].items():
+                _,vol2 = best2[0]
+                check_record(k1+k2-2, vol1+vol2, (&quot;FLAT EDGE&quot;,px,py,k1,k2))
+                    # added and double-covered areas balance.
+                 #f&quot;EDGE k={k1+k2-2} {k1=} {k2=} {vol1=} {vol2=} p=({px},{py})&quot;)
+
+    for k in range(3,N_target+1):
+        lower_bound = (py+1)+k-3 # evaluated for increased py in the next iteration
+        # easy lower bound: base triangle of volume py, k-3 extra triangles
+        if k%2==0:
+            lower_bound = 2*(py+1)+k-4
+            # In the even case we know that the solution is centrally symmetric.
+        if not confirmed[k] and lower_bound&gt;=record_area[k]:
+            confirmed[k] = True
+            print_solution(k)
+                                
+    print(&quot;target=%d, height=%d,&quot;%(N_target,py),
+          &quot;,&quot;.join(
+          str(record_area[k])+(&quot;&quot; if confirmed[k] else &quot;?&quot;)
+              for k in range(3,N_target+1)),
+              &quot; work =&quot;,sum(len(x) for x in collect.values()))
+    if py%10==0: print(&quot;smallest heights&quot;,height[3:])
+    
+    py += 1
+    
+print(&quot;smallest heights&quot;,height[3:])
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>Fortran n=17, 323 s</h1>
+<pre><code>C Find strictly convex polygons of minimum area on square grid
+C Author: Hugo Pfoertner, 2018
+      implicit integer (A-Z)
+      parameter (vlarge=2147483647)
+C Number of vertices
+      parameter (n=17)
+C Number of coordinate pairs to be used as polygon edges,
+C read from external list 
+      parameter (ms=2048)
+C Length of lists for segments, coordinates, areas
+C Must be extended for n&gt;nm
+      parameter (nm=25)
+      dimension xd(ms), yd(ms), x(nm), y(nm), a(nm), as(nm), nn(nm)
+      equivalence
+     &amp;  (n1,nn(1)),(n2,nn(2)),(n3,nn(3)),(n4,nn(4)),(n5,nn(5)),
+     &amp;  (n6,nn(6)),(n7,nn(7)),(n8,nn(8)),(n9,nn(9)),(n10,nn(10)),
+     &amp;  (n11,nn(11)),(n12,nn(12)),(n13,nn(13)),(n14,nn(14)),
+     &amp;  (n15,nn(15)),(n16,nn(16)),(n17,nn(17)),(n18,nn(18)),
+     &amp;  (n19,nn(19)),(n20,nn(20)),(n21,nn(21)),(n22,nn(22)),
+     &amp;  (n23,nn(23)),(n24,nn(24)),(n25,nn(25))
+C Number of polygons with minimal area found
+      integer*8 count
+C File names of external files, command argument
+      character*15 bspirx, bspiry, carg
+C Progress indicator line
+      character pline*150
+C CPU time
+      real cptime
+C function to calculate d^2 of enclosing circle,
+C to be replaced by function encirc
+C if exact enclosing circle is needed
+      integer diamet
+      external diamet
+C variables  needed in diameter calculation
+      doubleprecision xc, yc, rc, d, diamin, diamax
+C Some choices for OEIS files describing spirals
+C Square spiral
+C      data bspirx, bspiry /'b174344.txt', 'b274923.txt' /
+C Circular rings (Sloane)
+C      data bspirx, bspiry /'b283307.txt', 'b283308.txt' /
+C Circular rings
+      data bspirx, bspiry /'../b305575.txt', '../b305576.txt' /
+C Statement function: Double area of triangle
+      triar(x1,y1, x2,y2, x3,y3) =
+     &amp;      x1*(y2-y3) + x2*(y3-y1) + x3*(y1-y2)
+C Progress indicator
+      pline = '....+....1....+....2....+....3....+....4....+....5' //
+     &amp;  '....+....6....+....7....+....8....+....9....+....A' //
+     &amp;  '....+....B....+....C....+....D....+....E....+....F'
+C
+C read external files with coordinates of points in spiral
+C X
+      open ( unit=10, file=bspirx, status='old',
+     &amp;       form='formatted', iostat=ios)
+      if ( ios .ne. 0 ) stop 'Error opening bfile spiral x'
+      do 1 i = 1, ms
+      read (10,*,end=999) k, xd(i)
+1     continue
+      close (unit=10)
+C Y
+      open ( unit=10, file=bspiry, status='old',
+     &amp;       form='formatted', iostat=ios)
+      if ( ios .ne. 0 ) stop 'Error opening bfile spiral y'
+      do 2 i = 1, ms
+      read (10,*,end=999) k, yd(i)
+2     continue
+      close (unit=10)
+C
+C For convenience: write first nonnegative (x,y) pairs to terminal
+      do 3 i = 2, 120
+      if (xd(i) .ge. 0 .and. yd(i) .ge. 0 ) write (*,1003)i,xd(i),yd(i)
+1003  format ( 3 i3 )
+3     continue
+C
+C preset minimum area
+      ami = vlarge
+C if an upper bound is known: least area + 1
+C      ami = 183
+C preset diameter extreme values
+      diamin = 1.0D20
+      diamax = 0.0D0
+C Total number of polygons with same minimum area
+      count = 0
+C get number of list items from first parameter of program call
+      CALL get_command_argument(1, carg)
+      read (carg, *) m
+      if ( m .gt. ms ) stop 'm exceeds length of segment list'
+      write (*,*) 'Segments used:', m
+C get index of
+      CALL get_command_argument(2, carg)
+      read (carg, *) n2first
+      if ( xd(n2first) .lt. 0  .or. yd(n2first) .lt. 0 )
+     &amp;   stop 'illegal negative start step'
+C limit range, assuming first coordinate pair on files is (0,0)
+      n2first = max(2,min (m,n2first))
+      write (*,*) 'First start step:', xd(n2first), yd(n2first)
+C
+C Start building the polygon
+C
+C Freeze first point
+      x(1) = 0
+      y(1) = 0
+      n1 = 0
+C
+C loop over second point
+      do 20 n2 = n2first, m
+      L = 2
+      x(L) = xd(nn(L))
+      y(L) = yd(nn(L))
+C
+C Limit to angle 0 &lt;= Pi/2
+      if ( x(L) .lt. 0 .or. y(L) .lt. 0 .or. y(L) .gt. x(L) ) goto 20
+C
+C optional: Exclusion of extremely long segments
+C      if (dble(x(L)**2 + y(L)**2) .gt. diamin) goto 20
+      write (*,1006) count, n2, xd(nn(L)), yd(nn(L))
+1006  format (/,'Min area polygons found so far: ', i0,
+     &amp; ', next n2 = ', i0, ' (',i0,',',i0,')')
+C if wanted: progress indicator 
+      WRITE(*, 1004, ADVANCE='NO') pline(1:1)
+1004  format (A1)
+
+C loop over third point
+      do 30 n3 = 2, m
+C Progress indicator
+      WRITE(*, 1004, ADVANCE='NO') pline(n3:n3)
+      L = 3
+      x(L) = x(L-1) + xd(nn(L))
+      y(L) = y(L-1) + yd(nn(L))
+      a(L) = triar (x(1),y(1), x(L-1),y(L-1), x(L),y(L))
+      as(L) = a(L)
+      if ( a(L) .le. 0 ) goto 30
+      if ( a(L) .gt. ami-n+L ) goto 30
+C The following blocks are repeated in code with adaptation for
+C current segment number (code easily generated by a small script
+C or preprocessor)
+      do 40 n4 = 2, m
+      L = 4
+C try extension by segment from list
+      x(L) = x(L-1) + xd(nn(L))
+      y(L) = y(L-1) + yd(nn(L))
+C area contribution
+      a(L) = triar (x(1),y(1), x(L-1),y(L-1), x(L),y(L))
+      if ( a(L) .le. 0 ) goto 40
+C left turn?
+      if (triar(x(L-2),y(L-2), x(L-1),y(L-1), x(L),y(L)) .le. 0) goto 40
+C start point still left of straight line through endpoints of segment?
+      if ( triar(x(1),y(1), x(2),y(2), x(L),y(L)) .le. 0 ) goto 40
+      as(L) = as(L-1) + a(L)
+      if ( as(L) .gt. ami-n+L ) goto 40
+C
+      do 50 n5 = 2, m
+      L = 5
+      x(L) = x(L-1) + xd(nn(L))
+      y(L) = y(L-1) + yd(nn(L))
+      a(L) = triar ( x(1),y(1), x(L-1),y(L-1), x(L),y(L))
+      if ( a(L) .le. 0 ) goto 50
+      if (triar(x(L-2),y(L-2), x(L-1),y(L-1), x(L),y(L)) .le. 0) goto 50
+      if ( triar (x(L),y(L), x(1),y(1), x(2),y(2)) .le. 0 ) goto 50
+      as(L) = as(L-1) + a(L)
+      if ( as(L) .gt. ami-n+L ) goto 50
+C
+      do 60 n6 = 2, m
+      L = 6
+      x(L) = x(L-1) + xd(nn(L))
+      y(L) = y(L-1) + yd(nn(L))
+      a(L) = triar (x(1),y(1), x(L-1),y(L-1), x(L),y(L))
+      if ( a(L) .le. 0 ) goto 60
+      if (triar(x(L-2),y(L-2), x(L-1),y(L-1), x(L),y(L)) .le. 0) goto 60
+      if ( triar (x(L),y(L), x(1),y(1), x(2),y(2)) .le. 0 ) goto 60
+      as(L) = as(L-1) + a(L)
+      if ( as(L) .gt. ami-n+L ) goto 60
+C
+      do 70 n7 = 2, m
+      L = 7
+      x(L) = x(L-1) + xd(nn(L))
+      y(L) = y(L-1) + yd(nn(L))
+      a(L) = triar (x(1),y(1), x(L-1),y(L-1), x(L),y(L))
+      if ( a(L) .le. 0 ) goto 70
+      if (triar(x(L-2),y(L-2), x(L-1),y(L-1), x(L),y(L)) .le. 0) goto 70
+      if ( triar (x(L),y(L), x(1),y(1), x(2),y(2)) .le. 0 ) goto 70
+      as(L) = as(L-1) + a(L)
+      if ( as(L) .gt. ami-n+L ) goto 70
+C
+      do 80 n8 = 2, m
+      L = 8
+      x(L) = x(L-1) + xd(nn(L))
+      y(L) = y(L-1) + yd(nn(L))
+      a(L) = triar (x(1),y(1), x(L-1),y(L-1), x(L),y(L))
+      if ( a(L) .le. 0 ) goto 80
+      if (triar(x(L-2),y(L-2), x(L-1),y(L-1), x(L),y(L)) .le. 0) goto 80
+      if ( triar (x(L),y(L), x(1),y(1), x(2),y(2)) .le. 0 ) goto 80
+      as(L) = as(L-1) + a(L)
+      if ( as(L) .gt. ami-n+L ) goto 80
+C
+      do 90 n9 = 2, m
+      L = 9
+      x(L) = x(L-1) + xd(nn(L))
+      y(L) = y(L-1) + yd(nn(L))
+      a(L) = triar (x(1),y(1), x(L-1),y(L-1), x(L),y(L))
+      if ( a(L) .le. 0 ) goto 90
+      if (triar(x(L-2),y(L-2), x(L-1),y(L-1), x(L),y(L)) .le. 0) goto 90
+      if ( triar (x(L),y(L), x(1),y(1), x(2),y(2)) .le. 0 ) goto 90
+      as(L) = as(L-1) + a(L)
+      if ( as(L) .gt. ami-n+L ) goto 90
+C
+      do 100 n10 = 2, m
+      L = 10
+      x(L) = x(L-1) + xd(nn(L))
+      y(L) = y(L-1) + yd(nn(L))
+      a(L) = triar (x(1),y(1), x(L-1),y(L-1), x(L),y(L))
+      if ( a(L) .le. 0 ) goto 100
+      if (triar(x(L-2),y(L-2), x(L-1),y(L-1), x(L),y(L)) .le. 0)goto 100
+      if ( triar (x(L),y(L), x(1),y(1), x(2),y(2)) .le. 0 ) goto 100
+      as(L) = as(L-1) + a(L)
+      if ( as(L) .gt. ami-n+L ) goto 100
+C 
+      do 110 n11 = 2, m
+      L = 11
+      x(L) = x(L-1) + xd(nn(L))
+      y(L) = y(L-1) + yd(nn(L))
+      a(L) = triar (x(1),y(1), x(L-1),y(L-1), x(L),y(L))
+      if ( a(L) .le. 0 ) goto 110
+      if (triar(x(L-2),y(L-2), x(L-1),y(L-1), x(L),y(L)) .le. 0)goto 110
+      if ( triar (x(L),y(L), x(1),y(1), x(2),y(2)) .le. 0 ) goto 110
+      as(L) = as(L-1) + a(L)
+      if ( as(L) .gt. ami-n+L ) goto 110
+C
+      do 120 n12 = 2, m
+      L = 12
+      x(L) = x(L-1) + xd(nn(L))
+      y(L) = y(L-1) + yd(nn(L))
+      a(L) = triar (x(1),y(1), x(L-1),y(L-1), x(L),y(L))
+      if ( a(L) .le. 0 ) goto 120
+      if (triar(x(L-2),y(L-2), x(L-1),y(L-1), x(L),y(L)) .le. 0)goto 120
+      if ( triar (x(L),y(L), x(1),y(1), x(2),y(2)) .le. 0 ) goto 120
+      as(L) = as(L-1) + a(L)
+      if ( as(L) .gt. ami-n+L ) goto 120
+C
+      do 130 n13 = 2, m
+      L = 13
+      x(L) = x(L-1) + xd(nn(L))
+      y(L) = y(L-1) + yd(nn(L))
+      a(L) = triar (x(1),y(1), x(L-1),y(L-1), x(L),y(L))
+      if ( a(L) .le. 0 ) goto 130
+      if (triar(x(L-2),y(L-2), x(L-1),y(L-1), x(L),y(L)) .le. 0)goto 130
+      if ( triar (x(L),y(L), x(1),y(1), x(2),y(2)) .le. 0 ) goto 130
+      as(L) = as(L-1) + a(L)
+      if ( as(L) .gt. ami-n+L ) goto 130
+C
+      do 140 n14 = 2, m
+      L = 14
+      x(L) = x(L-1) + xd(nn(L))
+      y(L) = y(L-1) + yd(nn(L))
+      a(L) = triar (x(1),y(1), x(L-1),y(L-1), x(L),y(L))
+      if ( a(L) .le. 0 ) goto 140
+      if (triar(x(L-2),y(L-2), x(L-1),y(L-1), x(L),y(L)) .le. 0)goto 140
+      if ( triar (x(L),y(L), x(1),y(1), x(2),y(2)) .le. 0 ) goto 140
+      as(L) = as(L-1) + a(L)
+      if ( as(L) .gt. ami-n+L ) goto 140
+C
+      do 150 n15 = 2, m
+      L = 15
+      x(L) = x(L-1) + xd(nn(L))
+      y(L) = y(L-1) + yd(nn(L))
+      a(L) = triar (x(1),y(1), x(L-1),y(L-1), x(L),y(L))
+      if ( a(L) .le. 0 ) goto 150
+      if (triar(x(L-2),y(L-2), x(L-1),y(L-1), x(L),y(L)) .le. 0)goto 150
+      if ( triar (x(L),y(L), x(1),y(1), x(2),y(2)) .le. 0 ) goto 150
+      as(L) = as(L-1) + a(L)
+      if ( as(L) .gt. ami-n+L ) goto 150
+C
+      do 160 n16 = 2, m
+      L = 16
+      x(L) = x(L-1) + xd(nn(L))
+      y(L) = y(L-1) + yd(nn(L))
+      a(L) = triar (x(1),y(1), x(L-1),y(L-1), x(L),y(L))
+      if ( a(L) .le. 0 ) goto 160
+      if (triar(x(L-2),y(L-2), x(L-1),y(L-1), x(L),y(L)) .le. 0)goto 160
+      if ( triar (x(L),y(L), x(1),y(1), x(2),y(2)) .le. 0 ) goto 160
+      as(L) = as(L-1) + a(L)
+      if ( as(L) .gt. ami-n+L ) goto 160
+C
+      do 170 n17 = 2, m
+      L = 17
+      x(L) = x(L-1) + xd(nn(L))
+      y(L) = y(L-1) + yd(nn(L))
+      a(L) = triar (x(1),y(1), x(L-1),y(L-1), x(L),y(L))
+      if ( a(L) .le. 0 ) goto 170
+      if (triar(x(L-2),y(L-2), x(L-1),y(L-1), x(L),y(L)) .le. 0)goto 170
+      if ( triar (x(L),y(L), x(1),y(1), x(2),y(2)) .le. 0 ) goto 170
+      as(L) = as(L-1) + a(L)
+C in last line of repeated code part n=L
+c      if ( as(L) .gt. ami-n+L ) goto 170
+C example how to continue for n&gt;17
+c      do 180 n18 = 2, m
+c      L = 18
+c      x(L) = x(L-1) + xd(nn(L))
+c      y(L) = y(L-1) + yd(nn(L))
+c      a(L) = triar (x(1),y(1), x(L-1),y(L-1), x(L),y(L))
+c      if ( a(L) .le. 0 ) goto 180
+c      if (triar(x(L-2),y(L-2), x(L-1),y(L-1), x(L),y(L)) .le. 0)goto 180
+c      if ( triar (x(L),y(L), x(1),y(1), x(2),y(2)) .le. 0 ) goto 180
+c      as(L) = as(L-1) + a(L)
+c      if ( as(L) .gt. ami-n+L ) goto 180
+C ...
+C ...
+C
+C Update minimum
+      if ( as(L) .lt. ami ) then
+        count = 0
+        ami = as(L)
+C
+C alternative with exact enclosing circle
+C        call encirc ( 1, n, x, y, xc, yc, rc )
+C        diamin = 4*rc**2
+        call cpu_time (cptime)
+C type cast assumed to work diamin (real*8) = diamet (integer)
+        diamin = diamet (n,x,y)
+        write (*,1000) n, as(L), diamin, (x(k),y(k),k=1,n)
+1000    format (/,i2, 1X, i0, f14.6, 2x, 25('(',i0,',',i0,')',:,',') )
+        write (*,1001) cptime, nn(2:n)
+1001    format ( F12.4,' s: ',i0, 25(1X,i0,:) )
+      endif
+C
+C check for multiple solutions with same mimimum area
+      if ( as(L) .eq. ami ) then
+        call cpu_time (cptime)
+        d = diamet(n,x,y)
+C        call encirc ( 1, n, x, y, xc, yc, rc )
+C        d = 4*rc**2
+        count = count + 1
+        if ( d .lt. diamin ) then
+          diamin = d
+          write (*,1000) n, as(L), diamin, (x(k),y(k),k=1,n)
+          write (*,1001) cptime, nn(2:n)
+        endif
+        if ( d .gt. diamax ) then
+          diamax = d
+          write (*,1000) n, as(L), -diamax, (x(k),y(k),k=1,n)
+          write (*,1001) cptime, nn(2:n)
+        endif
+      endif
+250   continue
+240   continue
+230   continue
+220   continue
+210   continue
+200   continue
+190   continue
+180   continue
+170   continue
+160   continue
+150   continue
+140   continue
+130   continue
+120   continue
+110   continue
+100   continue
+90    continue
+80    continue
+70    continue
+60    continue
+50    continue
+40    continue
+30    continue
+20    continue
+C
+      call cpu_time ( cptime )
+      write (*,1007) cptime, count
+1007  format (/,'CPU time: ', f12.4, ' s',/,
+     &amp;        'Number of polygons with minimum area: ', i0)
+999   continue
+      end
+C
+C Maximum of mutual point distance sufficient as an estimate.
+C Exact enclosing circle needs a more sophisticated method,
+C e.g., Welz's algorithm
+      integer function diamet (n, x, y)
+      integer n, x(*), y(*)
+      id = 0
+      do 10 i = 1, n-1
+      do 20 j = i+1, n
+      jd = (x(i)-x(j))**2 + (y(i)-y(j))**2
+      id = max (id,jd)
+20    continue
+10    continue
+      diamet = id
+      end
+</code></pre>
+<p>This is essentially the first version of the program I started with in 2018 just for illustration with no tweaks. It's more to have a place to make some general notes on pitfalls of this problem that I think are important. When those are scattered in comments on individual answers, it's hard to keep track of.
+The program only handles the case n=17, which I chose because it is the smallest n without a proof of optimality. In order to run the program, 2 external files are required, namely the b-files of the OEIS sequences <a href="https://oeis.org/A305575" rel="nofollow noreferrer">A305575</a> and <a href="https://oeis.org/A305576" rel="nofollow noreferrer">A305576</a>, which should be one directory above the program.
+A typical output looks like this:</p>
+<pre><code>.\17.exe 56 1
+  2  1  0
+  3  0  1
+...
+114  6  1
+115  1  6
+ Segments used:          56
+ First start step:           1           0
+
+Min area polygons found so far: 0, next n2 = 2 (1,0)
+...
+17 185    373.000000  (0,0),(1,0),(1,1),(0,3),(-1,4),(-4,6),(-6,7),(-9,8),(-13,9),(-14,9),(-16,8),(-17,7),(-17,6),(-16,5),(-13,3),(-11,2),(-8,1)
+      0.0469 s: 2 3 16 7 41 17 33 53 4 18 8 5 9 45 21 37
+
+17 185   -373.000000  (0,0),(1,0),(1,1),(0,3),(-1,4),(-4,6),(-6,7),(-9,8),(-13,9),(-14,9),(-16,8),(-17,7),(-17,6),(-16,5),(-13,3),(-11,2),(-8,1)
+      0.0469 s: 2 3 16 7 41 17 33 53 4 18 8 5 9 45 21 37
+
+17 178    370.000000  (0,0),(1,0),(1,1),(0,3),(-2,5),(-5,7),(-7,8),(-10,9),(-14,10),(-15,10),(-16,9),(-16,8),(-15,6),(-14,5),(-11,3),(-9,2),(-6,1)
+      0.0938 s: 2 3 16 23 41 17 33 53 4 8 5 20 9 45 21 37
+
+17 159    306.000000  (0,0),(1,0),(1,1),(0,3),(-2,6),(-3,7),(-5,8),(-8,9),(-12,10),(-13,10),(-14,9),(-14,8),(-13,6),(-12,5),(-9,3),(-7,2),(-4,1)
+      0.1094 s: 2 3 16 40 7 17 33 53 4 8 5 20 9 45 21 37
+
+17 159    296.000000  (0,0),(1,0),(1,1),(0,3),(-2,6),(-3,7),(-6,9),(-8,10),(-11,11),(-12,11),(-13,10),(-13,9),(-12,7),(-10,4),(-9,3),(-7,2),(-4,1)
+      0.1094 s: 2 3 16 40 7 41 17 33 4 8 5 20 44 9 21 37
+
+17 157    265.000000  (0,0),(1,0),(1,1),(0,4),(-1,6),(-3,9),(-4,10),(-6,11),(-9,12),(-10,12),(-11,11),(-11,10),(-10,7),(-9,5),(-8,4),(-5,2),(-3,1)
+      0.2969 s: 2 3 32 16 40 7 17 33 4 8 5 36 20 9 45 21
+.+.
+17 157    232.000000  (0,0),(1,0),(2,1),(2,2),(1,4),(0,5),(-3,7),(-5,8),(-8,9),(-9,9),(-11,8),(-12,7),(-12,6),(-11,4),(-10,3),(-8,2),(-5,1)
+      0.9844 s: 2 6 3 16 7 41 17 33 4 18 8 5 20 9 21 37
+
+17 151    202.000000  (0,0),(1,0),(2,1),(2,2),(1,4),(-1,7),(-2,8),(-5,10),(-7,11),(-8,11),(-9,10),(-10,8),(-10,7),(-9,5),(-8,4),(-5,2),(-3,1)
+      1.0469 s: 2 6 3 16 40 7 41 17 4 8 19 5 20 9 45 21
+
+17 151    193.000000  (0,0),(1,0),(2,1),(2,2),(1,5),(0,7),(-1,8),(-3,9),(-6,10),(-7,10),(-9,9),(-10,8),(-10,7),(-9,5),(-8,4),(-5,2),(-3,1)
+      1.1406 s: 2 6 3 32 16 7 17 33 4 18 8 5 20 9 45 21
+
+17 151    137.000000  (0,0),(1,0),(2,1),(3,3),(3,4),(2,7),(1,9),(0,10),(-2,11),(-3,11),(-5,10),(-6,9),(-7,7),(-7,6),(-6,4),(-5,3),(-2,1)
+      2.1562 s: 2 6 15 3 32 16 7 17 4 18 8 19 5 20 9 45
+...1....+....2....+....3....+....4....+....5....+.
+Min area polygons found so far: 24, next n2 = 6 (1,1)
+....+....1....+....2....+....3....+....4....+....5....+.
+Min area polygons found so far: 48, next n2 = 10 (2,0)
+....+....1....+....2....+....3....+....4....+....5....+.
+Min area polygons found so far: 48, next n2 = 14 (2,1)
+....+....1....+....2....+....3....+....4....+....5....+.
+Min area polygons found so far: 65, next n2 = 22 (2,2)
+....+....1....+....2....+....3....+....4....+....5....+.
+Min area polygons found so far: 65, next n2 = 26 (3,0)
+....+....1....+....2....+....3....+....4....+....5....+.
+Min area polygons found so far: 65, next n2 = 30 (3,1)
+....+....1....+....2....+....3....+....4....+....5....+.
+Min area polygons found so far: 70, next n2 = 38 (3,2)
+....+....1....+....2....+....3....+....4....+....5....+.
+Min area polygons found so far: 76, next n2 = 46 (4,0)
+....+....1....+....2....+....3....+....4....+....5....+.
+Min area polygons found so far: 76, next n2 = 50 (4,1)
+....+....1....+....2....+....3....+....4....+....5....+.
+CPU time:     323.0781 s
+Number of polygons with minimum area: 76
+</code></pre>
+<p>For n=17 there is not only the <a href="http://antiton.de/PolygonalAreas/index.html?(8,1),(9,1),(10,2),(11,4),(11,5),(10,8),(9,10),(8,11),(6,12),(5,12),(3,11),(2,10),(1,8),(1,7),(2,5),(3,4),(6,2)" rel="nofollow noreferrer">compact solution</a> found by everyone, but also exotic needle-shaped solutions, like <a href="http://antiton.de/PolygonalAreas/index.html?(31,1),(32,1),(32,2),(31,3),(27,6),(24,8),(16,13),(11,16),(4,20),(2,21),(1,21),(2,20),(6,17),(13,12),(16,10),(24,5),(29,2)" rel="nofollow noreferrer">Squared diameter 1361</a>.
+<a href="https://i.stack.imgur.com/7reqI.png" rel="nofollow noreferrer"><img src="https://i.stack.imgur.com/7reqI.png" alt="n=17,2*Area=151,31X20" /></a>
+This is the one I've known so far with the largest diameter. As far as I know, it has not been proven that no extreme solutions of this kind with a smaller area exist. If one could show that there are no other solutions with even greater stretching, then that would be an important step towards a proof of optimality for this n.</p>
+<h2>Heavily stretched polygons</h2>
+<p>I don't want to spoil anyone's good mood, but if you all only find the solutions that I gave 4 years ago, the doubts remain whether we are making things too easy for ourselves when searching. I have already pointed out the existence of very strongly stretched polygons with likewise minimal areas. As a test case for your programs, you can try to find at least one even slimmer solution than the following at n=19:
+<a href="http://antiton.de/PolygonalAreas/index.html?(31,1),(32,1),(32,2),(31,3),(29,4),(24,6),(16,9),(13,10),(6,12),(2,13),(1,13),(1,12),(2,11),(5,9),(7,8),(12,6),(15,5),(22,3),(26,2)" rel="nofollow noreferrer">n=19, 2*Area=213, Diameter^2=1105</a>
+My program finds the shown and -intentionally undisclosed- slimmer solutions (squared diameters = 5*prime number, prime, ..) after about 200 s (17700 s for the prime squared diameter) using 1000 points from the spiral files.</p>
+<p>If other programs also find these solutions, then that would increase my confidence considerably.</p>
+<h3>Update</h3>
+<p>In the meantime I have found that all of the strongly distorted and needle-shaped polygons found by my programs can be reduced to the already known slightly deformed shapes by applying shear transformations. So far I haven't found any exceptions to this observation. Apparently, allowing longer polygon sides does not bring any advantage in terms of further reducing the area. In a way, this contradicts the asymptotic elliptical shape described in the work of <a href="https://doi.org/10.1007%2Fs00493-004-0012-0" rel="nofollow noreferrer">Bárány, I., Tokushige, N. (2004)</a> or <a href="http://www.renyi.hu/%7Ebarany/cikkek/94.pdf" rel="nofollow noreferrer">version without paywall</a> with semi-axes <span class="math-container">\$a=0.003573 n^2\$</span> and <span class="math-container">\$b=1.656 n\$</span>, which at <span class="math-container">\$n=27\$</span> gives an axis ratio of about <span class="math-container">\$1/15\$</span>. The observed ratio of the solution with <span class="math-container">\$2*A(27)=625\$</span>, which has meanwhile also been found by my own program, is only about <span class="math-container">\$1/2\$</span>.</p>
+<h1>Fortran revised, n=17, 8.8 s</h1>
+<p>See <a href="https://github.com/HugoPfoertner/Lattice-Polygons" rel="nofollow noreferrer">Lattice-Polygons</a> on GitHub. Another faster version exists (approx. 70% of run time), with explicit expansion of the inner loops, similar to code shown above, but the GitHub version is cleaner.</p>
+</div>
+<div id="pu2" class="pu"><h1>Python (with restricted conditions) n=26, 10 seconds</h1>
+<p>Uses backtracking. <br />
+Numba for speed. <br />
+notebook <a href="https://github.com/arrmansa/smallest-area-of-a-convex-grid-polygon/blob/main/Attempt%2019%20-%20one%20half%20is%20bigger.ipynb" rel="nofollow noreferrer">link</a></p>
+<pre><code>10.49 seconds, 548 area
+points: [[0, 0], [0, 1], [1, 3], [2, 4], [4, 5], [7, 6], [8, 6], [11, 5], [13, 4], [16, 2], [17, 1], [19, -2], [20, -4], [21, -7], [21, -8], [20, -10], [19, -11], [17, -12], [14, -13], [13, -13], [10, -12], [8, -11], [5, -9], [4, -8], [2, -5], [1, -3]]
+</code></pre>
+<h1>Fast O(n^2) upper bounds for high n (&lt;10% error for n&lt;=36, slightly better than n^3/27 when n&lt;1e5, sometimes better for n&gt;1e5)</h1>
+<p>Assuming the solution to be close to circular. We can make circle-like shapes where sides made of the smallest n vectors where i and j are coprime. This gives a polygon of size n*4. I think this should have the optimal minimum perimeter as well. <a href="https://github.com/arrmansa/smallest-area-of-a-convex-grid-polygon/blob/main/choose%20small%20vectors.ipynb" rel="nofollow noreferrer">github notebook link</a></p>
+<p>The calculated upper bound is (slightly) better than n^3/27 for n upto 10000.</p>
+<p><a href="https://i.stack.imgur.com/crL8G.png" rel="nofollow noreferrer"><img src="https://i.stack.imgur.com/crL8G.png" alt="min double area vs n" /></a></p>
+<p><a href="https://i.stack.imgur.com/v95UI.png" rel="nofollow noreferrer"><img src="https://i.stack.imgur.com/v95UI.png" alt="first 40 points" /></a></p>
+<p>(Old extra method - best solution found in 15s for n upto 44 <a href="https://github.com/arrmansa/smallest-area-of-a-convex-grid-polygon/blob/main/Attempt%2020%20-%20half_bigger-round-opt.ipynb" rel="nofollow noreferrer">link</a> . At these high numbers, it's basically just oneshot generations but still somewhat interesting)</p>
+<h2>Old code links n = 14, 80s</h2>
+<hr />
+<pre><code>88.12 seconds, 80 area, points: [[0, 0], [0, 1], [1, 2], [3, 3], [4, 3], [6, 2], [7, 1], [8, -1], [8, -2], [7, -3], [5, -4], [4, -4], [2, -3], [1, -2]]
+</code></pre>
+<p>notebook <a href="https://github.com/arrmansa/smallest-area-of-a-convex-grid-polygon/blob/main/Attempt%203.ipynb" rel="nofollow noreferrer">link</a></p>
+<hr />
+<p>another way to get it to generate 1 valid, pretty optimal output very early is to sort the points in order of distance to previous point, but it doesn't help in overall speed. <a href="https://github.com/arrmansa/smallest-area-of-a-convex-grid-polygon/blob/main/Attempt%202.ipynb" rel="nofollow noreferrer">link</a></p>
+<hr />
+<p>if we assume point n+1 must be in a 7x7 grid centered at point n, the max manhattan distance between points is &lt;6 and that the angle between formed by n-1, n and n+1 is &gt;= 90, we get the output for n=18, gridsize=14 in 360 seconds</p>
+<pre><code>362.6 seconds, 174 area, points: [[0, 0], [0, 1], [1, 3], [2, 4], [4, 5], [5, 5], [7, 4], [8, 3], [9, 1], [10, -2], [10, -3], [9, -5], [8, -6], [6, -7], [5, -7], [3, -6], [2, -5], [1, -3]]
+</code></pre>
+<p>notebook <a href="https://github.com/arrmansa/smallest-area-of-a-convex-grid-polygon/blob/main/Attempt%204.ipynb" rel="nofollow noreferrer">link</a></p>
+<hr />
+<p>reducing the number of wasted calculations and function calls since cross product is the area of a triangle and taking into account that p0 = 0,0 we get:</p>
+<pre><code>from numba import jit
+import numpy as np
+
+@jit
+def create_polygon_jit(points, n, target_n, gridsize, curr_area, min_area, soln):
+    if n &gt;= 3:
+        if points[1,0]==0 and points[n-1,0]==0:
+            return False
+        if (points[n-3][0]-points[n-2][0])*(points[n-1][1]-points[n-2][1])&lt;=\
+        (points[n-3][1]-points[n-2][1])*(points[n-1][0]-points[n-2][0]):
+            return False
+        add_area = points[n-1][0]*points[n-2][1]-points[n-1][1]*points[n-2][0]
+        if add_area &lt;= 0:
+            return False
+        curr_area += add_area
+        if curr_area &gt;= min_area[0]:
+            return False
+    if n == target_n:
+        min_area[0] = curr_area
+        soln[:] = points.copy()
+        return False
+    for i in range(gridsize):
+        for j in range(-gridsize//2, gridsize//2):
+            points[n] = (i,j)
+            result = create_polygon_jit(points, n+1, target_n, gridsize, curr_area, min_area, soln)
+    points[n] = (0,0)
+    return False
+</code></pre>
+<p>which only does 4 seconds better at 84.4 sec
+notebook <a href="https://github.com/arrmansa/smallest-area-of-a-convex-grid-polygon/blob/main/Attempt%205.ipynb" rel="nofollow noreferrer">link</a></p>
+<hr />
+<p>pypy 3 tio <a href="https://tio.run/##lVRNc5wwDL3zKzQ5GWISYC@dTOixf2LLMAS8G@@A7bFhpvTPb2WD@dhtk5STZUnvSXoyauzfpTjEalTj9Ro07AS1ZlXPSiXb8SxFeeE9UZKL3lAQFPpKn1lf4umseWP4b0ahHrQuK0yj0HExn4xsRfgSAH78BAK@53CYzPlqAj2mxTEp8jyBSjT@TsT@ds2wn2b9oAX8qFrDtlBkyTvYvHgxM2uGEdnipnt/WoSv@c8FbQd1H7qHuqf6Qr1V07gRQX7TbrTnivdFR3umbfsL4msOX5nYohc85kvyFnANQNW8pEj6CbbTOc@XHVnDNxjY9gK/@O2yTL6py6daqpGEwT@pTlIDBy5AV@LMiN/FzfxtxGWNiH3I83O27i4aN5L5KdtaCKeX8KZlM7S9beGDR/KY/u8zCe6YE5pMt7vOA94pqXvoeYfG9FilMUrLZqixgtQiNxSU7@pXR2HswIrY4HydG3dpi0wwzY4@xmC73hn60Ri7MLYebziPDwsddyOHt5a5PubmZ9YZuXozxAwd2dc4dWlrmY8c93s1ivBWW5SrZcIz4BfgkkGaBdMNno9uXEUkAj9svPwWTGK5gCKwc7YnfDkGxbEa2ik@KaZPZS0H0TONC1d@rG3q/oGrpAmFo7eiKCu8nua9UrYIawVKYzLRyNGQv3DGrh4KWUjhwbBaisbQB7obr0NF97QzUzUvGON4wuv1Dw" rel="nofollow noreferrer">link</a></p>
+<hr />
+<p>restricted conditions with quadrant/octant optimization suggested by @HugoPfoertner, n=19 works, and n=18 is done in 180 seconds</p>
+<pre><code>438.59 seconds, 213 area, points: [[0, 0], [0, 1], [1, 3], [2, 4], [4, 5], [5, 5], [8, 4], [10, 3], [11, 2], [12, 0], [13, -3], [13, -4], [12, -6], [11, -7], [10, -7], [7, -6], [5, -5], [2, -3], [1, -2]]
+</code></pre>
+<p>notebook <a href="https://github.com/arrmansa/smallest-area-of-a-convex-grid-polygon/blob/main/Attempt%206.ipynb" rel="nofollow noreferrer">link</a></p>
+</div>
+<div id="pu3" class="pu"><h1>Rust + itertools + fasthash, n = 26 in ~423s</h1>
+<p>This is a rust port of <a href="https://codegolf.stackexchange.com/a/253655">Arnauld's answer</a>, with a few iterations of performance improvement.</p>
+<p>I use <code>Vec&lt;Option&lt;_&gt;&gt;</code> for sparse arrays and reference counting for the cache. I also use <code>128 * w + h</code> as a hash for coordinate pairs, and use SeaHash from the <a href="https://crates.io/crates/fasthash" rel="nofollow noreferrer">fasthash crate</a></p>
+<p>Obviously needs to be build with <code>--release</code>.</p>
+<p>It is around 40 times faster for n=16, taking only 2.5s instead of 100s in Javascript.</p>
+<pre class="lang-rust prettyprint-override"><code>use std::collections::{HashMap, HashSet};
+use std::hash::{Hash, Hasher};
+use std::iter::once;
+use std::rc::Rc;
+use std::time::{Duration, Instant};
+
+use fasthash::sea::Hash64;
+use itertools::Itertools;
+
+struct Solution {
+    w: i32,
+    h: i32,
+    y0: i32,
+    res: [Vec&lt;(i32, i32)&gt;; 4],
+}
+
+#[derive(Clone, Debug)]
+struct AreaPath {
+    area: i32,
+    path: Vec&lt;(i32, i32)&gt;,
+}
+
+#[derive(Eq, PartialEq)]
+struct Coord(i32, i32);
+
+#[allow(clippy::derive_hash_xor_eq)]
+impl Hash for Coord {
+    fn hash&lt;H: Hasher&gt;(&amp;self, state: &amp;mut H) {
+        state.write_i32(128 * self.0 + self.1);
+    }
+}
+
+type PathCache = HashMap&lt;Coord, Rc&lt;Vec&lt;Option&lt;AreaPath&gt;&gt;&gt;, Hash64&gt;;
+
+fn main() {
+    const MAX_N: i32 = 99;
+    const MAX_TIME: Duration = Duration::from_secs(600);
+
+    let mut pathCache: PathCache = HashMap::with_hasher(Hash64);
+
+    let mut getPaths = |w: i32, h: i32| -&gt; Rc&lt;Vec&lt;Option&lt;AreaPath&gt;&gt;&gt; {
+        let cached: Option&lt;&amp;Rc&lt;Vec&lt;Option&lt;AreaPath&gt;&gt;&gt;&gt; = pathCache.get(&amp;Coord(w, h));
+        return match cached {
+            Some(p) =&gt; Rc::clone(p),
+            None =&gt; {
+                let mut set: HashSet&lt;usize&gt; = HashSet::new();
+                let mut list = vec![None; 11];
+
+                fn search(
+                    x: i32,
+                    y: i32,
+                    pw: i32,
+                    ph: i32,
+                    area: i32,
+                    path: Vec&lt;(i32, i32)&gt;,
+                    w: i32,
+                    h: i32,
+                    set: &amp;mut HashSet&lt;usize&gt;,
+                    list: &amp;mut Vec&lt;Option&lt;AreaPath&gt;&gt;,
+                ) {
+                    let len: usize = path.len();
+                    if x == w &amp;&amp; y == h {
+                        let outerArea = w * h * 2 - area;
+
+                        if !set.contains(&amp;len) || outerArea &gt; list[len].as_ref().unwrap().area {
+                            set.insert(len);
+
+                            list[len] = Some(AreaPath {
+                                area: outerArea,
+                                path: path.clone(),
+                            });
+                        }
+                    }
+
+                    for w0 in 1..=(w - x) {
+                        for h0 in 1..=(h - y) {
+                            if h0 * pw &lt; w0 * ph {
+                                let mut path_clone = Vec::with_capacity(len + 1);
+                                path_clone.extend(path.clone());
+                                path_clone.push((w0, h0));
+                                search(
+                                    x + w0,
+                                    y + h0,
+                                    w0,
+                                    h0,
+                                    area + ((w - x) * 2 - w0) * h0,
+                                    path_clone,
+                                    w,
+                                    h,
+                                    set,
+                                    list,
+                                );
+                            }
+                        }
+                    }
+                }
+
+                search(0, 0, 0, 1, 0, vec![], w, h, &amp;mut set, &amp;mut list);
+                let list = Rc::new(list);
+                pathCache.insert(Coord(w, h), Rc::clone(&amp;list));
+                pathCache.insert(
+                    Coord(h, w),
+                    Rc::new(
+                        list.iter()
+                            .map(|o| {
+                                o.as_ref().map(|a| AreaPath {
+                                    area: a.area,
+                                    path: a.path.iter().rev().map(|&amp;(dx, dy)| (dy, dx)).collect(),
+                                })
+                            })
+                            .collect(),
+                    ),
+                );
+
+                list
+            }
+        };
+    };
+
+    let mut solveRectangle = |part: &amp;[[i32; 4]],
+                              w: i32,
+                              h: i32,
+                              y0: i32,
+                              x0: i32,
+                              y1: i32,
+                              x1: i32|
+     -&gt; (f32, Option&lt;[Vec&lt;(i32, i32)&gt;; 4]&gt;) {
+        let mut best = f32::INFINITY;
+        let mut solution = None;
+
+        for p in part {
+            if let Some(Some(p0)) = getPaths(x0, h - y0 - 2).get((p[0] - 1) as usize) {
+                if let Some(Some(p1)) = getPaths(w - x0 - 2, h - y1 - 1)
+                    .get((p[1] - 1) as usize)
+                {
+                    if let Some(Some(p2)) = getPaths(w - x1 - 1, y1 - 1)
+                        .get((p[2] - 1) as usize)
+                    {
+                        if let Some(Some(p3)) =
+                            getPaths(x1 - 1, y0).get((p[3] - 1) as usize)
+                        {
+                            let outerArea = p0.area + p1.area + p2.area + p3.area;
+                            let score = (w - 1) * (h - 1) * 2 - outerArea;
+                            let score = score as f32;
+
+                            if score &lt; best {
+                                best = score;
+                                solution = Some([
+                                    p0.path.clone(),
+                                    p1.path.iter().rev().copied().collect(),
+                                    p2.path.clone(),
+                                    p3.path.iter().rev().copied().collect(),
+                                ]);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return (best, solution);
+    };
+
+    let mut solve = |n: i32, min: i32, max: i32| -&gt; (f32, Solution) {
+        let part: Vec&lt;[i32; 4]&gt; = partitionsInFour(n);
+        let mut rect = vec![];
+        let mut best = f32::INFINITY;
+        let mut solution = None;
+
+        for w in min..=max {
+            for h in min..=w {
+                rect.push((w, h));
+            }
+        }
+
+        for (w, h) in rect {
+            for y0 in 0..(h - 1) {
+                for x0 in 0..(w - 1) {
+                    for y1 in 1..h {
+                        for x1 in 1..w {
+                            let (score, res) = solveRectangle(&amp;part, w, h, y0, x0, y1, x1);
+                            if score &lt; best {
+                                best = score;
+                                solution = Some(Solution {
+                                    w: w,
+                                    h: h,
+                                    y0: y0,
+                                    res: res.unwrap(),
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return (best, solution.unwrap());
+    };
+
+    let ts = Instant::now();
+    let mut min = 4;
+    let mut max = 4;
+
+    for n in 7..=MAX_N {
+        println!(&quot;n = {n}&quot;);
+
+        let (score, solution) = solve(n, min, max);
+        let w = solution.w - 1;
+        let h = solution.h - 1;
+
+        println!(&quot;Area * 2 = {score}&quot;);
+        println!(&quot;Enclosing rectangle: {w} x {h}&quot;);
+        displaySolution(&amp;solution);
+
+        let time = ts.elapsed();
+        println!(&quot;Total time: {time:?}&quot;);
+
+        if time &gt;= MAX_TIME {
+            break;
+        }
+        min = solution.h;
+        max = solution.w + 2;
+    }
+
+    fn partitionsInFour(n: i32) -&gt; Vec&lt;[i32; 4]&gt; {
+        let mut list = vec![];
+        fn search(n: i32, i: i32, l: Vec&lt;i32&gt;, list: &amp;mut Vec&lt;[i32; 4]&gt;) {
+            if n != 0 {
+                if i &lt;= n &amp;&amp; l.len() != 4 {
+                    search(n - i, 1, once(i).chain(l.iter().copied()).collect(), list);
+                    search(n, i + 1, l, list);
+                }
+            } else if let Ok(a) = l.try_into() {
+                list.push(a);
+            }
+        }
+
+        search(n, 1, vec![], &amp;mut list);
+        return list;
+    }
+
+    fn displaySolution(solution: &amp;Solution) {
+        let mut m = vec![vec![&quot;--&quot;.to_owned(); solution.w as usize]; solution.h as usize];
+        let mut x = 0;
+        let mut y;
+        let mut i = 1;
+
+        let mut mark = |x: i32, y: i32| {
+            let x = x as usize;
+            let y = y as usize;
+            if m[y][x] == &quot;--&quot; {
+                m[y][x] = format!(&quot;{:&gt;02}&quot;, i);
+            }
+            i += 1;
+        };
+
+        y = solution.y0;
+        mark(0, y);
+        y += 1;
+        mark(x, y);
+        for (dx, dy) in &amp;solution.res[0] {
+            x += dx;
+            y += dy;
+            mark(x, y)
+        }
+        x += 1;
+        mark(x, y);
+        for (dx, dy) in &amp;solution.res[1] {
+            x += dx;
+            y -= dy;
+            mark(x, y)
+        }
+        y -= 1;
+        mark(x, y);
+        for (dx, dy) in &amp;solution.res[2] {
+            x -= dx;
+            y -= dy;
+            mark(x, y)
+        }
+        x -= 1;
+        mark(x, y);
+        for (dx, dy) in &amp;solution.res[3] {
+            x -= dx;
+            y += dy;
+            mark(x, y)
+        }
+
+        println!(&quot;{}&quot;, m.into_iter().map(|r| r.join(&quot; &quot;)).join(&quot;\n&quot;));
+    }
+}
+</code></pre>
+</div>
+<div id="pu4" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C++ (gcc)</a>, n=16 ~2 seconds</h1>
+<p>C++ port of @arrmansa's optimized version.</p>
+
+<pre class="lang-cpp prettyprint-override"><code>#include &lt;array&gt;
+#include &lt;chrono&gt;
+#include &lt;iostream&gt;
+
+struct point {
+    int x;
+    int y;
+};
+
+template&lt;std::size_t N&gt;
+bool create_polygon_jit(std::array&lt;point, N&gt;&amp; points, int n, int target_n, int gridsize, int curr_area, int&amp; min_area, std::array&lt;point, N&gt;&amp; soln)
+{
+    if (n &gt;= 3)
+    {
+        int x1 = points[n - 3].x - points[n - 2].x, y1 = points[n - 3].y - points[n - 2].y;
+        int x2 = points[n - 1].x - points[n - 2].x, y2 = points[n - 1].y - points[n - 2].y;
+        if (x1 * y2 - x2 * y1 &lt;= 0) // Angle &gt; 180
+            return false;
+        if (x1 * x2 + y1 * y2 &gt; 0)  // Angle &gt;= 90
+            return false;
+        if (points[1].x == 0 and points[n - 1].x == 0)
+            return true;
+
+        int add_area = points[n - 1].x * points[n - 2].y - points[n - 1].y * points[n - 2].x;
+        if (add_area &lt;= 0)
+            return true;
+
+        curr_area += add_area;
+        if (curr_area &gt;= min_area)
+            return true;
+
+        if (n == target_n)
+        {
+            min_area = curr_area;
+            soln = points;
+            return true;
+        }
+
+        int min_i = std::max(0, points[n - 1].x - 3);
+        int max_i = std::min(gridsize, points[n - 1].x + 4);
+
+        int min_j = std::max(-gridsize / 2, points[n - 1].y - 3);
+        int max_j = std::min(gridsize / 2 + 1, points[n - 1].y + 4);
+
+        if (x2 &gt; 0)
+        {
+            if (y2 &gt; 0)
+            {
+                if (x2 &gt; y2)
+                {
+                    for (int j = min_j; j &lt; max_j; j++) {
+                        for (int i = max_i - 1; i &gt; min_i - 1; i--) {
+                            points[n].x = i;
+                            points[n].y = j;
+                            if (!create_polygon_jit(points, n + 1, target_n, gridsize, curr_area, min_area, soln))
+                                break;
+                        }
+                        if (points[n].x == max_i - 1)
+                            break;
+                    }
+                }
+                else
+                {
+                    for (int j = max_j - 1; j &gt; min_j - 1; j--)
+                    {
+                        for (int i = max_i - 1; i &gt; min_i - 1; i--)
+                        {
+                            points[n].x = i;
+                            points[n].y = j;
+
+                            if (!create_polygon_jit(points, n + 1, target_n, gridsize, curr_area, min_area, soln))
+                                break;
+                        }
+                        if (points[n].x == max_i - 1)
+                            break;
+                    }
+                }
+            }
+            else
+            {
+                if (x2 &gt; -y2)
+                {
+                    for (int i = max_i - 1; i &gt; min_i - 1; i--)
+                    {
+                        for (int j = min_j; j &lt; max_j; j++)
+                        {
+                            points[n].x = i;
+                            points[n].y = j;
+
+                            if (!create_polygon_jit(points, n + 1, target_n, gridsize, curr_area, min_area, soln))
+                                break;
+                        }
+                        if (points[n].y == min_j)
+                            break;
+                    }
+                }
+                else
+                {
+                    for (int i = min_i; i &lt; max_i; i++)
+                    {
+                        for (int j = min_j; j &lt; max_j; j++)
+                        {
+                            points[n].x = i;
+                            points[n].y = j;
+                            ;
+                            if (!create_polygon_jit(points, n + 1, target_n, gridsize, curr_area, min_area, soln))
+                                break;
+                        }
+                        if (points[n].y == min_j)
+                            break;
+                    }
+                }
+            }
+        }
+        else
+        {
+            if (y2 &gt; 0)
+            {
+                if (-x2 &gt; y2)
+                {
+                    for (int i = min_i; i &lt; max_i; i++)
+                    {
+                        for (int j = max_j - 1; j &gt; min_j - 1; j--)
+                        {
+                            points[n].x = i;
+                            points[n].y = j;
+
+                            if (!create_polygon_jit(points, n + 1, target_n, gridsize, curr_area, min_area, soln))
+                                break;
+                        }
+                        if (points[n].y == max_j - 1)
+                            break;
+                    }
+                }
+                else
+                {
+                    for (int i = max_i - 1; i &gt; min_i - 1; i--)
+                    {
+                        for (int j = max_j - 1; j &gt; min_j - 1; j--)
+                        {
+                            points[n].x = i;
+                            points[n].y = j;
+
+                            if (!create_polygon_jit(points, n + 1, target_n, gridsize, curr_area, min_area, soln))
+                                break;
+                        }
+                        if (points[n].y == max_j - 1)
+                            break;
+                    }
+                }
+            }
+            else
+            {
+                if (-x2 &gt; -y2)
+                {
+                    for (int j = max_j - 1; j &gt; min_j - 1; j--)
+                    {
+                        for (int i = min_i; i &lt; max_i; i++)
+                        {
+                            points[n].x = i;
+                            points[n].y = j;
+
+                            if (!create_polygon_jit(points, n + 1, target_n, gridsize, curr_area, min_area, soln))
+                                break;
+                        }
+                        if (points[n].x == min_i)
+                            break;
+                    }
+                }
+                else
+                {
+                    for (int j = min_j; j &lt; max_j; j++)
+                    {
+                        for (int i = min_i; i &lt; max_i; i++)
+                        {
+                            points[n].x = i;
+                            points[n].y = j;
+
+                            if (!create_polygon_jit(points, n + 1, target_n, gridsize, curr_area, min_area, soln))
+                                break;
+                        }
+                        if (points[n].x == min_i)
+                            break;
+                    }
+                }
+
+            }
+        }
+    }
+    else
+    {
+        int min_i = std::max(0, points[n - 1].x - 3);
+        int max_i = std::min(gridsize, points[n - 1].x + 4);
+
+        int min_j = std::max(-gridsize / 2, points[n - 1].y - 3);
+        int max_j = std::min(gridsize / 2, points[n - 1].y + 4);
+
+        for (int i = min_i; i &lt; max_i; i++)
+        {
+            for (int j = min_j; j &lt; max_j; j++)
+            {
+                points[n].x = i;
+                points[n].y = j;
+                create_polygon_jit(points, n + 1, target_n, gridsize, curr_area, min_area, soln);
+            }
+        }
+    }
+    points[n].x = 0;
+    points[n].y = 0;
+    return true;
+}
+
+int main() {
+    using namespace std::chrono;
+    auto t1 = steady_clock::now();
+
+    const int n = 16;
+    std::array&lt;point, n&gt; points = { 0 };
+
+    int gridSize = 11;
+    int minArea = gridSize * gridSize;
+
+    std::array&lt;point, n&gt; result;
+
+
+    create_polygon_jit(points, 1, n, gridSize, 0, minArea, result);
+
+    std::cout &lt;&lt; "Result: ";
+    for (point&amp; p : result)
+        std::cout &lt;&lt; "(" &lt;&lt; p.x &lt;&lt; ", " &lt;&lt; p.y &lt;&lt; ") ";
+    std::cout &lt;&lt; "\nArea: " &lt;&lt; minArea &lt;&lt; "\n";
+
+    auto t2 = steady_clock::now();
+    auto time_span = duration_cast&lt;duration&lt;double&gt;&gt;(t2 - t1);
+    std::cout &lt;&lt; "Time:" &lt;&lt; time_span.count() &lt;&lt; " seconds.\n";
+}
+
+
+</code></pre>
+<p><a href="https://tio.run/##7Vnbbts4EH3XV8xmgcCKrcR2iqJryQL6A11gs29tYTAS48qRKUOi0GiD/Hq9Q1I3Wpc4TgKkgfVgc6iZM8OZQ4oSvc3GWnredvtnwLww9Sk4JI5J5hpVh/cjjlhU7wmihMeUrF3DwEbqcdhEAeNwbwBeonVnl83MNh5sw@B0vQkJp07C/dksCf6jCw5fXOM6ikLwEI3TxSYKs2XEFquAD6SajMWR4CNUPlV@kpEEZuqPk3hJ@SKXlnHgC3AleWkcLwiCS/EU1gHLxXb4JAqZaeTDuIEBA3cOl6aUVW85wAnM82i@MrDg8vv5Hf7VeqbYM4KsqZc19DJbx57qNpMu7KZePzaOCOM@E4aW8HImwnPmMDbh4gI@s2VIwYXJp3FpIq6Y8jRmcEPChLaAIc5Q4EhYV2DVwObw175gedhysHOMCQjzG1kQN8w2QKQh4mlpJL4vi92SzLPdJOlpk4nc1bnTwy3RnT1DKrkIw3kZm45ZqWDiCq7uNVzJVUxOMRkqo3vNvADFnJTObE1DTIEyY3a376LzQU@6cBCgvZxfa3I3GI9aqHxp6oxHxZpVwAbVNN41HsIH0276XNV9WoU5XMB01DJF2vyv2vwLAHQ5aYLsxiGmg@J/R@qFRraj0dTSsLKp2bjZVBfXTRTDQIxEjELmw8amowaGzeHQ7LDUrEUNVC1wlDaKbl5QJVpWH4q4iizJuQqBvadyhsqrfmWRlD9anhPFE4GpMlVPg4pCtadA7QEglnqz16W4rlH5tjuyB6MvXi0btcz2u@1x2XTX7KG4sh7EGjkHZKFXed0LEeveav8ijOrEeE2mHan2XKrpUoN0PauadcCydiCN9iBo94J5JObLEjOTxBSpfnPrX5CTIBDUUiQQzS4S/H606lO2j5x7mYWwamkcfM420Dp0H/hKjH76HuG4YD6TvEXK3@ai@XrP5CPV3h/VDto0WgfvGl/5tWb/5fXIzGe@zohUv8235v33eEdavX9a9e4M1W/JtPv3/uH00Y@mT@G9zvOnzsHmLHl0Zjz6DvXS3Lf3II8e9dg2mpHmndrHeiSmqhZWqPiEmyYBWwIja5psiEdVCdVZn0IgKY@AT2R1KfGzhRdG3u1sxqKfg6KKXsQSrk7jUG/yUVk2D9eYm0eJWvcwhofcvjiyuxKUQYBJdW6I2fmsTipKhbOymZu3OoppkoYcNYxHqoQVyktzJUszHhVORzmIWffjRSkHx4GTf@S9GZyoYCUXJeYpbGBWmJb1040HJ@Jvg/UT0ghyMZOiWWDqNt9kUDOlW@RF3TjJI1TFmnYVq1IJ1nSBBRfl8tOY8ACT4pGEO4Xk@FF6HVLXHXBxTMgnZltI/yLOTMZTIp7jTcaRX@I@JBS54SfnMkTk33b7y7sJyTLZWn9f/g8" rel="nofollow noreferrer" title="C++ (gcc) – Try It Online">Try it online!</a></p>
+</div>
+<div id="pu5" class="pu"><h1><a href="https://nodejs.org" rel="noreferrer">JavaScript (Node.js)</a>, <span class="math-container">\$n=19\$</span></h1>
+<p>This is a very early attempt. Given 10 minutes, it is only able to compute up to <span class="math-container">\$n=19\$</span> on my laptop and finds the same values as the ones listed in A070911.</p>
+<p>It assumes <span class="math-container">\$n\ge7\$</span> in order to avoid some edge cases. Although the code could be updated to support <span class="math-container">\$n&lt;7\$</span>, I'm not sure it's worth the effort.</p>
+<p>A few assumptions are made about the shape of the <span class="math-container">\$n\$</span>-gon and the size of its enclosing rectangle. The later one should probably be relaxed to make sure that no shorter solution is missed.</p>
+<p>Each solution comes with an <a href="/questions/tagged/ascii-art" class="post-tag" title="show questions tagged &#39;ascii-art&#39;" aria-label="show questions tagged &#39;ascii-art&#39;" rel="tag" aria-labelledby="ascii-art-container">ascii-art</a> representation.</p>
+<h3>Code</h3>
+<pre class="lang-javascript prettyprint-override"><code>const MAX_N    = 13;
+const MAX_TIME = 600;
+
+let pathCache = {},
+    ts = Date.now(),
+    min = 4, max = 4;
+
+for(let n = 7; n &lt;= MAX_N; n++) {
+  console.log(`n = ${n}`);
+
+  let [ score, solution ] = solve(n, min, max),
+      w = solution.w - 1,
+      h = solution.h - 1;
+
+  console.log(`Area * 2 = ${score}`);
+  console.log(`Enclosing rectangle: ${w} x ${h}`);
+  displaySolution(solution);
+
+  let time = Math.round((Date.now() - ts) / 1000);
+
+  console.log(`Total time: ${time}s\n`);
+
+  if(time &gt;= MAX_TIME) {
+    break;
+  }
+  min = solution.h;
+  max = solution.w + 2;
+}
+
+function solve(n, min, max) {
+  let part = partitionsInFour(n),
+      rect = [],
+      best = Infinity,
+      solution;
+
+  for(let w = min; w &lt;= max; w++) {
+    for(let h = min; h &lt;= w; h++) {
+      rect.push([ w, h ]);
+    }
+  }
+
+  for(let [ w, h ] of rect) {
+    for(let y0 = 0; y0 &lt; h - 1; y0++) {
+      for(let x0 = 0; x0 &lt; w - 1; x0++) {
+        for(let y1 = 1; y1 &lt; h; y1++) {
+          for(let x1 = 1; x1 &lt; w; x1++) {
+            let [ score, res ] = solveRectangle(part, w, h, y0, x0, y1, x1);
+
+            if(score &lt; best) {
+              best = score;
+              solution = { w: w, h: h, y0: y0, res: res };
+            }
+          }
+        }
+      }
+    }
+  }
+  return [ best, solution ]
+}
+
+function solveRectangle(part, w, h, y0, x0, y1, x1) {
+  let best = Infinity,
+      solution;
+
+  for(let p of part) {
+    let p0, p1, p2, p3;
+
+    if(
+      (p0 = getPaths(x0,         h - y0 - 2)[p[0] - 1]) &amp;&amp;
+      (p1 = getPaths(w - x0 - 2, h - y1 - 1)[p[1] - 1]) &amp;&amp;
+      (p2 = getPaths(w - x1 - 1, y1 - 1    )[p[2] - 1]) &amp;&amp;
+      (p3 = getPaths(x1 - 1,     y0        )[p[3] - 1])
+    ) {
+      let outerArea = p0.area + p1.area + p2.area + p3.area,
+          score = (w - 1) * (h - 1) * 2 - outerArea;
+
+      if(score &lt; best) {
+        best = score;
+        solution = [
+          p0.path,
+          [...p1.path].reverse(),
+          p2.path,
+          [...p3.path].reverse()
+        ];
+      }
+    }
+  }
+  return [ best, solution ];
+}
+
+function getPaths(w, h) {
+  if(pathCache[[ w, h ]]) {
+    return pathCache[[ w, h ]];
+  }
+
+  let set = new Set(), list = [];
+
+  function search(x = 0, y = 0, pw = 0, ph = 1, area = 0, path = []) {
+    if(x == w &amp;&amp; y == h) {
+      let len = path.length,
+          outerArea = w * h * 2 - area;
+
+      if(!set.has(len) || outerArea &gt; list[len].area) {
+        set.add(len);
+
+        list[len] = {
+          area: outerArea,
+          path: path
+        }
+      }
+    }
+
+    for(let w0 = 1; w0 &lt;= w - x; w0++) {
+      for(let h0 = 1; h0 &lt;= h - y; h0++) {
+        if(h0 * pw &lt; w0 * ph) {
+          search(
+            x + w0, y + h0, w0, h0,
+            area + ((w - x) * 2 - w0) * h0, [ ...path, [ w0, h0 ]]
+          );
+        }
+      }
+    }
+  }
+
+  search();
+  pathCache[[ w, h ]] = list;
+  pathCache[[ h, w ]] = list.map(o =&gt; ({
+    area: o.area,
+    path: [...o.path].reverse().map(([ dx, dy ]) =&gt; [ dy, dx ])
+  }));
+
+  return list;
+}
+
+function partitionsInFour(n) {
+  let list = [];
+
+  (function search(n, i = 1, l = []) {
+    if(n) {
+      if(i &lt;= n &amp;&amp; l.length != 4) {
+        search(n - i, 1, [i, ...l]);
+        search(n, i + 1, l);
+      }
+    }
+    else if(l.length == 4) {
+      list.push(l);
+    }
+  })(n);
+
+  return list;
+}
+
+function displaySolution(solution) {
+  let m = [...Array(solution.h)].map(_ =&gt; [...Array(solution.w)].fill('--')),
+      x, y, i = 1;
+
+  function mark(x, y) {
+    if(m[y][x] == '--') {
+      m[y][x] = i.toString().padStart(2, '0');
+    }
+    i++;
+  }
+
+  mark(x = 0, y = solution.y0);
+  mark(x, ++y);
+  solution.res[0].forEach(([ dx, dy ]) =&gt; mark(x += dx, y += dy));
+  mark(++x, y);
+  solution.res[1].forEach(([ dx, dy ]) =&gt; mark(x += dx, y -= dy));
+  mark(x, --y);
+  solution.res[2].forEach(([ dx, dy ]) =&gt; mark(x -= dx, y -= dy));
+  mark(--x, y);
+  solution.res[3].forEach(([ dx, dy ]) =&gt; mark(x -= dx, y += dy));
+
+  console.log(m.map(r =&gt; r.join(' ')).join('\n'));
+}
+</code></pre>
+<p><a href="https://tio.run/##lVdtj5tGEP7uX7GVqtwSMMV21Up2HClqUykfUlW9fKhEUEJs7iDBiwU42Er826/PzMKyYOfNUrLD7rzPM7N77@OPcbUps309VcU2eXjYFKqqxctn/735W@C3FrPFatJvvnrx8jk2fwuC1WSSJ7XYx3X6R7xJE@x@OnsTEqorfPwZ14mvikY6enOXKez@6oldfCQC8ndFKUkHHfy@wvJkrS2Ddl1HfIIgmS7yxM@Le/mWGH/@pM5vHUgLQbKhqDZFmXgCXIc6K5SIwISPj4lUHllli60TQjT6lFn9RkzFrDtJ7ZOUTtjIwIFnZRKLx2LOfrBh9mXE9Vxt8qLK1L0ok00dq/s8WYK/OYsjlrQV2WbVPo9Pt61J2dnuY6uzHaX1JVLsl8VBbaXsswoH68oRv4hZEATOpauvijrOWQXZpvVcvVZt5rI7ycqfrk1VdbqFeIcQP5B/50lXtD4rtK/rZ@XQFfPV5IxyHtSGK3CZfdat4VLWkKYlI97qhfqrOJRSmQJRysARRt3Gu6SijRfqLlNZfeq2Owc4ng5JVF0YXYEAlmAZVIeknivtuFLiarD2PNoBf3@oUhmKxgNPxOXSCTnb1rpzUdyx1NjOKYChYEXrE6ERBdq21XEeW84jcTaa8zjgtLTOqCtXtEIrrUM@S2vLeSTOhtYx56iHyqTq2@ffDruSquVxrB789@AZ1hnWmUZT/wOuWBXsUdnGxkwxmWk1OjMdjEkimiUbXGqbS7YL95bs43koep5cozvqbBWPqlsfSoWQyRN7alwi@LsSYJD9IzDdE2JIaZcg3oTSPZTu5/i3aBOLhLaK5J4wcp/U/2AcVJJc6H4ELWBsKuZOuA@DiPATOeLRIyM6s0UJX0dm97TojARIdHZFdH4hyuxeK0ZMJDq/IroYONyK0Q/Otj8SXbSiLNdDhnJSHOqk5KGLmRH4MVEusmSouaEWTHkWFDQS14K9RqUeC5l21ByEUW5A/BX4XgeuBdnQsgxX6V60nQl934fftB35ZfIxKatEOjYHYrkqtBgLGYZo9WMQH07pvqiAgQ4V8Zv7POymW9SlodV7hWPVTUaqWZVQolTSiNukRogizyo90XUPmB5L4nKTSrpMqJ30sm/alWY00BLr2tMOzLKWzh04C1nMb0COxNddFB148kTxVYPbE@T9MLU2shoAIm1BEY/w8BPC8dO4Qt8qR3z@bAk@5chCHESMPRsuJBVvtyxlzUgjQDPO8obEl73qASzg/5L//@JkG1w6TaCHPla63Khh6eParZO2rCmz8iigj@ElgRzg/DFV5gkpBZUO53pbyMFIPqIlGy6rC40e01gHPG3nSj1Vuq5sAqJIJhQEf2oJumlZAbBmqXBWXx32E@MaM17BLcKnioxPYbDpT/1dvJeFWD8VUkfdFsuaN7pG1K3FuFlZGi@J7dET2xPeEqQInyd8HgUPvbOjIdL2l/bI7tQrryVz7QybS467C@@vTHdSPm4e1VcRXxlBQFEr5W23iJ/wSh9iWqtEkTKPVIZYEHMeWYWw7bps17mcUkIkeZWQWWNsPTDGeec3WG4/vhypvpGqLz6qTcJ2lAd4/aws45Psn7ZOxKV6w/W5PG9wfpflubyZTm8cM7hR1VOb4uF028XlB0mnVsZ34SkKjxHFylpMuOZAZH5d3NYl/nYAdPbx9rZG7SUu6pvgxsoE1LmumbraVj9HjdOnwFmZc0@47om/zTneUngu@JgHzwH9C5i2et01b5@YODm9StflAC9Uzr5f5XSkEpvT6RWV82@qnH5J5XR63cvF96s0gY/@yNoxZEoSKf33RabkjQA4WvK1uiGZ88PD/w" rel="noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a> (up to <span class="math-container">\$n=13\$</span>)</p>
+<h3>Output</h3>
+<pre><code>n = 7
+Area * 2 = 13
+Enclosing rectangle: 3 x 3
+01 07 -- --
+02 -- -- 06
+-- -- -- 05
+-- 03 04 --
+Total time: 0s
+
+n = 8
+Area * 2 = 14
+Enclosing rectangle: 3 x 3
+-- 08 07 --
+01 -- -- 06
+02 -- -- 05
+-- 03 04 --
+Total time: 0s
+
+n = 9
+Area * 2 = 21
+Enclosing rectangle: 4 x 4
+01 09 -- -- --
+02 -- -- 08 --
+-- -- -- -- 07
+-- 03 -- -- 06
+-- -- 04 05 --
+Total time: 0s
+
+n = 10
+Area * 2 = 28
+Enclosing rectangle: 5 x 4
+-- 10 09 -- -- --
+01 -- -- -- 08 --
+02 -- -- -- -- 07
+-- 03 -- -- -- 06
+-- -- -- 04 05 --
+Total time: 0s
+
+n = 11
+Area * 2 = 43
+Enclosing rectangle: 6 x 5
+-- 11 10 -- -- -- --
+01 -- -- -- -- 09 --
+02 -- -- -- -- -- 08
+-- -- -- -- -- -- 07
+-- 03 -- -- -- 06 --
+-- -- 04 05 -- -- --
+Total time: 1s
+
+n = 12
+Area * 2 = 48
+Enclosing rectangle: 6 x 6
+-- 12 11 -- -- -- --
+01 -- -- -- 10 -- --
+02 -- -- -- -- 09 --
+-- -- -- -- -- -- --
+-- 03 -- -- -- -- 08
+-- -- 04 -- -- -- 07
+-- -- -- -- 05 06 --
+Total time: 4s
+
+n = 13
+Area * 2 = 65
+Enclosing rectangle: 8 x 6
+-- 13 12 -- -- -- -- -- --
+01 -- -- -- -- 11 -- -- --
+02 -- -- -- -- -- -- 10 --
+-- -- -- -- -- -- -- -- 09
+-- 03 -- -- -- -- -- -- 08
+-- -- 04 -- -- -- -- 07 --
+-- -- -- -- 05 06 -- -- --
+Total time: 7s
+
+n = 14
+Area * 2 = 80
+Enclosing rectangle: 8 x 7
+-- -- -- 13 12 -- -- -- --
+-- 14 -- -- -- -- 11 -- --
+01 -- -- -- -- -- -- 10 --
+02 -- -- -- -- -- -- -- --
+-- -- -- -- -- -- -- -- 09
+-- 03 -- -- -- -- -- -- 08
+-- -- 04 -- -- -- -- 07 --
+-- -- -- -- 05 06 -- -- --
+Total time: 22s
+
+n = 15
+Area * 2 = 103
+Enclosing rectangle: 9 x 8
+-- -- 14 13 -- -- -- -- -- --
+-- 15 -- -- -- -- 12 -- -- --
+-- -- -- -- -- -- -- -- 11 --
+01 -- -- -- -- -- -- -- -- 10
+02 -- -- -- -- -- -- -- -- 09
+-- -- -- -- -- -- -- -- -- --
+-- 03 -- -- -- -- -- -- 08 --
+-- -- 04 -- -- -- -- 07 -- --
+-- -- -- -- 05 06 -- -- -- --
+Total time: 38s
+
+n = 16
+Area * 2 = 118
+Enclosing rectangle: 9 x 9
+-- -- -- -- 14 13 -- -- -- --
+-- -- 15 -- -- -- -- 12 -- --
+-- 16 -- -- -- -- -- -- 11 --
+-- -- -- -- -- -- -- -- -- --
+01 -- -- -- -- -- -- -- -- 10
+02 -- -- -- -- -- -- -- -- 09
+-- -- -- -- -- -- -- -- -- --
+-- 03 -- -- -- -- -- -- 08 --
+-- -- 04 -- -- -- -- 07 -- --
+-- -- -- -- 05 06 -- -- -- --
+Total time: 70s
+
+n = 17
+Area * 2 = 151
+Enclosing rectangle: 11 x 10
+-- -- -- 16 15 -- -- -- -- -- -- --
+-- 17 -- -- -- -- -- 14 -- -- -- --
+01 -- -- -- -- -- -- -- -- 13 -- --
+02 -- -- -- -- -- -- -- -- -- 12 --
+-- -- -- -- -- -- -- -- -- -- -- --
+-- 03 -- -- -- -- -- -- -- -- -- 11
+-- -- -- -- -- -- -- -- -- -- -- 10
+-- -- -- -- -- -- -- -- -- -- -- --
+-- -- -- 04 -- -- -- -- -- -- 09 --
+-- -- -- -- 05 -- -- -- -- 08 -- --
+-- -- -- -- -- -- 06 07 -- -- -- --
+Total time: 98s
+
+n = 18
+Area * 2 = 174
+Enclosing rectangle: 12 x 10
+-- -- -- -- 16 15 -- -- -- -- -- -- --
+-- -- 17 -- -- -- -- -- 14 -- -- -- --
+-- 18 -- -- -- -- -- -- -- -- 13 -- --
+-- -- -- -- -- -- -- -- -- -- -- 12 --
+01 -- -- -- -- -- -- -- -- -- -- -- --
+02 -- -- -- -- -- -- -- -- -- -- -- 11
+-- -- -- -- -- -- -- -- -- -- -- -- 10
+-- 03 -- -- -- -- -- -- -- -- -- -- --
+-- -- 04 -- -- -- -- -- -- -- -- 09 --
+-- -- -- -- 05 -- -- -- -- -- 08 -- --
+-- -- -- -- -- -- -- 06 07 -- -- -- --
+Total time: 202s
+
+n = 19
+Area * 2 = 213
+Enclosing rectangle: 13 x 12
+-- -- 18 17 -- -- -- -- -- -- -- -- -- --
+-- 19 -- -- -- -- 16 -- -- -- -- -- -- --
+-- -- -- -- -- -- -- -- 15 -- -- -- -- --
+01 -- -- -- -- -- -- -- -- -- -- -- -- --
+02 -- -- -- -- -- -- -- -- -- -- 14 -- --
+-- -- -- -- -- -- -- -- -- -- -- -- 13 --
+-- -- -- -- -- -- -- -- -- -- -- -- -- --
+-- 03 -- -- -- -- -- -- -- -- -- -- -- 12
+-- -- -- -- -- -- -- -- -- -- -- -- -- 11
+-- -- 04 -- -- -- -- -- -- -- -- -- -- --
+-- -- -- 05 -- -- -- -- -- -- -- -- 10 --
+-- -- -- -- -- 06 -- -- -- -- -- 09 -- --
+-- -- -- -- -- -- -- -- 07 08 -- -- -- --
+Total time: 436s
+</code></pre>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/253633/">253633</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
