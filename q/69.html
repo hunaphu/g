@@ -376,8 +376,75 @@
 <h3>Explanation</h3>
 <p>It's basically just the vanilla Encode, Print Encoding, Print Decoding style quine. Still on the hunt for a more clever trick to do it shorter but I thought this would be fun to start as a benchmark lol.</p>
 <p>EDIT: was able to save quite a few (2313) bytes by writing a program to (mildly) optimize which characters were assigned which values, changed up the structure of code block 2 to have a loop (as discovered in previous revision), and removing a constant amount from each of the ascii values in the encoding and adding it back on in decoding later instead.</p>
-<pre><code>Full code breakdown progress, feel free to view post history to see an outdated version as the general structure hasn't changed
+<pre><code>+OU…UOU+OU…+E.  code block 0 (heavily abridged / altered)
+                (this block handles encoding)
+
+                encode part 1: many of the following
++                 n +s: increment r0 by n, 1&lt;=n&lt;=20
+ O                enqueue r0
+  U               set r0 to 0
+   …            (these encode which of the characters from
+                encode part 2 are going to be decoded later)
+    UO          enqueue a 0 to delimit parts 1 and 2
+                encode part 2: 20 of the following
+       +          n +s: increment r0 by n, n being
+                  an ascii character code minus 33
+        O         enqueue r0
+         U        set r0 to 0
+          …     (these encode the actual ascii character
+                codes, and we'll add 33 to them later.
+                we can call this little index of values
+                our &quot;table&quot; of ascii values)
+           +E   go to code block 1
+             .  end code block
+
++…[]]]][]][{UO{^)]]-P+…P:]+++PD-};N)}:++E.  code block 1 (edited)
+                                            (this block prints the encoding)
++…                                            5 +s: r0 = 5
+  [                                           r2 = r0
+   ]]]]                                       r0 = r2*4
+       [                                      r2 = r0
+        ]]                                    r0 = r2*2
+          [                                   r2 = r0
++…[]]]][]][                                 r2 = 40
+           {UO                    N)}:      for each value x on the queue
+               ^                              r1 = x
+              {^)       :     D-};            while r1--
+                         ]+++P                  print ascii r2+3
+                                              (r2==40, 43 is +'s ascii
+                                              this loop prints x +s)
+                 ]]-P                         print ascii r2*2-1
+                     +…                       6 +s: =&gt; r0 = 49
+                       P                      print ascii r2+9
+                                              (these two print O and U to
+                                              go after each string of +s)
+                                      ++E   go to code block 2
+                                         .  end code block
+
+U)!-E:R[{UO):};{UOD+^(])R+…P:};{N()UO:+E;}  code block 2 (edited)
+                                            (this block decodes the encoding)
+U                                           x = queue.pop()
+ )   :                                      if x==0
+                                            (meaning we've reached the 0
+                                            delimiter separating the two
+                                            halves of encoded data)
+  !                                           ACTUALLY print 
+                                              (explanation below code block)
+   -E                                         go to code block -1 (halt)
+      R[                                    r2 = x
+        {UO):};                             cycle through queue until
+                                            we reach the 0 delimiter
+                UO                          cycle to next x
+               {  D+^(])    :};             while r1++ != r2
+                UO                            cycle to next x
+                        R+…P                R 33 +s P:print ascii table[x]+33
+                               {N()UO:  ;}  cycle through remainder of queue
+                                            (language quirk mandates this...
+                                            i think these two loops can maybe
+                                            be one loop, but its nontrivial)
+                                      +E    go to code block 2
 </code></pre>
+<p>So in Headass, <code>P</code> just prints whatever number is in r0. In Headascii, <code>P</code> appends the ascii character for the value at r0 to a global &quot;output&quot; string, which can be printed with <code>!</code>. That's kind of wordy though and didn't fit in the little margin up there. #fermat</p>
 </div>
 <div id="pu1" class="pu"><h1>Lua, 45 bytes</h1>
 <p>Simple format approach. We can use <code>%q</code> for conciseness.</p>
