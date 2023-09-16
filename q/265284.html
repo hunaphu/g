@@ -26,9 +26,52 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>081</td><td>Charcoal</td><td>230916T163835Z</td><td><a href="https://codegolf.stackexchange.com/questions/265284/count-the-size-of-the-levenshtein-neighborhood/265285#265285">Neil</a></td></tr>
+<tr d-ix="0"><td>008</td><td>Python</td><td>230916T225842Z</td><td><a href="https://codegolf.stackexchange.com/questions/265284/count-the-size-of-the-levenshtein-neighborhood/265287#265287">Value In</a></td></tr>
+<tr d-ix="1"><td>081</td><td>Charcoal</td><td>230916T163835Z</td><td><a href="https://codegolf.stackexchange.com/questions/265284/count-the-size-of-the-levenshtein-neighborhood/265285#265285">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 81 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, (10,8)??</h1>
+<p>Direct adaptation of my answer on <a href="https://codegolf.stackexchange.com/a/264954/52194">Pick a random string at a fixed edit distance</a>. ATO was able to compute to (10,8) before its 60-second timeout kicked in, but I'm not sure if I'm using a good string for the test battery. (I just kept alternating between 1 and 0 for the last character.)</p>
+<pre class="lang-python prettyprint-override"><code>from collections import deque
+
+def countFixedDistance(s: str, k: int) -&gt; int:
+  if k &lt;= 0: return s
+
+  chars: set[str]          = set('01')
+  distances: dict[str,int] = {s: 0}
+  queue                    = deque((s,))
+  valid: set[str]          = set()
+
+  while len(queue) &gt; 0:
+    current = queue.popleft()
+    nextdist = distances[current] + 1
+    for nxt in insertions(current, chars) | substitutions(current, chars) | removals(current):
+      if nxt in distances: continue
+      distances[nxt] = nextdist
+      if nextdist &lt; k:
+        queue.append(nxt)
+      else:
+        valid.add(nxt)
+
+  return len(valid)
+
+def insertions(s: str, chars: set[str]) -&gt; set[str]:
+  result = set()
+  for i in range(len(s)+1):
+    result.update(s[:i] + c + s[i:] for c in chars)
+  return result
+
+def substitutions(s: str, chars: set[str]) -&gt; set[str]:
+  result = set()
+  for i in range(len(s)):
+    result.update(s[:i] + c + s[i+1:] for c in chars if c != s[i])
+  return result
+
+def removals(s:str) -&gt; set[str]:
+  return set(s[:i] + s[i+1:] for i in range(len(s)))
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=rVTBjtMwEL1wyh9wG06N1bRqbija7gnxBdyiHELiUKupEzw2dAV8CZe9AN8EX8OM7aTd3Vbaw0atqnrevHnzZuKfv8c7uxv0_f0vZ7vV23-vXndmOEAz9L1srBo0gjqMg7HQys9OJkkrO4o6bd-ro2zfKbS1bmSKBaA1GewLUNoKWN3yb5EAqA72cLOFTQFGWmc0YELHza42nCRtSYkVzM-Wz9LFJl8IgrWxAEFb1XhsRsQVwb7R2eYHYUiXk3Dh2QbRaYqZYLIvda_a6zUF6_q6U72EXurU0wq4JeUJgxpnjNSWwD6yHoexlx2ncVTLo2WxXHTSXMaUCpaQe1Q3GNBHS97QB6XxDqcRlgVTBHwHdB_RKuuuxY08DNTNHBJBonc78p851wzaKk3TC5iTPoKyk5P2M46pmxuaaDLZFPqux1HqNqVcESOyR3lCeZfXdRshdB7nzqb6oAhrdObAtD6PtsLv0fSn8EzoejvPKxiquF1T608y5RIolnn0I8DXbmxrSztaFopH0dAXS1VUPrvh7GDsSWpIDDIfzuJllT5H5zJ_opRH1MCbLYerK7LnFcGCNF3QF95FUjfVO6_1VKkIN8TfP0hNLTaLxF8UeDdfEGjbwdkkvEAfjOOVYKr9iSrP4MGERkPvchorZHuRXbxaKMA9Bv511zvcsaMISxKSbxYlk2C5yitRJZETo9zpYvsP" rel="nofollow noreferrer">Attempt This Online!</a></p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 81 bytes</h1>
 <pre><code>⊞υη≔⦃η¹⦄ζＦＮ«≔υε≔⟦⟧υＦεＦΣ⁺Ｅκ⟦⭆κ¬⁼Ｉν⁼μξ⭆κ⎇⁼μξων⟧Ｅ²Ｅ⊕Ｌκ⁺⁺✂κ⁰ν¹λ✂κν¿¬§ζλ«⊞υλ§≔ζλ¹»»ＩＬυ
 </code></pre>
 <p><a href="https://ato.pxeger.com/run?1=VVG9TsMwEBZj8xSnTmfJlRLEgOhUIYZIUEUKW5UhTZ0f1XGKf6C0yspLsHQAwcQD8TTY-ZHKSfb58333-e78_p2VqcyalJ9On0bns-vfi7fIqBINhZLMvYVSVSHwWN5A0FI42Ku8kYCh2Bm9NPWaSSQEjt5kYNo8ZkkjXCUUjMNdFiPQ-djUGHGj8CHd4ZbCKtayEsWAlo3GuyeTcoW3qdIoCIUB1xT2xBqFfxmPTIpUvuI5i8ILBUFIYk-Odtm7UGSS1UxotsF7Jgpd4tbpdeV0W8yrjDlV3-ZTCGyQuwfHa0F6gyoHdLUudCg2bI8HR-yHMbR_HnFKdg6TcbrcodZrvcg2ovtOh4KMVZl_qHWmhk_5Wk1nz3ya_Fx5gR_4fuCWH_TBPw" rel="nofollow noreferrer">Attempt This Online!</a> Link is to verbose version of code. Can handle results of up to about <code>20000</code> on ATO, so <code>5 1011001101</code> or <code>4 101001100101</code>. Explanation:</p>
