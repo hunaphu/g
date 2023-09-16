@@ -26,23 +26,18 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>nan</td><td></td><td>230914T172220Z</td><td><a href="https://codegolf.stackexchange.com/questions/253633/the-smallest-area-of-a-convex-grid-polygon/265224#265224">G&#252;n</a></td></tr>
+<tr d-ix="0"><td>442</td><td>Python</td><td>230914T172220Z</td><td><a href="https://codegolf.stackexchange.com/questions/253633/the-smallest-area-of-a-convex-grid-polygon/265224#265224">G&#252;n</a></td></tr>
 <tr d-ix="1"><td>323</td><td>Fortran n=17</td><td>221029T125913Z</td><td><a href="https://codegolf.stackexchange.com/questions/253633/the-smallest-area-of-a-convex-grid-polygon/253908#253908">Hugo Pfo</a></td></tr>
 <tr d-ix="2"><td>010</td><td>Python with restricted conditions n=26</td><td>221024T215157Z</td><td><a href="https://codegolf.stackexchange.com/questions/253633/the-smallest-area-of-a-convex-grid-polygon/253721#253721">arrmansa</a></td></tr>
 <tr d-ix="3"><td>nan</td><td>Rust + itertools + fasthash</td><td>221027T091656Z</td><td><a href="https://codegolf.stackexchange.com/questions/253633/the-smallest-area-of-a-convex-grid-polygon/253808#253808">corvus_1</a></td></tr>
 <tr d-ix="4"><td>162</td><td>C++ gcc</td><td>221026T165707Z</td><td><a href="https://codegolf.stackexchange.com/questions/253633/the-smallest-area-of-a-convex-grid-polygon/253788#253788">jdt</a></td></tr>
 <tr d-ix="5"><td>019</td><td>JavaScript Node.js</td><td>221023T151044Z</td><td><a href="https://codegolf.stackexchange.com/questions/253633/the-smallest-area-of-a-convex-grid-polygon/253655#253655">Arnauld</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Python</h1>
-<p>This can (rigorously) go up to 18-gons in 6 minutes, using pypy.
-CPython is slightly slower.
-Up to 19-gons (and 20-gons) takes 40 minutes with CPython and pypy,
-on my laptop.</p>
-<p>The approach is rigorous.
-The program is a bit paranoic, and continues the computation all the way
-up to a height where a very weak bound is enough to
-exclude the possibility of further progress. I hope some more insights might cut this down.</p>
-<p>I am reporting some smallest polygons:</p>
+<div id="pu0" class="pu"><h1>Python, <em>n</em>=44 in under 2 minutes</h1>
+<p>This can go up to 44-gons in under 2 minutes, using pypy on my laptop.
+CPython is slightly slower (2'45'').</p>
+<p>The approach is rigorous. The algorithm is explained in the comments of the code</p>
+<p>Here are some smallest polygons:</p>
 <ul>
 <li>20-gon, area=242/2: [(0,0),(3,1),(5,2),(6,3),(7,5),(7,6),(6,8),(5,9),(3,10),(0,11),(-1,11),(-4,10),(-6,9),(-7,8),(-8,6),(-8,5),(-7,3),(-6,2),(-4,1),(-1,0)]</li>
 <li>21-gon, area=289/2: [(0,0),(2,1),(5,3),(6,4),(8,7),(9,9),(10,12),(10,13),(9,14),(7,15),(6,15),(3,14),(1,13),(-2,11),(-3,10),(-4,8),(-5,5),(-5,4),(-4,2),(-3,1),(-1,0)]</li>
@@ -66,76 +61,209 @@ exclude the possibility of further progress. I hope some more insights might cut
 <li>39-gon, area=1955/2: [(0,0),(4,1),(7,2),(9,3),(12,5),(13,6),(15,9),(16,11),(17,14),(18,18),(18,19),(17,22),(16,24),(14,27),(13,28),(10,30),(8,31),(5,32),(1,33),(0,33),(-5,32),(-9,31),(-12,30),(-14,29),(-17,27),(-18,26),(-20,23),(-21,21),(-22,18),(-22,17),(-21,14),(-20,12),(-18,9),(-17,8),(-13,5),(-10,3),(-8,2),(-5,1),(-1,0)]</li>
 <li>40-gon, area=2078/2: [(0,0),(4,1),(7,2),(9,3),(12,5),(13,6),(15,9),(16,11),(17,14),(18,18),(18,19),(17,23),(16,26),(15,28),(13,31),(12,32),(9,34),(7,35),(4,36),(0,37),(-1,37),(-5,36),(-8,35),(-10,34),(-13,32),(-14,31),(-16,28),(-17,26),(-18,23),(-19,19),(-19,18),(-18,14),(-17,11),(-16,9),(-14,6),(-13,5),(-10,3),(-8,2),(-5,1),(-1,0)]</li>
 </ul>
-<p>The min-area values are actually found rather quickly (also when trying
-larger target values of N, for N-gons).
-Judging by the actual &quot;heights&quot; of the (presumed) optimal polygons,
-the program reaches N=50 within seconds.</p>
 <p>The target value of N can be given on the command line.</p>
-<p>(I am currently working on a much faster version, based on using the lattice width.)</p>
-<pre><code>N_target = 19
+<pre><code>N_target = 44
 
 &quot;&quot;&quot;
 Lemma 1: Every edge is a primitive vector.
 
+Lemma 2: If n is even, then P can be assumed to be centrally symmetric.
 
-Lemma 2:
-Every n-gon P has an edge e such that the longest segment parallel
-to e that is contained in P has length
-at most |e| * 1/tan(pi/n) ~ |e| * n / pi
+Definition:
+The *lattice width* of a lattice polygon P *in a given lattice direction*
+(a,b) in Z² is one less than the number of lattice lines orthogonal to (a,b)
+intersecting P.
+The *lattice width* of P is the smallest number lattice width over
+all lattice directions.
+
+Lemma 3: A centrally symmetric convex polygon P of lattice width w has area
+at least w²/2.
 
 Proof:
-Affine transformation s.t. B_1 \subset P \subset B_2.
-(Affine transformation does not affect length ratios on parallel lines.)
+[ A weaker bound of w²/4 is given in the following paper on p.175,
+before remark 2, (with w=2b):
+Imre Bárány and Norihide Tokushige, The minimum area of convex lattice n-gons.
+Combinatorica, 24 (No. 2, 2004), 171-185. https://www.renyi.hu/~barany/cikkek/94.pdf
+Our proof uses those ideas but refines the argument in the end.
+The improvement to w²/2 speeds up the computations by a factor 5-6. ]
 
-Longest edge &gt;= 2/tan(pi/n)
-Longest segment in P &lt;= 2 
+
+1. We assume that the lattice width direction is vertical.
+Thus P touches two horizontal lines H+: y=b and H-: y=-b, with w=b/2.
+Let (a,0) be the intersection of P with the positive x-axis.
+
+2. If a&gt;=b, then the area is at least 2b²=w²/2, and we are done.
+Thus, let us assume a&lt;b.
+
+3. By horizontal shearing, we assume that the tangent at (a,0)
+(or some supporting line) has slope s between +1 and infinity.
+(Since horizontal lattice-preserving shearing changes the &quot;inverse
+slope&quot; 1/s in increments of 1, this can always be achieved.)
+
+4. The lattice width in direction (1,0) is b'&gt;=b. Thus
+P touches two vertical lines V+: x=b' and V-: x=-b'
+
+5. The lattice width in direction (1,-1) is b&quot;&gt;=b. Thus
+P touches two diagonal lines D+: y-x=b&quot; and D-: y-x=-b&quot;
+(Draw a picture!)
+
+6. If (a,0) had a vertical tangent, P could not touch V+, since a&lt;b.
+Similarly, if (a,0) had vertical tangent of slope 1, P could not touch D-.
+
+Thus the slope s is strictly between 0 and 1, and P must touch V+
+in the upper half-plane, and P must touch D- in the lower half-plane.
+
+7. Case I. The intersection of V+ and D- is above or on the x-axis,
+at (b',c) with c&gt;=0.
+(The contrary Case II (c&lt;0) is treated in a similar way. In fact, V+ and D-
+can be transformed into each other by a horizontal shearing combined
+with a vertical reflection.)
+Pick a point where P touches each of the six lines, in a symmetric way.
+Denote them by B,BR,R (Bottom, Bottom-Right, and Right) and the reflected
+points by T,TL,L. (Draw a picture!)
+Replace P by the convex hull of these points (making the area smaller).
+
+8. Holding L,B,R, and T fixed, we can move the points BR and TL on their
+respective lines D- and D+, keeping them symmetric.
+The area depends linearly on the movement.
+
+If the are would decrease when BR is moved towards R and towards V+,
+we can stop this movement at the point (b&quot;,0) where the D- intersects
+the x-axis. The convex hull of (b&quot;,0),(-b&quot;,0),T,B has area 2b&quot;b&gt;w²/2.
+
+Thus we are left with the case that we can decrease the area by
+moving BR towards H-, reaching the point B'=(d,-b) with d := b&quot;-1&gt;=0.
+Then we consider the convex hull of B', R, and their two
+symmetric points. R has coordinates R=(b',e) with e&gt;=c&gt;=0.
+The determinant of (d,-b) and (b',e) is easily seen to be larger
+than bb'&gt;=b², and we are done.
+
+9. In Case II, we move the point R on V+. We would decrease
+the area by moving it upwards to the intersection T'=(w',w).
+The vector from the center towards T' has slope w/w' at most 1.
+Thus, the determinant between BR and T' is decrease when moving
+it to the top right on the line D- (which has slope 1),
+until it arrives at the intersection point (w',c).
+The determinant between (w',c) and (w',w) is w'(w-c)&gt;w'w&gt;w², since c&lt;0.
+ 
 QED.
 
-[ A similar lemma shows that there is an edge such that
-the longest parallel segment in P is AT LEAST 1/4 the above quantity.
-(Just take the shortest edge after the transformation.
-Bound might be improved by more careful arguments, using that P must touch B1
-in &gt;=3 points if B1 is the affine image of the largest contained ellipse;
-then no gap between touching points can be larger than 120°.)
-This may be more useful, in order to bound the height.
-But then some other argument must be used to bound the horizontal
-advancement of the point q. For example, that nothing can be gained
-by further advancement. ]
+Lemma 4: A symmetric convex polygon P of lattice width w has area strictly
+larger than w²/3, except when P is a triangle.
 
-We fix the edge e from Lemma 2 to be the segment
-(0,0),(1,0), calling it the BASE EDGE,
-and the polygon lies above the x-axis.
-O=(0,0) is the origin.
-By Lemma 2, we know that P contains no horizontal segment
-longer than W := 1/tan(pi/n).
-(This property is used but not enforced by the algorithm.)
+&quot;&quot;&quot;
+# Since we use &quot;volume&quot;, which is TWICE the area, the following constants
+# are twice as big as the constants in the lemmas.
 
-The approach is by dynamic programming.
+lattice_width_factor_even = 1
+lattice_width_factor_odd  = 2/3 + 0.00001
+# +0.00001 is because of the strict inequality (except for triangles, but
+# those are found in the first iteration.).
+
+def lower_bound(k,w):
+    &quot;lower bound on vol (=2*area) for k-gon of lattice width w&quot;
+    if k%2:
+        lattice_width_factor = lattice_width_factor_odd
+    else:
+        lattice_width_factor = lattice_width_factor_even
+    LB = ceil( w**2 * lattice_width_factor )
+    if k%2 != LB%2:
+        LB +=1 # vol must be odd for odd k and even for even k
+    return LB
+
+&quot;&quot;&quot;
+Proof of Lemma 4:
+
+The polygon P and the symmetrized version Q = 1/2 * (P-P)
+(which is half the &quot;difference body&quot; P-P={ a-b | a,b in P }).
+have the same width in every direction, and Q is centrally
+symmetric. We can apply Lemma 3 to Q.
+The area of Q is at most 2/3 times the area of P, and
+equality holds only when P is a triangles.
+See any of the following papers. QED
+
+Hans Rademacher, Über den Vektorenbereich eines konvexen ebenen Bereiches.
+Jahresbericht d. Deutschen Math.-Verein. 34 (1926): 64-78. http://eudml.org/doc/145705
+Estermann, Theodor. Zwei neue Beweise eines Satzes von Blaschke und Rademacher.
+Jahresbericht d. Deutschen Math.-Verein. 36 (1927): 197-200. http://eudml.org/doc/145763
+T. Estermann, T. Über den Vektorenbereich eines konvexen Körpers.
+Math Z. 28, 471-475 (1928). https://doi.org/10.1007/BF01181177
+C. A. Rogers and G. C. Shephard, The difference body of a convex body.
+Arch. Math. 8 (1957), 220-233. doi:10.1007/BF01899997
+
+
+I believe the true factor for Lemma 4 might be 3/8, and it is sharp for
+the triangle (-w/2,-w/2),(w/2,0),(0,w/2), for the case of even w.
+
+In the proof, we would consider the 8-gon formed as the
+intersection of a horizontal slab of width w, a vertical slab
+of width w1&gt;=1, and two slabs of directions 45° and -45° of
+*vertical* widths w3&gt;=w and w4&gt;=w, respectively. (Their Euclidean
+widths are &gt;=w/sqrt(2).)
+
+Some sides of the 8-gon may degenerate into
+a point, in case several lines are concurrent.
+The body must touch each of these edges (even if they are degenerated to a point).
+
+(By analogy with the ordinary width, not lattice width:
+&quot;It is well-known that of all convex sets of a given width, the
+equilaterial triangle has the smallest area.&quot;)
+
+
+===================================================
+Also in the algorithm, we make the assumption
+that the lattice width direction is vertical.
+(The smallest number of parallel lattice lines intersecting P
+are the horizontal lines.)
+
+We assume that the lowest point (or one of the two lowest points)
+is the origin O=(0,0).
+
+The approach is by dynamic programming. It is the
+algorithm in the following paper:
+
+Finding minimum area k-gons.
+David Eppstein, Mark Overmars, Günter Rote und Gerhard Woeginger.
+Discrete and Computational Geometry 7 (1992), 45-58.
+https://doi.org/10.1007/BF02187823
+
+see also
+Counting convex polygons in planar point sets.
+Joseph S. B. Mitchell, Günter Rote, Gopalakrishnan Sundaram,
+and Gerhard Woeginger.
+Information Processing Letters 56 (1995), 45-49
+http://page.mi.fu-berlin.de/rote/Papers/abstract/Counting+k-subsets+and+convex+k-gons+in+the+plane.html
+
+=========================================================0
 
 For each pair of points p and q and every k, we remember the smallest
-counterclockwise k-gon (0,0),(1,0), .... , q, p
+counterclockwise k-gon (0,0), .... , q, p
 
-Restrictions:
-* p,q are in the upper half-plane
-* p is strictly higher than q. (Thus, p is the top point, and
-  there is a &quot;long edge&quot; from O to p.)
-  (Polygons with a horizontal upper edge will be treated specially.)
+Restriction:
+* The successive points move strictly upwards.
+  (Thus, p is the top point, and there is a &quot;long edge&quot; from O to p.)
+
+Polygons with one or two horizontal edges will be treated specially.
 
 By horizontal lattice-preserving shearing transformations, it suffices to
-consider the range 0 &lt;= px &lt; py.
+store results only for the range 0 &lt;= px &lt; py
+(The answer for any point p in the plane can then be figured out
+by an appropriate shearing transformation.)
 
-We know that there is no horizontal segment of width &gt;W, hence
-for every qy, only W+1 values qx must be tried, starting from
-the intersection of the line 0p with the horizontal line at qy,
-and going at most W steps to the right.
-These values are always contained in the range
-    1&lt;= qx &lt;= qy+W
+The area is roughly n^3, and by Lemma 4 the maximum height H=py can be bounded by
+H=n^1.5 (omitting all constant factors). Thus the number of points p is n^3.
+The points q can be bounded only very loosely in the horizontal
+direction, by n^2, however, in practice, it turns out they go only up to
+(1+alpha)n, where alpha grows very slowly (less than 4 for height 120.)
+
+Thus, the number of points q that are considered is also roughty of the order n^3.
+This gives an estimated runtime of O(n^3*n^3*n)=O(7) for all triples (p,q,k)
 
 ===========================
 
 In the end we put together a counterclockwise k-gon ending in p
-with a counterclockwise k'-gon ending in p or in p-(1,0).
-Overlapping areas due to the shared bottom edge have to be adjusted.
+with a counterclockwise k'-gon starting in O or in (-1,0) and
+ending in p or in p-(1,0).
 
 Main data structure:
 ====================
@@ -144,45 +272,53 @@ min_gon[(px,py)] is a dictionary
 
 min_gon[(px,py)][k] is a list of pairs (f,vol)=((fx,fy),vol), where
 f=(fx,fy)=q-p is a primitive vector (pointing upwards, fy&gt;0) and
-vol = 2 * min-area of a k-gon ((0,0),(1,0), .... ,q,p).
+vol = 2 * min-area of a k-gon ((0,0), .... ,q,p).
 In the list, the vectors f are sorted clockwise by direction,
 and the corresponding values &quot;vol&quot; are strictly increasing.
-(If pairs don't fit this order, we can eliminate one of them as DOMINATED.)
+(If pairs don't fit this order, we can eliminate one of them, as DOMINATED.)
+
+[ If we want to enumerate ALL optimal solutions, we should allow
+the &quot;vol&quot; values to be weakly increasing. We should also use the
+weaker lower bound also for even k, in case we are interested in solutions
+that are not centrally symmetric ]
 
 &quot;vol&quot; is TWICE the area.
 
-OEIS:
+https://oeis.org/A070911
 1,2,5,6,13,14,21,28,43,48,65,80,103,118, / 151,174,213,242,289,328,387,420,497
 
+The odd values after the slash are unconfirmed according to OEIS.
 &quot;&quot;&quot;
 
-from math import tan,pi,gcd
+known_value = {i+3:v for i,v in enumerate((
+    1,2,5,6,13,14,21,28,43,48,65,80,103,118,151,174,213,242,289,
+    328,387,420,497,548,625,690,783,860,967,1046,1177,1264,1409,
+    ))} # just for guidance; not used by the algorithm
+
+from math import tan,pi,gcd,sqrt,ceil
 import sys
 
 if len(sys.argv)&gt;1:
     N_target = int(sys.argv[1])
 
-W = int(1/tan(pi/N_target))
-
 min_gon = dict()
-record_area = [n**3 for n in range(N_target+1)] # loose upper bound as start value
-height = [0 for n in range(N_target+1)] # smallest height of a min-area polygon
-# AS FOUND BY THE PROGRAM (given the bottom edge).
-# It might not be the true minimum because of the special choice of the bottom
-# edge e and the assumption on W that is used to restrict the computation.
+record_vol = [n**3 for n in range(N_target+1)] # loose upper bound as start value
+min_height = [0 for n in range(N_target+1)] # smallest height of a min-area polygon
+max_height = [0 for n in range(N_target+1)]
+# smallest height of a min-area polygon AS FOUND BY THE PROGRAM, not definite
 
-confirmed = [True]*3 + [False]*(N_target+1-3) # checks which entries are confirmed.
+confirmed = [True]*2 + [False]*(N_target+1-2) # checks which entries are confirmed.
 how_achieved = [None]*(N_target+1)
 
 # Auxiliary procedures to construct the solution, once the optimal
 # area has been determined
 def find_polygon(px,py,k,alpha0=0):
     # find the smallest k-gon ending in (px,py) by backtracing
-    # 0&lt;px&lt;py. The two point (0,0),(1,0) are not produced
+    # 0&lt;px&lt;py. The two points (0,0),(1,0) are not produced.
     alphaT = alpha0
     result = [(px+alphaT*py,py)]
     (fx,fy),vol = min_gon[px,py][k][0]
-    for k in range (k-1,2,-1):
+    for k in range (k-1,1,-1):
         qx,qy = px-fx,py-fy
         vol -= qx*py-qy*px
         alpha =  qx//qy
@@ -190,145 +326,222 @@ def find_polygon(px,py,k,alpha0=0):
         alphaT += alpha # alpha is accumulated
         result.append((px+alphaT*py,py))
         for (fx,fy),vol2 in min_gon[px,py][k]:
-            if vol2==vol: # this must be the right entry
+            if vol2==vol: # this must be the right entry, recognition by vol is easiest
                 break
         else:
             error(&quot;not found&quot;,k,px,py)
     return result
 
-def print_solution(k):
-    how,px,py,k1,k2 = how_achieved[k]
-    if how==&quot;LONG EDGE&quot;:
-        if k1&gt;3:
-            error(&quot;not implemented&quot;)
-        return
+def print_solution(k,how_achieved,vol):
+    how,px,py,k1,k2 = how_achieved
+    #print(f&quot;{(k,how,px,py,k1,k2)=}&quot;)
     p1 = find_polygon(px,py,k1)
     p1.reverse()
-    if how==&quot;DIAGONAL&quot;:
-        top_point = px
-    else:
+    if how==&quot;1 FLAT&quot;:
         top_point = px-1
-    ppx = (1-top_point)%py
-    alpha0 = (1-top_point - ppx) // py # usually, alpha0==-1
-    p2 = [(1-x,y) for x,y in find_polygon(ppx,py,k2,alpha0)]
+    else:
+        top_point = px
+    ppx = (-top_point)%py
+    alpha0 = (-top_point - ppx) // py # usually, alpha0==-1
+    leftshift = 1 if how==&quot;2 FLAT&quot; else 0
+    p2 = [(-x-leftshift,y) for x,y in find_polygon(ppx,py,k2,alpha0)]
     #print(f&quot;-- {how=} {alpha0=}, {p2[0][0]=},{top_point=},{ppx=},{px=},{py=},{k=}&quot;)
-    assert p2[0][0]==top_point
+    assert p2[0][0]==top_point-leftshift
     if how==&quot;DIAGONAL&quot;:
         p2 = p2[1:] #eliminate the common point
-    print (&quot;--- smallest %d-gon,&quot;%k, &quot;area = %d/2:&quot;%record_area[k],
-           [(0,0),(1,0)]+p1+p2) # counterclockwise
+    last = [(-1,0)] if how==&quot;2 FLAT&quot; else []
+    print (&quot;--- a smallest %d-gon,&quot;%k, &quot;area = %d/2:&quot;%vol,
+           [(0,0)]+p1+p2+last) # counterclockwise
 
 ## Start the computation
 
 py = 1 # proceed row by row
 while not all(confirmed):
-    for px in range(py): # triangles are the base case.
-        min_gon[px,py]={3:[((px-1,py),py)]}
+    for px in range(py): # 2-gons are the base case.
+        min_gon[px,py]={2:[((px,py),0)]}
         # or perhaps rather start 2-gons?
 
-    collect = {} # We will first *collect* the contributions to row py before
-                 # sorting and processing them.         
-    for qy in range(1,py):
-        # collect all contributions from point q on row qy to points p on row py:
-        Delta_y = py-qy # &gt;0
-        for qx in range(qy+W+1):
-            # This range of qx is sufficient, by the choice of base edge e.
-            alpha = qx//qy # normalize (qx,qy) to 0&lt;=qy&lt;qx by horizontal shearing
-            for k,sides in min_gon[qx-alpha*qy,qy].items():
-                if k==N_target:
+    work = num_work = 0
+    sum_alpha = num_alpha = 0
+    visited_p = visited_q = 0
+    for k in range(2,N_target):
+        collect=[[] for px in range(py)]
+        # We will first *collect* the contributions to row py
+        # for k+1 before sorting and processing them.         
+        for qy in range(1,py):
+            # collect all contributions from point q on row qy to points p on row py:
+            Delta_y = py-qy # &gt;0
+            for qx0 in range(qy):
+                if k not in min_gon[qx0,qy]:
                     continue
-                if k+1 not in collect:
-                    collect[k+1]=[[] for px in range(py)]
-                current_collect = collect[k+1]
-                px = 0
-                for (fx,fy),vol in sides:
-                    # sweep clockwise around q; vol is increasing.
-                    # simultaneously sweep the point p on
-                    # row py from left to right, clockwise around q.
-                    ffx = fx+alpha*fy # apply the reverse shearing by -alpha
-                    while (# vector q-&gt;p is counterclockwise from (ffx,fy):
-                           # Delta_x/Delta_y &lt; ffx/fy 
-                           (px-qx) * fy &lt; ffx * Delta_y ):
-                        # store this:
-                        Delta_x = px-qx
-                        if gcd(Delta_x,Delta_y)==1:
-                            current_collect[px].append(
-                                (vol + qx*py-qy*px, Delta_x,Delta_y))
-                        px += 1
-                        if px&gt;=py: break # py-1 is largest value of px
-                    if px&gt;=py: break
+                sides = min_gon[qx0,qy][k]
+                assert(sides)
+                alpha = 0
+                qx = qx0
+                while True:
+                    # alpha == qx//qy
+                    visited_q += 1 # statistics
+                    px = 0
+                    row_finished = False
+                    exhausted = True
+                    for (fx,fy),vol in sides:
+                        # sweep clockwise around q; vol is increasing.
+                        # simultaneously sweep the point p on
+                        # row py from left to right, clockwise around q.
+                        ffx = fx+alpha*fy # apply the reverse shearing by -alpha
+                        while (# vector q-&gt;p is counterclockwise from (ffx,fy):
+                                # Delta_x/Delta_y &lt; ffx/fy 
+                                (px-qx) * fy &lt; ffx * Delta_y ):
+                            # store this:
+                            Delta_x = px-qx
+                            if gcd(Delta_x,Delta_y)==1:
+                                collect[px].append(
+                                    (vol + qx*py-qy*px, Delta_x,Delta_y))
+                            if px&gt;=py-1: # py-1 is largest value of px
+                                row_finished = True
+                                break
+                            px += 1
+                        if row_finished: break
+                        # From the first entering vector in q,
+                        # not all points on row py could be reached:
+                        exhausted = False
+                    if exhausted:
+                        # All points up to the maximum px have been reached
+                        # by extending the FIRST element of sides.
+                        # further increase of alpha would only have a
+                        # larger area of Opq, and could not lead to an improvement.
+                        sum_alpha += alpha # statistics
+                        num_alpha += 1
+                        break
+                    # Additional possibilities of shortcutting:
+                    # For example, the volume of Opq is becoming too big in
+                    # order to be usefil for anything.
+                    
+                    alpha += 1
+                    qx += qy # maintain alpha == qx//qy
 
-    # Now, consolidate the lists
-    for k,collection in collect.items():
-        for px,triples in enumerate(collection):
+        # Now, consolidate the lists
+        for px,triples in enumerate(collect):
             if not triples:
                 continue
+            visited_p += 1
+            work += len(triples)
+            num_work += 1 # statistics
+            
             result = []
-            prev_fx,prev_fy = -1,0 # ensure that test is true at the first iteration
+            prev_fx, prev_fy = -1,0 # ensure that test is true at the first iteration
+            prev_vol = -1
             for vol,fx,fy in (sorted(triples)):
-                # smallest area first &lt;==&gt; clockwise sweep.
+                # smallest area first &lt;==&gt; result should be ordered clockwise.
                 if (# this is the first time OR (fx,fy) is clockwise from prev:
                     # fx/fy &gt; prev_fx/prev_fy  
-                     fx*prev_fy &gt; prev_fx*fy):
-                    result.append(((fx,fy),vol))
-                    prev_fx,prev_fy = fx,fy
-            min_gon[px,py][k]=result
+                    fx*prev_fy &gt; prev_fx*fy):
+                    if vol!=prev_vol:                   
+                        result.append(((fx,fy),vol))
+                        prev_fx,prev_fy,prev_vol = fx,fy,vol
+                    else: # adjust this treatment when generating ALL solutions.
+                    # (Then multiple vol-entries should be kept, but SORTED BY SLOPE.)
+                        result[-1] = ((fx,fy),vol)
+                        prev_fx,prev_fy = fx,fy
+                    
+            min_gon[px,py][k+1]=result
             if 0:
                 #print(f&quot;p=({px},{py}) {k=}&quot;)
                 for t in result: print(&quot;  &quot;,t)
 
-    # compute new record areas, if any.
-    def check_record(k, vol, how, text=&quot;&quot;):
-        if k&lt;=N_target and vol&lt;record_area[k]:
+    # compute new record areas
+    improved = [False]*(N_target+1)
+
+    def check_record(k, vol, how, text=&quot;&quot;):        
+        if k&gt;N_target:
+            return
+        if vol&lt;record_vol[k]:
             #if text: print(text)
-            record_area[k] = vol
+            assert not confirmed[k]
+
+            if k in known_value and vol&lt;known_value[k]:
+                # then something must be wrong:
+                print(&quot;BETTER THAN KNOWN VALUE&quot;,100*&quot;!!&quot;)
+                print_solution(k,how,vol)
+                exit()              
+            
+            record_vol[k] = vol
             how_achieved[k] = how
-            height[k] = py
+            min_height[k] = py
+            improved[k] = True
+        if vol==record_vol[k] and how[0] != &quot;DIAGONAL&quot;:
+            # DIAGONAL case not counted: Without a flat edge, height is unbounded.
+            max_height[k] = py
 
-    # Combine a &quot;right&quot; k1-gons with &quot;left&quot; k2-gons
+    # Combine &quot;right&quot; k1-gons with &quot;left&quot; k2-gons
     for px in range(py):
-        ppx = (1-px)%py # exact match along long edge (0,0)-(px,py)
-        for k1,best1 in min_gon[px,py].items():
-            _,vol1 = best1[0] # no combination, take right polygon as is.
-            check_record(k1, vol1, (&quot;LONG EDGE&quot;,px,py,k1,0))
-
-            for k2,best2 in min_gon[ppx,py].items():
-                _,vol2 = best2[0]
-                check_record(k1+k2-3,
-                             vol1+vol2-py, (&quot;DIAGONAL&quot;,px,py,k1,k2))
-                    # adjust for double-counted base triangle ((0,0),(1,0),top)
-                 #f&quot;DIAG k={k1+k2-3} {k1=} {k2=} {vol1=} {vol2=} p=({px},{py})&quot;)
-                    
-        ppx = (2-px)%py # horizontal edge of length 1 at the top
+        ppx0 = (-px)%py  # A) exact match along long edge (0,0)-(px,py)
+        ppx1 = (1-px)%py # B) horizontal edge of length 1 at the top
         for k1,best1 in min_gon[px,py].items():
             _,vol1 = best1[0]
-            #print(px,py,k1,vol1,find_polygon(px,py,k1))
-            for k2,best2 in min_gon[ppx,py].items():
+            for k2,best2 in min_gon[ppx0,py].items():
                 _,vol2 = best2[0]
-                check_record(k1+k2-2, vol1+vol2, (&quot;FLAT EDGE&quot;,px,py,k1,k2))
-                    # added and double-covered areas balance.
+                check_record(k1+k2-2,
+                             vol1+vol2, (&quot;DIAGONAL&quot;,px,py,k1,k2))
+                check_record(k1+k2,
+                             vol1+vol2+2*py, (&quot;2 FLAT&quot;,px,py,k1,k2))
+                 #f&quot;DIAG k={k1+k2-3} {k1=} {k2=} {vol1=} {vol2=} p=({px},{py})&quot;)
+            for k2,best2 in min_gon[ppx1,py].items():
+                _,vol2 = best2[0]
+                check_record(k1+k2-1, vol1+vol2+py, (&quot;1 FLAT&quot;,px,py,k1,k2))
                  #f&quot;EDGE k={k1+k2-2} {k1=} {k2=} {vol1=} {vol2=} p=({px},{py})&quot;)
 
-    for k in range(3,N_target+1):
-        lower_bound = (py+1)+k-3 # evaluated for increased py in the next iteration
-        # easy lower bound: base triangle of volume py, k-3 extra triangles
-        if k%2==0:
-            lower_bound = 2*(py+1)+k-4
-            # In the even case we know that the solution is centrally symmetric.
-        if not confirmed[k] and lower_bound&gt;=record_area[k]:
-            confirmed[k] = True
-            print_solution(k)
+    target_height = 0 # how high we still have to go
+    for k in range(2,N_target+1):
+        if not confirmed[k]:
+            if lower_bound(k,py+1)&gt;=record_vol[k]:
+                # evaluated for increased py in the next iteration
+                #print(&quot;LB&quot;,k,py+1,LB)
+                confirmed[k] = True
+                print_solution(k,how_achieved[k],record_vol[k])
+            else:
+                # find necessary target height to confirm the current record:
+                t_k = py+2
+                while lower_bound(k,t_k)&lt;record_vol[k]:  t_k += 1
+                target_height = max(target_height,t_k-1) 
                                 
-    print(&quot;target=%d, height=%d,&quot;%(N_target,py),
-          &quot;,&quot;.join(
-          str(record_area[k])+(&quot;&quot; if confirmed[k] else &quot;?&quot;)
+    print(&quot;N=%d, height %d&quot;%(N_target,py) +
+          (&quot;.\nRESULT:&quot; if target_height==0 else &quot;-&gt;%d:&quot;%target_height),
+          &quot;,&quot;.join((&quot;*&quot; if improved[k] else &quot;&quot;)+
+                   str(record_vol[k])+
+                   (&quot;-&quot; if k in known_value and record_vol[k]&gt;known_value[k]
+                    else &quot;&quot; if confirmed[k] else &quot;?&quot;)
               for k in range(3,N_target+1)),
-              &quot; work =&quot;,sum(len(x) for x in collect.values()))
-    if py%10==0: print(&quot;smallest heights&quot;,height[3:])
+          #
+          # Meaning of the signs:
+          # - if there is a smaller known value
+          # ? if still unconfirmed
+          # * if has just been improved
+          #
+          &quot;work=%d&quot;%work, # work done in this step
+          &quot;&quot; if num_work==0 else &quot;avg=%.2f&quot;%(work/num_work),
+          &quot;&quot; if num_alpha==0 else (&quot;av_alpha=%.2f&quot;% (sum_alpha/num_alpha)),
+          flush=True)
+    if py%10==0:
+        print(&quot;smallest heights:&quot;,*(&quot;%2d&quot;%x for x in min_height[3:]))
+        print(&quot;largest heights: &quot;,*(&quot;%2d&quot;%x for x in max_height[3:]))
+        print(&quot;2n-gons:&quot;, &quot;,&quot;.join(str(record_vol[k]//2)
+                                   +(&quot;&quot; if confirmed[k] else &quot;?&quot;)
+                           for k in range(4,N_target+1,2)))
     
     py += 1
     
-print(&quot;smallest heights&quot;,height[3:])
+print(&quot;smallest heights:&quot;,*(&quot;%2d&quot;%x for x in min_height[3:]))
+print(&quot;largest heights: &quot;,*(&quot;%2d&quot;%x for x in max_height[3:]))
+# &quot;largest heights&quot; are preliminary, since the algorithm stops
+# too early to find the largest heights.
+
+# There is quite a large variation of heights, in line with the
+# result of Bárány and Tukushige that, in the limit,
+# the shapes resemble ellipses that are more and more oblong.
+
+print(&quot;2n-gons:&quot;, &quot;,&quot;.join(str(record_vol[k]//2)
+                           for k in range(4,N_target+1,2)))
 </code></pre>
 </div>
 <div id="pu1" class="pu"><h1>Fortran n=17, 323 s</h1>
