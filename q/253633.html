@@ -61,7 +61,121 @@ CPython is slightly slower (2'45'').</p>
 <li>39-gon, area=1955/2: [(0,0),(4,1),(7,2),(9,3),(12,5),(13,6),(15,9),(16,11),(17,14),(18,18),(18,19),(17,22),(16,24),(14,27),(13,28),(10,30),(8,31),(5,32),(1,33),(0,33),(-5,32),(-9,31),(-12,30),(-14,29),(-17,27),(-18,26),(-20,23),(-21,21),(-22,18),(-22,17),(-21,14),(-20,12),(-18,9),(-17,8),(-13,5),(-10,3),(-8,2),(-5,1),(-1,0)]</li>
 <li>40-gon, area=2078/2: [(0,0),(4,1),(7,2),(9,3),(12,5),(13,6),(15,9),(16,11),(17,14),(18,18),(18,19),(17,23),(16,26),(15,28),(13,31),(12,32),(9,34),(7,35),(4,36),(0,37),(-1,37),(-5,36),(-8,35),(-10,34),(-13,32),(-14,31),(-16,28),(-17,26),(-18,23),(-19,19),(-19,18),(-18,14),(-17,11),(-16,9),(-14,6),(-13,5),(-10,3),(-8,2),(-5,1),(-1,0)]</li>
 </ul>
-<p>The target value of N can be given on the command line.</p>
+<p>A different target value of N can be given on the command line.</p>
+<h2>The minimum area of a convex polygon of given lattice width</h2>
+<p>The correctness of the program (knowing when one can stop) depends crucially on two lemmas that relate area to <em>lattice width</em>. The first lemma is about centrally symmetric polygons (arising when n is even, and the second lemma about arbitrary polygons.</p>
+<p><strong>Definition:</strong>
+The <em>lattice width</em> of a lattice polygon P <em>in a given lattice direction</em>
+(a,b) in Z² is one less than the number of lattice lines orthogonal to (a,b)
+intersecting P.
+The <em>lattice width</em> of P is the smallest number lattice width over
+all lattice directions.</p>
+<h3>Lemma 3:</h3>
+<blockquote>
+<p>A centrally symmetric convex polygon P of lattice width w has area
+at least w²/2.</p>
+</blockquote>
+<p>Proof:
+[ A weaker bound of w²/4 is given in the following paper
+(p.175, before remark 2):</p>
+<ul>
+<li>Imre Bárány and Norihide Tokushige, The minimum area of convex lattice n-gons.
+Combinatorica, 24 (No. 2, 2004), 171-185.
+<a href="https://www.renyi.hu/%7Ebarany/cikkek/94.pdf" rel="nofollow noreferrer">https://www.renyi.hu/~barany/cikkek/94.pdf</a>.</li>
+</ul>
+<p>Our proof uses the same setup but refines the argument in the end.
+The improvement to w²/2 speeds up the computations by a factor 5-6. ]</p>
+<ol>
+<li><p>We assume that the lattice width direction is vertical.
+Thus P touches two horizontal lines H+: y=b and H-: y=-b, with b=w/2.
+Let (a,0) be the intersection of P with the positive x-axis.</p>
+</li>
+<li><p>If a&gt;=b, then the area is at least 2b²=w²/2, and we are done.
+Thus, let us assume a&lt;b.</p>
+</li>
+<li><p>By horizontal shearing, we assume that the tangent at (a,0)
+(or some supporting line) is not vertical and has slope s at least +1.
+(Since horizontal lattice-preserving shearing changes the &quot;inverse
+slope&quot; 1/s in increments of 1, the inverse slope can always be brought into
+the interval (0,1].)</p>
+</li>
+<li><p>The lattice width in direction (1,0) is b'&gt;=b. Thus
+P touches two vertical lines V+: x=b' and V-: x=-b'</p>
+</li>
+<li><p>The lattice width in direction (1,-1) is b&quot;&gt;=b. Thus
+P touches two diagonal lines D+: y-x=b&quot; and D-: y-x=-b&quot;
+(Draw a picture!)</p>
+</li>
+<li><p>If (a,0) had tangent of slope 1, P could not touch D-, since a&lt;b&quot;.</p>
+<p>Thus the slope s is strictly larger than 1, and P must touch V+
+in the upper half-plane, and P must touch D- in the lower half-plane.</p>
+</li>
+<li><p>If the intersection of V+ and D- is below the x-axis,
+we swap the roles of V+ and D- by a horizontal shearing transformation
+combined with a vertical reflection: Each point (x,y) is mapped to (x-y,-y).
+This turns V+ into a line of slope 1 and makes D- vertical.
+Point on the x-axis are fixed.</p>
+<p>Thus we can assume that the intersection of V+ and D- is above or
+on the x-axis, at (b',c) with c&gt;=0.</p>
+</li>
+<li><p>Pick a point where P touches each of the six lines, in a symmetric way.
+Denote them by B,BR,R (Bottom, Bottom-Right, and Right) and the reflected
+points by T,TL,L. (Draw a picture!)
+Replace P by the convex hull of these points (making the area smaller).</p>
+</li>
+<li><p>Holding L,B,R, and T fixed, we can move the points BR and TL on their
+respective lines D- and D+, keeping them symmetric.
+The area depends linearly on the movement.</p>
+<p>If the are would decrease when BR is moved towards R and towards V+,
+we can stop this movement at the point (b&quot;,0) where D- intersects
+the x-axis. The convex hull of (b&quot;,0),(-b&quot;,0),T,B has area 2b&quot;b&gt;w²/2.</p>
+</li>
+<li><p>Thus we are left with the case that we can decrease the area by
+moving BR towards H-, reaching the point B'=(d,-b) with d := b&quot;-1&gt;=0.
+Then we consider the convex hull of B', R, and their two
+symmetric points. R has coordinates R=(b',e) with e&gt;=c&gt;=0.
+The determinant of (d,-b) and (b',e) is bb'+de&gt;=bb'&gt;=b², and we are done.</p>
+</li>
+</ol>
+<p>QED.</p>
+<h3>Lemma 4:</h3>
+<blockquote>
+<p>A (not necessarily symmetric) convex polygon P of lattice width w
+has area at least w²/3.
+The inequality is strict except when P is a triangle.</p>
+</blockquote>
+<p>Proof:
+The polygon P and the symmetrized version Q = 1/2 * (P-P)
+(which is half the &quot;difference body&quot; P-P={ a-b | a,b in P }).
+have the same width in every direction, and Q is centrally
+symmetric. We can apply Lemma 3 to Q.
+The area of Q is at most 2/3 times the area of P, and
+equality holds only when P is a triangles.
+See any of the following papers. QED</p>
+<ul>
+<li>Hans Rademacher, Über den Vektorenbereich eines konvexen ebenen Bereiches.
+Jahresbericht d. Deutschen Math.-Verein. 34 (1926): 64-78. <a href="http://eudml.org/doc/145705" rel="nofollow noreferrer">http://eudml.org/doc/145705</a></li>
+<li>Estermann, Theodor. Zwei neue Beweise eines Satzes von Blaschke und Rademacher.
+Jahresbericht d. Deutschen Math.-Verein. 36 (1927): 197-200. <a href="http://eudml.org/doc/145763" rel="nofollow noreferrer">http://eudml.org/doc/145763</a></li>
+<li>T. Estermann, T. Über den Vektorenbereich eines konvexen Körpers.
+Math Z. 28, 471-475 (1928). <a href="https://doi.org/10.1007/BF01181177" rel="nofollow noreferrer">https://doi.org/10.1007/BF01181177</a></li>
+<li>C. A. Rogers and G. C. Shephard, The difference body of a convex body.
+Arch. Math. 8 (1957), 220-233. jttps://doi.org/10.1007/BF01899997</li>
+</ul>
+<p>I believe the true factor for Lemma 4 might be 3/8, and it is sharp for
+the triangle (-w/2,-w/2),(w/2,0),(0,w/2), for the case of even w.
+(By analogy with the ordinary width, <em>not</em> lattice width:
+&quot;It is well-known that of all convex sets of a given width, the
+equilaterial triangle has the smallest area.&quot;)</p>
+<p>In the proof, we would consider the 8-gon formed as the
+intersection of a horizontal slab of width w, a vertical slab
+of width w1&gt;=1, and two slabs of directions 45° and -45° of
+<em>vertical</em> widths w3&gt;=w and w4&gt;=w, respectively. (Their Euclidean
+widths are &gt;=w/sqrt(2).)</p>
+<p>Some sides of the 8-gon may degenerate into
+a point, in case several lines are concurrent.
+The body must touch each of these edges (even if they are degenerated to a point).</p>
+<p>Now here comes finally the program:</p>
 <pre><code>N_target = 44
 
 &quot;&quot;&quot;
@@ -69,84 +183,8 @@ Lemma 1: Every edge is a primitive vector.
 
 Lemma 2: If n is even, then P can be assumed to be centrally symmetric.
 
-Definition:
-The *lattice width* of a lattice polygon P *in a given lattice direction*
-(a,b) in Z² is one less than the number of lattice lines orthogonal to (a,b)
-intersecting P.
-The *lattice width* of P is the smallest number lattice width over
-all lattice directions.
-
 Lemma 3: A centrally symmetric convex polygon P of lattice width w has area
 at least w²/2.
-
-Proof:
-[ A weaker bound of w²/4 is given in the following paper on p.175,
-before remark 2, (with w=2b):
-Imre Bárány and Norihide Tokushige, The minimum area of convex lattice n-gons.
-Combinatorica, 24 (No. 2, 2004), 171-185. https://www.renyi.hu/~barany/cikkek/94.pdf
-Our proof uses those ideas but refines the argument in the end.
-The improvement to w²/2 speeds up the computations by a factor 5-6. ]
-
-
-1. We assume that the lattice width direction is vertical.
-Thus P touches two horizontal lines H+: y=b and H-: y=-b, with w=b/2.
-Let (a,0) be the intersection of P with the positive x-axis.
-
-2. If a&gt;=b, then the area is at least 2b²=w²/2, and we are done.
-Thus, let us assume a&lt;b.
-
-3. By horizontal shearing, we assume that the tangent at (a,0)
-(or some supporting line) has slope s between +1 and infinity.
-(Since horizontal lattice-preserving shearing changes the &quot;inverse
-slope&quot; 1/s in increments of 1, this can always be achieved.)
-
-4. The lattice width in direction (1,0) is b'&gt;=b. Thus
-P touches two vertical lines V+: x=b' and V-: x=-b'
-
-5. The lattice width in direction (1,-1) is b&quot;&gt;=b. Thus
-P touches two diagonal lines D+: y-x=b&quot; and D-: y-x=-b&quot;
-(Draw a picture!)
-
-6. If (a,0) had a vertical tangent, P could not touch V+, since a&lt;b.
-Similarly, if (a,0) had vertical tangent of slope 1, P could not touch D-.
-
-Thus the slope s is strictly between 0 and 1, and P must touch V+
-in the upper half-plane, and P must touch D- in the lower half-plane.
-
-7. Case I. The intersection of V+ and D- is above or on the x-axis,
-at (b',c) with c&gt;=0.
-(The contrary Case II (c&lt;0) is treated in a similar way. In fact, V+ and D-
-can be transformed into each other by a horizontal shearing combined
-with a vertical reflection.)
-Pick a point where P touches each of the six lines, in a symmetric way.
-Denote them by B,BR,R (Bottom, Bottom-Right, and Right) and the reflected
-points by T,TL,L. (Draw a picture!)
-Replace P by the convex hull of these points (making the area smaller).
-
-8. Holding L,B,R, and T fixed, we can move the points BR and TL on their
-respective lines D- and D+, keeping them symmetric.
-The area depends linearly on the movement.
-
-If the are would decrease when BR is moved towards R and towards V+,
-we can stop this movement at the point (b&quot;,0) where the D- intersects
-the x-axis. The convex hull of (b&quot;,0),(-b&quot;,0),T,B has area 2b&quot;b&gt;w²/2.
-
-Thus we are left with the case that we can decrease the area by
-moving BR towards H-, reaching the point B'=(d,-b) with d := b&quot;-1&gt;=0.
-Then we consider the convex hull of B', R, and their two
-symmetric points. R has coordinates R=(b',e) with e&gt;=c&gt;=0.
-The determinant of (d,-b) and (b',e) is easily seen to be larger
-than bb'&gt;=b², and we are done.
-
-9. In Case II, we move the point R on V+. We would decrease
-the area by moving it upwards to the intersection T'=(w',w).
-The vector from the center towards T' has slope w/w' at most 1.
-Thus, the determinant between BR and T' is decrease when moving
-it to the top right on the line D- (which has slope 1),
-until it arrives at the intersection point (w',c).
-The determinant between (w',c) and (w',w) is w'(w-c)&gt;w'w&gt;w², since c&lt;0.
- 
-QED.
 
 
 Lemma 4: A (not necessarily symmetric) convex polygon P of lattice width w
@@ -174,44 +212,6 @@ def lower_bound(k,w):
     return LB
 
 &quot;&quot;&quot;
-Proof of Lemma 4:
-
-The polygon P and the symmetrized version Q = 1/2 * (P-P)
-(which is half the &quot;difference body&quot; P-P={ a-b | a,b in P }).
-have the same width in every direction, and Q is centrally
-symmetric. We can apply Lemma 3 to Q.
-The area of Q is at most 2/3 times the area of P, and
-equality holds only when P is a triangles.
-See any of the following papers. QED
-
-Hans Rademacher, Über den Vektorenbereich eines konvexen ebenen Bereiches.
-Jahresbericht d. Deutschen Math.-Verein. 34 (1926): 64-78. http://eudml.org/doc/145705
-Estermann, Theodor. Zwei neue Beweise eines Satzes von Blaschke und Rademacher.
-Jahresbericht d. Deutschen Math.-Verein. 36 (1927): 197-200. http://eudml.org/doc/145763
-T. Estermann, T. Über den Vektorenbereich eines konvexen Körpers.
-Math Z. 28, 471-475 (1928). https://doi.org/10.1007/BF01181177
-C. A. Rogers and G. C. Shephard, The difference body of a convex body.
-Arch. Math. 8 (1957), 220-233. doi:10.1007/BF01899997
-
-
-I believe the true factor for Lemma 4 might be 3/8, and it is sharp for
-the triangle (-w/2,-w/2),(w/2,0),(0,w/2), for the case of even w.
-
-In the proof, we would consider the 8-gon formed as the
-intersection of a horizontal slab of width w, a vertical slab
-of width w1&gt;=1, and two slabs of directions 45° and -45° of
-*vertical* widths w3&gt;=w and w4&gt;=w, respectively. (Their Euclidean
-widths are &gt;=w/sqrt(2).)
-
-Some sides of the 8-gon may degenerate into
-a point, in case several lines are concurrent.
-The body must touch each of these edges (even if they are degenerated to a point).
-
-(By analogy with the ordinary width, not lattice width:
-&quot;It is well-known that of all convex sets of a given width, the
-equilaterial triangle has the smallest area.&quot;)
-
-
 ===================================================
 Also in the algorithm, we make the assumption
 that the lattice width direction is vertical.
