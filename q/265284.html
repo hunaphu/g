@@ -26,10 +26,85 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>008</td><td>Python</td><td>230916T225842Z</td><td><a href="https://codegolf.stackexchange.com/questions/265284/count-the-size-of-the-levenshtein-neighborhood/265287#265287">Value In</a></td></tr>
-<tr d-ix="1"><td>081</td><td>Charcoal</td><td>230916T163835Z</td><td><a href="https://codegolf.stackexchange.com/questions/265284/count-the-size-of-the-levenshtein-neighborhood/265285#265285">Neil</a></td></tr>
+<tr d-ix="0"><td>008</td><td>Python</td><td>230917T081332Z</td><td><a href="https://codegolf.stackexchange.com/questions/265284/count-the-size-of-the-levenshtein-neighborhood/265292#265292">Jonathan</a></td></tr>
+<tr d-ix="1"><td>008</td><td>Python</td><td>230916T225842Z</td><td><a href="https://codegolf.stackexchange.com/questions/265284/count-the-size-of-the-levenshtein-neighborhood/265287#265287">Value In</a></td></tr>
+<tr d-ix="2"><td>081</td><td>Charcoal</td><td>230916T163835Z</td><td><a href="https://codegolf.stackexchange.com/questions/265284/count-the-size-of-the-levenshtein-neighborhood/265285#265285">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, (10,8)??</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, (11, 8)</h1>
+<p>New version of <a href="https://codegolf.stackexchange.com/a/265287/53748">Value Ink's answer</a> using bit twiddling in place of string manipulation.</p>
+<pre class="lang-python prettyprint-override"><code>from collections import deque
+
+def countFixedDistance(s: str, k: int) -&gt; int:
+    n = int('1' + s, 2)
+    distances: dict[int, int] = {n: 0}
+    queue = deque(((n, len(s)),))
+    valid: set[int] = set()
+    while len(queue) &gt; 0:
+        current, bit_count = queue.popleft()
+        next_dist = distances[current] + 1
+        next_bit_count = bit_count - 1
+        for next_gen in (
+            ((current &gt;&gt; p + 1 &lt;&lt; p) + current % (1 &lt;&lt; p) for p in range(bit_count)),
+            (current ^ (1 &lt;&lt; p) for p in range(bit_count)),
+            (((current &gt;&gt; p &lt;&lt; 1 | b) &lt;&lt; p) + current % (1 &lt;&lt; p) for b in (0, 1) for p in range(bit_count + 1)),
+        ):
+          for next in next_gen:
+              if next in distances: continue
+              distances[next] = next_dist
+              if next_dist &lt; k:
+                  queue.append((next, next_bit_count))
+              else:
+                  valid.add(next)
+          next_bit_count += 1
+    return len(valid)
+</code></pre>
+<p><strong><a href="https://ato.pxeger.com/run?1=nVRLbtswEF10p1PMJhAJy4ZUdFEIjldFTpCd4QaySMWEFYolKSdB2pN0k017kW56hfY0HZL6WXBRoNxI4sx784Z8o6_f1bM9NPL19Vtrq-X7329-VLp5gLKpa15a0UgD4kE12gLjn1oeRYxXGG2lvRFPnH0Qxhay5MTkYKxO4JiDkJbCcuOeeQS4JFy7DxJnMSzAJPCW-n3WgRHLRGm3mJO4xB3mv8gc0i8-Dcu2HLe8AEKITKDmkhhKExqITkUtGArgnsPB8ZWE2ONB1NwDPA-FDaRBlltlqzV3ZffC3vm2EOwTV6pRNa96Gt8Hf7J3TrQT02vfdhQ7bC07T51yju_LSVrV6JB6zyV2DmSIuEVIxw2bDSjHD-s1KIpvfeAKSL_puJQj0YW852QoiMd0ztpjP_4HdiYJ0Rl8hj39l7C97y5NIPt7MdfgtCDNJ7X7k3K4_sTyM20AohpSJtYqG2mFROueJ48X6DDOM8P1XqYNN79Gh8_ig0dXhVJcMnQopiczD1A6g_Ha8EtU3syrgjFPM0XNTLW47pykuW219B73YBpm-ddPg13FaRyd8JlGfrDN8zDQxrKmtVEYkFvddmrcSR_H68n6aVtkkwtR2g00CZHkSJOL_wQMjPpDuVVVt-bQDZVxPcRZlqbx9nT1bheGeWwsVDFdP_0_6g8" rel="nofollow noreferrer">Attempt This Online!</a></strong></p>
+<hr />
+<p>With a lot of tweaks to do fewer operations, it does get further but still not to completion of (11, 9) on ATO, so it may also be worth benchmarking too:</p>
+<pre><code>from collections import deque
+
+def countFixedDistance(s: str, k: int) -&gt; int:
+    n = int('1' + s, 2)
+    distances: dict[int, int] = {n: 0}
+    queue = deque(((n, len(s)),))
+    valid: set[int] = set()
+    while len(queue) &gt; 0:
+        current, bit_count = queue.popleft()
+        next_dist = distances[current] + 1
+        for e in range(bit_count):
+            left = current &gt;&gt; e
+            left_1 = left &lt;&lt; 1
+            pow = 1 &lt;&lt; e
+            right = current % pow
+            bp1 = bit_count + 1
+            for next, next_bit_count in (
+                ((left &gt;&gt; 1 &lt;&lt; e) | right, bit_count - 1),
+                (current ^ pow, bit_count),
+                ((left_1 &lt;&lt; e) | right, bp1),
+                (((left_1 | 1) &lt;&lt; e) | right, bp1),
+            ):
+                if next in distances: continue
+                distances[next] = next_dist
+                if next_dist &lt; k:
+                    queue.append((next, next_bit_count))
+                else:
+                    valid.add(next)
+        pow &lt;&lt;= 2
+        for next in (
+            pow | current,
+            pow ^ current,
+        ):
+            if next in distances: continue
+            distances[next] = next_dist
+            if next_dist &lt; k:
+                queue.append((next, bit_count + 1))
+            else:
+                valid.add(next)
+    return len(valid)
+</code></pre>
+<p><strong><a href="https://ato.pxeger.com/run?1=lVVLbtswEF11o1PMJjAJy4YUdFEYjoECRU_QneEYjkTFhBVKJSknQd2TdJNNe5ZeoT1NZ0j9bKlIy41szZs3741Go28_yme7L9TLy_fKZrN3v9-8z3TxAEmR5yKxslAG5ENZaAup-FyJIEhFhtFK2Y_ySaQfpLE7lQhmFmCsDuGwAKksh9mKrosA8Ci4oT9sEk9gCiaEa-7up3Uy5qYysWvEhATcIP6LWkD01cGwbCXwlhPAGFMh5EIxw3nIPdFxl8sUBQjHQen4k_nY417mwiU4Hg4riLwsOkmltaCyd9JunS1MdsB5WZS5yBoa50M82S2JJjGN9nVNsUFrcQvNCg0CvYDeqXvBWnbelaZDBZCspoDVCsQgvo0R4YDLZa8CnbJ4xFhMgfM8Le_3feIrgp4h7kqi7VxPL6jJAPkNvesOiJ7YGZIOY04g6vdiOJy8hn5jZxDzcJjaaLwljT38GJbVDbmsUY4yt_ATVn495-LZ0JGZs0-me8OaFMpKVYkBvBsKyqI5bEfmb9R-npb43gwQdPwo7spSqBQnf-SBcD5IFLkR43TuRZnv0tRRdZk0SMvlDVyfDXBjnQ2G7tS-OIPQ7TB00dj_aOq_NvT1Zo418mz6L_o43sOx_mlhK63chnFh7jfpr58G5U6iSXDEaxS4tWqe23VqbFpUNvDr6ZOu6mrU90O3OOJm103jXhdLTeuU-Uh44OHoRsZA58mXm2d5Zfb1SjMwRYFxHEWT9fHq7cavUrrpV4GvYmo_zRfiDw" rel="nofollow noreferrer">Attempt This Online!</a></strong></p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, (10,8)??</h1>
 <p>Direct adaptation of my answer on <a href="https://codegolf.stackexchange.com/a/264954/52194">Pick a random string at a fixed edit distance</a>. ATO was able to compute to (10,8) before its 60-second timeout kicked in, but I'm not sure if I'm using a good string for the test battery. (I just kept alternating between 1 and 0 for the last character.)</p>
 <pre class="lang-python prettyprint-override"><code>from collections import deque
 
@@ -71,7 +146,7 @@ def removals(s:str) -&gt; set[str]:
 </code></pre>
 <p><a href="https://ato.pxeger.com/run?1=rVTBjtMwEL1wyh9wG06N1bRqbija7gnxBdyiHELiUKupEzw2dAV8CZe9AN8EX8OM7aTd3Vbaw0atqnrevHnzZuKfv8c7uxv0_f0vZ7vV23-vXndmOEAz9L1srBo0gjqMg7HQys9OJkkrO4o6bd-ro2zfKbS1bmSKBaA1GewLUNoKWN3yb5EAqA72cLOFTQFGWmc0YELHza42nCRtSYkVzM-Wz9LFJl8IgrWxAEFb1XhsRsQVwb7R2eYHYUiXk3Dh2QbRaYqZYLIvda_a6zUF6_q6U72EXurU0wq4JeUJgxpnjNSWwD6yHoexlx2ncVTLo2WxXHTSXMaUCpaQe1Q3GNBHS97QB6XxDqcRlgVTBHwHdB_RKuuuxY08DNTNHBJBonc78p851wzaKk3TC5iTPoKyk5P2M46pmxuaaDLZFPqux1HqNqVcESOyR3lCeZfXdRshdB7nzqb6oAhrdObAtD6PtsLv0fSn8EzoejvPKxiquF1T608y5RIolnn0I8DXbmxrSztaFopH0dAXS1VUPrvh7GDsSWpIDDIfzuJllT5H5zJ_opRH1MCbLYerK7LnFcGCNF3QF95FUjfVO6_1VKkIN8TfP0hNLTaLxF8UeDdfEGjbwdkkvEAfjOOVYKr9iSrP4MGERkPvchorZHuRXbxaKMA9Bv511zvcsaMISxKSbxYlk2C5yitRJZETo9zpYvsP" rel="nofollow noreferrer">Attempt This Online!</a></p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 81 bytes</h1>
+<div id="pu2" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 81 bytes</h1>
 <pre><code>⊞υη≔⦃η¹⦄ζＦＮ«≔υε≔⟦⟧υＦεＦΣ⁺Ｅκ⟦⭆κ¬⁼Ｉν⁼μξ⭆κ⎇⁼μξων⟧Ｅ²Ｅ⊕Ｌκ⁺⁺✂κ⁰ν¹λ✂κν¿¬§ζλ«⊞υλ§≔ζλ¹»»ＩＬυ
 </code></pre>
 <p><a href="https://ato.pxeger.com/run?1=VVG9TsMwEBZj8xSnTmfJlRLEgOhUIYZIUEUKW5UhTZ0f1XGKf6C0yspLsHQAwcQD8TTY-ZHKSfb58333-e78_p2VqcyalJ9On0bns-vfi7fIqBINhZLMvYVSVSHwWN5A0FI42Ku8kYCh2Bm9NPWaSSQEjt5kYNo8ZkkjXCUUjMNdFiPQ-djUGHGj8CHd4ZbCKtayEsWAlo3GuyeTcoW3qdIoCIUB1xT2xBqFfxmPTIpUvuI5i8ILBUFIYk-Odtm7UGSS1UxotsF7Jgpd4tbpdeV0W8yrjDlV3-ZTCGyQuwfHa0F6gyoHdLUudCg2bI8HR-yHMbR_HnFKdg6TcbrcodZrvcg2ovtOh4KMVZl_qHWmhk_5Wk1nz3ya_Fx5gR_4fuCWH_TBPw" rel="nofollow noreferrer">Attempt This Online!</a> Link is to verbose version of code. Can handle results of up to about <code>20000</code> on ATO, so <code>5 1011001101</code> or <code>4 101001100101</code>. Explanation:</p>
