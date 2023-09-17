@@ -148,7 +148,10 @@ The determinant between (w',c) and (w',w) is w'(w-c)&gt;w'w&gt;w², since c&lt;0
  
 QED.
 
-Lemma 4: A (not necessarily symmetric) convex polygon P of lattice width w has area at least w²/3. The inequality is strict except when P is a triangle.
+
+Lemma 4: A (not necessarily symmetric) convex polygon P of lattice width w
+has area at least w²/3.
+The inequality is strict except when P is a triangle.
 
 &quot;&quot;&quot;
 # Since we use &quot;volume&quot;, which is TWICE the area, the following constants
@@ -157,10 +160,10 @@ Lemma 4: A (not necessarily symmetric) convex polygon P of lattice width w has a
 lattice_width_factor_even = 1
 lattice_width_factor_odd  = 2/3 + 0.00001
 # +0.00001 is because of the strict inequality (except for triangles, but
-# those are found in the first iteration.).
+# those are found in the first iteration.)
 
 def lower_bound(k,w):
-    &quot;lower bound on vol (=2*area) for k-gon of lattice width w&quot;
+    &quot;lower bound on vol (=2*area) for k-gon of lattice width w &quot;
     if k%2:
         lattice_width_factor = lattice_width_factor_odd
     else:
@@ -255,8 +258,10 @@ The points q can be bounded only very loosely in the horizontal
 direction, by n^2, however, in practice, it turns out they go only up to
 (1+alpha)n, where alpha grows very slowly (less than 4 for height 120.)
 
-Thus, the number of points q that are considered is also roughty of the order n^3.
-This gives an estimated runtime of O(n^3*n^3*n)=O(7) for all triples (p,q,k)
+Thus, the number of points q that are considered is also roughly of the order n^3.
+This gives an estimated runtime of O(n^3*n^3*n)=O(n^7) for all triples (p,q,k).
+One could say O(n^6) for each new value of n.
+
 
 ===========================
 
@@ -270,23 +275,30 @@ min_gon is a dictionary
 min_gon[(px,py)] is a dictionary
 
 min_gon[(px,py)][k] is a list of pairs (f,vol)=((fx,fy),vol), where
-f=(fx,fy)=q-p is a primitive vector (pointing upwards, fy&gt;0) and
-vol = 2 * min-area of a k-gon ((0,0), .... ,q,p).
+the incoming edge f=(fx,fy)=q-p is a primitive vector (pointing upwards, fy&gt;0)
+and vol = 2 * min-area of a k-gon ((0,0), .... ,q,p).
 In the list, the vectors f are sorted clockwise by direction,
 and the corresponding values &quot;vol&quot; are strictly increasing.
 (If pairs don't fit this order, we can eliminate one of them, as DOMINATED.)
 
+We fill this dictionary row by row, increasing py.
+
 [ If we want to enumerate ALL optimal solutions, we should allow
-the &quot;vol&quot; values to be weakly increasing. We should also use the
+the &quot;vol&quot; values to be weakly increasing. We should then use the
 weaker lower bound also for even k, in case we are interested in solutions
-that are not centrally symmetric ]
+that are not centrally symmetric.
+Another possibility is COUNTING the number of solutions. (For each height
+separately. Every solution has up to 2k representations with at least
+one flat edge, and infinitely many without flat edge.)
+We should consider all solutions of height up until the value is confirmed. ]
+[ We should have proceeded from left to right, swapping x and y.
+Then the notion of slope could have been used more naturally. ]
 
 &quot;vol&quot; is TWICE the area.
 
 https://oeis.org/A070911
 1,2,5,6,13,14,21,28,43,48,65,80,103,118, / 151,174,213,242,289,328,387,420,497
-
-The odd values after the slash are unconfirmed according to OEIS.
+The odd values after the slash were unconfirmed according to OEIS.
 &quot;&quot;&quot;
 
 known_value = {i+3:v for i,v in enumerate((
@@ -295,6 +307,7 @@ known_value = {i+3:v for i,v in enumerate((
     ))} # just for guidance; not used by the algorithm
 
 from math import tan,pi,gcd,sqrt,ceil
+import itertools
 import sys
 
 if len(sys.argv)&gt;1:
@@ -304,7 +317,8 @@ min_gon = dict()
 record_vol = [n**3 for n in range(N_target+1)] # loose upper bound as start value
 min_height = [0 for n in range(N_target+1)] # smallest height of a min-area polygon
 max_height = [0 for n in range(N_target+1)]
-# smallest height of a min-area polygon AS FOUND BY THE PROGRAM, not definite
+# smallest height of a min-area polygon with at least one horizontal edge,
+# AS FOUND BY THE PROGRAM, not definite
 
 confirmed = [True]*2 + [False]*(N_target+1-2) # checks which entries are confirmed.
 how_achieved = [None]*(N_target+1)
@@ -354,8 +368,8 @@ def print_solution(k,how_achieved,vol):
 
 ## Start the computation
 
-py = 1 # proceed row by row
-while not all(confirmed):
+for py in itertools.count(1): # for py = 1,2,...
+    # proceed row by row
     for px in range(py): # 2-gons are the base case.
         min_gon[px,py]={2:[((px,py),0)]}
         # or perhaps rather start 2-gons?
@@ -368,56 +382,70 @@ while not all(confirmed):
         # We will first *collect* the contributions to row py
         # for k+1 before sorting and processing them.         
         for qy in range(1,py):
-            # collect all contributions from point q on row qy to points p on row py:
+            # Generate all contributions from point q on row qy to points p on row py.
+            # We look at each starting point (qx0,qy) with 0&lt;=qx0&lt;qy&lt;py, for which we
+            # have min_gon[qx0,qy] stored.
+            # Then we consider the series of affine images
+            #    (qx0,qy), (qx0+qy,qy), (qx0+2*qy,qy), ..., (qx0+alpha*qy,qy), ...
+            # until we are sure that there are no more contributions to row py
+            # to be expected.
+            #
+            # These are two crucial pieces of the algorithm:
+            # 1. The simultaneous clockwise sweep around each point (qx,qy)
+            # with the incoming directions (fx,fy) and with the outgoing edges
+            # to the points on row py.
+            # 2. The logic to determine when no more progress can be expected from
+            # advancing alpha.
+            #            
             Delta_y = py-qy # &gt;0
             for qx0 in range(qy):
                 if k not in min_gon[qx0,qy]:
                     continue
                 sides = min_gon[qx0,qy][k]
                 assert(sides)
-                alpha = 0
-                qx = qx0
-                while True:
-                    # alpha == qx//qy
+                for alpha in itertools.count(0): # for alpha = 0,1,2,...
+                    qx = qx0+alpha*qy # apply shearing by alpha
                     visited_q += 1 # statistics
+                    
                     px = 0
-                    row_finished = False
+                    row_py_finished = False # for exit from nested loops
                     exhausted = True
-                    for (fx,fy),vol in sides:
+                    for (fx0,fy),vol in sides:
                         # sweep clockwise around q; vol is increasing.
                         # simultaneously sweep the point p on
                         # row py from left to right, clockwise around q.
-                        ffx = fx+alpha*fy # apply the reverse shearing by -alpha
-                        while (# vector q-&gt;p is counterclockwise from (ffx,fy):
-                                # Delta_x/Delta_y &lt; ffx/fy 
-                                (px-qx) * fy &lt; ffx * Delta_y ):
+                        fx = fx0+alpha*fy # apply the reverse shearing by -alpha
+                        while (# vector q-&gt;p is counterclockwise from (fx,fy):
+                                # Delta_x/Delta_y &lt; fx/fy 
+                                (px-qx) * fy &lt; fx * Delta_y ):
                             # store this:
                             Delta_x = px-qx
                             if gcd(Delta_x,Delta_y)==1:
                                 collect[px].append(
                                     (vol + qx*py-qy*px, Delta_x,Delta_y))
                             if px&gt;=py-1: # py-1 is largest value of px
-                                row_finished = True
+                                row_py_finished = True
                                 break
                             px += 1
-                        if row_finished: break
-                        # From the first entering vector in q,
-                        # not all points on row py could be reached:
+                        if row_py_finished: break
+                        
+                        # Not all points on row py could be reached
+                        # from the first incoming vector in q:
                         exhausted = False
+                        
                     if exhausted:
                         # All points up to the maximum px have been reached
-                        # by extending the FIRST element of sides.
-                        # further increase of alpha would only have a
-                        # larger area of Opq, and could not lead to an improvement.
+                        # by extending the FIRST incoming edge in &quot;sides&quot;.
+                        # Further increase of alpha would only produce a larger
+                        # area of Opq, and could not lead to an improvement.
                         sum_alpha += alpha # statistics
                         num_alpha += 1
                         break
-                    # Additional possibilities of shortcutting:
-                    # For example, the volume of Opq is becoming too big in
-                    # order to be usefil for anything.
-                    
-                    alpha += 1
-                    qx += qy # maintain alpha == qx//qy
+                    # [ There might be additional possibilities of shortcutting:
+                    # For example, the volume of Opq is too big in
+                    # order to be useful for anything. Indeed the lists in &quot;collect&quot;
+                    # accumulate thousands of elements (from every point q),
+                    # of which only 2-3 remain on average. ]
 
         # Now, consolidate the lists
         for px,triples in enumerate(collect):
@@ -426,22 +454,31 @@ while not all(confirmed):
             visited_p += 1
             work += len(triples)
             num_work += 1 # statistics
-            
+
+            # This is one more crucial piece of the program:
+            # We should keep only those incoming edges that are not DOMINATED.
+            # If (fx',fy') enters clockwise from (fx,fy) and has larger volume,
+            # then it cannot be part of a minimum-area solution.
+            # If it has equal volume, it could be useful, but in any situation it
+            # could always be replaced by (fx,fy).
+            #
+            # We solve this but looking at the entries sorted by slope.
+            #
             result = []
             prev_fx, prev_fy = -1,0 # ensure that test is true at the first iteration
             prev_vol = -1
             for vol,fx,fy in (sorted(triples)):
                 # smallest area first &lt;==&gt; result should be ordered clockwise.
                 if (# this is the first time OR (fx,fy) is clockwise from prev:
-                    # fx/fy &gt; prev_fx/prev_fy  
-                    fx*prev_fy &gt; prev_fx*fy):
+                    # fx/fy &gt; prev_fx/prev_fy
+                      fx*prev_fy &gt; prev_fx*fy):
                     if vol!=prev_vol:                   
                         result.append(((fx,fy),vol))
-                        prev_fx,prev_fy,prev_vol = fx,fy,vol
-                    else: # adjust this treatment when generating ALL solutions.
-                    # (Then multiple vol-entries should be kept, but SORTED BY SLOPE.)
+                    else: # replace the last entry:
                         result[-1] = ((fx,fy),vol)
-                        prev_fx,prev_fy = fx,fy
+                        # adjust this treatment when generating ALL solutions:
+                        # Then multiple vol-entries should be kept, but SORTED BY SLOPE.
+                    prev_fx,prev_fy,prev_vol = fx,fy,vol
                     
             min_gon[px,py][k+1]=result
             if 0:
@@ -517,8 +554,8 @@ while not all(confirmed):
           # ? if still unconfirmed
           # * if has just been improved
           #
-          &quot;work=%d&quot;%work, # work done in this step
-          &quot;&quot; if num_work==0 else &quot;avg=%.2f&quot;%(work/num_work),
+          &quot;work=%d&quot;%work, # work done in this step, total items in &quot;collect&quot;
+          &quot;&quot; if num_work==0 else &quot;avg=%.2f&quot;%(work/num_work), # average list size in &quot;collect&quot;
           &quot;&quot; if num_alpha==0 else (&quot;av_alpha=%.2f&quot;% (sum_alpha/num_alpha)),
           flush=True)
     if py%10==0:
@@ -527,8 +564,9 @@ while not all(confirmed):
         print(&quot;2n-gons:&quot;, &quot;,&quot;.join(str(record_vol[k]//2)
                                    +(&quot;&quot; if confirmed[k] else &quot;?&quot;)
                            for k in range(4,N_target+1,2)))
-    
-    py += 1
+
+    if all(confirmed):
+        break
     
 print(&quot;smallest heights:&quot;,*(&quot;%2d&quot;%x for x in min_height[3:]))
 print(&quot;largest heights: &quot;,*(&quot;%2d&quot;%x for x in max_height[3:]))
