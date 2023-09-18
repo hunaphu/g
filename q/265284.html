@@ -34,6 +34,7 @@
 </table>
 <div id="pu0" class="pu"><h1>Rust, score ≈ (28, 27)</h1>
 <p>The number of strings at distance <span class="math-container">\$k\$</span> from <span class="math-container">\$s\$</span> with some given prefix <span class="math-container">\$p\$</span> is a function of <span class="math-container">\$s\$</span>, <span class="math-container">\$k\$</span>, and the last column of the <a href="https://en.wikipedia.org/wiki/Wagner%E2%80%93Fischer_algorithm" rel="nofollow noreferrer">Wagner–Fischer table</a> of <span class="math-container">\$s\$</span> and <span class="math-container">\$p\$</span>. We use a recursive search on prefixes <span class="math-container">\$p\$</span>, caching results based on this last column.</p>
+<p>Build with <code>cargo build --release</code>, run with <code>target/release/levenshtein-neighborhood &lt;s&gt; &lt;k&gt;</code>.</p>
 <p><strong><code>Cargo.toml</code></strong></p>
 <pre><code>[package]
 name = &quot;levenshtein-neighborhood&quot;
@@ -41,11 +42,11 @@ version = &quot;0.1.0&quot;
 edition = &quot;2021&quot;
 
 [dependencies]
-hashbrown = &quot;0.14.0&quot;
+fxhash = &quot;0.2.1&quot;
 typed-arena = &quot;2.0.2&quot;
 </code></pre>
 <p><strong><code>src/main.rs</code></strong></p>
-<pre class="lang-rust prettyprint-override"><code>use hashbrown::HashMap;
+<pre class="lang-rust prettyprint-override"><code>use fxhash::FxHashMap;
 use std::env;
 use typed_arena::Arena;
 
@@ -53,7 +54,7 @@ fn count_state&lt;'a&gt;(
     target: &amp;[bool],
     distance: u8,
     arena: &amp;'a Arena&lt;u8&gt;,
-    cache: &amp;mut HashMap&lt;&amp;'a [u8], u64&gt;,
+    cache: &amp;mut FxHashMap&lt;&amp;'a [u8], u64&gt;,
     state: &amp;mut [u8],
 ) -&gt; u64 {
     let new_state = state;
@@ -62,16 +63,16 @@ fn count_state&lt;'a&gt;(
     if state[target.len()] == distance {
         count += 1;
     }
-    for bit in [false, true] {
+    for symbol in [false, true] {
         let mut z = state[0] + 1;
         new_state[0] = z;
-        for (((o, &amp;target_bit), &amp;x), &amp;y) in new_state[1..]
+        for (((o, &amp;c), &amp;x), &amp;y) in new_state[1..]
             .iter_mut()
             .zip(target)
             .zip(&amp;state[..state.len() - 1])
             .zip(&amp;state[1..])
         {
-            z = (x + u8::from(bit != target_bit)).min(y.min(z).min(distance) + 1);
+            z = (x + u8::from(symbol != c)).min(y.min(z).min(distance) + 1);
             *o = z;
         }
 
@@ -89,7 +90,7 @@ fn count_state&lt;'a&gt;(
 fn count(target: &amp;[bool], distance: u8) -&gt; u64 {
     let arena = Arena::new();
     let state = arena.alloc_extend(0..=target.len() as u8);
-    let mut cache = HashMap::new();
+    let mut cache = FxHashMap::default();
     count_state(target, distance, &amp;arena, &amp;mut cache, state)
 }
 
