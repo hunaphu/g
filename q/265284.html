@@ -26,11 +26,93 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>008</td><td>Python</td><td>230917T081332Z</td><td><a href="https://codegolf.stackexchange.com/questions/265284/count-the-size-of-the-levenshtein-neighborhood/265292#265292">Jonathan</a></td></tr>
-<tr d-ix="1"><td>008</td><td>Python</td><td>230916T225842Z</td><td><a href="https://codegolf.stackexchange.com/questions/265284/count-the-size-of-the-levenshtein-neighborhood/265287#265287">Value In</a></td></tr>
-<tr d-ix="2"><td>081</td><td>Charcoal</td><td>230916T163835Z</td><td><a href="https://codegolf.stackexchange.com/questions/265284/count-the-size-of-the-levenshtein-neighborhood/265285#265285">Neil</a></td></tr>
+<tr d-ix="0"><td>011</td><td>Rust</td><td>230918T162624Z</td><td><a href="https://codegolf.stackexchange.com/questions/265284/count-the-size-of-the-levenshtein-neighborhood/265339#265339">corvus_1</a></td></tr>
+<tr d-ix="1"><td>008</td><td>Python</td><td>230917T081332Z</td><td><a href="https://codegolf.stackexchange.com/questions/265284/count-the-size-of-the-levenshtein-neighborhood/265292#265292">Jonathan</a></td></tr>
+<tr d-ix="2"><td>008</td><td>Python</td><td>230916T225842Z</td><td><a href="https://codegolf.stackexchange.com/questions/265284/count-the-size-of-the-levenshtein-neighborhood/265287#265287">Value In</a></td></tr>
+<tr d-ix="3"><td>081</td><td>Charcoal</td><td>230916T163835Z</td><td><a href="https://codegolf.stackexchange.com/questions/265284/count-the-size-of-the-levenshtein-neighborhood/265285#265285">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, (11, 8)</h1>
+<div id="pu0" class="pu"><h1>Rust, (12, 11)</h1>
+<p>This is basically a line-by-line port of Jonathan Allen's answer, with is already very good. Thanks!</p>
+<p>It uses the <a href="https://crates.io/crates/nohash-hasher" rel="nofollow noreferrer">nohash-hasher</a> crate for extremely fast HashMap lookups, with take up the vast majority of the time.</p>
+<pre class="lang-rust prettyprint-override"><code>#![warn(clippy::all)]
+
+use std::collections::VecDeque;
+use std::collections::hash_map::Entry;
+use std::time::Instant;
+
+use nohash_hasher::{IntMap, IntSet};
+
+fn count_fixed_distance(s: &amp;str, k: u32) -&gt; usize {
+    let n = i32::from_str_radix(&amp;format!(&quot;1{s}&quot;), 2).unwrap();
+    let mut distances = IntMap::with_capacity_and_hasher(1 &lt;&lt; (s.len() + k as usize), Default::default());
+    distances.insert(n, 0);
+    let mut queue = VecDeque::from([(n, s.len())]);
+    // capacity is just experimentation
+    let mut valid = IntSet::with_capacity_and_hasher(1 &lt;&lt; (k + 1), Default::default());
+    while let Some((current, bit_count)) = queue.pop_front() {
+        let next_dist = distances.get(&amp;current).unwrap() + 1;
+        let mut pow = 0;
+        for e in 0..bit_count {
+            let left = current &gt;&gt; e;
+            let left_1 = left &lt;&lt; 1;
+            pow = 1 &lt;&lt; e;
+            let right = current % pow;
+            let bp1 = bit_count + 1;
+            for (next, next_bit_count) in [
+                ((left &gt;&gt; 1 &lt;&lt; e) | right, bit_count - 1),
+                (current ^ pow, bit_count),
+                ((left_1 &lt;&lt; e) | right, bp1),
+                (((left_1 | 1) &lt;&lt; e) | right, bp1)
+            ] {
+                match distances.entry(next) {
+                    Entry::Vacant(ve) =&gt; {
+                        ve.insert(next_dist);
+                    }
+                    Entry::Occupied(_) =&gt; continue,
+                }
+                if next_dist &lt; k {
+                    queue.push_back((next, next_bit_count));
+                } else {
+                    valid.insert(next);
+                }
+            }
+        }
+
+        for next in [pow &lt;&lt; 2 | current, 3 &lt;&lt; bit_count ^ current] {
+            match distances.entry(next) {
+                Entry::Vacant(ve) =&gt; {
+                    ve.insert(next_dist);
+                }
+                Entry::Occupied(_) =&gt; continue,
+            }
+            if next_dist &lt; k {
+                queue.push_back((next, bit_count + 1));
+            } else {
+                valid.insert(next);
+            }
+        }
+    }
+    valid.len()
+}
+
+fn main() {
+    let start = Instant::now();
+    let mut s = String::with_capacity(32);
+    s.push('0');
+    let mut v = 0;
+    while s.len() &lt;= 12 { // approx 2 minutes for profiling
+        for k in 1..(s.len() + 1) {
+            println!(&quot;{} {} {}&quot;, s.len(), k, count_fixed_distance(&amp;s, k as u32));
+        }
+        s.push(['1', '1', '0', '0'][v % 4]);
+        v += 1;
+        println!(&quot;{}&quot;, s)
+    }
+    println!(&quot;{} seconds&quot;, start.elapsed().as_secs_f32());
+}
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, (11, 8)</h1>
 <p>New version of <a href="https://codegolf.stackexchange.com/a/265287/53748">Value Ink's answer</a> using bit twiddling in place of string manipulation.</p>
 <pre class="lang-python prettyprint-override"><code>from collections import deque
 
@@ -103,7 +185,7 @@ def countFixedDistance(s: str, k: int) -&gt; int:
 </code></pre>
 <p><strong><a href="https://ato.pxeger.com/run?1=nVRBbtswEDz05lfsJRAJy4ZU9BAItk9FX9Cb4Qa2tIoJK5RCUm6Kti_pJZfmI31F-5rukpIsGy4KhBdJ3J3ZWXJWP16aL25f6-fnn60rZ7d_3vwqTf0AeV1VmDtVawvqoamNgwIfW5xMCiwp2mr3QT1h8V5Zt9U5CpuBdSaGQwZKOwmzFT-zCdDSsOQPEaURTMHG8Fb6_aIDE7ZQuVtTTsyJG8r_qjNIvvs0KtsibXkBQggdQ4VaWCljGYiO20oVJAA9B8PpVYTY572q0AM8j4QVJEEWr7w1BrnsTrk73xaBfeK8qZsKy57G94FP7o5Fs5he-7qj2FBr6XnqmPP0PhullbUJqfeoqXMQQ4SXEB03rFaAzA-LBVAL01433IDoN5kLmcRs9T2KoSAd0zlrj_30CuyFJEKn8A128n_Cdr67JIb038W4wXFBmY1q9yfFuP7EsjNtAKocUkbWymvtlCbrniefLpAx7Jnheq_ThptfkMMv4oNH59umQV2QQyk9vvCAlBcwrCxeo_Jmnm-LwtOMURemmi47Jxl0rdHe4x4swyz_frHUVZREkyM9k0mYhI-m7crykR5O95D2YzVNRyffGJ5cESLxQcZXh98Hyqq1-yXzB9GWFUZpmiTR-njzbhNG9SQ7UNtObf8H-gs" rel="nofollow noreferrer">Attempt This Online!</a></strong></p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, (10,8)??</h1>
+<div id="pu2" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, (10,8)??</h1>
 <p>Direct adaptation of my answer on <a href="https://codegolf.stackexchange.com/a/264954/52194">Pick a random string at a fixed edit distance</a>. ATO was able to compute to (10,8) before its 60-second timeout kicked in, but I'm not sure if I'm using a good string for the test battery. (I just kept alternating between 1 and 0 for the last character.)</p>
 <pre class="lang-python prettyprint-override"><code>from collections import deque
 
@@ -145,7 +227,7 @@ def removals(s:str) -&gt; set[str]:
 </code></pre>
 <p><a href="https://ato.pxeger.com/run?1=rVTBjtMwEL1wyh9wG06N1bRqbija7gnxBdyiHELiUKupEzw2dAV8CZe9AN8EX8OM7aTd3Vbaw0atqnrevHnzZuKfv8c7uxv0_f0vZ7vV23-vXndmOEAz9L1srBo0gjqMg7HQys9OJkkrO4o6bd-ro2zfKbS1bmSKBaA1GewLUNoKWN3yb5EAqA72cLOFTQFGWmc0YELHza42nCRtSYkVzM-Wz9LFJl8IgrWxAEFb1XhsRsQVwb7R2eYHYUiXk3Dh2QbRaYqZYLIvda_a6zUF6_q6U72EXurU0wq4JeUJgxpnjNSWwD6yHoexlx2ncVTLo2WxXHTSXMaUCpaQe1Q3GNBHS97QB6XxDqcRlgVTBHwHdB_RKuuuxY08DNTNHBJBonc78p851wzaKk3TC5iTPoKyk5P2M46pmxuaaDLZFPqux1HqNqVcESOyR3lCeZfXdRshdB7nzqb6oAhrdObAtD6PtsLv0fSn8EzoejvPKxiquF1T608y5RIolnn0I8DXbmxrSztaFopH0dAXS1VUPrvh7GDsSWpIDDIfzuJllT5H5zJ_opRH1MCbLYerK7LnFcGCNF3QF95FUjfVO6_1VKkIN8TfP0hNLTaLxF8UeDdfEGjbwdkkvEAfjOOVYKr9iSrP4MGERkPvchorZHuRXbxaKMA9Bv511zvcsaMISxKSbxYlk2C5yitRJZETo9zpYvsP" rel="nofollow noreferrer">Attempt This Online!</a></p>
 </div>
-<div id="pu2" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 81 bytes</h1>
+<div id="pu3" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 81 bytes</h1>
 <pre><code>⊞υη≔⦃η¹⦄ζＦＮ«≔υε≔⟦⟧υＦεＦΣ⁺Ｅκ⟦⭆κ¬⁼Ｉν⁼μξ⭆κ⎇⁼μξων⟧Ｅ²Ｅ⊕Ｌκ⁺⁺✂κ⁰ν¹λ✂κν¿¬§ζλ«⊞υλ§≔ζλ¹»»ＩＬυ
 </code></pre>
 <p><a href="https://ato.pxeger.com/run?1=VVG9TsMwEBZj8xSnTmfJlRLEgOhUIYZIUEUKW5UhTZ0f1XGKf6C0yspLsHQAwcQD8TTY-ZHKSfb58333-e78_p2VqcyalJ9On0bns-vfi7fIqBINhZLMvYVSVSHwWN5A0FI42Ku8kYCh2Bm9NPWaSSQEjt5kYNo8ZkkjXCUUjMNdFiPQ-djUGHGj8CHd4ZbCKtayEsWAlo3GuyeTcoW3qdIoCIUB1xT2xBqFfxmPTIpUvuI5i8ILBUFIYk-Odtm7UGSS1UxotsF7Jgpd4tbpdeV0W8yrjDlV3-ZTCGyQuwfHa0F6gyoHdLUudCg2bI8HR-yHMbR_HnFKdg6TcbrcodZrvcg2ovtOh4KMVZl_qHWmhk_5Wk1nz3ya_Fx5gR_4fuCWH_TBPw" rel="nofollow noreferrer">Attempt This Online!</a> Link is to verbose version of code. Can handle results of up to about <code>20000</code> on ATO, so <code>5 1011001101</code> or <code>4 101001100101</code>. Explanation:</p>
