@@ -26,12 +26,85 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>011</td><td>Rust</td><td>230918T162624Z</td><td><a href="https://codegolf.stackexchange.com/questions/265284/count-the-size-of-the-levenshtein-neighborhood/265339#265339">corvus_1</a></td></tr>
-<tr d-ix="1"><td>008</td><td>Python</td><td>230917T081332Z</td><td><a href="https://codegolf.stackexchange.com/questions/265284/count-the-size-of-the-levenshtein-neighborhood/265292#265292">Jonathan</a></td></tr>
+<tr d-ix="0"><td>010</td><td>Python</td><td>230917T081332Z</td><td><a href="https://codegolf.stackexchange.com/questions/265284/count-the-size-of-the-levenshtein-neighborhood/265292#265292">Jonathan</a></td></tr>
+<tr d-ix="1"><td>011</td><td>Rust</td><td>230918T162624Z</td><td><a href="https://codegolf.stackexchange.com/questions/265284/count-the-size-of-the-levenshtein-neighborhood/265339#265339">corvus_1</a></td></tr>
 <tr d-ix="2"><td>008</td><td>Python</td><td>230916T225842Z</td><td><a href="https://codegolf.stackexchange.com/questions/265284/count-the-size-of-the-levenshtein-neighborhood/265287#265287">Value In</a></td></tr>
 <tr d-ix="3"><td>081</td><td>Charcoal</td><td>230916T163835Z</td><td><a href="https://codegolf.stackexchange.com/questions/265284/count-the-size-of-the-levenshtein-neighborhood/265285#265285">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Rust, (12, 11)</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, (11, 8); with Python PyPy (12, 10)</h1>
+<p>New version of <a href="https://codegolf.stackexchange.com/a/265287/53748">Value Ink's answer</a> using bit twiddling in place of string manipulation.</p>
+<pre class="lang-python prettyprint-override"><code>from collections import deque
+
+def countFixedDistance(s: str, k: int) -&gt; int:
+    n = int('1' + s, 2)
+    distances: dict[int, int] = {n: 0}
+    queue = deque(((n, len(s)),))
+    valid: set[int] = set()
+    while len(queue) &gt; 0:
+        current, bit_count = queue.popleft()
+        next_dist = distances[current] + 1
+        next_bit_count = bit_count - 1
+        for next_gen in (
+            ((current &gt;&gt; e + 1 &lt;&lt; e) + current % (1 &lt;&lt; e) for e in range(bit_count)),
+            (current ^ (1 &lt;&lt; e) for e in range(bit_count)),
+            (((current &gt;&gt; e &lt;&lt; 1 | b) &lt;&lt; e) + current % (1 &lt;&lt; e) for b in (0, 1) for e in range(bit_count + 1)),
+        ):
+          for next in next_gen:
+              if next in distances: continue
+              distances[next] = next_dist
+              if next_dist &lt; k:
+                  queue.append((next, next_bit_count))
+              else:
+                  valid.add(next)
+          next_bit_count += 1
+    return len(valid)
+</code></pre>
+<p><strong><a href="https://ato.pxeger.com/run?1=nVRBbtswEDz05lfsJRAJy4ZU9BAItk9FX9Cb4Qa2tIoJK5RCUm6Kti_pJZfmI31F-5rukpIsGy4KhBdJ3J3ZWXJWP16aL25f6-fnn60rZ7d_3vwqTf0AeV1VmDtVawvqoamNgwIfW5xMCiwp2mr3QT1h8V5Zt9U5CpuBdSaGQwZKOwmzFT-zCdDSsOQPEaURTMHG8Fb6_aIDE7ZQuVtTTsyJG8r_qjNIvvs0KtsibXkBQggdQ4VaWCljGYiO20oVJAA9B8PpVYTY572q0AM8j4QVJEEWr7w1BrnsTrk73xaBfeK8qZsKy57G94FP7o5Fs5he-7qj2FBr6XnqmPP0PhullbUJqfeoqXMQQ4SXEB03rFaAzA-LBVAL01433IDoN5kLmcRs9T2KoSAd0zlrj_30CuyFJEKn8A128n_Cdr67JIb038W4wXFBmY1q9yfFuP7EsjNtAKocUkbWymvtlCbrniefLpAx7Jnheq_ThptfkMMv4oNH59umQV2QQyk9vvCAlBcwrCxeo_Jmnm-LwtOMURemmi47Jxl0rdHe4x4swyz_frHUVZREkyM9k0mYhI-m7crykR5O95D2YzVNRyffGJ5cESLxQcZXh98Hyqq1-yXzB9GWFUZpmiTR-njzbhNG9SQ7UNtObf8H-gs" rel="nofollow noreferrer">Attempt This Online!</a></strong></p>
+<hr />
+<p>With a lot of tweaks to do fewer operations, it does get further but still not to completion of (11, 9) on ATO, so it may also be worth benchmarking too:</p>
+<pre><code>from collections import deque
+
+def countFixedDistance(s: str, k: int) -&gt; int:
+    n = int('1' + s, 2)
+    distances: dict[int, int] = {n: 0}
+    queue = deque(((n, len(s)),))
+    valid: set[int] = set()
+    while len(queue) &gt; 0:
+        current, bit_count = queue.popleft()
+        next_dist = distances[current] + 1
+        for e in range(bit_count):
+            left = current &gt;&gt; e
+            left_1 = left &lt;&lt; 1
+            pow = 1 &lt;&lt; e
+            right = current % pow
+            bp1 = bit_count + 1
+            for next, next_bit_count in (
+                ((left &gt;&gt; 1 &lt;&lt; e) | right, bit_count - 1),
+                (current ^ pow, bit_count),
+                ((left_1 &lt;&lt; e) | right, bp1),
+                (((left_1 | 1) &lt;&lt; e) | right, bp1),
+            ):
+                if next in distances: continue
+                distances[next] = next_dist
+                if next_dist &lt; k:
+                    queue.append((next, next_bit_count))
+                else:
+                    valid.add(next)
+        for next in (
+            pow &lt;&lt; 2 | current,
+            3 &lt;&lt; bit_count ^ current,
+        ):
+            if next in distances: continue
+            distances[next] = next_dist
+            if next_dist &lt; k:
+                queue.append((next, bit_count + 1))
+            else:
+                valid.add(next)
+    return len(valid)
+</code></pre>
+<p><strong><a href="https://ato.pxeger.com/run?1=nVRBbtswEDz05lfsJRAJy4ZU9BAItk9FX9Cb4Qa2tIoJK5RCUm6Kti_pJZfmI31F-5rukpIsGy4KhBdJ3J3ZWXJWP16aL25f6-fnn60rZ7d_3vwqTf0AeV1VmDtVawvqoamNgwIfW5xMCiwp2mr3QT1h8V5Zt9U5CpuBdSaGQwZKOwmzFT-zCdDSsOQPEaURTMHG8Fb6_aIDE7ZQuVtTTsyJG8r_qjNIvvs0KtsibXkBQggdQ4VaWCljGYiO20oVJAA9B8PpVYTY572q0AM8j4QVJEEWr7w1BrnsTrk73xaBfeK8qZsKy57G94FP7o5Fs5he-7qj2FBr6XnqmPP0PhullbUJqfeoqXMQQ4SXEB03rFaAzA-LBVAL01433IDoN5kLmcRs9T2KoSAd0zlrj_30CuyFJEKn8A128n_Cdr67JIb038W4wXFBmY1q9yfFuP7EsjNtAKocUkbWymvtlCbrniefLpAx7Jnheq_ThptfkMMv4oNH59umQV2QQyk9vvCAlBcwrCxeo_Jmnm-LwtOMURemmi47Jxl0rdHe4x4swyz_frHUVZREkyM9k0mYhI-m7crykR5O95D2YzVNRyffGJ5cESLxQcZXh98Hyqq1-yXzB9GWFUZpmiTR-njzbhNG9SQ7UNtObf8H-gs" rel="nofollow noreferrer">Attempt This Online!</a></strong></p>
+</div>
+<div id="pu1" class="pu"><h1>Rust, (12, 11)</h1>
 <p>This is basically a line-by-line port of Jonathan Allan's answer, with is already very good. Thanks! I wrote this to practice some Rust.</p>
 <p>It uses the <a href="https://crates.io/crates/nohash-hasher" rel="nofollow noreferrer">nohash-hasher</a> crate for extremely fast HashMap lookups, with take up the vast majority of the time.</p>
 <p><a href="https://www.rustexplorer.com/b#LyoKW2RlcGVuZGVuY2llc10Kbm9oYXNoLWhhc2hlciA9ICIwLjIuMCIKKi8KCiMhW3dhcm4oY2xpcHB5OjphbGwpXQoKdXNlIHN0ZDo6Y29sbGVjdGlvbnM6Omhhc2hfbWFwOjpFbnRyeTsKdXNlIHN0ZDo6Y29sbGVjdGlvbnM6OlZlY0RlcXVlOwp1c2Ugc3RkOjp0aW1lOjpJbnN0YW50OwoKdXNlIG5vaGFzaF9oYXNoZXI6OntJbnRNYXAsIEludFNldH07CgpmbiBjb3VudF9maXhlZF9kaXN0YW5jZShzOiAmc3RyLCBrOiB1MzIpIC0+IHVzaXplIHsKICAgIGxldCBuID0gaTMyOjpmcm9tX3N0cl9yYWRpeCgmZm9ybWF0ISgiMXtzfSIpLCAyKS51bndyYXAoKTsKICAgIGxldCBtdXQgZGlzdGFuY2VzID0KICAgICAgICBJbnRNYXA6OndpdGhfY2FwYWNpdHlfYW5kX2hhc2hlcigxIDw8IChzLmxlbigpICsgayBhcyB1c2l6ZSksIERlZmF1bHQ6OmRlZmF1bHQoKSk7CiAgICBkaXN0YW5jZXMuaW5zZXJ0KG4sIDApOwogICAgbGV0IG11dCBxdWV1ZSA9IFZlY0RlcXVlOjpmcm9tKFsobiwgcy5sZW4oKSldKTsKICAgIC8vIGNhcGFjaXR5IGlzIGp1c3QgZXhwZXJpbWVudGF0aW9uCiAgICBsZXQgbXV0IHZhbGlkID0gSW50U2V0Ojp3aXRoX2NhcGFjaXR5X2FuZF9oYXNoZXIoMSA8PCAoayArIDEpLCBEZWZhdWx0OjpkZWZhdWx0KCkpOwogICAgd2hpbGUgbGV0IFNvbWUoKGN1cnJlbnQsIGJpdF9jb3VudCkpID0gcXVldWUucG9wX2Zyb250KCkgewogICAgICAgIGxldCBuZXh0X2Rpc3QgPSBkaXN0YW5jZXMuZ2V0KCZjdXJyZW50KS51bndyYXAoKSArIDE7CiAgICAgICAgbGV0IG11dCBwb3cgPSAwOwogICAgICAgIGZvciBlIGluIDAuLmJpdF9jb3VudCB7CiAgICAgICAgICAgIGxldCBsZWZ0ID0gY3VycmVudCA+PiBlOwogICAgICAgICAgICBsZXQgbGVmdF8xID0gbGVmdCA8PCAxOwogICAgICAgICAgICBwb3cgPSAxIDw8IGU7CiAgICAgICAgICAgIGxldCByaWdodCA9IGN1cnJlbnQgJSBwb3c7CiAgICAgICAgICAgIGxldCBicDEgPSBiaXRfY291bnQgKyAxOwogICAgICAgICAgICBmb3IgKG5leHQsIG5leHRfYml0X2NvdW50KSBpbiBbCiAgICAgICAgICAgICAgICAoKGxlZnQgPj4gMSA8PCBlKSB8IHJpZ2h0LCBiaXRfY291bnQgLSAxKSwKICAgICAgICAgICAgICAgIChjdXJyZW50IF4gcG93LCBiaXRfY291bnQpLAogICAgICAgICAgICAgICAgKChsZWZ0XzEgPDwgZSkgfCByaWdodCwgYnAxKSwKICAgICAgICAgICAgICAgICgoKGxlZnRfMSB8IDEpIDw8IGUpIHwgcmlnaHQsIGJwMSksCiAgICAgICAgICAgIF0gewogICAgICAgICAgICAgICAgbWF0Y2ggZGlzdGFuY2VzLmVudHJ5KG5leHQpIHsKICAgICAgICAgICAgICAgICAgICBFbnRyeTo6VmFjYW50KHZlKSA9PiB7CiAgICAgICAgICAgICAgICAgICAgICAgIHZlLmluc2VydChuZXh0X2Rpc3QpOwogICAgICAgICAgICAgICAgICAgIH0KICAgICAgICAgICAgICAgICAgICBFbnRyeTo6T2NjdXBpZWQoXykgPT4gY29udGludWUsCiAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgICAgICBpZiBuZXh0X2Rpc3QgPCBrIHsKICAgICAgICAgICAgICAgICAgICBxdWV1ZS5wdXNoX2JhY2soKG5leHQsIG5leHRfYml0X2NvdW50KSk7CiAgICAgICAgICAgICAgICB9IGVsc2UgewogICAgICAgICAgICAgICAgICAgIHZhbGlkLmluc2VydChuZXh0KTsKICAgICAgICAgICAgICAgIH0KICAgICAgICAgICAgfQogICAgICAgIH0KCiAgICAgICAgZm9yIG5leHQgaW4gW3BvdyA8PCAyIHwgY3VycmVudCwgMyA8PCBiaXRfY291bnQgXiBjdXJyZW50XSB7CiAgICAgICAgICAgIG1hdGNoIGRpc3RhbmNlcy5lbnRyeShuZXh0KSB7CiAgICAgICAgICAgICAgICBFbnRyeTo6VmFjYW50KHZlKSA9PiB7CiAgICAgICAgICAgICAgICAgICAgdmUuaW5zZXJ0KG5leHRfZGlzdCk7CiAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgICAgICBFbnRyeTo6T2NjdXBpZWQoXykgPT4gY29udGludWUsCiAgICAgICAgICAgIH0KICAgICAgICAgICAgaWYgbmV4dF9kaXN0IDwgayB7CiAgICAgICAgICAgICAgICBxdWV1ZS5wdXNoX2JhY2soKG5leHQsIGJpdF9jb3VudCArIDEpKTsKICAgICAgICAgICAgfSBlbHNlIHsKICAgICAgICAgICAgICAgIHZhbGlkLmluc2VydChuZXh0KTsKICAgICAgICAgICAgfQogICAgICAgIH0KICAgIH0KICAgIHZhbGlkLmxlbigpCn0KCmZuIG1haW4oKSB7CiAgICBsZXQgc3RhcnQgPSBJbnN0YW50Ojpub3coKTsKICAgIGxldCBtdXQgcyA9IFN0cmluZzo6d2l0aF9jYXBhY2l0eSgzMik7CiAgICBzLnB1c2goJzAnKTsKICAgIGxldCBtdXQgdiA9IDA7CiAgICB3aGlsZSBzLmxlbigpIDw9IDEyIHsKICAgICAgICAvLyBhcHByb3ggMiBtaW51dGVzIGZvciBwcm9maWxpbmcKICAgICAgICBmb3IgayBpbiAxLi4ocy5sZW4oKSArIDEpIHsKICAgICAgICAgICAgcHJpbnRsbiEoInt9IHt9IHt9Iiwgcy5sZW4oKSwgaywgY291bnRfZml4ZWRfZGlzdGFuY2UoJnMsIGsgYXMgdTMyKSk7CiAgICAgICAgfQogICAgICAgIHMucHVzaChbJzEnLCAnMScsICcwJywgJzAnXVt2ICUgNF0pOwogICAgICAgIHYgKz0gMTsKICAgICAgICBwcmludGxuISgie30iLCBzKQogICAgfQogICAgcHJpbnRsbiEoInt9IHNlY29uZHMiLCBzdGFydC5lbGFwc2VkKCkuYXNfc2Vjc19mMzIoKSk7Cn0K" rel="nofollow noreferrer">Try it online on rustexplorer.com</a>. Runs an unoptimized debug build, so don't rely on it for measurements.</p>
@@ -112,79 +185,6 @@ fn main() {
     println!(&quot;{} seconds&quot;, start.elapsed().as_secs_f32());
 }
 </code></pre>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, (11, 8)</h1>
-<p>New version of <a href="https://codegolf.stackexchange.com/a/265287/53748">Value Ink's answer</a> using bit twiddling in place of string manipulation.</p>
-<pre class="lang-python prettyprint-override"><code>from collections import deque
-
-def countFixedDistance(s: str, k: int) -&gt; int:
-    n = int('1' + s, 2)
-    distances: dict[int, int] = {n: 0}
-    queue = deque(((n, len(s)),))
-    valid: set[int] = set()
-    while len(queue) &gt; 0:
-        current, bit_count = queue.popleft()
-        next_dist = distances[current] + 1
-        next_bit_count = bit_count - 1
-        for next_gen in (
-            ((current &gt;&gt; e + 1 &lt;&lt; e) + current % (1 &lt;&lt; e) for e in range(bit_count)),
-            (current ^ (1 &lt;&lt; e) for e in range(bit_count)),
-            (((current &gt;&gt; e &lt;&lt; 1 | b) &lt;&lt; e) + current % (1 &lt;&lt; e) for b in (0, 1) for e in range(bit_count + 1)),
-        ):
-          for next in next_gen:
-              if next in distances: continue
-              distances[next] = next_dist
-              if next_dist &lt; k:
-                  queue.append((next, next_bit_count))
-              else:
-                  valid.add(next)
-          next_bit_count += 1
-    return len(valid)
-</code></pre>
-<p><strong><a href="https://ato.pxeger.com/run?1=nVRBbtswEDz05lfsJRAJy4ZU9BAItk9FX9Cb4Qa2tIoJK5RCUm6Kti_pJZfmI31F-5rukpIsGy4KhBdJ3J3ZWXJWP16aL25f6-fnn60rZ7d_3vwqTf0AeV1VmDtVawvqoamNgwIfW5xMCiwp2mr3QT1h8V5Zt9U5CpuBdSaGQwZKOwmzFT-zCdDSsOQPEaURTMHG8Fb6_aIDE7ZQuVtTTsyJG8r_qjNIvvs0KtsibXkBQggdQ4VaWCljGYiO20oVJAA9B8PpVYTY572q0AM8j4QVJEEWr7w1BrnsTrk73xaBfeK8qZsKy57G94FP7o5Fs5he-7qj2FBr6XnqmPP0PhullbUJqfeoqXMQQ4SXEB03rFaAzA-LBVAL01433IDoN5kLmcRs9T2KoSAd0zlrj_30CuyFJEKn8A128n_Cdr67JIb038W4wXFBmY1q9yfFuP7EsjNtAKocUkbWymvtlCbrniefLpAx7Jnheq_ThptfkMMv4oNH59umQV2QQyk9vvCAlBcwrCxeo_Jmnm-LwtOMURemmi47Jxl0rdHe4x4swyz_frHUVZREkyM9k0mYhI-m7crykR5O95D2YzVNRyffGJ5cESLxQcZXh98Hyqq1-yXzB9GWFUZpmiTR-njzbhNG9SQ7UNtObf8H-gs" rel="nofollow noreferrer">Attempt This Online!</a></strong></p>
-<hr />
-<p>With a lot of tweaks to do fewer operations, it does get further but still not to completion of (11, 9) on ATO, so it may also be worth benchmarking too:</p>
-<pre><code>from collections import deque
-
-def countFixedDistance(s: str, k: int) -&gt; int:
-    n = int('1' + s, 2)
-    distances: dict[int, int] = {n: 0}
-    queue = deque(((n, len(s)),))
-    valid: set[int] = set()
-    while len(queue) &gt; 0:
-        current, bit_count = queue.popleft()
-        next_dist = distances[current] + 1
-        for e in range(bit_count):
-            left = current &gt;&gt; e
-            left_1 = left &lt;&lt; 1
-            pow = 1 &lt;&lt; e
-            right = current % pow
-            bp1 = bit_count + 1
-            for next, next_bit_count in (
-                ((left &gt;&gt; 1 &lt;&lt; e) | right, bit_count - 1),
-                (current ^ pow, bit_count),
-                ((left_1 &lt;&lt; e) | right, bp1),
-                (((left_1 | 1) &lt;&lt; e) | right, bp1),
-            ):
-                if next in distances: continue
-                distances[next] = next_dist
-                if next_dist &lt; k:
-                    queue.append((next, next_bit_count))
-                else:
-                    valid.add(next)
-        for next in (
-            pow &lt;&lt; 2 | current,
-            3 &lt;&lt; bit_count ^ current,
-        ):
-            if next in distances: continue
-            distances[next] = next_dist
-            if next_dist &lt; k:
-                queue.append((next, bit_count + 1))
-            else:
-                valid.add(next)
-    return len(valid)
-</code></pre>
-<p><strong><a href="https://ato.pxeger.com/run?1=nVRBbtswEDz05lfsJRAJy4ZU9BAItk9FX9Cb4Qa2tIoJK5RCUm6Kti_pJZfmI31F-5rukpIsGy4KhBdJ3J3ZWXJWP16aL25f6-fnn60rZ7d_3vwqTf0AeV1VmDtVawvqoamNgwIfW5xMCiwp2mr3QT1h8V5Zt9U5CpuBdSaGQwZKOwmzFT-zCdDSsOQPEaURTMHG8Fb6_aIDE7ZQuVtTTsyJG8r_qjNIvvs0KtsibXkBQggdQ4VaWCljGYiO20oVJAA9B8PpVYTY572q0AM8j4QVJEEWr7w1BrnsTrk73xaBfeK8qZsKy57G94FP7o5Fs5he-7qj2FBr6XnqmPP0PhullbUJqfeoqXMQQ4SXEB03rFaAzA-LBVAL01433IDoN5kLmcRs9T2KoSAd0zlrj_30CuyFJEKn8A128n_Cdr67JIb038W4wXFBmY1q9yfFuP7EsjNtAKocUkbWymvtlCbrniefLpAx7Jnheq_ThptfkMMv4oNH59umQV2QQyk9vvCAlBcwrCxeo_Jmnm-LwtOMURemmi47Jxl0rdHe4x4swyz_frHUVZREkyM9k0mYhI-m7crykR5O95D2YzVNRyffGJ5cESLxQcZXh98Hyqq1-yXzB9GWFUZpmiTR-njzbhNG9SQ7UNtObf8H-gs" rel="nofollow noreferrer">Attempt This Online!</a></strong></p>
 </div>
 <div id="pu2" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, (10,8)??</h1>
 <p>Direct adaptation of my answer on <a href="https://codegolf.stackexchange.com/a/264954/52194">Pick a random string at a fixed edit distance</a>. ATO was able to compute to (10,8) before its 60-second timeout kicked in, but I'm not sure if I'm using a good string for the test battery. (I just kept alternating between 1 and 0 for the last character.)</p>
