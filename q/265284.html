@@ -52,7 +52,7 @@ use hashbrown::hash_map::HashMap;
 use std::{env, hash::BuildHasher};
 use typed_arena::Arena;
 
-type Count = u64; // For n &gt; 32, change this to u128
+type Count = u64; // For n + k &gt; 64, change this to u128
 
 fn count_state&lt;'a&gt;(
     target: &amp;[bool],
@@ -60,42 +60,34 @@ fn count_state&lt;'a&gt;(
     arena: &amp;'a Arena&lt;u8&gt;,
     cache: &amp;mut HashMap&lt;&amp;'a [u8], Count, FxBuildHasher&gt;,
     state: &amp;mut [u8],
-    hash: u64,
 ) -&gt; Count {
-    let new_state = state;
-    let state = arena.alloc_extend(new_state.iter().copied());
-    let mut count = 0;
-    if state[target.len()] == distance {
-        count += 1;
-    }
-    for symbol in [false, true] {
-        let mut z = state[0].min(distance) + 1;
-        new_state[0] = z;
-        for (((o, &amp;c), &amp;x), &amp;y) in new_state[1..]
-            .iter_mut()
-            .zip(target)
-            .zip(&amp;state[..state.len() - 1])
-            .zip(&amp;state[1..])
-        {
-            z = (x + u8::from(symbol != c)).min(y.min(z).min(distance) + 1);
-            *o = z;
+    let hash = cache.hasher().hash_one(&amp;state);
+    if let Some((_, &amp;count)) = cache.raw_entry().from_key_hashed_nocheck(hash, state) {
+        count
+    } else {
+        let new_state = state;
+        let state = arena.alloc_extend(new_state.iter().copied());
+        let mut count = Count::from(state[target.len()] == distance);
+        for symbol in [false, true] {
+            let mut z = state[0].min(distance) + 1;
+            new_state[0] = z;
+            for (((o, &amp;c), &amp;x), &amp;y) in new_state[1..]
+                .iter_mut()
+                .zip(target)
+                .zip(&amp;state[..state.len() - 1])
+                .zip(&amp;state[1..])
+            {
+                z = (x + u8::from(symbol != c)).min(y.min(z).min(distance) + 1);
+                *o = z;
+            }
+            count += count_state(target, distance, arena, cache, new_state);
         }
-
-        let new_hash = cache.hasher().hash_one(&amp;new_state);
-        if let Some((_, new_count)) = cache
-            .raw_entry()
-            .from_key_hashed_nocheck(new_hash, new_state)
-        {
-            count += new_count;
-        } else {
-            count += count_state(target, distance, arena, cache, new_state, new_hash);
-        }
+        cache
+            .raw_entry_mut()
+            .from_hash(hash, |_| false)
+            .insert(state, count);
+        count
     }
-    cache
-        .raw_entry_mut()
-        .from_hash(hash, |_| false)
-        .insert(state, count);
-    count
 }
 
 fn count(target: &amp;[bool], distance: u8) -&gt; Count {
@@ -106,8 +98,7 @@ fn count(target: &amp;[bool], distance: u8) -&gt; Count {
         &amp;arena.alloc_extend((0..=target.len()).map(|_| distance + 1))[..],
         0,
     );
-    let hash = cache.hasher().hash_one(&amp;state);
-    count_state(target, distance, &amp;arena, &amp;mut cache, state, hash)
+    count_state(target, distance, &amp;arena, &amp;mut cache, state)
 }
 
 fn main() {
