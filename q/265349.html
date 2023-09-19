@@ -40,12 +40,27 @@
 <p><strong>Ungolfed</strong></p>
 <pre><code>longest_perm_with_all_adjacent_squares=
 function(n){
+
+    # first define the recursive helper function f:
     f=function(a,b={}){
+        # a is a vector of values that haven't been used yet, to choose the next value from;
+        # b is the (initially empty) growing result containing only adjacent values that sum to squares 
+
         if(length(b)==0)i=seq(along=a) else i=which(sqrt(a+b[1])%%1==0)
-        if(length(i)==0)return(list(b)) else return(unlist(lapply(i,function(i)f(a[-i],c(a[i],b))),recursive=F))
+        # i is the vector of indices of a that we can use at each step
+
+        if(length(i)==0)return(list(b)) 
+        # if we can't use any more values from a, then just return the result-so-far
+
+        else return(unlist(lapply(i,function(i)f(a[-i],c(a[i],b))),recursive=F))
+        # otherwise, prepent each valid value from a to b, and perform a recursive call
     }
-    a=f(1:n)
-    a[lengths(a)==max(lengths(a))]
+
+    # launch the helper function with the sequence 1..n in a, and leaving b empty by default:
+    ans=f(1:n)
+
+    # finally, select only the results with maximum length:
+    ans[lengths(ans)==max(lengths(ans))]
 }
 </code></pre>
 </div>
