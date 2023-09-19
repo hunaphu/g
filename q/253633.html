@@ -26,14 +26,192 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>442</td><td>Python</td><td>230914T172220Z</td><td><a href="https://codegolf.stackexchange.com/questions/253633/the-smallest-area-of-a-convex-grid-polygon/265224#265224">G&#252;n</a></td></tr>
-<tr d-ix="1"><td>323</td><td>Fortran n=17</td><td>221029T125913Z</td><td><a href="https://codegolf.stackexchange.com/questions/253633/the-smallest-area-of-a-convex-grid-polygon/253908#253908">Hugo Pfo</a></td></tr>
-<tr d-ix="2"><td>010</td><td>Python with restricted conditions n=26</td><td>221024T215157Z</td><td><a href="https://codegolf.stackexchange.com/questions/253633/the-smallest-area-of-a-convex-grid-polygon/253721#253721">arrmansa</a></td></tr>
-<tr d-ix="3"><td>nan</td><td>Rust + itertools + fasthash</td><td>221027T091656Z</td><td><a href="https://codegolf.stackexchange.com/questions/253633/the-smallest-area-of-a-convex-grid-polygon/253808#253808">corvus_1</a></td></tr>
-<tr d-ix="4"><td>162</td><td>C++ gcc</td><td>221026T165707Z</td><td><a href="https://codegolf.stackexchange.com/questions/253633/the-smallest-area-of-a-convex-grid-polygon/253788#253788">jdt</a></td></tr>
-<tr d-ix="5"><td>019</td><td>JavaScript Node.js</td><td>221023T151044Z</td><td><a href="https://codegolf.stackexchange.com/questions/253633/the-smallest-area-of-a-convex-grid-polygon/253655#253655">Arnauld</a></td></tr>
+<tr d-ix="0"><td>447</td><td>Rust</td><td>230918T235824Z</td><td><a href="https://codegolf.stackexchange.com/questions/253633/the-smallest-area-of-a-convex-grid-polygon/265355#265355">colt_bro</a></td></tr>
+<tr d-ix="1"><td>442</td><td>Python</td><td>230914T172220Z</td><td><a href="https://codegolf.stackexchange.com/questions/253633/the-smallest-area-of-a-convex-grid-polygon/265224#265224">G&#252;n</a></td></tr>
+<tr d-ix="2"><td>323</td><td>Fortran n=17</td><td>221029T125913Z</td><td><a href="https://codegolf.stackexchange.com/questions/253633/the-smallest-area-of-a-convex-grid-polygon/253908#253908">Hugo Pfo</a></td></tr>
+<tr d-ix="3"><td>010</td><td>Python with restricted conditions n=26</td><td>221024T215157Z</td><td><a href="https://codegolf.stackexchange.com/questions/253633/the-smallest-area-of-a-convex-grid-polygon/253721#253721">arrmansa</a></td></tr>
+<tr d-ix="4"><td>nan</td><td>Rust + itertools + fasthash</td><td>221027T091656Z</td><td><a href="https://codegolf.stackexchange.com/questions/253633/the-smallest-area-of-a-convex-grid-polygon/253808#253808">corvus_1</a></td></tr>
+<tr d-ix="5"><td>162</td><td>C++ gcc</td><td>221026T165707Z</td><td><a href="https://codegolf.stackexchange.com/questions/253633/the-smallest-area-of-a-convex-grid-polygon/253788#253788">jdt</a></td></tr>
+<tr d-ix="6"><td>019</td><td>JavaScript Node.js</td><td>221023T151044Z</td><td><a href="https://codegolf.stackexchange.com/questions/253633/the-smallest-area-of-a-convex-grid-polygon/253655#253655">Arnauld</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Python, <em>n</em>=44 in under 2 minutes</h1>
+<div id="pu0" class="pu"><h1>Rust, <em>n</em>=44 in ~7 seconds</h1>
+<p>This is merely an abridged port of <a href="https://codegolf.stackexchange.com/a/265224">Günter Rote's solution</a>, no original contribution.</p>
+<pre><code>
+const LWF_EVEN: f64 = 1.0;
+const LWF_ODD: f64  = 2.0/3.0 + 0.00001;
+
+fn lower_bound(k: usize, w: usize) -> usize {
+    let lattice_width_factor = if k%2 == 1 {
+        LWF_ODD
+    } else {
+        LWF_EVEN
+    };
+    let mut lb = ( (w*w) as f64 * lattice_width_factor ) as usize;
+    if k%2 != lb%2 {
+        lb += 1;
+    };
+    lb
+}
+
+fn gcd(mut x: isize, mut y: isize) -> isize {
+    while y != 0 {
+        let t = y;
+        y = x % y;
+        x = t;
+    }
+    x
+}
+
+fn check_record(k: usize, vol: usize, py: usize, n_target: usize,
+    record_vol: &mut [usize], min_height: &mut [usize], max_height: &mut [usize], improved: &mut [bool], diagonal: bool) {
+    if k > n_target {
+        return
+    }
+    if vol &lt; record_vol[k] {
+        record_vol[k] = vol;
+        min_height[k] = py;
+        improved[k] = true;
+    }
+    if vol==record_vol[k] && !diagonal {
+        max_height[k] = py;
+    }
+}
+
+use std::collections::HashMap;
+
+fn main() {
+    #[allow(non_snake_case)]
+    let mut N_target = 44;
+    if let Some(s) = std::env::args().skip(1).next() {
+        if let Ok(x) = s.parse() {
+            N_target = x;
+        }
+    };
+    let mut min_gon = HashMap::new();
+    let mut record_vol = Vec::new();
+    for n in 0..=N_target {
+        record_vol.push(n*n*n);
+    };
+    let mut min_height = vec![0; N_target+1];
+    let mut max_height = vec![0; N_target+1];
+    let mut confirmed = vec![false; N_target+1];
+    confirmed[0] = true; confirmed[1] = true;
+    for py in 1usize.. {
+        for px in 0usize..py {
+            min_gon.insert((px, py), HashMap::from([(2, vec![((px as isize, py as isize), 0)])]));
+        };
+
+        let mut _work = 0;
+        let mut _num_work = 0;
+        let mut _sum_alpha = 0;
+        let mut _num_alpha = 0;
+        let mut _visited_p = 0;
+        let mut _visited_q = 0;
+        for k in 2usize..N_target {
+            let mut collect = Vec::new();
+            for _px in 0..py {
+                collect.push(Vec::new());
+            };
+            for qy in 1..py {
+                let delta_y = (py-qy) as isize;
+                for qx0 in 0..qy {
+                    let sides = match min_gon[&(qx0,qy)].get(&k) {
+                        Some(x) => x,
+                        None => continue
+                    };
+                    'a: for alpha in 0.. {
+                        let qx = qx0+alpha*qy;
+                        _visited_q += 1;
+                        let mut px = 0usize;
+                        let mut exhausted = true;
+                        for ((fx0,fy),vol) in sides {
+                            let fx = fx0+alpha as isize*fy;
+                            while (px as isize - qx as isize) * fy &lt; fx * delta_y {
+                                let delta_x = px as isize - qx as isize;
+                                if gcd(delta_x.abs(), delta_y) == 1 {
+                                    collect[px].push(
+                                        (vol + qx*py-qy*px, delta_x, delta_y));
+                                };
+                                if px>=py-1 {
+                                    break 'a
+                                }
+                                px += 1;
+                            }
+                            exhausted = false;
+                        }
+                        if exhausted {
+                            _sum_alpha += alpha;
+                            _num_alpha += 1;
+                            break
+                        }
+                    }
+                }
+            }
+            for (px, mut triples) in collect.into_iter().enumerate() {
+                if triples.is_empty() {
+                    continue
+                };
+                _visited_p += 1;
+                _work += triples.len();
+                _num_work += 1;
+                let mut result = Vec::new();
+                let mut first_time = true;
+                let (mut prev_fx, mut prev_fy) = (0, 0);
+                let mut prev_vol = 0;
+                triples.sort();
+                for (vol,fx,fy) in triples.into_iter() {
+                    if first_time || fx*prev_fy > prev_fx*fy {
+                        if first_time || vol != prev_vol {
+                            result.push(((fx,fy),vol));
+                            first_time = false;
+                        } else {
+                            let i = result.len()-1;
+                            result[i] = ((fx,fy),vol);
+                        };
+                        prev_fx = fx; prev_fy = fy; prev_vol = vol;
+                    }
+                };
+                min_gon.get_mut(&(px,py)).expect("min_gon[px,py] has to be initialized").insert(k+1, result);
+            }
+        }
+        let mut improved = vec![false; N_target+1];
+        for px in 0..py {
+            let ppx0 = (py - px) % py;
+            let ppx1 = (py + 1 - px) % py;
+            for (k1,best1) in min_gon[&(px,py)].iter() {
+                let vol1 = best1[0].1;
+                for (k2,best2) in min_gon[&(ppx0,py)].iter() {
+                    let vol2 = best2[0].1;
+                    check_record(k1+k2-2, vol1+vol2, py, N_target, &mut record_vol, &mut min_height, &mut max_height, &mut improved, true);
+                    check_record(k1+k2, vol1+vol2+2*py, py, N_target, &mut record_vol, &mut min_height, &mut max_height, &mut improved, false);
+                }
+                for (k2,best2) in min_gon[&(ppx1,py)].iter() {
+                    let vol2 = best2[0].1;
+                    check_record(k1+k2-1, vol1+vol2+py, py, N_target, &mut record_vol, &mut min_height, &mut max_height, &mut improved, false);
+                }
+            }
+        }
+        let mut target_height = 0;
+         for k in 2..=N_target {
+            if !confirmed[k] {
+                if lower_bound(k,py+1) >= record_vol[k] {
+                    confirmed[k] = true;
+                } else {
+                    let mut t_k = py+2;
+                    while lower_bound(k,t_k) &lt; record_vol[k] { t_k += 1 };
+                    target_height = std::cmp::max(target_height, t_k-1);
+                }
+            }
+        }
+        if confirmed.iter().all(|x| *x) {
+            break
+        }
+    };
+    println!("{:?}", &record_vol[3..]);
+}
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>Python, <em>n</em>=44 in under 2 minutes</h1>
 <p>This can go up to 44-gons in under 2 minutes, using pypy on my laptop.
 CPython is slightly slower (2'45'').</p>
 <p>The approach is rigorous. It uses the
@@ -582,7 +760,7 @@ print(&quot;2n-gons:&quot;, &quot;,&quot;.join(str(record_vol[k]//2)
                            for k in range(4,N_target+1,2)))
 </code></pre>
 </div>
-<div id="pu1" class="pu"><h1>Fortran n=17, 323 s</h1>
+<div id="pu2" class="pu"><h1>Fortran n=17, 323 s</h1>
 <pre><code>C Find strictly convex polygons of minimum area on square grid
 C Author: Hugo Pfoertner, 2018
       implicit integer (A-Z)
@@ -1051,7 +1229,7 @@ My program finds the shown and -intentionally undisclosed- slimmer solutions (sq
 <h1>Fortran revised, n=17, 8.8 s</h1>
 <p>See <a href="https://github.com/HugoPfoertner/Lattice-Polygons" rel="nofollow noreferrer">Lattice-Polygons</a> on GitHub. Another faster version exists (approx. 70% of run time), with explicit expansion of the inner loops, similar to code shown above, but the GitHub version is cleaner.</p>
 </div>
-<div id="pu2" class="pu"><h1>Python (with restricted conditions) n=26, 10 seconds</h1>
+<div id="pu3" class="pu"><h1>Python (with restricted conditions) n=26, 10 seconds</h1>
 <p>Uses backtracking. <br />
 Numba for speed. <br />
 notebook <a href="https://github.com/arrmansa/smallest-area-of-a-convex-grid-polygon/blob/main/Attempt%2019%20-%20one%20half%20is%20bigger.ipynb" rel="nofollow noreferrer">link</a></p>
@@ -1116,7 +1294,7 @@ notebook <a href="https://github.com/arrmansa/smallest-area-of-a-convex-grid-pol
 </code></pre>
 <p>notebook <a href="https://github.com/arrmansa/smallest-area-of-a-convex-grid-polygon/blob/main/Attempt%206.ipynb" rel="nofollow noreferrer">link</a></p>
 </div>
-<div id="pu3" class="pu"><h1>Rust + itertools + fasthash, n = 26 in ~423s</h1>
+<div id="pu4" class="pu"><h1>Rust + itertools + fasthash, n = 26 in ~423s</h1>
 <p>This is a rust port of <a href="https://codegolf.stackexchange.com/a/253655">Arnauld's answer</a>, with a few iterations of performance improvement.</p>
 <p>I use <code>Vec&lt;Option&lt;_&gt;&gt;</code> for sparse arrays and reference counting for the cache. I also use <code>128 * w + h</code> as a hash for coordinate pairs, and use SeaHash from the <a href="https://crates.io/crates/fasthash" rel="nofollow noreferrer">fasthash crate</a></p>
 <p>Obviously needs to be build with <code>--release</code>.</p>
@@ -1411,7 +1589,7 @@ fn main() {
 }
 </code></pre>
 </div>
-<div id="pu4" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C++ (gcc)</a>, n=16 ~2 seconds</h1>
+<div id="pu5" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C++ (gcc)</a>, n=16 ~2 seconds</h1>
 <p>C++ port of @arrmansa's optimized version.</p>
 
 <pre class="lang-cpp prettyprint-override"><code>#include &lt;array&gt;
@@ -1655,7 +1833,7 @@ int main() {
 </code></pre>
 <p><a href="https://tio.run/##7Vnbbts4EH3XV8xmgcCKrcR2iqJryQL6A11gs29tYTAS48qRKUOi0GiD/Hq9Q1I3Wpc4TgKkgfVgc6iZM8OZQ4oSvc3GWnredvtnwLww9Sk4JI5J5hpVh/cjjlhU7wmihMeUrF3DwEbqcdhEAeNwbwBeonVnl83MNh5sw@B0vQkJp07C/dksCf6jCw5fXOM6ikLwEI3TxSYKs2XEFquAD6SajMWR4CNUPlV@kpEEZuqPk3hJ@SKXlnHgC3AleWkcLwiCS/EU1gHLxXb4JAqZaeTDuIEBA3cOl6aUVW85wAnM82i@MrDg8vv5Hf7VeqbYM4KsqZc19DJbx57qNpMu7KZePzaOCOM@E4aW8HImwnPmMDbh4gI@s2VIwYXJp3FpIq6Y8jRmcEPChLaAIc5Q4EhYV2DVwObw175gedhysHOMCQjzG1kQN8w2QKQh4mlpJL4vi92SzLPdJOlpk4nc1bnTwy3RnT1DKrkIw3kZm45ZqWDiCq7uNVzJVUxOMRkqo3vNvADFnJTObE1DTIEyY3a376LzQU@6cBCgvZxfa3I3GI9aqHxp6oxHxZpVwAbVNN41HsIH0276XNV9WoU5XMB01DJF2vyv2vwLAHQ5aYLsxiGmg@J/R@qFRraj0dTSsLKp2bjZVBfXTRTDQIxEjELmw8amowaGzeHQ7LDUrEUNVC1wlDaKbl5QJVpWH4q4iizJuQqBvadyhsqrfmWRlD9anhPFE4GpMlVPg4pCtadA7QEglnqz16W4rlH5tjuyB6MvXi0btcz2u@1x2XTX7KG4sh7EGjkHZKFXed0LEeveav8ijOrEeE2mHan2XKrpUoN0PauadcCydiCN9iBo94J5JObLEjOTxBSpfnPrX5CTIBDUUiQQzS4S/H606lO2j5x7mYWwamkcfM420Dp0H/hKjH76HuG4YD6TvEXK3@ai@XrP5CPV3h/VDto0WgfvGl/5tWb/5fXIzGe@zohUv8235v33eEdavX9a9e4M1W/JtPv3/uH00Y@mT@G9zvOnzsHmLHl0Zjz6DvXS3Lf3II8e9dg2mpHmndrHeiSmqhZWqPiEmyYBWwIja5psiEdVCdVZn0IgKY@AT2R1KfGzhRdG3u1sxqKfg6KKXsQSrk7jUG/yUVk2D9eYm0eJWvcwhofcvjiyuxKUQYBJdW6I2fmsTipKhbOymZu3OoppkoYcNYxHqoQVyktzJUszHhVORzmIWffjRSkHx4GTf@S9GZyoYCUXJeYpbGBWmJb1040HJ@Jvg/UT0ghyMZOiWWDqNt9kUDOlW@RF3TjJI1TFmnYVq1IJ1nSBBRfl8tOY8ACT4pGEO4Xk@FF6HVLXHXBxTMgnZltI/yLOTMZTIp7jTcaRX@I@JBS54SfnMkTk33b7y7sJyTLZWn9f/g8" rel="nofollow noreferrer" title="C++ (gcc) – Try It Online">Try it online!</a></p>
 </div>
-<div id="pu5" class="pu"><h1><a href="https://nodejs.org" rel="noreferrer">JavaScript (Node.js)</a>, <span class="math-container">\$n=19\$</span></h1>
+<div id="pu6" class="pu"><h1><a href="https://nodejs.org" rel="noreferrer">JavaScript (Node.js)</a>, <span class="math-container">\$n=19\$</span></h1>
 <p>This is a very early attempt. Given 10 minutes, it is only able to compute up to <span class="math-container">\$n=19\$</span> on my laptop and finds the same values as the ones listed in A070911.</p>
 <p>It assumes <span class="math-container">\$n\ge7\$</span> in order to avoid some edge cases. Although the code could be updated to support <span class="math-container">\$n&lt;7\$</span>, I'm not sure it's worth the effort.</p>
 <p>A few assumptions are made about the shape of the <span class="math-container">\$n\$</span>-gon and the size of its enclosing rectangle. The later one should probably be relaxed to make sure that no shorter solution is missed.</p>
