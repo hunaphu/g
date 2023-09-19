@@ -26,13 +26,102 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>006</td><td>Python</td><td>230916T225842Z</td><td><a href="https://codegolf.stackexchange.com/questions/265284/count-the-size-of-the-levenshtein-neighborhood/265287#265287">Value In</a></td></tr>
-<tr d-ix="1"><td>011</td><td>Rust</td><td>230918T162624Z</td><td><a href="https://codegolf.stackexchange.com/questions/265284/count-the-size-of-the-levenshtein-neighborhood/265339#265339">corvus_1</a></td></tr>
-<tr d-ix="2"><td>027</td><td>Rust</td><td>230918T174934Z</td><td><a href="https://codegolf.stackexchange.com/questions/265284/count-the-size-of-the-levenshtein-neighborhood/265342#265342">Anders K</a></td></tr>
+<tr d-ix="0"><td>023</td><td>Rust</td><td>230918T174934Z</td><td><a href="https://codegolf.stackexchange.com/questions/265284/count-the-size-of-the-levenshtein-neighborhood/265342#265342">Anders K</a></td></tr>
+<tr d-ix="1"><td>006</td><td>Python</td><td>230916T225842Z</td><td><a href="https://codegolf.stackexchange.com/questions/265284/count-the-size-of-the-levenshtein-neighborhood/265287#265287">Value In</a></td></tr>
+<tr d-ix="2"><td>011</td><td>Rust</td><td>230918T162624Z</td><td><a href="https://codegolf.stackexchange.com/questions/265284/count-the-size-of-the-levenshtein-neighborhood/265339#265339">corvus_1</a></td></tr>
 <tr d-ix="3"><td>010</td><td>Python</td><td>230917T081332Z</td><td><a href="https://codegolf.stackexchange.com/questions/265284/count-the-size-of-the-levenshtein-neighborhood/265292#265292">Jonathan</a></td></tr>
 <tr d-ix="4"><td>081</td><td>Charcoal</td><td>230916T163835Z</td><td><a href="https://codegolf.stackexchange.com/questions/265284/count-the-size-of-the-levenshtein-neighborhood/265285#265285">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, ~(11,6)</h1>
+<div id="pu0" class="pu"><h1>Rust, score ≈ (28, 23)</h1>
+<p>The number of strings at distance <span class="math-container">\$k\$</span> from <span class="math-container">\$s\$</span> with some given prefix <span class="math-container">\$p\$</span> is a function of <span class="math-container">\$s\$</span>, <span class="math-container">\$k\$</span>, and the last column of the <a href="https://en.wikipedia.org/wiki/Wagner%E2%80%93Fischer_algorithm" rel="nofollow noreferrer">Wagner–Fischer table</a> of <span class="math-container">\$s\$</span> and <span class="math-container">\$p\$</span>. We use a recursive search on prefixes <span class="math-container">\$p\$</span>, caching results based on this last column.</p>
+<p>Build with <code>cargo build --release</code>, run with <code>target/release/levenshtein-neighborhood &lt;s&gt; &lt;k&gt;</code>.</p>
+<p><strong><code>Cargo.toml</code></strong></p>
+<pre><code>[package]
+name = &quot;levenshtein-neighborhood&quot;
+version = &quot;0.1.0&quot;
+edition = &quot;2021&quot;
+
+[dependencies]
+fxhash = &quot;0.2.1&quot;
+hashbrown = &quot;0.14.0&quot;
+typed-arena = &quot;2.0.2&quot;
+</code></pre>
+<p><strong><code>src/main.rs</code></strong></p>
+<pre class="lang-rust prettyprint-override"><code>use fxhash::FxBuildHasher;
+use hashbrown::hash_map::HashMap;
+use std::{env, hash::BuildHasher};
+use typed_arena::Arena;
+
+type Count = u64; // For n &gt; 32, change this to u128
+
+fn count_state&lt;'a&gt;(
+    target: &amp;[bool],
+    distance: u8,
+    arena: &amp;'a Arena&lt;u8&gt;,
+    cache: &amp;mut HashMap&lt;&amp;'a [u8], Count, FxBuildHasher&gt;,
+    state: &amp;mut [u8],
+    hash: u64,
+) -&gt; Count {
+    let new_state = state;
+    let state = arena.alloc_extend(new_state.iter().copied());
+    let mut count = 0;
+    if state[target.len()] == distance {
+        count += 1;
+    }
+    for symbol in [false, true] {
+        let mut z = state[0].min(distance) + 1;
+        new_state[0] = z;
+        for (((o, &amp;c), &amp;x), &amp;y) in new_state[1..]
+            .iter_mut()
+            .zip(target)
+            .zip(&amp;state[..state.len() - 1])
+            .zip(&amp;state[1..])
+        {
+            z = (x + u8::from(symbol != c)).min(y.min(z).min(distance) + 1);
+            *o = z;
+        }
+
+        let new_hash = cache.hasher().hash_one(&amp;new_state);
+        if let Some((_, new_count)) = cache
+            .raw_entry()
+            .from_key_hashed_nocheck(new_hash, new_state)
+        {
+            count += new_count;
+        } else {
+            count += count_state(target, distance, arena, cache, new_state, new_hash);
+        }
+    }
+    cache
+        .raw_entry_mut()
+        .from_hash(hash, |_| false)
+        .insert(state, count);
+    count
+}
+
+fn count(target: &amp;[bool], distance: u8) -&gt; Count {
+    let arena = Arena::new();
+    let state = arena.alloc_extend((0..=target.len()).map(|i| (i as u8).min(distance + 1)));
+    let mut cache: HashMap&lt;&amp;[u8], Count, FxBuildHasher&gt; = HashMap::default();
+    cache.insert(
+        &amp;arena.alloc_extend((0..=target.len()).map(|_| distance + 1))[..],
+        0,
+    );
+    let hash = cache.hasher().hash_one(&amp;state);
+    count_state(target, distance, &amp;arena, &amp;mut cache, state, hash)
+}
+
+fn main() {
+    if let [_program, target, distance] = &amp;Vec::from_iter(env::args())[..] {
+        let target = Vec::from_iter(target.chars().map(|c| c == '1'));
+        let distance = distance.parse().unwrap();
+        println!(&quot;{}&quot;, count(&amp;target, distance));
+    } else {
+        panic!(&quot;usage: levenshtein-neighborhood &lt;s&gt; &lt;k&gt;&quot;);
+    }
+}
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, ~(11,6)</h1>
 <p>Direct adaptation of my answer on <a href="https://codegolf.stackexchange.com/a/264954/52194">Pick a random string at a fixed edit distance</a> with a minor optimization of generating the sets inline instead of each one being a function call. ATO seems to flip-flop between (11,6) and (11,7) for me right now.</p>
 <pre class="lang-python prettyprint-override"><code>from collections import deque
 
@@ -61,7 +150,7 @@ def countFixedDistance(s: str, k: int) -&gt; int:
 </code></pre>
 <p><a href="https://ato.pxeger.com/run?1=jVNLbtswEF10R6B3mKwkwrIhZVUIcVZBTtCdqoVAUTFhhVT4SR0kPkk32bS7Hqg9TWco2g6atAgBQeDMmzeP8_n2Y3rwG6Ofn78HPyw__f7wcbDmFoQZRym8MtqBup2M9dDLuyAZ6-WA3qD9tdrJ_ko532khc1eD87aAbQ1Kew7LS_rXDEANsIWLNZQ1WOmD1eAYmsWmsxQkfYOBLRzPmmx5VlYZR1ifEiC0VyJiCyRuEfaItnKPGNQVJLxx1rPoPHcFJ7L7blT9v3Ny0vV1o0YJo9R5pOVwicoZgUSwVmqP4OhZTWYa5UBh5NVy50ksJT1oblJICwuoImowFvTOY23gMTmbWpFf0Jcsqm4jUhAuFipeFV1tp29kTvocX1R8D1_YX69--i_1ononOafOCTjD2jSqfVeeVzlek-7rRIPkqRAvWiyM9krjmM2YUyERSi0_FPkFx6HsFzh6R4Vzg7ppkrrPMZYnjxydPKHiOKy6PkHQngaUtEYnn7fi10-HybMyY3E53MNxKZzvTfBsHprPNhA7PXx7enhVwLFblHuyOL95qkex5cWb64QOEj3zr4YxuA0NmoMFCqmqsswaonHN8rxuCzjnLUvMLok-rPQf" rel="nofollow noreferrer">Attempt This Online!</a></p>
 </div>
-<div id="pu1" class="pu"><h1>Rust, (12, 11)</h1>
+<div id="pu2" class="pu"><h1>Rust, (12, 11)</h1>
 <p>This is basically a line-by-line port of Jonathan Allan's answer, with is already very good. Thanks! I wrote this to practice some Rust.</p>
 <p>It uses the <a href="https://crates.io/crates/nohash-hasher" rel="nofollow noreferrer">nohash-hasher</a> crate for extremely fast HashMap lookups, with take up the vast majority of the time.</p>
 <p><a href="https://www.rustexplorer.com/b#LyoKW2RlcGVuZGVuY2llc10Kbm9oYXNoLWhhc2hlciA9ICIwLjIuMCIKKi8KCiMhW3dhcm4oY2xpcHB5OjphbGwpXQoKdXNlIHN0ZDo6Y29sbGVjdGlvbnM6Omhhc2hfbWFwOjpFbnRyeTsKdXNlIHN0ZDo6Y29sbGVjdGlvbnM6OlZlY0RlcXVlOwp1c2Ugc3RkOjp0aW1lOjpJbnN0YW50OwoKdXNlIG5vaGFzaF9oYXNoZXI6OntJbnRNYXAsIEludFNldH07CgpmbiBjb3VudF9maXhlZF9kaXN0YW5jZShzOiAmc3RyLCBrOiB1MzIpIC0+IHVzaXplIHsKICAgIGxldCBuID0gaTMyOjpmcm9tX3N0cl9yYWRpeCgmZm9ybWF0ISgiMXtzfSIpLCAyKS51bndyYXAoKTsKICAgIGxldCBtdXQgZGlzdGFuY2VzID0KICAgICAgICBJbnRNYXA6OndpdGhfY2FwYWNpdHlfYW5kX2hhc2hlcigxIDw8IChzLmxlbigpICsgayBhcyB1c2l6ZSksIERlZmF1bHQ6OmRlZmF1bHQoKSk7CiAgICBkaXN0YW5jZXMuaW5zZXJ0KG4sIDApOwogICAgbGV0IG11dCBxdWV1ZSA9IFZlY0RlcXVlOjpmcm9tKFsobiwgcy5sZW4oKSldKTsKICAgIC8vIGNhcGFjaXR5IGlzIGp1c3QgZXhwZXJpbWVudGF0aW9uCiAgICBsZXQgbXV0IHZhbGlkID0gSW50U2V0Ojp3aXRoX2NhcGFjaXR5X2FuZF9oYXNoZXIoMSA8PCAoayArIDEpLCBEZWZhdWx0OjpkZWZhdWx0KCkpOwogICAgd2hpbGUgbGV0IFNvbWUoKGN1cnJlbnQsIGJpdF9jb3VudCkpID0gcXVldWUucG9wX2Zyb250KCkgewogICAgICAgIGxldCBuZXh0X2Rpc3QgPSBkaXN0YW5jZXMuZ2V0KCZjdXJyZW50KS51bndyYXAoKSArIDE7CiAgICAgICAgbGV0IG11dCBwb3cgPSAwOwogICAgICAgIGZvciBlIGluIDAuLmJpdF9jb3VudCB7CiAgICAgICAgICAgIGxldCBsZWZ0ID0gY3VycmVudCA+PiBlOwogICAgICAgICAgICBsZXQgbGVmdF8xID0gbGVmdCA8PCAxOwogICAgICAgICAgICBwb3cgPSAxIDw8IGU7CiAgICAgICAgICAgIGxldCByaWdodCA9IGN1cnJlbnQgJSBwb3c7CiAgICAgICAgICAgIGxldCBicDEgPSBiaXRfY291bnQgKyAxOwogICAgICAgICAgICBmb3IgKG5leHQsIG5leHRfYml0X2NvdW50KSBpbiBbCiAgICAgICAgICAgICAgICAoKGxlZnQgPj4gMSA8PCBlKSB8IHJpZ2h0LCBiaXRfY291bnQgLSAxKSwKICAgICAgICAgICAgICAgIChjdXJyZW50IF4gcG93LCBiaXRfY291bnQpLAogICAgICAgICAgICAgICAgKChsZWZ0XzEgPDwgZSkgfCByaWdodCwgYnAxKSwKICAgICAgICAgICAgICAgICgoKGxlZnRfMSB8IDEpIDw8IGUpIHwgcmlnaHQsIGJwMSksCiAgICAgICAgICAgIF0gewogICAgICAgICAgICAgICAgbWF0Y2ggZGlzdGFuY2VzLmVudHJ5KG5leHQpIHsKICAgICAgICAgICAgICAgICAgICBFbnRyeTo6VmFjYW50KHZlKSA9PiB7CiAgICAgICAgICAgICAgICAgICAgICAgIHZlLmluc2VydChuZXh0X2Rpc3QpOwogICAgICAgICAgICAgICAgICAgIH0KICAgICAgICAgICAgICAgICAgICBFbnRyeTo6T2NjdXBpZWQoXykgPT4gY29udGludWUsCiAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgICAgICBpZiBuZXh0X2Rpc3QgPCBrIHsKICAgICAgICAgICAgICAgICAgICBxdWV1ZS5wdXNoX2JhY2soKG5leHQsIG5leHRfYml0X2NvdW50KSk7CiAgICAgICAgICAgICAgICB9IGVsc2UgewogICAgICAgICAgICAgICAgICAgIHZhbGlkLmluc2VydChuZXh0KTsKICAgICAgICAgICAgICAgIH0KICAgICAgICAgICAgfQogICAgICAgIH0KCiAgICAgICAgZm9yIG5leHQgaW4gW3BvdyA8PCAyIHwgY3VycmVudCwgMyA8PCBiaXRfY291bnQgXiBjdXJyZW50XSB7CiAgICAgICAgICAgIG1hdGNoIGRpc3RhbmNlcy5lbnRyeShuZXh0KSB7CiAgICAgICAgICAgICAgICBFbnRyeTo6VmFjYW50KHZlKSA9PiB7CiAgICAgICAgICAgICAgICAgICAgdmUuaW5zZXJ0KG5leHRfZGlzdCk7CiAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgICAgICBFbnRyeTo6T2NjdXBpZWQoXykgPT4gY29udGludWUsCiAgICAgICAgICAgIH0KICAgICAgICAgICAgaWYgbmV4dF9kaXN0IDwgayB7CiAgICAgICAgICAgICAgICBxdWV1ZS5wdXNoX2JhY2soKG5leHQsIGJpdF9jb3VudCArIDEpKTsKICAgICAgICAgICAgfSBlbHNlIHsKICAgICAgICAgICAgICAgIHZhbGlkLmluc2VydChuZXh0KTsKICAgICAgICAgICAgfQogICAgICAgIH0KICAgIH0KICAgIHZhbGlkLmxlbigpCn0KCmZuIG1haW4oKSB7CiAgICBsZXQgc3RhcnQgPSBJbnN0YW50Ojpub3coKTsKICAgIGxldCBtdXQgcyA9IFN0cmluZzo6d2l0aF9jYXBhY2l0eSgzMik7CiAgICBzLnB1c2goJzAnKTsKICAgIGxldCBtdXQgdiA9IDA7CiAgICB3aGlsZSBzLmxlbigpIDw9IDEyIHsKICAgICAgICAvLyBhcHByb3ggMiBtaW51dGVzIGZvciBwcm9maWxpbmcKICAgICAgICBmb3IgayBpbiAxLi4ocy5sZW4oKSArIDEpIHsKICAgICAgICAgICAgcHJpbnRsbiEoInt9IHt9IHt9Iiwgcy5sZW4oKSwgaywgY291bnRfZml4ZWRfZGlzdGFuY2UoJnMsIGsgYXMgdTMyKSk7CiAgICAgICAgfQogICAgICAgIHMucHVzaChbJzEnLCAnMScsICcwJywgJzAnXVt2ICUgNF0pOwogICAgICAgIHYgKz0gMTsKICAgICAgICBwcmludGxuISgie30iLCBzKQogICAgfQogICAgcHJpbnRsbiEoInt9IHNlY29uZHMiLCBzdGFydC5lbGFwc2VkKCkuYXNfc2Vjc19mMzIoKSk7Cn0K" rel="nofollow noreferrer">Try it online on rustexplorer.com</a>. Runs an unoptimized debug build, so don't rely on it for measurements.</p>
@@ -141,79 +230,6 @@ fn main() {
         println!(&quot;{}&quot;, s)
     }
     println!(&quot;{} seconds&quot;, start.elapsed().as_secs_f32());
-}
-</code></pre>
-</div>
-<div id="pu2" class="pu"><h1>Rust, score ≈ (28, 27)</h1>
-<p>The number of strings at distance <span class="math-container">\$k\$</span> from <span class="math-container">\$s\$</span> with some given prefix <span class="math-container">\$p\$</span> is a function of <span class="math-container">\$s\$</span>, <span class="math-container">\$k\$</span>, and the last column of the <a href="https://en.wikipedia.org/wiki/Wagner%E2%80%93Fischer_algorithm" rel="nofollow noreferrer">Wagner–Fischer table</a> of <span class="math-container">\$s\$</span> and <span class="math-container">\$p\$</span>. We use a recursive search on prefixes <span class="math-container">\$p\$</span>, caching results based on this last column.</p>
-<p>Build with <code>cargo build --release</code>, run with <code>target/release/levenshtein-neighborhood &lt;s&gt; &lt;k&gt;</code>.</p>
-<p><strong><code>Cargo.toml</code></strong></p>
-<pre><code>[package]
-name = &quot;levenshtein-neighborhood&quot;
-version = &quot;0.1.0&quot;
-edition = &quot;2021&quot;
-
-[dependencies]
-fxhash = &quot;0.2.1&quot;
-typed-arena = &quot;2.0.2&quot;
-</code></pre>
-<p><strong><code>src/main.rs</code></strong></p>
-<pre class="lang-rust prettyprint-override"><code>use fxhash::FxHashMap;
-use std::env;
-use typed_arena::Arena;
-
-fn count_state&lt;'a&gt;(
-    target: &amp;[bool],
-    distance: u8,
-    arena: &amp;'a Arena&lt;u8&gt;,
-    cache: &amp;mut FxHashMap&lt;&amp;'a [u8], u64&gt;,
-    state: &amp;mut [u8],
-) -&gt; u64 {
-    let new_state = state;
-    let state = arena.alloc_extend(new_state.iter().copied());
-    let mut count = 0;
-    if state[target.len()] == distance {
-        count += 1;
-    }
-    for symbol in [false, true] {
-        let mut z = state[0] + 1;
-        new_state[0] = z;
-        for (((o, &amp;c), &amp;x), &amp;y) in new_state[1..]
-            .iter_mut()
-            .zip(target)
-            .zip(&amp;state[..state.len() - 1])
-            .zip(&amp;state[1..])
-        {
-            z = (x + u8::from(symbol != c)).min(y.min(z).min(distance) + 1);
-            *o = z;
-        }
-
-        if new_state.iter().all(|&amp;x| x &gt; distance) {
-        } else if let Some(&amp;new_count) = cache.get(new_state) {
-            count += new_count;
-        } else {
-            count += count_state(target, distance, arena, cache, new_state);
-        }
-    }
-    cache.insert(state, count);
-    count
-}
-
-fn count(target: &amp;[bool], distance: u8) -&gt; u64 {
-    let arena = Arena::new();
-    let state = arena.alloc_extend(0..=target.len() as u8);
-    let mut cache = FxHashMap::default();
-    count_state(target, distance, &amp;arena, &amp;mut cache, state)
-}
-
-fn main() {
-    if let [_program, target, distance] = &amp;Vec::from_iter(env::args())[..] {
-        let target = Vec::from_iter(target.chars().map(|c| c == '1'));
-        let distance = distance.parse().unwrap();
-        println!(&quot;{}&quot;, count(&amp;target, distance));
-    } else {
-        panic!(&quot;usage: levenshtein-neighborhood &lt;s&gt; &lt;k&gt;&quot;);
-    }
 }
 </code></pre>
 </div>
