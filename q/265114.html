@@ -26,7 +26,7 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>027</td><td>x8632 machine code</td><td>230914T145900Z</td><td><a href="https://codegolf.stackexchange.com/questions/265114/sums-of-sum-of-divisors-in-sublinear-time/265218#265218">Peter Co</a></td></tr>
+<tr d-ix="0"><td>nan</td><td></td><td>230914T145900Z</td><td><a href="https://codegolf.stackexchange.com/questions/265114/sums-of-sum-of-divisors-in-sublinear-time/265218#265218">Peter Co</a></td></tr>
 <tr d-ix="1"><td>058</td><td>Python 2</td><td>230912T001923Z</td><td><a href="https://codegolf.stackexchange.com/questions/265114/sums-of-sum-of-divisors-in-sublinear-time/265137#265137">dingledo</a></td></tr>
 <tr d-ix="2"><td>074</td><td>Python</td><td>230911T154334Z</td><td><a href="https://codegolf.stackexchange.com/questions/265114/sums-of-sum-of-divisors-in-sublinear-time/265125#265125">loopy wa</a></td></tr>
 <tr d-ix="3"><td>082</td><td>C#</td><td>230912T180810Z</td><td><a href="https://codegolf.stackexchange.com/questions/265114/sums-of-sum-of-divisors-in-sublinear-time/265172#265172">Acer</a></td></tr>
@@ -38,7 +38,10 @@
 <tr d-ix="9"><td>075</td><td>Scala 3</td><td>230912T022518Z</td><td><a href="https://codegolf.stackexchange.com/questions/265114/sums-of-sum-of-divisors-in-sublinear-time/265139#265139">138 Aspe</a></td></tr>
 <tr d-ix="10"><td>052</td><td>R</td><td>230912T003507Z</td><td><a href="https://codegolf.stackexchange.com/questions/265114/sums-of-sum-of-divisors-in-sublinear-time/265138#265138">Giuseppe</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>x86-32 machine code, 27 bytes</h1>
+<div id="pu0" class="pu"><h1><s>x86-32 machine code, 27 bytes</s></h1>
+<p>Withdrawn, not competing: this is only a <code>σ(n)</code> implementation, sum of factors of one number, which is very easy to do in sqrt(n) time.  Apparently I forgot about the 1..n part of the challenge after getting started on what was going to be the inner loop, and that would have given O(n * sqrt(n)) complexity anyway.</p>
+<p>It's also broken for <code>n=2</code>, where it returns 6 instead of 3.  For larger numbers, there isn't a divisor on the first iteration where <code>n/i &lt; i</code> is false.  But for <code>2/2</code> there is, so it's a problem that we increment, then check for a divisor, then check the loop-exit condition.</p>
+<hr />
 <p>Factors come in pairs, <code>n / i</code> and <code>i</code>.  We loop only for the low <code>i &lt; sqrt(n)</code> part of the range, but avoid actually computing a square root: the loop ends when <code>n/i &lt;= i</code>, which is the same as <code>n &lt;= i*i</code> = <code>sqrt(n) &lt;= i</code>.  For perfect squares, we need to avoid double-counting when <code>n/i == i</code>.</p>
 <p>Runs about <code>floor(sqrt(n))</code> iterations, approximately fixed time per iteration on normal CPUs (<code>idiv r32</code> throughput is constant on most recent CPUs; <a href="https://uops.info/" rel="nofollow noreferrer">https://uops.info/</a>. Branch mispredictions will be variable cost and probably balance out, probably being less frequent for huge numbers with fewer factors). So it should be <code>Ө(sqrt(n))</code> complexity class, unless you want to be more precise about factoring in the number of factors and whether there's much of a pattern that IT-TAGE predictors can learn.</p>
 <p>NASM listing (with address and line number trimmed): machine code | source</p>
@@ -54,11 +57,10 @@
                
  85D2              test   edx, edx       ; check the remainder
  7508              jnz   .notdivisible
- 01CE               add    esi, ecx       ; divisor and maybe quotient ...
+ 01CE               add    esi, ecx       ; divisor and quotient might or might not be unique factors
  39C8               cmp   eax, ecx           ; it seems redundant to do this compare twice, but it's already inside the if(edx==0) branch so we can't rely on its FLAGS for the loop branch
  7402               je  .square
- 01CE                add   esi, ecx        ; ... are both unique factors
-                    .square:
+ 01CE                add   esi, eax        ; quotient                    .square:
                 .notdivisible:
                
  39C8              cmp    eax, ecx
