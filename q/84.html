@@ -26,8 +26,8 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>347</td><td>C gcc Linux x86_64</td><td>190103T094035Z</td><td><a href="https://codegolf.stackexchange.com/questions/84/interpret-brainfuck/178298#178298">ceilingc</a></td></tr>
-<tr d-ix="1"><td>416</td><td>C gcc Linux AArch64</td><td>230918T081006Z</td><td><a href="https://codegolf.stackexchange.com/questions/84/interpret-brainfuck/265316#265316">ceilingc</a></td></tr>
+<tr d-ix="0"><td>414</td><td>C gcc Linux AArch64</td><td>230918T081006Z</td><td><a href="https://codegolf.stackexchange.com/questions/84/interpret-brainfuck/265316#265316">ceilingc</a></td></tr>
+<tr d-ix="1"><td>347</td><td>C gcc Linux x86_64</td><td>190103T094035Z</td><td><a href="https://codegolf.stackexchange.com/questions/84/interpret-brainfuck/178298#178298">ceilingc</a></td></tr>
 <tr d-ix="2"><td>303</td><td>ABPL</td><td>230920T163637Z</td><td><a href="https://codegolf.stackexchange.com/questions/84/interpret-brainfuck/265401#265401">J Je</a></td></tr>
 <tr d-ix="3"><td>093</td><td>X86_64/Linux Machine Code</td><td>230815T201325Z</td><td><a href="https://codegolf.stackexchange.com/questions/84/interpret-brainfuck/264220#264220">Noah</a></td></tr>
 <tr d-ix="4"><td>353</td><td>Lua</td><td>230915T221928Z</td><td><a href="https://codegolf.stackexchange.com/questions/84/interpret-brainfuck/265270#265270">Luatic</a></td></tr>
@@ -102,7 +102,81 @@
 <tr d-ix="73"><td>204</td><td>Windows PowerShell</td><td>110213T212506Z</td><td><a href="https://codegolf.stackexchange.com/questions/84/interpret-brainfuck/921#921">Joey</a></td></tr>
 <tr d-ix="74"><td>368</td><td>C</td><td>110131T002311Z</td><td><a href="https://codegolf.stackexchange.com/questions/84/interpret-brainfuck/267#267">jtjacque</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C (gcc)</a> Linux x86_64, <s>884 621 525 487 439 383 358</s> 347 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C (gcc)</a> Linux AArch64, <s>483 461 449 439 424</s> 414 bytes</h1>
+
+<pre class="lang-c prettyprint-override"><code>#define S(x)&quot;(\0@9\b\5\0&quot;#x&quot;(\0\0\71&quot;
+*T=&quot; \0\1J\b\xfc\0\21!@\0\xd4&quot;,c,h,*mmap(),*wcpcpy();d[7500];(*p)();*j(int*a){int*t=a,*n,q=0;for(;read(h,&amp;c,!q);)t=c==91?n=j(t+2),*t++='9@\0(',*t=n-t&lt;&lt;5|8|90&lt;&lt;25,n:c==93?q=*t=a-t-2&amp;33554431|22&lt;&lt;24,t+1:wcpcpy(t,c-60?c-62?c-45?c-43?c-46?c-44?t:T:T+1:S(\21):S(Q):&quot;!\4\0\x91&quot;:&quot;!\4\0\xd1&quot;);return t;}main(P,g)int**g;{*j(p=mmap(0,1&lt;&lt;20,6,34,h=open(g[1],0),0))=3596551104;p(1,d,1);}
+</code></pre>
+<p>This is a JIT that compiles BF code into AArch64 machine language at runtime. This performs a straight translation so commonly occurring sequences such as &gt;&gt;&gt;, &lt;&lt;&lt;, +++ and --- aren't coalesced into faster instructions.</p>
+<p>This is a port of the &quot;JIT&quot; for x86_64
+<a href="https://codegolf.stackexchange.com/a/178298/52904">https://codegolf.stackexchange.com/a/178298/52904</a></p>
+<p>Less golfed version:</p>
+<pre class="lang-c prettyprint-override"><code>#include&lt;wchar.h&gt;
+// size of data area
+c,*mmap();d[7500];h;(*p)();
+*j(int*a){
+  int*t=a,*n,q=0;
+  for(;read(h,&amp;c,!q);){
+    t=c==91?
+      // ldrb w8, [x1]
+      // cbz w8, n-t
+      n=j(t+2),
+      *t++=0x39400028,
+      *t=n-t&lt;&lt;5|8|180&lt;&lt;24,
+      n
+    :c==93?
+      // b a-t-2
+      q=a-t-2,
+      *t=q&amp;0x1ffffff|22&lt;&lt;24,
+      t+1
+    :
+      wcpcpy(t,c-'&lt;'?
+                 c-'&gt;'?
+                   c-'-'?
+                     c-'+'?
+                       c-'.'?
+                         c-','?
+                           L&quot;&quot;
+                         :
+                           // eor w0, w1, w1
+                           // add w8, w0, #0x3f ; read(0,buf,1)
+                           // svc #0x201        ; Linux is not picky about the argument
+                           L&quot;\x4a010020\x1100fc08\xd4004021&quot;
+                       :
+                         // add w8, w0, #0x3f ; write(1,buf,1)
+                         // svc #0x201        ; w0 was 1 from last syscall
+                         L&quot;\x1100fc08\xd4004021&quot;
+                     :
+                       // ldrb w8, [x1]
+                       // add w8,w8, 1
+                       // strb w8, [x1]
+                       L&quot;\x39400028\x11000508\x39000028&quot;
+                   :
+                     // ldrb w8, [x1]
+                     // sub w8,w8, 1
+                     // strb w8, [x1]
+                     L&quot;\x39400028\x51000508\x39000028&quot;
+                 :
+                   // add x1, x1, 1
+                   L&quot;\x91000421&quot;
+               :
+                 // sub x1, x1, 1
+                 L&quot;\xd1000421&quot;
+      );
+  }
+  return t;
+}
+main(P,g)int**g;{
+  // allocate text (executable) memory and mark as executable
+  p=mmap(0,1&lt;&lt;20,6,34,h=open(g[1],0),0);
+  // run JIT, exit gracefully
+  *j(p)=0xd65f03c0;
+  // set %x2=1 and call code like a function
+  p(1,d,1);
+}
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C (gcc)</a> Linux x86_64, <s>884 621 525 487 439 383 358</s> 347 bytes</h1>
 
 <pre class="lang-c prettyprint-override"><code>*z,*mmap();d[7500];h;(*p)();*j(char*a){char*t=a,*n,c,q=0;for(;read(h,&amp;c,!q);t=c==47?n=j(t+9),z=mempcpy(t,L&quot;\xf003e80Ƅ&quot;,5),*z=n-t-9,n:c==49?q=*t++=233,z=t,*z=a-13-t,z+1:stpcpy(t,c-18?c-16?~c?c-1?c-2?c?t:&quot;1\xc0P_\xF\5&quot;:&quot;RXR_\xF\5&quot;:L&quot;໾&quot;:L&quot;۾&quot;:L&quot;컿&quot;:L&quot;웿&quot;))c-=44;return t;}main(P,g)int**g;{*j(p=mmap(0,1&lt;&lt;20,6,34,h=open(g[1],0),0))=195;p(0,d,1);}
 </code></pre>
@@ -170,80 +244,6 @@ main(P,g)int**g;{
   p=mmap(0,1&lt;&lt;20,6,34,h=open(g[1],0),0);
   // run JIT, set %rdx=1 and call code like a function
   p(*j(p)=195,d,1);
-}
-</code></pre>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C (gcc)</a> Linux AArch64, <s>483 461 449 439 424</s> 416 bytes</h1>
-
-<pre class="lang-c prettyprint-override"><code>#define S(x)&quot;(\0@9\b\5\0&quot;#x&quot;(\0\0\71&quot;
-*T=&quot; \0\1J\b\xfc\0\21!@\0\xd4&quot;,c,h,*mmap(),*wcpcpy();d[7500];(*p)();*j(int*a){int*t=a,*n,q=0;for(;read(h,&amp;c,!q);)t=c==91?n=j(t+2),*t++='9@\0(',*t=n-t&lt;&lt;5|8|90&lt;&lt;25,n:c==93?q=*t=a-t-2&amp;33554431|22&lt;&lt;24,t+1:wcpcpy(t,c-60?c-62?c-45?c-43?c-46?c-44?t:T:T+1:S(\21):S(Q):&quot;!\4\0\x91&quot;:&quot;!\4\0\xd1&quot;);return t;}main(P,g)int**g;{h=open(g[1],0);*j(p=mmap(0,1&lt;&lt;20,6,34,0,0))=3596551104;p(1,d,1);}
-</code></pre>
-<p>This is a JIT that compiles BF code into AArch64 machine language at runtime. This performs a straight translation so commonly occurring sequences such as &gt;&gt;&gt;, &lt;&lt;&lt;, +++ and --- aren't coalesced into faster instructions.</p>
-<p>This is a port of the &quot;JIT&quot; for x86_64
-<a href="https://codegolf.stackexchange.com/a/178298/52904">https://codegolf.stackexchange.com/a/178298/52904</a></p>
-<p>Less golfed version:</p>
-<pre class="lang-c prettyprint-override"><code>#include&lt;wchar.h&gt;
-// size of data area
-c,*mmap();d[7500];(*p)();
-*j(a,g)int*a;{
-  int*t=a,*n,q=0;
-  for(;read(g,&amp;c,!q);){
-    t=c==91?
-      // ldrb w8, [x1]
-      // cbz w8, n-t
-      n=j(t+2,g),
-      *t++=0x39400028,
-      *t=n-t&lt;&lt;5|8|180&lt;&lt;24,
-      n
-    :c==93?
-      // b a-t-2
-      q=a-t-2,
-      *t=q&amp;0x1ffffff|22&lt;&lt;24,
-      t+1
-    :
-      wcpcpy(t,c-'&lt;'?
-                 c-'&gt;'?
-                   c-'-'?
-                     c-'+'?
-                       c-'.'?
-                         c-','?
-                           L&quot;&quot;
-                         :
-                           // eor w0, w1, w1
-                           // add w8, w0, #0x3f ; read(0,buf,1)
-                           // svc #0x201        ; Linux is not picky about the argument
-                           L&quot;\x4a010020\x1100fc08\xd4004021&quot;
-                       :
-                         // add w8, w0, #0x3f ; write(1,buf,1)
-                         // svc #0x201        ; w0 was 1 from last syscall
-                         L&quot;\x1100fc08\xd4004021&quot;
-                     :
-                       // ldrb w8, [x1]
-                       // add w8,w8, 1
-                       // strb w8, [x1]
-                       L&quot;\x39400028\x11000508\x39000028&quot;
-                   :
-                     // ldrb w8, [x1]
-                     // sub w8,w8, 1
-                     // strb w8, [x1]
-                     L&quot;\x39400028\x51000508\x39000028&quot;
-                 :
-                   // add x1, x1, 1
-                   L&quot;\x91000421&quot;
-               :
-                 // sub x1, x1, 1
-                 L&quot;\xd1000421&quot;
-      );
-  }
-  return t;
-}
-main(P,g)int**g;{
-  // allocate text (executable) memory and mark as executable
-  p=mmap(0,1&lt;&lt;20,6,34,0,0);
-  // run JIT, exit gracefully
-  *j(p,open(g[1],0))=0xd65f03c0;
-  // set %x2=1 and call code like a function
-  p(1,d,1);
 }
 </code></pre>
 </div>
