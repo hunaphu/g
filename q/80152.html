@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::80152</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>nan</td><td></td><td>230924T110015Z</td><td><a href="https://codegolf.stackexchange.com/questions/80152/recursive-steiner-chains/265454#265454">138 Aspe</a></td></tr>
+<tr d-ix="1"><td>379</td><td>Javascript ES6</td><td>160518T185001Z</td><td><a href="https://codegolf.stackexchange.com/questions/80152/recursive-steiner-chains/80154#80154">Dendrobi</a></td></tr>
+</table>
+<div id="pu0" class="pu"><p>@Dendrobium</p>
+<p>I was trying to port @Dendrobium's Javascript answer in Python.</p>
+<p><strong>But something wrong appears. Any help would be appreciated.</strong></p>
+<pre><code>from PIL import Image, ImageDraw
+import numpy as np
+
+def draw_fractal(s, ls):
+    image = Image.new('RGBA', (s, s), color = (0, 0, 0, 0))
+    draw = ImageDraw.Draw(image)
+    draw_fractal_recursive(draw, s/2, s/2, s/2, 0, ls, s)
+    image.show()
+
+def draw_fractal_recursive(draw, x, y, o, depth, ls, s):
+    if depth &gt;= len(ls):
+        return
+
+    n = ls[depth]
+    i = (o-o*np.sin(np.pi/n))/(np.sin(np.pi/n)+1)
+    rgba_color = (0, 0, 0, int(255 * np.power(depth/len(ls), 4)))
+
+    draw.ellipse((x-o, y-o, x+o, y+o), fill=rgba_color)
+
+    draw_fractal_recursive(draw, x, y, i, depth+1, ls, s)
+
+    for r in range(n):
+        new_x = x + (o+i)/2 * np.cos(2 * np.pi * r / n)
+        new_y = y - (o+i)/2 * np.sin(2 * np.pi * r / n)
+        draw_fractal_recursive(draw, new_x, new_y, (o-i)/2, depth+1, ls, s)
+
+# Use the function
+draw_fractal(600,[13,7,11,5,3])
+</code></pre>
+<p><a href="https://i.stack.imgur.com/8sjRY.png" rel="nofollow noreferrer"><img src="https://i.stack.imgur.com/8sjRY.png" alt="enter image description here" /></a></p>
+</div>
+<div id="pu1" class="pu"><h1>Javascript ES6, 379 bytes</h1>
+
+<p>This solution was used to generate the example runs in the question.</p>
+
+<pre><code>f=(s,ls)=&gt;{with(V=document.createElement`canvas`)with(getContext`2d`)with(Math)return(width=height=s,translate(s/=2,s),(S=(o,d=0,n=ls[d],i=(o-o*sin(PI/n))/(sin(PI/n)+1),r=0)=&gt;{fillStyle=`rgba(0,0,0,${pow(d/ls.length,4)})`;beginPath(),arc(0,0,o,-PI,PI),fill();if(d++&lt;ls.length){S(i,d,n);for(;r&lt;n;++r){save();translate(0,(o+i)/2);S((o-i)/2,d);restore();rotate((2*PI)/n);}}})(s),V)}
+</code></pre>
+
+<p>Ungolfed:</p>
+
+<pre><code>f=(s,ls)=&gt;{                                        // define function that accepts image dimensions and a list of orders
+ with(V=document.createElement`canvas`)            // create canvas to draw on, bring its functions into current scope chain
+ with(getContext`2d`)                              // bring graphics functions into current scope chain
+ with(Math)return(                                 // bring Math functions into current scope chain
+  width=height=s,                                  // set width and height of image
+  translate(s/=2,s),                               // center the transform on image
+   (S=(o,d=0,                                      // define recursive function that accepts outer radius, depth, and optionally order
+       n=ls[d],                                    // default chain order to corresponding order in input list
+       i=(o-o*sin(PI/n))/(sin(PI/n)+1),            // calculate inner base circle radius
+       r=0)=&gt;{                                     // initialize for loop var
+    fillStyle=`rgba(0,0,0,${pow(d/ls.length,4)})`; // fill based on depth
+    beginPath(),arc(0,0,o,-PI,PI),fill();          // draw circle
+    if(d++&lt;ls.length){                             // if within recursion limit
+     S(i,d,n);                                     //   recurse on inner circle
+     for(;r&lt;n;++r){                                //   loop through all circles of the chain
+      save();                                      //   save transform
+      translate(0,(o+i)/2);                        //   translate origin to middle of the 2 base circles
+      S((o-i)/2,d);                                //   recurse on chain circle
+      restore();                                   //   restore transform
+      rotate((2*PI)/n);                            //   rotate transform to next circle in chain
+   }}})(s),                                        // begin the recursion
+ V)}                                               // return the canvas
+</code></pre>
+
+<p>Note: <code>f</code> returns a canvas.</p>
+
+<p>Example run (assumes there's a <code>&lt;body&gt;</code> to append to):</p>
+
+<pre><code>document.body.appendChild(f(600,[13,7,11,5,3]))
+</code></pre>
+
+<p>Should dump the following image to the page:</p>
+
+<p><a href="https://i.stack.imgur.com/x8YhP.png" rel="nofollow noreferrer"><img src="https://i.stack.imgur.com/x8YhP.png" alt="Output"></a></p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/80152/">80152</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
