@@ -63,6 +63,8 @@
 <h1>x86(-64) machine code, 21 bytes</h1>
 <p><strong>Simulates a 32-bit SUBLEQ machine</strong>.  Writing a 32-bit register zero-extends to the full 64-bit register so even if we were willing to align the SUBLEQ program by 2^32 that wouldn't all the same partial-register trickery.</p>
 <p>Even starting at absolute address <code>0</code> wouldn't work, because SUBLEQ addressing is in terms of cells, like a word-addressable machine.  But x86 is a byte-addressable architecture, so SUBLEQ addresses have to be scaled by 4 to get x86-64 byte offsets since we're using 4-byte cells.</p>
+<p>In x86-64 SysV, <code>void subleq32(int32_t *end, int32_t *start)</code>.  I think the <code>start</code> pointer might need to be 4GiB aligned to properly handle all jumps to negative addresses, since we only compare the low 32 bits after doing <code>x86_address = base + target*4</code>.  With a larger base, some negative targets could wrap.  And due to the scaling by 4, the most negative value we detect is <code>-2^30</code>.  We shift out the high bits of some larger numbers, although some larger-magnitude numbers will happen to have a bit that gets shifted to the sign-bit position, too.</p>
+<p>So maybe it's only really able to correctly simulate a 30-bit SUBLEQ machine, or 29-bit or something.  But still much more than 8-bit, which is the point.</p>
 <pre><code>                   ;; word-addressable SUBLEQ machine, where the components of an instruction are still 1 guest address apart
                    ;; despite them being farther apart in x86-64
                ;;; base address in ESI
@@ -84,7 +86,7 @@
  72EE              jb  .nextinst       ; unsigned compare catches negative as well as past-the-end
  C3                ret
 </code></pre>
-<p>I also tested this with <code>dd</code> instead of <code>db</code> for the initial array, using GDB <code>print (int[12])prog32</code> after running, or <code>display</code> the same expression while single-stepping. Like</p>
+<p>I also tested this with <code>dd</code> instead of <code>db</code> for the initial array, using GDB <code>print (int[12])prog32</code> after running, or <code>display</code> the same expression while single-stepping. This was my test caller:</p>
 <pre><code>section .data
 prog32:
     dd 3, 4, 3,
