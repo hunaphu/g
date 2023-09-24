@@ -26,13 +26,112 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>062</td><td>Python 3.11</td><td>230923T114654Z</td><td><a href="https://codegolf.stackexchange.com/questions/265424/implement-subleq/265439#265439">Joao-3</a></td></tr>
-<tr d-ix="1"><td>058</td><td>Python 3</td><td>230923T145929Z</td><td><a href="https://codegolf.stackexchange.com/questions/265424/implement-subleq/265440#265440">Jonathan</a></td></tr>
-<tr d-ix="2"><td>057</td><td>JavaScript ES6</td><td>230922T225531Z</td><td><a href="https://codegolf.stackexchange.com/questions/265424/implement-subleq/265428#265428">Arnauld</a></td></tr>
-<tr d-ix="3"><td>045</td><td>Charcoal</td><td>230922T224742Z</td><td><a href="https://codegolf.stackexchange.com/questions/265424/implement-subleq/265426#265426">Neil</a></td></tr>
-<tr d-ix="4"><td>094</td><td>Python3</td><td>230922T221100Z</td><td><a href="https://codegolf.stackexchange.com/questions/265424/implement-subleq/265425#265425">Ajax1234</a></td></tr>
+<tr d-ix="0"><td>017</td><td>x8664 machine code</td><td>230924T143830Z</td><td><a href="https://codegolf.stackexchange.com/questions/265424/implement-subleq/265465#265465">Peter Co</a></td></tr>
+<tr d-ix="1"><td>062</td><td>Python 3.11</td><td>230923T114654Z</td><td><a href="https://codegolf.stackexchange.com/questions/265424/implement-subleq/265439#265439">Joao-3</a></td></tr>
+<tr d-ix="2"><td>058</td><td>Python 3</td><td>230923T145929Z</td><td><a href="https://codegolf.stackexchange.com/questions/265424/implement-subleq/265440#265440">Jonathan</a></td></tr>
+<tr d-ix="3"><td>057</td><td>JavaScript ES6</td><td>230922T225531Z</td><td><a href="https://codegolf.stackexchange.com/questions/265424/implement-subleq/265428#265428">Arnauld</a></td></tr>
+<tr d-ix="4"><td>045</td><td>Charcoal</td><td>230922T224742Z</td><td><a href="https://codegolf.stackexchange.com/questions/265424/implement-subleq/265426#265426">Neil</a></td></tr>
+<tr d-ix="5"><td>094</td><td>Python3</td><td>230922T221100Z</td><td><a href="https://codegolf.stackexchange.com/questions/265424/implement-subleq/265425#265425">Ajax1234</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Python 3.11, <s>92 86 85</s> 62 bytes</h1>
+<div id="pu0" class="pu"><h1>x86(-64) machine code, 17 bytes</h1>
+<p>A function that <strong>simulates a SUBLEQ machine with 8-bit cells</strong>, returning to the caller with the array modified.  Callable from C with the x86-64 SysV calling convention as <code>void subleq8(int8_t *end, int8_t *aligned_start);</code> (Like a <code>.begin()</code> / <code>.end()</code> range, the end pointer start+length.)</p>
+<p><code>start</code> must be aligned by 256 so its low 8 bits are <code>0</code>.  This allows indexing the array by replacing the low byte with x86 partial-register stuff, instead of needing to zero-extend the guest byte into a separate register and use an indexed addressing mode.  (A similar trick is useful on 8-bit systems like AVR where two 8-bit registers form a 16-bit pointer: if you don't cross a 256-byte boundary, you can skip <code>adc</code> into the high byte; if the array is aligned by 256 you can just replace the low byte.)</p>
+<p><code>start</code> must be in the low 32 bits of virtual address space, e.g. the x32 ABI, mmap(MAP_32BIT), or simply a static array (e.g. in <code>.data</code>) in a non-PIE Linux executable.  Or if you run the same machine code in 32-bit mode.</p>
+<pre><code>               ;;; array in ESI, aligned by 256 (so the low byte can be replaced to index into it)
+               ;;; end-pointer (array+len) in EDI
+               
+               subleq8:
+ 89F0              mov  eax, esi               ; copy high bytes to EAX so merging a new low byte generates an address
+
+               .nextinst:
+ AC                lodsb                       ; fetch address A into AL, forming an x86 pointer in RAX
+ 8A 10             mov    dl, [rax]               ; deref A
+ AC                lodsb                       ; fetch address B
+ 28 10             sub    [rax], dl            ; SUB and set FLAGS
+ AC                lodsb                       ; fetch branch target address; RSI points at next instruction
+ 0F 4E F0          cmovle  esi, eax            ; update guest PC according to FLAGS
+               
+ 39 FE             cmp    esi, edi             ; like cmp sil, dil  but range-shifted: both regs have the same high bytes
+ 72 F2             jb  .nextinst               ; len must be at most 127 to still consider *all* negative byte values as unsigned &gt; 0x7f
+ C3                ret
+</code></pre>
+<p>Instead of checking for the subtraction result being negative or zero, we actually check if <code>[b]</code> was less-or-equal than <code>[a]</code> before the subtraction, using FLAGS set by the <code>sub</code> instruction (like <code>cmp</code>).  This is the same as checking the result against <code>0</code> if signed overflow didn't happen, otherwise it's the opposite.  With Python arbitrary-precision integers, signed overflow is impossible.  (There is no <a href="https://www.felixcloutier.com/x86/jcc" rel="nofollow noreferrer">x86 FLAGS condition</a> for negative-or-zero so it would take an extra 3 bytes, either for <code>cmp byte [rax], 0</code> or for <code>cmovs</code> + <code>cmove</code> instead of <code>cmovle</code>.  Like most ISAs with signed-compare conditions, x86 does have a <code>le</code> less-or-equal condition that checks <code>SF != OF || ZF</code> in the same predicate.)</p>
+<p>Apparently <a href="https://en.wikipedia.org/wiki/One-instruction_set_computer#Subtract_and_branch_if_less_than_or_equal_to_zero" rel="nofollow noreferrer">even Wikipedia</a> defines a SUBLEQ OISC in terms of comparing against zero, rather than the usual computer-architecture meaning of a less-or-equal condition after a subtraction.  :/  If signed wrap-around (overflow) doesn't happen, the two variants of the architecture are equivalent.   Unless / until there's a test-case that requires checking the sign of the result instead of the LE condition generated by subtraction, I'm going to leave my answer this way.  I'm pretty confident this is also Turing complete and probably not significantly different for implementing most basic arithmetic, if any of that comes near signed overflow.</p>
+<p><strong>The max program length is 127 or 128 bytes</strong> if you want <em>any</em> negative address to end the program. 126 is the highest multiple of 3, if your program doesn't do misaligned jumps and doesn't want to keep some data past the end of the last instruction. (It effectively treats the program counter as unsigned, looping <code>do {} while(PC &lt; end)</code>, so a negative program counter is an unsigned number in the upper half of range, above any signed-positive length.)  Otherwise, max program length = 255, exiting only on PC=255, although that's untested and rollover of the high bytes of RSI could happen, but maybe only with misaligned jumps, e.g. to PC=254 so fetching the full instruction would get to PC=257, with <code>lodsb</code> carrying into the higher bytes of RSI.</p>
+<p>(With len limited to 128, misaligned jumps are no problem.  e.g. a program might use its first instruction to jump to address <code>4</code> and then use the first 4 bytes purely as data, eventually falling off the end when PC = 128.)</p>
+<p>Tested with the test-case in the question; it's correct for that but it doesn't AFAIK test for off-by-one errors (<code>&lt;=</code> vs. <code>&lt;</code> in the SUBLEQ operation), or for exiting via a taken branch to a negative or past-the-end address.  I <em>think</em> my program is correct, e.g. <code>cmovle</code> treats &quot;equal&quot; the same as &quot;less-than&quot;, and the test-case does exercise less-than causing the branch to be taken.</p>
+<h1>x86(-64) machine code, 21 bytes</h1>
+<p><strong>Simulates a 32-bit SUBLEQ machine</strong>.  Writing a 32-bit register zero-extends to the full 64-bit register so even if we were willing to align the SUBLEQ program by 2^32 that wouldn't all the same partial-register trickery.</p>
+<p>Even starting at absolute address <code>0</code> wouldn't work, because SUBLEQ addressing is in terms of cells, like a word-addressable machine.  But x86 is a byte-addressable architecture, so SUBLEQ addresses have to be scaled by 4 to get x86-64 byte offsets since we're using 4-byte cells.</p>
+<pre><code>                   ;; word-addressable SUBLEQ machine, where the components of an instruction are still 1 guest address apart
+                   ;; despite them being farther apart in x86-64
+               ;;; base address in ESI
+               ;;; end address in EDI  (base+length in bytes, the one-past-end address.  An x86 address, not guest words)
+               subleq32:
+ 89F1              mov  ecx, esi   ; save the base for later use.
+               
+               .nextinst:
+ AD                lodsd                     ; fetch address A
+ 8B1481            mov    edx, [rcx+rax*4]   ; and deref; we don't need it after this
+ AD                lodsd                     ; fetch address B
+ 291481            sub    [rcx+rax*4], edx   ; update [B] and set FLAGS
+ AD                lodsd                     ; fetch branch target address; RSI points at next instruction for non-taken
+ 7F03              jnle  .not_taken
+ 8D3481            lea    esi, [rcx+rax*4]   ; scale the SUBLEQ target address to an x86 address
+                   .not_taken:
+
+ 39FE              cmp    esi, edi
+ 72EE              jb  .nextinst       ; unsigned compare catches negative as well as past-the-end
+ C3                ret
+</code></pre>
+<p>I also tested this with <code>dd</code> instead of <code>db</code> for the initial array, using GDB <code>print (int[12])prog32</code> after running, or <code>display</code> the same expression while single-stepping. Like</p>
+<pre><code>section .data
+prog32:
+    dd 3, 4, 3,
+    dd 6, 13, 9,
+    dd 6, 3, -3,
+    dd 7, 8, 3
+prog32_end:
+
+section .text
+global _start
+_start:
+    mov edi, prog32_end
+    mov esi, prog32
+    call subleq32
+
+    int3              ; software breakpoint
+
+    xor edi, edi
+    mov eax, 231
+    syscall           ; x86-64 Linux exit_group(0)
+</code></pre>
+<h2>x86(-64) machine code for a byte-addressable SUBLEQ, 17 bytes</h2>
+<p>Untested, but it's the same logic as the 8-bit version, with the same instructions except 32-bit operand-size.  (So writing full registers instead of merging into the low byte).</p>
+<p>The SUBLEQ program's cells are 4 SUBLEQ addresses wide, matching the x86 addressing.  One way to make the test program run the same is to scale all its starting values by 4, like <code>12, 16, 12 | 24, 52, 36 | ...</code>.  If you do misaligned load/store or jumps, it will expose the fact that it's a little-endian machine.  (SUBLEQ doesn't have byte loads, only word loads.)</p>
+<p>This requires the array to start at absolute address <code>0</code>.  Or in 32-bit mode, <code>DS:0</code>, so you could plausibly imagine some segmented code that sets the DS segment base for passing arrays.  (Some &quot;string&quot; instructions use the ES segment, but <a href="https://www.felixcloutier.com/x86/lods:lodsb:lodsw:lodsd:lodsq" rel="nofollow noreferrer"><code>lodsd</code> uses <code>ds:esi</code></a>).</p>
+<pre><code>                   ;; byte-addressable SUBLEQ machine
+               ;;; base address = 0
+               ;;; end address = len in EDI
+               subleq32b:
+ 31F6              xor  esi, esi               ; start address = 0, can't justify having the caller pass it since we depend on it being 0
+               
+               .nextinst:
+ AD                lodsd                     ; fetch address A
+ 8B10              mov    edx, [rax]            ; and deref; we don't need it after this
+ AD                lodsd                     ; fetch address B
+ 2910              sub    [rax], edx         ; update [B] and set FLAGS
+ AD                lodsd                     ; fetch branch target address; RSI points at next instruction for non-taken
+ 0F4EF0            cmovle  esi, eax
+               
+ 39FE              cmp    esi, edi
+ 72F2              jb  .nextinst       ; unsigned compare catches negative as well as past-the-end
+ C3                ret
+</code></pre>
+<p>A 16-bit version of this would be highly plausible in 16-bit mode where segmentation is normal, then it wouldn't be too weird to take an array at <code>ds:0</code>.  Same machine code except for the ModRM.rm field that encodes <code>[rax]</code>... except there is no <code>[ax]</code> addressing mode, only <code>[bx]</code>, <code>[di]</code>, or <code>[si]</code> for single-register <a href="https://stackoverflow.com/questions/53866854/differences-between-general-purpose-registers-in-8086-bx-works-cx-doesnt">16-bit addressing modes</a> that use the DS segment.  So that might cost a couple 1-byte <code>xchg</code> instructions, perhaps with BX.</p>
+<p>16-bit addressing modes don't allow a scale factor so they're not very convenient for a word-addressable SUBLEQ.</p>
+</div>
+<div id="pu1" class="pu"><h1>Python 3.11, <s>92 86 85</s> 62 bytes</h1>
 <p>This is <em>my</em> answer, so don't suggest copying from other answers.</p>
 <pre class="lang-python prettyprint-override"><code>def f(p,i=0):
  p[k:=p[i+1]]-=p[p[i]];f(p,(i+3,p[i+2])[p[k]&lt;1])
@@ -50,14 +149,14 @@
 </code></pre>
 <p>If B is less than 1, then recursively call with <code>i</code> as C, otherwise add 3.</p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a>, 58 bytes</h1>
+<div id="pu2" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a>, 58 bytes</h1>
 
 <pre class="lang-python prettyprint-override"><code>def f(s,i=0):a,b,*r=s[i:];s[b]-=s[a];f(s,[i+3,*r][s[b]&lt;1])
 </code></pre>
 <p>A recursive function that updates a Subleq program, the list of integers <code>s</code>, in place terminating with a <code>ValueError</code>.</p>
 <p><strong><a href="https://tio.run/##JYrPDoIwDIfvPEWPm5ZEgvHPkKOv4GXZYeiISwgsWzHy9LNIk7Zf@/3CQu9prHN@uR56kdC3B6ksdriLbdJemSbpzpTM1jRrQPt9zdLo9X@rjMzkEkEL7mMH4ccwk5CyoLioArh6sXpZuO/TBYKHHWZ3j3GKmw7Rj7RFsq4Rjgg8TwgVr@ufGEruM8KFD/MD" rel="nofollow noreferrer" title="Python 3 – Try It Online">Try it online!</a></strong></p>
 </div>
-<div id="pu2" class="pu"><h1>JavaScript (ES6), 57 bytes</h1>
+<div id="pu3" class="pu"><h1>JavaScript (ES6), 57 bytes</h1>
 <p>Modifies the input array.</p>
 
 <pre class="lang-javascript prettyprint-override"><code>f=(m,p=0)=&gt;1/m[p]&amp;&amp;f(m,(m[m[p+1]]-=m[m[p]])&gt;0?p+3:m[p+2])
@@ -82,7 +181,7 @@
   )               //   end of recursive call
 </code></pre>
 </div>
-<div id="pu3" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 45 bytes</h1>
+<div id="pu4" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 45 bytes</h1>
 <pre><code>Ｗ‹ⅈＬθ«≔§θ⊕ⅈι§≔θι⁻§θι§θ§θⅈ¿›§θι⁰Ｍ³→Ｊ§θ⁺²ⅈ⁰»⭆¹θ
 </code></pre>
 <p><a href="https://tio.run/##XY9NawIxEIbP7q@Y4wQiaJX6sSdPxeKC2B4K4mFZp7sDMatJ/ADpb09nxULoYWbegfd5J6ma0lVtaWK8NmwIcEXe4xcqDSuydWjwpJSCe9ZbeM@1xUVY2j3d8KRhaStHB7KB9h2hhGGV/zkTI2so2J59CrO4kzWRjyjVBfE34JujMpD7jw7kUUV7IRxpmG@4bkIHkPEE7@fD8bNNgbWR2y/P5I7Ns59s7dgG/Agy6qI84lCDfDWPcbuVzLEG6a8ahjJmDyWiLzXRMJVlt4v9i/kF" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code. Explanation:</p>
@@ -108,7 +207,7 @@
 </code></pre>
 <p>Output the final array.</p>
 </div>
-<div id="pu4" class="pu"><h1>Python3, 94 bytes:</h1>
+<div id="pu5" class="pu"><h1>Python3, 94 bytes:</h1>
 <pre class="lang-py prettyprint-override"><code>def f(t,i=0):
  if i&gt;=len(t):return t
  t[t[i+1]]-=t[t[i]];return f(t,[t[i+2],i+3][t[t[i+1]]&gt;0])
