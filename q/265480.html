@@ -26,17 +26,52 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>122</td><td>Charcoal</td><td>230925T115524Z</td><td><a href="https://codegolf.stackexchange.com/questions/265480/do-you-win-a-numeric-mahjong/265482#265482">Neil</a></td></tr>
-<tr d-ix="1"><td>121</td><td>Raku</td><td>230925T195007Z</td><td><a href="https://codegolf.stackexchange.com/questions/265480/do-you-win-a-numeric-mahjong/265489#265489">Sean</a></td></tr>
-<tr d-ix="2"><td>050</td><td>Jelly</td><td>230925T195356Z</td><td><a href="https://codegolf.stackexchange.com/questions/265480/do-you-win-a-numeric-mahjong/265490#265490">Nick Ken</a></td></tr>
+<tr d-ix="0"><td>050</td><td>Jelly</td><td>230925T195356Z</td><td><a href="https://codegolf.stackexchange.com/questions/265480/do-you-win-a-numeric-mahjong/265490#265490">Nick Ken</a></td></tr>
+<tr d-ix="1"><td>122</td><td>Charcoal</td><td>230925T115524Z</td><td><a href="https://codegolf.stackexchange.com/questions/265480/do-you-win-a-numeric-mahjong/265482#265482">Neil</a></td></tr>
+<tr d-ix="2"><td>121</td><td>Raku</td><td>230925T195007Z</td><td><a href="https://codegolf.stackexchange.com/questions/265480/do-you-win-a-numeric-mahjong/265489#265489">Sean</a></td></tr>
 <tr d-ix="3"><td>122</td><td>JavaScript Node.js</td><td>230925T192448Z</td><td><a href="https://codegolf.stackexchange.com/questions/265480/do-you-win-a-numeric-mahjong/265488#265488">l4m2</a></td></tr>
 <tr d-ix="4"><td>143</td><td>JavaScript ES6</td><td>230925T135320Z</td><td><a href="https://codegolf.stackexchange.com/questions/265480/do-you-win-a-numeric-mahjong/265485#265485">Arnauld</a></td></tr>
 <tr d-ix="5"><td>041</td><td>05AB1E</td><td>230925T115608Z</td><td><a href="https://codegolf.stackexchange.com/questions/265480/do-you-win-a-numeric-mahjong/265483#265483">Command </a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, <s>128</s> <s>125</s> 122 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 50 bytes</h1>
+<pre><code>°þþ&amp;&amp;,@ƑƒWß»Ȥ
+WÞW+þ@3’œ&amp;ƑƇœ-@€Ʋ€Ẏ$ƬẎŒɠ%¹Ƈɗ€3‘œ&amp;ƑƇ3
+</code></pre>
+<p><a href="https://tio.run/##y0rNyan8///QhsP7Du9TU9NxODbx2KTww/MP7T6xhCv88Lxw7cP7HIwfNcw8OlkNKNV@dLKuw6OmNcc2AYmHu/pUjoHIo5NOLlA9tPNY@8npQGGg6hlQ1cb/D@08PMMr89HGdUAjjnX5H5tof7j94a4dXA937ju0E8S1ftQwR0HXTuFRw1zrw@1cD3dvOTopDGjK4XYgEfn/v5KSUrSBjoJBLFe0paWljgKCMDQyNoGQQDlDHQUjGDKG8IGS5mC@KQxZAOV0FMyA@pF1GIORCQxBlJqBEVC/OUQpHBkhWwRBQBUgF2KiWC4lrAF7aBvlIavEFQ1yGcR1xmA3m8M9BncnxEsWYGRoBsHGRhBsZgLCscAABgA" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></p>
+<p>The main part is a monadic link that takes a list of integers and returns an empty list for false and a list containing one or more items for truthy. To meet the challenge rules, the program includes another link above the main one which is just filler.</p>
+<p>Completes all test cases including itself in about 17 seconds on TIO. Full explanation to follow. Note the footer turns the falsy and truthy outcomes to 0 and 1 for more compact printing.</p>
+<p>General explanation:</p>
+<ul>
+<li>Remove every possible combination of runs of three (including removing none)</li>
+<li>Check the remaining integers are in groups of length 0 mod 3, except for one that is of length 2 mod 3</li>
+</ul>
+<h2>Explanation</h2>
+<pre><code>°þþ&amp;&amp;,@ƑƒWß»Ȥ | Filler to meet challenge requirements
+
+WÞ                                   | Sort (technically with order based on that after wrapping each item in a list, but this doesn't affect sort order)
+  W                                  | Wrap in a list
+                   $Ƭ                | Repeat the following until no changes are made, gathering up intermediate results
+                Ʋ€                   | - For each list in the lists of lists (example for e.g. [1, 2, 3, 4, 4])
+   +þ@3                              |   - Outer addition using 1, 2, 3 e.g. [[[2, 3, 4], [3, 4, 5], [4, 5, 6], [5, 6, 7], [5, 6, 7]]
+       ’                             |   - Decrease by 1 e.g. [[1, 2, 3], [2, 3, 4], [3, 4, 5], [4, 5, 6], [4, 5, 6]]
+        œ&amp;ƑƇ                         |   - Filter, keeping only those lists that were seen in the original list e.g. [[1, 2, 3], [2, 3, 4]]
+            œ-@€                     |   - Filter the original list removing each of these in turn [[4, 4], [1, 4]]
+                  Ẏ                  | - Join inner lists together, leaving one list of lists
+                     Ẏ               | Join all gathered intermediate results into one list of lists
+                           ɗ€        | For each list within this list:
+                      Œɠ             | - Run lengths
+                        %    3       | - Mod 3
+                         ¹Ƈ          | - Only keep those non-zero (i.e. those lists that were not a multiple of 3 in length)
+                              ‘      | Increase by 1
+                               œ&amp;ƑƇ3 | Only keep those that consist of a single 3
+</code></pre>
+<p>Some of the code above (e.g. using <code>WÞ</code> rather than <code>Ṣ</code>) would be suboptimal in normal code-golf challenges, but here improve length by reducing the amount of filler required.</p>
+<p>The runtime is sufficient to complete all the test cases, but as written becomes very inefficient as the number of runs of three consecutive numbers increases. This can be greatly improved by adding a uniquify step (<a href="https://tio.run/##hVBNS8NAEL3vrwhBczGFJhvzQUFzE7yIF4OEHD1UCp69BS@BCkLTgxX8QuxNRKWIaSSHXbLYn5H8kTibNbGgUHgzy/Bm3ryd46PB4LSqyAvNaKYoqstGLPboHUm/HpFHb70Nmrm4DK/ysQJUlI87bnn2xN4gFfOLfTZk/M3jxf06SVi0uAQC@ic//bgiCZ3s9svXZxBhwz022qZRMf9ARZKRhJe9MryWOltSGd70aISKdJbHB6BCI0iHVZ/vA4kTTbdBokge8k/QL9JzMiVTIHYqWZb9rip1A@Q7jqNKv0nTsSEycJoq6Q2wqIG06nqzgQ2cKpkwvzyBaxgNRKtZA@Yt0dpCX14kAB3c4V8ESP73@OR99fXXVtxeRj53Jtzh2rPVfqz1Kb5k19BMEVgXYRo8AjjwNw" rel="nofollow noreferrer">TIO</a>), reducing the run time for all test cases and my original code down to ~0.3 seconds total).</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, <s>128</s> <s>125</s> 122 bytes</h1>
 <pre><code>¿⁼²﹪Ｌθ³«≔⟦⟧η≔⟦⟧ζＷ⌊⁻θη«⊞ηι⊞ζ⟦ι№θι⟧»⊞υζＦυ¿⁼¹ＬΦι﹪§κ¹↔³Ｐ¹Ｆη¿⁼³ＬΦι×§λ¹›²↔⁻κ§λ⁰⊞υＥι⟦§λ⁰⁻§λ¹›²↔⁻κ§λ⁰⟧»Ｗ›ηη«⊞⊞⌊⌊№№≔Φ﹪××⁻⁻¹ＥＥＦＰＰＷ∕»
 </code></pre>
-<p><a href="https://tio.run/##fY/BagIxEIZfpQ/gpdrah1n2IF56KBR8AhdUXOlx697qyQjag7hgNpuAMHuP7zAvkEfY/hMrvRU@SJh8M/Nn/DqajN9Hb11HF84cnYLZB/fta6rowHnBG8Wbndd/13Nwmj9WnFlfew1p9eW1N3KcoeA2W@PFwCWL6nUuLeo6vy0wMh0W9tDON2R4UVAV3FFeFAZGq/q12hKShTRt6ARTtjZS4uwYZwe3lVXqXsvsPw2SSNJPGyS@RRfwGTBbC3nhFaK1ZVuiVcYh1jaiEDKieflJtuuS5LH30I8MIk93niPDyAtI0x8" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Uses the Charcoal code page. Explanation:</p>
+<p><a href="https://tio.run/##fY/BagIxEIZfpQ/gpdrah1n2IF56KBR8AhdUXOlx697qyQjag7hgNpuAMHuP7zAvkEfY/hMrvRU@SJh8M/Nn/DqajN9Hb11HF84cnYLZB/fta6rowHnBG8Wbndd/13Nwmj9WnFlfew1p9eW1N3KcoeA2W@PFwCWL6nUuLeo6vy0wMh0W9tDON2R4UVAV3FFeFAZGq/q12hKShTRt6ARTtjZS4uwYZwe3lVXqXsvsPw2SSNJPGyS@RRfwGTBbC3nhFaK1ZVuiVcYh1jaiEDKieflJtuuS5LH30I8MIk93niPDyAtI0x8" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Uses the Charcoal code page. Outputs a Charcoal boolean, i.e. <code>-</code> for a winning hand, nothing if not. Explanation:</p>
 <pre><code>¿⁼²﹪Ｌθ³«
 </code></pre>
 <p>Check that the length is satisfactory.</p>
@@ -66,7 +101,7 @@
 </code></pre>
 <p><a href="https://tio.run/##pVLBasJAEP2VfkAPWhtNvkU8bGJCD4VCTz0qaKnSo9VbPRmh7UEUjImBwnrf/MP@QD4hndkNzNjiqbA819k3b97MJLgTj8GDuK8q@a2HudyW6UeZf6mD3MlPPZnpZayXa5XQdV/miX6d6uFRHVQCpOm7SlSKP3ugwG00h5cUuPII0WKMKXExtgVSVAcW1JFrlclUP8/krsw3@BKDapmv4D1B7q7mnhZAhVQ9yOQW@Fg7w5AebpAOteL6Lzxd5oKlYmwtZfIIfgYZWLc94IGu4IzmeCYzcHhanBaoCNZW4A5cmpPgCF7eVKayYgyNHauq2208@dH1FWDf4A2icBCDADFqmnjLxF1E18T7vkGTFV6IR8LcO4hNzyj0SdNmWc2GQ5HQo0it4FPcdZmCR7UEz2K5QZsiZ502qUfRIjXbu7g1EZ@YXpvm0G8whTb1FThMzWW1WhdqCVaLufJD2oXH9K2fM36D6tbTuMCxCv@vVW/W@T3tmu@xOYdsp392bdF@FU22WZd9S/UuBEO@O4fmbzdSY4dhQN4sRsyz8Hq9Hw" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Add the <code>-x</code> argument to show the hex dump which you can compare against the input.</p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://raku.org/" rel="nofollow noreferrer">Raku</a>, 121 bytes</h1>
+<div id="pu2" class="pu"><h1><a href="https://raku.org/" rel="nofollow noreferrer">Raku</a>, 121 bytes</h1>
 <pre><code>{sub k(\u){u{*}~~[.2/.1]||?(u{*}:k).grep:{?grep {u (&gt;)$_&amp;&amp;k u (-)$_},^3+$_,[$_,$_,$_]}}(bag |$_)}###:~%')+//&gt;&gt;?\]cbbetprr
 </code></pre>
 <p><a href="https://tio.run/##ZY5NboMwEIX3PcUoUGo3LgSbQqAKHIRQFCrIgkRFpCwiA1en/oEkVaXv2da88ZtpyvbkT@crWBXsJn7pCqjRvsO846/DOKY2dWw36/sEyUJUY/vYlk3EE3kB755QjM3csmroAL2J50A@2drMSSqkyIYBFYcj9GaOB8MwovH5Ba8dJ46TffZVFOVP07bTB1wOV1iZud2IjRCGXQy8ApG3guq7hXRDYJMRSMMwJHA/XMo8fUrTJUAX2FwQdqAK7wtbYRLwRcKfP0zhLeheXyECgrn3Bn2cpZEtcs//SEcFzClMhQf3FW6BevhW4fpajGr5nlQ2/QI" rel="nofollow noreferrer" title="Perl 6 – Try It Online">Try it online!</a></p>
@@ -77,19 +112,6 @@
 <li>Otherwise, for the keys 𝑥 in the bag (<code>u{*}:k</code>), return true if the bag is a superset (<code>u (&gt;) $_</code>) of either the run 𝑥, 𝑥 + 1, 𝑥 + 2 (<code>^3 + $_</code>) or the triple 𝑥, 𝑥, 𝑥 (<code>[$_, $_, $_]</code>), and the bag minus those elements (<code>u (-) $_</code>) produces a true result when passed to the inner recursive function <code>k</code>.  (Normally I prefer using the Unicode characters for superset (<code>⊃</code>) and set minus (<code>∖</code>), which are the same number of bytes as the equivalent plain ASCII operators (<code>(&gt;)</code> and <code>(-)</code> respectively), but then I'd have to repeat both of them twice in the trailing comment for a substantial byte penalty.)</li>
 </ul>
 <p>Of course, the trailing comment <code>###:~%')+//&gt;&gt;?\]cbbetprr</code> makes the overall code snippet into a winning numerical mah jong hand.  The function takes an infeasibly long time to validate itself; I constructed the comment by visual inspection of the function's character distribution.</p>
-</div>
-<div id="pu2" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 50 bytes</h1>
-<pre><code>°þþ&amp;&amp;,@ƑƒWß»Ȥ
-WÞW+þ@3’œ&amp;ƑƇœ-@€Ʋ€Ẏ$ƬẎŒɠ%¹Ƈɗ€3‘œ&amp;ƑƇ3
-</code></pre>
-<p><a href="https://tio.run/##pVA9S8RAEO3zK5agaczBJRvzwYGmE2zsDBJSWpwcWNsFm4CCcLnCE/xCvE5ERcRcJMUuWbyfsfkjcTZr4oF2wpsHszPz5u0c7I9GR3VNnmhBC03TfTZmaUBvSP55rwT0OlijhY@r@KKcaFBKyknPr44f2AsQn5@tMMFlurhdJRlLFufwDN3T725ck4xOt4fV8yNIsJMdNt6kCZ@/KzwrSCbSQRVfot4GquKrAU0Unr@W6S6o0ARorx6KbSBxaJguSPDsrvwAfZ6fkhmZQWGrVlU17OuoHymh53k6@iHDxJZkqBk6MltgmUPRafL1Fi7UdGTD/PIEbmC1kK12A5h3ZGsHc3mRBHQIh78RKeqfpydv/7@9qoTCmXSHG89O97HOp/yS28CwZWBThm2JiODAXw" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></p>
-<p>The main part is a monadic link that takes a list of integers and returns an empty list for false and a list containing one or more items for truthy. To meet the challenge rules, the program includes another link above the main one which is just filler.</p>
-<p>Completes all test cases including itself in about 17 seconds on TIO. Full explanation to follow. Note the footer turns the falsy and truthy outcomes to 0 and 1 for more compact printing.</p>
-<p>General explanation:</p>
-<ul>
-<li>Remove every possible combination of runs of three (including removing none)</li>
-<li>Check the remaining integers are in groups of length 0 mod 3, except for one that is of length 2 mod 3</li>
-</ul>
 </div>
 <div id="pu3" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 122 bytes</h1>
 
@@ -104,9 +126,9 @@ WÞW+þ@3’œ&amp;ƑƇœ-@€Ʋ€Ẏ$ƬẎŒɠ%¹Ƈɗ€3‘œ&amp;ƑƇ3
 
 <pre class="lang-javascript prettyprint-override"><code>f=&gt;(q=([v,...f],e=0)=&gt;1/v?[2,4,5].some(t=&gt;(n=1,o=f.filter(i=&gt;n*2&gt;t|i-v-t%2*n||!++n),n*2&gt;t&amp;&amp;q(o,e+(t&lt;3)))):e==1)(f.sort())////!%%&amp;55::&gt;??[]efqpt
 </code></pre>
-<p><a href="https://tio.run/##nZBdT8MgFIbv@yuYyRa6sW6lH/uSLl64X6BX2ItmgqupsFGsWbL/Xmlxteqd5DmEHF4O7zmvWZWVe5Uf9VTIZ1bvSM1JAk8E0gp5nsdTxMjcJYk/q7YUoxBFqVfKNwa1kQniI0m4x/NCMwVzkogxTvQln1ZTPcRjcbkMJhPhojY9Gp2gRGwC9W3gmrVmhPgu5Kae0tB1Z2YNhsNRFK3XyXZLU8ZPR13vpShlwbxCvsAb@qDe9eGc3rgbhzoA0DkC8xQ1p9VqhcD35uMgtLu99hHAV4IuZSSLNhVdWZprBGJT5de7oCW8YtVxiymx6NQduP@jxYoaz39JndTxuFT32f4AM0AS0O98BwX7AI@50AG@Uyo7w6yZ4cZxfsznSdBdVpS9AX356uwFre9Fv7/Oq@1s2eLHNgJsIw6b@J/J@hM" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<p><a href="https://tio.run/##nZBdT8MgFIbv@yuYyRa6sW6lH/uSLl64X6BX2ItmgqupsFGsWbL/Xmlxteqd5DmEHF4O7zmvWZWVe5Uf9VTIZ1bvSM1JAk8E0gp5nsdTxMjcJYk/q7YUoxBFqVfKNwa1kQniI0m4x/NCMwVzkogxTvQln1ZTPcRjcbkMJhPhojY9Gp2gRGwC9W3gmrVmhPgu5Kae0tB1Z2YNhsNRFK3XyXZLU8ZPR13vpShlwbxCvsAb@qDe9eGc3rgbhzoA0DkC8xQ1p9VqhcD35uMgtLu99hHAV4IuZSSLNhVdWZprBGJT5de7oCW8YtVxiymx6NQduP@jxYoaz39JndTxuFT32f4AM0AS0O98BwX7AI@50AG@Uyo7w6yZ4cZxfsznSdBdVpS9AX356uwFre9Fv7/Oq@1s2eLHNgJsIw6b@J/J@hM" rel="noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
 <p>The original function is too slow to validate itself on TIO, so we have to use a slightly optimized version:</p>
-<p><a href="https://tio.run/##xY6xboMwFEX3fAWJhPUcjFNIWUgeqB3yB50QA6LPlStiB@NQVeLfqdO9c@94dXXu@ezmbuqdvvnU2HdaL7gqrGBEaGYhpVStIHziWGWHuaZzzliTi2dRtHKyVwIftgYzYVFJpQdPDjRWZp9XftHpnPo435tl2SaJ4eK3ZmwEKygBfz7ykJIQMw4q8JwHzg8h2zhmRVGWVV03Lanx5teBfNQHwQij3d@C/@K2O202vTWTHUgO9gMuYOgretPGH/MX57pveL0rFd4f/g/saf0B" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<p><a href="https://tio.run/##xY6xboMwFEX3fAWJhPUcjFNIWUgeqB3yB50QA6LPlStiB@NQVeLfqdO9c@94dXXu@ezmbuqdvvnU2HdaL7gqrGBEaGYhpVStIHziWGWHuaZzzliTi2dRtHKyVwIftgYzYVFJpQdPDjRWZp9XftHpnPo435tl2SaJ4eK3ZmwEKygBfz7ykJIQMw4q8JwHzg8h2zhmRVGWVV03Lanx5teBfNQHwQij3d@C/@K2O202vTWTHUgO9gMuYOgretPGH/MX57pveL0rFd4f/g/saf0B" rel="noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
 </div>
 <div id="pu5" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E" rel="noreferrer">05AB1E</a>, <s>47</s> <s>47</s> <s>44</s> 41 bytes</h1>
 <pre><code>œʒ3ôDʒ¥J&gt;}gsʒ¥T&gt;SQ}g+3*Ig&gt;Q}ćQ,D¥3›DHUssô
