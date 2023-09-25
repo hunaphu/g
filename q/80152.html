@@ -34,34 +34,52 @@
 <p><span class="math-container">\$\color{red}{\text{But something went wrong. Any help would be appreciated.}}\$</span></p>
 <pre><code>from PIL import Image, ImageDraw
 import numpy as np
+import matplotlib.pyplot as plt
 
 def draw_fractal(s, ls):
+    # Create a new image with a white background
     image = Image.new('RGBA', (s, s), color = (0, 0, 0, 0))
     draw = ImageDraw.Draw(image)
+    
+    # Begin the recursion
     draw_fractal_recursive(draw, s/2, s/2, s/2, 0, ls, s)
-    image.show()
+    
+    # Display the image
+    plt.imshow(np.array(image))
+    plt.show()
 
 def draw_fractal_recursive(draw, x, y, o, depth, ls, s):
     if depth &gt;= len(ls):
         return
 
+    # Chain order to corresponding order in input list
     n = ls[depth]
+    
+    # Calculate inner base circle radius
     i = (o-o*np.sin(np.pi/n))/(np.sin(np.pi/n)+1)
+    
+    # Fill based on depth
     rgba_color = (0, 0, 0, int(255 * np.power(depth/len(ls), 4)))
 
+    # Draw circle
     draw.ellipse((x-o, y-o, x+o, y+o), fill=rgba_color)
 
+    # Recurse on inner circle
     draw_fractal_recursive(draw, x, y, i, depth+1, ls, s)
 
+    # Loop through all circles of the chain
     for r in range(n):
+        # Translate origin to middle of the 2 base circles
         new_x = x + (o+i)/2 * np.cos(2 * np.pi * r / n)
-        new_y = y - (o+i)/2 * np.sin(2 * np.pi * r / n)
+        new_y = y + (o+i)/2 * np.sin(2 * np.pi * r / n)
+        
+        # Recurse on chain circle
         draw_fractal_recursive(draw, new_x, new_y, (o-i)/2, depth+1, ls, s)
 
-# Use the function
+# Call the function
 draw_fractal(600,[13,7,11,5,3])
 </code></pre>
-<p><a href="https://i.stack.imgur.com/8sjRY.png" rel="nofollow noreferrer"><img src="https://i.stack.imgur.com/8sjRY.png" alt="enter image description here" /></a></p>
+<p><a href="https://i.stack.imgur.com/w1ucj.png" rel="nofollow noreferrer"><img src="https://i.stack.imgur.com/w1ucj.png" alt="enter image description here" /></a></p>
 </div>
 <div id="pu1" class="pu"><h1>Javascript ES6, 379 bytes</h1>
 
