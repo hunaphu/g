@@ -26,7 +26,7 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>122</td><td>TypeScript’s Type System</td><td>230926T195804Z</td><td><a href="https://codegolf.stackexchange.com/questions/256890/shortest-digid-app-getpercentagerounds-function/265504#265504">noodle m</a></td></tr>
+<tr d-ix="0"><td>122</td><td>TypeScript’s Type System</td><td>230926T201739Z</td><td><a href="https://codegolf.stackexchange.com/questions/256890/shortest-digid-app-getpercentagerounds-function/265505#265505">noodle m</a></td></tr>
 <tr d-ix="1"><td>070</td><td>Java JDK</td><td>230123T163017Z</td><td><a href="https://codegolf.stackexchange.com/questions/256890/shortest-digid-app-getpercentagerounds-function/257020#257020">Fhuvi</a></td></tr>
 <tr d-ix="2"><td>049</td><td>Julia 0.6</td><td>230120T141355Z</td><td><a href="https://codegolf.stackexchange.com/questions/256890/shortest-digid-app-getpercentagerounds-function/256925#256925">Ashlin H</a></td></tr>
 <tr d-ix="3"><td>085</td><td>Lua</td><td>230410T115342Z</td><td><a href="https://codegolf.stackexchange.com/questions/256890/shortest-digid-app-getpercentagerounds-function/259929#259929">bluswimm</a></td></tr>
@@ -66,10 +66,31 @@
 type F&lt;N,A=[],C=&quot;🔵&quot;&gt;=N extends`0.${A[&quot;length&quot;]}${any}`?F&lt;1,A,&quot;⚪&quot;&gt;:A extends{length:10}?A:F&lt;N,[...A,C],C&gt;
 </code></pre>
 <p><a href="https://www.typescriptlang.org/play?#code/PTAEEYCZNAjBPALgUwM4Ch0gAKNQWgEsBzAOwHsAnZdReAB2VAAkAeAOQBoBBAXgG0AupwDCvAESBeDcCsu+IB8vdqGQAPFKQAmqAAYAGAHQASAN7d+4gDbJSxRAAtxggL4mAhqXhPtAfjbgenOKAVWTyAFzcymrWWsZWNvah4LpO3tyhbFz8+tncosIicph0jKAoqIi64KC8LKziBrryWGCgoAB63rQMTGUVMDVs9fpJ4E0gre2dxT1oFQDM1bVDkGMtk10lvboALIuDBnOrEx0bM+W6AKx7dQbbR60n06WzugBs10MXABz3609bAHYPgYAb9Ht1nucvsD9D9CuMHlMIVsAJwwlFgpGbWZJD7gfSNeFrcHY8rgKoDG4EzGnSGIKAffD4wnNY5Ys70haU8RJXQNGn-HFXbnMzFAA" rel="nofollow noreferrer">Try it at the TypeScript playground!</a></p>
+<p>This is a generic type F that takes a string type N like <code>&quot;0.52&quot;</code> or <code>&quot;-1.2&quot;</code>.</p>
 <p>This runs with no compiler errors. If compiler errors are OK, as in @Asleepace’s submission, then this can be reduced to just 106 bytes:</p>
 <pre class="lang-typescript prettyprint-override"><code>type F&lt;N,A=[],C=&quot;🔵&quot;&gt;=N extends`0.${A[&quot;length&quot;]}${}`?F&lt;1,A,&quot;⚪&quot;&gt;:A extends{length:10}?A:F&lt;N,[...A,C],C&gt;
 </code></pre>
 <p><a href="https://www.typescriptlang.org/play?#code/PTAEEYCZNAjBPALgUwM4Ch2PgB2aACQB4A5AGgEEBeAbQF0yBhKgIkF4NwVl2WA+Kk0ZAA8UAOwAmqAAYAGAHQASAN4UaLADbIRAc0QALFnQC+Sw5ID8xcJTItAVWQ8AXBQHDNExRu16H4aYbMUDsTkNLJhFEwMjNyY2HigKKiI0uCgVIRELHLSPOggoAUAemZYuPiJyTDpxFmyvuC5+UUlceVoyQDMaRm1kI1gzaXxFdIALN01ch39BaDFQ21J0gCsE5lyozODrQnt0gBsa7XLABxbcy1lu0sA7EdyN+fzOyMn97JnMU0XC9fJAJzvf5PS7Ddq+I7gWQ5L4DH4vcGparraEg34VKBHAC0UJheThzyuGK6yJYvmk2TRCKS4FWpNxIKAA" rel="nofollow noreferrer">Try it at the TypeScript playground!</a></p>
+<p>But that’s not something I’m comfortable with using as a default since it breaks precedent of many other submissions.</p>
+<p>Both versions take input as a string like <code>&quot;0.0&quot;</code> rather than a number type like <code>0</code>. If this isn’t acceptable, you can replace <code>N extends</code> with <code> `${N}.0`extends</code> for +6 bytes on either version.</p>
+<p>Both versions work the same, so I’ll explain the version that runs without any errors or warnings:</p>
+<pre class="lang-typescript prettyprint-override"><code>type F&lt;
+  N, // N is the string
+  A=[], // A is the list of dots
+  C=&quot;🔵&quot; // C is the char to append to A
+&gt;=
+  // does N match the pattern 0.{length of A}{anything else} ?
+  // N = 0.52, A = [b,b,b,b,b] -&gt; yes, A = [b] -&gt; no
+  N extends`0.${A[&quot;length&quot;]}${any}`
+  // if so, recurse with N = 1, C = w
+  ?F&lt;1,A,&quot;⚪&quot;&gt;
+  // else: is A is of length 10?
+  :A extends{length:10}
+  // if so, return A
+  ?A
+  // otherwise, recurse with C appended to A
+  :F&lt;N,[...A,C],C&gt;
+</code></pre>
 </div>
 <div id="pu1" class="pu"><h1><a href="http://jdk.java.net/" rel="nofollow noreferrer">Java (JDK)</a>, 70 bytes</h1>
 
