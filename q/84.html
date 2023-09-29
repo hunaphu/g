@@ -26,7 +26,7 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>091</td><td>X86_64/Linux Machine Code</td><td>230815T201325Z</td><td><a href="https://codegolf.stackexchange.com/questions/84/interpret-brainfuck/264220#264220">Noah</a></td></tr>
+<tr d-ix="0"><td>089</td><td>X86_64/Linux Machine Code</td><td>230815T201325Z</td><td><a href="https://codegolf.stackexchange.com/questions/84/interpret-brainfuck/264220#264220">Noah</a></td></tr>
 <tr d-ix="1"><td>nan</td><td>ReRegex</td><td>230925T091933Z</td><td><a href="https://codegolf.stackexchange.com/questions/84/interpret-brainfuck/265479#265479">ATaco</a></td></tr>
 <tr d-ix="2"><td>414</td><td>C gcc Linux AArch64</td><td>230918T081006Z</td><td><a href="https://codegolf.stackexchange.com/questions/84/interpret-brainfuck/265316#265316">ceilingc</a></td></tr>
 <tr d-ix="3"><td>347</td><td>C gcc Linux x86_64</td><td>190103T094035Z</td><td><a href="https://codegolf.stackexchange.com/questions/84/interpret-brainfuck/178298#178298">ceilingc</a></td></tr>
@@ -103,18 +103,18 @@
 <tr d-ix="74"><td>204</td><td>Windows PowerShell</td><td>110213T212506Z</td><td><a href="https://codegolf.stackexchange.com/questions/84/interpret-brainfuck/921#921">Joey</a></td></tr>
 <tr d-ix="75"><td>368</td><td>C</td><td>110131T002311Z</td><td><a href="https://codegolf.stackexchange.com/questions/84/interpret-brainfuck/267#267">jtjacque</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h2>X86_64/Linux Machine Code, <strike>104 101 100 99 98 97 96 95 93 92</strike> 91</h2>
+<div id="pu0" class="pu"><h2>X86_64/Linux Machine Code, <strike>104 101 100 99 98 97 96 95 93 92 91</strike> 89</h2>
 <p><strong>Usage:</strong></p>
 <pre><code>$&gt; gcc -s -static -nostartfiles -nodefaultlibs -nostdlib -Wl,-Tbss=0x7ffe0000 -DBF_IDEAL_BSS -Wl,--build-id=none bf.S -o bf
 $&gt; ./bf &lt;input&gt;
 </code></pre>
 <h4>Notes</h4>
 <ul>
-<li>Size is measured in machine code (i.e 91 bytes of <code>PROGBITS</code>; <code>.text</code>, <code>.data</code>, etc...)</li>
+<li>Size is measured in machine code (i.e 89 bytes of <code>PROGBITS</code>; <code>.text</code>, <code>.data</code>, etc...)</li>
 <li><code>-9</code> bytes if reads input prog from stdin</li>
 <li><code>-4</code> more bytes without <code>BF_EXITCLEANLY</code> (it will segfault to exit).</li>
 <li><code>-2</code> more bytes with <code>BF_BALANCED</code> (assumes that over course of program data cell returns to start).</li>
-<li>So minimum possible size <strong>76</strong> bytes.</li>
+<li>So minimum possible size <strong>74</strong> bytes.</li>
 <li><strong>NOTE</strong> Without the ideal bss setup (at address <code>0x7ffe0000</code> and <code>BF_IDEAL_BSS</code> defined as seen in compile command above) add <code>+2</code> bytes.</li>
 </ul>
 <pre><code>#define BF_LBRACE   91
@@ -180,8 +180,8 @@ _start:
     syscall
 
 
-    /* Stack of braces grows down from below the program code.  */
-    movl    %esi, %esp
+    /* Usage linux' pre-allocated stack for braces.  */
+
     /* Program code grows up.  */
     movl    %esi, %ebx
     /* Assuming no errors, reach stores size in eax. Note errors or
@@ -190,9 +190,14 @@ _start:
        invalid op and we will hit bounds check below. If its error,
        eax is negative so ebx will be negative and likewise we will
        hit bounds check below.  */
+
+#ifdef BF_BALANCED
     addl    %eax, %esi
-#ifndef BF_BALANCED
-    movl    %esi, %ebp
+    xchgl   %eax, %ebp
+#else
+    addl    %esi, %eax
+    xchgl   %eax, %ebp
+    movl    %ebp, %esi
 #endif
 
     /* We have -1 in edx, so negative to get 1. 1 is needed in a
@@ -200,8 +205,9 @@ _start:
     negl    %edx
 run_program:
     /* Need to zero eax.  */
-    movzbl  (%rbx), %eax
+    movb    (%rbx), %al
     incl    %ebx
+
     /* %al contains the program &quot;instruction&quot;. Its unique to one of
        8 values so just test each in order. If instruction matches
        execute it then fallthrough (%al can only ever match one).
@@ -211,10 +217,11 @@ run_program:
     /* TODO: Brace handling could probably be smaller.  */
 try_lbrace:
     cmpb    $BF_LBRACE, %al
-    je  do_brace
+    je  do_lbrace
 try_rbrace:
     cmpb    $BF_RBRACE, %al
     jne try_cont
+do_rbrace:
     /* Popping state (we might repush if we are looping back).  */
     pop %rdx
     pop %rdi
@@ -222,7 +229,7 @@ try_rbrace:
     cmpb    %dl, (%rsi)
     jb  next_insn
     movl    %edi, %ebx
-do_brace:
+do_lbrace:
     /* Restore loop state.  */
 
     push    %rbx
@@ -283,7 +290,7 @@ try_plus:
     /* If not coming from syscall eax is 0/2. 0 --&gt; plus, 2 --&gt;
        minus. So (rsi - eax + 1) translates.  */
     // setbe   %cl
-    
+
     subb    %al, (%rsi)
     incb    (%rsi)
 
