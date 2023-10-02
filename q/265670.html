@@ -26,13 +26,69 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>031</td><td>Haskell + hgl</td><td>231002T151655Z</td><td><a href="https://codegolf.stackexchange.com/questions/265670/write-a-set-as-a-union-of-ranges/265687#265687">Wheat Wi</a></td></tr>
-<tr d-ix="1"><td>148</td><td>JavaScript ES13</td><td>231002T115247Z</td><td><a href="https://codegolf.stackexchange.com/questions/265670/write-a-set-as-a-union-of-ranges/265682#265682">Arnauld</a></td></tr>
+<tr d-ix="0"><td>148</td><td>JavaScript ES13</td><td>231002T115247Z</td><td><a href="https://codegolf.stackexchange.com/questions/265670/write-a-set-as-a-union-of-ranges/265682#265682">Arnauld</a></td></tr>
+<tr d-ix="1"><td>031</td><td>Haskell + hgl</td><td>231002T151655Z</td><td><a href="https://codegolf.stackexchange.com/questions/265670/write-a-set-as-a-union-of-ranges/265687#265687">Wheat Wi</a></td></tr>
 <tr d-ix="2"><td>315</td><td>Python3</td><td>231002T151100Z</td><td><a href="https://codegolf.stackexchange.com/questions/265670/write-a-set-as-a-union-of-ranges/265686#265686">Ajax1234</a></td></tr>
 <tr d-ix="3"><td>126</td><td>Ruby</td><td>231002T092554Z</td><td><a href="https://codegolf.stackexchange.com/questions/265670/write-a-set-as-a-union-of-ranges/265678#265678">G B</a></td></tr>
 <tr d-ix="4"><td>012</td><td>05AB1E</td><td>231002T052145Z</td><td><a href="https://codegolf.stackexchange.com/questions/265670/write-a-set-as-a-union-of-ranges/265671#265671">Command </a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.haskell.org" rel="nofollow noreferrer">Haskell</a> + <a href="https://www.gitlab.com/wheatwizard/haskell-golfing-library" rel="nofollow noreferrer">hgl</a>, 31 bytes</h1>
+<div id="pu0" class="pu"><h1>JavaScript (ES13), 148 bytes</h1>
+<p>Some kind of a compromise between golfiness and speed.</p>
+<p>Output ranges are in reverse order (<a href="https://ato.pxeger.com/run?1=fVGxTsMwEBUr38BgtjM4VuykUCol_QIWGC0PTmOHSJGDaCpi1B9BLB3go-BrODdiQLQMZ93de_fu2X57931td7uPzeCS-eerK8AwX6S0KKEpTFEa_mTrzcretc3DAFCxEaGKu84Mt-YRAvJGboZlUF4v5EVQqU6CEjoZ6VIFvVCBqZFxzoPWlCmFJ4UGDKXctb6GqijPjfL2mdzbASZhQHDdvlhNt1sX_VwKOhn8Ojlb9X7dd5Z3fQMOlGBkhpKnf9uSkewokjNyzYiQx0cRFZGBgbmMXczlIck5IzeRdgCScRaXyRkGbsxSDOxlWGdY51jniOf_XGLvFvlXe89xU_rbnEBcRIHpkX5-8xs" rel="nofollow noreferrer">+5 bytes</a> if this is not acceptable).</p>
+<pre class="lang-javascript prettyprint-override"><code>f=(a,n=0)=&gt;(g=a=&gt;a.reduce((b,x)=&gt;b.flatMap(y=&gt;(x.at?y[n]:2*y[0]-y[1]-x)?[y]:[y,[x,...y]]),[[]]))(g(a)).find(b=&gt;!a[new Set(b.flat()).size])||f(a,n+1)
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=fVGxTsMwEBUr38BgtjM4VuykUCo5_QImRsuD09hRpchBNBUx6mewsXSAj4Kv4dyIAdEynHX33ru7Z_vtPfSN2-8_toPP5p-vXoFlQeVUVdAqqyrLn1yzXTmAmo2I1tx3dri3jxBRMnI7LKMOZiGvos5NFrUw2UiXOpqFjkyPjHMejaFMazwptGAp5X4dGqhVdWl1cM_kwQ0wDQYkN-sXZ-hu55OVa0Enb19nF6s-bPrO8a5vwYMWjMxw5PlfWDJSnGRKRm4ZEfJ0K7IiKTAwlwnFXB4bOWfkLsmOUDL14jI5w8CNRY6BWIF1gXWJdYl8-c8lDm5Rf3PwnDblv80J5EUaMD3Sz0d-Aw" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<h2>Commented</h2>
+
+<h3>Helper function <code>g</code></h3>
+<p>This function computes the powerset of its input, applying the following constraints:</p>
+<ul>
+<li>If the input contains integers, we make sure that the output sets are valid 'ranges' (as per the Python definition).</li>
+<li>If the input contains arrays, we make sure that the output sets contain at most <code>n+1</code> entries (where <code>n</code> is defined in the scope of the main function).</li>
+</ul>
+<p><i></i></p>
+<pre class="lang-javascript prettyprint-override"><code>g = a =&gt;           // a[] = input array
+a.reduce((b, x) =&gt; // for each array x[] in a[],
+                   // using b[] as the accumulator
+  b.flatMap(y =&gt;   //   for each array y[] in b[]:
+    (              //
+      x.at ?       //     if x is an array:
+        y[n]       //       test whether y[n] is defined
+      :            //     else:
+        2 * y[0] - //       test whether y[0] - x is equal
+        y[1] -     //       to y[1] - y[0]
+        x          //
+    ) ?            //     if the above test is truthy:
+      [y]          //       just pass y[]
+    :              //     else:
+      [            //
+        y,         //       pass y[]
+        [x, ...y]  //       create a new entry with x
+      ]            //       inserted at the beginning of y[]
+  ),               //   end of flatMap()
+  [[]]             //   start with b[] = [ [] ]
+)                  // end of reduce()
+</code></pre>
+<h3>Main function <code>f</code></h3>
+<p>This function recursively attempts to find a solution using a single range, then two ranges, and so on. The counter <code>n</code> holds the maximum number of ranges, minus 1.</p>
+<pre class="lang-javascript prettyprint-override"><code>f = (              // f is a recursive function taking:
+  a,               //   a[] = input array
+  n = 0            //   n = counter
+) =&gt;               //
+g(                 // get the powerset ...
+  g(a)             //   ... of the powerset of a[],
+)                  // using the constraints described above
+.find(b =&gt;         // look for an array b[] in there:
+  !a[              //   such that the total number of distinct
+    new Set(       //   items in b[] is equal to the length of
+      b.flat()     //   the input array
+    ).size         //   (i.e. a[number_of_items] is undefined)
+  ]                //
+)                  // end of find()
+|| f(a, n + 1)     // if not found, try again with n + 1
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.haskell.org" rel="nofollow noreferrer">Haskell</a> + <a href="https://www.gitlab.com/wheatwizard/haskell-golfing-library" rel="nofollow noreferrer">hgl</a>, 31 bytes</h1>
 <pre><code>mBl&lt;(sSt&lt;iS^.sr&lt;fo*^sSt(lq&lt;δ))
 </code></pre>
 <p>This is really quite slow.</p>
@@ -60,61 +116,6 @@
 <li>It would be nice to have a version of <code>sSt</code> restricted to non-empty lists. This wouldn't change the big O complexity or anything but it would halve the number of checks that need to be performed.</li>
 <li>As an extension of the above it would be nice to have a version of <code>sSt</code> which would only give the maximum elements, i.e. it would give only subsequences satisfying a predicate that are not subsequences of other subsequences also satisfying the predicate. In our case we don't need to care about the set <code>[2]</code> or <code>[2,3]</code> or <code>[3]</code> etc. if the set <code>[2,3,4]</code> is present, so eliminating those other ones would save a ton of time. It would be fastest if it never generated the bad subsequences, however either way would speed things up.</li>
 </ul>
-</div>
-<div id="pu1" class="pu"><h1>JavaScript (ES13), 148 bytes</h1>
-<p>Some kind of a compromise between golfiness and speed.</p>
-<p>Output ranges are in reverse order (<a href="https://ato.pxeger.com/run?1=fVGxTsMwEBUr38BgtjM4VuykUCol_QIWGC0PTmOHSJGDaCpi1B9BLB3go-BrODdiQLQMZ93de_fu2X57931td7uPzeCS-eerK8AwX6S0KKEpTFEa_mTrzcretc3DAFCxEaGKu84Mt-YRAvJGboZlUF4v5EVQqU6CEjoZ6VIFvVCBqZFxzoPWlCmFJ4UGDKXctb6GqijPjfL2mdzbASZhQHDdvlhNt1sX_VwKOhn8Ojlb9X7dd5Z3fQMOlGBkhpKnf9uSkewokjNyzYiQx0cRFZGBgbmMXczlIck5IzeRdgCScRaXyRkGbsxSDOxlWGdY51jniOf_XGLvFvlXe89xU_rbnEBcRIHpkX5-8xs" rel="nofollow noreferrer">+5 bytes</a> if this is not acceptable).</p>
-<pre class="lang-javascript prettyprint-override"><code>f=(a,n=0)=&gt;(g=a=&gt;a.reduce((b,x)=&gt;b.flatMap(y=&gt;(x.at?y[n]:2*y[0]-y[1]-x)?[y]:[y,[x,...y]]),[[]]))(g(a)).find(b=&gt;!a[new Set(b.flat()).size])||f(a,n+1)
-</code></pre>
-<p><a href="https://ato.pxeger.com/run?1=fVGxTsMwEBUr38BgtjM4VuykUCo5_QImRsuD09hRpchBNBUx6mewsXSAj4Kv4dyIAdEynHX33ru7Z_vtPfSN2-8_toPP5p-vXoFlQeVUVdAqqyrLn1yzXTmAmo2I1tx3dri3jxBRMnI7LKMOZiGvos5NFrUw2UiXOpqFjkyPjHMejaFMazwptGAp5X4dGqhVdWl1cM_kwQ0wDQYkN-sXZ-hu55OVa0Enb19nF6s-bPrO8a5vwYMWjMxw5PlfWDJSnGRKRm4ZEfJ0K7IiKTAwlwnFXB4bOWfkLsmOUDL14jI5w8CNRY6BWIF1gXWJdYl8-c8lDm5Rf3PwnDblv80J5EUaMD3Sz0d-Aw" rel="nofollow noreferrer">Attempt This Online!</a></p>
-<h2>Commented</h2>
-
-<h3>Helper function <code>g</code></h3>
-<p><code>g</code> is helper function that computes the powerset of its input, applying the following constraints:</p>
-<ul>
-<li>If the input contains integers, we make sure that the output sets are valid 'ranges' (as per the Python definition).</li>
-<li>If the input contains arrays, we make sure that the output sets contain at most <code>n+1</code> entries.</li>
-</ul>
-<p><i></i></p>
-<pre class="lang-javascript prettyprint-override"><code>g = a =&gt;           // a[] = input array
-a.reduce((b, x) =&gt; // for each array x[] in a[],
-                   // using b[] as the accumulator
-  b.flatMap(y =&gt;   //   for each array y[] in b[]:
-    (              //
-      x.at ?       //     if x is an array:
-        y[n]       //       test whether y[n] is defined
-      :            //     else:
-        2 * y[0] - //       test whether y[0] - x is equal
-        y[1] -     //       to y[1] - y[0]
-        x          //
-    ) ?            //     if the above test is truthy:
-      [y]          //       just pass y[]
-    :              //     else:
-      [            //
-        y,         //       pass y[]
-        [x, ...y]  //       create a new entry with x
-      ]            //       inserted at the beginning of y[]
-  ),               //   end of flatMap()
-  [[]]             //   start with b[] = [ [] ]
-)                  // end of reduce()
-</code></pre>
-<h3>Main function <code>f</code></h3>
-<pre class="lang-javascript prettyprint-override"><code>f = (              // f is a recursive function taking:
-  a,               //   a[] = input array
-  n = 0            //   n = counter
-) =&gt;               //
-g(                 // get the powerset ...
-  g(a)             //   ... of the powerset of a[],
-)                  // using the constraints described above
-.find(b =&gt;         // look for an array b[] in there:
-  !a[              //   such that
-    new Set(       //   the total number of distinct items
-      b.flat()     //   in b[] is equal to the length of
-    ).size         //   the input array
-  ]                //
-)                  // end of find()
-|| f(a, n + 1)     // if not found, try again with n + 1
-</code></pre>
 </div>
 <div id="pu2" class="pu"><h1>Python3, 315 bytes</h1>
 <pre class="lang-py prettyprint-override"><code>def f(s):
