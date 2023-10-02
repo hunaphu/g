@@ -36,6 +36,54 @@
 <pre class="lang-javascript prettyprint-override"><code>f=(a,n=0)=&gt;(g=a=&gt;a.reduce((a,x)=&gt;a.flatMap(y=&gt;(x.at?y[n]:2*y[0]-y[1]-x)?[y]:[y,[x,...y]]),[[]]))(g(a)).find(b=&gt;!a[new Set(b.flat()).size])||f(a,n+1)
 </code></pre>
 <p><a href="https://ato.pxeger.com/run?1=fVGxTsMwEBUr38BgtjN1rNhJS6nk9AuYGC0PbmNHlSIH0VTEqJ_BxtIBPgq-hnMqBkTLcNbde-_unu2399DV7nD42PU-m3--egWWBZVTVUGjrKosf3L1bu0A8YGm2re2v7ePEFEycNsvow5mIW-izk0WtTDZQJc6moWOTA-Mcx6NoUxrPCk0YCnlfhNqWKnq2urgnsmD62E1DgYkt5sXZ-h-75OViaBHb18XV-subLvW8bZrwIMWjExx5OVfWDJSnGVKRm4ZEfJ8K7IiKTAwlwnFXJ4aOWfkLslOUDL14jI5xcCNRY6BWIF1gXWJdYl8-c8lRreon42e06b8tzmBvEgDjo_085Hf" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<h2>Commented</h2>
+
+<h3>Helper function</h3>
+<p><code>g</code> is helper function that computes the powerset of its input, applying the following constraints:</p>
+<ul>
+<li>If the input contains integers, we make sure that the output sets are valid 'ranges' (as per the Python definition).</li>
+<li>If the input contains arrays, we make sure that the output sets contain at most <code>n+1</code> entries.</li>
+</ul>
+<p><i></i></p>
+<pre class="lang-javascript prettyprint-override"><code>g = a =&gt;           // a[] = input array
+a.reduce((b, x) =&gt; // for each array x[] in a[],
+                   // using b[] as the accumulator
+  b.flatMap(y =&gt;   //   for each array y[] in b[]:
+    (              //
+      x.at ?       //     if x is an array:
+        y[n]       //       test whether y[n] is defined
+      :            //     else:
+        2 * y[0] - //       test whether y[0] - x is equal
+        y[1] -     //       to y[1] - y[0]
+        x          //
+    ) ?            //     if the above test is truthy:
+      [y]          //       just pass y[]
+    :              //     else:
+      [            //
+        y,         //       pass y[]
+        [x, ...y]  //       create a new entry with x
+      ]            //       inserted at the beginning of y[]
+  ),               //   end of flatMap()
+  [[]]             //   start with b[] = [ [] ]
+)                  // end of reduce()
+</code></pre>
+<h3>Main function</h3>
+<pre class="lang-javascript prettyprint-override"><code>f = (              // f is a recursive function taking:
+  a,               //   a[] = input array
+  n = 0            //   n = counter
+) =&gt;               //
+g(                 // get the powerset ...
+  g(a)             //   ... of the powerset of a[],
+)                  // using the constraints described above
+.find(b =&gt;         // look for an array b[] in there:
+  !a[              //   such that
+    new Set(       //   the total number of distinct items
+      b.flat()     //   in b[] is equal to the the length
+    ).size         //   of the input array
+  ]                //
+)                  //
+|| f(a, n + 1)     // if not found, try again with n + 1
+</code></pre>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a>, 126 bytes</h1>
 
