@@ -38,33 +38,32 @@
 
 <pre class="lang-javascript prettyprint-override"><code>f=(a,b=m=a,...p)=&gt;m=p[m.length]?m:b+b?a.map(n=&gt;f(a,a.filter(v=&gt;v-i?b.includes(v):c.push(v)&gt;(i+=n),n-=i=b[0],c=[]),...p,c))&amp;&amp;m:p
 </code></pre>
-<p><a href="https://tio.run/##dVJLa9wwEL77V@hQEomMxfrVbTbIe8qlh@bQo2pY2ZGzCn5hOSYQ8ts3I63XKaEFDcz3mBlp0LOala1GM0xh1z/qUy3wUAWlaIUCzvnARN6KQba80d3TdCz27a68KfeKt2qgnchrdCtem2bSI51FPodmX3LTVc3Lo7Z0ZruKDy/2iFlOzY3oGHShMKKUmwIqIQvmx0DF2NVVuxtOk7ZTpay2RJBDICMgWUHCnJwzT8RAkpXz4EKnQLZAonhVHVEAkfFFWBsgihyDgXnsWMzjL42x9NPmG30aA/kDyK0XfI1DvsBJsWuK0@MMA0cnGwzkEsQJ4hRxinq6vM57V5@flCzIuVPPZAuTLfXnfcSQQAoZfIct3EK0AbwxXhifFaUQrdv7y@aa/cv5dY0Y2/@u0ovBgU@jaSnjdmjMRK//dNfM/41XInLyeqHDfKFnR//8/fCLD2q0mh7kt7f5vTgwdtaplAan6AI/HpHGZ3fB@il43Y/3qjqi76y5dm8BIVXf2b7RvOmfaE0Nw6J3dnf6AA" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
-<pre class="lang-javascript prettyprint-override"><code>a=&gt; // the input array
- (m=a, // use `m` to track the best solution we have ever found
-       // initialize as `a` as the length of best solution
-       //    will always less that length of `a`
-  g=(b, // number remaining to be covered
-   ...p // ranges we already used
-  )=&gt;m=
-    b+b? // if there are any number not covered yet
-    a.map(n=&gt; // choose one number from all inputs
-              // create a range include this one and the first value in `b`
-      g(
-        a.filter(
-          v=&gt; // for every number in input
-            v-i? // if this number could not be next number in this range
-              b.includes(v): // keep it uncovered only if uncovered
-              c.push(v)&gt; // append this number to current range
-                (i+=n), // and calculate next number expected
-          n-=i=b[0], // `i` is next number expected in range
-                     // `n` is step of current range
-          c=[] // `c` is current range
-        ),
-        ...p,c // all ranges including the new one
-      )
-    )&amp;&amp;m:
-    m[p.length]?p:m // if the new answer better than answer seen, use it
-  )(a)
+<p><a href="https://tio.run/##dVJNb9swDL3nV/AwxNLCCPFHljWFnNMuO2yHHTUDUVy50eAv2K7RoehvzyjFcYdiAyyA7/HxkSb4S4@6zzvbDuu6eTCXQtLHNJ5kJTUKIVou00q2qhKlqR@Hc3ao9qfV6aBFpVtWy7QgtRaFLQfTsVGm49oeTsLWefn0YHo28n0u2qf@TFHK7ErWHOu1tPKkNhnmUmXct8Gc8@Wy2reXwfRDrnvTg4TjQoUI2wzWKVwjT0QI8cx5cKMThB1CGM1ZR2QIKrolZgNCoWPoURw5luLonTGVvsm80ZtwoT4j3PmEr3HIF7hU5Eype7SlR63jDT3iYsIx4YRwQvlk@juvnXW@Uzwhp048s52Y7VR/3UeEMSa4xU@4wzsMN0gT08D0W2GC4by9v2TO7F/K92ukt/vvKn1ycRRDZyvGRd@WdmDBzzrg/jaeQabwfKPX6USPjv764/s30equN@yoPryMr9mR82ueKWWpi8no8EBZH90v5qMQRdN90fmZdNecs3tZAORN3TelEWXzyFhDt1MwS5bXqwUpJZgbWC6hEWY03W/WufJuAmxEsN5w9AUdnSiswMJHYJ0KaRGeoknhAEGr@z6APQSFtmWA0NCYr/z@8gc" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<pre class="lang-javascript prettyprint-override"><code>f=(
+  a, // `a` is the input array
+  b= // `b` is uncovered numbers
+    m=a, // `m` is best solution we have ever found
+         // initialize use `a` as length of `a` greater than best answer
+  ...p // all ranges we have used, initialized as empty array
+)=&gt;m= // save best answer we found to `m`
+  p[m.length]?m: // if currently used ranges is more than best answer
+                 // give up attempt and return `m` directly
+  b+b? // if there are numbers not covered yet
+    a.map(n=&gt; // for each number `n` in input
+              // generate a range contains `b[0]` and `n` and step `n-b[0]`
+      f(a,
+        a.filter(v=&gt; // for each number in input
+          v-i?b.includes(v): // keep it in `b` as is if it not belongs to new range
+          c.push(v)&gt; // add it to new range
+            (i+=n), // calculate next expected number
+                    // as `i` always than length of `c` it returns 
+                    //   false to filter this number out from `b`
+          n-=i=b[0], // `i` is next number expected in the new range
+                     // `n` is step of the new range
+          c=[] // `c` is the new range
+        ),...p,c)
+      )&amp;&amp;m: // returns the best answer got so far
+    p // found a better solution, assign it to m
 </code></pre>
 </div>
 <div id="pu1" class="pu"><h1>Python3, 306 bytes</h1>
