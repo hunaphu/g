@@ -26,9 +26,9 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>137</td><td>Scratch 3</td><td>231003T162257Z</td><td><a href="https://codegolf.stackexchange.com/questions/265699/complement-an-infinite-list/265717#265717">math sca</a></td></tr>
-<tr d-ix="1"><td>4948</td><td>JavaScript</td><td>231003T153637Z</td><td><a href="https://codegolf.stackexchange.com/questions/265699/complement-an-infinite-list/265714#265714">m90</a></td></tr>
-<tr d-ix="2"><td>013</td><td>x86 machine code</td><td>231004T082513Z</td><td><a href="https://codegolf.stackexchange.com/questions/265699/complement-an-infinite-list/265738#265738">Peter Co</a></td></tr>
+<tr d-ix="0"><td>013</td><td>x86 machine code</td><td>231004T082513Z</td><td><a href="https://codegolf.stackexchange.com/questions/265699/complement-an-infinite-list/265738#265738">Peter Co</a></td></tr>
+<tr d-ix="1"><td>138</td><td>Scratch 3</td><td>231003T162257Z</td><td><a href="https://codegolf.stackexchange.com/questions/265699/complement-an-infinite-list/265717#265717">math sca</a></td></tr>
+<tr d-ix="2"><td>4948</td><td>JavaScript</td><td>231003T153637Z</td><td><a href="https://codegolf.stackexchange.com/questions/265699/complement-an-infinite-list/265714#265714">m90</a></td></tr>
 <tr d-ix="3"><td>054</td><td>R</td><td>231003T181428Z</td><td><a href="https://codegolf.stackexchange.com/questions/265699/complement-an-infinite-list/265719#265719">Dominic </a></td></tr>
 <tr d-ix="4"><td>019</td><td>Haskell + hgl</td><td>231004T032230Z</td><td><a href="https://codegolf.stackexchange.com/questions/265699/complement-an-infinite-list/265728#265728">Wheat Wi</a></td></tr>
 <tr d-ix="5"><td>009</td><td>Jelly</td><td>231003T222147Z</td><td><a href="https://codegolf.stackexchange.com/questions/265699/complement-an-infinite-list/265723#265723">Nick Ken</a></td></tr>
@@ -43,8 +43,57 @@
 <tr d-ix="14"><td>035</td><td>Ruby</td><td>231003T105247Z</td><td><a href="https://codegolf.stackexchange.com/questions/265699/complement-an-infinite-list/265707#265707">G B</a></td></tr>
 <tr d-ix="15"><td>079</td><td>Python</td><td>231003T091339Z</td><td><a href="https://codegolf.stackexchange.com/questions/265699/complement-an-infinite-list/265704#265704">mousetai</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://scratch.mit.edu/" rel="nofollow noreferrer">Scratch 3</a>, 137 bytes</h1>
-<p><em>-10 bytes by <a href="https://codegolf.stackexchange.com/users/81203/att">att</a></em></p>
+<div id="pu0" class="pu"><h1>x86 machine code, 13 bytes</h1>
+<p>This is basically a function that would be part of a device driver: it repeatedly reads the same address, so that should be an MMIO register for a PCIe device that accepts an input sequence.  It outputs via port I/O to a specified port number (perhaps on the same PCIe device).  Or more realistically, this runs in a VM where the hypervisor handles these streams.  In C for the x86-64 System V ABI, <code>void complement_sequence(int dummy, volatile int *input, uint16_t output_portnum)</code>  (except this is 32-bit code.)</p>
+<p>IDK how justifiable it is to do binary I/O to MMIO and an IO port; it could save bytes incrementing pointers if used for finite challenges, and is not usable as a function on data in memory.  But an infinite series requires I/O, if we pretend that 32-bit fixed-width integers didn't actually cap the input + output size as 4 x 2^32 bytes = 16 GiB, which x86-64 can easily handle.  I don't plan to use this (or C <code>volatile int*</code>) for any finite challenges.</p>
+<pre><code>               ;; MMIO address in ESI for input
+               ;; I/O port number in DX for output (or pointer in EDI for MMIO)
+               complement_sequence:
+ 31C0            xor   eax, eax      ; start as if last value written or considered for writing was 0
+                                     ; So we output (0, first_seq_num) non-inclusive on both ends
+                .next_seq:
+ 8B0E            mov   ecx, [esi]   ; next sequence number
+ A8              db  0xa8  ; opcode for test al, imm8 works like a forward jump by 1 byte  ;  jmp .entry  
+               .write:              ; do {
+ EF              out  dx, eax         ; 1-byte instruction skipped on first iteration
+                .entry:                ; entry point for first inner iteration
+ 40              inc  eax              ; ++next_write
+ 39C8            cmp  eax, ecx
+ 75FA            jne  .write        ; } while(next_write != next_seq);
+ EBF5            jmp  .next_seq
+          ; no ret, we never return
+</code></pre>
+<p><strong>Untested for now</strong>, since it would take some work to write a test harness.  I guess a good approach would be macros or xchg/<code>lodsd</code>/xchg or <code>stosd</code> and pass it pointers to arrays in memory.</p>
+<hr />
+<p>Less golfed is 14 bytes (without <a href="https://codegolf.stackexchange.com/questions/132981/tips-for-golfing-in-x86-x64-machine-code/235553#235553">partial-instruction hack</a> for loop entry skipping the 1-byte <code>out dx, eax</code>.  The code above does that by using the opcode for a 2-byte <code>test al, imm8</code> as equivalent to a 1-byte jmp forward, consuming the first byte as an immediate so it doesn't run on entry to the loop, only on subsequent iterations.)</p>
+<pre><code>;; MMIO address in ESI for input
+;; I/O port number in DX for output (or pointer in EDI for MMIO)
+complement_sequence_less_golfed:
+  xor   eax, eax      ; start as if last value written or considered for writing was 0
+                      ; So we output (0, first_seq_num) non-inclusive on both ends
+ .next_seq:
+  mov   ecx, [esi]   ; next sequence number
+  jmp .entry  
+.write:              ; do {
+  out  dx, eax         ; or  mov  [edi], eax for MMIO
+ .entry:
+  inc  eax               ; ++next_write
+  cmp  eax, ecx
+  jne  .write        ; } while(next_write != next_seq);
+  jmp  .next_seq
+; no ret needed, this is a noreturn function
+</code></pre>
+<p>Algorithm: start with <code>i = 0;</code> (EAX)</p>
+<ul>
+<li>x = input from sequence (ECX)</li>
+<li><code>for ( ; ++i != x ; ) { out(i); }</code></li>
+<li>leave the loop with i == x, so i = previous sequence number.</li>
+<li>repeat, getting a new <code>x</code>.  (With <code>i</code> the same.)</li>
+</ul>
+<p>This feels like a lot of <code>jmp</code> instructions, like maybe there's a better branch layout I'm not seeing.  But with 2 nested loops, one of which might have run 0 iterations of part of the body, I guess this is reasonable.</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://scratch.mit.edu/" rel="nofollow noreferrer">Scratch 3</a>, 138 bytes</h1>
+<p><em>-9 bytes by <a href="https://codegolf.stackexchange.com/users/81203/att">att</a></em></p>
 <pre><code>define
 forever
 set[b v]to(
@@ -61,61 +110,13 @@ add(b)to[a v
 <p><a href="https://scratch.mit.edu/projects/902431730/" rel="nofollow noreferrer">Attempt This Online!</a> | <a href="http://scratchblocks.github.io/#?style=scratch3&script=define%0Aforever%0Aset%5Bb%20v%5Dto(%0Aask()and%20wait%0Aadd(answer)to%5Ba%20v%0Arepeat(answer%0Achange%5Bb%20v%5Dby(1%0Aif%3Cnot%3C%5Ba%20v%5Dcontains(b)%3F%3E%3Ethen%0Asay(b%0Aadd(b)to%5Ba%20v" rel="nofollow noreferrer">Test it on Scratchblocks!</a></p>
 <p>Continuously prompts for input while printing out the missing integers.</p>
 </div>
-<div id="pu1" class="pu"><h1>JavaScript, <del>49</del> 48 bytes</h1>
+<div id="pu2" class="pu"><h1>JavaScript, <del>49</del> 48 bytes</h1>
 
 <pre class="lang-javascript prettyprint-override"><code>function*(L,P=0){for(v of L)while(++P&lt;v)yield P}
 </code></pre>
 <p><a href="https://tio.run/##bZBNbsMgEIXX5hSzqQRx6ibOrhT3AllE6jKKKseBlgYPFsZuo8hnd/FPk03FYkDfe4@Z@crbvC6crvxjXemTdKXFs7z0hQHRqwYLry0u6Ha5Eyt2VdbRFqyCLfv@1EbSON69tOyipTnBrus50cEHd5@aPEZ6QLHmHON4ViuKjHec3LRQOV3KmjJyJdGkSTmJgh0mfwjecODhEgtIGYnuzAeWDsyH/ABCQhRpBRThYYACVgyOTuZn/kc8LALJABlcp9@Qz5IuaDrSkVu8Gkbeo8hwkS5hrBhqY8z82syVYrxmT@lhnGFsbFwHvII2YRfwfBuST1wPnReGesP2b5fyaE2ivXS5t@4wigqLtTUyMfaD7lfLf88hKfOKvotM@wTlj6csaXPTSBYCuv4X" rel="nofollow noreferrer" title="JavaScript (SpiderMonkey) – Try It Online">Try it online!</a></p>
 <p>Takes an iterable and returns an iterable. Starts from 1.</p>
 <p>-1 thanks to bsoelch.</p>
-</div>
-<div id="pu2" class="pu"><h1>x86 machine code, 13 bytes</h1>
-<p>This is basically a function that would be part of a device driver: it repeatedly reads the same address, so that should be an MMIO register for a PCIe device that accepts an input sequence.  It outputs via port I/O to a specified port number (perhaps on the same PCIe device).  Or more realistically, this runs in a VM where the hypervisor handles these streams.  In C for the x86-64 System V ABI, <code>void complement_sequence(int dummy, volatile int *input, uint16_t output_portnum)</code>  (except this is 32-bit code.)</p>
-<p>IDK how justifiable it is to do binary I/O to MMIO and an IO port; it could save bytes incrementing pointers if used for finite challenges, and is not usable as a function on data in memory.  But an infinite series requires I/O, if we pretend that 32-bit fixed-width integers didn't actually cap the input + output size as 4 x 2^32 bytes = 16 GiB, which x86-64 can easily handle.  I don't plan to use this (or C <code>volatile int*</code>) for any finite challenges.</p>
-<pre><code>               ;; MMIO address in ESI for input
-               ;; I/O port number in DX for output (or pointer in EDI for MMIO)
-               complement_sequence:
- 31C0            xor   eax, eax      ; start as if last value written or considered for writing was 0
-                                     ; So we output (0, first_seq_num) non-inclusive on both ends
-                .next_seq:
- 8B0E            mov   ecx, [esi]   ; next sequence number
- A8              db  0xa8  ; opcode for test al, imm8 works like a forward jump by 1 byte  ;  jmp .entry  
-               .write:              ; do {
- EF              out  dx, eax         ; or  mov  [edi], eax
-                .entry:
- 40              inc  eax
- 39C8            cmp  eax, ecx
- 75FA            jne  .write        ; } while(next_write != next_seq);
- EBF5            jmp  .next_seq
-</code></pre>
-<p><strong>Untested for now</strong>, since it would take some work to write a test harness.  I guess a good approach would be macros or xchg/<code>lodsd</code>/xchg or <code>stosd</code> and pass it pointers to arrays in memory.</p>
-<hr />
-<p>Less golfed is 14 bytes (without <a href="https://codegolf.stackexchange.com/questions/132981/tips-for-golfing-in-x86-x64-machine-code/235553#235553">partial-instruction hack</a> for loop entry skipping the 1-byte <code>out dx, eax</code>.  The code above does that by using the opcode for a 2-byte <code>test al, imm8</code> as equivalent to a 1-byte jmp forward, consuming the first byte as an immediate so it doesn't run on entry to the loop, only on subsequent iterations.)</p>
-<pre><code>;; MMIO address in ESI for input
-;; I/O port number in DX for output (or pointer in EDI for MMIO)
-complement_sequence_less_golfed:
-  xor   eax, eax      ; start as if last value written or considered for writing was 0
-                      ; So we output (0, first_seq_num) non-inclusive on both ends
- .next_seq:
-  mov   ecx, [esi]   ; next sequence number
-  jmp .entry  
-.write:              ; do {
-  out  dx, eax         ; or  mov  [edi], eax for MMIO
- .entry:
-  inc  eax               ; ++i
-  cmp  eax, ecx
-  jne  .write        ; } while(next_write != next_seq);
-  jmp  .next_seq
-; no ret needed, this is a noreturn function
-</code></pre>
-<p>Algorithm: start with <code>i = 0;</code> (EAX)</p>
-<ul>
-<li>x = input from sequence (ECX)</li>
-<li><code>for ( ; ++i != x ; ) { out(i); }</code></li>
-<li>leave the loop with i == x, so i = previous sequence number.</li>
-<li>repeat, getting a new <code>x</code>.  (With <code>i</code> the same.)</li>
-</ul>
-<p>This feels like a lot of <code>jmp</code> instructions, like maybe there's a better branch layout I'm not seeing.</p>
 </div>
 <div id="pu3" class="pu"><h1><a href="https://www.r-project.org" rel="nofollow noreferrer">R</a>, 54 bytes</h1>
 <pre class="lang-r prettyprint-override"><code>g=\(f,i,j=1,k=1,l=f(k)&gt;j)`if`(i,g(f,i-l,j+1,k+!l),j-1)
