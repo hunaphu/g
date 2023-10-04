@@ -26,21 +26,14 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>211</td><td>JavaScript Node.js</td><td>231004T141413Z</td><td><a href="https://codegolf.stackexchange.com/questions/265720/generate-conways-atomic-elements/265745#265745">Arnauld</a></td></tr>
-<tr d-ix="1"><td>047</td><td>Jelly</td><td>231004T161734Z</td><td><a href="https://codegolf.stackexchange.com/questions/265720/generate-conways-atomic-elements/265751#265751">Nick Ken</a></td></tr>
+<tr d-ix="0"><td>047</td><td>Jelly</td><td>231004T161734Z</td><td><a href="https://codegolf.stackexchange.com/questions/265720/generate-conways-atomic-elements/265751#265751">Nick Ken</a></td></tr>
+<tr d-ix="1"><td>211</td><td>JavaScript Node.js</td><td>231004T141413Z</td><td><a href="https://codegolf.stackexchange.com/questions/265720/generate-conways-atomic-elements/265745#265745">Arnauld</a></td></tr>
 <tr d-ix="2"><td>201</td><td>Ruby</td><td>231004T061917Z</td><td><a href="https://codegolf.stackexchange.com/questions/265720/generate-conways-atomic-elements/265732#265732">G B</a></td></tr>
 <tr d-ix="3"><td>103</td><td>05AB1E</td><td>231004T082245Z</td><td><a href="https://codegolf.stackexchange.com/questions/265720/generate-conways-atomic-elements/265737#265737">Kevin Cr</a></td></tr>
 <tr d-ix="4"><td>396</td><td>Retina 0.8.2</td><td>231004T075442Z</td><td><a href="https://codegolf.stackexchange.com/questions/265720/generate-conways-atomic-elements/265735#265735">Neil</a></td></tr>
 <tr d-ix="5"><td>174</td><td>Charcoal</td><td>231003T212503Z</td><td><a href="https://codegolf.stackexchange.com/questions/265720/generate-conways-atomic-elements/265721#265721">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 211 bytes</h1>
-<p>Uses the construction described on <a href="http://www.se16.info/js/lands2.htm" rel="nofollow noreferrer">this page</a> (linked from OEIS and pointed out by <a href="https://codegolf.stackexchange.com/users/15599/level-river-st">Level River St</a>).</p>
-
-<pre class="lang-javascript prettyprint-override"><code>B=Buffer;for(i in[...q=B(s=&quot;(3(d   3   38(499  !4M( =3(d2&quot;)])for(v=q[i]*96+B(&quot;.:oyKhZXY;LhXMH:xX]x(ZJKU:oyp&quot;)[i]-3104,k=0;k&lt;=v%8;console.log(k++?s:s=s.substr(v&gt;&gt;8,v/8&amp;31)))s=s.replace(/(.)\1*/g,s=&gt;s.length+s[0])
-</code></pre>
-<p><a href="https://tio.run/##FYxLT4NAFIX/ykiiuVPoAEIMDy8mrIxtlyZYZIF0eAhhKJeS@usRFmfzne@c33zOqRibYdr36iKXJcb4VpZyDEs1QsOaPhVCXDEGQg0cuDDGnC0euL7P2IN7AoYrf9Z4xrfNjNe0yXb@ix6DJgL1d6jPyVd4rJPTe3BPsjucPw6fKx80vop7x7Zco0UrbF9xfvTCQvWkOik6VUGr628UEJKg2w9N63kUecZsek@OzTnfilEOXV5IMEHwb3tnVgZhRKKTfTXVOqVWxpflHw" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 47 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 47 bytes</h1>
 <pre><code>ŒrF
 J‘œṖ€⁸Ç9¡€F⁼ɗƇÇ9¡Ḣ)Ẏḟ®
 3WWḷ;ɼÑWÇÐLƊ€ẎƲÐLḊɼU
@@ -48,12 +41,53 @@ J‘œṖ€⁸Ç9¡€F⁼ɗƇÇ9¡Ḣ)Ẏḟ®
 <p><a href="https://tio.run/##y0rNyan8///opCI3Lq9HDTOOTn64c9qjpjWPGnccbrc8tBDIdHvUuOfk9GPtYP7DHYs0H@7qe7hj/qF1XMbh4Q93bLc@uefwxPDD7Ycn@BzrAqoHSh/bBOQ83NF1ck/o//8A" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></p>
 <p>A full program that runs with no input and outputs the 92 Conway elements. Broadly, this works by starting with <code>[3]</code>, iteratively generating the next look say sequence member and then attempting to iteratively split this into irreducible elements. Each irreducible element thus found is then passed onto the next iteration after filtering out any previously seen ones. Testing for irreducibility is done by splitting a sequence into every possible pairwise split and finding the first where nine generations of look say algorithm produces the same result as running 9 generations on the unsplit sequence. (Nine was found empirically.) Full explanation to follow.</p>
 <p>Note the order is determined by the first time a sequence is seen with this approach, so is not the same as the order in Conway’s paper.</p>
+<h2>Explanation</h2>
+<pre><code>ŒrF                     # ‎⁡Helper link 1: takes a sequence of integers and returns the look say encoding (reversed)
+Œr                      # ‎⁢Run-length encode
+  F                     # ‎⁣Flatten
+
+J‘œṖ€⁸Ç9¡€F⁼ɗƇÇ9¡Ḣ)Ẏḟ®  # ‎⁤Helper link 2: Takes a list of sequences and returns a list of sequences where each of the original ones have been split, if possible, into two
+                  )     # ‎⁢⁡For each sequence in list: 
+J                       # ‎⁢⁢- Range from 1 to length of sequence
+ ‘                      # ‎⁢⁣- Increment by 1
+  œṖ€⁸                  # ‎⁢⁤- Split each of the original sequence just before the index of each of these integers
+            ɗƇ          # ‎⁣⁡- Keep only those where:
+      Ç9¡€F             # ‎⁣⁢  - The result of running helper link 1 on each half of the split and then flattening
+           ⁼            # ‎⁣⁣  - Is equal to:
+              Ç9¡       # ‎⁣⁤    - The result of running helper link 1 on the unsplit sequence
+                 Ḣ      # ‎⁤⁡- Take the first valid split (which will be the original sequence and an empty list if there is no split possible)
+                   Ẏ    # ‎⁤⁢Join outer lists together
+                    ḟ®  # ‎⁤⁣Filter out any sequences already held in the register
+   
+
+3WWḷ;ɼÑWÇÐLƊ€ẎƲÐLḊɼU    # ‎⁤⁤Main link: takes no arguments and returns a list of all 92 elements
+3WW                     # ‎⁢⁡⁡Start with 3 wrapped in a list and wrapped again (i.e. [[3]])
+              ƲÐL       # ‎⁢⁡⁢Repeat the following until no change between iterations:
+    ;ɼÑ                 # ‎⁢⁡⁣- Concatenate the current list of elements to the register
+   ḷ                    # ‎⁢⁡⁤- But then revert to the current list of elements
+           Ɗ€           # ‎⁢⁢⁡- For each element in the list:
+      Ñ                 # ‎⁢⁢⁢  - Use helper link 1 to generate the next look say sequence from this
+       W                # ‎⁢⁢⁣  - Wrap this in a list
+        ÇÐL             # ‎⁢⁢⁤  - Then use helper link 2 to iteratively split the sequence into irreducible elements
+             Ẏ          # ‎⁢⁣⁡- Join outer lists
+                 Ḋɼ     # ‎⁢⁣⁢Remove the first member of the list in the register (will be a 0 that started off there originally)
+                   U    # ‎⁢⁣⁣Finally, reverse each element (since helper link 1 generates them reversed)
+💎
+</code></pre>
+<p>Created with the help of <a href="https://vyxal.github.io/Luminespire" rel="nofollow noreferrer">Luminespire</a>.</p>
 <h2>Alternative without use of the register, 49 bytes</h2>
 <pre><code>ŒrF
 J‘œṖ€⁸Ç9¡€F⁼ɗƇÇ9¡Ḣ
 3WW,⁸ÑWÇ€ẎḟɗƬṪʋ€Ẏ,ɗ;¥/ÐLṪU
 </code></pre>
 <p><a href="https://tio.run/##y0rNyan8///opCI3Lq9HDTOOTn64c9qjpjWPGnccbrc8tBDIdHvUuOfk9GPtYP7DHYu4jMPDdUDyE8MPtwPlH@7qe7hjPlDFmoc7V53qhojonJxufWip/uEJPkDB0P//AQ" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 211 bytes</h1>
+<p>Uses the construction described on <a href="http://www.se16.info/js/lands2.htm" rel="nofollow noreferrer">this page</a> (linked from OEIS and pointed out by <a href="https://codegolf.stackexchange.com/users/15599/level-river-st">Level River St</a>).</p>
+
+<pre class="lang-javascript prettyprint-override"><code>B=Buffer;for(i in[...q=B(s=&quot;(3(d   3   38(499  !4M( =3(d2&quot;)])for(v=q[i]*96+B(&quot;.:oyKhZXY;LhXMH:xX]x(ZJKU:oyp&quot;)[i]-3104,k=0;k&lt;=v%8;console.log(k++?s:s=s.substr(v&gt;&gt;8,v/8&amp;31)))s=s.replace(/(.)\1*/g,s=&gt;s.length+s[0])
+</code></pre>
+<p><a href="https://tio.run/##FYxLT4NAFIX/ykiiuVPoAEIMDy8mrIxtlyZYZIF0eAhhKJeS@usRFmfzne@c33zOqRibYdr36iKXJcb4VpZyDEs1QsOaPhVCXDEGQg0cuDDGnC0euL7P2IN7AoYrf9Z4xrfNjNe0yXb@ix6DJgL1d6jPyVd4rJPTe3BPsjucPw6fKx80vop7x7Zco0UrbF9xfvTCQvWkOik6VUGr628UEJKg2w9N63kUecZsek@OzTnfilEOXV5IMEHwb3tnVgZhRKKTfTXVOqVWxpflHw" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
 </div>
 <div id="pu2" class="pu"><h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a>, <s>256</s> 201 bytes</h1>
 
