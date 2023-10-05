@@ -26,12 +26,51 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>058</td><td>Haskell</td><td>231004T204022Z</td><td><a href="https://codegolf.stackexchange.com/questions/265748/output-the-longest-list/265759#265759">Unrelate</a></td></tr>
-<tr d-ix="1"><td>124</td><td>Ruby</td><td>231004T192244Z</td><td><a href="https://codegolf.stackexchange.com/questions/265748/output-the-longest-list/265758#265758">Value In</a></td></tr>
+<tr d-ix="0"><td>123</td><td>Ruby</td><td>231004T192244Z</td><td><a href="https://codegolf.stackexchange.com/questions/265748/output-the-longest-list/265758#265758">Value In</a></td></tr>
+<tr d-ix="1"><td>058</td><td>Haskell</td><td>231004T204022Z</td><td><a href="https://codegolf.stackexchange.com/questions/265748/output-the-longest-list/265759#265759">Unrelate</a></td></tr>
 <tr d-ix="2"><td>074</td><td>Python</td><td>231004T162942Z</td><td><a href="https://codegolf.stackexchange.com/questions/265748/output-the-longest-list/265752#265752">AnttiP</a></td></tr>
 <tr d-ix="3"><td>158</td><td>Python</td><td>231004T172701Z</td><td><a href="https://codegolf.stackexchange.com/questions/265748/output-the-longest-list/265755#265755">bsoelch</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.haskell.org" rel="nofollow noreferrer">Haskell</a>, <s>67</s> 58 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a>, <s>124</s> 123 bytes</h1>
+<p>Input is an array of <code>Enumerator</code>s. Zips answers together until enough of them reach the ends of their sequences that the ones that remain are all equivalent, prints that, and keeps going.</p>
+<pre class="lang-ruby prettyprint-override"><code>-&gt;a{g=-&gt;{a.map{_1.next rescue p}};t=a;(t=g[]
+t=t.zip(g[]).map{_2&amp;&amp;[*_1,_2]}while(t&amp;t-[p])[1]
+r,=t-[p];p *r)while(t-[p])[0]}
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=fVBLTsMwEBVbn2IkpDYJjhWnHxql6Y4bsLOsKLROidSmxrVVSpqTsKkQHApOg4nTBQuwpTcznnnyvPf6rszD8fxWZh9Gl-HsswkXRbPOwkVTkG0hm5ySWjxrUGK_NAJk26Y6K1JPZ2vGkc40eamkZ3PfjceDAQtyivOYt4fHaiM8PdAhk9xnlCOFs65IJQTK7_uuG_HWrfB1NVmJEqq6BHuugcV4isd4YvEWz3CCaYQpxTTGdIQJIRwB3NVmK1Shd8pue2hOx9NxPo9TsDhNYUz2WsjGFjltWyTqFUJKPJlKCRjqait2Rg_RvUtI_-BFJIomPqx2qCTLYrMBBp7VEMw6pfhnL3t5X3QROJJG7_8geD3jhiU8mPr_Eq167OCX_OTyXWKdsA6MLmyrybl3Prv4DQ" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<h5>Explanation</h5>
+<pre class="lang-ruby prettyprint-override"><code>-&gt;a{                              # Lambda definition
+    g=-&gt;{a.map{_1.next rescue p}} # Lambda to take the next element of each Enumerator
+                                  #  If it throws StopIteration, output nil instead
+    t=a                           # Set t to a as dummy value for while loop
+    (                             # Start of instructions to loop over
+      t=g[]                       #  Overwrite t with the next elements
+                                  #  Start of a one-line while loop
+      t=                          #   Set t to
+        t.zip(g[])                #    t zipped with the next elements
+                                  #    (will look like this: [[1,2,3],4])
+         .map{                    #    Map over the zipped result
+              _2                  #     If next element is nil, return just that
+                &amp;&amp;                #     Otherwise,
+                  [*_1,_2]        #     Combine the elements together
+         }
+       while(t&amp;t-[p])[1]          #  Loop while at least 2 unique non-nil elements of t
+                                  #  Now we know which elements can be safely printed
+      r,=t-[p]                    #  Set r to first non-nil element of t
+      p *r                        #  Print all such elements one at a time
+    )while(t-[p])[0]              # Loop while at least one element of t is not nil
+}
+</code></pre>
+<h3><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a>, 20 bytes, technically against the spirit of the challenge</h3>
+<p>Input is an array of specific kinds of <code>Enumerator::Lazy</code> objects constructed from <code>Array</code>s or <code>Range</code>s, but not created manually with <code>Enumerator.new</code>. Returns an <code>Enumerator::Lazy</code> that can be iterated through later to print results.</p>
+<p>Finite arrays can be written simply as <code>[...].lazy</code>. (The function also accepts the arrays directly, but for the sake of the exercise everything is passed in uniformly so no class-checking is done.)</p>
+<p>Infinite arrays take the form of <code>(0..).lazy.map{...}</code>. For example, even numbers can be represented as <code>(0..).lazy.map{|i|i*2}</code>, the infinite array <code>[2,6,4,5,6,7,8,9,10,11,12,13,...]</code> in the examples can be written as <code>(0..).lazy.map{|i|i==1?6:i+2}</code>, and something more complicated like the Fibonacci sequence can use some custom function, e.g. <code>(0..).lazy.map{|i|SomeFunction(i)}</code></p>
+<p>With this method, infinite arrays will have a <code>size</code> of infinity, and finite arrays will have a <code>size</code> equal to their length. (This is why I'm not allowing enumerators constructed with <code>Enumerator.new</code>, because they have a <code>size</code> of <code>nil</code>.)</p>
+<pre class="lang-ruby prettyprint-override"><code>-&gt;a{a.max_by &amp;:size}
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=m72kqDSpcsHiNNuYpaUlaboWW3TtEqsT9XITK-KTKhXUrIozq1JrIVK3GPsKFNL0khNzcjSiuRQUog11UGCsXk5iVaUOSMZIBwiR-BCmQqymXkl-fCIXScboWCIgkUZqGOrpaSKUGgINMdYx0THVMdMx17HQMUR2miXMoWCjErNTNQxNIWYqaCtEq-vp6anHopluBDMdGEwF1fGGtrbG9mZW8Ya1OgrKIEebIdllqWNooGMI9JaRjqGxDtC0WPwmQLwNNoGgsyDRsmABhAYA" rel="nofollow noreferrer">Attempt This Online!</a></p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.haskell.org" rel="nofollow noreferrer">Haskell</a>, <s>67</s> 58 bytes</h1>
 <pre class="lang-haskell prettyprint-override"><code>foldl1(#)
 (a:b)#(x:y)|a==x=a:b#y
 c#z|(1&lt;$c)&gt;(1&lt;$z)=c|0&lt;1=z
@@ -39,23 +78,6 @@ c#z|(1&lt;$c)&gt;(1&lt;$z)=c|0&lt;1=z
 <p><a href="https://ato.pxeger.com/run?1=m708I7E4OzUnZ0W0km5yQYFS7OI025ilpSVpuhY3rdLyc1JyDDWUNbk0Eq2SNJU1KqwqNWsSbW0rbIF85UquZOWqGg1DG5VkTTsQVaVpm1xjYGNoWwUx4RaTXnJicWqxgpWVQnR0tGdeSWp6alFsbCwXRNhWIZpLAQggJJhlqIMCY3UQUkY6QIgsEAtmxuqQol_HEgEJm2WkY4ysCEPASMcEq0Y9PQxtOiY6pjpmOuY6FjqGKL6wBHoKixlGOmaxCtraCtEmqIahiJOmD-QEVJtBbgH6iAgvkOcjKMmVm5iZB4zt3MQC33gFjYKizLwSBT2FksTsVAVjAyArTVMBnCIgyWbBAggNAA" rel="nofollow noreferrer">Attempt This Online!</a></p>
 <p><em>-9 thanks to AnttiP mixing pattern failure and guard failure</em></p>
 <p>Test harness truncates to run all the cases in one go, but it <a href="https://ato.pxeger.com/run?1=m708I7E4OzUnZ0W0km5yQYFS7OI025ilpSVpuhY3rdLyc1JyDDWUNbk0Eq2SNJU1KqwqNWsSbW0rbIF85UquZOWqGg1DG5VkTTsQVaVpm1xjYGNoWwUx4RaTXnJicWqxgpWVQnR0tGdeSWp6alFsbCwXRNhWIZpLAQggJJhlqIMCY3UQUkY6QIgsEAtmxuqQol_HEgEJm2WkY4ysCEPASMcEq0Y9PQxtOiY6pjpmOuY6FjqGKL6wBHoKixlGOmaxCtraCtEmqIahiJOmD-QEVJtBbgH6iAgvkOcjKMmVm5iZB4zt3MQC33gFjYKizLwSBT2FksTsVAVjAyArTVMBnCIgyWbBAggNAA" rel="nofollow noreferrer">can be run infinitely</a>.</p>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a>, 124 bytes</h1>
-<p>Input is an array of <code>Enumerator</code>s. Zips answers together until enough of them reach the ends of their sequences that the ones that remain are all equivalent, prints that, and keeps going.</p>
-<pre class="lang-ruby prettyprint-override"><code>-&gt;a{g=-&gt;{a.map{_1.next rescue p}};t=a;(t=g[]
-t=t.zip(g[]).map{_2&amp;&amp;[*_1,_2]}while(t&amp;t-[p])[1]
-r,=t-[p];p(*r))while(t-[p])[0]}
-</code></pre>
-<p><a href="https://ato.pxeger.com/run?1=fVHdToMwGI23fYrPaDbA0lD24whjd3sD75qG1K1MEsawlMzJeBJvFqMPpU9jB-zCC22T76f9TnrO6duHqh4Pp_ck-qx04s6-ju5C1JvIXdSCbEVRx5Tk8kWDkuWqklA0TagjEVo62jCOdKTJa1pYpra7cX8wYE5McezzZv-UZtLSA-2ygtuMcqRw1DZhYTnKtvuB7trjTcfh-2q5lgmkeQJm3QDz8RSP8cTEezzDAaYephRTH9MRJoRwBLDMq61UQu-Uobuvj4fjYT73QzBxGsKYlFoWtWli2jRI5muElHyuUiVhqNOt3FV6iB66gvQHlkc8b2LDeocSshJZBgwsI8KZtVLxmZfZvG_aDBwVlS7_AFg94o4F3Jna_wKNetyFX_KDy3OBccI4MLqg-_-5vSarTJTlWWPn5unU5R8" rel="nofollow noreferrer">Attempt This Online!</a></p>
-<h3><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a>, 60 bytes, technically against the spirit of the challenge</h3>
-<p>Input is an array of specific kinds of <code>Enumerator::Lazy</code> objects constructed from <code>Array</code>s or <code>Range</code>s, but not created manually with <code>Enumerator.new</code>.</p>
-<p>Finite arrays can be written simply as <code>[...].lazy</code>. (The function also accepts the arrays directly, but for the sake of the exercise everything is passed in uniformly so no class-checking is done.)</p>
-<p>Infinite arrays take the form of <code>(0..).lazy.map{...}</code>. For example, even numbers can be represented as <code>(0..).lazy.map{|i|i*2}</code>, the infinite array <code>[2,6,4,5,6,7,8,9,10,11,12,13,...]</code> in the examples can be written as <code>(0..).lazy.map{|i|i==1?6:i+2}</code>, and something more complicated like the Fibonacci sequence can use some custom function, e.g. <code>(0..).lazy.map{|i|SomeFunction(i)}</code></p>
-<p>With this method, infinite arrays will have a <code>size</code> of infinity, and finite arrays will have a <code>size</code> equal to their length. (This is why I'm not allowing enumerators constructed with <code>Enumerator.new</code>, because they have a <code>size</code> of <code>nil</code>.) If the longest list is infinite, the first 9 values are produced plus a trailing <code>nil</code> to indicate it as infinite.</p>
-<pre class="lang-ruby prettyprint-override"><code>-&gt;a{r=a.max_by &amp;:size
-r.size.infinite?? [*r.take(9),p]:[*r]}
-</code></pre>
-<p><a href="https://ato.pxeger.com/run?1=m72kqDSpcsHiNNuYpaUlaboWN2107RKri2wT9XITK-KTKhXUrIozq1K5ivRAlF5mXlpmXmZJqr29QrRWkV5JYnaqhqWmTkGsFZAbWwsx4xZjQIFCml5yYk6OQjSXgkK0oQ4KjNXLSayq1AHJGOkAIRIfwlSI5SLJAB1LBCRomIahnp4mQpEhULuxjomOqY6ZjrmOhY4hsnMsYY7DMMQIZggwnAqq4w1tbY3tzaziDWt1FJRBrjJDMtJSx9BAxxDobiMdQ2MdPT29WPwmQPwFNgFmOyRgFyyA0AA" rel="nofollow noreferrer">Attempt This Online!</a></p>
 </div>
 <div id="pu2" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, <s>74</s> 74 bytes</h1>
 <pre class="lang-python prettyprint-override"><code>f=lambda i,n,m=0:1&lt;len(r:={x(n)for x in i if x(m)})and f(i,n,m+1)or sum(r)
