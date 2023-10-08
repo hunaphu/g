@@ -26,10 +26,186 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>061</td><td>Charcoal</td><td>231008T190055Z</td><td><a href="https://codegolf.stackexchange.com/questions/265857/random-factorized-numbers/265864#265864">Neil</a></td></tr>
-<tr d-ix="1"><td>nan</td><td></td><td>231008T143034Z</td><td><a href="https://codegolf.stackexchange.com/questions/265857/random-factorized-numbers/265862#265862">Command </a></td></tr>
+<tr d-ix="0"><td>nan</td><td></td><td>231008T143034Z</td><td><a href="https://codegolf.stackexchange.com/questions/265857/random-factorized-numbers/265862#265862">Command </a></td></tr>
+<tr d-ix="1"><td>nan</td><td></td><td>231008T194507Z</td><td><a href="https://codegolf.stackexchange.com/questions/265857/random-factorized-numbers/265865#265865">Command </a></td></tr>
+<tr d-ix="2"><td>061</td><td>Charcoal</td><td>231008T190055Z</td><td><a href="https://codegolf.stackexchange.com/questions/265857/random-factorized-numbers/265864#265864">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 61 bytes, score 0</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a></h1>
+<p>Thanks to @AndersKaseorg for many improvements and bug fixes.</p>
+<pre class="lang-python prettyprint-override"><code>import math
+import random
+import time
+
+import sympy
+
+
+def gen_factor(N):
+    while True:
+        j = random.randint(1, math.floor(math.log2(N)))
+        q = (1 &lt;&lt; j) + random.randrange(1 &lt;&lt; j)
+        if q &gt; N:
+            continue
+        p, a = sympy.perfect_power(q) or (q, 1)
+        Nt = N // q
+        if random.random() * N &gt;= math.log(p, N) * (((Nt + 1) &gt;&gt; 1) &lt;&lt; j):
+            continue
+        if sympy.isprime(p):
+            return p, a, Nt
+
+
+def bach(N):
+    if N &lt;= 10 ** 5:
+        x = random.randint(N//2 + 1, N)
+        return x, sympy.factorint(x)
+    while True:
+        p, a, Nt = gen_factor(N)
+        newx, factx = bach(Nt)
+        newx *= p ** a
+        if random.random() &lt; math.log(N / 2, newx):
+            factx[p] = factx.get(p, 0) + a
+            return newx, factx
+
+
+def gen(n):
+    return bach((1 &lt;&lt; n) - 1)
+
+
+if __name__ == '__main__':
+    t = time.perf_counter()
+    a = []
+    while time.perf_counter() - t &lt; 10:
+        a.append(gen(500))
+
+    print('Generated', len(a), 'numbers in 10 seconds:')
+    print(*a, sep='\n')
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=hVRLbtswEN10pUt0diIdxT8gQBBY3nanVXdpQDDyyFZgkTRFwfZZusmmPVRP0yElWYqTNgRs8TPz3psP-fO3ObudVq-vvxpX3N7_-fK1rIy2DirpdlE3t1JtdNWvXFlh1C_qc2XOURRtsIAtKlHI3GnLMv4QAY3jrtwjfLcNtms_XiDtEKf-UyrHFkngmxZ7Tc5hutfbJcFwfvE7kB9bwGoFLxxuxhD022J_dLEvC3JZQzYw-5Fr5UrV4GXTJCAJOQQyNWgLzJ0w-oiWHThoC-yQwGKAzRxZZzCbwWFMNZKjK8ZhQjbrFPpYGNFkfpcxRgg3hAjrtf8Poj_RSPitvrI2ltLPzJWHRddYFWIhHtcV5Fnmu0spCCODVQqLOUwmcDf4n97XI5vNll6j1xxdcZySTktbam9-4v8sdq-ION60x8VA4ZEQ_b7X0Sp2b49hkoLxouX_Er4ack3VgWUSfK_yFHgezRNRhel0i86XZu47Sn6U0pG-oc2Z6nA7oyC7bUDF4da3C92QAoRQskIhIE0hFqKSpRIibl19SvxVCj0nct0oRy3XRu4b8vFplNQPDInGUdCL-RChnEpjUG2Yl3g3n9PlCWcmVCn-hgqtdLiJE9iTheQJxKqpntHWUCrfGTVS723qh5iPHCdUwRpNGv9QMW_fie656J-Nvw" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<p>This is a simple implementation of <a href="https://en.wikipedia.org/wiki/Bach%27s_algorithm" rel="nofollow noreferrer">Bach's algorithm</a>, just to get the challenge going. Make sure you have <code>gmpy2</code> installed when running. Can generate around <span class="math-container">\$130\$</span> numbers on my computer.</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C++ (gcc)</a></h1>
+
+<pre class="lang-cpp prettyprint-override"><code>#include &lt;vector&gt;
+#include &lt;map&gt;
+#include &lt;random&gt;
+#include &lt;cmath&gt;
+#include &lt;cstdio&gt;
+#include &lt;iostream&gt;
+#include &lt;gmp.h&gt;
+#include &lt;gmpxx.h&gt;
+
+std::mt19937 rng;
+gmp_randstate_t gmp_rng;
+
+void gen_factor(mpz_t N, int Nexp, double Nbase, mpz_t q, mpz_t p, long int* pexp, double* pbase, int* a, mpz_t Nq) {
+    int bitcnt = mpz_sizeinbase(N, 2);
+    while (1) {
+        int j = std::uniform_int_distribution&lt;&gt;(1, bitcnt-1)(rng);
+        mpz_urandomb(q, gmp_rng, j);
+        mpz_setbit(q, j);
+        if (mpz_probab_prime_p(q, 15)) {
+            mpz_set(p, q);
+            *a = 1;
+        } else if (mpz_perfect_power_p(q)) {
+            mpz_t cur;
+            mpz_init_set(cur, q);
+            *a = 1;
+            do {
+                // long int curexp;
+                // double curbase = mpz_get_d_2exp(&amp;curexp, cur);
+                for (int e = 2; e &lt;= j; e++) {
+                    // double approx = pow(curbase, 1./e) * pow(2, curexp / double(e));
+                    if (/*abs(approx - round(approx)) &lt; 0.1 &amp;&amp; */mpz_root(p, cur, e)) {
+                        *a *= e;
+                        mpz_set(cur, p);
+                        break;
+                    }
+                }
+            } while (mpz_perfect_power_p(cur));
+            mpz_clear(cur);
+            if (!mpz_probab_prime_p(p, 15)) continue;
+        } else {
+            continue;
+        }
+        mpz_fdiv_q(Nq, N, q);
+        int is_odd = mpz_odd_p(Nq);
+        if (is_odd) mpz_add_ui(Nq, Nq, 1);
+        long int Nqexp;
+        double Nqbase = mpz_get_d_2exp(&amp;Nqexp, Nq);
+        *pbase = mpz_get_d_2exp(pexp, p);
+        double prob1 = ldexp(Nqbase / Nbase, Nqexp - Nexp -1+j);
+        double prob = prob1 * (log2(*pbase)+*pexp) / (log2(Nbase)+Nexp);
+        if (std::bernoulli_distribution( prob )(rng)) {
+            if (is_odd) mpz_sub_ui(Nq, Nq, 1);
+            return;
+        }
+    }
+}
+
+void bach(mpz_t v, mpz_t target, std::vector&lt;mpz_class&gt;&amp; factors) {
+    if (mpz_cmp_ui(v, 1e5) &lt; 0) {
+        unsigned int vI = mpz_get_ui(v);
+        int x = std::uniform_int_distribution&lt;&gt;(vI/2+1, vI)(rng);
+        mpz_set_ui(target, x);
+        for (int d = 2; d*d &lt;= x; d++) {
+            while (x % d == 0) {
+                factors.emplace_back(d);
+                x /= d;
+            }
+        }
+        if (x != 1) {
+            factors.emplace_back(x);
+        }
+        return;
+    }
+    mpz_t q, p, Nt;
+    mpz_inits(q, p, Nt, 0);
+    long int Nexp;
+    double Nbase = mpz_get_d_2exp(&amp;Nexp, v);
+    while (1) {
+        int a;
+        long int pexp;
+        double pbase;
+        gen_factor(v, Nexp, Nbase, q, p, &amp;pexp, &amp;pbase, &amp;a, Nt);
+        bach(Nt, target, factors);
+        long int targetexp;
+        double targetbase = mpz_get_d_2exp(&amp;targetexp, target);
+        double logv = (log2(Nbase) + Nexp - 1)/(log2(pbase)*a + pexp*a + log2(targetbase) + targetexp);
+        if (std::bernoulli_distribution(logv)(rng)) {
+            for (int i = 0; i &lt; a; i++) factors.emplace_back(p);
+            mpz_mul(target, target, q);
+            mpz_clears(q, p, Nt, 0);
+            return;
+        }
+    }
+}
+
+void gen(int n, mpz_t target, std::vector&lt;mpz_class&gt;&amp; factors) {
+    mpz_t v;
+    mpz_init2(v, n);
+    mpz_setbit(v, n);
+    mpz_sub_ui(v, v, 1);
+    bach(v, target, factors);
+}
+
+int main() {
+    rng.seed(time(0));
+    gmp_randinit_default(gmp_rng);
+    time_t end = time(0) + 10;
+    int i;
+    for (i = 0; time(0) &lt;= end; i++) {
+        mpz_t target;
+        mpz_init(target);
+        std::vector&lt;mpz_class&gt; factors;
+        gen(500, target, factors);
+        mpz_clear(target);
+    }
+    std::cout &lt;&lt; &quot;generated &quot; &lt;&lt; i-1 &lt;&lt; &quot; numbers\n&quot;;
+}
+</code></pre>
+<p><a href="https://tio.run/##nVdZj6M4EH7Pr/D0aiOToxMyaq1mku73fsn@gZWQASftHjCEa9CM8tc3W@WDAHHmWB5iKNflOr5yojxfHqPocvlDyCipY052DY@qrHiZXCkpy/ufBZNxlvYpUcqqtwGhrGKR9SkiK6uCs4HYMc0f30aEtkXSBOQ/f04r/9Onj3@RQh63E9gL0HJZsYoHFVHfuDFpMhGTI5fBgaHnNM2/wf5@QYSEhbf5gsRZHSac7ENW8gXRDCf7AvtJJo/IPiN5jx@@tIDaYZZ/f/LI9wmBBw2EoopgeVabpfjGhUQhCvY33laxfX0TYJz6VsyKvoOUOmgtxSEr0gCIQSwgUCKsK5HJ3Qv1F8bC0vconNeoxAcN1joZIYXTmIgsyPuIqeQV6ECW/o44EBWqvMhCFsIiUh7kyOU/eX1Xe2ooxObU04HPjMEx/CvtTHhS8qt6XhygooI8@8oL1O/UXZGoLrY3ZCFFpezC7s8t4xNnI@34rFZdhtEOpHjr4jFVAhyYQZPSI4ecBBuQoVMtu0AO71YDpJBQNIGimy0su2fyDut87jmcGhplOeShBUGIEzUeQCYeV9wjM0XcLIzvxApR7jncsLldzVhYUqN3SYqslrH5hBTsyPrRJ9Mpma3wlEWWqeSqOHPvnr8m6rNnwrd3GWytKF25d58xBED44t4@T35MOdumcpUYpse7LaYo4aygt7nDYH1wdEJuOiHKZCVkzW9KfBgjB9ugCw@xaIIT3UOD7Ye1jDUjyiCLY1Nz8Ab296dRt2oeT7EwYKmF1oYt22PtSn1/GlS6BcHTnepW7Kiup2uWu5k1TPaTa7RjDH3gT2JkM7ZWFnmVCSjGvVr8@btbAbaB0jMjNMmOG6rd8OYztOuBPk3eaypqG4VKwWrIC5nVSSIGoEq1CY2m40Ifh7msw3thxqfgVV3IccbPk7OZSiGL3sw8auz4qFgBgVxo5NfDdqfLk5Xly5ToKVZ2M8bgaAToDp6AGp8/qf7t@17LUhwlj1Xem9dewlBmVGvtL8yd5nW1mcPwaV5dY6fUiu1R2t52h4KxRsF4FiMOtvB2i4OmiVvyJ7I/D8/UadQBeeRpnrCIBxDULzR24EpLVs8kHtLPjm7EkLbkA8yOsTmnqf7prkr6qdfU7lqBTVRtJ/0hVlJLX8Ah9d61T7s27d9TXB2quq75ybWCOaAgdyGBaqortXeFgirTtkzfauenuuun5lY0ZXieXnBUteMJbV3YUnY4pFlcXumdOxHoxKyRWwABZGhAso8QZG4QBzK@0hsaUGCWzVVs1IvauJpHsc7eb@ALOuBGl643BDi43sKyg2wRgY3hLL3cMcbSOukaz66ne@POVXe/Cl5QD8pZ@T@Ry@DesBE2WFvSuxLN5XRM1bgL1OaKuqq@Gld5gcvoacqEpNY8JOCx5DymFYxzurY3Avs/Ql0tY35gdVJRc3U2LCgAnnOJEGakoRb89ba79Qv9qhOqk2kZAexA0mT1@2R4y9WuD8EUPaE31ewOsj3zoGvp03r9o6a7Xn4GVnS@lZ0oqyuy25EH0MYL@IMVkwf8FktfkYmsU6j28h/5AMG@XP6NDgk7lpdlApHTv217Wf798T8" rel="nofollow noreferrer" title="C++ (gcc) – Try It Online">Try it online!</a></p>
+<p>A port of my Python answer to C++, using GMP. Can output around 3,300 numbers on my computer.</p>
+</div>
+<div id="pu2" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 61 bytes, score 0</h1>
 <pre><code>≔Ｘ²ＮθＷ¹«≔⟦⊕‽⊖θ⟧υＷ⊖⌊υ⊞υ⊕‽⌊υ≔Φυ▷”8±cGＮºb6﹪←”κυ¿∧‹Πυθ‹‽θΠυＩ⊞ＯυΠυ
 </code></pre>
 <p>Don't <a href="https://tio.run/##ZY9LawJBEITP7q8YPPXAKCaQkyeJEYQ8lhxyCTlMdlu3yTzWeSgS8tsnM8uChhy7u6q@6qaTrrFSpbTynvYGantCB7eCbU0fw3PUn3nkXLADX1anjhQyuOHsu5qMhvetaRxqNAFbeJWmtRrWeFkdOOcfgsVsn4z@6/MTGdJRQ8wyVkffQSzsf5HXuhI10jekQi6YPQ9Hqd6kg6k/6/48J9870jgV7Ku0H/C0Y7AyLTyi91A728Ym5MDym2DDcoSV@XIfmjkyAe6lD1BKvvToZLAD@I9wWf2kdLdYpNlR/QI" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a>; the version of Charcoal on TIO returns <code>None</code> for the product of an empty list while the version of Charcoal on ATO doesn't have access to <code>sympy.isprime</code>, and neither platform makes it easy to output the results when timing Charcoal out. Explanation: Uses Kalai's inefficient algorithm.</p>
@@ -62,57 +238,6 @@
 </code></pre>
 <p><a href="https://tio.run/##bY9NSwMxEIbP3V8ReppAWorgqSfRKj1oFw9exEPcHbqh@dhOktYi/vaYyK61YG4ZnneeeZtOUuOkTqmOvoMoWO2OSHAl2Nr2MTxF856/nPNldeO92lq4w4bQoA3YwqP8UCYaiJwLts/MsVMaGWwIHghlyNGaXBubkJFCCDbOn6VtnYEyOiP5sc9qMphe1/as@uX5m2AxqyaD6@IeZcd7OBsb/bPlL1dWDcJ7pctpObM6SP0iCab@ZPrTXPmelMGpYLvStOi/qpqUDXArfYCi2vRIMrif@EWjZUrXi0WaHfQ3" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code. Still usually crashes out because it can't calculate the product of an empty list, and even when it does find a result, it usually takes more than 10 seconds, but just in case, here's a bash script that restarts the program on error and times out after 10 seconds:
 <a href="https://tio.run/##S0oszvj/vyQzNzW/tERBt1jBIzRAwdBAIQksXp6RmZOqYMWVkq@gn19Qop@ckViUnJ@YA2co6CYrqD/qmne@9f2eHYc2vd@z7lHnlEdd0x71dJxvPbfj/Z7tjzpWPGrYdW4BiAtkPGrYe24HiHdoNUjl/GWPuqaCxR7NXw4yZDtYc9f5VrChEEkIv3PKuWVAatr2Rw1zLQ5tTHYHWnZoV5LZ@52rHrVNAAqe2wU0dff7PSuBWt/vWQ@0EGiNuoJupoKpgYGCkZ1@SmqZfl5pTo6CmppCanJGPowGei8vFQA" rel="nofollow noreferrer" title="Bash – Try It Online">Try it online!</a></p>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a></h1>
-<pre class="lang-python prettyprint-override"><code>import math
-import random
-import time
-
-import sympy
-
-
-def gen_factor(N):
-    while True:
-        j = random.randint(1, N.bit_length()-1)
-        q = (1 &lt;&lt; j) + random.randrange(1 &lt;&lt; j)
-        if q &gt; N:
-            continue
-        p, a = sympy.perfect_power(q) or (q, 1)
-        if not sympy.isprime(p):
-            continue
-        Nt = N // q
-        if random.random() * N &lt; math.log(p, N) * (((Nt + 1) &gt;&gt; 1) &lt;&lt; j):
-            return p, a, Nt
-
-
-def bach(N):
-    if N &lt;= 10 ** 5:
-        x = random.randint(N//2 + 1, N)
-        return x, sympy.factorint(x)
-    while True:
-        p, a, Nt = gen_factor(N)
-        newx, factx = bach(Nt)
-        newx *= p ** a
-        if random.random() &lt; math.log(N / 2, newx):
-            factx[p] = factx.get(p, 0) + a
-            return newx, factx
-
-
-def gen(n):
-    return bach((1 &lt;&lt; n) - 1)
-
-
-if __name__ == '__main__':
-    t = time.perf_counter()
-    a = []
-    while time.perf_counter() - t &lt; 10:
-        a.append(gen(500))
-
-    print('Generated', len(a), 'numbers in 10 seconds:')
-    print(*a, sep='\n')
-</code></pre>
-<p><a href="https://ato.pxeger.com/run?1=hVS9btswEF466SluikhFUewAAYLA8tpNU7c0IBj7ZCuwSJqiYPtZumRpH6pP0yMlWXKStgRs8ee---6-O_LHL3NyW63e3n62rrx5-P3lqqqNtg5q6bZRP7dSrXU9rFxVYzQsmlNtTlEUrbGEDSpRypXTlhX8MQIah221Q_hmW-zWfrxC3nvM_KdSjs3TwJeVO03gMN3pzR254fyM2xOOzWGxgFcO11MX9NvgcHS2r0qCLKEYmf1YaeUq1eJ506QgyXNIJDNoS1w5YfQBLdtz0BbYPoX5hVul-8SzqjGW5GCG_4elcMRRwO0t7KeeJknomnFIyGYBgwCeufCbjDFycE1hwHLp_0Oml5QWXWtVSIdQrq_Ji1xtz9UgQnKfw3wGSQL3I_74sSSsGPl8FNE7nmPaS9BV3EOO_K81H6IinosuORsoPJBHv-9j6aJ2l8eQ5GB84PJfCk7UI7nhLg3Yd1oFnifzTFRhmm3QMYpx5htLfibrJL6x25nq_fZGIeyuDxWHG981dFFKEELJGoWAPIdYiFpWSoi4g3pJ_I0KrSdWulWOOq_L3Pfl0_NE1E8MicZR0vPZmKHMpDGo1syHeD-b0R0KZyZUKf6KCq10uI5T2JGF5CnEqq1f0DZQKd8dDVIDr5vHmE-ACVWwQZPH31XMu-eifzWG1-MP" rel="nofollow noreferrer">Attempt This Online!</a></p>
-<p>This is a simple implementation of <a href="https://en.wikipedia.org/wiki/Bach%27s_algorithm" rel="nofollow noreferrer">Bach's algorithm</a>, just to get the challenge going. Make sure you have <code>gmpy2</code> installed when running. Can generate around <span class="math-container">\$130\$</span> numbers on my computer.</p>
 </div>
 
 <table id="st">
