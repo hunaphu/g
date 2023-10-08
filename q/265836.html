@@ -26,10 +26,90 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>001</td><td>x86 assembly DOS .COM file</td><td>231007T111801Z</td><td><a href="https://codegolf.stackexchange.com/questions/265836/what-is-the-smallest-possible-binary-output-you-can-generate/265844#265844">Nick Ken</a></td></tr>
-<tr d-ix="1"><td>087</td><td>FASM 32bit ELF executable</td><td>231007T074035Z</td><td><a href="https://codegolf.stackexchange.com/questions/265836/what-is-the-smallest-possible-binary-output-you-can-generate/265842#265842">bsoelch</a></td></tr>
+<tr d-ix="0"><td>nan</td><td>All from the blog post linked in the question comments this is not my work</td><td>231008T014114Z</td><td><a href="https://codegolf.stackexchange.com/questions/265836/what-is-the-smallest-possible-binary-output-you-can-generate/265851#265851">SuperSto</a></td></tr>
+<tr d-ix="1"><td>001</td><td>x86 assembly DOS .COM file</td><td>231007T111801Z</td><td><a href="https://codegolf.stackexchange.com/questions/265836/what-is-the-smallest-possible-binary-output-you-can-generate/265844#265844">Nick Ken</a></td></tr>
+<tr d-ix="2"><td>087</td><td>FASM 32bit ELF executable</td><td>231007T074035Z</td><td><a href="https://codegolf.stackexchange.com/questions/265836/what-is-the-smallest-possible-binary-output-you-can-generate/265842#265842">bsoelch</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>x86 assembly DOS .COM file 1 byte</h1>
+<div id="pu0" class="pu"><p>All from the blog post linked in the question comments; this is not my work, all credit goes to Brian Raiter:
+<a href="https://www.muppetlabs.com/%7Ebreadbox/software/tiny/return42.html" rel="nofollow noreferrer">https://www.muppetlabs.com/~breadbox/software/tiny/return42.html</a></p>
+<h2>NASM (32-bit Linux ELF), 45 bytes</h2>
+<pre><code>BITS 32
+  
+        org 0x00010000
+  
+        db  0x7F, &quot;ELF&quot;
+        dd  1
+        dd  0
+        dd  $$
+        dw  2
+        dw  3
+        dd  _start
+        dd  _start
+        dd  4
+_start: mov bl, 42          ; set ebx to exit code 42
+        xor eax, eax        ; set eax to 1 (exit syscall)
+        inc eax
+        int 0x80            ; and exit
+        db  0
+        dw  0x34
+        dw  0x20
+        db  1
+  
+filesize    equ $ - $$
+</code></pre>
+<p>(<a href="https://www.muppetlabs.com/%7Ebreadbox/software/tiny/tiny-i386.asm.txt" rel="nofollow noreferrer">https://www.muppetlabs.com/~breadbox/software/tiny/tiny-i386.asm.txt</a>)</p>
+<h2>NASM (64-bit Linux ELF), 80 bytes</h2>
+<pre><code>BITS 64
+
+        org 0x500000000
+
+        db  0x7F            ; e_ident
+_start: db  &quot;ELF&quot;           ; 3 REX prefixes (no effect)
+        and eax, 0x00000101
+        lea edi, [rax + 42] ; rdi = exit code
+        mov al, 60          ; rax = syscall number
+        syscall             ; exit(rdi)
+        dw  2               ; e_type
+        dw  62              ; e_machine
+        dd  1               ; e_version
+phdr:   dd  1               ; e_entry   ; p_type
+        dd  5               ; p_flags
+        dq  phdr - $$       ; e_phoff   ; p_offset
+        dq  phdr            ; e_shoff   ; p_vaddr
+        dd  0               ; e_flags   ; p_paddr
+        dw  0x40            ; e_ehsize  
+        dw  0x38            ; e_phentsize
+        dw  1               ; e_phnum   ; p_filesz
+        dw  0x40            ; e_shentsize
+        dw  0               ; e_shnum
+        dw  0               ; e_shstrndx
+        dq  0x00400001      ; p_memsz
+        dq  0               ; p_align
+</code></pre>
+<p>(<a href="https://www.muppetlabs.com/%7Ebreadbox/software/tiny/tiny-x64.asm.txt" rel="nofollow noreferrer">https://www.muppetlabs.com/~breadbox/software/tiny/tiny-x64.asm.txt</a>)</p>
+<h2>NASM (Linux a.out), 35 bytes</h2>
+<pre><code>BITS 32
+
+        org     0x1000
+                            ; a.out header
+        dd      0x006400CC  ;   a_info
+        dd  filesize        ;   a_text
+        dd      0           ;   a_data
+_start:     mov bl, 42      ; set exit code ;   a_bss
+        jmp short part2
+        dd  0               ;   a_syms
+        dd  _start          ;   a_entry
+        dd  0               ;   a_trsize
+        dd  0               ;   a_drsize
+
+part2:  inc eax             ; set syscall number
+        int 0x80            ; exit(ebx)
+
+filesize    equ $ - $$
+</code></pre>
+<p>(<a href="https://www.muppetlabs.com/%7Ebreadbox/software/tiny/tiny-aout.asm.txt" rel="nofollow noreferrer">https://www.muppetlabs.com/~breadbox/software/tiny/tiny-aout.asm.txt</a>)</p>
+</div>
+<div id="pu1" class="pu"><h1>x86 assembly DOS .COM file 1 byte</h1>
 <pre><code>ret # assembles to 0xC3
 </code></pre>
 <p>COM files are executable and have no header or other mandatory content. An empty COM file produces an error, so the shortest executable COM file consists of just the RET instruction.</p>
@@ -47,7 +127,7 @@ C:\test.com
 </code></pre>
 <p><a href="https://github.com/mathiasbynens/small" rel="nofollow noreferrer">Mathias Bynen’s small GitHub repo</a>  is also a useful resource for this.</p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://flatassembler.net/" rel="nofollow noreferrer">FASM</a> (32-bit ELF executable), 87 bytes</h1>
+<div id="pu2" class="pu"><h1><a href="https://flatassembler.net/" rel="nofollow noreferrer">FASM</a> (32-bit ELF executable), 87 bytes</h1>
 <p><em>Larger than the final ELF-file in the blog post linked in the comments of the question, but less than a third of the size of the smallest output they were able to generate without directly creating the ELF-file, and a few bytes shorter than the shortest program without overlapping sections in the ELF-file</em></p>
 <pre><code>format ELF executable 3 ; 32 bit elf
 segment readable executable
