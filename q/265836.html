@@ -26,13 +26,92 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>480</td><td>C GCC</td><td>231008T123737Z</td><td><a href="https://codegolf.stackexchange.com/questions/265836/what-is-the-smallest-possible-binary-output-you-can-generate/265859#265859">bsoelch</a></td></tr>
-<tr d-ix="1"><td>063</td><td>Python 3.4.10 .pyc file</td><td>231008T120112Z</td><td><a href="https://codegolf.stackexchange.com/questions/265836/what-is-the-smallest-possible-binary-output-you-can-generate/265858#265858">SuperSto</a></td></tr>
-<tr d-ix="2"><td>nan</td><td>All from the blog post linked in the question comments this is not my work</td><td>231008T014114Z</td><td><a href="https://codegolf.stackexchange.com/questions/265836/what-is-the-smallest-possible-binary-output-you-can-generate/265851#265851">SuperSto</a></td></tr>
+<tr d-ix="0"><td>nan</td><td>All from the blog post linked in the question comments this is not my work</td><td>231008T014114Z</td><td><a href="https://codegolf.stackexchange.com/questions/265836/what-is-the-smallest-possible-binary-output-you-can-generate/265851#265851">SuperSto</a></td></tr>
+<tr d-ix="1"><td>260</td><td>C GCC</td><td>231008T123737Z</td><td><a href="https://codegolf.stackexchange.com/questions/265836/what-is-the-smallest-possible-binary-output-you-can-generate/265859#265859">bsoelch</a></td></tr>
+<tr d-ix="2"><td>063</td><td>Python 3.4.10 .pyc file</td><td>231008T120112Z</td><td><a href="https://codegolf.stackexchange.com/questions/265836/what-is-the-smallest-possible-binary-output-you-can-generate/265858#265858">SuperSto</a></td></tr>
 <tr d-ix="3"><td>001</td><td>x86 assembly DOS .COM file</td><td>231007T111801Z</td><td><a href="https://codegolf.stackexchange.com/questions/265836/what-is-the-smallest-possible-binary-output-you-can-generate/265844#265844">Nick Ken</a></td></tr>
 <tr d-ix="4"><td>087</td><td>FASM 32bit ELF executable</td><td>231007T074035Z</td><td><a href="https://codegolf.stackexchange.com/questions/265836/what-is-the-smallest-possible-binary-output-you-can-generate/265842#265842">bsoelch</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>C (GCC, Linux, x86), 480 bytes</h1>
+<div id="pu0" class="pu"><p>All from the blog post linked in the question comments; this is not my work, all credit goes to Brian Raiter:
+<a href="https://www.muppetlabs.com/%7Ebreadbox/software/tiny/return42.html" rel="nofollow noreferrer">https://www.muppetlabs.com/~breadbox/software/tiny/return42.html</a></p>
+<h2>NASM (32-bit Linux x86 ELF), 45 bytes</h2>
+<pre><code>BITS 32
+  
+        org 0x00010000
+  
+        db  0x7F, &quot;ELF&quot;
+        dd  1
+        dd  0
+        dd  $$
+        dw  2
+        dw  3
+        dd  _start
+        dd  _start
+        dd  4
+_start: mov bl, 42          ; set ebx to exit code 42
+        xor eax, eax        ; set eax to 1 (exit syscall)
+        inc eax
+        int 0x80            ; and exit
+        db  0
+        dw  0x34
+        dw  0x20
+        db  1
+  
+filesize    equ $ - $$
+</code></pre>
+<p>(<a href="https://www.muppetlabs.com/%7Ebreadbox/software/tiny/tiny-i386.asm.txt" rel="nofollow noreferrer">https://www.muppetlabs.com/~breadbox/software/tiny/tiny-i386.asm.txt</a>)</p>
+<h2>NASM (64-bit Linux x86 ELF), 80 bytes</h2>
+<pre><code>BITS 64
+
+        org 0x500000000
+
+        db  0x7F            ; e_ident
+_start: db  &quot;ELF&quot;           ; 3 REX prefixes (no effect)
+        and eax, 0x00000101
+        lea edi, [rax + 42] ; rdi = exit code
+        mov al, 60          ; rax = syscall number
+        syscall             ; exit(rdi)
+        dw  2               ; e_type
+        dw  62              ; e_machine
+        dd  1               ; e_version
+phdr:   dd  1               ; e_entry   ; p_type
+        dd  5               ; p_flags
+        dq  phdr - $$       ; e_phoff   ; p_offset
+        dq  phdr            ; e_shoff   ; p_vaddr
+        dd  0               ; e_flags   ; p_paddr
+        dw  0x40            ; e_ehsize  
+        dw  0x38            ; e_phentsize
+        dw  1               ; e_phnum   ; p_filesz
+        dw  0x40            ; e_shentsize
+        dw  0               ; e_shnum
+        dw  0               ; e_shstrndx
+        dq  0x00400001      ; p_memsz
+        dq  0               ; p_align
+</code></pre>
+<p>(<a href="https://www.muppetlabs.com/%7Ebreadbox/software/tiny/tiny-x64.asm.txt" rel="nofollow noreferrer">https://www.muppetlabs.com/~breadbox/software/tiny/tiny-x64.asm.txt</a>)</p>
+<h2>NASM (Linux x86 a.out), 35 bytes</h2>
+<pre><code>BITS 32
+
+        org     0x1000
+                            ; a.out header
+        dd      0x006400CC  ;   a_info
+        dd  filesize        ;   a_text
+        dd      0           ;   a_data
+_start:     mov bl, 42      ; set exit code ;   a_bss
+        jmp short part2
+        dd  0               ;   a_syms
+        dd  _start          ;   a_entry
+        dd  0               ;   a_trsize
+        dd  0               ;   a_drsize
+
+part2:  inc eax             ; set syscall number
+        int 0x80            ; exit(ebx)
+
+filesize    equ $ - $$
+</code></pre>
+<p>(<a href="https://www.muppetlabs.com/%7Ebreadbox/software/tiny/tiny-aout.asm.txt" rel="nofollow noreferrer">https://www.muppetlabs.com/~breadbox/software/tiny/tiny-aout.asm.txt</a>)</p>
+</div>
+<div id="pu1" class="pu"><h1>C (GCC, Linux, x86 32-bit), 260 bytes</h1>
 <p><em>Feel free to edit this answer if you find ways to improve the score</em></p>
 <p>source code:</p>
 <pre><code>int _start(void){    // using libc significantly increases the score -&gt; need to use _start instead of main
@@ -40,41 +119,28 @@
       &quot;int  $0x80&quot;); // exit program seems to be the only way to exit a program without using the standard library
 }
 </code></pre>
-<p>compiler options: <code>gcc -nostdlib -Oz small.c -Qn -m32 -static -s -N</code></p>
+<p>compiler options: <code>gcc -nostdlib -Oz small.c -Qn -m32 -static -s -N -Wl,--build-id=none -fno-asynchronous-unwind-tables</code></p>
 <p>hexdump:</p>
 <pre><code>00000000: 7f45 4c46 0101 0100 0000 0000 0000 0000  .ELF............
-00000010: 0200 0300 0100 0000 b880 0408 3400 0000  ............4...
-00000020: 1801 0000 0000 0000 3400 2000 0300 2800  ........4. ...(.
-00000030: 0500 0400 0100 0000 9400 0000 9480 0408  ................
-00000040: 9480 0408 5400 0000 5400 0000 0700 0000  ....T...T.......
-00000050: 0400 0000 0400 0000 9400 0000 9480 0408  ................
-00000060: 9480 0408 2400 0000 2400 0000 0400 0000  ....$...$.......
-00000070: 0400 0000 51e5 7464 0000 0000 0000 0000  ....Q.td........
-00000080: 0000 0000 0000 0000 0000 0000 0600 0000  ................
-00000090: 1000 0000 0400 0000 1400 0000 0300 0000  ................
-000000a0: 474e 5500 b9ec ec8c 6409 d0a6 d68c c0ea  GNU.....d.......
-000000b0: fca1 4893 c317 1447 40cd 80c3 1400 0000  ..H....G@.......
-000000c0: 0000 0000 017a 5200 017c 0801 1b0c 0404  .....zR..|......
-000000d0: 8801 0000 1000 0000 1c00 0000 dcff ffff  ................
-000000e0: 0400 0000 0000 0000 002e 7368 7374 7274  ..........shstrt
-000000f0: 6162 002e 6e6f 7465 2e67 6e75 2e62 7569  ab..note.gnu.bui
-00000100: 6c64 2d69 6400 2e74 6578 7400 2e65 685f  ld-id..text..eh_
-00000110: 6672 616d 6500 0000 0000 0000 0000 0000  frame...........
-00000120: 0000 0000 0000 0000 0000 0000 0000 0000  ................
-00000130: 0000 0000 0000 0000 0000 0000 0000 0000  ................
-00000140: 0b00 0000 0700 0000 0200 0000 9480 0408  ................
-00000150: 9400 0000 2400 0000 0000 0000 0000 0000  ....$...........
-00000160: 0400 0000 0000 0000 1e00 0000 0100 0000  ................
-00000170: 0700 0000 b880 0408 b800 0000 0400 0000  ................
-00000180: 0000 0000 0000 0000 0100 0000 0000 0000  ................
-00000190: 2400 0000 0100 0000 0200 0000 bc80 0408  $...............
-000001a0: bc00 0000 2c00 0000 0000 0000 0000 0000  ....,...........
-000001b0: 0400 0000 0000 0000 0100 0000 0300 0000  ................
-000001c0: 0000 0000 0000 0000 e800 0000 2e00 0000  ................
-000001d0: 0000 0000 0000 0000 0100 0000 0000 0000  ................
+00000010: 0200 0300 0100 0000 7480 0408 3400 0000  ........t...4...
+00000020: 8c00 0000 0000 0000 3400 2000 0200 2800  ........4. ...(.
+00000030: 0300 0200 0100 0000 7400 0000 7480 0408  ........t...t...
+00000040: 7480 0408 0400 0000 0400 0000 0700 0000  t...............
+00000050: 0100 0000 51e5 7464 0000 0000 0000 0000  ....Q.td........
+00000060: 0000 0000 0000 0000 0000 0000 0600 0000  ................
+00000070: 1000 0000 40cd 80c3 002e 7368 7374 7274  ....@.....shstrt
+00000080: 6162 002e 7465 7874 0000 0000 0000 0000  ab..text........
+00000090: 0000 0000 0000 0000 0000 0000 0000 0000  ................
+000000a0: 0000 0000 0000 0000 0000 0000 0000 0000  ................
+000000b0: 0000 0000 0b00 0000 0100 0000 0700 0000  ................
+000000c0: 7480 0408 7400 0000 0400 0000 0000 0000  t...t...........
+000000d0: 0000 0000 0100 0000 0000 0000 0100 0000  ................
+000000e0: 0300 0000 0000 0000 0000 0000 7800 0000  ............x...
+000000f0: 1100 0000 0000 0000 0000 0000 0100 0000  ................
+00000100: 0000 0000                                ....
 </code></pre>
 </div>
-<div id="pu1" class="pu"><h1>Python 3.4.10 (.pyc file), 63 bytes</h1>
+<div id="pu2" class="pu"><h1>Python 3.4.10 (.pyc file), 63 bytes</h1>
 <pre class="lang-none prettyprint-override"><code>00000000: ee0c 0d0a 50a6 2265 0000 0000 6300 0000  ....P.&quot;e....c...
 00000010: 0000 0000 0000 0000 0001 0000 0043 0000  .............C..
 00000020: 00f3 0200 0000 4753 a900 a900 a900 a900  ......GS........
@@ -118,85 +184,6 @@ open(&quot;a.pyc&quot;, &quot;w&quot;).write(header + marshal.dumps(code))
 <p>Unsure if this is the shortest Python 2 version; I don't have access to any earlier Python 2 versions to test.</p>
 <hr />
 <p>Thanks to <a href="https://github.com/python/cpython/blob/3.4/Python/marshal.c" rel="nofollow noreferrer">https://github.com/python/cpython/blob/3.4/Python/marshal.c</a> and <a href="https://github.com/fedora-python/marshalparser/" rel="nofollow noreferrer">https://github.com/fedora-python/marshalparser/</a></p>
-</div>
-<div id="pu2" class="pu"><p>All from the blog post linked in the question comments; this is not my work, all credit goes to Brian Raiter:
-<a href="https://www.muppetlabs.com/%7Ebreadbox/software/tiny/return42.html" rel="nofollow noreferrer">https://www.muppetlabs.com/~breadbox/software/tiny/return42.html</a></p>
-<h2>NASM (32-bit Linux ELF), 45 bytes</h2>
-<pre><code>BITS 32
-  
-        org 0x00010000
-  
-        db  0x7F, &quot;ELF&quot;
-        dd  1
-        dd  0
-        dd  $$
-        dw  2
-        dw  3
-        dd  _start
-        dd  _start
-        dd  4
-_start: mov bl, 42          ; set ebx to exit code 42
-        xor eax, eax        ; set eax to 1 (exit syscall)
-        inc eax
-        int 0x80            ; and exit
-        db  0
-        dw  0x34
-        dw  0x20
-        db  1
-  
-filesize    equ $ - $$
-</code></pre>
-<p>(<a href="https://www.muppetlabs.com/%7Ebreadbox/software/tiny/tiny-i386.asm.txt" rel="nofollow noreferrer">https://www.muppetlabs.com/~breadbox/software/tiny/tiny-i386.asm.txt</a>)</p>
-<h2>NASM (64-bit Linux ELF), 80 bytes</h2>
-<pre><code>BITS 64
-
-        org 0x500000000
-
-        db  0x7F            ; e_ident
-_start: db  &quot;ELF&quot;           ; 3 REX prefixes (no effect)
-        and eax, 0x00000101
-        lea edi, [rax + 42] ; rdi = exit code
-        mov al, 60          ; rax = syscall number
-        syscall             ; exit(rdi)
-        dw  2               ; e_type
-        dw  62              ; e_machine
-        dd  1               ; e_version
-phdr:   dd  1               ; e_entry   ; p_type
-        dd  5               ; p_flags
-        dq  phdr - $$       ; e_phoff   ; p_offset
-        dq  phdr            ; e_shoff   ; p_vaddr
-        dd  0               ; e_flags   ; p_paddr
-        dw  0x40            ; e_ehsize  
-        dw  0x38            ; e_phentsize
-        dw  1               ; e_phnum   ; p_filesz
-        dw  0x40            ; e_shentsize
-        dw  0               ; e_shnum
-        dw  0               ; e_shstrndx
-        dq  0x00400001      ; p_memsz
-        dq  0               ; p_align
-</code></pre>
-<p>(<a href="https://www.muppetlabs.com/%7Ebreadbox/software/tiny/tiny-x64.asm.txt" rel="nofollow noreferrer">https://www.muppetlabs.com/~breadbox/software/tiny/tiny-x64.asm.txt</a>)</p>
-<h2>NASM (Linux a.out), 35 bytes</h2>
-<pre><code>BITS 32
-
-        org     0x1000
-                            ; a.out header
-        dd      0x006400CC  ;   a_info
-        dd  filesize        ;   a_text
-        dd      0           ;   a_data
-_start:     mov bl, 42      ; set exit code ;   a_bss
-        jmp short part2
-        dd  0               ;   a_syms
-        dd  _start          ;   a_entry
-        dd  0               ;   a_trsize
-        dd  0               ;   a_drsize
-
-part2:  inc eax             ; set syscall number
-        int 0x80            ; exit(ebx)
-
-filesize    equ $ - $$
-</code></pre>
-<p>(<a href="https://www.muppetlabs.com/%7Ebreadbox/software/tiny/tiny-aout.asm.txt" rel="nofollow noreferrer">https://www.muppetlabs.com/~breadbox/software/tiny/tiny-aout.asm.txt</a>)</p>
 </div>
 <div id="pu3" class="pu"><h1>x86 assembly DOS .COM file 1 byte</h1>
 <pre><code>ret # assembles to 0xC3
