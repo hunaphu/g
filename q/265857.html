@@ -26,11 +26,140 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>066</td><td>Charcoal</td><td>231008T190055Z</td><td><a href="https://codegolf.stackexchange.com/questions/265857/random-factorized-numbers/265864#265864">Neil</a></td></tr>
-<tr d-ix="1"><td>nan</td><td></td><td>231008T143034Z</td><td><a href="https://codegolf.stackexchange.com/questions/265857/random-factorized-numbers/265862#265862">Command </a></td></tr>
-<tr d-ix="2"><td>nan</td><td></td><td>231008T194507Z</td><td><a href="https://codegolf.stackexchange.com/questions/265857/random-factorized-numbers/265865#265865">Command </a></td></tr>
+<tr d-ix="0"><td>nan</td><td></td><td>231008T194507Z</td><td><a href="https://codegolf.stackexchange.com/questions/265857/random-factorized-numbers/265865#265865">Command </a></td></tr>
+<tr d-ix="1"><td>066</td><td>Charcoal</td><td>231008T190055Z</td><td><a href="https://codegolf.stackexchange.com/questions/265857/random-factorized-numbers/265864#265864">Neil</a></td></tr>
+<tr d-ix="2"><td>nan</td><td></td><td>231008T143034Z</td><td><a href="https://codegolf.stackexchange.com/questions/265857/random-factorized-numbers/265862#265862">Command </a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 66 bytes, score 0 (usually)</h1>
+<div id="pu0" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C++ (gcc)</a></h1>
+
+<pre class="lang-cpp prettyprint-override"><code>#include &lt;vector&gt;
+#include &lt;map&gt;
+#include &lt;random&gt;
+#include &lt;cmath&gt;
+#include &lt;cstdio&gt;
+#include &lt;iostream&gt;
+#include &lt;gmp.h&gt;
+#include &lt;gmpxx.h&gt;
+
+std::mt19937 rng;
+gmp_randstate_t gmp_rng;
+
+void gen_factor(mpz_t N, int Nexp, double Nbase, mpz_t q, long int* qexp, double* qbase, mpz_t p, int* a, mpz_t Nq) {
+    int bitcnt = mpz_sizeinbase(N, 2);
+    while (1) {
+        int j = std::uniform_int_distribution&lt;&gt;(1, bitcnt-1)(rng);
+        mpz_urandomb(q, gmp_rng, j);
+        mpz_setbit(q, j);
+        if (mpz_cmp(q, N) &gt; 0) continue;
+       &#32;
+        mpz_fdiv_q(Nq, N, q);
+        int is_odd = mpz_odd_p(Nq);
+        if (is_odd) mpz_add_ui(Nq, Nq, 1);
+        long int Nqexp;
+        double Nqbase = mpz_get_d_2exp(&amp;Nqexp, Nq);
+        *qbase = mpz_get_d_2exp(qexp, q);
+        double prob1 = ldexp(Nqbase / Nbase, Nqexp - Nexp -1+j);
+        double prob = prob1 * (log2(*qbase)+*qexp) / (log2(Nbase)+Nexp);
+
+        if (!std::bernoulli_distribution(prob)(rng)) continue;
+
+        if (mpz_probab_prime_p(q, 15)) {
+            mpz_set(p, q);
+            *a = 1;
+        } else if (mpz_perfect_power_p(q)) { // test is significant
+            mpz_t cur;
+            mpz_init_set(cur, q);
+            *a = 1;
+            do {
+                for (int e = 2; e &lt;= j; e++) {
+                    // double approx = pow(curbase, 1./e) * pow(2, curexp / double(e));
+                    if (/*abs(approx - round(approx)) &lt; 0.1 &amp;&amp; */mpz_root(p, cur, e)) {
+                        *a *= e;
+                        mpz_set(cur, p);
+                        break;
+                    }
+                }
+            } while (mpz_perfect_power_p(cur));
+            mpz_clear(cur);
+            if (!mpz_probab_prime_p(p, 15)) continue;
+        } else {
+            continue;
+        }
+
+        if (*a &gt; 1 &amp;&amp; !std::bernoulli_distribution(1. / *a)(rng)) continue;
+
+        if (is_odd) mpz_sub_ui(Nq, Nq, 1);
+        return;
+    }
+}
+
+void bach(mpz_t v, mpz_t target, std::vector&lt;mpz_class&gt;&amp; factors) {
+    if (mpz_cmp_ui(v, 1e5) &lt; 0) {
+        unsigned int vI = mpz_get_ui(v);
+        int x = std::uniform_int_distribution&lt;&gt;(vI/2+1, vI)(rng);
+        mpz_set_ui(target, x);
+        factors.clear();
+        for (int d = 2; d*d &lt;= x; d++) {
+            while (x % d == 0) {
+                factors.emplace_back(d);
+                x /= d;
+            }
+        }
+        if (x != 1) {
+            factors.emplace_back(x);
+        }
+        return;
+    }
+    mpz_t q, p, Nt;
+    mpz_inits(q, p, Nt, 0);
+    long int Nexp;
+    double Nbase = mpz_get_d_2exp(&amp;Nexp, v);
+    while (1) {
+        int a;
+        long int qexp;
+        double qbase;
+        gen_factor(v, Nexp, Nbase, q, &amp;qexp, &amp;qbase, p, &amp;a, Nt);
+        bach(Nt, target, factors);
+        long int targetexp;
+        double targetbase = mpz_get_d_2exp(&amp;targetexp, target);
+        double logv = (log2(Nbase) + Nexp - 1)/(log2(qbase) + qexp + log2(targetbase) + targetexp);
+        if (std::bernoulli_distribution(logv)(rng)) {
+            for (int i = 0; i &lt; a; i++) factors.emplace_back(p);
+            mpz_mul(target, target, q);
+            mpz_clears(q, p, Nt, 0);
+            return;
+        }
+    }
+}
+
+void gen(int n, mpz_t target, std::vector&lt;mpz_class&gt;&amp; factors) {
+    mpz_t v;
+    mpz_init2(v, n);
+    mpz_setbit(v, n);
+    mpz_sub_ui(v, v, 1);
+    bach(v, target, factors);
+}
+
+int main() {
+    rng.seed(time(0));
+    gmp_randinit_default(gmp_rng);
+    time_t end = time(0) + 10;
+    int i;
+    for (i = 0; time(0) &lt;= end; i++) {
+        mpz_t target;
+        mpz_init(target);
+        std::vector&lt;mpz_class&gt; factors;
+        gen(500, target, factors);
+        mpz_clear(target);
+    }
+    std::cout &lt;&lt; "generated " &lt;&lt; i-1 &lt;&lt; " numbers\n";
+}
+</code></pre>
+<p><a href="https://tio.run/##nVfbbuM4DH3PV2i62MBOnIszKBYzSfvel@wPLGDItpKqY8uObzVmkF/fLKlLLDtOO1gDrWySIinykFSiPF8co@hy@YOLKKljRnYNi6qseJ50lJTm9mdBRZylNiVKafXaI5RVzDObwrOyKhjtbTum@fJ1QGhbJE1g//fvaeV/@/b1L1KI43YCvAAtlxWtWFAR@Y2MSZPxmByZCA4UPXfS/Cfw9x7hAhbW5h6JszpMGNmHtGQeUQInjySZOKLUjJwsMfiy5XJPiVBD2J9c8mtC4EEDIa8iWJ4ks@Q/GRe42wH7G3crxd5fORh3fLPNbH2DXfKgteCHrEgDIAYxh0DxsK54JnbPju9pCwvfdeC8WiU@aLBWyQgdOI2OiEfeBkIlq0AHitgcfiAyVFGaI2vvkmeydkmUiYqLmnWCPV2HmDfBydnjDo@cbH1wIl4GWRzrYMBbkIPkwKaScaUIBZGaK23w51uiJjfAgNx0dJNKmSNt6cggbsEG5JzpXqWyZ3Z2R1iJ2pJae15koQ/ySYxi2tbK4EeaIAuJLbLw52/jCmC/0jMjTpIdN45yw53PcL8L@hR5r6ioDRT1YvVFwiNkhcjqJOE9cDioXGHCztpNflGMhrDwlAUy1f6ja0PRgokzCIcMHoWD@B3tTFgC0biqZ8UBOkaQZ@@sQP2om6xWpGIlAoKU/Ajw5hEV1Y3JikR1sb0hc8Er6Q5wP3dIhX1wIHygpgBuACFM/WYLy@6JvME6n7sj4viA3zqDNIfAtZjD7B39UKn3lyvmQkKRuPHQe8SA2eQwd@CrnYzVjIalo/UuSJHVItafELMdWS99Mp2S2QpDUGSZzIaMAHPv@avjMXsibHtXwCRX6srd@4IhdOgf4@zz5GPK2XS5MUyA4WFgZOdJGC0ks8@TyB@Bbq6he9uiNCb7MRoR61cHBO6ZyJh/WGf@EhI8o5@Umt3Wyjq819YKVtWFUN/nyVlPr5BGr3puNWbMVLSAVuWpCaGG8k5FjZbl85SoaVdeZ1HXztE2qPHZo4SVjZ1aYDmyWHbW5sVqibhn0M3b35hPzctqM4ch1byMjadSKTZHaS22dn@pQGAzTNXGqmrjWYx128Lbbd1q0LXkTxR/6h92aIqleUIjFkC0fzjxSB20ZPVE4j79PLl9w1i35At0oaG5UVP2sc93kNB1RAAMzq9qO7HbYekYugeHVLxuRF4npH3RGRuOcuA1n9xL6MgUHh3Ccp51VOsOBvBTtvTIBOenatpO9eUKXymexwqOLAM8oQGMwfiIQ0pkzCvFuROB6zZj5HZ2w1BuYKc9nMlcD3vI@EoxToYhLwNzIomdaeRcbQ1uQB81GzRuOs0AWqYuODi33sKyg0wRjkUxCrt8pOWmdXKtRrOe7rXmMcyNobdDcNfRAAvSWfE/25luhv0i2CCuhNsR9c12SFXtF6hN13wltpoxaIHL6GlKuXCMeUjAsmQsdioYPc7aTC/zI0ReUGJ2oHVSOfrerUVwA3jOBLYvvRuw4K@3158MXL2qhKpkGkFodLBTZ/XXpH9XUq73Oyx64twgeTzI5sy9inUe1@uPCq4b1D0rKt/STpTVFdntyANoYwX8OovJA37zhS/JRNQpoL38RzxAsC@Xf6NDQo/lZZFA5NT/tr0s/v76Hw" rel="nofollow noreferrer" title="C++ (gcc) – Try It Online">Try it online!</a></p>
+<p>A port of my Python answer to C++, using GMP. Can output around 9,000 numbers on my computer. Compile with <code>-lgmp -lgmpxx -O3</code>.</p>
+<p>This could be much faster by using a tighter probability envelope and the exact probability for small numbers, but I'm too tired to do this now. I might do it tomorrow.</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 66 bytes, score 0 (usually)</h1>
 <pre><code>≔Ｘ²ＮθＷ¹«≔⟦⊕‽⊖θ⟧υＷ⊖⌊υ⊞υ⊕‽⌊υ≔Φυ▷”8±cGＮºb6﹪←”κυ¿∧‹Πυθ‹‽θΠυ«⟦Ｉ⊞ＯυΠυ⟧Ｄ⎚
 </code></pre>
 <p><a href="https://tio.run/##ZU85a8MwFJ7tXyEyPYFa0kKnTiFJIdDDdOgSMqi2Uovoio6EUPLbVT1jiKFa9I7vem3PfWu5ynkRgvwx0Niz8PDIyMa4FN@T/i4tpYwc6XN97qUSBB4o@a2rkbDdmNYLLUwUHXxy01kNK3EbHSmlO0ZSoVcjf7p@k0bqpCEVGGlS6CGh9z/JKQ6lRvcXqWIJWDjrE1df3MMsXLS73MvgvNRixsgB0w/2ck9gYTpE4/cqQoDG2y61sejiiYwMw9ET@9seH95dNV6aCNslDxEw8YcTnkc7pJjCd@hZrZJ2MFRLJUo@LK/1Neen@TzfndQf" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code with extra check because the version of Charcoal on TIO returns <code>None</code> for the product of an empty list and I can't use the version of Charcoal on ATO for multiple reasons. Note that you need to interrupt (<code>^C</code> if running locally or TIO's button) the code manually after ten seconds otherwise it will never print anything. Explanation: Uses Kalai's inefficient algorithm.</p>
@@ -68,7 +197,7 @@
 <p><a href="https://tio.run/##bY9NSwMxEIbP3V8ReppAWorgqSfRKj1oFw9exEPcHbqh@dhOktYi/vaYyK61YG4ZnneeeZtOUuOkTqmOvoMoWO2OSHAl2Nr2MTxF856/nPNldeO92lq4w4bQoA3YwqP8UCYaiJwLts/MsVMaGWwIHghlyNGaXBubkJFCCDbOn6VtnYEyOiP5sc9qMphe1/as@uX5m2AxqyaD6@IeZcd7OBsb/bPlL1dWDcJ7pctpObM6SP0iCab@ZPrTXPmelMGpYLvStOi/qpqUDXArfYCi2vRIMrif@EWjZUrXi0WaHfQ3" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code. Still usually crashes out because it can't calculate the product of an empty list, and even when it does find a result, it usually takes more than 10 seconds, but just in case, here's a bash script that restarts the program on error and times out after 10 seconds:
 <a href="https://tio.run/##S0oszvj/vyQzNzW/tERBt1jBIzRAwdBAIQksXp6RmZOqYMWVkq@gn19Qop@ckViUnJ@YA2co6CYrqD/qmne@9f2eHYc2vd@z7lHnlEdd0x71dJxvPbfj/Z7tjzpWPGrYdW4BiAtkPGrYe24HiHdoNUjl/GWPuqaCxR7NXw4yZDtYc9f5VrChEEkIv3PKuWVAatr2Rw1zLQ5tTHYHWnZoV5LZ@52rHrVNAAqe2wU0dff7PSuBWt/vWQ@0EGiNuoJupoKpgYGCkZ1@SmqZfl5pTo6CmppCanJGPowGei8vFQA" rel="nofollow noreferrer" title="Bash – Try It Online">Try it online!</a></p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a></h1>
+<div id="pu2" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a></h1>
 <p>Thanks to @AndersKaseorg for many improvements and bug fixes.</p>
 <pre class="lang-python prettyprint-override"><code>import math
 import random
@@ -121,129 +250,6 @@ if __name__ == '__main__':
 </code></pre>
 <p><a href="https://ato.pxeger.com/run?1=hVRNj5swEL30xK-YGzbLElhppWoVcu2NS3vbriwHhoRVMI4xSvJbetlL-6P6azrmIyHbbWOJD8O8ec8zz_7xS5_stlFvbz87W95__v3pa1Xrxliopd1647uRqmjqaWarGr1p0p5qffI8r8ASNqhEKXPbGJbxJw9oHLbVDuGb6XCYu_EK6Zgxco9KWZaEkEXryoodqo3dMg73kPAzYk8IlsByCa8c7uZgujY4_TrHVyVBVpBdON3IG2Ur1eH5Y2YpbwaLBezn0Fn6piYpq7QvRrRrNmxPQjkEwBgj9B2JhNXK3Qdti5ucOgRJrH3ZIo2mxNwK3RzQsD2HxoCjSPgNPQkxyRtMhBxYqlYbahnT_Bph0HZG9YpoVXZs4lrm23P7KEcGS-KLIQjg8YI__t3DbLF4cBVxFfLecRzDUctgDxd-5P80yKSIOK4sdQ5QeKCM7rvTMSi2178hSEE70fJ_pVxeOks-gIewx76rU8_zrF-Iqn-NNmgZaYydF-VHJZ3pu2wNpsa8Y1Ave7CuGv1Ou6oEIZSsUQhIU_CFqGWlhPAHqCuJ2369c0TedMqScYaVO1s9v8yK-kEg0VhadBJfVigjqTWqgjmJj3HMSUbfhL5L_hdUaKTFwg-BNieTPARfdfUaTQuVcs5okbxXtE8-nwED6mCLOvW_K58PZ8t4xExHzR8" rel="nofollow noreferrer">Attempt This Online!</a></p>
 <p>This is a simple implementation of <a href="https://en.wikipedia.org/wiki/Bach%27s_algorithm" rel="nofollow noreferrer">Bach's algorithm</a>, just to get the challenge going. Make sure you have <code>gmpy2</code> installed when running. Can generate around <span class="math-container">\$130\$</span> numbers on my computer.</p>
-</div>
-<div id="pu2" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C++ (gcc)</a></h1>
-
-<pre class="lang-cpp prettyprint-override"><code>#include &lt;vector&gt;
-#include &lt;map&gt;
-#include &lt;random&gt;
-#include &lt;cmath&gt;
-#include &lt;cstdio&gt;
-#include &lt;iostream&gt;
-#include &lt;gmp.h&gt;
-#include &lt;gmpxx.h&gt;
-
-std::mt19937 rng;
-gmp_randstate_t gmp_rng;
-
-void gen_factor(mpz_t N, int Nexp, double Nbase, mpz_t q, mpz_t p, long int* pexp, double* pbase, int* a, mpz_t Nq) {
-    int bitcnt = mpz_sizeinbase(N, 2);
-    while (1) {
-        int j = std::uniform_int_distribution&lt;&gt;(1, bitcnt-1)(rng);
-        mpz_urandomb(q, gmp_rng, j);
-        mpz_setbit(q, j);
-        if (mpz_probab_prime_p(q, 15)) {
-            mpz_set(p, q);
-            *a = 1;
-        } else if (mpz_perfect_power_p(q)) {
-            mpz_t cur;
-            mpz_init_set(cur, q);
-            *a = 1;
-            do {
-                // long int curexp;
-                // double curbase = mpz_get_d_2exp(&amp;curexp, cur);
-                for (int e = 2; e &lt;= j; e++) {
-                    // double approx = pow(curbase, 1./e) * pow(2, curexp / double(e));
-                    if (/*abs(approx - round(approx)) &lt; 0.1 &amp;&amp; */mpz_root(p, cur, e)) {
-                        *a *= e;
-                        mpz_set(cur, p);
-                        break;
-                    }
-                }
-            } while (mpz_perfect_power_p(cur));
-            mpz_clear(cur);
-            if (!mpz_probab_prime_p(p, 15)) continue;
-        } else {
-            continue;
-        }
-        mpz_fdiv_q(Nq, N, q);
-        int is_odd = mpz_odd_p(Nq);
-        if (is_odd) mpz_add_ui(Nq, Nq, 1);
-        long int Nqexp;
-        double Nqbase = mpz_get_d_2exp(&amp;Nqexp, Nq);
-        *pbase = mpz_get_d_2exp(pexp, p);
-        double prob1 = ldexp(Nqbase / Nbase, Nqexp - Nexp -1+j);
-        double prob = prob1 * (log2(*pbase)+*pexp) / (log2(Nbase)+Nexp);
-        if (std::bernoulli_distribution( prob )(rng)) {
-            if (is_odd) mpz_sub_ui(Nq, Nq, 1);
-            return;
-        }
-    }
-}
-
-void bach(mpz_t v, mpz_t target, std::vector&lt;mpz_class&gt;&amp; factors) {
-    if (mpz_cmp_ui(v, 1e5) &lt; 0) {
-        unsigned int vI = mpz_get_ui(v);
-        int x = std::uniform_int_distribution&lt;&gt;(vI/2+1, vI)(rng);
-        mpz_set_ui(target, x);
-        for (int d = 2; d*d &lt;= x; d++) {
-            while (x % d == 0) {
-                factors.emplace_back(d);
-                x /= d;
-            }
-        }
-        if (x != 1) {
-            factors.emplace_back(x);
-        }
-        return;
-    }
-    mpz_t q, p, Nt;
-    mpz_inits(q, p, Nt, 0);
-    long int Nexp;
-    double Nbase = mpz_get_d_2exp(&amp;Nexp, v);
-    while (1) {
-        int a;
-        long int pexp;
-        double pbase;
-        gen_factor(v, Nexp, Nbase, q, p, &amp;pexp, &amp;pbase, &amp;a, Nt);
-        bach(Nt, target, factors);
-        long int targetexp;
-        double targetbase = mpz_get_d_2exp(&amp;targetexp, target);
-        double logv = (log2(Nbase) + Nexp - 1)/(log2(pbase)*a + pexp*a + log2(targetbase) + targetexp);
-        if (std::bernoulli_distribution(logv)(rng)) {
-            for (int i = 0; i &lt; a; i++) factors.emplace_back(p);
-            mpz_mul(target, target, q);
-            mpz_clears(q, p, Nt, 0);
-            return;
-        }
-    }
-}
-
-void gen(int n, mpz_t target, std::vector&lt;mpz_class&gt;&amp; factors) {
-    mpz_t v;
-    mpz_init2(v, n);
-    mpz_setbit(v, n);
-    mpz_sub_ui(v, v, 1);
-    bach(v, target, factors);
-}
-
-int main() {
-    rng.seed(time(0));
-    gmp_randinit_default(gmp_rng);
-    time_t end = time(0) + 10;
-    int i;
-    for (i = 0; time(0) &lt;= end; i++) {
-        mpz_t target;
-        mpz_init(target);
-        std::vector&lt;mpz_class&gt; factors;
-        gen(500, target, factors);
-        mpz_clear(target);
-    }
-    std::cout &lt;&lt; &quot;generated &quot; &lt;&lt; i-1 &lt;&lt; &quot; numbers\n&quot;;
-}
-</code></pre>
-<p><a href="https://tio.run/##nVdZj6M4EH7Pr/D0aiOToxMyaq1mku73fsn@gZWQASftHjCEa9CM8tc3W@WDAHHmWB5iKNflOr5yojxfHqPocvlDyCipY052DY@qrHiZXCkpy/ufBZNxlvYpUcqqtwGhrGKR9SkiK6uCs4HYMc0f30aEtkXSBOQ/f04r/9Onj3@RQh63E9gL0HJZsYoHFVHfuDFpMhGTI5fBgaHnNM2/wf5@QYSEhbf5gsRZHSac7ENW8gXRDCf7AvtJJo/IPiN5jx@@tIDaYZZ/f/LI9wmBBw2EoopgeVabpfjGhUQhCvY33laxfX0TYJz6VsyKvoOUOmgtxSEr0gCIQSwgUCKsK5HJ3Qv1F8bC0vconNeoxAcN1joZIYXTmIgsyPuIqeQV6ECW/o44EBWqvMhCFsIiUh7kyOU/eX1Xe2ooxObU04HPjMEx/CvtTHhS8qt6XhygooI8@8oL1O/UXZGoLrY3ZCFFpezC7s8t4xNnI@34rFZdhtEOpHjr4jFVAhyYQZPSI4ecBBuQoVMtu0AO71YDpJBQNIGimy0su2fyDut87jmcGhplOeShBUGIEzUeQCYeV9wjM0XcLIzvxApR7jncsLldzVhYUqN3SYqslrH5hBTsyPrRJ9Mpma3wlEWWqeSqOHPvnr8m6rNnwrd3GWytKF25d58xBED44t4@T35MOdumcpUYpse7LaYo4aygt7nDYH1wdEJuOiHKZCVkzW9KfBgjB9ugCw@xaIIT3UOD7Ye1jDUjyiCLY1Nz8Ab296dRt2oeT7EwYKmF1oYt22PtSn1/GlS6BcHTnepW7Kiup2uWu5k1TPaTa7RjDH3gT2JkM7ZWFnmVCSjGvVr8@btbAbaB0jMjNMmOG6rd8OYztOuBPk3eaypqG4VKwWrIC5nVSSIGoEq1CY2m40Ifh7msw3thxqfgVV3IccbPk7OZSiGL3sw8auz4qFgBgVxo5NfDdqfLk5Xly5ToKVZ2M8bgaAToDp6AGp8/qf7t@17LUhwlj1Xem9dewlBmVGvtL8yd5nW1mcPwaV5dY6fUiu1R2t52h4KxRsF4FiMOtvB2i4OmiVvyJ7I/D8/UadQBeeRpnrCIBxDULzR24EpLVs8kHtLPjm7EkLbkA8yOsTmnqf7prkr6qdfU7lqBTVRtJ/0hVlJLX8Ah9d61T7s27d9TXB2quq75ybWCOaAgdyGBaqortXeFgirTtkzfauenuuun5lY0ZXieXnBUteMJbV3YUnY4pFlcXumdOxHoxKyRWwABZGhAso8QZG4QBzK@0hsaUGCWzVVs1IvauJpHsc7eb@ALOuBGl643BDi43sKyg2wRgY3hLL3cMcbSOukaz66ne@POVXe/Cl5QD8pZ@T@Ry@DesBE2WFvSuxLN5XRM1bgL1OaKuqq@Gld5gcvoacqEpNY8JOCx5DymFYxzurY3Avs/Ql0tY35gdVJRc3U2LCgAnnOJEGakoRb89ba79Qv9qhOqk2kZAexA0mT1@2R4y9WuD8EUPaE31ewOsj3zoGvp03r9o6a7Xn4GVnS@lZ0oqyuy25EH0MYL@IMVkwf8FktfkYmsU6j28h/5AMG@XP6NDgk7lpdlApHTv217Wf798T8" rel="nofollow noreferrer" title="C++ (gcc) – Try It Online">Try it online!</a></p>
-<p>A port of my Python answer to C++, using GMP. Can output around 3,300 numbers on my computer. Compile with <code>-lgmp -lgmpxx -O3</code>.</p>
 </div>
 
 <table id="st">
