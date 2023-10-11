@@ -43,12 +43,20 @@
 
 std::mt19937 rng;
 gmp_randstate_t gmp_rng;
+double prob[1001];
 
 void gen_factor(mpz_t N, int Nexp, double Nbase, mpz_t q, long int* qexp, double* qbase, mpz_t p, int* a, mpz_t Nq) {
-    int bitcnt = mpz_sizeinbase(N, 2);
+    int bitcnt = Nexp;
+    double invN = 1 / Nbase;
+    int sz = (bitcnt-1) * bitcnt / 2;
+    for (int j = 1; j &lt; bitcnt; j++) {
+        prob[j-1] = j * (1 + ldexp(invN, j - Nexp));
+    }
+    std::discrete_distribution&lt;&gt; distribution(std::begin(prob), std::begin(prob)+bitcnt-1);
     while (1) {
-        int j = std::uniform_int_distribution&lt;&gt;(1, bitcnt-1)(rng);
+        int j = 1 + distribution(rng);
         mpz_urandomb(q, gmp_rng, j);
+        if (mpz_even_p(q) &amp;&amp; mpz_sgn(q)) continue; // the only valid even numbers are powers of 2.
         mpz_setbit(q, j);
         if (mpz_cmp(q, N) &gt; 0) continue;
        &#32;
@@ -58,8 +66,8 @@ void gen_factor(mpz_t N, int Nexp, double Nbase, mpz_t q, long int* qexp, double
         long int Nqexp;
         double Nqbase = mpz_get_d_2exp(&amp;Nqexp, Nq);
         *qbase = mpz_get_d_2exp(qexp, q);
-        double prob1 = ldexp(Nqbase / Nbase, Nqexp - Nexp -1+j);
-        double prob = prob1 * (log2(*qbase)+*qexp) / (log2(Nbase)+Nexp);
+
+        double prob = (log2(*qbase)+*qexp) * ldexp(Nqbase / (Nbase + ldexp(1, j-Nexp) ), Nqexp + j - Nexp) / j;
 
         if (!std::bernoulli_distribution(prob)(rng)) continue;
 
@@ -141,23 +149,31 @@ void gen(int n, mpz_t target, std::vector&lt;mpz_class&gt;&amp; factors) {
 }
 
 int main() {
+
     rng.seed(time(0));
     gmp_randinit_default(gmp_rng);
     time_t end = time(0) + 10;
     int i;
+    int tsz = 0;
+    int primecnt = 0;
     for (i = 0; time(0) &lt;= end; i++) {
         mpz_t target;
         mpz_init(target);
         std::vector&lt;mpz_class&gt; factors;
         gen(500, target, factors);
+        tsz += factors.size();
+        if (factors.size() == 1) primecnt++;
         mpz_clear(target);
     }
     std::cout &lt;&lt; "generated " &lt;&lt; i-1 &lt;&lt; " numbers\n";
+    std::cout &lt;&lt; "prime probability " &lt;&lt; primecnt/double(i) &lt;&lt; ", expected apprx. " &lt;&lt; 0.0028879 /* (Li(2^500) - Li(2^499)) / 2^499 */ &lt;&lt; '\n';
+    std::cout &lt;&lt; "average number of prime divisors " &lt;&lt; tsz/double(i) &lt;&lt; " expected apprx. " &lt;&lt; log(500 * M_LN2) + 1.0345 /* B_2, see Wikipedia */ &lt;&lt; '\n';
+   &#32;
 }
 </code></pre>
-<p><a href="https://tio.run/##nVfbbuM4DH3PV2i62MBOnIszKBYzSfvel@wPLGDItpKqY8uObzVmkF/fLKlLLDtOO1gDrWySIinykFSiPF8co@hy@YOLKKljRnYNi6qseJ50lJTm9mdBRZylNiVKafXaI5RVzDObwrOyKhjtbTum@fJ1QGhbJE1g//fvaeV/@/b1L1KI43YCvAAtlxWtWFAR@Y2MSZPxmByZCA4UPXfS/Cfw9x7hAhbW5h6JszpMGNmHtGQeUQInjySZOKLUjJwsMfiy5XJPiVBD2J9c8mtC4EEDIa8iWJ4ks@Q/GRe42wH7G3crxd5fORh3fLPNbH2DXfKgteCHrEgDIAYxh0DxsK54JnbPju9pCwvfdeC8WiU@aLBWyQgdOI2OiEfeBkIlq0AHitgcfiAyVFGaI2vvkmeydkmUiYqLmnWCPV2HmDfBydnjDo@cbH1wIl4GWRzrYMBbkIPkwKaScaUIBZGaK23w51uiJjfAgNx0dJNKmSNt6cggbsEG5JzpXqWyZ3Z2R1iJ2pJae15koQ/ySYxi2tbK4EeaIAuJLbLw52/jCmC/0jMjTpIdN45yw53PcL8L@hR5r6ioDRT1YvVFwiNkhcjqJOE9cDioXGHCztpNflGMhrDwlAUy1f6ja0PRgokzCIcMHoWD@B3tTFgC0biqZ8UBOkaQZ@@sQP2om6xWpGIlAoKU/Ajw5hEV1Y3JikR1sb0hc8Er6Q5wP3dIhX1wIHygpgBuACFM/WYLy@6JvME6n7sj4viA3zqDNIfAtZjD7B39UKn3lyvmQkKRuPHQe8SA2eQwd@CrnYzVjIalo/UuSJHVItafELMdWS99Mp2S2QpDUGSZzIaMAHPv@avjMXsibHtXwCRX6srd@4IhdOgf4@zz5GPK2XS5MUyA4WFgZOdJGC0ks8@TyB@Bbq6he9uiNCb7MRoR61cHBO6ZyJh/WGf@EhI8o5@Umt3Wyjq819YKVtWFUN/nyVlPr5BGr3puNWbMVLSAVuWpCaGG8k5FjZbl85SoaVdeZ1HXztE2qPHZo4SVjZ1aYDmyWHbW5sVqibhn0M3b35hPzctqM4ch1byMjadSKTZHaS22dn@pQGAzTNXGqmrjWYx128Lbbd1q0LXkTxR/6h92aIqleUIjFkC0fzjxSB20ZPVE4j79PLl9w1i35At0oaG5UVP2sc93kNB1RAAMzq9qO7HbYekYugeHVLxuRF4npH3RGRuOcuA1n9xL6MgUHh3Ccp51VOsOBvBTtvTIBOenatpO9eUKXymexwqOLAM8oQGMwfiIQ0pkzCvFuROB6zZj5HZ2w1BuYKc9nMlcD3vI@EoxToYhLwNzIomdaeRcbQ1uQB81GzRuOs0AWqYuODi33sKyg0wRjkUxCrt8pOWmdXKtRrOe7rXmMcyNobdDcNfRAAvSWfE/25luhv0i2CCuhNsR9c12SFXtF6hN13wltpoxaIHL6GlKuXCMeUjAsmQsdioYPc7aTC/zI0ReUGJ2oHVSOfrerUVwA3jOBLYvvRuw4K@3158MXL2qhKpkGkFodLBTZ/XXpH9XUq73Oyx64twgeTzI5sy9inUe1@uPCq4b1D0rKt/STpTVFdntyANoYwX8OovJA37zhS/JRNQpoL38RzxAsC@Xf6NDQo/lZZFA5NT/tr0s/v76Hw" rel="nofollow noreferrer" title="C++ (gcc) – Try It Online">Try it online!</a></p>
-<p>A port of my Python answer to C++, using GMP. Can output around 9,000 numbers on my computer. Compile with <code>-lgmp -lgmpxx -O3</code>.</p>
-<p>This could be much faster by using a tighter probability envelope and the exact probability for small numbers, but I'm too tired to do this now. I might do it tomorrow.</p>
+<p><a href="https://tio.run/##nVdLc9s4DL77V6Dd2VTyS5LbTJvayWFvnWm9xz1sux5Koh0melmvuu34r28WICmZkuVkZj2TSAIBAgQ@PBhk2WwXBE9Pv4kkiKqQw6rmQZnmd6MTJWaZ@ZmzJExjkxLErLzvEIoyFKlJEWlR5px1xHZxNr/vEQ4HIo1Q/uPHuPRubt6@hzzZLUe4tiHNRclKvilBftNCmFZ@xCHLU/9vz3W9b8vRqE5FCDuebLaMDmPF2U8UWU9BJPjgh2wKWmzts4JPQTHspxClyY64xrA32PDL5MumioU1hPXehl8jwB8p8EUZ4ONWalpKstYmknqNdA8cpXjZyhQ/kW4pyZlnw7jZxYGF4tqmOVjE@kA7LPGx0jz4Ppk0BtBP@uJh5n1DzgfcyvJgAlGI1lhkwRSJM2mcbau9j/K/dHooiiDn6GJ8KXPhV6VIk9UdmJ@W5PT5TiQW6bKn0KdM2qMoDd/vBZ7f8kwz28OgdZ3tMa5ajH7k4kqBzrcwRDryeAqDSWxBRpnXGPXMwnhcXUnJYpfglw1BmpQiqfgSHAfKew5pEv2AmkWIFBKCpIp9nhfAcgRT@p1e0y0s5h07Cl7iwciKIeVBnNHS2oY7cA2VLWNnr20o6s3eWpPEFPbmfugYUWzSMETvECu@4aHW@55OxWNLFoYslVC74Z9nsDaYxoUWkAYo1xLbWtOOl5twsyCoXK1VCnTUji8wK1bi7G9PcCBsR@luYSlxezImfkK5QqU2wQFLpkWLVg/9PJNABXuqzMe1Fr0o8GAoJJe80kDMk7SKItFBsUKmRJcZnLMwEhvz8SFivpER9a5tE7gGGqysGzrpIyYztKUdgUd4qHZ7nm@xxm4kyCRWcW@JSl5Q3KEQu0RsRcCS8kxlCUGVL8/IIhGlNAdXXzZIRad3oE6NoQgvlvhYYQXBZ7e@mD@0WweaZei4AwriwcgOVTG9ucMp0ERcTMl6CmIjZHG7Z6sZDGfM/MLS@84gT6sk1J/osxW4c4/SfOyQC/I0ldGQHuD2JXu1P8a3wJcXGZrgyr0y@zKjjz3tcXj5OHqecmxq4hAmUHHfMbLARJzlcrG7JpE/AN1MQ/e8EmlMdn00wNbNDnTcHUifP5tn3hwDPGYvpJpZvYrKv1S9sBlVedL0qaNu7j4L7nVbr5suXLIcK5LuRWqMWSmvsaK4uwI1DBRtqz5VbdKN23j8WsLKxE6VUDryUBbQ@pNR@UimV7QJ/VJ7hQmc5jHmZdlrpFb9yVlMsLDVn@yBRleojZujHIxlbf5cgcBcaLI2VFkbjkPK2wO@neetBt0Bfif22@5h@6p4nEUs4Bv09qMVDuTBAZxbCLv04@j8jXx9gFdYhfrqBlWZxz5eQMKpIiJgqE2Vy5FZDguroU/xkGrt1An7k9n6Ug@Ufa1@YYphA812sNfuT1Mf/YwRFeGndOmJFI2/Uk31Ss@e9MroPIZzZBrQCRvANBgfMEixDFmlVi54oBVrlNhn8tja67bFS/ttbNN0HKzanu2ohX2zoNu4JJ5U00qrqzfoPFdsSHlTaXrQavJCoHHuEh8rjBQISopB2GUDJTeuojYbm@f@UmkewtwQek8IPlU0xII0Nvmf5UwXw24SLAhXiX0i6gG2T1XlF6n1qfhKbNVD0EKTydKY4bRP6iU7RmBecB5aJfYey23aV3NvkxNKyLesikpLj/CahQTQdJ5Q/dLSCAbPPV2PxOm1lFclY002O3Xhcs2rkgp6sx8WRFSgo/9r1J2p1BG7lZgMts4QPxyMxjedzLauXfe5xKSDTG5bJBbiJ7d6uO@uUbnG0tOcdzLpGqz6Qsdi414XpFUJqxW8Rst4jnfoEF7Tt5h5ktzcf74mr5cDUlIpqPFCRKL8oaQbWxw9zglbcuMAdsjQSaiExrXDXHG7c9ddfPjw/gYcvJR@FtbiH/SRjUVCvr@7ubFpppdvONWRyJuvyZshe1iNh9hxbTXd1JSFeKcSBbpMKUQX9ywbNgxrCEULx9Qvm8/rhUTf3H377poM/WODcysiG/4SjyLjoWBnto2OT0//BtuI7YqnWYToVv8Ph6fZn2//Aw" rel="nofollow noreferrer" title="C++ (gcc) – Try It Online">Try it online!</a></p>
+<p>Can output around 12,500 numbers on my computer. Compile with <code>-lgmp -lgmpxx -O3</code>.</p>
+<p>I'll add an explanation later, probably after some more optimizations.</p>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 66 bytes, score 0 (usually)</h1>
 <pre><code>≔Ｘ²ＮθＷ¹«≔⟦⊕‽⊖θ⟧υＷ⊖⌊υ⊞υ⊕‽⌊υ≔Φυ▷”8±cGＮºb6﹪←”κυ¿∧‹Πυθ‹‽θΠυ«⟦Ｉ⊞ＯυΠυ⟧Ｄ⎚
