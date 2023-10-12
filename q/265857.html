@@ -26,11 +26,140 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>nan</td><td></td><td>231008T194507Z</td><td><a href="https://codegolf.stackexchange.com/questions/265857/random-factorized-numbers/265865#265865">Command </a></td></tr>
-<tr d-ix="1"><td>066</td><td>Charcoal</td><td>231008T190055Z</td><td><a href="https://codegolf.stackexchange.com/questions/265857/random-factorized-numbers/265864#265864">Neil</a></td></tr>
-<tr d-ix="2"><td>nan</td><td></td><td>231008T143034Z</td><td><a href="https://codegolf.stackexchange.com/questions/265857/random-factorized-numbers/265862#265862">Command </a></td></tr>
+<tr d-ix="0"><td>004</td><td>Rust + rand + bnum</td><td>231012T081814Z</td><td><a href="https://codegolf.stackexchange.com/questions/265857/random-factorized-numbers/265935#265935">mousetai</a></td></tr>
+<tr d-ix="1"><td>nan</td><td></td><td>231008T194507Z</td><td><a href="https://codegolf.stackexchange.com/questions/265857/random-factorized-numbers/265865#265865">Command </a></td></tr>
+<tr d-ix="2"><td>066</td><td>Charcoal</td><td>231008T190055Z</td><td><a href="https://codegolf.stackexchange.com/questions/265857/random-factorized-numbers/265864#265864">Neil</a></td></tr>
+<tr d-ix="3"><td>nan</td><td></td><td>231008T143034Z</td><td><a href="https://codegolf.stackexchange.com/questions/265857/random-factorized-numbers/265862#265862">Command </a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C++ (gcc)</a></h1>
+<div id="pu0" class="pu"><h1>Rust + rand + bnum, score=4 on my PC</h1>
+<p>Basic implementation of Kalai's algorithm. Apparently it's not very good. The random rejection at the end rejects 99% of candidates so makes it take a lot longer.</p>
+<pre class="lang-rs prettyprint-override"><code>use bnum::BUint;
+use rand::{distributions::uniform::UniformSampler, Rng};
+
+#[inline]
+fn mod_exponentiate(mut base: BUint&lt;16&gt;, mut exponent: BUint&lt;16&gt;, modulus: BUint&lt;16&gt;) -&gt; BUint&lt;16&gt; {
+    if modulus == (1u64).into() {
+        return 0u64.into();
+    }
+
+    let mut result: BUint&lt;16&gt; = (1u64).into();
+
+    while !exponent.is_zero() {
+        if exponent.digits()[0] &amp; 1 == 1 {
+            result = result * base % modulus
+        }
+        exponent &gt;&gt;= 1;
+        base = (base * base) % modulus
+    }
+
+    return result;
+}
+
+#[inline]
+fn miller_test(candidate: BUint&lt;16&gt;, mut d: BUint&lt;16&gt;, witness: BUint&lt;16&gt;) -&gt; bool {
+    let mut x = mod_exponentiate(witness, d, candidate);
+
+    if x == (1usize).into() || x == candidate - BUint::&lt;16&gt;::from(1u64) {
+        return true;
+    }
+
+    while d != candidate - BUint::&lt;16&gt;::from(1u64) {
+        x = (x * x) % candidate;
+        d &lt;&lt;= 1;
+
+        if x == (1u64).into() {
+            return false;
+        }
+
+        if x == candidate - BUint::&lt;16&gt;::from(1u64) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+#[inline]
+fn prime_test(candidate: BUint&lt;16&gt;, iterations: usize, rng: &amp;mut rand::rngs::ThreadRng) -&gt; bool {
+    if candidate == BUint::ONE {
+        return false;
+    }
+    if candidate == BUint::TWO {
+        return true;
+    }
+    if candidate == BUint::THREE {
+        return true;
+    }
+    if candidate.digits()[0] &amp; 1 == 0 {
+        return false;
+    }
+
+    let mut d = candidate - BUint::&lt;16&gt;::from(1u64);
+    if !d.is_zero() {
+        d &gt;&gt;= d.trailing_zeros();
+    }
+
+    let distribution =
+        bnum::random::UniformInt::&lt;BUint&lt;16&gt;&gt;::new(BUint::TWO, &amp;(candidate - BUint::TWO));
+
+    for _ in 0..iterations {
+        let witness = distribution.sample(rng);
+        if !miller_test(candidate, d, witness) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+#[inline]
+fn kalai_algorithm(max: BUint&lt;16&gt;, rng: &amp;mut rand::rngs::ThreadRng) -&gt; (Vec&lt;BUint&lt;16&gt;&gt;, BUint&lt;16&gt;) {
+    loop {
+        let mut candidates: Vec&lt;BUint&lt;16&gt;&gt; = vec![];
+
+        while candidates.last() != Some(&amp;BUint::ONE) {
+            candidates.push(rng.gen_range(BUint::ONE..*candidates.last().unwrap_or(&amp;max)))
+        }
+
+        candidates.retain(|candidate| prime_test(*candidate, 8, rng));
+
+        if let Some(possible_output) = candidates.iter().cloned().reduce(|a, b| (a * b).min(max)) {
+            if possible_output &lt; max &amp;&amp; rng.gen_range(BUint::ONE..max) &lt; possible_output {
+                break (candidates, possible_output);
+            }
+        }
+    }
+}
+
+fn main() {
+    let start_time = std::time::Instant::now();
+    let max = BUint::ONE &lt;&lt; 500;
+
+    let threads: Vec&lt;_&gt; = (0..8)
+        .map(|thread_id| {
+            std::thread::spawn(move || {
+                let mut rng = rand::thread_rng();
+                loop {
+                    let (factors, product) = kalai_algorithm(max, &amp;mut rng);
+                    if std::time::Instant::now() - std::time::Duration::from_secs(10) &gt; start_time {
+                        break;
+                    }
+                    println!(&quot;{thread_id}\t{product:?} {factors:?}&quot;)
+                }
+            })
+        })
+        .collect();
+
+    threads.into_iter().for_each(|i| i.join().unwrap());
+}
+</code></pre>
+<p>Run with:</p>
+<pre><code>opt-level=3
+lto=true
+panic=&quot;abort&quot;
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C++ (gcc)</a></h1>
 
 <pre class="lang-cpp prettyprint-override"><code>#include &lt;vector&gt;
 #include &lt;map&gt;
@@ -175,7 +304,7 @@ int main() {
 <p>Can output around 12,500 numbers on my computer. Compile with <code>-lgmp -lgmpxx -O3</code>.</p>
 <p>I'll add an explanation later, probably after some more optimizations.</p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 66 bytes, score 0 (usually)</h1>
+<div id="pu2" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 66 bytes, score 0 (usually)</h1>
 <pre><code>≔Ｘ²ＮθＷ¹«≔⟦⊕‽⊖θ⟧υＷ⊖⌊υ⊞υ⊕‽⌊υ≔Φυ▷”8±cGＮºb6﹪←”κυ¿∧‹Πυθ‹‽θΠυ«⟦Ｉ⊞ＯυΠυ⟧Ｄ⎚
 </code></pre>
 <p><a href="https://tio.run/##ZU85a8MwFJ7tXyEyPYFa0kKnTiFJIdDDdOgSMqi2Uovoio6EUPLbVT1jiKFa9I7vem3PfWu5ynkRgvwx0Niz8PDIyMa4FN@T/i4tpYwc6XN97qUSBB4o@a2rkbDdmNYLLUwUHXxy01kNK3EbHSmlO0ZSoVcjf7p@k0bqpCEVGGlS6CGh9z/JKQ6lRvcXqWIJWDjrE1df3MMsXLS73MvgvNRixsgB0w/2ck9gYTpE4/cqQoDG2y61sejiiYwMw9ET@9seH95dNV6aCNslDxEw8YcTnkc7pJjCd@hZrZJ2MFRLJUo@LK/1Neen@TzfndQf" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code with extra check because the version of Charcoal on TIO returns <code>None</code> for the product of an empty list and I can't use the version of Charcoal on ATO for multiple reasons. Note that you need to interrupt (<code>^C</code> if running locally or TIO's button) the code manually after ten seconds otherwise it will never print anything. Explanation: Uses Kalai's inefficient algorithm.</p>
@@ -213,7 +342,7 @@ int main() {
 <p><a href="https://tio.run/##bY9NSwMxEIbP3V8ReppAWorgqSfRKj1oFw9exEPcHbqh@dhOktYi/vaYyK61YG4ZnneeeZtOUuOkTqmOvoMoWO2OSHAl2Nr2MTxF856/nPNldeO92lq4w4bQoA3YwqP8UCYaiJwLts/MsVMaGWwIHghlyNGaXBubkJFCCDbOn6VtnYEyOiP5sc9qMphe1/as@uX5m2AxqyaD6@IeZcd7OBsb/bPlL1dWDcJ7pctpObM6SP0iCab@ZPrTXPmelMGpYLvStOi/qpqUDXArfYCi2vRIMrif@EWjZUrXi0WaHfQ3" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code. Still usually crashes out because it can't calculate the product of an empty list, and even when it does find a result, it usually takes more than 10 seconds, but just in case, here's a bash script that restarts the program on error and times out after 10 seconds:
 <a href="https://tio.run/##S0oszvj/vyQzNzW/tERBt1jBIzRAwdBAIQksXp6RmZOqYMWVkq@gn19Qop@ckViUnJ@YA2co6CYrqD/qmne@9f2eHYc2vd@z7lHnlEdd0x71dJxvPbfj/Z7tjzpWPGrYdW4BiAtkPGrYe24HiHdoNUjl/GWPuqaCxR7NXw4yZDtYc9f5VrChEEkIv3PKuWVAatr2Rw1zLQ5tTHYHWnZoV5LZ@52rHrVNAAqe2wU0dff7PSuBWt/vWQ@0EGiNuoJupoKpgYGCkZ1@SmqZfl5pTo6CmppCanJGPowGei8vFQA" rel="nofollow noreferrer" title="Bash – Try It Online">Try it online!</a></p>
 </div>
-<div id="pu2" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a></h1>
+<div id="pu3" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a></h1>
 <p>Thanks to @AndersKaseorg for many improvements and bug fixes.</p>
 <pre class="lang-python prettyprint-override"><code>import math
 import random
