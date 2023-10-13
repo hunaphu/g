@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::216995</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>nan</td><td>MATLAB/Octave</td><td>230702T004858Z</td><td><a href="https://codegolf.stackexchange.com/questions/216995/golf-the-smallest-sphere/262353#262353">138 Aspe</a></td></tr>
+<tr d-ix="1"><td>026</td><td>Wolfram Language Mathematica</td><td>201229T021440Z</td><td><a href="https://codegolf.stackexchange.com/questions/216995/golf-the-smallest-sphere/216998#216998">att</a></td></tr>
+<tr d-ix="2"><td>080</td><td>Python 3</td><td>201231T141043Z</td><td><a href="https://codegolf.stackexchange.com/questions/216995/golf-the-smallest-sphere/217074#217074">Noodle9</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>MATLAB/Octave, <del>3931</del> 1898 bytes</h1>
+<p>The MathWorks File Exchange often has user-submitted functions for tasks like this. One function that could work is <code>minboundsphere</code>. You can access the function <a href="https://www.mathworks.com/matlabcentral/fileexchange/34767-a-suite-of-minimal-bounding-objects" rel="nofollow noreferrer">here</a>.</p>
+<p><span class="math-container">\$ 3391 \text{bytes} \rightarrow 1898 \text{bytes} \$</span> thanks to the comment of @ceilingcat</p>
+<hr />
+<p>Golfed version. <a href="https://pastebin.com/A5rdrQPF" rel="nofollow noreferrer">Try it online!</a></p>
+<pre class="lang-matlab prettyprint-override"><code>function[c,r]=f(x)
+if(n=size(x,1))&lt;5
+[c,r]=E(x);
+else
+l=10*eps*max(max(y=abs(x),[],1)-min(y,[],1));
+c=inf(1,3);
+r=inf;
+if n&gt;15
+for i=1:250
+a=randperm(n);
+I=a(5:n);
+for y=0:11
+[C,R]=E(x(a(1:4),:));
+[Q,k]=max(sqrt(sum((x(I,:)-repmat(C,n-4,1)).^2,2)));
+if Q-R&gt;l
+[b,q]=E(x([a(2:4),I(k)],:));
+if norm(b-x(a(1),:))&gt;q
+[b,q]=E(x([a([1 3 4]),I(k)],:));
+if norm(b-x(a(2),:))&gt;q
+[b,q]=E(x([a([1 2 4]),I(k)],:));
+if norm(b-x(a(3),:))&gt;q
+[b,q]=E(x([a(1:3),I(k)],:));
+if norm(b-x(a(4),:))&gt;q
+l+=l;
+else
+C=b;
+R=q;
+w=a(4);
+a=[I(k),a(1:3)];
+I(k)=w;
+end
+else
+C=b;
+R=q;
+w=a(3);
+a=[I(k),a([1 2 4])];
+I(k)=w;
+end
+else
+C=b;
+R=q;
+w=a(2);
+a=[I(k),a([1 3 4])];
+I(k)=w;
+end
+else
+C=b;
+R=q;
+w=a(1);
+a=[I(k),a(2:4)];
+I(k)=w;
+end
+else
+break
+end
+end
+if R&lt;r
+c=C;
+r=R;
+end
+end
+else
+for i=1:size(A=nchoosek(1:n,4),1)
+[C,R]=E(x(a=A(i,:),:));
+[Q,k]=max(sqrt(sum((x(I=setdiff(1:n,a),:)-repmat(C,n-4,1)).^2,2)));
+if Q-R&lt;=l&amp;R&lt;r
+c=C;
+r=R;
+end
+end
+end
+end
+end
+function[c,r]=E(x)
+u=inline('(A(:,z=[1 1 1 1])-A(:,z)'').^2','A');
+D=sqrt(u(x(:,1))+u(x(:,2))+u(x(:,3)));
+[d,i]=max(D(:));
+[i,j]=ind2sub([4 4],i);
+o=setdiff(1:4,[i,j]);
+r=d/2;
+c=(x(i,:)+x(j,:))/2;
+if norm(c-x(o(1),:))&gt;r|norm(c-x(o(2),:))&gt;r
+[c,r,n]=N(x(d=1:3,:),x(4,:),D(d,d));
+if~n
+[c,r,n]=N(x(d=[1 2 4],:),x(3,:),D(d,d));
+if~n
+[c,r,n]=N(x(d=[1 3 4],:),x(2,:),D(d,d));
+if~n
+[c,r,n]=N(x(d=2:4,:),x(1,:),D(d,d));
+if~n
+c=(2*(x(2:4,:)-repmat(x(1,:),3,1))\sum(x(2:4,:).^2-repmat(x(1,:).^2,3,1),2))';
+r=norm(c-x(1,:));
+end
+end
+end
+end
+end
+end
+function[c,r,n]=N(x,T,D)
+if D(1,2)&gt;=max(D(1,3),D(2,3))
+c=mean(x(1:2,:),1);
+r=D(1,2)/2;
+n=norm(x(3,:)-c)&lt;=r&amp;norm(T-c)&lt;=r;
+elseif D(1,3)&gt;=max(D(1,2),D(2,3))
+c=mean(x([1 3],:),1);
+r=D(1,3)/2;
+n=norm(x(2,:)-c)&lt;=r&amp;norm(T-c)&lt;=r;
+elseif D(2,3)&gt;=max(D(1,2),D(1,3))
+c=mean(x(2:3,:),1);
+r=D(2,3)/2;
+n=norm(x(1,:)-c)&lt;=r&amp;norm(T-c)&lt;=r;
+end
+if~n
+t=x(2:3,:)-[z=x(1,:);z];
+t*=o=orth(t');
+c=(2*t\sum(t.^2,2))';
+r=norm(c-t(1,:));
+c=c*o'+z;
+n=norm(T-c)&lt;=r;
+end
+end
+</code></pre>
+<p>Ungolfed version. <a href="https://tio.run/##zVpbc9u2En7Xr8CLayqlFZGS40aK22bqdibn4cyZtmf64LodmIQsxBSggKRlZzr96znfLsCLFDmOm3ZOnPhCErtY7H57pWxWyRv17t2iNlmlrRHnmTKVcrGTua7LWJfaXIhToUw2@X0a3d69jfFdqbKKz/RwcCBW2uhVvRJ@Pa0rLGiuRLleKqfEwjqhbmVWFXdiItZWm6oU2ogff5sMDkAPbuJISDG5nQjpnLyLxUZXS6FkthTOboQs8ZTpdshICJAmILxRWWVd3C6srLhUghaoXOiF0KAtQeW/tCl1jsdLJa6UUU7Sql3BR1iO/2caW7SyCQtepB6/Ta7LSppMlQOsZHGI50I6/MLFWmpHFP7QI5Fben5HKllB1FzLlQIv0GIRUfqdvxlA4jMdJXE6/Pp0JW8jvpgMofEoxe/hQAhvJRhmpaQhs0TniUgv4tkwToZzLAj2OG04PU3pLpkT9yIDEZhqAgqc0LMbvjj1ZEPxxRfdoqDo3TXzgSpK1cg66cuaPizr5F5ZJ/fJmv49sqb7ZE3ulzW9V9b0flmTT5LV5IQBYgreB2JDblSbnEHCDieL9z1NFk7J/I5kVFXtDLMBuF4tiEHu7BoI3BhyDlofC2MF0deFdLrSqhTl0tZFDpKlXK@VEdGrw5uWr8hkfbWshDR3IlfecTJQjYa0yS/wJydNydgmMaulU6rzd2wK5yykwb54bECS2dW6rrwfvncYqLNaysqTjNi/iH0hiYD9SFinr6AgKHIM1TdKn9ONKtxIZwHf57RqTj8u5oOBs7TAwk3ZDIcgwgb1DTTOUtkSAQE@mQb5YxInPcpjiAPbbxSr6Eb1xBCRXBBw@OhBUoTT4QBcWZbqCXbFPi9xmT6pb@YDtyQYlfUqqm9Gv6UA4nzQwi96@SueDw@xrAEcwyYsOIK0fFwvOliTYiRBpFXTpcyuO4b@DxLiUHwpWB1t1NI@/EwRdkOgbQI59CCL0g528f1B6DZf9@SUkE44mTw2g0zvySCaksS0CdN8@9@WsQUM0WZIKkUhZFWp1Zrzw1qWRBP2AFot0I3DFiCdtgG5Xq8LDSU0IfwXQNc/UVUX2sXa2Rv4D9iCGpmn8Y8KaF8rB3cqcRsOVCqiymxRaKPI7TilTAAiUoR1qtm5AR7O3hCyiZodJZZmlrxDupjs2ArmD7QhTwZkoFyc6c7DVZsFdA21eFWPxE8a2ctTg2ZVw6iQXoqtZa2ObAMKjgFeAyAOi29kUbeaintKJ@X4fAtbtO6N1CzzEVvqlREyzzVBJQ6i0PFKu1I4gTnqtEmblp3eaXMoaLPUqBXo8Jl2Wb06ajYpQV41AXPUx0GxkXclB5U7OheO0Auu92ORA9GeAkCsZOX0rTjD4xywB8K/jV4O4cXRLEay438XFIi2bxwO4fjzQSDRhlARHT5IxWSH8eFLilxnFETeuCoiLpx7ZkhVQzh570a6ewPZzoeOH9qj27I5kC9dRuLnLjigktlSLigpMDSIKH0oJOO1vvKK667cqtKHfMpCkilzSzH9PNevY/2awgEn44ij2bmO@RbESsv6MjqfiukFluERs@eYqapcLxZRMpvGvH7YC5PgSjm5i6R0YE1pgMNe9JqiJq3AwaLtmEqP/SZRMqRlW3l7NBoht36AJt2maVJ3Jo0oK2Rfj6Dd9GzUbRXTOqPgPpTbSOtc/gJT66IfaGJGKuGRTQLq9xBKan8vmLOpfNnb2oIsCCfxtiAQnIpkNoEBHmoAIiymeoj@nNIfZ3wH32S/ft2yLcdGll3prfc517ZqvExU1gIBj5Rr8qBcE5d/qlyTx8uVPihXqTJrPlG09K@Iljwo2kI76mr@kmQHXYzdDtK@ykMy5hjSZuE204GypCxFHsJJjNfmvKaLOeQzZedFCPug21iH8O7zyaWtq51qV4eEeYdUtPKpTL2puWwrR6FO833HjGB@5NQaYb6t7uMJhdl@GdetRXhGaNghoBqPaB5Z6DXkO8XVh6orZLFL6he8int1Vu/uTHzXq78fqsEQgWRT80S38V38dthEJ7JQXcorcPxISTjyXNUrLC5nAoiDGCRgmAWYfre9vRlMnKsyc/qSZNspBUN3TwMDZzelr6Qo@BEvrjR2NgYkmp1bbfenCXDESgLkrKFGkMxahwiMYqT0mAlfjGzPJZRwD@iUxWkeHokyk0Am/sgV0BsSani6zbDbcx9LPP3@Vq6grGAV3PgpXBtN7RmqwYWzvkvjWkZb5w2MBVWbR0D30ktRevJSvyWCDN1gGXL6HglCEwkr3KHStpXOuP5EQ@ks5bQW@OdjgX8XMXUt1MI06E98UejRcIr7Jo@SMb5QszxJj5I5P3RN1RMczzdQw3lDGbmvuQXHPhdz0X4diOPk@FmDHAQo2FflTARJ448C8LyyGVPwj@8LFPeUuPWKK87xKHn@fPrsJATysjlN79wjHCY5SU@Ocfur0fF4/EwdjenCP0nHyfFFoGq1Mh49x9cHzdsatazdQmZqj01/0fAII9SanBZWL603o1NlXVSN6S7Vfit90EamNdK894Qs8zTEwT3mipN2/SPVf4/unyXTk2fpfbpvPGeKdemJOkpOhDhKR8fHX039hTgZpSdJQhc7BmidLglO9pNSXFbNWhkdwkbcXlGWKxqPfFlXS@tm4l92acTZ4ffO6cySKY9WUhczZCqbZ0u9Lr91NqPZoXIj50aZJWf/URXkcTNofdxdihwhCPeeppOn4xMuJKnXoc5MOQfbgk92zT2pz4OcAgeltwv5stcml8GFMlfVMqKHwz9P06H44w/BV6hp/zydUCnrmR4Sedsnmu1Y7b3qkNMU9TPMIPFtBtoKh@yBJMzTXY6W1tyoW7Gskcm3ul7ITAFB5XXmsxNCx2WBHJ07CSD5iDLqNfg4NAi6dLAb2XZ3812IUTcABdULCo0o1GC@nuKgyDQ0LsFyWmuClrgIKtAdNfzgV2/qVmJr3ttEV6UqFqBbMtlpoIjA33c6zFLdZkXNRRT11e0R2gG1l9c3sg6Wv0F3Nuh5V8Tcee5F6GybCruhYogt1RZe@7K635e0yCoHHM3IGy8gJG4MuFaZlgW6GawvV1R@mXp1SQ1Zb8TtZ42UrINRvLZKxXTbjSC3HjFiUCgUR4MS2ECKoIqTtxkPfMymmc0dEHdF3T9f8IMuSF3407fxqb3hK9DALgnsGIHY20sd91P3kooHz@WtcnZ7G2hjZ5/xvm3SsI01yHvVxrbKCYyoJKlCQs/52fY2zeQ5DJx7290zXd4nxKRR3c6rl5H4wTpfF9k857WxeE0woRETTUjiQMkjYO41JZxkE@r@IDnt7KzOR@JnYoX/paYk5AIxAGVCaV7aouaa2vuqH0xxJe89nLEZyBpHR9BKj/L@xIbfnXhX31A1R@vvGSvSrHfeU@LFXgVNdxTU9hsf4OxDQY9X8La1zq6hpcpCATQOGuAvypLjJ8i0T2i4Qd/ysmQO8fkFpIL5kCp2bnpX4zkga3DaWo3mXMb2HiXHOwGPIgVNAtmYUBfWqNulxJW@obZSumzpw5x4AdmOOfwQ25ZTf/jG4DXZ0iI8XEfJcTylWiqZPPN0PIeDlQprr5u2beRhRcgiYt9yyZCLyWKSqU57bGcGfEmj/Tcv2iwiXxf0oI@bdE3yap5UcHxijtDbwNf9isIs3@OBjzeV9re7mZGJaUkTMD0KEFn2h8iF9TP9rHYOAhKbPkJ0gIjuY4TF8h1bbwvJr2iKkJwAOm@Wak/Q97XDNx5pul/p@qbds@86zEYWczQlELW1cLv7uQMA4@tm1OZ0oxvk/oieES9/kCGhA/j1r6rCTfFCNIOwgS@Ddt4r6Hm43xosUPr75CfNT34TxyD6L0@SRU8VZUVT3qu7mBIq1zJkM0WaZwoqNFHkcjHBRoKpRx@LnS34pMfjPmiI8VohuprhnGy1tVMsLoHkNzVNuWXOMwLVhxbxiI5nJii1h0OaUPbtsCjkFR5VrlbBAF7skEeCLnfO0ZxEd0cRNPOmkp/4kZ2YzwuRpMNgh8CYf30pksY8g6YNejTgHwX53kZ/EfafDvxWhvvA7@G/H/2DrmEkyXpi73nt2o3B8x6d7Mra9tztayTVm702JAEcCzBUjYTBVxqeaOWa4pswFDKqHzFDJQV3fShsVooqM24AO/u1pQ@pMboeUu4G@fUhfdoCWVeFsV77@QXEbyrPtvcvlVrRyyw8j6S4ciifEeuLK@vAejWkpFBu5Jo/cmFoi778TX5ve4Bd@pjSB0i50kMwQA3S1ylSnRTZHVDChQjaPijz0k/2/IiQ1IputgkQ1db27TbQYlHRQMnziH3m4kIDzdJ1Z5MyoWqSXTlMVYdxUN/FvF11niWxS7b8oUz63uCh5ud6SZjp@fjArwwIdC4ZDro5RRcJsmTeu99FArd1f9AfcdTrXIa5nsfd077jlb21bKkmVA37DEMQOw@HjbdUcNFfGVaQs4LbvUJRU0zorKvm/b0PYagg1v2DWwPD1Z3VfNJ43xrJP2CN9POxRvoR1kgeYY1/2Bbp326Lyedji8lH2SL9fDyDPrH091pj@vlYY/qR1pj8/6zRz1g8EPHVln@5xVyRbbrhg@GPOtBk9gqLKQs7a65GPS4ve2WTT6Ej8SpM4qlcCWzo0wzyikc47WsJ7kTTJ/j9XjBoRG5@h0aFe3MIjYaePtaSC3sTPtjEWZ/rdEtVwjdND7HbJXxij8BdNX68OxBnaqGNhwi/Fs/C5FMO6PJ3uvydoT@NxSQWz@ZiHIs0FtM5XY75D/x8HosEYOhoUqL5CgR4NmeCWBzPxXFM/6f8R4KnWzQTHocz1/GcHvs/xrzU/zH2@6AL/66pebcn2KJ9a8efauKX/M25mte1SSiwkz0D8N6ph@373TQQpB8kSDuCSSCYfJBg4qcR/3H8idr2LUE5WKzp1iI6/Lk1STIT37XTuINFLPz3RSzOwqdc8eBg8as5jEVzSqAyHBQb7eGZPppn2vFM9/OcPJrnpONJCnn3Pw" rel="nofollow noreferrer">Try it online!</a></p>
+<pre><code>function [center,radius,isin] = enc3_4(xyz,xyztest,Di)
+% minimum radius enclosing sphere for exactly 3 points in R^3
+%
+% xyz - a 3x3 array, with each row as a point in R^3
+%
+% xyztest - 1x3 vector, a point to be tested if it is
+%       inside the generated enclosing sphere.
+% 
+% Di - 3x3 array of interpoint distances
+
+% test the farthest pair of points. do they form a diameter
+% of the sphere?
+if Di(1,2)&gt;=max(Di(1,3),Di(2,3))
+  center = mean(xyz([1 2],:),1);
+  radius = Di(1,2)/2;
+  isin = (norm(xyz(3,:) - center)&lt;=radius) &amp;&amp; (norm(xyztest - center)&lt;=radius);
+elseif Di(1,3)&gt;=max(Di(1,2),Di(2,3))
+  center = mean(xyz([1 3],:),1);
+  radius = Di(1,3)/2;
+  isin = (norm(xyz(2,:) - center)&lt;=radius) &amp;&amp; (norm(xyztest - center)&lt;=radius);
+elseif Di(2,3)&gt;=max(Di(1,2),Di(1,3))
+  center = mean(xyz([2 3],:),1);
+  radius = Di(2,3)/2;
+  isin = (norm(xyz(1,:) - center)&lt;=radius) &amp;&amp; (norm(xyztest - center)&lt;=radius);
+end
+if isin
+  % we found the minimal enclosing sphere already
+  return
+end
+
+% If we drop down to here, no singularities should
+% happen (I've already caught any degeneracies.)
+
+% We transform the three points into a plane, then
+% compute the enclosing sphere in that plane.
+
+% translate to the origin
+xyz0 = xyz(1,:);
+xyzt = xyz(2:3,:) - [xyz0;xyz0];
+
+rot = orth(xyzt');
+
+% uv is composed of 2 points, in 2-d, plus we
+% have the origin (after the translation)
+uv = xyzt*rot;
+
+A = 2*uv;
+rhs = sum(uv.^2,2);
+center = (A\rhs)';
+radius = norm(center - uv(1,:));
+
+% rotate and translate back
+center = center*rot' + xyz0;
+
+% test if the 4th point is enclosed also
+isin = (norm(xyztest - center)&lt;=radius);
+end
+
+
+
+
+
+
+
+
+function [center,radius] = enc4(xyz)
+% minimum radius enclosing sphere for exactly 4 points in R^3
+%
+% xyz is a 4x3 array
+%
+% Note that enc4 will attempt to pass a sphere through all
+% 4 of the supplied points. When the set of points proves to 
+% be degenerate, perhaps because of collinearity of 3 or
+% more of the points, or because the 4 points are coplanar,
+% then the sphere would nominally have infinite radius. Since
+% there must be a finite radius sphere to enclose any set of
+% finite valued points, enc4 will provide that sphere instead.
+%
+% In addition, there are some non-degenerate sets of points
+% for which the circum-sphere is not minimal. enc4 will always
+% try to find the minimum radius enclosing sphere.
+
+% interpoint distance matrix D
+% dfun = @(A) (A(:,[1 1 1 1]) - A(:,[1 1 1 1])').^2;
+dfun = inline('(A(:,[1 1 1 1]) - A(:,[1 1 1 1])'').^2','A');
+D = sqrt(dfun(xyz(:,1)) + dfun(xyz(:,2)) + dfun(xyz(:,3)));
+
+% Find the most distant pair. Test if their circum-sphere
+% also encloses the other points. If it does, then we are
+% done.
+[dij,ij] = max(D(:));
+[i,j] = ind2sub([4 4],ij);
+others = setdiff(1:4,[i,j]);
+radius = dij/2;
+center = (xyz(i,:) + xyz(j,:))/2;
+if (norm(center - xyz(others(1),:))&lt;=radius) &amp;&amp; ...
+   (norm(center - xyz(others(2),:))&lt;=radius)
+  % we can stop here.
+  return
+end
+
+% next, we need to test each triplet of points, finding their
+% enclosing sphere. If the 4th point is also inside, then we
+% are done.
+ind = 1:3;
+[center,radius,isin] = enc3_4(xyz(ind,:),xyz(4,:),D(ind,ind));
+if isin
+  % the 4th point was inside this enclosing sphere.
+  return
+end
+
+ind = [1 2 4];
+[center,radius,isin] = enc3_4(xyz(ind,:),xyz(3,:),D(ind,ind));
+if isin
+  % the 3rd point was inside this enclosing sphere.
+  return
+end
+
+ind = [1 3 4];
+[center,radius,isin] = enc3_4(xyz(ind,:),xyz(2,:),D(ind,ind));
+if isin
+  % the second point was inside this enclosing sphere.
+  return
+end
+
+ind = [2 3 4];
+[center,radius,isin] = enc3_4(xyz(ind,:),xyz(1,:),D(ind,ind));
+if isin
+  % the first point was inside this enclosing sphere.
+  return
+end
+
+% find the circum-sphere that passes through all 4 points
+% since we have passed all the other tests, we need not
+% worry here about singularities in the system of
+% equations.
+A = 2*(xyz(2:4,:)-repmat(xyz(1,:),3,1));
+rhs = sum(xyz(2:4,:).^2 - repmat(xyz(1,:).^2,3,1),2);
+center = (A\rhs)';
+radius = norm(center - xyz(1,:));
+end
+
+
+
+
+
+
+
+
+
+function [center,radius] = minboundsphere(xyz)
+% minboundsphere: Compute the minimum radius enclosing sphere of a set of (x,y,z) triplets
+% usage: [center,radius] = minboundsphere(xyz)
+%
+% arguments: (input)
+%  xyz - nx3 array of (x,y,z) triples, describing points in R^3
+%        as rows of this array.
+%
+%
+% arguments: (output)
+%  center - 1x3 vector, contains the (x,y,z) coordinates of
+%        the center of the minimum radius enclosing sphere
+%
+%  radius - scalar - denotes the radius of the minimum
+%        enclosing sphere
+%
+%
+% Example usage:
+% Sample uniformly from the interior of a unit sphere. 
+% As the sample size increases, the enclosing sphere
+% should asymptotically approach center = [0 0 0], and
+% radius = 1.
+%
+%   xyz = rand(10000,3)*2-1;
+%   r = sqrt(sum(xyz.^2,2));
+%   xyz(r&gt;1,:) = [];          % 5156 points retained
+%   tic,[center,radius] = minboundsphere(xyz);toc
+%   
+%   Elapsed time is 0.199467 seconds.
+%
+%   center = [0.00017275   8.5006e-05   0.00012015]
+%
+%   radius = 0.9999
+%
+% Example usage:
+% Sample from the surface of a unit sphere. Within eps
+% or so, the result should be center = [0 0 0], and radius = 1.
+%
+%   xyz = randn(10000,3);
+%   xyz = xyz./repmat(sqrt(sum(xyz.^2,2)),1,3);
+%   tic,[center,radius] = minboundsphere(xyz);toc
+%
+%   Elapsed time is 0.614762 seconds.
+%
+%   center =
+%      4.6127e-17  -2.5584e-17   7.2711e-17
+%
+%   radius =
+%       1
+%
+%
+% See also: minboundrect, minboundcircle
+%
+%
+% Author: John D'Errico
+% E-mail: woodchips@rochester.rr.com
+% Release: 1.0
+% Release date: 1/23/07
+
+% not many error checks to worry about
+sxyz = size(xyz);
+if (length(sxyz)~=2) || (sxyz(2)~=3)
+  error 'xyz must be an nx3 array of points'
+end
+n = sxyz(1);
+
+% start out with the convex hull of the points to
+% reduce the problem dramatically. Note that any
+% points in the interior of the convex hull are
+% never needed.
+if n&gt;4
+  tri = convhulln(xyz);
+
+  % list of the unique points on the convex hull itself
+  hlist = unique(tri(:));
+
+  % exclude those points inside the hull as not relevant
+  xyz = xyz(hlist,:);
+    
+end
+
+% now we must find the enclosing sphere of those that
+% remain.
+n = size(xyz,1);
+
+% special case small numbers of points. If we trip any
+% of these cases, then we are done, so return.
+switch n
+  case 0
+    % empty begets empty
+    center = [];
+    radius = [];
+    return
+  case 1
+    % with one point, the center has radius zero
+    center = xyz;
+    radius = 0;
+    return
+  case 2
+    % only two points. center is at the midpoint
+    center = mean(xyz,1);
+    radius = norm(xyz(1,:) - center);
+    return
+  case 3
+    % exactly 3 points. For this odd case, just use enc4,
+    % appending a new point at the centroid. This is simpler
+    % than other solutions that would have reduced the
+    % problem to 2-d. enc4 will do that anyway.
+    [center,radius] = enc4([xyz;mean(xyz,1)]);
+    return
+  case 4
+    % exactly 4 points
+    [center,radius] = enc4(xyz);
+    return
+end
+
+% pick a tolerance
+tol = 10*eps*max(max(abs(xyz),[],1) - min(abs(xyz),[],1));
+
+% more than 4 points. for no more than 15 points in the hull,
+% just do an exhaustive search.
+if n &lt;= 15
+  % for 15 points, there are only nchoosek(15,4) = 1365
+  % sets to look through. this is only about a second.
+  asets = nchoosek(1:n,4);
+  
+  center = inf(1,3);
+  radius = inf;
+  for i = 1:size(asets,1)
+    aset = asets(i,:);
+    iset = setdiff(1:n,aset);
+    
+    % get the enclosing sphere for the current set
+    [centeri,radiusi] = enc4(xyz(aset,:));
+    
+    % are all the inactive set points inside the circle?
+    ri = sqrt(sum((xyz(iset,:) - repmat(centeri,n-4,1)).^2,2));
+    
+    [rmax,k] = max(ri);
+    if ((rmax - radiusi) &lt;= tol) &amp;&amp; (radiusi &lt; radius) 
+      center = centeri;
+      radius = radiusi;
+    end
+  end
+  
+else
+  % Use an active set strategy, on many different
+  % random starting sets.
+  center = inf(1,3);
+  radius = inf;
+  
+  for i = 1:250
+    aset = randperm(n); % a random start, but quite adequate
+    iset = aset(5:n);
+    aset = aset(1:4);
+    
+    flag = true;
+    iter = 0;
+    centeri = inf(1,3);
+    radiusi = inf;
+    while flag &amp;&amp; (iter &lt; 12)
+      iter = iter + 1;
+      
+      % get the enclosing sphere for the current set
+      [centeri,radiusi] = enc4(xyz(aset,:));
+      
+      % are all the inactive set points inside the circle?
+      ri = sqrt(sum((xyz(iset,:) - repmat(centeri,n-4,1)).^2,2));
+      
+      [rmax,k] = max(ri);
+      if (rmax - radiusi) &lt;= tol
+        % the active set enclosing sphere also enclosed
+        % all of the inactive points. We are done.
+        flag = false;
+      else
+        % it must be true that we can replace one member of aset
+        % with iset(k). That k'th element was farthest out, so
+        % it seems best (a greedy algorithm) to swap it in. The
+        % problem with the greedy algorithm, is it gets trapped
+        % in a cycle at times. but since we are restarting the
+        % algorithm multiple times, this will work.
+        s1 = [aset([2 3 4]),iset(k)];
+        [c1,r1] = enc4(xyz(s1,:));
+        if (norm(c1 - xyz(aset(1),:)) &lt;= r1)
+          centeri = c1;
+          radiusi = r1;
+          
+          % update the active/inactive sets
+          swap = aset(1);
+          aset = [iset(k),aset([2 3 4])];
+          iset(k) = swap;
+          
+          % bounce out to the while loop
+          continue
+        end
+        s1 = [aset([1 3 4]),iset(k)];
+        [c1,r1] = enc4(xyz(s1,:));
+        if (norm(c1 - xyz(aset(2),:)) &lt;= r1)
+          centeri = c1;
+          radiusi = r1;
+          
+          % update the active/inactive sets
+          swap = aset(2);
+          aset = [iset(k),aset([1 3 4])];
+          iset(k) = swap;
+        
+          % bounce out to the while loop
+          continue
+        end
+        s1 = [aset([1 2 4]),iset(k)];
+        [c1,r1] = enc4(xyz(s1,:));
+        if (norm(c1 - xyz(aset(3),:)) &lt;= r1)
+          centeri = c1;
+          radiusi = r1;
+          
+          % update the active/inactive sets
+          swap = aset(3);
+          aset = [iset(k),aset([1 2 4])];
+          iset(k) = swap;
+          
+          % bounce out to the while loop
+          continue
+        end
+        s1 = [aset([1 2 3]),iset(k)];
+        [c1,r1] = enc4(xyz(s1,:));
+        if (norm(c1 - xyz(aset(4),:)) &lt;= r1)
+          centeri = c1;
+          radiusi = r1;
+          
+          % update the active/inactive sets
+          swap = aset(4);
+          aset = [iset(k),aset([1 2 3])];
+          iset(k) = swap;
+          
+          % bounce out to the while loop
+          continue
+        end
+        
+        % if we get through to this point, then something went wrong.
+        % Active set problem. Increase tol, then try again.
+        tol = 2*tol;
+        
+      end
+    end
+    
+    % have we improved over the best set so far?
+    if radiusi &lt; radius
+      center = centeri;
+      radius = radiusi;
+    end
+  end
+end
+
+end
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.wolfram.com/wolframscript/" rel="nofollow noreferrer">Wolfram Language (Mathematica)</a>, 26 bytes</h1>
+<pre><code>2#2&amp;@@CircumscribedBall@#&amp;
+</code></pre>
+<p>Version 13.3 introduced <a href="https://reference.wolfram.com/language/ref/CircumscribedBall.html" rel="nofollow noreferrer"><code>CircumscribedBall</code></a>.</p>
+<p><a href="https://i.stack.imgur.com/1jwUe.png" rel="nofollow noreferrer"><img src="https://i.stack.imgur.com/1jwUe.png" alt="Test cases" /></a></p>
+<hr />
+<p>For versions 13.2 and below,</p>
+<h2><a href="https://www.wolfram.com/wolframscript/" rel="nofollow noreferrer">Wolfram Language (Mathematica)</a>, 33 bytes</h2>
+<pre><code>2#2&amp;@@#~BoundingRegion~&quot;MinBall&quot;&amp;
+</code></pre>
+<p><a href="https://tio.run/##Pcy9CoMwFAXg3acoBpxO4UaN1KFF3AulHUuHYP0JaIRip2BePU2D7fZx7rlnksvQTnJRjXTd0aUsTaqK2Xp@66fS/bXt1axtfFa6luMYJ@7yUnq5s/2pq9gjsbdGamsiY3JkKFZEO0NIkQdloE2EEnz1NOaAAmUIfQ0iSEBsRQHuZ0KR/DeFkP9F/vwTfRej1X0A" rel="nofollow noreferrer" title="Wolfram Language (Mathematica) – Try It Online">Try it online!</a></p>
+<p>Nearly exactly the same as the Mathematica answer to the 2D version. Works for input points of any dimension.</p>
+</div>
+<div id="pu2" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a>, 80 bytes</h1>
+
+<pre class="lang-python prettyprint-override"><code>lambda l:2*m.get_bounding_ball(numpy.array(l))[1]**.5
+import numpy,miniball as m
+</code></pre>
+<p><a href="https://tio.run/##VVHRbqMwEHznK1Z9ASLHwoAhVNf@CEWRIU5rnTEWNlLTKN@esw1JdUgLO7Mzu4utL/ZrUsVdjHqaLZil1/M0cGOQuZjoF@Lhiw9/jwOTMmldCfNvPiyW9ZIjeNmPL@6thfYfoYx1Mp@OQone510and8@7pKN/YmBfM13I/7k9thPizoJ9Xn0qkQto75gNs/sksg0bUm322EabbuFKnq0BGZgvFturIE3SCJwT9uWGEHhosIdgjZzWe6iDMjz2RP5rHFBcNehzX0ITs97xepEQAOiIXu4aXCGOU93tvXPgoL8h7JN/4uy5@w04t@aD5afnj/S4KZsDnVZ1CSrqnydUGOal4e6youqymjTlCtNcFXkTVOQihwoLWle@JbhuvjsO8YfS16XQ4wgZKSI3UQtjJyUKxO@z@roPM1gEQeh4EfoJBwrgsde6WuY5A/6LCdmk3Ni0zRwJy4tczzrTWL2fCX1LJQTxVd7g/07XM0NrttC7Wr4A9sG3S1O7/8A" rel="nofollow noreferrer" title="Python 3 – Try It Online">Try it online!</a> (can't get it to work on TIO - no PyPI <code>miniball</code> module and won't let me install it through code - but works fine on my laptop)</p>
+<p>Uses <a href="https://pypi.org/project/miniball/" rel="nofollow noreferrer">PyPI's miniball module</a> and works in any dimension.</p>
+<p>Inputs a list of floating-point points (at least one coordinate of one point must be a float - i.e. have a decimal point - or <code>numpy</code> gets upset) and returns the diameter of the smallest enclosing circumsphere.</p>
+<h2>How?</h2>
+<p>PyPI's module <code>miniball</code>'s function <code>get_bounding_ball</code> takes a <code>numpy</code> <code>ndarray</code> as the input points (with optional parameter <code>epsilon</code> which defaults to <code>1e-07</code>) and returns the centre and the squared radius of the circumsphere as a tuple. We return double the square-root of the second element which is the diameter of the circumsphere.</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/216995/">216995</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
