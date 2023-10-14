@@ -70,7 +70,6 @@ int cnt[7];
 
 
 void gen_factor(mpz_t N, int Nexp, double Nbase, mpz_t q, long int* qexp, double* qbase, mpz_t p, int* a, mpz_t Nq) {
-    int bitcnt = Nexp;
     double invN = 1 / Nbase;
     int I;
     for (I = 0; ; I++) {
@@ -167,27 +166,18 @@ void gen_factor(mpz_t N, int Nexp, double Nbase, mpz_t q, long int* qexp, double
             int x = sieve[v];
             *a = 1;
             while (x != v) {
-                *a++;
+                ++*a;
                 x *= sieve[v];
             }
             *qbase = mpz_get_d_2exp(qexp, q);
         } else {
             int p = smallprimes[J - directI - 1];
             double f = std::uniform_real_distribution&lt;&gt;(0, 1 - pow(p, -cnt[J-directI-1]) + cnt[J-directI-1] * (p-1) * finvN)(rng);
-            int l = 1;
-            int r = cnt[J-directI-1]-1;
-            int ans = cnt[J-directI-1];
-            while (l &lt;= r) {
-                int m = (l + r) / 2;
-                double v = 1 - pow(p, -m) + m * (p-1) * finvN;
-                if (v &gt;= f) {
-                    ans = m;
-                    r = m-1;
-                } else {
-                    l = m+1;
-                }
+            *a = 0;
+            while (f &gt;= 0) {
+                ++*a;
+                f -= (p-1) * (finvN + pow(p, -*a));
             }
-            *a = ans;
             mpz_ui_pow_ui(q, p, *a);
             *qbase = mpz_get_d_2exp(qexp, q);
         }
@@ -289,7 +279,7 @@ int main() {
    &#32;
 }
 </code></pre>
-<p><a href="https://tio.run/##1VlZj@PGEX7Xr2ivkTGpk02JOlYzY8RIYMxiIwNBjof1RKBEStNY8RBJ0cou9Nc9ruqDZ0vrbJCHyOsR2V1dX3VdXV3axvFgv92@vn7Lwu3h5PnkPve3WZQ8dsqR7UsShVFtxE1TP8mqQ4EbV18TN/SioLYmcLOX2kCaeazGlkVplvhubdk@iIcvjYHzGYc6sP7t24CF8L1GPJKE@2UH5vlbmrmZv84If8cJLzptDj6Jk2jzgVqUPi872wgWExZmJHDP/yAPxKEW/Ft2cChlfu5/wIke0uJQnLDAj1M@WB3awsMDsQqMQ7SPj@v0FCjKynh1GBlsI84i/bCw6dSCQb6tU8h2URKsgWLtMVAL25wyFoX3j2oBHzasPoF1zsKsMSvkERuU6H/949@KLQ7JiHDABs37n34cAxEdOvPJYmo7ljWzKXWmbTIHyOzh2KYLe24tJvP5bDy122QzTja3ZmNnsrBty5lNrUmbjFKgGw8nzmIyplM6n45n9mI21hCOOeHMsibjxYzO6YRaCw0uReDJ0JrPJlN7PqGwlfF4odkGVwdueT5cTKkzW0wXzhT240gvCNzDQVroGcg@230y7hOnT2Z9Qin8D290dqna2E1Y9hJIeiBBpfK/Dv8764sdiy8xwzlwC4bZhxl4QaeTR8wjez9c71yMSCOIP4E7r/rcX1f@Oe6rbaw2bur3iSA49kGEcI9UXXKskMFblS7uCxJXDayOJvncIfBBgA3LhBch0pIPSzQW5ivUF3gQB14Wa57EIzguMZ64A5Ileer1FF9Fx2BO0lb4eiyH8YMHeAZidIVpQMwBymCWC9iOGEj9CFKYZAMp42M5yeP7CVVvlObtEWaSLjEoPMFKyetSSO6xBNLeUymXlGknN1tK1SdVaQRYr4dwGF4AUca@CsUBfQZYwapb5oDKtLkko5FwNZFQSBz94idpVZQVLLSlPYAdvhlc/1IUdBwL5dgdIvAWTn5dSkoGclPghgOx1gS24qnLhRVSCUlItCN2gUMbOOAK6ONX4XhWAdShA7DA0BhLUNj6yJaw9ArsuIC1tbDOLViHw9oK15G4NuBOJK59BdcpcMda3Nkt3BlX8nA0lcAzCTwG4KkEHl8BnhXAEy0wpbeQIZPilqkEpsq@E0DmkSBe9NCUFtiOHvumkelYbpvaCl5Z2kF4ZWrnGnxp66ke/qbSKdf60JoW9qZK71OEV4qfXoMXmucHMJyu28TP/ObpW301OOXG37PQQIHMPmmO9J6kwL@8MAhigzZz4TvYQI0n1CqVVIdpAVluo1NG7u@BHP58B//Bl0paOPJz@F09PwKhIqhCVlPwu2VtGE@Bk6jbNgacIrJwgvxrtglTP4MTAsl0s8HpsD4xnIV/IgU3qHjNFXmY8YsCqFbYoBqe25xdzys5I4MmX9g60m2DGIlWJnkklgkYYcbCE5xVNeouPxFBBlyy96HUWtuYE8WxeTQb5JUKEssVg@dgwQNzZxeXFceMyK48Q4PvduXZy7P3QJI2ZK@wx0RvXDm/6ozVISkZM9O8ITVwFcKPBEqD8lu28/wd@dOff/j7j7WJmgtyRqUXciu2XJCz80OP7Tot@3wjgyQJo9PhwGoRJqKGW/@q1ZSNkdTdrIXTcHNTx2w6e8VhDWnT5nTXxXKmPn4h/gH0W0D5yQ5Cac1zBWIhDgZn5uMFIoXLwh4qdrZ1w0wLD4XdKVlqp1jIMi4eUPx@AYVlNZstKjAMMfRtewlf9w/C5@C5Xo81P7An6TBuDAo@o8tAIgXZhANDcvfRFXEQSmEYR8dTiwzf1MhfNdyo625SQ/IekCQ6hZ58BZ3eEwtOrrs70h2hapIo4lbjmvHNW3JLPXUfiL@8SaScgfOMzdvEjdqy@bl0ft/oRaV/nS@BIDql8Sx28N2EE7TneSRpwiCWYVAGj8av23q8Qt6OPFDyI@E2uhnHFG@YXbcdypoIgzPwoXJYNWphXTLbgVvW7slgp0PjqIa78VfV4o0TWJ1WB3Gjbg4nPKfK1XZ73g3TKkUjiqVbHDA@E51783OSnzUgNlCMiK3LA1wp/PpUdh60Gw2e9Z7EL1O7awEmNhHoAwE1EAw06emqr@EH1Rn0dKs6199k7MoKQHVjQLpnjcFypXdJ0qbA5Ca6PHljVpdxpa3O5JsHkus01XV7vfZ@zpiT9CiX/7AYualY3ozCDVUaFu8gw6oqcUDo8/K/iCWibhSxLKnfDSRrDBpZWVfHsF6JBxQPC1Ft3wgsqg@sJssBvRZgTcr/cZhVdRHg5oPmbv@fw4x7PwijuR8wPLZU/PUxwS@/1onLowVpdx7L10djhUV7nZBfV9J15HmSLTzBObc6NjpCgsasXhM4N6wLzVa3aXX0qlK22d083XD1CLzlyzU@@AY1r5@CTcHT0@aa4HAbPSWh6lxdZINw425fZGswV528zE1gU/IyKvr596KccNP08Y6IhmJatPvKOxNiAxvqL3gtVnXUU4g1ru@J3PpUUR6uadjr3Mwp7T62kT@N7B7tA69mZqikebWVc2Vaij8U1VF1QpW9nih7va6HEX@Gp3bRW6TzPyD5Q32zTSg/iA/u1l@Dtj8anqnL8iMoYa6l90vN3vwEoU04LdS5FjB6TyivGCImV9myU71bpIYa7xN1DVcd4nZ3d6WP3zvRcM6/0M1wS3ELiGMBUYE5lp1j/FTa3HlfNrdlVxuEvxPZ407GFz66uJ@KcngY4A6Vwygf1wgkSHRSiZkrGiiWKZB2UoEyKy8aAyvVF5D5gJojMVE0DI6VVm4JjTMFViMp3cpJCK4STcO1VFww0ZRnENsufGFQaN0u1vd0imhU30cNHY9Knc/pvLf04DKjgS9wYcOvTGcyGdaDwEa/Cs1yUDawmqMi/cJoXiZf7lu5zrVAZPHjIQsNhOfkYIFh6vuekUENZljqbqd@l@TX/cOWO9U6ZZ98o2i0TSeSFlfCHvwQE5lkgweJvH@IapI3@8Uj78er2qCwdk7eXv25quoiNffIuXs88B9E8bHHi10Bw6owl05rLV0I35K/ogoHE2epXG@2un1QuIkuLmtJLxjmpTR546ekknP@fNPnv7ip4vF72B@oLV9eyd0KDlP4oJXDW/fJZ3Els4t1jVhoX1DliiabUVUk0QAXN5u6EvN2WBX9u9hNMgaVPTA2FEK/wAL3UqzKQSmtdvmxXH/UMjhWOHBDlI9Z@qm8Tbd/RS/tJ/KVigCwIISE9KvPnXp/TURnvYjAWDNayVqfR1RY1w4lw7GsW2cKbgScSSVRHs6NlF2fw0oD3Ka0Wl1gUdLUJK5YUHVg34BkfuJmUIy9wXfGB0l4CuBoSH8O3yw1a@TvirxZxA4s@7dYqyQZyQYeMzl1n0B6AhUBBDbnzkNBbQ0ty57PZwsygvvOe2bY/wINmXC68efJYmHyyxM@ke6o3heuy@PmsIW9L6XGn1@EhHAPYCkoTACCghuS6QUDh0Nbwe3rL@v3K5tny6E1njgo6A9ryIKQksk/2UcW@x5zW7J1Lq@vv253B3efvg4OkJHF3/P5dfDT@Dc" rel="nofollow noreferrer" title="C++ (gcc) – Try It Online">Try it online!</a></p>
+<p><a href="https://tio.run/##pVnrj9s2Ev/uv4JNcVvJT1G2/Ih3t7jiDsUGORc43ONDumfIlrxLxJZkSVZ9CfZf73aGD4mSaCeXc9O1RA7nN5wXh@NtkgyettvX1@9ZtN2fgpDcFuE2j9P7TjWyfU7jKK6N@FkWprk@dPAT/TX1oyA@1NYc/Py5NpDlAauxZXGWp6FfW/Z0SIbPjYHzGYc6sP7t2wOL4HuNeCSNnpYdmOdvWe7n4Ton/B0ngvi02YckSePNB@pQ@rjsbGNYTFiUk4N//he5Ix514N@yg0MZC4vwA070kBaHkpQdwiTjg/rQFh7uiFNi7OOn5LjOTgdFqY3rw8hgG3MW2YeFS6cODPJtnSK2i9PDGijWAQO1sM0pZ3F0e68W8GHL6RNY5y3sGrNSHrFBif73P/@j3OKQjAgHbNC8/@XnMRDRoTefLKau5zgzl1Jv2ibzgMwdjl26cOfOYjKfz8ZTt00242RzZzb2JgvXdbzZ1Jm0ySgFuvFw4i0mYzql8@l45i5mYwPhmBPOHGcyXszonE6oszDgUgSeDJ35bDJ15xMKWxmPF4ZtcHXglufDxZR6s8V04U1hP570goO/30sLPQLZZ7dPxn3i9cmsTyiF/@GNzl50G/spy58Pkh5IUKn8r8f/zvpix@JLzHAO3IJR/mEGXtDpFDELyFMYrXc@RqR1SD6BO6/63F9X4Tnpq22sNn4W9okgOPZBhOgJqbrkqJHBm06X9AWJrwZWR5t87hD4SLYsKlaoGHAVjrDkk4j@IB7BQ4n1wD2NLMlDr6cYKDoGc5JW4xuwAsb3AchmIUZX2ADkGeC27GoB2xELqe9BCptsIDd8rCZ5ID@gjq3Kjj3CbNIlFoUnWCl5vZSSByyF/PZQySVl2snNVlL1iS6NAOv1EA7jCCCqIFcxN6CPACtYdatg16btJRmNhE@JzEGS@LcwzXRRVrDQBRhEB3b4ZnH9S1HQQxyUY7ePwS04@WUpKRnITYG/DcRaG9iKpy4XVkglJCHxjrglDm3ggCugM1@E4@kDUIcewAJDayxBYesjV8LSC7DjEtY1wnrXYD0O6ypcT@K6gDuRuO4FXK/EHRtxZ9dwZ1zJw9FUAs8k8BiApxJ4fAF4VgJPjMCUXkOGlIlbphKYKvtOAJlHgngxQ1NaYntm7KtGpmO5beoqeGVpD@GVqb1L8JWtp2b4q0qnXOtDZ1ramyq9TxFeKX56CV5onp@0cIxu0zAPm8es/mpxyk34xCILBbL7pDnSe5AC//bMIIgt2syF72ADNZ5QlGipDtMCstzGp5zc3gI5/PkB/oMvlbRw5Nfoh3p@BEJFoEPqKfjdsjaM6f4kCrSNBceFrJAg/9ptwizMNyxHMtPs4bRfnxjOwj@RghtUvLiKA8z4ZaVTq2BQDY9tzn4QVJyRQZMvbB3ptocEiVY2uSeODRhRzqITnFU16i4/@kAGXPIUQk21djEnivPxaDfItVIR6xKL52DBA3NnF5eVx4zIrjxDg@925SHLs/dAkjZk19hjorcunF91xuqQlIyZbV@RGrgK4UcCpUH5PdsF4Y785a8//fPn2kTNBTmjygu5FVsuyNmFUcB2nZZ9vpNBkkbxab9ntQgTUcOtf9FqysZI6m/Wwmm4ualnN51dc1hL2rQ53fWxnKmPv5BwD/otocJ0B6G05rkCsRAHgzMP8aaQwa3gCUpztvWj3AgPFdwpXRqnWMRyLh5QfL2AwrKGzZYVGIYY@ra7hK/bO@Fz8Fyvx5of2JN0GD8BBZ/RZSCRgmzCgSG5h@iKOAg1L4yj46lFVmgb5NcNN@r6m8ySvAckjU9RIF9Bp7fEgZPr5oZ0R6iaNI651bhmQvua3FJP3TsSLq8SKWfgPBP7OnGjtmx@XjpfN/qi0r/Jl0AQk9J4FtuHfsoJ2vM8kgxhkMgwqILH4NdtPV4gb0ceKPmecBtdjWOKV8mu3w5lQ4TBGXinHVaNWtiUzHbglrULMdhp3ziq4RL8TbV44wRWp9VeXJ2bwynPqXK12573o0ynaESxdIs9xmdqcm9@TvKzBsQGihFxTXmAK4Vfn6oWg3Gjh0ezJ/HL1O5SgIlNHMyBgBo4DAzp6aKv4QfVeeiZVnUuv8nYlRWAaruAdI8GgxVK75KkTYHJTbRzisasKeNKW53Jd3ekMGmq1@v67f2cMSeZUV7@x2LkqmJ51wk3pHUm3kGGVVXigNDH5f8RS0TdKBJZUr8bSNYYNLKy1sewXkkGFA8LUW0bAovr2THqeYce6Xy9nndkcFcCWsLxe6XAkIns5Rc868QwJyvn6mP2Wn6rhaq8ibS7gBXro7XCirROyGvxbB0HgWQLT5DEV8dGu0PQ2HoNzLlh0WO3WimrY6BL2WZ3NXXj6hFknC8XsKBgal9O8U3Bs9PmkuBw1TqlkWrLvMg218bfPssGV6H6UbmfwqbkTUt0pW/FWeln2f0NEW2xTDmOdiFAbGBDwwUvNHTXOkVYwIWBSBwPmvJwTcNe52bAtLuxVvEwcntw9S4emm6v5TC1lbM2LcUfiqNfn1A1XSBquqAb4Klxhqd2RVfmqj8h@YU4UlDhIdn723AN2v5oBbYphY3gfL4UPi81e/P0SJtwRqhzLWDMnlDVzyImV/myoxfOmaXG@0TdMVWfk/tqrZ23MsfvjWibFl@4qmtJp4Q4lhAazLFqi@JHa9YWfdmilb1ZEP5GZI8bGV/46ON@NOXwMMAdKodRPm4QSJCYpBIzFzRQLlMg7aQCNURR3npX6tIr8wG1R2KivA0ftT5lBY0zJVYjKV3LSQiuEk3DtVRcMNFxZhDbPnxhUBjdLjE3LMpoVN9HAx2PSpPPmby38uAqo4EvcGGjb0xnMhnWg8BFv4rsalB2Z5qjIv3CaFElX@5bhcm1QGTxExiLLITn5GCBYRaGgZVDgWE56lBVv67xu@x@y51qnbFPoVV2kaYTSYsrYQ9hhIlMssGDRJYBolTinWzxyJvNqr4srV2Qtxd/dNFdpOYeBXePO/6zHj72eCUnYJgO89JpraUL4Vvyt0DhYOIslevtVisLSiLRomQt6QXDopKmaPxOUnEuHq/6/Bc3VT7@CPsDtRXLC7lbwWEKH7RyeOuy9CjuG265rhEL7duXXNFkM9JFEt1dUbbXlVi0w6psTiV@mjMoW4GxpRD6JRYWgpJVNSilNS4/VuuPRgZHjQM3RPWYZ5@qorb9W3BlP5GvVASABSEkpF997tSbRyI660UExprVStbmPKLCunYoWZ7jXDtTcCPgTCqJ8nBupOz6HFYa4DaV1eoCi5KmJrFmQdVefAOShamfQzH2Bt8ZHyTR6QBHQ/Zr9GZpWCN/NOOdELZn@X/FWiXJSHanmM2p@wTSE6gIILDzdB4KamfoOO58PluQEdwg3jPL/Q9oyIbTjT9PFgubX8DxiXRH9aZnXR6/gC08hVJq/G1BSAj3AJaBwgQgKLghmVkwcDi0Fdxr/rZ@v3J5thw644mHgv60hiwIKZn8m31kSRgwvyVb5@X19fftbu8/Za@DPWRk8fd8fh38Mv4D" rel="nofollow noreferrer" title="C++ (gcc) – Try It Online">Try it online!</a></p>
 <p>Can output around 13,700 numbers on my computer. Compile with <code>-lgmp -lgmpxx -O3</code>. Please make sure there aren't other programs active while running this, because I've noticed that on my computer it changed the number by almost 1,000, even with just Firefox.</p>
 <p>I'll add an explanation later, probably after even some more optimizations.</p>
 </div>
