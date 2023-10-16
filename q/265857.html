@@ -26,40 +26,13 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>012</td><td>Jelly</td><td>231014T201410Z</td><td><a href="https://codegolf.stackexchange.com/questions/265857/random-factorized-numbers/265999#265999">Nicolas</a></td></tr>
-<tr d-ix="1"><td>nan</td><td></td><td>231008T194507Z</td><td><a href="https://codegolf.stackexchange.com/questions/265857/random-factorized-numbers/265865#265865">Command </a></td></tr>
+<tr d-ix="0"><td>nan</td><td></td><td>231008T194507Z</td><td><a href="https://codegolf.stackexchange.com/questions/265857/random-factorized-numbers/265865#265865">Command </a></td></tr>
+<tr d-ix="1"><td>012</td><td>Jelly</td><td>231014T201410Z</td><td><a href="https://codegolf.stackexchange.com/questions/265857/random-factorized-numbers/265999#265999">Nicolas</a></td></tr>
 <tr d-ix="2"><td>004</td><td>Rust + rand + bnum</td><td>231012T081814Z</td><td><a href="https://codegolf.stackexchange.com/questions/265857/random-factorized-numbers/265935#265935">mousetai</a></td></tr>
 <tr d-ix="3"><td>066</td><td>Charcoal</td><td>231008T190055Z</td><td><a href="https://codegolf.stackexchange.com/questions/265857/random-factorized-numbers/265864#265864">Neil</a></td></tr>
 <tr d-ix="4"><td>nan</td><td></td><td>231008T143034Z</td><td><a href="https://codegolf.stackexchange.com/questions/265857/random-factorized-numbers/265862#265862">Command </a></td></tr>
 </table>
-<div id="pu0" class="pu"><h2>Jelly (12 bytes) Score: 0</h2>
-<p>Edit: old code was wrong</p>
-<blockquote class="spoiler">
-<p> 2*³XȮÆ!Ṅ
- ç1¿</p>
-</blockquote>
-<p>New code:
-2*³XȮÆEṄ
-&gt;! ç1¿</p>
-<pre><code>2*³..... 2^input
-...X.... Pick a random number in [0, 2^input)
-....Ȯ... Print the random number
-.....ÆE. Factorize it
-.......Ṅ Print the factors and go to line
-ç1¿..... Loop the function above forever
-</code></pre>
-<p>Old code:</p>
-<blockquote class="spoiler">
-<p> Jelly beginner, the code can likely be shortened. It generated 141'808 random numbers between [0, 2^500) in 10 seconds on my MacBook Pro M2, the generated filesize is 68Mb.
- Try the code here: https://tio.run/##ASAA3/9qZWxsef//MirCs1jIrsOGIeG5hArDpzHCv////zUwMA</p>
-</blockquote>
-<p>New code has a score of 0.</p>
-<p>Testing code:</p>
-<pre><code>&gt; ./jelly fu prime.jelly 500 &gt; primelist.txt &amp; pid=$!; sleep 10; kill $pid
-&gt; wc -l primelist.txt
-</code></pre>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C++ (gcc)</a></h1>
+<div id="pu0" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C++ (gcc)</a></h1>
 
 <pre class="lang-cpp prettyprint-override"><code>#include &lt;vector&gt;
 #include &lt;chrono&gt;
@@ -76,112 +49,79 @@ std::minstd_rand rng;
 gmp_randstate_t gmp_rng;
 double prob[1011];
 const int maxV = 510510;
+#define Vfactors {2, 3, 5, 7, 11, 13, 17}
+const int sqrtV = 715;
 int sieve[maxV+1];
 int primeps[maxV];
 int primecnt = 0;
 double logpq_sum[maxV];
-double logp_sum[maxV];
 int coprimes[92160];
 std::uniform_int_distribution&lt;&gt; coprime_dist(0, 92159);
 int coprimecnt = 0;
 const double RAT = 510510. / 92160;
-const double LOG3 = 1.584962500721156;
-const double LOG5 = 2.321928094887362;
-const double LOG7 = 2.807354922057604;
-const double LOG11 = 3.4594316186372973;
-const double LOG13 = 3.700439718141092;
-const double LOG17 = 4.087462841250339;
-const double LOG510510 = 18.96157969569485;
-int smallprimes[] = {2, 3, 5, 7, 11, 13, 17};
-double logarithms[] = {1, LOG3, LOG5, LOG7, LOG11, LOG13, LOG17};
-int cnt[7];
+const double LOGV = 18.96157969569485;
 
 
 void gen_factor(mpz_t N, int Nexp, double Nbase, mpz_t q, long int* qexp, double* qbase, mpz_t p, int* a, mpz_t Nq) {
-    double invN = 1 / Nbase;
+    const double invN = 1 / Nbase;
+    const double Nlog2 = Nexp + log2(Nbase);
     int I;
     for (I = 0; ; I++) {
         int i = I;
-        double div = ldexp(invN*510510, i-Nexp);
+        double div = ldexp(invN*maxV, i-Nexp);
         if (div &gt;= 1) break;
-        prob[I] = (LOG510510 + i) * (1 + div);
+        prob[I] = (LOGV + i)*(1 + 1/(ldexp(maxV, i)-1)) + div*Nlog2;
     }
     int directI = I;
-    double finvN = ldexp(invN, -Nexp);
-    prob[I++] = RAT * (logpq_sum[primecnt-1] + finvN * logp_sum[primecnt-1]); // small prime powers
-    double Nlog2 = Nexp + log2(Nbase);
-    cnt[0] = floor(Nlog2);
-    prob[I++] = RAT * (1 - ldexp(1, -cnt[0]) + cnt[0]*finvN); // powers of 2
-    cnt[1] = floor(Nlog2 / LOG3);
-    prob[I++] = RAT * LOG3 * (.5 - pow(3, -cnt[1])/2 + cnt[1]*finvN); // powers of 3
-    cnt[2] = floor(Nlog2 / LOG5);
-    prob[I++] = RAT * LOG5 * (.25 - pow(5, -cnt[2])/4 + cnt[2]*finvN); // powers of 5
-    cnt[3] = floor(Nlog2 / LOG7);
-    prob[I++] = RAT * LOG7 * (1./6 - pow(7, -cnt[3])/6 + cnt[3]*finvN); // powers of 7
-    cnt[4] = floor(Nlog2 / LOG11);
-    prob[I++] = RAT * LOG11 * (.1 - pow(11, -cnt[4])/10 + cnt[4]*finvN); // powers of 11
-    cnt[5] = floor(Nlog2 / LOG13);
-    prob[I++] = RAT * LOG13 * (1./12 - pow(13, -cnt[5])/12 + cnt[5]*finvN); // powers of 13
-    cnt[6] = floor(Nlog2 / LOG17);
-    prob[I++] = RAT * LOG17 * (.0625 - pow(17, -cnt[6])/16 + cnt[6]*finvN); // powers of 17
+    const double finvN = ldexp(invN, -Nexp);
+    prob[I++] = RAT * (logpq_sum[primecnt-1] + finvN * Nlog2 * (primecnt-1)); // small prime powers
     std::discrete_distribution&lt;&gt; distribution(std::begin(prob), std::begin(prob)+I);
     while (1) {
         int J = distribution(rng);
-        // std::cout &lt;&lt; J &lt;&lt; ' ' &lt;&lt; directI &lt;&lt; '\n';
         if (J &lt; directI) {
-            int i = J;
-            mpz_urandomb(q, gmp_rng, i);
-            mpz_setbit(q, i);
-            mpz_mul_ui(q, q, 510510);
-            int modv = coprimes[coprime_dist(rng)];
-            mpz_add_ui(q, q, modv);
-            if (mpz_cmp(q, N) &gt; 0) continue;
+            const int i = J;
+            mpz_urandomb(p, gmp_rng, i);
+            mpz_setbit(p, i);
+            mpz_mul_ui(p, p, maxV);
+            mpz_add_ui(p, p, coprimes[coprime_dist(rng)]);
+            if (mpz_cmp(p, N) &gt; 0) continue;
 
-            *qbase = mpz_get_d_2exp(qexp, q);
+            long pexp;
+            double pbase = mpz_get_d_2exp(&amp;pexp, p);
 
-            double prob1 = (log2(*qbase) + *qexp) * (1 + ldexp(Nbase / *qbase, Nexp - *qexp));
-            double prob2 = ((LOG510510 + i) * (1 + ldexp(Nbase / 510510, Nexp - i)));
+            double p_d = mpz_get_d(p);
 
-            double prob = prob1 / prob2;
+            *a = 0;
+
+            double logp = pexp + log2(pbase);
+            double Nlogp = Nlog2 / logp;
+
+            double choice_probability = (LOGV + i) / logp + Nlogp * finvN * (ldexp(maxV, i) - 1);
 
             #ifdef DEBUG
-            std::cout &lt;&lt; prob &lt;&lt; ' ' &lt;&lt; modv &lt;&lt; '\n';
+            std::cout &lt;&lt; choice_probability &lt;&lt; '\n';
             #endif
 
-            if (!std::bernoulli_distribution(prob)(rng)) continue;
+            double f = std::uniform_real_distribution&lt;&gt;(0, choice_probability)(rng);
 
-            if (mpz_probab_prime_p(q, 15)) {
-                mpz_set(p, q);
-                *a = 1;
-            } else if (mpz_perfect_power_p(q)) { // test is significant
-                mpz_t cur;
-                mpz_init_set(cur, q);
-                *a = 1;
-                do {
-                    for (int e = 2; e &lt;= *qexp; e++) {
-                        // double approx = pow(curbase, 1./e) * pow(2, curexp / double(e));
-                        if (/*abs(approx - round(approx)) &lt; 0.1 &amp;&amp; */mpz_root(p, cur, e)) {
-                            *a *= e;
-                            mpz_set(cur, p);
-                            break;
-                        }
-                    }
-                } while (mpz_perfect_power_p(cur));
-                mpz_clear(cur);
-                if (!mpz_probab_prime_p(p, 15)) continue;
-            } else {
-                continue;
+            while (*a &lt;= Nlogp &amp;&amp; f &gt;= 0) {
+                ++*a;
+                f -= (ldexp(maxV, i) - 1) * pow(p_d, -*a) + (ldexp(maxV, i) - 1)*finvN;
             }
 
-            if (*a &gt; 1 &amp;&amp; !std::bernoulli_distribution(1. / *a)(rng)) continue;
-        } else if (J == directI) { // small prime
-            double f = std::uniform_real_distribution&lt;&gt;(0,logpq_sum[primecnt-1] + finvN * logp_sum[primecnt-1])(rng);
+            if (*a &gt; Nlogp) continue;
+
+            if (!mpz_probab_prime_p(p, 15)) continue;
+
+            mpz_pow_ui(q, p, *a);
+        } else { // small prime
+            double f = std::uniform_real_distribution&lt;&gt;(0, logpq_sum[primecnt-1] + finvN * Nlog2 * (primecnt-1) )(rng);
             int l = 0;
             int r = primecnt-2;
             int ans = primecnt-1;
             while (l &lt;= r) {
                 int m = (l + r) / 2;
-                double v = logpq_sum[m] + finvN * logp_sum[m];
+                double v = logpq_sum[m] + finvN * Nlog2 * m;
                 if (v &gt;= f) {
                     ans = m;
                     r = m-1;
@@ -189,26 +129,26 @@ void gen_factor(mpz_t N, int Nexp, double Nbase, mpz_t q, long int* qexp, double
                     l = m+1;
                 }
             }
-            mpz_set_ui(q, primeps[ans]);
-            int v = primeps[ans];
-            int x = sieve[v];
-            *a = 1;
-            while (x != v) {
-                ++*a;
-                x *= sieve[v];
-            }
-            *qbase = mpz_get_d_2exp(qexp, q);
-        } else {
-            int p = smallprimes[J - directI - 1];
-            double f = std::uniform_real_distribution&lt;&gt;(0, 1 - pow(p, -cnt[J-directI-1]) + cnt[J-directI-1] * (p-1) * finvN)(rng);
+            int pv = primeps[ans];
+            mpz_set_ui(p, pv);
+           &#32;
+            double Nlogq = Nlog2 / log2(pv);
+
+            f = std::uniform_real_distribution&lt;&gt;(0, 1 + Nlogq * (pv-1) * finvN )(rng);
+
             *a = 0;
-            while (f &gt;= 0) {
+
+            while (*a &lt;= Nlogq &amp;&amp; f &gt;= 0) {
                 ++*a;
-                f -= (p-1) * (finvN + pow(p, -*a));
+                f -= (pv-1) * (pow(pv, -*a) + finvN);
             }
-            mpz_ui_pow_ui(q, p, *a);
-            *qbase = mpz_get_d_2exp(qexp, q);
+
+            if (*a &gt; Nlogq) continue;
+
+            mpz_ui_pow_ui(q, pv, *a);
         }
+
+        *qbase = mpz_get_d_2exp(qexp, q);
 
         mpz_fdiv_q(Nq, N, q);
         int is_odd = mpz_odd_p(Nq);
@@ -221,7 +161,7 @@ void gen_factor(mpz_t N, int Nexp, double Nbase, mpz_t q, long int* qexp, double
 }
 
 void bach(mpz_t v, mpz_t target, std::vector&lt;mpz_class&gt;&amp; factors) {
-    if (mpz_cmp_ui(v, 1e9) &lt; 0) {
+    if (mpz_cmp_ui(v, 1e7) &lt; 0) {
         unsigned int vI = mpz_get_ui(v);
         int x = std::uniform_int_distribution&lt;&gt;(vI/2+1, vI)(rng);
         mpz_set_ui(target, x);
@@ -272,23 +212,21 @@ int main() {
     rng.seed(time(0));
     gmp_randinit_lc_2exp_size(gmp_rng, 64);
     time_t end = time(0) + 10;
-    sieve[0] = sieve[1] = -1;
-    for (int v : {2, 3, 5, 7, 11, 13, 17}) {
-        for (int i = v; i &lt;= maxV; i += v) sieve[i] = -1;
+    sieve[0] = sieve[1] = 1;
+    for (int v : Vfactors) {
+        for (int i = v; i &lt;= maxV; i += v) sieve[i] = 1;
     }
-    for (int i = 19; i &lt; 510510; i++) if (!sieve[i]) coprimes[coprimecnt++] = i;
-    for (int v = 19; v &lt;= maxV; v++) {
+    for (int i = 1; i &lt; maxV; i++) if (!sieve[i]) coprimes[coprimecnt++] = i;
+    for (int v : Vfactors) sieve[v] = 0;
+    double logpq_sum_v = 0;
+    for (int v = 2; v &lt;= maxV; v++) {
         if (!sieve[v]) {
-            for (int i = v; i &lt;= maxV; i += v) sieve[i] = sieve[i] ? -1 : v;
-        }
-        if (sieve[v] != -1) {
-            logp_sum[primecnt] = log2(sieve[v]);
-            logpq_sum[primecnt] = logp_sum[primecnt] / v;
+            if (v &lt;= sqrtV)
+            for (int i = v*v; i &lt;= maxV; i += v) sieve[i] = 1;
+            logpq_sum[primecnt] = logpq_sum_v += log2(v) / (v-1);
             primeps[primecnt++] = v;
         }
     }
-    std::partial_sum(logp_sum, logp_sum + primecnt, logp_sum);
-    std::partial_sum(logpq_sum, logpq_sum + primecnt, logpq_sum);
     int i;
     int tsz = 0;
     int primecnt = 0;
@@ -299,6 +237,15 @@ int main() {
         gen(500, target, factors);
         tsz += factors.size();
         if (factors.size() == 1) primecnt++;
+        #ifdef OUTPUT
+        mpz_out_str(stdout, 10, target);
+        printf(" = ");
+        for (int j = 0; j &lt; factors.size(); j++) {
+            if (j) printf(" * ");
+            std::cout &lt;&lt; factors[j];
+        }
+        printf("\n");
+        #endif
         mpz_clear(target);
     }
     std::cout &lt;&lt; "generated " &lt;&lt; i &lt;&lt; " numbers\n";
@@ -307,9 +254,36 @@ int main() {
    &#32;
 }
 </code></pre>
-<p><a href="https://tio.run/##pVnrj9s2Ev/uv4JNcVvJT1G2/Ih3t7jiDsUGORc43ONDumfIlrxLxJZkSVZ9CfZf73aGD4mSaCeXc9O1RA7nN5wXh@NtkgyettvX1@9ZtN2fgpDcFuE2j9P7TjWyfU7jKK6N@FkWprk@dPAT/TX1oyA@1NYc/Py5NpDlAauxZXGWp6FfW/Z0SIbPjYHzGYc6sP7t2wOL4HuNeCSNnpYdmOdvWe7n4Ton/B0ngvi02YckSePNB@pQ@rjsbGNYTFiUk4N//he5Ix514N@yg0MZC4vwA070kBaHkpQdwiTjg/rQFh7uiFNi7OOn5LjOTgdFqY3rw8hgG3MW2YeFS6cODPJtnSK2i9PDGijWAQO1sM0pZ3F0e68W8GHL6RNY5y3sGrNSHrFBif73P/@j3OKQjAgHbNC8/@XnMRDRoTefLKau5zgzl1Jv2ibzgMwdjl26cOfOYjKfz8ZTt00242RzZzb2JgvXdbzZ1Jm0ySgFuvFw4i0mYzql8@l45i5mYwPhmBPOHGcyXszonE6oszDgUgSeDJ35bDJ15xMKWxmPF4ZtcHXglufDxZR6s8V04U1hP570goO/30sLPQLZZ7dPxn3i9cmsTyiF/@GNzl50G/spy58Pkh5IUKn8r8f/zvpix@JLzHAO3IJR/mEGXtDpFDELyFMYrXc@RqR1SD6BO6/63F9X4Tnpq22sNn4W9okgOPZBhOgJqbrkqJHBm06X9AWJrwZWR5t87hD4SLYsKlaoGHAVjrDkk4j@IB7BQ4n1wD2NLMlDr6cYKDoGc5JW4xuwAsb3AchmIUZX2ADkGeC27GoB2xELqe9BCptsIDd8rCZ5ID@gjq3Kjj3CbNIlFoUnWCl5vZSSByyF/PZQySVl2snNVlL1iS6NAOv1EA7jCCCqIFcxN6CPACtYdatg16btJRmNhE@JzEGS@LcwzXRRVrDQBRhEB3b4ZnH9S1HQQxyUY7ePwS04@WUpKRnITYG/DcRaG9iKpy4XVkglJCHxjrglDm3ggCugM1@E4@kDUIcewAJDayxBYesjV8LSC7DjEtY1wnrXYD0O6ypcT@K6gDuRuO4FXK/EHRtxZ9dwZ1zJw9FUAs8k8BiApxJ4fAF4VgJPjMCUXkOGlIlbphKYKvtOAJlHgngxQ1NaYntm7KtGpmO5beoqeGVpD@GVqb1L8JWtp2b4q0qnXOtDZ1ramyq9TxFeKX56CV5onp@0cIxu0zAPm8es/mpxyk34xCILBbL7pDnSe5AC//bMIIgt2syF72ADNZ5QlGipDtMCstzGp5zc3gI5/PkB/oMvlbRw5Nfoh3p@BEJFoEPqKfjdsjaM6f4kCrSNBceFrJAg/9ptwizMNyxHMtPs4bRfnxjOwj@RghtUvLiKA8z4ZaVTq2BQDY9tzn4QVJyRQZMvbB3ptocEiVY2uSeODRhRzqITnFU16i4/@kAGXPIUQk21djEnivPxaDfItVIR6xKL52DBA3NnF5eVx4zIrjxDg@925SHLs/dAkjZk19hjorcunF91xuqQlIyZbV@RGrgK4UcCpUH5PdsF4Y785a8//fPn2kTNBTmjygu5FVsuyNmFUcB2nZZ9vpNBkkbxab9ntQgTUcOtf9FqysZI6m/Wwmm4ualnN51dc1hL2rQ53fWxnKmPv5BwD/otocJ0B6G05rkCsRAHgzMP8aaQwa3gCUpztvWj3AgPFdwpXRqnWMRyLh5QfL2AwrKGzZYVGIYY@ra7hK/bO@Fz8Fyvx5of2JN0GD8BBZ/RZSCRgmzCgSG5h@iKOAg1L4yj46lFVmgb5NcNN@r6m8ySvAckjU9RIF9Bp7fEgZPr5oZ0R6iaNI651bhmQvua3FJP3TsSLq8SKWfgPBP7OnGjtmx@XjpfN/qi0r/Jl0AQk9J4FtuHfsoJ2vM8kgxhkMgwqILH4NdtPV4gb0ceKPmecBtdjWOKV8mu3w5lQ4TBGXinHVaNWtiUzHbglrULMdhp3ziq4RL8TbV44wRWp9VeXJ2bwynPqXK12573o0ynaESxdIs9xmdqcm9@TvKzBsQGihFxTXmAK4Vfn6oWg3Gjh0ezJ/HL1O5SgIlNHMyBgBo4DAzp6aKv4QfVeeiZVnUuv8nYlRWAaruAdI8GgxVK75KkTYHJTbRzisasKeNKW53Jd3ekMGmq1@v67f2cMSeZUV7@x2LkqmJ51wk3pHUm3kGGVVXigNDH5f8RS0TdKBJZUr8bSNYYNLKy1sewXkkGFA8LUW0bAovr2THqeYce6Xy9nndkcFcCWsLxe6XAkIns5Rc868QwJyvn6mP2Wn6rhaq8ibS7gBXro7XCirROyGvxbB0HgWQLT5DEV8dGu0PQ2HoNzLlh0WO3WimrY6BL2WZ3NXXj6hFknC8XsKBgal9O8U3Bs9PmkuBw1TqlkWrLvMg218bfPssGV6H6UbmfwqbkTUt0pW/FWeln2f0NEW2xTDmOdiFAbGBDwwUvNHTXOkVYwIWBSBwPmvJwTcNe52bAtLuxVvEwcntw9S4emm6v5TC1lbM2LcUfiqNfn1A1XSBquqAb4Klxhqd2RVfmqj8h@YU4UlDhIdn723AN2v5oBbYphY3gfL4UPi81e/P0SJtwRqhzLWDMnlDVzyImV/myoxfOmaXG@0TdMVWfk/tqrZ23MsfvjWibFl@4qmtJp4Q4lhAazLFqi@JHa9YWfdmilb1ZEP5GZI8bGV/46ON@NOXwMMAdKodRPm4QSJCYpBIzFzRQLlMg7aQCNURR3npX6tIr8wG1R2KivA0ftT5lBY0zJVYjKV3LSQiuEk3DtVRcMNFxZhDbPnxhUBjdLjE3LMpoVN9HAx2PSpPPmby38uAqo4EvcGGjb0xnMhnWg8BFv4rsalB2Z5qjIv3CaFElX@5bhcm1QGTxExiLLITn5GCBYRaGgZVDgWE56lBVv67xu@x@y51qnbFPoVV2kaYTSYsrYQ9hhIlMssGDRJYBolTinWzxyJvNqr4srV2Qtxd/dNFdpOYeBXePO/6zHj72eCUnYJgO89JpraUL4Vvyt0DhYOIslevtVisLSiLRomQt6QXDopKmaPxOUnEuHq/6/Bc3VT7@CPsDtRXLC7lbwWEKH7RyeOuy9CjuG265rhEL7duXXNFkM9JFEt1dUbbXlVi0w6psTiV@mjMoW4GxpRD6JRYWgpJVNSilNS4/VuuPRgZHjQM3RPWYZ5@qorb9W3BlP5GvVASABSEkpF997tSbRyI660UExprVStbmPKLCunYoWZ7jXDtTcCPgTCqJ8nBupOz6HFYa4DaV1eoCi5KmJrFmQdVefAOShamfQzH2Bt8ZHyTR6QBHQ/Zr9GZpWCN/NOOdELZn@X/FWiXJSHanmM2p@wTSE6gIILDzdB4KamfoOO58PluQEdwg3jPL/Q9oyIbTjT9PFgubX8DxiXRH9aZnXR6/gC08hVJq/G1BSAj3AJaBwgQgKLghmVkwcDi0Fdxr/rZ@v3J5thw644mHgv60hiwIKZn8m31kSRgwvyVb5@X19fftbu8/Za@DPWRk8fd8fh38Mv4D" rel="nofollow noreferrer" title="C++ (gcc) – Try It Online">Try it online!</a></p>
-<p>Can output around 13,700 numbers on my computer. Compile with <code>-lgmp -lgmpxx -O3</code>. Please make sure there aren't other programs active while running this, because I've noticed that on my computer it changed the number by almost 1,000, even with just Firefox.</p>
-<p>I'll add an explanation later, probably after even some more optimizations.</p>
+<p><a href="https://tio.run/##pVltb9s4Ev7uX8G2uKzkl9hy66SukwBb7GLhouseDu3eh65PkCXZYap3yaq3hf/65mb4YpES3St6RhJL5MxwZjjzcIbxs2y08/3Hx2c08aN9EJKbOvSrtLjrNSP@fZEmqTbilWVYVOpQ7GXqa@ElQRprPLFX3WsDZRVQTSxNy6oIPY1tF2eX962BwwGHesD/6lVME/h2cT1SJLtFD@bZW1l5VehWhL3jRJDuN1FIsiLdfHQmjrNe9PwUmAlNKhJ7hz/ILZk5E/hZ9J4F4ZYmIflj66E3SvJ1OiTPh2Q2JNdD4jjwC2/O9VERUeZFhTKundmixwZoWIcfUfIAF8OhrKBxmJVsUB3y4eGWTE5KRukuy91yH6uUfspoy4/zqXM1gUHmgH1Ct2kRu0DhBhQcSDf7iqbJzZ1kYMPWZEiAbza3NWGnhbkdYvl//fz@5IxLMiZswRbN23e/obXOy8v5lTO7nl/NZ1fzFy/B9l6vTmlAdmHicvdZcfYFdmI1ZH5ahYdsKKWsNl4ZDgknyIdgeLJDqj7JFTJ4U@myISfx5MAqt8nXHoGPpiJN6hWqCBawdRZdkhV4ego0qBQZoN@nFqO1OTEqvOSP4GViLZm3yIIsBwO5pqSjMCdo8SNWCGgN41EAC1ioUB93FAwY4ZJ2Q063xELaO1DYJhvIg0/NJAva5RoEWczvA0LtvuXAtzO2uGwh1h45tg3jIKrPjONCjidrAlpAhi8bXTV/bIXPGn2HRNWUKzIYoCoYJX1iNbEqI2rkrEEDLqovXAyEzbRtL8h4TMrYiyKeACRLP4dFydZgYQ0x6xdhFbZjWn21GOUm3NHEQsXsIWmPDJZC8c/3FMyznPamvQFDNJmAFa1deUNupNdU7sZ3cvPfLLRJjM09B8KNBTErkAg3qUtYhtWGVkhmmo33kbunOAs/uNMGGi8IGpoTVmgYgLatW6xoIbL7cYa8K5vckYmNllU02UPOaNQsPzOIB12IxFbMHHAEytuFgEfuFMPoImO5jDFk5HIDlcfq0PU9jlEmZow@mM2U/M2U/G1RrwQ5j8kx4zbL9e9T6ocuBpG3oRGt/tKST/DCMxfZP4V7Kx3JCNK5tcQzuoXzhfzy6@sPv2kTLHr9dF@RmxuTBjD605/JT7ppz8IkoFujEVvQWTskAFWiVkbhwdBdyhZ5oEkVOQTbcXMr7L64gEUAsibtzMDPYND3Fp3RLRndGr0EzgMUsCAcAHP6HqKYiazPPK3LPfY6MQ1a3nElzwYzkj3BuOOGuzxTWBo4M/ssG@NIP2Oy5SzZQNdGnSMJI0iCry2A@3@250cQltgtJJOAF/Fcag8XmESSfdqd95JSpXAWpsiIMDAKUyiwGgszKAK9C0yfaTcyhFvYedkUQCZL4y4zbiY7Pbem9fHDTTCw4gftj9tmqftp5EJnxgMTV@/8G6v6aulNqAZBsbXxRJB4Xrf28Ry05Tq0ARTW7Rz@3phzBLTlLK7qEUtPvg1GbDBidAcw8h8HDKmDxTCiPkEE08n@fjjIv5nXe6qmdt3O7Yahn5vPOl625qp7kGIL9ZibWyuQuuLTWuVYumkgD0F4Agxa5a0qhNPY6lHPpMGvY3eqzlWun6kdcU9EpVQk6T6KqBYBFnKPJfiychhe@6IGZ6XyCF6xKsQK1OYBofr1nOLlfnNOcSj29kUiq9WjaCI2nn8v2odaVvuVV4BRotbj7eoNq2AiaEvvIL54zyYDTClwcG0Q44TXNtR0Wgjuk5LukjBg@1EvFechT2u/Du0k6jZfVr0cTwfQKNbLNhIryS1NOSjTQv1LPwq9wlInsAFhJTwsP12QoB9gXh3gSW9GlNQ7kH8g@Zl8k0uFcRZ5UACAtz9Zgd1NwQMZQ5m8OANqR22/D@QJa2H05YxLHbTcMkeC9BhrD7FArRanMZrQqrTk@BCM5HOyi2SxyofUftNQofKmtP4fzYICTqclcq0YFsvkTbuJH6UVroeiARadLyh/wTHjQuQXPnpoj@IclgZooQwYGeMGhTiJSSs@c8YDJza5SBdUAD1rdoY3XTKeEhwPHHvMJ3I5kSs1ebM0zpzWaoHStzAJF5dA0wotmReUN@cUctuDL0wKY9hl5g7rlI3yOzfQsaw0xZwpepsIbhANYoEpm/wgnAkw1JNginGV2M2gaCfboxx@YbRuwJfFVm0KLVCZ341BN43LM3LYgcsyDAOrguLFmthCirx2Q23cyGdB5Zb0S2id2t6rF4IWOcEG6Ftgw4QYPEhEWcrvzSZ4xcAfHXx0lFsYhtHk1el6To0ILRpqFg23rGXGxwEM2UIqVaQeex1WhweS4MRY4sem4LU7LTaUxfxehH5TUy6gXjdlePvOz62bOUUIw/y6saZu3UA12tXrdorw4hhY2SWlfT596v73uqzBnXZzslbrdzBmcMsxoMay38IyTpcgy2Ddi3U3hU7lUnM3V5VfGmd1r1Mb@zg0yGAD@yD6xL5@1U5mmZD6eY1hbXVw0ZyyMoM0/Ldmk8m34BsNAUdJvGKZ00JHfQ4PdTigGqc1xOJ@4d2H9//88F4zI91XLmAqAi08AgZMDGgPIpNqaz0Flz01lR8P3JcPkB0tdclDtxBBzR/sRmhfE9q59RASPz6sTaWBlPJnogoRNyAdmNY37NjrLPYUNiYsvArKvqf4TtkgSfYxHEIlLLIw8Ij7SuVahvHKjRjzdLaozaiHBIAQIgSW8LKsOFxy6snlZDJ9@fJ6TsbQ0ryl1vQ/ECB4wcGeX8znNmuS8Yn0x/rNj66PV4MJu1BoTdKtuFGFjoOW@L8LtiDEV0szs2KQqRiqsE2/u29XU4bLl5PnL2ao6Gt3CudUGJJ/0080CwPqdXTrHR8f//a3kbcrH0cRYD//ezg8jt49/y8" rel="nofollow noreferrer" title="C++ (gcc) – Try It Online">Try it online!</a></p>
+<p>Can output around 15,000 numbers on my computer. Compile with <code>-lgmp -lgmpxx -O3</code>. Please make sure there aren't other programs active while running this, because I've noticed that on my computer it changed the number by almost 1,000, even with just Firefox.</p>
+<p>I'll add an explanation later.</p>
+</div>
+<div id="pu1" class="pu"><h2>Jelly (12 bytes) Score: 0</h2>
+<p>Edit: old code was wrong</p>
+<blockquote class="spoiler">
+<p> 2*³XȮÆ!Ṅ
+ ç1¿</p>
+</blockquote>
+<p>New code:
+2*³XȮÆEṄ
+&gt;! ç1¿</p>
+<pre><code>2*³..... 2^input
+...X.... Pick a random number in [0, 2^input)
+....Ȯ... Print the random number
+.....ÆE. Factorize it
+.......Ṅ Print the factors and go to line
+ç1¿..... Loop the function above forever
+</code></pre>
+<p>Old code:</p>
+<blockquote class="spoiler">
+<p> Jelly beginner, the code can likely be shortened. It generated 141'808 random numbers between [0, 2^500) in 10 seconds on my MacBook Pro M2, the generated filesize is 68Mb.
+ Try the code here: https://tio.run/##ASAA3/9qZWxsef//MirCs1jIrsOGIeG5hArDpzHCv////zUwMA</p>
+</blockquote>
+<p>New code has a score of 0.</p>
+<p>Testing code:</p>
+<pre><code>&gt; ./jelly fu prime.jelly 500 &gt; primelist.txt &amp; pid=$!; sleep 10; kill $pid
+&gt; wc -l primelist.txt
+</code></pre>
 </div>
 <div id="pu2" class="pu"><h1>Rust + rand + bnum, score=4 on my PC</h1>
 <p>Basic implementation of Kalai's algorithm. Apparently it's not very good. The random rejection at the end rejects 99% of candidates so makes it take a lot longer.</p>
