@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::266083</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>167</td><td>Java 8</td><td>231018T145703Z</td><td><a href="https://codegolf.stackexchange.com/questions/266083/write-a-variadic-fixed-point-combinator/266085#266085">Kevin Cr</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>Java 8, 167† bytes</h1>
+
+<pre class="lang-java prettyprint-override"><code>interface C{Object t(int n);}interface F{C f();}interface P{C c(F[]f);static F[]g(P[]a){return java.util.Arrays.stream(a).map(p-&gt;(F)()-&gt;p.c(g(a))).toArray(F[]::new);}}
+</code></pre>
+<p>Based on <a href="https://codegolf.stackexchange.com/a/229753/52210"><em>@user</em>'s Java answer</a> for <a href="https://codegolf.stackexchange.com/questions/229602/implement-fix2-combinator">the related <em>Implement Fix2 combinator</em> challenge</a>, as well as <a href="https://codegolf.stackexchange.com/a/266084/52210">my Java answer</a> for <a href="https://codegolf.stackexchange.com/questions/1064/golfed-fixed-point-combinator">the related <em>Golfed fixed point combinator</em> challenge</a>.</p>
+<p>† Since the example in the challenge description takes an integer as argument and returns a boolean, I take an integer as argument and return an Object (which can be any value) to enable this use case. If allowing any I/O is mandatory, <code>Object t(int n);</code> should be <code>Object t(Object o);</code> instead for +3 bytes (170 bytes). If any I/O is optional as long as it's a variadic fixed point combinator, it can be <code>int t(int n);</code> instead for -3 bytes (164 bytes) which only transforms integer values.</p>
+<p><strong>Explanation:</strong></p>
+<pre class="lang-java prettyprint-override"><code>interface C{              // Completed Function interface
+  Object t(int n);}       //  Using a function that transforms a given integer to an Object
+
+interface F{              // Function interface
+  C f();}                 //  A wrapper to pass the 'Completed Function' as function
+
+interface P{              // Program interface
+  C c(F[]f);              //  Which takes an array of 'Function's as argument,
+                          //  and returns a 'Completed Function'
+  
+  static F[]g(P[]a){      //  Recursive function that accepts an array of 'Program's as argument,
+                          //  and returns an array of 'Function's
+    return java.util.Arrays.stream(a)
+                          //   Convert the given array of 'Program's to a generic Stream
+      .map(p-&gt;            //   Map each 'Program' in this Stream to:
+             (F)          //    A casted 'Function' (necessary since it's a generic instead of typed Stream)
+             ()-&gt;         //    which wraps:
+               p.c(       //     A completed call to its own 'Program' interface
+                 g(       //      Using a recursive call to its own function
+                   p));}} //      with the given 'Program' as argument
+</code></pre>
+<p>The method to call is <code>P::g</code>, which takes an array of <code>P</code> as argument and returns an array of <code>F</code>. To obtain a completed function <code>C</code> from an <code>F</code>, we can call <code>F::f</code> on it. <code>P</code> represents the function to be fixed, and its method <code>c</code> takes <code>F</code> as argument to prevent immediate evaluation, returning a <code>C</code> that represents a complete function to transform a given integer <code>n</code> with <code>C</code>'s <code>t(n)</code> to an Object.</p>
+<p><strong>Example even/odd implementation:</strong></p>
+<pre class="lang-java prettyprint-override"><code>P[] evenOddFix = {
+  func -&gt; n -&gt; n == 0 ? true : func[1].f().t(n-1),
+  func -&gt; n -&gt; n == 0 ? false : func[0].f().t(n-1)
+};
+F[] evenOddFunctions = P.g(evenOddFix);
+C evenFunc = evenOddFunctions[0].f(),
+  oddFunc = evenOddFunctions[1].f();
+Object evenResult = evenFunc.t(input),
+       oddResult = oddFunc.t(input);
+</code></pre>
+<p><a href="https://tio.run/##fZLBT4MwFMbv/hUvO7WZNPPgBWTGLJJ4MC56XHaorGAnK6R9TM3C3z5foTI1xgNQvvd77/sK3cq9jLab1@NRG1S2kLmCxeHheatyBGQkguFJdypmhwUU7Ie0JCln2Wpd8MShRJ0DvZRsuVpLfrAKW2tgS0aiRV2JG2vlhxMOrZI7JrnYyYY10ZxlnPFo3oiclSRzLrDuWT86jo16I9fu2LTPFTnklXQO7qU2cDgDCGqw39d6AzuqsSe02pSrNUhbvvAeBaBgoPbKPGw2mX6HNMgARWtyiOZghluawgyuAW2rIO6Lq4u1oN0LZCa64Of/thWycmPf7Htf39Yl/SP7loVA1LVxlGgpSnaKyAd20ZMeI@J3U7D4ylQPpb/AYQ/DyKK2/U/WpmkxnSXD4iq9DKvplH99nHAo/LhH5doKw2w/WPijQvhoD2OKkQ2JRjQJ6NOHQ7UTdYuioZ@FlWGTO0/EMJkOISYx3JKTF07200kCtC8vjjZhaHfmr@74CQ" rel="nofollow noreferrer">Try it online.</a></p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/266083/">266083</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
