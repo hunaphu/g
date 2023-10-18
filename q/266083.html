@@ -26,17 +26,16 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>167</td><td>Java 8</td><td>231018T145703Z</td><td><a href="https://codegolf.stackexchange.com/questions/266083/write-a-variadic-fixed-point-combinator/266085#266085">Kevin Cr</a></td></tr>
+<tr d-ix="0"><td>170</td><td>Java 8</td><td>231018T145703Z</td><td><a href="https://codegolf.stackexchange.com/questions/266083/write-a-variadic-fixed-point-combinator/266085#266085">Kevin Cr</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Java 8, 167<sup><em>†</em></sup> bytes</h1>
+<div id="pu0" class="pu"><h1>Java 8, 170 bytes</h1>
 
-<pre class="lang-java prettyprint-override"><code>interface C{Object t(int n);}interface F{C f();}interface P{C c(F[]f);static F[]g(P[]a){return java.util.Arrays.stream(a).map(p-&gt;(F)()-&gt;p.c(g(a))).toArray(F[]::new);}}
+<pre class="lang-java prettyprint-override"><code>interface C{Object t(Object o);}interface F{C f();}interface P{C c(F[]f);static F[]g(P[]a){return java.util.Arrays.stream(a).map(p-&gt;(F)()-&gt;p.c(g(a))).toArray(F[]::new);}}
 </code></pre>
 <p>Based on <a href="https://codegolf.stackexchange.com/a/229753/52210"><em>@user</em>'s Java answer</a> for <a href="https://codegolf.stackexchange.com/questions/229602/implement-fix2-combinator">the related <em>Implement Fix2 combinator</em> challenge</a>, as well as <a href="https://codegolf.stackexchange.com/a/266084/52210">my Java answer</a> for <a href="https://codegolf.stackexchange.com/questions/1064/golfed-fixed-point-combinator">the related <em>Golfed fixed point combinator</em> challenge</a>.</p>
-<p><em>†</em> Since the example in the challenge description takes an integer as argument and returns a boolean, I take an integer as argument and return an Object (which can be any value) to enable this use case. If allowing any I/O is mandatory, <code>Object t(int n);</code> should be <code>Object t(Object o);</code> instead for +3 bytes (170 bytes). If any I/O is optional as long as it's a variadic fixed point combinator, it can be <code>int t(int n);</code> instead for -3 bytes (164 bytes) which only transforms integer values.</p>
 <p><strong>Explanation:</strong></p>
 <pre class="lang-java prettyprint-override"><code>interface C{           // Completed Function interface
-  Object t(int n);}    //  Using a function that transforms a given integer to an Object
+  Object t(Object o);} //  Using a function that transforms a given Object
 
 interface F{           // Function interface
   C f();}              //  A wrapper to pass the 'Completed Function' as function
@@ -58,11 +57,11 @@ interface P{           // Program interface
       .toArray(F[]::new);}}
                        //   After the map: convert the Stream to a 'Function's-array
 </code></pre>
-<p>The method to call is <code>P::g</code>, which takes an array of <code>P</code> as argument and returns an array of <code>F</code>. To obtain a completed function <code>C</code> from an <code>F</code>, we can call <code>F::f</code> on it. <code>P</code> represents the function to be fixed, and its method <code>c</code> takes <code>F</code> as argument to prevent immediate evaluation, returning a <code>C</code> that represents a complete function to transform a given integer <code>n</code> with <code>C</code>'s <code>t(n)</code> to an Object.</p>
+<p>The method to call is <code>P::g</code>, which takes an array of <code>P</code> as argument and returns an array of <code>F</code>. To obtain a completed function <code>C</code> from an <code>F</code>, we can call <code>F::f</code> on it. <code>P</code> represents the function to be fixed, and its method <code>c</code> takes <code>F</code> as argument to prevent immediate evaluation, returning a <code>C</code> that represents a complete function to transform a given Object <code>o</code> with <code>C</code>'s <code>t(o)</code>.</p>
 <p><strong>Example even/odd implementation:</strong></p>
 <pre class="lang-java prettyprint-override"><code>P[] evenOddFix = {
-  func -&gt; n -&gt; n == 0 ? true : func[1].f().t(n-1),
-  func -&gt; n -&gt; n == 0 ? false : func[0].f().t(n-1)
+  func -&gt; n -&gt; (int)n == 0 ? true : func[1].f().t((int)n-1),
+  func -&gt; n -&gt; (int)n == 0 ? false : func[0].f().t((int)n-1)
 };
 F[] evenOddFunctions = P.g(evenOddFix);
 C evenFunc = evenOddFunctions[0].f(),
@@ -70,7 +69,7 @@ C evenFunc = evenOddFunctions[0].f(),
 Object evenResult = evenFunc.t(input),
        oddResult = oddFunc.t(input);
 </code></pre>
-<p><a href="https://tio.run/##fZJBTvMwEIX3nGLUla0SqyzYNKQIVURigahgWXVhUie4pE5kTwqoypYDcMT/Iv3HiUkBIRZJnDffzHtOvJE7GW3Wz4eDNqhsLjMF8/3d40ZlCMhIBMPj9lhM93PI2TdpQVLG0uUq57FDiToDeinYYrmSfG8VNtbAhoxEg7oUV9bKNyccWiW3THKxlTWroxlLOePRrBYZK0jmXGDVsX70dGrUC7m2h7p5LMkhK6VzcCu1gf0JQFCD/a7Sa9hSjT2g1aZYrkDa4ol3KAAFA7VT5m69TvUrJEEGyBuTQTQD09@SBCZwCWgbBdOuuDxbCdq9QGaiM376Z1suSzf0Tb72dW1t3D3SL1kIRF0ZR4kWomDHiLxn5x3pMSJ@NgWLz0xVX/oN7PfQj8wr2/1kbeoGk0ncLy6S87Aaj/nnxwmHwo@7V64pMcz2g4U/KoQP9jCkGNiQaEDjgD68OVRbUTUoavpZWBo2uvHEFEbjPsQI/r1/wDWZee2YYDyKgbbmxcEpzG1P/NUe/gM" rel="nofollow noreferrer">Try it online.</a></p>
+<p><a href="https://tio.run/##hZLBbqMwFEX3/YqnrGxlsNLFbMKQahQNUhdVo2YZZeEQwzhDDLIfmUYR2/mAfmJ/JPMMDmmnI3UBmOvDvfcBO3mQ0W7763zWBpXNZaZgfnrc7FSGgCwsKh631/30NIecvZMWJGUsXa1zHjuUqDOgm4ItVmvJT1ZhYw3sKEs0qEvx3Vp5dMKhVXLPJBd7WbM6mrGUMx7NapGxgmTOBVYd662nU6N@U2p7rptNSQlZKZ2DB6kNnG4AghriD5Xewp722BKtNsVqDdIWP3mHAlAxUAdlHrfbVD9DEmSAvDEZRDMw/sRoQm4gSWACd4C2UTDtiNXtWtArEMh6JLrlXz43yGXpBofJB4fOoI27S/qmH9GoK@Oo5UIU7Fqb9@y8Iz1GxL8PhZxLu6rf@h/Yj9Rb5pX1tUCbusFkEveLb8nXsBqP@eWFhV/E2z0p15QYvL0xTdfhQzwMLQY2NBrQOKDLo0O1F1WDoqYPiKVho3tPTGE07kuM4PXPC/ygMK9dG4xHMdBoXhySgm9744/2/Bc" rel="nofollow noreferrer">Try it online.</a></p>
 </div>
 
 <table id="st">
