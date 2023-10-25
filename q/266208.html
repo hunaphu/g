@@ -26,12 +26,71 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>156</td><td>Charcoal</td><td>231025T161910Z</td><td><a href="https://codegolf.stackexchange.com/questions/266208/help-i-cant-bloody-well-memorize-this-number/266220#266220">Neil</a></td></tr>
-<tr d-ix="1"><td>273</td><td>JavaScript ES7</td><td>231025T121905Z</td><td><a href="https://codegolf.stackexchange.com/questions/266208/help-i-cant-bloody-well-memorize-this-number/266215#266215">Arnauld</a></td></tr>
-<tr d-ix="2"><td>114</td><td>05AB1E</td><td>231025T145922Z</td><td><a href="https://codegolf.stackexchange.com/questions/266208/help-i-cant-bloody-well-memorize-this-number/266217#266217">Kevin Cr</a></td></tr>
-<tr d-ix="3"><td>268</td><td>JavaScript Node.js</td><td>231025T114432Z</td><td><a href="https://codegolf.stackexchange.com/questions/266208/help-i-cant-bloody-well-memorize-this-number/266214#266214">l4m2</a></td></tr>
+<tr d-ix="0"><td>560</td><td>Haskell</td><td>231025T184339Z</td><td><a href="https://codegolf.stackexchange.com/questions/266208/help-i-cant-bloody-well-memorize-this-number/266225#266225">Silvio M</a></td></tr>
+<tr d-ix="1"><td>156</td><td>Charcoal</td><td>231025T161910Z</td><td><a href="https://codegolf.stackexchange.com/questions/266208/help-i-cant-bloody-well-memorize-this-number/266220#266220">Neil</a></td></tr>
+<tr d-ix="2"><td>273</td><td>JavaScript ES7</td><td>231025T121905Z</td><td><a href="https://codegolf.stackexchange.com/questions/266208/help-i-cant-bloody-well-memorize-this-number/266215#266215">Arnauld</a></td></tr>
+<tr d-ix="3"><td>114</td><td>05AB1E</td><td>231025T145922Z</td><td><a href="https://codegolf.stackexchange.com/questions/266208/help-i-cant-bloody-well-memorize-this-number/266217#266217">Kevin Cr</a></td></tr>
+<tr d-ix="4"><td>268</td><td>JavaScript Node.js</td><td>231025T114432Z</td><td><a href="https://codegolf.stackexchange.com/questions/266208/help-i-cant-bloody-well-memorize-this-number/266214#266214">l4m2</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 156 bytes</h1>
+<div id="pu0" class="pu"><h1>Haskell, 560 bytes</h1>
+<pre><code>i x=read[x]
+r x c=(\(a,b)-&gt;(a+c,x:b)).f
+m(a:b:c:l)|i a+i b==i c&amp;&amp;a/='0'=r[a,b,c]2l
+ |i a*i b==i c&amp;&amp;a/='0'=r[a,b,c]3l
+m(a:b:c:d:l)|i a+i b==read[c,d]&amp;&amp;a/='0'&amp;&amp;c/='0'=r[a,b,c,d]3l
+ |i a*i b==read[c,d]&amp;&amp;a/='0'&amp;&amp;c/='0'=r[a,b,c,d]5l
+m _=(maxBound::Int,[])
+y(a:b:c:d:l)|elem[a,b,c,d]$words&quot;1714 1727 1760 1820 1830 1837&quot;=r[a,b,c,d]4l
+ |elem[a,b,c,d]$words&quot;1901 1910 1936 1952 1972&quot;=r[a,b,c,d]2l
+ |[a,b,c,d]==&quot;2022&quot;=r[a,b,c,d]1l
+ |elem[a,b,c,d]$words&quot;3215 3507 3573 3705 5507 5508 5537 7105 7108 7718 7735 7738&quot;=r[a,b,c,d]3l
+y(x:l)=r[x]2l
+f[]=(0,[])
+f l=min(m l)$y l
+</code></pre>
+<p>Ungolfed version:</p>
+<pre><code>
+import Data.Char
+import Control.Arrow
+
+type Partition = [String]
+
+badResult :: (Int, Partition)
+badResult = (maxBound, [])
+
+
+optimalMemorization :: String -&gt; (Int, Partition)
+optimalMemorization [] = (0, [])
+optimalMemorization xs = minimum $ map ($ xs) [math, relation]
+
+recurse :: String -&gt; String -&gt; Int -&gt; (Int, Partition)
+recurse prefix rest cost = ((+ cost) *** (prefix :)) (optimalMemorization rest)
+
+math :: String -&gt; (Int, Partition)
+math (a:b:c:xs)
+    | digitToInt a + digitToInt b == digitToInt c &amp;&amp; a /= '0' = recurse [a, b, c] xs 2
+    | digitToInt a * digitToInt b == digitToInt c &amp;&amp; a /= '0' = recurse [a, b, c] xs 3
+math (a:b:c:d:xs)
+    | digitToInt a + digitToInt b == read ([c, d]) &amp;&amp; a /= '0' &amp;&amp; c /= '0' = recurse [a, b, c, d] xs 3
+    | digitToInt a * digitToInt b == read ([c, d]) &amp;&amp; a /= '0' &amp;&amp; c /= '0' = recurse [a, b, c, d] xs 5
+math _ = badResult
+
+relation :: String -&gt; (Int, Partition)
+relation (a:b:c:d:xs)
+    | [a, b, c, d] `elem` [&quot;1714&quot;, &quot;1727&quot;, &quot;1760&quot;, &quot;1820&quot;, &quot;1830&quot;, &quot;1837&quot;] = recurse [a, b, c, d] xs 4
+    | [a, b, c, d] `elem` [&quot;1901&quot;, &quot;1910&quot;, &quot;1936&quot;, &quot;1952&quot;, &quot;1972&quot;] = recurse [a, b, c, d] xs 2
+    | [a, b, c, d] == &quot;2022&quot; = recurse [a, b, c, d] xs 1
+    | [a, b, c, d] `elem` [&quot;3215&quot;, &quot;3507&quot;, &quot;3573&quot;, &quot;3705&quot;, &quot;5507&quot;, &quot;5508&quot;, &quot;5537&quot;, &quot;7105&quot;, &quot;7108&quot;, &quot;7718&quot;, &quot;7735&quot;, &quot;7738&quot;] = recurse [a, b, c, d] xs 3
+relation (x:xs) = recurse [x] xs 2 -- Residual option
+</code></pre>
+<p>We pass around <code>(Int, Partition)</code>s where the <code>Int</code> is the cost and <code>Partition</code> is the answer. As we go, we take a <code>min</code> of these. <code>min</code> on tuples compares the first element first, so we always take a minimum cost element using the default Haskell comparison.</p>
+<p>In terms of branching, we only have to check <code>math</code> (<code>m</code> in the golfed version) and <code>relation</code> (resp. <code>y</code>). <code>relation</code> checks the year condition and the symbol condition, which are mutually exclusive and hence safe to check together. <code>math</code> checks the four mathematical conditions in order: 3-digit sum, 3-digit product, 4-digit sum, 4-digit product. This order will always produce an optimal mathematical result.</p>
+<p>Proof: If 3-digit sum succeeds, then 3-digit product just costs more and is not optimal. 4-digit sum cannot succeed since two numbers cannot add up to two different results simultaneously, and 4-digit product is not optimal because it's worse than just taking the 3-digit sum and treating the fourth digit as residual (<code>2 + 2</code> vs. <code>5</code>). If 3-digit product succeeds, then 4-digit sum must fail (sums are not larger than products), and 4-digit product must fail since the product can't be two different numbers. Finally, if 4-digit sum succeeds, it's better than 4-digit product by cost alone. ∎</p>
+<p>So implement our main function <code>optimalMemorization</code> (resp. <code>f</code>) recursively. If the string is empty, cost is zero. Else, try <code>math</code> and <code>relation</code> and take the minimum cost between the two (if the cost is the same, we choose the string that would appear first in the dictionary, which is a harmless tiebreaker).</p>
+<p><code>recurse</code> (resp. <code>r</code>) is a helper function, since we always combine our results in the same way, so it's better to give this helper a name. <code>i</code> in the golfed version is just <code>Data.Char.digitToInt</code>, but it's shorter to write it ourselves rather than importing.</p>
+<p>Our <code>badResult</code> is just the &quot;failure&quot; case (since the math rules might not even apply at all) and produces a memorization string with the worst possible cost. Unfortunately, in the golfed version, we need a <code>::Int</code> here. It didn't have to be here, but we had to put a type annotation somewhere, because without specifying that our math is being done with integers, all Haskell can tell is that our math is being done with some <code>(Num a, Bounded a, Ord a) =&gt; a</code> type, and it's ambiguous which one.</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 156 bytes</h1>
 <pre><code>≔⟦⟦⁰Ｓ⟧⟧θＦθ«≔⊟ιη¿ηＦ⊞Ｏ⁺Ｅ⪪”)¶≕⁰∨℅U:.ï4◧Π-⊙⁵z›“Dνq⬤◧≦rＳ=≦:nＷ→NＥE⊕ζTΣ✂aＨ⟲“↶¿!⧴p↘Y”⁵⪪κ⁴Ｅ∧›η1⟦Σ…η²Π…η²⟧⟦⁺…η²κ×⊕λＬκ⟧⟦…η¹2⟧Ｆ¬⌕η§κ⁰⊞θ⁺Ｅι⎇νμ⁺Σ⊟κμ⟦…ηＬ§κ⁰✂ηＬ§κ⁰⟧⊞υι»✂⌊υ¹
 </code></pre>
 <p><a href="https://tio.run/##dVJNi9swED1vfoXwaQQu6CNeZdlTWGgJdFtDegs5GEcbi9iyI8ulS@lvd5@S7KG71KCHNW8@3oymbqpQ91U7z@txdEdPu53I2cYPU9zG4PyR@H6fszN/XLz0gdGZs9@Lu5tv2Q/keM4asHfuhVHD2cWrnMbm@2BDFftAZTuN9FwNtB1aFymTRi6X0igDuBdLuVIJ9AVgexBSyQcpAPoeUCiAUUoJ/GglC60LYQA42ohCF@kKWAG00UbCBkAykzKCS7DSWc4KiL2qOOVsyXFLutb@QF@CraIN1OQskxmI3Xbq6Om1bu1TgzZhV8m/DP1hquMHZp9CLp2@Y3J2wvnhOjvSxtfBdtZHe6AW1q/WH2NDpxSe4v8JlbBkKgNznem3PtJnB6ng1nHjD/ZX6kJwfCwNnM6Q9zZrh5o2@Cq8ks9Zd2NST@nRTqlcxz8WvSl6lx9Da11t/@8AkdgA2472qmTKmYPlz6LECkW6Rj877zoImHhqjj/Oc9qEQsj05MD0wPOnn@1f" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code. Gives alternative results for two of the inputs. Explanation:</p>
@@ -60,7 +119,7 @@
 </code></pre>
 <p>Output the partition with the lowest score, tied by shortest length of the first different substring.</p>
 </div>
-<div id="pu1" class="pu"><h1>JavaScript (ES7), 273 bytes</h1>
+<div id="pu2" class="pu"><h1>JavaScript (ES7), 273 bytes</h1>
 <p>Expects a string and returns the partition as an array of integers.</p>
 <pre class="lang-javascript prettyprint-override"><code>f=([v,...a],p=[],s=q=0,c=&quot;&quot;,[w,x,y,z]=c)=&gt;(v&amp;&amp;!z&amp;&amp;f(a,p,s,c+v),c?f(a,[...p,c++],s+=x?+w?/1(bn|c0|cx|el|ev|f2|gu|h3|ht|i9|it|k7)|2(hc|pg|ra|uy)|49[01u]|5(he|hh|y[fwz])/.test(c.toString(36))?w&gt;2?3:1&lt;&lt;16/x:w-+-x==(y+=[z])?3-!z:w*x==y?z?5:3:1/0:1/0:2,v):v||q&amp;&amp;s&gt;q||(q=s,o=p),o)
 </code></pre>
@@ -91,7 +150,7 @@
 </li>
 </ul>
 </div>
-<div id="pu2" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, 114 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
+<div id="pu3" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, 114 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
 <pre><code>.œDεεgÐVi·ë5;÷i•иΩÅjnÃñ8ä{5pqŒΩ&amp;™ l
 &amp;5ƒZtøà₆é~λãÝαB‡~hq•žEвyk©(iy¬_iëR3äí©`+QY&lt;*D_i\®`*QYD4Q+*D_I*+}ë®Žζ›₂в@O]OWkè
 </code></pre>
@@ -163,7 +222,7 @@
 </code></pre>
 <p><a href="https://codegolf.stackexchange.com/a/166851/52210">See this 05AB1E tip of mine (sections <em>How to compress large integers?</em> and <em>How to compress integer lists?</em>)</a> to understand how the compressed integers and lists work.</p>
 </div>
-<div id="pu3" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 268 bytes</h1>
+<div id="pu4" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 268 bytes</h1>
 
 <pre class="lang-javascript prettyprint-override"><code>f=([c,...x],s='')=&gt;c?Math.min(f(x,s+=c),f(x)+('171417271760182018301837190119101936195219722022321535073573370555075508553771057108771877357738'.match(/..../g).includes([A,B,C,D,E]=s)?s&lt;1900?4:s&lt;3e3?3-A:3:B?!+A|E?1/0:A- -B==C+[D]?D?3:2:A*B==C+[D]?D?5:3:1/0:2)):s?1/0:0
 </code></pre>
