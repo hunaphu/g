@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::79219</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>567</td><td>A little late to the party but I created a ControlNet  Channels RGB machine learning model which was trained on 400K RGB images where each of them have one channel missing in order to restore a missing channel from an image. It uses Stable Diffusion 1.5 generative image AI to infer an image which usually changes image content a bit. You can either use the inference as is</td><td>231025T160413Z</td><td><a href="https://codegolf.stackexchange.com/questions/79219/reconstruct-a-missing-rgb-channel/266219#266219">Gerold M</a></td></tr>
+<tr d-ix="1"><td>nan</td><td></td><td>160503T083429Z</td><td><a href="https://codegolf.stackexchange.com/questions/79219/reconstruct-a-missing-rgb-channel/79224#79224">orlp</a></td></tr>
+<tr d-ix="2"><td>002</td><td>Lua</td><td>161020T233745Z</td><td><a href="https://codegolf.stackexchange.com/questions/79219/reconstruct-a-missing-rgb-channel/96885#96885">ATaco</a></td></tr>
+</table>
+<div id="pu0" class="pu"><p>A little late to the party but I created a <a href="https://huggingface.co/GeroldMeisinger/controlnet-channels" rel="nofollow noreferrer">ControlNet - Channels RGB</a> machine learning model which was trained on 400K RGB images where each of them have one channel missing in order to restore a missing channel from an image. It uses Stable Diffusion 1.5 generative image AI to infer an image (which usually changes image content a bit). You can either use the inference as is, or only use the missing channel from the inference (which doesn't look to good unfortunately). I also created an accompanying <a href="https://huggingface.co/spaces/GeroldMeisinger/channels" rel="nofollow noreferrer">space which lets you replace the channel from an inference image</a>. Original post is here: <a href="https://github.com/lllyasviel/ControlNet/discussions/567" rel="nofollow noreferrer">https://github.com/lllyasviel/ControlNet/discussions/567</a></p>
+<p>first is inference only, second is recomposing the missing channel from inference, the image on the right is ground truth with a missing channel</p>
+<p><strong>Forest</strong></p>
+<p><a href="https://i.stack.imgur.com/kmoyT.jpg" rel="nofollow noreferrer"><img src="https://i.stack.imgur.com/kmoyT.jpg" alt="inference only" /></a></p>
+<p><a href="https://i.stack.imgur.com/U6obK.jpg" rel="nofollow noreferrer"><img src="https://i.stack.imgur.com/U6obK.jpg" alt="recomposed" /></a></p>
+<p><strong>Glacier</strong></p>
+<p><a href="https://i.stack.imgur.com/1Jt0n.jpg" rel="nofollow noreferrer"><img src="https://i.stack.imgur.com/1Jt0n.jpg" alt="inference only" /></a></p>
+<p><a href="https://i.stack.imgur.com/xp5rD.jpg" rel="nofollow noreferrer"><img src="https://i.stack.imgur.com/xp5rD.jpg" alt="recomposed" /></a></p>
+<p><strong>Fox</strong></p>
+<p><a href="https://i.stack.imgur.com/N2kgk.jpg" rel="nofollow noreferrer"><img src="https://i.stack.imgur.com/N2kgk.jpg" alt="inference only" /></a></p>
+<p><a href="https://i.stack.imgur.com/4okHg.jpg" rel="nofollow noreferrer"><img src="https://i.stack.imgur.com/4okHg.jpg" alt="recomposed" /></a></p>
+</div>
+<div id="pu1" class="pu"><h1>Python 3 + scikit-image</h1>
+<p>Simply sets the color of the missing channel to the average of the other two.</p>
+<pre><code>import sys
+from skimage import io, color
+
+im = io.imread(sys.argv[1])
+h, w, c = im.shape
+
+removed_channel_options = {0, 1, 2}
+for y in range(h):
+    for x in range(w):
+        if len(removed_channel_options) == 1: break
+        removed_channel_options -= {i for i, c in enumerate(im[y][x]) if c &gt; 0}
+removed_channel = removed_channel_options.pop()
+
+for y in range(h):
+    for x in range(w):
+        p = [float(c) / 255 for c in im[y][x][:3]]
+        p = [sum(p)/2 if i == removed_channel else p[i]
+             for i in range(3)]
+        im[y][x] = [int(c*255) for c in p] + [255]*(c == 4)
+
+io.imsave(sys.argv[2], im)
+</code></pre>
+<p>And the restored images:</p>
+<p><img src="https://i.stack.imgur.com/vl3kh.jpg" alt="forest" />
+<img src="https://i.stack.imgur.com/AwM52.jpg" alt="fox" />
+<img src="https://i.stack.imgur.com/4g0Ms.png" alt="icy" /></p>
+</div>
+<div id="pu2" class="pu"><h1>Lua, Love2D</h1>
+<p>Just sets the missing channel to the smaller of the two remaining channels.</p>
+<pre><code>local inp = love.image.newImageData(arg[2])
+
+local channels = {1, 2, 3}
+local removed = nil
+local removed_options = {true,true,true}
+
+inp:mapPixel(function(x,y,r,g,b)
+    local o = {r,g,b}
+    for k,v in pairs(o) do
+        if v &gt; 0 then
+            removed_options[k] = false
+        end
+    end
+    return r,g,b
+end)
+
+for k,v in pairs(removed_options) do
+    if v then
+        removed = k
+        break
+    end
+end
+inp:mapPixel(function(x,y,r,g,b)
+    local o = {r,g,b}
+    o[removed] = math.min(o[removed%3+1], o[(removed+1)%3 + 1])
+    return unpack(o)
+end)
+
+inp:encode('png', IMAGE:gsub(&quot;%.png&quot;, &quot;2.png&quot;))
+</code></pre>
+<p>Takes a filename as an argument on the command line.</p>
+<p><a href="https://i.stack.imgur.com/b4aHd.jpg" rel="noreferrer"><img src="https://i.stack.imgur.com/b4aHd.jpg" alt="Forest" /></a>
+<a href="https://i.stack.imgur.com/OZ0Bl.jpg" rel="noreferrer"><img src="https://i.stack.imgur.com/OZ0Bl.jpg" alt="Fox" /></a>
+<a href="https://i.stack.imgur.com/cbovn.jpg" rel="noreferrer"><img src="https://i.stack.imgur.com/cbovn.jpg" alt="Snow" /></a></p>
+<h2>Bonus</h2>
+<p>I tried setting the missing channel to 255-(a+b), clamping the value. As to &quot;fill in the gap&quot;. The results are useless but glorious.</p>
+<p><a href="https://i.stack.imgur.com/rGCBi.jpg" rel="noreferrer"><img src="https://i.stack.imgur.com/rGCBi.jpg" alt="Forrest Red Teal" /></a>
+<a href="https://i.stack.imgur.com/SoicY.jpg" rel="noreferrer"><img src="https://i.stack.imgur.com/SoicY.jpg" alt="Fox Yellow Blue" /></a>
+<a href="https://i.stack.imgur.com/ACzd8.jpg" rel="noreferrer"><img src="https://i.stack.imgur.com/ACzd8.jpg" alt="Snow Purple Green" /></a></p>
+<p>And with 255-(a+b)/2</p>
+<p><a href="https://i.stack.imgur.com/OheGq.jpg" rel="noreferrer"><img src="https://i.stack.imgur.com/OheGq.jpg" alt="Forest Red Cyan Boring" /></a>
+<a href="https://i.stack.imgur.com/8sqkr.jpg" rel="noreferrer"><img src="https://i.stack.imgur.com/8sqkr.jpg" alt="Fox Yellow Blue Boring" /></a>
+<a href="https://i.stack.imgur.com/xbJaN.jpg" rel="noreferrer"><img src="https://i.stack.imgur.com/xbJaN.jpg" alt="Snow Purple Green Boring" /></a></p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/79219/">79219</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
