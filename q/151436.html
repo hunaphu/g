@@ -26,10 +26,59 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>014</td><td>Pari/GP</td><td>171221T123654Z</td><td><a href="https://codegolf.stackexchange.com/questions/151436/rational-polynomial-interpolation/151439#151439">alephalp</a></td></tr>
-<tr d-ix="1"><td>025</td><td>Enlist</td><td>171222T154947Z</td><td><a href="https://codegolf.stackexchange.com/questions/151436/rational-polynomial-interpolation/151526#151526">DELETE_M</a></td></tr>
+<tr d-ix="0"><td>301</td><td>Python</td><td>231026T143536Z</td><td><a href="https://codegolf.stackexchange.com/questions/151436/rational-polynomial-interpolation/266240#266240">138 Aspe</a></td></tr>
+<tr d-ix="1"><td>014</td><td>Pari/GP</td><td>171221T123654Z</td><td><a href="https://codegolf.stackexchange.com/questions/151436/rational-polynomial-interpolation/151439#151439">alephalp</a></td></tr>
+<tr d-ix="2"><td>025</td><td>Enlist</td><td>171222T154947Z</td><td><a href="https://codegolf.stackexchange.com/questions/151436/rational-polynomial-interpolation/151526#151526">DELETE_M</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="http://pari.math.u-bordeaux.fr/" rel="nofollow noreferrer">Pari/GP</a>, 14 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.python.org/" rel="nofollow noreferrer">Python</a>, with <a href="https://numpy.org/" rel="nofollow noreferrer"><code>numpy</code></a>, 301 bytes</h1>
+<p>See <a href="https://www.kaggle.com/code/suhailsh7/polynomial-interpolation-hermite-method" rel="nofollow noreferrer">this notebook</a> for how it works.</p>
+<hr />
+<p>Golfed version. 301 bytes, it can be golfed much more. <a href="https://ato.pxeger.com/run?1=bZIxTsMwGIXFmlNYZbFTp8RphypSpl6gu_EQqANWEttyHCkW4iQsXeAynABOgx23oIou1tPT-z-9_5ffPrSzz0oej--jbbLt900meq2MBXLstQP1AKROGqN6ICw3VqluAKfEo-ofhKytUHIIwV3MzYMrrTonVS_q7hzf_zk-vE8OvAEdbPGESsPtaCTYQzqMPaRSr7RRBzgh0CgDJiAk2EHvHnjHLYcTbhEWiKEUZgSlKRRLgu7OU5e5bKItixwROKaWTxx2XHo6YrQsM8LQ3KXxeffbJRSJ7VLnCTOgvQQ4hFC82tfnVFGSE5zjbLvBhCWuotmmwKTAa_-w5FYbIS1sFi8dzD20er2XC3Rhk-t2cd1e_7MXjuYsjfiloyRoEnURdBH1Ouh5ugoro9ITTtz5AKeVzh_iBw" rel="nofollow noreferrer">Attempt this online!</a></p>
+<pre><code>import numpy as np
+from itertools import combinations as C
+from numpy.polynomial import Polynomial as P
+def l(k,x):return P([sum([np.prod(x) for x in C(np.delete(x,k),i)])*(-1)**(i+1)/np.prod(np.delete(x,k)-x[k]) for i in range(len(x))][::-1])
+def f(x,y):return sum(l(k,x)*y[k] for k in range(len(y)))
+</code></pre>
+<p>Ungolfed version. <a href="https://ato.pxeger.com/run?1=bVJBbpwwFJW69Cm-phubwHTMZBGNwg266J6iigz2xAJsyzYVVtWTdJNNe6ieoMeobcgMisICfT_e-7z35F9_tHfPSr68_J4cLx7-fvgnRq2MAzmN2kNrQWrEjRpBOGacUoOFlXFW45OQrRNKWlg4SbTXavBSjaIdXqlfrghCH-HCHLhnBp_bi2nlhcFTa4UFPslzXIY6xmHAfQ4zOSEIj4QKBibxTNKxtTZYAdzD4woveHrN3_rAnuu-WY9nFXJUIca-YwNzDM859BtBx6KzkEOZhaaN6vCqK-K-DfmsGOeBVjc3jAehACEhhcFyNX2l71utmeywnUZcX_eTpJujblvk-uMcBGkIZIALSrIMiztK4NPW61tTe8O-M2MZ3nwwzE1GbtrHiUoQSh3zUIUnp5UV7cXWZ5L50F6y199ixaI9IVE7VzU90PyQFw_3OW2Qr-rivsxpmR_Dq0HaCOkw3_0Y8CGsq35-lTuyRem7aPkuenyL7nx9aLJl9Z2vaZzpMpdxLpf5GOckrmJQcrqtTbHJcuHXe_96__8D" rel="nofollow noreferrer">Attempt this online!</a></p>
+<pre><code>import numpy as np
+from itertools import combinations 
+from numpy.polynomial import Polynomial
+
+# get the Lagrange basis function
+def l(k, x):
+    n = len(x)
+    assert (k &lt; len(x))
+    
+    x_k = x[k]
+    x_copy = np.delete(x, k)
+    
+    denominator = np.prod(x_copy - x_k)
+    
+    coeff = []
+    
+    for i in range(n):
+        coeff.append(sum([np.prod(x) for x in combinations(x_copy, i)]) * (-1)**(i+1) / denominator)
+    
+    coeff.reverse()
+    
+    return Polynomial(coeff)
+
+
+def f(x,y):return sum(l(k,x)*y[k] for k in range(len(y)))
+
+
+x=[101,0,-84,1]
+y=[-42,12,3,12]
+print(f&quot;{l(0,x)=}\n&quot;)
+print(f&quot;{l(1,x)=}\n&quot;)
+print(f&quot;{l(2,x)=}\n&quot;)
+print(f&quot;{l(3,x)=}\n&quot;)
+print(&quot;y[0]*l(0,x)+y[1]*l(1,x)+y[2]*l(2,x)+y[3]*l(3,x)== f(x):&quot;)
+print(f(x,y))
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="http://pari.math.u-bordeaux.fr/" rel="nofollow noreferrer">Pari/GP</a>, 14 bytes</h1>
 <pre><code>polinterpolate
 </code></pre>
 <p>Takes two lists <code>[x1, ..., xn]</code> and <code>[y1, ..., yn]</code> as input. Outputs a polynomial.</p>
@@ -41,7 +90,7 @@
 <p>Takes two lists <code>[x1, ..., xn]</code> and <code>[y1, ..., yn]</code> as input. Outputs a list of coefficients.</p>
 <p><a href="https://tio.run/##DcqxCoAgFAXQj2l5wpV85tDSl4iBi/GEQsRBv95cznRKrKKfMmeijqGusb@xVem0dUCQ0X0ON4lmpWap8jVK5NkwDPTpwAFeOwu2OBZhrR8" rel="nofollow noreferrer" title="Pari/GP – Try It Online">Try it online!</a></p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://github.com/alexander-liao/enlist" rel="nofollow noreferrer">Enlist</a>, 25 bytes</h1>
+<div id="pu2" class="pu"><h1><a href="https://github.com/alexander-liao/enlist" rel="nofollow noreferrer">Enlist</a>, 25 bytes</h1>
 
 <pre><code>Ḣ‡ḟ¹‡,€-÷_Ḣ¥€§æc/§₱W€$↙·Ṫ
 </code></pre>
