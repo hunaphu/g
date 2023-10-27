@@ -26,13 +26,45 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>158</td><td>Charcoal</td><td>231027T002347Z</td><td><a href="https://codegolf.stackexchange.com/questions/266223/find-the-conflict-free-sitting-arrangement/266246#266246">Neil</a></td></tr>
-<tr d-ix="1"><td>037</td><td>Jelly</td><td>231026T172233Z</td><td><a href="https://codegolf.stackexchange.com/questions/266223/find-the-conflict-free-sitting-arrangement/266243#266243">Nick Ken</a></td></tr>
-<tr d-ix="2"><td>040</td><td>05AB1E</td><td>231026T074857Z</td><td><a href="https://codegolf.stackexchange.com/questions/266223/find-the-conflict-free-sitting-arrangement/266237#266237">Kevin Cr</a></td></tr>
-<tr d-ix="3"><td>486</td><td>Python3</td><td>231026T000933Z</td><td><a href="https://codegolf.stackexchange.com/questions/266223/find-the-conflict-free-sitting-arrangement/266230#266230">Ajax1234</a></td></tr>
-<tr d-ix="4"><td>151</td><td>Ruby</td><td>231025T215430Z</td><td><a href="https://codegolf.stackexchange.com/questions/266223/find-the-conflict-free-sitting-arrangement/266227#266227">AZTECCO</a></td></tr>
+<tr d-ix="0"><td>455</td><td>sed E</td><td>231027T090631Z</td><td><a href="https://codegolf.stackexchange.com/questions/266223/find-the-conflict-free-sitting-arrangement/266251#266251">Philippo</a></td></tr>
+<tr d-ix="1"><td>158</td><td>Charcoal</td><td>231027T002347Z</td><td><a href="https://codegolf.stackexchange.com/questions/266223/find-the-conflict-free-sitting-arrangement/266246#266246">Neil</a></td></tr>
+<tr d-ix="2"><td>037</td><td>Jelly</td><td>231026T172233Z</td><td><a href="https://codegolf.stackexchange.com/questions/266223/find-the-conflict-free-sitting-arrangement/266243#266243">Nick Ken</a></td></tr>
+<tr d-ix="3"><td>040</td><td>05AB1E</td><td>231026T074857Z</td><td><a href="https://codegolf.stackexchange.com/questions/266223/find-the-conflict-free-sitting-arrangement/266237#266237">Kevin Cr</a></td></tr>
+<tr d-ix="4"><td>486</td><td>Python3</td><td>231026T000933Z</td><td><a href="https://codegolf.stackexchange.com/questions/266223/find-the-conflict-free-sitting-arrangement/266230#266230">Ajax1234</a></td></tr>
+<tr d-ix="5"><td>151</td><td>Ruby</td><td>231025T215430Z</td><td><a href="https://codegolf.stackexchange.com/questions/266223/find-the-conflict-free-sitting-arrangement/266227#266227">AZTECCO</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 158 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.gnu.org/software/sed/" rel="nofollow noreferrer">sed</a> <code>-E</code>, 455 bytes</h1>
+<p>(theoretically 454 bytes, see explanation, but who cares as long as <code>sed</code> beats <code>python</code>?!)</p>
+<p>I finally added my own reference implementation using <code>sed</code> just because regex-golfing is fun.</p>
+<pre><code>G
+s/./&amp;_-/
+:1
+s/(\S*)_(\S*)-(\S)(\S*\n)/\1\3_-\2\4\1_\2\3-\4/
+t1
+s/[-_]//g
+h
+:2
+g
+/^$/q
+s/\S*.//
+x
+s/\n.*//
+s/(..)?.+/aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ &amp;\1/
+/^(..)*(.)(.)(.)(.).*(\2\4|\4\2\|\3\5|\5\3|\3\2\5|\5\2\3|\2\3\4|\4\3\2|\3\4\5|\5\4\3|\2\5\4|\4\5\2)/b2
+/(.).(..)*(.).(..)*(.).* .*(\1\3\5|\1\5\3|\3\1\5|\3\5\1|\5\1\3|\5\3\1)/b2
+:3
+s/^((..)*)(.)(.)(.*(\3\4|\4\3))/\1\5/
+t3
+/^(..)*(.)(.).*(\2.+\3|\3.+\2)/b2
+s/.* //
+s/((..).*)\2/\1/
+</code></pre>
+<p>It's brute force, with the <code>1</code> loop producing all combinations of guests, ignoring duplicates in favor of size over speed. Yes, you could save one more byte with <code>s/^/_-/</code> in line two, but this will create so extremely amounts of duplicates that it will time out even for quite small parties.</p>
+<p>The <code>2</code> loop takes one combination after another from the hold space to test it. I need to waste a lot of bytes to teach <code>sed</code> the alphabet, but at the same time I can close the round table by duplicating the first two guest at the end. Then I have a giant regex for the rival test and another regex for the three-of-the-same-sex-test.</p>
+<p>The test for couples sitting apart was more tricky: A simple regex check won't work, because if they are at the first two seats, they will look like sitting apart because of the first partner reappearing on the other end. I solved it by removing couples I found sitting next to each other from the alphabet in loop <code>3</code> before testing. I wonder if someone can solve this with less bytes!</p>
+<p><a href="https://tio.run/##VVHbTgIxEH3vV/BgyLZkO2l394UX4wXxrogXxJGNCC54WcAFBcK3u85sA8akmZ7O5cyZadbv@Uk6y/O6yEBDOfZBVA1hD5tKxoX1yUpGmEpAg0Hso8UQTUxX4GMIYsolD378CJCIgahakQjobMGE3FSoAcScYaoVQWLXWm7rCjztdHef93r7/drLQVIfHA6PXo/fTt5PP87S89HF@HLS@LzKmtPr2c3X7ffdvLW4X7ZLZTRA7MyhPC03RyuPda1ImsUVBhitMMKAkXXY8ouMSyI3x0IXC10scjHKldC1Aph33ekPqBI3M66HWXcx/CIXGiY07IzYXTBVA5q74xUUG81EshYji91GtMvg/3DFWLpStKDL6aLPUiW3Sk7VSqKlesjzSaPVni@WP6PxdDhKs9yv/QI" rel="nofollow noreferrer" title="sed – Try It Online">Try it online!</a></p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 158 bytes</h1>
 <pre><code>≔§θ⁰η⊞υηＦυ«≔⁻⪪θ¹⪪ι¹ζ≔§ι⁰ε¿ζＦζ«≔⁺κιδ¿∧⊙…⁺δA³№αλ⊙…⁺δa³№βλ¿⬤⁻ζ⟦κ⟧¬№↥⁻ιη↥λ¿⊖↔⁻℅↥κ℅↥§ι⁰⊞υδ»¿∨‹Ｌι³∧∧⊙…⁺ηι³№ακ⊙…⁺ηι³№βκ∧⊙…⁺ε⮌ι³№ακ⊙…⁺ε⮌ι³№βκ¿¬№↥✂ι¹±²¦¹↥η¿⊖↔⁻℅↥η℅↥ε⟦ι
 </code></pre>
 <p><a href="https://tio.run/##nZJdS8MwFIavt18RdpVABT8uvSqboKBuOLwau@jasyY0pjVph6vst9eTjzrnNhALKU36vO9J3pOUJzotE9l1sTEiVzSuH1QGH/Q9IpcsIpzdDmeN4bTx3@tSE9ow8jkcBMGTUI2h80qK2oquUOQnwk5w1qJs8MtdeHewv8Sa0JYR59w6556eSXQuIiIQzSzq2FhlOLZ0vE0ljHlZeS6LyCgeIXmDY1w2qqZJRKTdwRk6OaRXjmaMuCJShpO1EVkUS6Sey5p68rWqQKeJgYAImw0S@3Vn5J0mkGp4A1UDbntlStnUvW6qM6ES@cOvsDbHywex@Yf0XXHB7IYDkAZcwammj2AMvlRecyrCIX1sJ6PjPuKD4IozwR2xK8d@FzgSQEReYAMajyHYX6ucF4VyIdxTPZlLkYK7fdgzyBOM@5qFu7in@P8axE83CEJPtMCtLMQSe7LrujyD9d3kvrvYyC8" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code. Always places the first guest last but will output each solution twice, once with the guests in reverse order. Explanation:</p>
@@ -82,7 +114,7 @@
 </code></pre>
 <p>Output the found placement on its own line.</p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, <s>49</s> 37 bytes</h1>
+<div id="pu2" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, <s>49</s> 37 bytes</h1>
 <pre><code>O-ṫ?3;Od32ạƝS‘1¦Ʋ3Ƥ;ạƝ’Ʋ;ŒuĠIỊƲȦ
 Œ!ÇƇ
 </code></pre>
@@ -123,7 +155,7 @@
 </code></pre>
 <p>Created with the help of <a href="https://vyxal.github.io/Luminespire" rel="nofollow noreferrer">Luminespire</a>.</p>
 </div>
-<div id="pu2" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, <s>44</s> <s>43</s> 40 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
+<div id="pu3" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, <s>44</s> <s>43</s> 40 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
 <pre><code>œʒā._»A3ãDu«åylDÔsÙÊyĆÇüαyĆlÇüαĆü«Dí)˜≠P
 </code></pre>
 <p>Outputs a list of all valid table-arrangements, or <code>[]</code> if none are. (If this is not allowed, <code>ʒ</code> can be <code>.Δ</code> for +1 byte, so it'll output the first valid result, or <code>-1</code> if none are.)</p>
@@ -182,7 +214,7 @@
                   # (after which the filtered list is output implicitly)
 </code></pre>
 </div>
-<div id="pu3" class="pu"><h1>Python3, 486 bytes:</h1>
+<div id="pu4" class="pu"><h1>Python3, 486 bytes:</h1>
 <pre class="lang-py prettyprint-override"><code>R=lambda a,b:chr(ord(a)+1)!=b and chr(ord(a)-1)!=b
 K=lambda a,b:len(a)&lt;2or a[-2].islower()!=b.islower()
 V=lambda a,i:K(a,i)and R(a[-1],i)and(len(a)&lt;2 or R(a[-2],i))
@@ -201,7 +233,7 @@ def f(s):
 <p><a href="https://tio.run/##rVBNU8IwEL33V8QTCaWM4MWp9oAfg8KgDtNhVKaHhKaQoaZtWkaR4bfXTaVA1KOXTN7bfW/fbrouFok8O09VWY69mL6xkCLaYu5soXCiQkyJ3SEnHkNUhuhAOhVpDY8lMZdQuewmCtGp0w3aIo@Td66wbj0Aa3IQCXeI4SXafIxB1Qm@Ea7NELhVla6uECvkEYpwTlwLZd4Ui9ammW@djdiSCDoFEhLlgYU0gEwaZtCKRIRkUiCm/xpMYCydngbEVbxYKYmoLswSWQi54pUA@65XJWqv0lQHJ2C2N9C5feJmNoSgtt9izsbfkuCiInyb1kRzt4nndQhIeXxsvLvI/xjnvBYJ3XN8EVavLEhQpkrIAke40WvAPffoil3PDGIOp769MajHUd/ACzFY/iKGBpM9v7x@rD/NUfd9RuXc4Ohg2ftj/J1pP/pp/5A8AS6/AA" rel="nofollow noreferrer">Try it online!</a></p>
 <p>A little long, but not naive brute force.</p>
 </div>
-<div id="pu4" class="pu"><h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a>, 151 bytes</h1>
+<div id="pu5" class="pu"><h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a>, 151 bytes</h1>
 
 <pre class="lang-ruby prettyprint-override"><code>f=-&gt;x{[x,x[1..-1]+x[0]].any?{|g|a=g.upcase
 g=~/[a-z]{3}|[A-Z]{3}/||a=~/(.).+\1/||a.bytes.each_cons(2).any?{|a,b|(a-b).abs==1}}?f[x.chars.shuffle*'']:x}
