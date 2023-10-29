@@ -26,14 +26,51 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>133</td><td>Charcoal</td><td>231027T002347Z</td><td><a href="https://codegolf.stackexchange.com/questions/266223/find-the-conflict-free-sitting-arrangement/266246#266246">Neil</a></td></tr>
-<tr d-ix="1"><td>455</td><td>sed E</td><td>231027T090631Z</td><td><a href="https://codegolf.stackexchange.com/questions/266223/find-the-conflict-free-sitting-arrangement/266251#266251">Philippo</a></td></tr>
+<tr d-ix="0"><td>448</td><td>sed E</td><td>231027T090631Z</td><td><a href="https://codegolf.stackexchange.com/questions/266223/find-the-conflict-free-sitting-arrangement/266251#266251">Philippo</a></td></tr>
+<tr d-ix="1"><td>133</td><td>Charcoal</td><td>231027T002347Z</td><td><a href="https://codegolf.stackexchange.com/questions/266223/find-the-conflict-free-sitting-arrangement/266246#266246">Neil</a></td></tr>
 <tr d-ix="2"><td>037</td><td>Jelly</td><td>231026T172233Z</td><td><a href="https://codegolf.stackexchange.com/questions/266223/find-the-conflict-free-sitting-arrangement/266243#266243">Nick Ken</a></td></tr>
 <tr d-ix="3"><td>040</td><td>05AB1E</td><td>231026T074857Z</td><td><a href="https://codegolf.stackexchange.com/questions/266223/find-the-conflict-free-sitting-arrangement/266237#266237">Kevin Cr</a></td></tr>
 <tr d-ix="4"><td>486</td><td>Python3</td><td>231026T000933Z</td><td><a href="https://codegolf.stackexchange.com/questions/266223/find-the-conflict-free-sitting-arrangement/266230#266230">Ajax1234</a></td></tr>
 <tr d-ix="5"><td>151</td><td>Ruby</td><td>231025T215430Z</td><td><a href="https://codegolf.stackexchange.com/questions/266223/find-the-conflict-free-sitting-arrangement/266227#266227">AZTECCO</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, <s>158</s> 133 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.gnu.org/software/sed/" rel="nofollow noreferrer">sed</a> <code>-E</code>, <s> 455 </s> 448 bytes</h1>
+<p>(theoretically 447 bytes, see explanation, but who cares as long as <code>sed</code> beats <code>python</code>?!)</p>
+<p>I finally added my own reference implementation using <code>sed</code> just because regex-golfing is fun.</p>
+<pre><code>G
+s/./&amp;_-/
+:1
+s/(\S*)_(\S*)-(\S)(\S*\n)/\1\3_-\2\4\1_\2\3-\4/
+t1
+s/[-_]//g
+h
+:2
+g
+/^$/q
+s/\S*.//
+x
+s/\n.*//
+s/(..)?.+/aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ #:&amp;\1/
+:r  
+/:#/b4
+/^(..)*(.)(.)(.)(.).*(\2\4|\3\5\3\2\5|\2\3\4|\3\4\5|\2\5\4)/b2
+/(.).(..)*(.).(..)*(.).* .*(\1\3\5|\1\5\3|\3\1\5)/b2
+:3
+s/ (.*:)(.)/ \2\1/
+t3
+s/(\S*):/:\1/
+br  
+:4
+s/^((..)*)(.)(.)(.*(\3\4|\4\3))/\1\5/
+t4
+/^(..)*(.)(.).*(\2.+\3|\3.+\2)/b2
+s/.*#(..)?(...*)/\2/
+</code></pre>
+<p>It's brute force, with the <code>1</code> loop producing all combinations of guests, ignoring duplicates in favor of size over speed. Yes, you could save one more byte with <code>s/^/_-/</code> in line two, but this will create so extremely amounts of duplicates that it will time out even for quite small parties.</p>
+<p>The <code>2</code> loop takes one combination after another from the hold space to test it. I need to waste a lot of bytes to teach <code>sed</code> the alphabet, but at the same time I can close the round table by duplicating the first two guest at the end. Here I originally had a giant regex for the rival test and another regex for the three-of-the-same-sex-test, both backwards and forwards. But then I discovered that the extra bytes for reverting the string in loop <code>3</code> and using loop <code>r</code> to check the reversed order pays out by having only half of the expressions.</p>
+<p>The test for couples sitting apart was more tricky: A simple regex check won't work, because if they are at the first two seats, they will look like sitting apart because of the first partner reappearing on the other end. I solved it by removing couples I found sitting next to each other from the alphabet in loop <code>4</code> before testing. I wonder if there are still some bytes to save!</p>
+<p><a href="https://tio.run/##XVHbTsJAEH3fr2iCId0l3Unb7cu@GC@Id0W8II40VrDgpVxaFAjfbp1dIiYm3Zmzkz1nzkzzfs9Ls1lZNlgOEqqxB0z7hF1sCR7b6FHkBmHGAX0MYw8DVOjHlEIPFbDCUB68@BEgZQOmA5Yy6G7BhMpElABsbmAmBUFSl5Jvyxo87SS7z3u9/X795SBtDA6HR6/Hbyfvpx9n2fnoYnw5aU6v8lZxPbv5vP26m7cX98uOU9FV9Mnm1HEY6AokinoZReFKvvmkcI3LFYYY0QkwWhm764pa3yJUHJKAgXn/q/AHhGNEfKOwokQyhkvAknRIgziuFNq0A4f0yFUR/i5PgzaFxNjUiqpd1ypvLJK2taMw5HaxEdH/zWKnkDXbmVJgO9OfEhW7QgpSEDeAspw02535Yvk9GhfDUZaXXv0H" rel="nofollow noreferrer" title="sed – Try It Online">Try it online!</a></p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, <s>158</s> 133 bytes</h1>
 <pre><code>≔§θ⁰η⊞υηＦυ«≔⁻⪪θ¹⪪ι¹ζ≔§ι⁰ε¿ζＦζ«≔⁺κιδ¿∨‹Ｌδ³﹪ΣＥ…δ³№αλ³¿⬤⁻ζ⟦κ⟧¬№↥⁻ιη↥λ¿⊖↔⁻℅↥κ℅↥§ι⁰⊞υδ»¿∨‹Ｌι³⬤⟦⁺ηι⁺ε⮌ι⟧﹪ΣＥ…κ³№αμ³¿¬№↥✂ι¹±²¦¹↥η¿⊖↔⁻℅↥η℅↥ε⟦ι
 </code></pre>
 <p><a href="https://tio.run/##nZLLTsMwEEXX7Vd4aUtB4rFkFRUkkCitqFhVXYR4Gltx4@BHBUH99jC2UwqlYkGkRB7PvTeZE5eiMKUuVN/n1sqqobm7bzi80deMnLOMCHY9nnsrqE/rtTaEekY@xqPBMJWNt3TRKumC6QJNqZChwKpD2@goXaZ0CC25JrRjJCZ3MXmvnitMrjMiUcqDNGpnhj6AtfhoKicox@YV3lPNvdJ04Td0WrR08l4qmAjdUp76E@0bR4uMKMaihTES4nKlhhm6jCzrFfYetaNJ/ty2YMrCwiCRgQIqDvshbUi6gdLABhoHnOYvVivv9r6Z4bIp1Le8OsT83v4BKF1kzz8i2I1HoCyQEyTkQCJMtIzsRGIX15CRJ9iCwZdIxlZ/AKuPgG2@gKU5T@FZKFlC/OWID6oCJ79kwwE4qMT/WInTrGDAYyR@ylKuEM@u7ysO69ubu/5sqz4B" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code. Always places the first guest last but will output each solution twice, once with the guests in reverse order. Explanation:</p>
@@ -82,37 +119,6 @@
 <pre><code>⟦ι
 </code></pre>
 <p>Output the found placement on its own line.</p>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://www.gnu.org/software/sed/" rel="nofollow noreferrer">sed</a> <code>-E</code>, 455 bytes</h1>
-<p>(theoretically 454 bytes, see explanation, but who cares as long as <code>sed</code> beats <code>python</code>?!)</p>
-<p>I finally added my own reference implementation using <code>sed</code> just because regex-golfing is fun.</p>
-<pre><code>G
-s/./&amp;_-/
-:1
-s/(\S*)_(\S*)-(\S)(\S*\n)/\1\3_-\2\4\1_\2\3-\4/
-t1
-s/[-_]//g
-h
-:2
-g
-/^$/q
-s/\S*.//
-x
-s/\n.*//
-s/(..)?.+/aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ &amp;\1/
-/^(..)*(.)(.)(.)(.).*(\2\4|\4\2\|\3\5|\5\3|\3\2\5|\5\2\3|\2\3\4|\4\3\2|\3\4\5|\5\4\3|\2\5\4|\4\5\2)/b2
-/(.).(..)*(.).(..)*(.).* .*(\1\3\5|\1\5\3|\3\1\5|\3\5\1|\5\1\3|\5\3\1)/b2
-:3
-s/^((..)*)(.)(.)(.*(\3\4|\4\3))/\1\5/
-t3
-/^(..)*(.)(.).*(\2.+\3|\3.+\2)/b2
-s/.* //
-s/((..).*)\2/\1/
-</code></pre>
-<p>It's brute force, with the <code>1</code> loop producing all combinations of guests, ignoring duplicates in favor of size over speed. Yes, you could save one more byte with <code>s/^/_-/</code> in line two, but this will create so extremely amounts of duplicates that it will time out even for quite small parties.</p>
-<p>The <code>2</code> loop takes one combination after another from the hold space to test it. I need to waste a lot of bytes to teach <code>sed</code> the alphabet, but at the same time I can close the round table by duplicating the first two guest at the end. Then I have a giant regex for the rival test and another regex for the three-of-the-same-sex-test.</p>
-<p>The test for couples sitting apart was more tricky: A simple regex check won't work, because if they are at the first two seats, they will look like sitting apart because of the first partner reappearing on the other end. I solved it by removing couples I found sitting next to each other from the alphabet in loop <code>3</code> before testing. I wonder if someone can solve this with less bytes!</p>
-<p><a href="https://tio.run/##VVHbTgIxEH3vV/BgyLZkO2l394UX4wXxrogXxJGNCC54WcAFBcK3u85sA8akmZ7O5cyZadbv@Uk6y/O6yEBDOfZBVA1hD5tKxoX1yUpGmEpAg0Hso8UQTUxX4GMIYsolD378CJCIgahakQjobMGE3FSoAcScYaoVQWLXWm7rCjztdHef93r7/drLQVIfHA6PXo/fTt5PP87S89HF@HLS@LzKmtPr2c3X7ffdvLW4X7ZLZTRA7MyhPC03RyuPda1ImsUVBhitMMKAkXXY8ouMSyI3x0IXC10scjHKldC1Aph33ekPqBI3M66HWXcx/CIXGiY07IzYXTBVA5q74xUUG81EshYji91GtMvg/3DFWLpStKDL6aLPUiW3Sk7VSqKlesjzSaPVni@WP6PxdDhKs9yv/QI" rel="nofollow noreferrer" title="sed – Try It Online">Try it online!</a></p>
 </div>
 <div id="pu2" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, <s>49</s> 37 bytes</h1>
 <pre><code>O-ṫ?3;Od32ạƝS‘1¦Ʋ3Ƥ;ạƝ’Ʋ;ŒuĠIỊƲȦ
