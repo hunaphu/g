@@ -52,7 +52,7 @@ date -d$m-$((s[$(date -d$m +%w)]+1))day +%A\ %eth|sed s/1th/1st/
 </li>
 <li><p><strong><code>date -d$m +%w</code></strong>: Obtain the day of week of the first day of the following month.</p>
 </li>
-<li><p><strong><code>$((s[…]+1))</code></strong>: We'll need to back up one day, plus an additional day if following month starts on Sunday or an additional two days if it starts on Monday.</p>
+<li><p><strong><code>$((s[…]+1))</code></strong>: We'll need to back up one day, plus an additional day if following month starts on Sunday (weekday 0) or an additional two days if it starts on Monday (weekday 1).</p>
 <p>The array <code>s</code> is incomplete; the arithmetic works because empty string concatenates with <code>+1</code> to give the result we want.</p>
 </li>
 <li><p><strong><code>date -d$m-$((…))day +%A\ %eth</code></strong>: Format that last working day, appending <code>th</code> to give a candidate ordinal.</p>
@@ -71,13 +71,14 @@ m=1$1+month
 date -d$m-$((s[$(date -d$m +%w)]+1))day +%A\ %eth|sed s/1th/1st/
 }
 
-for i in {0..36}
+test &quot;$*&quot; || set -- $(for i in {0..35};do date -d 1jan2000+${i}month +%b%Y; done)
+    
+for i
 do
-    d=$(date -d 1jan2000+${i}month +%b%Y)
-    printf '%s: %s\n' $d &quot;$(last-working-day $d)&quot;
+    printf '%s: %s\n' $i &quot;$(last-working-day $i)&quot;
 done
 </code></pre>
-<p>Output:</p>
+<p>Output (no args):</p>
 <pre class="lang-none prettyprint-override"><code>Jan2000: Monday 31st
 Feb2000: Tuesday 29th
 Mar2000: Friday 31st
@@ -114,7 +115,6 @@ Sep2002: Monday 30th
 Oct2002: Thursday 31st
 Nov2002: Friday 29th
 Dec2002: Tuesday 31st
-Jan2003: Friday 31st
 </code></pre>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://github.com/PowerShell/PowerShell" rel="nofollow noreferrer">PowerShell Core</a>, 118 bytes</h1>
