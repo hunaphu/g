@@ -26,9 +26,9 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>118</td><td>PowerShell Core</td><td>231030T014909Z</td><td><a href="https://codegolf.stackexchange.com/questions/266256/last-working-day-of-the-month/266314#266314">Julian</a></td></tr>
-<tr d-ix="1"><td>102</td><td>Ruby</td><td>231029T132918Z</td><td><a href="https://codegolf.stackexchange.com/questions/266256/last-working-day-of-the-month/266307#266307">AZTECCO</a></td></tr>
-<tr d-ix="2"><td>086</td><td>Bash and GNU Date</td><td>231028T161456Z</td><td><a href="https://codegolf.stackexchange.com/questions/266256/last-working-day-of-the-month/266286#266286">Toby Spe</a></td></tr>
+<tr d-ix="0"><td>084</td><td>Bash and GNU Date</td><td>231028T161456Z</td><td><a href="https://codegolf.stackexchange.com/questions/266256/last-working-day-of-the-month/266286#266286">Toby Spe</a></td></tr>
+<tr d-ix="1"><td>118</td><td>PowerShell Core</td><td>231030T014909Z</td><td><a href="https://codegolf.stackexchange.com/questions/266256/last-working-day-of-the-month/266314#266314">Julian</a></td></tr>
+<tr d-ix="2"><td>102</td><td>Ruby</td><td>231029T132918Z</td><td><a href="https://codegolf.stackexchange.com/questions/266256/last-working-day-of-the-month/266307#266307">AZTECCO</a></td></tr>
 <tr d-ix="3"><td>104</td><td>Vyxal</td><td>231027T213210Z</td><td><a href="https://codegolf.stackexchange.com/questions/266256/last-working-day-of-the-month/266275#266275">math sca</a></td></tr>
 <tr d-ix="4"><td>129</td><td>Excel</td><td>231028T054506Z</td><td><a href="https://codegolf.stackexchange.com/questions/266256/last-working-day-of-the-month/266279#266279">Jos Wool</a></td></tr>
 <tr d-ix="5"><td>136</td><td>Charcoal</td><td>231027T154112Z</td><td><a href="https://codegolf.stackexchange.com/questions/266256/last-working-day-of-the-month/266263#266263">Neil</a></td></tr>
@@ -37,7 +37,87 @@
 <tr d-ix="8"><td>131</td><td>JavaScript ES6</td><td>231027T154035Z</td><td><a href="https://codegolf.stackexchange.com/questions/266256/last-working-day-of-the-month/266262#266262">Arnauld</a></td></tr>
 <tr d-ix="9"><td>153</td><td>Python3</td><td>231027T150546Z</td><td><a href="https://codegolf.stackexchange.com/questions/266256/last-working-day-of-the-month/266260#266260">Ajax1234</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/PowerShell/PowerShell" rel="nofollow noreferrer">PowerShell Core</a>, 118 bytes</h1>
+<div id="pu0" class="pu"><h1>Bash and GNU Date, 84 bytes</h1>
+<pre class="lang-sh prettyprint-override"><code>s=(1 2)
+m=1$1+month
+date -d$m-$((s[$(date -d$m +%w)]+1))day +%A\ %eth|sed s/1th/1st/
+</code></pre>
+<p>Input format is the month name and year as a single word, e.g. <code>October2023</code> or <code>sep2026</code>.</p>
+<p>An English locale (such as the standard <code>C</code> locale) is required for the day names to be in English.</p>
+<p>You might need to unset <code>TZ</code> environment variable to get proleptic Gregorian dates.</p>
+<hr />
+<h3>How it works</h3>
+<ol>
+<li><p><strong><code>m=1$1+month</code></strong>: Create a <code>date</code> input that is one month later than the start with the first of the target month (ie. the first day of the following month).  GNU Date allows us to omit all the spaces, which is helpful.</p>
+</li>
+<li><p><strong><code>date -d$m +%w</code></strong>: Obtain the day of week of the first day of the following month.</p>
+</li>
+<li><p><strong><code>$((s[…]+1))</code></strong>: We'll need to back up one day, plus an additional day if following month starts on Sunday or an additional two days if it starts on Monday.</p>
+<p>The array <code>s</code> is incomplete; the arithmetic works because empty string concatenates with <code>+1</code> to give the result we want.</p>
+</li>
+<li><p><strong><code>date -d$m-$((…))day +%A\ %eth</code></strong>: Format that last working day, appending <code>th</code> to give a candidate ordinal.</p>
+</li>
+<li><p><strong><code>|sed s/1th/1st/</code></strong>: Rewrite <code>31th</code> as <code>31st</code>.  The last working day must be in the range 26th...31st, so there are no <code>nd</code>s or <code>rd</code>s to consider.</p>
+</li>
+</ol>
+<hr />
+<h3>Full demo</h3>
+<pre class="lang-sh prettyprint-override"><code>#!/bin/bash
+
+last-working-day()
+{
+s=(1 2)
+m=1$1+month
+date -d$m-$((s[$(date -d$m +%w)]+1))day +%A\ %eth|sed s/1th/1st/
+}
+
+for i in {0..36}
+do
+    d=$(date -d 1jan2000+${i}month +%b%Y)
+    printf '%s: %s\n' $d &quot;$(last-working-day $d)&quot;
+done
+</code></pre>
+<p>Output:</p>
+<pre class="lang-none prettyprint-override"><code>Jan2000: Monday 31st
+Feb2000: Tuesday 29th
+Mar2000: Friday 31st
+Apr2000: Friday 28th
+May2000: Wednesday 31st
+Jun2000: Friday 30th
+Jul2000: Monday 31st
+Aug2000: Thursday 31st
+Sep2000: Friday 29th
+Oct2000: Tuesday 31st
+Nov2000: Thursday 30th
+Dec2000: Friday 29th
+Jan2001: Wednesday 31st
+Feb2001: Wednesday 28th
+Mar2001: Friday 30th
+Apr2001: Monday 30th
+May2001: Thursday 31st
+Jun2001: Friday 29th
+Jul2001: Tuesday 31st
+Aug2001: Friday 31st
+Sep2001: Friday 28th
+Oct2001: Wednesday 31st
+Nov2001: Friday 30th
+Dec2001: Monday 31st
+Jan2002: Thursday 31st
+Feb2002: Thursday 28th
+Mar2002: Friday 29th
+Apr2002: Tuesday 30th
+May2002: Friday 31st
+Jun2002: Friday 28th
+Jul2002: Wednesday 31st
+Aug2002: Friday 30th
+Sep2002: Monday 30th
+Oct2002: Thursday 31st
+Nov2002: Friday 29th
+Dec2002: Tuesday 31st
+Jan2003: Friday 31st
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/PowerShell/PowerShell" rel="nofollow noreferrer">PowerShell Core</a>, 118 bytes</h1>
 
 <pre class="lang-powershell prettyprint-override"><code>param($y,$m)for(;!((($k=Date &quot;$y/$m/1&quot;|% *hs 1|% *ys(--$d))|% d*k)%6)){}&quot;{0:dddd} {0:dd}&quot;-f$k+('st','th')[$k.Day-ne31]
 </code></pre>
@@ -45,13 +125,13 @@
 <p>Takes in two parameters, <code>$y</code>ear and <code>$m</code>onth, returns a <code>string</code>.</p>
 <p>Less golfed:</p>
 <pre class="lang-powershell prettyprint-override"><code>param($y,$m)
-for(;(($k=(Date &quot;$y/$m/1&quot;).AddMonths(1).AddDays(--$d)).DayOfWeek-in0,6)){}
+for(;(($k=(Date &quot;$y/$m/1&quot;).AddMonths(1).AddDays(--$d)).DayOfWeek-in&quot;Saturday&quot;,&quot;Sunday&quot;)){}
 &quot;{0:dddd} {0:dd}&quot;-f$k+('st','th')[$k.Day-ne31]
 </code></pre>
 <p>Finds the last day of the month, while it is a Saturday or a Sunday, check one day before
 Then formats the date</p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a>, <s>99 89</s> 102 bytes</h1>
+<div id="pu2" class="pu"><h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a>, <s>99 89</s> 102 bytes</h1>
 
 <pre class="lang-ruby prettyprint-override"><code>-&gt;y,m{(1..4).find{|d|(A=Date.new y,m,-d).wday&lt;5}
 A.strftime&quot;%A %d#{A.day&gt;30?'st':'th'}&quot;}
@@ -63,25 +143,6 @@ require'time'
 <p>We find which of the last 4 days of month ( checking backwards using -d ) are  wdays (week days 0-indexed) less than 5 saving each time date object in constant A for later use.</p>
 <p>When it's found loop is stopped so A is the last weekday of the month.</p>
 <p>Then we format the output, we can only have 31th or xxst</p>
-</div>
-<div id="pu2" class="pu"><h1>Bash and GNU Date, 86 bytes</h1>
-<pre class="lang-sh prettyprint-override"><code>s=(1 2)
-m=1$1+month
-date -d$m-$((s[$(date -d$m +%w)]+1))day +%A\ %eth|sed 's/1th/1st/'
-</code></pre>
-<p>Input format is the month name and year as a single word, e.g. <code>October2023</code> or <code>sep2026</code>.</p>
-<p>An English locale (such as the standard <code>C</code> locale) is required for the day names to be in English.</p>
-<p>You might need to unset <code>TZ</code> environment variable to get proleptic Gregorian dates.</p>
-<hr />
-<h3>How it works</h3>
-<p>It's the standard technique of finding the first day of the next month and subtracting 1 day and one or two extra days if that's a Sunday or Monday.</p>
-<p>We use some tricks specific to GNU Date's <code>-d</code> format to avoid the need to quote spaces and to minimise code size:</p>
-<ul>
-<li>We can pass the first of the month as <code>1october2023</code></li>
-<li>One month later is usually specified as <code>1october2023 +1month</code>, but we can omit the spaces and the number of months.  Sadly, <code>-day</code> is treated the same as <code>+day</code>, so we can't eliminate the number there.</li>
-</ul>
-<p>The array <code>s</code> is incomplete; the arithmetic works because empty string concatenates with <code>+1</code> to give the result we want.</p>
-<p>The date program doesn't have an option to print ordinal day numbers; luckily we only need to handle 26th...31st, of which only the last doesn't end in <code>th</code>.</p>
 </div>
 <div id="pu3" class="pu"><h1><a href="https://github.com/Vyxal/Vyxal" rel="nofollow noreferrer">Vyxal</a>, 104 bytes</h1>
 <pre><code>S½⌊Ḃ÷dN„4/?›13*5/⁰14=[¹›₁1&quot;4*₁JḊ÷¬∧∨28:›&quot;i|30⁰⇧5%₂+]:£Wf⌊∑7%:¥∇2&lt;[›-6]⇩`°⋏ ß₀ †ƛ ßɖ »£`⌈ið„:31=«⟇'Ḋ«½iW∑
