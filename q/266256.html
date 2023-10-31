@@ -26,8 +26,8 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>171</td><td>POSIX shell</td><td>231031T024042Z</td><td><a href="https://codegolf.stackexchange.com/questions/266256/last-week-day-of-the-month/266367#266367">gildux</a></td></tr>
-<tr d-ix="1"><td>076</td><td>Google Sheets / Microsoft Excel</td><td>231031T110356Z</td><td><a href="https://codegolf.stackexchange.com/questions/266256/last-week-day-of-the-month/266379#266379">doubleun</a></td></tr>
+<tr d-ix="0"><td>076</td><td>Google Sheets / Microsoft Excel</td><td>231031T110356Z</td><td><a href="https://codegolf.stackexchange.com/questions/266256/last-week-day-of-the-month/266379#266379">doubleun</a></td></tr>
+<tr d-ix="1"><td>171</td><td>POSIX shell</td><td>231031T024042Z</td><td><a href="https://codegolf.stackexchange.com/questions/266256/last-week-day-of-the-month/266367#266367">gildux</a></td></tr>
 <tr d-ix="2"><td>126</td><td>Pure Zsh</td><td>231031T133828Z</td><td><a href="https://codegolf.stackexchange.com/questions/266256/last-week-day-of-the-month/266385#266385">GammaFun</a></td></tr>
 <tr d-ix="3"><td>270</td><td>C gcc</td><td>231031T054159Z</td><td><a href="https://codegolf.stackexchange.com/questions/266256/last-week-day-of-the-month/266370#266370">AShelly</a></td></tr>
 <tr d-ix="4"><td>100</td><td>bash and BSD date</td><td>231030T223853Z</td><td><a href="https://codegolf.stackexchange.com/questions/266256/last-week-day-of-the-month/266356#266356">gildux</a></td></tr>
@@ -44,7 +44,47 @@
 <tr d-ix="15"><td>131</td><td>JavaScript ES6</td><td>231027T154035Z</td><td><a href="https://codegolf.stackexchange.com/questions/266256/last-week-day-of-the-month/266262#266262">Arnauld</a></td></tr>
 <tr d-ix="16"><td>153</td><td>Python3</td><td>231027T150546Z</td><td><a href="https://codegolf.stackexchange.com/questions/266256/last-week-day-of-the-month/266260#266260">Ajax1234</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>POSIX shell, 171 bytes</h1>
+<div id="pu0" class="pu"><h1>Google Sheets / Microsoft Excel, 76 bytes</h1>
+<p><code>=let(d,workday(eomonth(A1,)+1,-1),text(d,&quot;dddd d&quot;)&amp;if(day(d)=31,&quot;st&quot;,&quot;th&quot;))</code></p>
+<p>Put the month and year in cell <code>A1</code> in one of the formats specified in the question (or any other valid date format), and the formula in <code>B1</code>.</p>
+<p>The formula gets the first day of the <em>next</em> month and then finds the previous weekday before that, which is the same as the last weekday of the specified month.</p>
+<p>The day number of the last weekday of a month will never end in <code>2</code> or <code>3</code>, so it is enough to add <code>st</code> when the day is <code>31</code> and use <code>th</code> with any other date.</p>
+<p>The formula is for Google Sheets, but I tested it in the most recent version of Microsoft Excel for the web and it seems to work the fine there as well.</p>
+<p>The Google Sheets <a href="https://webapps.stackexchange.com/a/153710/269219">epoch</a> is 30 December 1899. The formula will work with dates from January 1900 to December 99999. In Microsoft Excel, the range of valid dates seems more limited, and formula will work from January 1900 to November 9999.</p>
+<div class="s-table-container">
+<table class="s-table">
+<thead>
+<tr>
+<th>input</th>
+<th>expected</th>
+<th>formula</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>10/2023</td>
+<td>Tuesday 31st</td>
+<td>Tuesday 31st</td>
+</tr>
+<tr>
+<td>February 2017</td>
+<td>Tuesday 28th</td>
+<td>Tuesday 28th</td>
+</tr>
+<tr>
+<td>09/1674</td>
+<td>Friday 28th</td>
+<td>#NUM!</td>
+</tr>
+<tr>
+<td>1/2043</td>
+<td>Friday 30th</td>
+<td>Friday 30th</td>
+</tr>
+</tbody>
+</table>
+</div></div>
+<div id="pu1" class="pu"><h1>POSIX shell, 171 bytes</h1>
 <p>Not the shortest possible with the shell, but it doesn't use any bashism and is funny (see explanation bellow.)</p>
 <pre class="lang-sh prettyprint-override"><code>cal $1 $2|tail -2|awk 'NF&gt;1{split(&quot;S Mon Tues Wednes Thurs Fri&quot;,d)
 a=6;if(NF==1){b=$1-2}else if(NF==7){b=$6}else{a=NF;b=$NF}
@@ -139,46 +179,6 @@ NF &gt; 1 { # check last column
 </code></pre>
 <p>Alternatively, the AWK output (<code>Friday 28th</code> and <code>Monday 31st</code>) must be filtered though <code>tail -n -1</code>. Either add 14 characters before (and save <code>NF &gt; 1</code> condition), or add 10 characters after (and keep 4 characters condition). Fifty-fifty, so it's a matter of taste.</p>
 </div>
-<div id="pu1" class="pu"><h1>Google Sheets / Microsoft Excel, 76 bytes</h1>
-<p><code>=let(d,workday(eomonth(A1,)+1,-1),text(d,&quot;dddd d&quot;)&amp;if(day(d)=31,&quot;st&quot;,&quot;th&quot;))</code></p>
-<p>Put the month and year in cell <code>A1</code> in one of the formats specified in the question (or any other valid date format), and the formula in <code>B1</code>.</p>
-<p>The formula gets the first day of the <em>next</em> month and then finds the previous weekday before that, which is the same as the last weekday of the specified month.</p>
-<p>The day number of the last weekday of a month will never end in <code>2</code> or <code>3</code>, so it is enough to add <code>st</code> when the day is <code>31</code> and use <code>th</code> with any other date.</p>
-<p>Tested the formula in the most recent version of Microsoft Excel for the web and it seems to work the fine there as well.</p>
-<p>The Google Sheets <a href="https://webapps.stackexchange.com/a/153710/269219">epoch</a> is 30 December 1899. The formula will work with dates from January 1900 to December 99999. In Microsoft Excel, the range of valid dates seems more limited, and formula will work from January 1900 to November 9999.</p>
-<div class="s-table-container">
-<table class="s-table">
-<thead>
-<tr>
-<th>input</th>
-<th>expected</th>
-<th>formula</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>10/2023</td>
-<td>Tuesday 31st</td>
-<td>Tuesday 31st</td>
-</tr>
-<tr>
-<td>February 2017</td>
-<td>Tuesday 28th</td>
-<td>Tuesday 28th</td>
-</tr>
-<tr>
-<td>09/1674</td>
-<td>Friday 28th</td>
-<td>#NUM!</td>
-</tr>
-<tr>
-<td>1/2043</td>
-<td>Friday 30th</td>
-<td>Friday 30th</td>
-</tr>
-</tbody>
-</table>
-</div></div>
 <div id="pu2" class="pu"><h1>(Pure) <a href="https://www.zsh.org/" rel="nofollow noreferrer">Zsh</a>, 126 bytes</h1>
 
 <pre class="lang-sh prettyprint-override"><code>zmodload zsh/datetime
