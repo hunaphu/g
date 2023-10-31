@@ -26,11 +26,11 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>076</td><td>Google Sheets / Microsoft Excel</td><td>231031T110356Z</td><td><a href="https://codegolf.stackexchange.com/questions/266256/last-week-day-of-the-month/266379#266379">doubleun</a></td></tr>
-<tr d-ix="1"><td>171</td><td>POSIX shell</td><td>231031T024042Z</td><td><a href="https://codegolf.stackexchange.com/questions/266256/last-week-day-of-the-month/266367#266367">gildux</a></td></tr>
-<tr d-ix="2"><td>126</td><td>Pure Zsh</td><td>231031T133828Z</td><td><a href="https://codegolf.stackexchange.com/questions/266256/last-week-day-of-the-month/266385#266385">GammaFun</a></td></tr>
-<tr d-ix="3"><td>270</td><td>C gcc</td><td>231031T054159Z</td><td><a href="https://codegolf.stackexchange.com/questions/266256/last-week-day-of-the-month/266370#266370">AShelly</a></td></tr>
-<tr d-ix="4"><td>100</td><td>bash and BSD date</td><td>231030T223853Z</td><td><a href="https://codegolf.stackexchange.com/questions/266256/last-week-day-of-the-month/266356#266356">gildux</a></td></tr>
+<tr d-ix="0"><td>099</td><td>bash and BSD date</td><td>231030T223853Z</td><td><a href="https://codegolf.stackexchange.com/questions/266256/last-week-day-of-the-month/266356#266356">gildux</a></td></tr>
+<tr d-ix="1"><td>076</td><td>Google Sheets / Microsoft Excel</td><td>231031T110356Z</td><td><a href="https://codegolf.stackexchange.com/questions/266256/last-week-day-of-the-month/266379#266379">doubleun</a></td></tr>
+<tr d-ix="2"><td>171</td><td>POSIX shell</td><td>231031T024042Z</td><td><a href="https://codegolf.stackexchange.com/questions/266256/last-week-day-of-the-month/266367#266367">gildux</a></td></tr>
+<tr d-ix="3"><td>126</td><td>Pure Zsh</td><td>231031T133828Z</td><td><a href="https://codegolf.stackexchange.com/questions/266256/last-week-day-of-the-month/266385#266385">GammaFun</a></td></tr>
+<tr d-ix="4"><td>270</td><td>C gcc</td><td>231031T054159Z</td><td><a href="https://codegolf.stackexchange.com/questions/266256/last-week-day-of-the-month/266370#266370">AShelly</a></td></tr>
 <tr d-ix="5"><td>234</td><td>Go</td><td>231030T180449Z</td><td><a href="https://codegolf.stackexchange.com/questions/266256/last-week-day-of-the-month/266351#266351">bigyihsu</a></td></tr>
 <tr d-ix="6"><td>055</td><td>PHP</td><td>231030T161254Z</td><td><a href="https://codegolf.stackexchange.com/questions/266256/last-week-day-of-the-month/266340#266340">Kaddath</a></td></tr>
 <tr d-ix="7"><td>066</td><td>APLDyalog Unicode</td><td>231030T125934Z</td><td><a href="https://codegolf.stackexchange.com/questions/266256/last-week-day-of-the-month/266327#266327">Razetime</a></td></tr>
@@ -44,7 +44,20 @@
 <tr d-ix="15"><td>131</td><td>JavaScript ES6</td><td>231027T154035Z</td><td><a href="https://codegolf.stackexchange.com/questions/266256/last-week-day-of-the-month/266262#266262">Arnauld</a></td></tr>
 <tr d-ix="16"><td>153</td><td>Python3</td><td>231027T150546Z</td><td><a href="https://codegolf.stackexchange.com/questions/266256/last-week-day-of-the-month/266260#266260">Ajax1234</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Google Sheets / Microsoft Excel, 76 bytes</h1>
+<div id="pu0" class="pu"><h1>bash and BSD date, 99 bytes</h1>
+<p>As an alternative to <a href="https://codegolf.stackexchange.com/a/266286">Toby Speight's answer</a> but using BSD implementation instead of GNU one</p>
+<pre class="lang-sh prettyprint-override"><code>s=(1 2)
+m=&quot;-v$2y -v$1 -v+1m -v1d&quot;
+date $m -v-$((s[$(date $m +%w)]+1))d +%A\ %eth | sed s/1th/1st/
+</code></pre>
+<p>It has the following limitations:</p>
+<ul>
+<li>months can be integers only, not strings (<code>October</code> or <code>sep</code> for example)</li>
+<li>separator is changed from <code>/</code> to blanks which is natural shell arguments separator</li>
+</ul>
+<p>There's certainly room for tweaking.</p>
+</div>
+<div id="pu1" class="pu"><h1>Google Sheets / Microsoft Excel, 76 bytes</h1>
 <p><code>=let(d,workday(eomonth(A1,)+1,-1),text(d,&quot;dddd d&quot;)&amp;if(day(d)=31,&quot;st&quot;,&quot;th&quot;))</code></p>
 <p>Put the month and year in cell <code>A1</code> in one of the formats specified in the question (or any other valid date format), and the formula in <code>B1</code>.</p>
 <p>The formula gets the first day of the <em>next</em> month and then finds the previous weekday before that, which is the same as the last weekday of the specified month.</p>
@@ -84,7 +97,7 @@
 </tbody>
 </table>
 </div></div>
-<div id="pu1" class="pu"><h1>POSIX shell, 171 bytes</h1>
+<div id="pu2" class="pu"><h1>POSIX shell, 171 bytes</h1>
 <p>Not the shortest possible with the shell, but it doesn't use any bashism and is funny (see explanation bellow.)</p>
 <pre class="lang-sh prettyprint-override"><code>cal $1 $2|tail -2|awk 'NF&gt;1{split(&quot;S Mon Tues Wednes Thurs Fri&quot;,d)
 a=6;if(NF==1){b=$1-2}else if(NF==7){b=$6}else{a=NF;b=$NF}
@@ -179,7 +192,7 @@ NF &gt; 1 { # check last column
 </code></pre>
 <p>Alternatively, the AWK output (<code>Friday 28th</code> and <code>Monday 31st</code>) must be filtered though <code>tail -n -1</code>. Either add 14 characters before (and save <code>NF &gt; 1</code> condition), or add 10 characters after (and keep 4 characters condition). Fifty-fifty, so it's a matter of taste.</p>
 </div>
-<div id="pu2" class="pu"><h1>(Pure) <a href="https://www.zsh.org/" rel="nofollow noreferrer">Zsh</a>, 126 bytes</h1>
+<div id="pu3" class="pu"><h1>(Pure) <a href="https://www.zsh.org/" rel="nofollow noreferrer">Zsh</a>, 126 bytes</h1>
 
 <pre class="lang-sh prettyprint-override"><code>zmodload zsh/datetime
 s=strftime
@@ -205,7 +218,7 @@ for d ({31..9})
 &lt;&lt;&lt;${T/1th/1st}
 </code></pre>
 </div>
-<div id="pu3" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C (gcc)</a>, 270 bytes</h1>
+<div id="pu4" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C (gcc)</a>, 270 bytes</h1>
 
 <pre class="lang-c prettyprint-override"><code>char*s[]={&quot;Mon&quot;,&quot;Tues&quot;,&quot;Wednes&quot;,&quot;Thurs&quot;,&quot;Fri&quot;};
 char*e=&quot;sth&quot;;
@@ -216,19 +229,6 @@ printf(&quot;%sday %d%.2s\n&quot;,s[(d-p)&amp;7],y,e+(y&lt;31));
 }
 </code></pre>
 <p><a href="https://tio.run/##RY8/b8IwEMV3f4rIUtA5tov/QCJknLFbN6QOlAHFoSDVaZTAYCE@O72A2t5y97v3/E5u5GfT3O/NcT8U43bnr/Ttu6OCbi7tiO29Dd1j2Bwvw9RfhxO9OfLwt56O5yN15AsSuw7t@TJ0WZovZJprpThOSrkbOUAUqJ@6cxZE7yezCz6urUvSBxe516YI0uCy5In3HKwuIptr40jgPnmrJWhTLk2pTV1DLIw0bGYZh@jxLSugl1Mqxua@mlJ7H2YQ6ho160g/4O0D0HwM@5TlIX8x4wd@ctxCkD2bVTuRRMshra3GEHK7x/2pA0auJMM6QCX0amlReaJWwijzzwZRV3@4ErqsFk9EM4oL@0uTVanHjR8" rel="nofollow noreferrer" title="C (gcc) – Try It Online">Try it online!</a></p>
-</div>
-<div id="pu4" class="pu"><h1>bash and BSD date, 100 bytes</h1>
-<p>As an alternative to <a href="https://codegolf.stackexchange.com/a/266286">Toby Speight's answer</a> but using BSD implementation instead of GNU one</p>
-<pre class="lang-sh prettyprint-override"><code>s=(1 2)
-m=&quot;-v$2y -v$(($1+1))m -v1d&quot;
-date $m -v-$((s[$(date $m +%w)]+1))d +%A\ %eth | sed s/1th/1st/
-</code></pre>
-<p>It has the following limitations:</p>
-<ul>
-<li>months can be integers only, not strings (<code>October</code> or <code>sep</code> for example)</li>
-<li>separator is changed from <code>/</code> to blanks which is natural shell arguments separator</li>
-</ul>
-<p>There's certainly room for tweaking.</p>
 </div>
 <div id="pu5" class="pu"><h1><a href="https://go.dev" rel="nofollow noreferrer">Go</a>, 234 bytes</h1>
 <pre class="lang-go prettyprint-override"><code>import(.&quot;fmt&quot;;.&quot;time&quot;)
