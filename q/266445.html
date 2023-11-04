@@ -26,18 +26,39 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>041</td><td>Python 3 + SymPy</td><td>231104T004906Z</td><td><a href="https://codegolf.stackexchange.com/questions/266445/sine-using-square-root/266452#266452">Neil</a></td></tr>
-<tr d-ix="1"><td>089</td><td>Python</td><td>231103T223557Z</td><td><a href="https://codegolf.stackexchange.com/questions/266445/sine-using-square-root/266447#266447">97.100.9</a></td></tr>
-<tr d-ix="2"><td>4875</td><td>Vyxal</td><td>231103T230324Z</td><td><a href="https://codegolf.stackexchange.com/questions/266445/sine-using-square-root/266450#266450">lyxal</a></td></tr>
+<tr d-ix="0"><td>082</td><td>Python 3</td><td>231104T081107Z</td><td><a href="https://codegolf.stackexchange.com/questions/266445/sine-using-square-root/266460#266460">xnor</a></td></tr>
+<tr d-ix="1"><td>041</td><td>Python 3 + SymPy</td><td>231104T004906Z</td><td><a href="https://codegolf.stackexchange.com/questions/266445/sine-using-square-root/266452#266452">Neil</a></td></tr>
+<tr d-ix="2"><td>089</td><td>Python</td><td>231103T223557Z</td><td><a href="https://codegolf.stackexchange.com/questions/266445/sine-using-square-root/266447#266447">97.100.9</a></td></tr>
+<tr d-ix="3"><td>4875</td><td>Vyxal</td><td>231103T230324Z</td><td><a href="https://codegolf.stackexchange.com/questions/266445/sine-using-square-root/266450#266450">lyxal</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a> + SymPy, 41 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://docs.python.org/3.8/" rel="nofollow noreferrer">Python 3</a>, 82 bytes</h1>
+
+<pre class="lang-python prettyprint-override"><code>lambda x:f&quot;(1{(s:=x//3*'*S(1+S(5)+S(2*S(5)-10))/S(S(12)+S(-4))')}-1/(1{s}))/S(-4)&quot;
+</code></pre>
+<p><a href="https://tio.run/##TY7BboMwEETP@CtWuWSXQojjNGpQ@QquvTitcZAwEC@qXKp8OzVtVfUy@2ZGK834MV2HXj2Nfmn84ODV6ekKrRsHPwHfomiGWtjqZem0u7xpCGWzQfmJXFahKFS6TWuUDzU@UpRDukIu90RFjbE4rGl@JNrSPZdFfOT7dxezzdIMHgK0PXjdW4P77KwyRaVIGCqwGEgkcyTzrjvkaDSzWSddGOdd67QleAZp8rNIRt/2E4YM5p03uiMhfhL6vRbjpj9W//hEtHwB" rel="nofollow noreferrer" title="Python 3.8 (pre-release) – Try It Online">Try it online!</a></p>
+<p>This produces an expression with complex number as intermediates that can be evaluated in Python with <code>S=cmath.sqrt</code>. For instance, <code>x=3</code> gives:</p>
+<pre class="lang-python prettyprint-override"><code>(1*S(1+S(5)+S(2*S(5)-10))/S(S(12)+S(-4))-1/(1*S(1+S(5)+S(2*S(5)-10))/S(S(12)+S(-4))))/S(-4)
+</code></pre>
+<p>The main idea is to work with complex numbers, in particular roots of unity. Since <span class="math-container">\$e^{i \theta}\ = \cos(\theta) + i\sin(\theta)\$</span> where <span class="math-container">\$i = \sqrt{-1}\$</span>, we can work with multiples of <span class="math-container">\$\theta\$</span> as</p>
+<p><span class="math-container">$$e^{i k\theta}\ = \left(e^{i \theta}\right)^k= \left( \cos(\theta) + i\sin(\theta)\right)^k$$</span></p>
+<p>From there, we can extract just the sine with:</p>
+<p><span class="math-container">$$\sin(k \theta) = \frac{\left(e^{i \theta}\right)^k-1/\left(e^{i \theta}\right)^k}{2i}$$</span></p>
+<p>We can take the <span class="math-container">\$k\$</span> power by multiplying <span class="math-container">\$k\$</span> times, that is concatenating <span class="math-container">\$k\$</span> copies of <code>*stuff</code> in the expression, since the challenge doesn't allow exponents in the formula.</p>
+<p>So we express <span class="math-container">\$e^{i \theta}\$</span> for <span class="math-container">\$\theta = 3^{\circ}\$</span> (three degrees), and take its <span class="math-container">\$k\$</span>-th power by multiplying it <span class="math-container">\$k\$</span> times, using string repetition.</p>
+<p>It remains to express <span class="math-container">\$e^{i \theta}\$</span> for <span class="math-container">\$\theta = 3^{\circ}\$</span>. We could directly write out its sine and cosine, but it's a bit shorter to express it in terms of 36 and 30 degrees whose sine and cosine have <a href="https://en.wikipedia.org/wiki/Exact_trigonometric_values#Common_angles" rel="nofollow noreferrer">relatively nice values</a>:</p>
+<p><span class="math-container">$$e^{i (3^\circ)} = \sqrt{e^{i (6^\circ)}} = \sqrt{e^{i (36^\circ)}e^{i (-30^\circ)}} = \sqrt{(\cos(36^\circ)+i \sin (36^\circ))(\cos(30^\circ)-i \sin (30^\circ))}$$</span></p>
+<p>A bit of tweaking and combining terms gives this in the code's notation as:</p>
+<pre class="lang-python prettyprint-override"><code>S(1+S(5)+S(2*S(5)-10))/S(S(12)+S(-4))
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a> + SymPy, 41 bytes</h1>
 
 <pre class="lang-python prettyprint-override"><code>lambda n:sin(pi*n/180)
 from sympy import*
 </code></pre>
 <p><a href="https://tio.run/##BcFBCoAgEAXQfaeYpYZQ4aaCbtLGKGsgv8PkxtPbe1LLk@Fb3Pb2hnScgbB@DCPcY5jm0XZRc6KvJqnESbKWvsWsBGKQBtyXGd3inberKKMYuGhgbfsB" rel="nofollow noreferrer" title="Python 3 – Try It Online">Try it online!</a> Link outputs all results from <code>0°</code> to <code>90°</code>.</p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 89 bytes</h1>
+<div id="pu2" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 89 bytes</h1>
 <pre class="lang-python prettyprint-override"><code>c='s-1*'
 y='/s+2/s++7s5s*6+5s522'
 f=lambda d:d and'+*'+y+(x:=f(d-3))+'*'+c+x*2+c+y*2or'0'
@@ -51,7 +72,7 @@ f=lambda d:d and'+*'+y+(x:=f(d-3))+'*'+c+x*2+c+y*2or'0'
 <span class="math-container">$$\frac12 \sqrt{2+\frac12 \sqrt{7+\sqrt{5}+\sqrt{6(5+\sqrt{5})}}}$$</span></p>
 <p>(according to Wolfram-Alpha).</p>
 </div>
-<div id="pu2" class="pu"><h1><a href="https://github.com/Vyxal/Vyxal" rel="nofollow noreferrer">Vyxal</a>, 39 <a href="https://github.com/Vyxal/Vyncode/blob/main/README.md" rel="nofollow noreferrer">bits<sup>v2</a></sup>, 4.875 bytes</h1>
+<div id="pu3" class="pu"><h1><a href="https://github.com/Vyxal/Vyxal" rel="nofollow noreferrer">Vyxal</a>, 39 <a href="https://github.com/Vyxal/Vyncode/blob/main/README.md" rel="nofollow noreferrer">bits<sup>v2</a></sup>, 4.875 bytes</h1>
 <pre><code>∆R∆sS
 </code></pre>
 <p><a href="https://vyxal.pythonanywhere.com/?v=2&amp;c=1#WyI9IiwiIiwi4oiGUuKIhnNTIiwiIiwiNDUiXQ==" rel="nofollow noreferrer">Try it Online!</a></p>
