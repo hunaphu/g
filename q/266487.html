@@ -42,7 +42,10 @@ lambda n,a,*A:(pow(a,n,M)+(len(A)and rec(n,*A)+sum(rec(n-j,*A)*pow(a,j,M)*comb(n
 <p><span class="math-container">\$\mathcal O(NK^2)\$</span> (length of list times exponent squared) assuming that binomial coefficients and powers are O(1) and the overhead of memoisation is negligible.</p>
 <p>Does the large testcase in a second or so.</p>
 <p>Additional testcases taken from @bsoelch.</p>
-<p>Explanation shortly.</p>
+<h3>How?</h3>
+<p>Let <span class="math-container">\$f(K,S)\$</span> denote the desired quantity for exponent K and set (or multiset) S. I write $2^S$ fpr the power set. The recursion formula is obtained by choosing an element <span class="math-container">\$a\in S\$</span> and separating the subsets into those that contain $a$ and those that do not.</p>
+<p><span class="math-container">$$f(K,S) = \sum_{C \in 2^S}\left(\sum_{x \in C}x\right)^K = \sum_{C \in 2^{S-\{a\}}}\left(\sum_{x \in C}x\right)^K + \sum_{C \in 2^{S-\{a\}}}\left(a+\sum_{x \in C} x\right)^K + a^K \\ = f(K,S-\{a\}) + a^K + \sum_{C \in 2^{S-\{a\}}}\left(a+\sum_{x \in C} x\right)^K \\ = f(K,S-\{a\}) + a^K + \sum_{C \in 2^{S-\{a\}}}\sum_{j=0}^K \begin{pmatrix}  K\\j \end{pmatrix}a^j \left(\sum_{x \in C} x\right)^{K-j} \\ = f(K,S-\{a\}) + a^K + \sum_{j=0}^K \begin{pmatrix}  K\\j \end{pmatrix}a^j \sum_{C \in 2^{S-\{a\}}} \left(\sum_{x \in C} x\right)^{K-j} \\ =f (K,S-\{a\}) + a^K + \sum_{j=0}^K \begin{pmatrix}  K\\j \end{pmatrix}a^j f(K-j,S-\{a\}) 
+$$</span></p>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 428 bytes, <span class="math-container">\$O(m^{k+1})\$</span></h1>
 <p><em>Ignores the input format requirements, <code>f</code> takes input <code>(l,k)</code> with <code>l</code> being the array and <code>k</code> being the power. <br>
