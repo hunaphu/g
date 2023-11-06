@@ -26,11 +26,91 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>nan</td><td>Python</td><td>231106T051422Z</td><td><a href="https://codegolf.stackexchange.com/questions/266487/sum-of-the-sum-of-all-possible-subsets-raised-to-power-k/266514#266514">Command </a></td></tr>
-<tr d-ix="1"><td>002</td><td>Python</td><td>231105T230638Z</td><td><a href="https://codegolf.stackexchange.com/questions/266487/sum-of-the-sum-of-all-possible-subsets-raised-to-power-k/266507#266507">loopy wa</a></td></tr>
-<tr d-ix="2"><td>428</td><td>Python</td><td>231105T165556Z</td><td><a href="https://codegolf.stackexchange.com/questions/266487/sum-of-the-sum-of-all-possible-subsets-raised-to-power-k/266498#266498">bsoelch</a></td></tr>
+<tr d-ix="0"><td>002</td><td>Rust</td><td>231106T125010Z</td><td><a href="https://codegolf.stackexchange.com/questions/266487/sum-of-the-sum-of-all-possible-subsets-raised-to-power-k/266532#266532">138 Aspe</a></td></tr>
+<tr d-ix="1"><td>nan</td><td>Python</td><td>231106T051422Z</td><td><a href="https://codegolf.stackexchange.com/questions/266487/sum-of-the-sum-of-all-possible-subsets-raised-to-power-k/266514#266514">Command </a></td></tr>
+<tr d-ix="2"><td>002</td><td>Python</td><td>231105T230638Z</td><td><a href="https://codegolf.stackexchange.com/questions/266487/sum-of-the-sum-of-all-possible-subsets-raised-to-power-k/266507#266507">loopy wa</a></td></tr>
+<tr d-ix="3"><td>428</td><td>Python</td><td>231105T165556Z</td><td><a href="https://codegolf.stackexchange.com/questions/266487/sum-of-the-sum-of-all-possible-subsets-raised-to-power-k/266498#266498">bsoelch</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, <span class="math-container">\$O(N K \log K)\$</span></h1>
+<div id="pu0" class="pu"><h1><a href="https://www.rust-lang.org/" rel="nofollow noreferrer">Rust</a>, <span class="math-container">\$\mathcal{O}(NK^2)\$</span></h1>
+<p>A port of <a href="https://codegolf.stackexchange.com/a/266507/110802">@loopy walt's Python answer</a> in Rust.</p>
+<hr />
+<h3><code>src/main.rs</code></h3>
+<pre class="lang-rust prettyprint-override"><code>use cached::proc_macro::cached;
+use num::integer::binomial;
+// use num::pow::pow;
+
+const M: i64 = 998244353;
+
+fn pow_mod(base: i64, exp: usize, m: i64) -&gt; i64 {
+    let mut result = 1;
+    let mut base = base % m;
+    let mut exp = exp;
+
+    while exp &gt; 0 {
+        if exp % 2 == 1 {
+            result = (result * base) % m;
+        }
+        exp &gt;&gt;= 1;
+        base = (base * base) % m;
+    }
+    (result+m)%m
+}
+
+#[cached]
+fn rec(n: u32, a: Vec&lt;i64&gt;) -&gt; i64 {
+    if a.is_empty() {
+        return 0;
+    }
+    let mut result: i64 = pow_mod(a[0], n as usize, M);
+    if a.len() &gt; 1 {
+        let mut rest = a.clone();
+        rest.remove(0);
+        result = ( result+ rec(n, rest))%M;
+        for j in 0..=n {
+            let mut rest_j = a.clone();
+            rest_j.remove(0);
+            result = (result + (rec(n - j, rest_j) * pow_mod(a[0] as i64, j as usize, M)%M * binomial(n, j) as i64 %M))%M;
+        }
+    }
+    (result + M)% M
+}
+
+fn main() {
+    println!(&quot;{}&quot;, rec(2, vec![1, 2, 4]));
+    println!(&quot;{}&quot;, rec(2, vec![1, 2, 3]));
+    println!(&quot;{}&quot;, rec(3, vec![1, 2, 3, 4]));
+    println!(&quot;{}&quot;, rec(9, vec![3, 1, 4, 1, 5]));
+    println!(&quot;{}&quot;, rec(33, vec![586675996,834662638,582661564,801031252,368588510,481535057,299143636,154810868,748560222,444723881,594265644,271475209,483236369,825333010,838212251,941340273,181680951,475018532,725610690,980879808,290253341,255300094,222425864,305836905,309362719,673795903,526752784,272885696,498600892,541576513,293569958,586502788,546400101,932614930,922795145,738713347,627678736,854811027,599387102,172776156,368969197,453280296,317871960,878976720,860453033,510602497,926525753,419146537,830612914,980672268,468005306,166335891,911567226,922140110,434524807,424093053,590300567,371183659,721172742,600311592,210722614,317227418,793158971,401617057,449556863,501677314,892013630,839176022,524835881,940550248,839561467,764011513,989141930,192333644,484181005,785400847,674841029,209630134,964257438,941649848,836682055,640053044,493288668,662886952,142491554,659229917,884165257,346190427,135295371,636702497,710634145,170177475,893751212,553144583,498928648,173846992,274295496,676101828,165556726,499077801,920844845,446218268,371964528,518465222,701401156,687218925,309703289,579304688,823881043,802733954,252512484,579282959,844367812,695500833,748122407,825455122,386300070,502934300,179547526,934792800,783118124,441360402,356559179,327130654,998543269,475814368,713846691,788491645,617178564,384577123,166216557,684039923,651593797,821711021,704057885,243187642,943485338,885996539,369725079,504573341,230128629,304769483,940749404,725863600,460266942,378887332,700635348,115095533,583723838,352744521,560578526,984014856,678045467,988770077,470484548,380200831,349213692,849092703,695155761,125390576,970541165,842717904,202532794,848261409,892205344,324076314,401291603,958139378,960397596,669808951,333662236,895479878,866907097,938228867,851281251,333564143,552098658,371049021,356458887,441896629,907071903,336678292,857795316,302950189,898249304,663033041,993067004,494024812,140930107,733086617,107029928,909953444,616400129,799844902,322302802,644050662,253833551,636316553,633766994,300303396]));
+}
+</code></pre>
+<h3><code>Cargo.toml</code></h3>
+<pre><code>[package]
+name = &quot;rust_hello&quot;
+version = &quot;0.1.0&quot;
+edition = &quot;2021&quot;
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+cached = &quot;0.26.2&quot;
+num = &quot;0.4.0&quot;
+
+[profile.release]
+lto = &quot;y&quot;
+panic = &quot;abort&quot;
+rand = &quot;0.8.0&quot;
+</code></pre>
+<h3>Build and run</h3>
+<pre><code>$ cargo build --release
+$ cargo run --release
+140
+100
+3800
+554473082
+856382558
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, <span class="math-container">\$O(N K \log K)\$</span></h1>
 <pre class="lang-python prettyprint-override"><code>from functools import lru_cache
 from sympy.discrete.convolutions import convolution_ntt
 
@@ -64,7 +144,7 @@ def f(A, K):
 <p>Continuing from <a href="https://codegolf.stackexchange.com/a/266507/92727">@loopy walt's recursion</a>, we have <span class="math-container">$$f(K, S) = f(K, S - \{a\}) + \sum_{j=0}^K {k! \frac{a^j}{j!} \frac{f(K-j, S-\{a\})}{(K-j)!}} $$</span>
 so we look at the EGF <span class="math-container">\$f(S) = \sum_{k=0}^{\infty} {f(k, S) \frac{x^k}{k!}}\$</span> and we have <span class="math-container">\$f(S) = (1 + e^{a x}) f(S - \{a\})\$</span>, so we evaluate this using NTT, cutting off the terms greater than <span class="math-container">\$x^K\$</span>. We do <span class="math-container">\$N\$</span> convolutions on arrays of length <span class="math-container">\$K\$</span>, so the time complexity is <span class="math-container">\$O(N K \log K)\$</span>.</p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, <span class="math-container">\$\mathcal O(NK^2)\$</span></h1>
+<div id="pu2" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, <span class="math-container">\$\mathcal O(NK^2)\$</span></h1>
 <pre class="lang-python prettyprint-override"><code>from math import comb
 from functools import lru_cache
 
@@ -82,7 +162,7 @@ lambda n,a,*A:(pow(a,n,M)+(len(A)and rec(n,*A)+sum(rec(n-j,*A)*pow(a,j,M)*comb(n
 <p><span class="math-container">$$f(K,S) = \sum_{C \in 2^S}\left(\sum_{x \in C}x\right)^K = \sum_{C \in 2^{S-\{a\}}}\left(\sum_{x \in C}x\right)^K + \sum_{C \in 2^{S-\{a\}}}\left(a+\sum_{x \in C} x\right)^K \\ = f(K,S-\{a\}) + \sum_{C \in 2^{S-\{a\}}}\left(a+\sum_{x \in C} x\right)^K \\ = f(K,S-\{a\}) + \sum_{C \in 2^{S-\{a\}}}\sum_{j=0}^K \begin{pmatrix}  K\\j \end{pmatrix}a^j \left(\sum_{x \in C} x\right)^{K-j} \\ = f(K,S-\{a\}) + \sum_{j=0}^K \begin{pmatrix}  K\\j \end{pmatrix}a^j \sum_{C \in 2^{S-\{a\}}} \left(\sum_{x \in C} x\right)^{K-j} \\ =f (K,S-\{a\}) + \sum_{j=0}^K \begin{pmatrix}  K\\j \end{pmatrix}a^j f(K-j,S-\{a\}) 
 $$</span></p>
 </div>
-<div id="pu2" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 428 bytes, <span class="math-container">\$O(m^{k+1})\$</span></h1>
+<div id="pu3" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 428 bytes, <span class="math-container">\$O(m^{k+1})\$</span></h1>
 <p><em>Ignores the input format requirements, <code>f</code> takes input <code>(l,k)</code> with <code>l</code> being the array and <code>k</code> being the power. <br>
 If it is really necessary I can add a parsing function (see <sup>1</sup>), to the code, but this will not impact the total complexity and make it harder to check multiple cases at once</em></p>
 <pre class="lang-python prettyprint-override"><code>from itertools import product
