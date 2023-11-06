@@ -26,10 +26,45 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>002</td><td>Python</td><td>231105T230638Z</td><td><a href="https://codegolf.stackexchange.com/questions/266487/sum-of-the-sum-of-all-possible-subsets-raised-to-power-k/266507#266507">loopy wa</a></td></tr>
-<tr d-ix="1"><td>428</td><td>Python</td><td>231105T165556Z</td><td><a href="https://codegolf.stackexchange.com/questions/266487/sum-of-the-sum-of-all-possible-subsets-raised-to-power-k/266498#266498">bsoelch</a></td></tr>
+<tr d-ix="0"><td>nan</td><td>Python</td><td>231106T051422Z</td><td><a href="https://codegolf.stackexchange.com/questions/266487/sum-of-the-sum-of-all-possible-subsets-raised-to-power-k/266514#266514">Command </a></td></tr>
+<tr d-ix="1"><td>002</td><td>Python</td><td>231105T230638Z</td><td><a href="https://codegolf.stackexchange.com/questions/266487/sum-of-the-sum-of-all-possible-subsets-raised-to-power-k/266507#266507">loopy wa</a></td></tr>
+<tr d-ix="2"><td>428</td><td>Python</td><td>231105T165556Z</td><td><a href="https://codegolf.stackexchange.com/questions/266487/sum-of-the-sum-of-all-possible-subsets-raised-to-power-k/266498#266498">bsoelch</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, <span class="math-container">\$\mathcal O(NK^2)\$</span></h1>
+<div id="pu0" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, <span class="math-container">\$O(N K \log K)\$</span></h1>
+<pre class="lang-python prettyprint-override"><code>from functools import lru_cache
+from sympy.discrete.convolutions import convolution_ntt
+
+MOD = 998244353
+
+
+@lru_cache(maxsize=None)
+def factorial(n):
+    return n * factorial(n - 1) % MOD if n else 1
+
+
+@lru_cache(maxsize=None)
+def inverse_factorial(n):
+    return pow(factorial(n), -1, MOD)
+
+
+def r(A, K):
+    if len(A) == 0:
+        return [1] + [0] * K
+    p1 = r(A[1:], K)
+    p2 = [pow(A[0], i, MOD) * inverse_factorial(i) % MOD for i in range(K + 1)]
+    p = convolution_ntt(p1, p2, MOD)[:K + 1]
+    rv = [(a + b) % MOD for a, b in zip(p1, p)]
+    return rv
+
+
+def f(A, K):
+    return r(A, K)[-1] * factorial(K) % MOD
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=hZbdbttFEMUlrpCf4n-DZMO22pnZ2Y9KlajEXQU8QBRFaWpTS4ltOU6hfRVuegMPxdPwGzstBoqo1Mjej_k4c85Z__r77t3hzXbz4cNvD4fVk_7HF-9W--3dtHrY3By229v7aX232-4P0-3-4erm-ubNcva4cFjfLWfHs_fv7nbvnr5e39_sl4fl05vt5u329uGw3m4-3T5bu9ocDrPZ9z9-Nz2fxuhairnNZrNvP2WY313_cr9-v3z-w3azXMxeL1fT6ppq9uvr2_lm8Ww28Y9UD_vNtJm-Pt-cnkyymL6aIvx6xe7y9n45yf-FX2_eLvf3y6v_TLPb_jw_30zTE0mRZUHoiLCfv0jTy8dLZL5dbuYvFtPz51M-rZ0Fu5DL6ZvpIl9S-8vj5k4AgxAX8uwywpwWlcWLyPyCs2lanxJy6d_lrj82vdrupzUHpv315qfl_CWJZHF5ike4f8xhvqOLnZ4CXzw7nj4d3r-N5PNrVl6dx75O06sI_369O11-DP7Y2v7tIx6rczw-bp7WLp7I5d-m9vIxwSMDvzzs9uvNYb6aX5CA4grN62IxO1vWZJ9dTHHWzpctSSr8dzYGG4eAOrj7dLfcr65utg-bw3I_P7vhvdbmY9TUrdSq1XryrrWK15J6lmyiTrLavXeXnEoXN8_eko4hxarVJM5q7rWnVrrXrKqplNLUeqeaUbQSriRtUpprHkQxjasjdXUzIxEVdBVVlzSKWMna6KdL7XmwxsUs3U1TU6-S68hp9Nxb_KGWHHEKwLhbznmQTbUoDZZk2Tu5svNpWKWMkWqzNnxkS65AoK1HfUqTFTTK6DXnPjR5EW_Vxchh7A0PhKpTXudTqSVTPDWbVinDqEqVyFI8NetNqKolctbWG1j1wEq4DS4j9rMmadpaQB44jzpktFRotWelFhNuyqgg1PogjvKpZg5ko3qgyFq4MUBZvTnEECZT3RqY5irKt8CKm8qMCohmLjO3Ws28D6oXssd2VC8lS0zaimvpmVq0gBt3UgDG5dqSNRFA9cE8JBoomoDMCARqKjmikZfqwaMI3BgmJGvMMkuVFhwqZbjXXonMWmvGDVDPAjmCEUNa0ClFIVTagxvZAb_02IUIhVpajYpjRoNm6J67MhReBetKJ7tQdWqAz1RjHi1WgTfBRlLBtzQqdGkFBcC_CgOOOWrtSsYUcwa0iMeoO7rpCcHwYaAPAaIh7iWBiIYywJ4Mx4kkpCUjF2Yu5joYjCTI305zgwIV5sIXMJHWYDoYWHNBDgk6SynwNzg5FDp3zlkvUBGcgX14gSUVAiEQZbe6xzCDxSO31oOdStu07CBelWNUb0EqRgyLhXAeqqWAI5TE68yVhEfNtEzLIzkjzNAHXI7SzsXwCHTKJFAPvQqDKXFOO3Whbl48iE8fwORgD2OBHpkXeIX2i3MHf4ECqLZleIDOCl_okqgoE04iISKy1joE4zpTwCMQAepBle4APpKhbHhNLTy2XlDkCN_oYVPwTwI11EWUzrToPUFD1BVex563JmqhCg0MYUkv2YDZmCq0xjCiZq7AHKKQ3QnlSYtJh4QKcwwHNDjEOrbqRlV1YFmZ-hzRtpNLQTlmCf8AtNUBu4PZrfCnhMOBB2pCqxkzxkCZVu8YSPhfhi9uwQNxvNHDBbqF25IXgjX4Qn0YMeUd8aMPCWeGJZ0aQjODaERqaJBGaJ54xjBjRgJjh4IvDAOpPBQCxARhODRLPAmGmzYio-IioMU5wG-wHEWxjQWi5NLDA_B7iISKDPVYTL6GzqkJZ6pExlPFgBfl8XXwIFFpDWMP5w8ZV9XwziDEwAXxP-y85XA9Xo1QIZOBSVDjdIORMnXUg75x6yPbM62AS-x5gBkcwm5jChEMOVBLJGuQl87hA1oVHBhOxusTffAjLkRAfWG_mVli41hrzuEMJZxJwg_CMDFB3gDjZYRniW_Egcdk4xkBDKLI8f2gggZlSxQIQrAjvB_PgWGZAtEWwzW0Er5hwU7mYdaAYcT7lqOYUeMHwV-_CD7z8vOb8SCL04-Pjz-D_wQ" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<p>Continuing from <a href="https://codegolf.stackexchange.com/a/266507/92727">@loopy walt's recursion</a>, we have <span class="math-container">$$f(K, S) = f(K, S - \{a\}) + \sum_{j=0}^K {k! \frac{a^j}{j!} \frac{f(K-j, S-\{a\})}{(K-j)!}} $$</span>
+so we look at the EGF <span class="math-container">\$f(S) = \sum_{k=0}^{\infty} {f(k, S) \frac{x^k}{k!}}\$</span> and we have <span class="math-container">\$f(S) = (1 + e^{a x}) f(S - \{a\})\$</span>, so we evaluate this using NTT, cutting off the terms greater than <span class="math-container">\$x^K\$</span>. We do <span class="math-container">\$N\$</span> convolutions on arrays of length <span class="math-container">\$K\$</span>, so the time complexity is <span class="math-container">\$O(N K \log K)\$</span>.</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, <span class="math-container">\$\mathcal O(NK^2)\$</span></h1>
 <pre class="lang-python prettyprint-override"><code>from math import comb
 from functools import lru_cache
 
@@ -47,7 +82,7 @@ lambda n,a,*A:(pow(a,n,M)+(len(A)and rec(n,*A)+sum(rec(n-j,*A)*pow(a,j,M)*comb(n
 <p><span class="math-container">$$f(K,S) = \sum_{C \in 2^S}\left(\sum_{x \in C}x\right)^K = \sum_{C \in 2^{S-\{a\}}}\left(\sum_{x \in C}x\right)^K + \sum_{C \in 2^{S-\{a\}}}\left(a+\sum_{x \in C} x\right)^K \\ = f(K,S-\{a\}) + \sum_{C \in 2^{S-\{a\}}}\left(a+\sum_{x \in C} x\right)^K \\ = f(K,S-\{a\}) + \sum_{C \in 2^{S-\{a\}}}\sum_{j=0}^K \begin{pmatrix}  K\\j \end{pmatrix}a^j \left(\sum_{x \in C} x\right)^{K-j} \\ = f(K,S-\{a\}) + \sum_{j=0}^K \begin{pmatrix}  K\\j \end{pmatrix}a^j \sum_{C \in 2^{S-\{a\}}} \left(\sum_{x \in C} x\right)^{K-j} \\ =f (K,S-\{a\}) + \sum_{j=0}^K \begin{pmatrix}  K\\j \end{pmatrix}a^j f(K-j,S-\{a\}) 
 $$</span></p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 428 bytes, <span class="math-container">\$O(m^{k+1})\$</span></h1>
+<div id="pu2" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 428 bytes, <span class="math-container">\$O(m^{k+1})\$</span></h1>
 <p><em>Ignores the input format requirements, <code>f</code> takes input <code>(l,k)</code> with <code>l</code> being the array and <code>k</code> being the power. <br>
 If it is really necessary I can add a parsing function (see <sup>1</sup>), to the code, but this will not impact the total complexity and make it harder to check multiple cases at once</em></p>
 <pre class="lang-python prettyprint-override"><code>from itertools import product
