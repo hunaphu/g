@@ -40,57 +40,55 @@
 <tr d-ix="11"><td>nan</td><td>Vyxal</td><td>231114T205742Z</td><td><a href="https://codegolf.stackexchange.com/questions/266739/print-ascii-building/266742#266742">math sca</a></td></tr>
 <tr d-ix="12"><td>069</td><td>Python 3.11</td><td>231114T194123Z</td><td><a href="https://codegolf.stackexchange.com/questions/266739/print-ascii-building/266740#266740">lame-lex</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://en.wikipedia.org/wiki/General_Instrument_CP1600" rel="nofollow noreferrer">CP-1610</a> machine code, 49 DECLEs<sup>1</sup> = 61.25 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://en.wikipedia.org/wiki/General_Instrument_CP1600" rel="nofollow noreferrer">CP-1610</a> machine code, 47 DECLEs<sup>1</sup> = 58.75 bytes</h1>
 <p><em><sub>1. CP-1610 instructions are encoded with 10-bit values (0x000 to 0x3FF), known as DECLEs. Although the Intellivision is also able to work on 16-bit, programs were really stored in 10-bit ROM back then.</sub></em></p>
 <pre><code>                            ROMW    10          ; use 10-bit ROM
                             ORG     $4800       ; map our program at $4800
-                            
+                      
 4800  0002                  EIS                 ; enable interrupts
-                            
+                      
 4801  0001                  SDBD                ; R4 = data pointer
-4802  02BC 002D 0048        MVII    #data,  R4
+4802  02BC 002B 0048        MVII    #data,  R4
 4805  02BD 0200             MVII    #$200,  R5  ; R5 = BACKTAB pointer
-                            
+                      
 4807  02A0            loop  MVI@    R4,     R0  ; load data word into R0
 4808  0080                  TSTR    R0          ; if it's zero ...
-4809  0204 001C             BEQ     done        ; ... exit
-                            
+4809  0204 001A             BEQ     done        ; ... exit
+                      
 480B  0081                  MOVR    R0,     R1  ; copy R0 to R1
-480C  0065                  SLR     R1,     2   ; right-shift R1 by 7 positions
-480D  0065                  SLR     R1,     2
-480E  0065                  SLR     R1,     2
-480F  0061                  SLR     R1
-                            
-4810  0275            line  PSHR    R5          ; save R5 on the stack
-4811  0082                  MOVR    R0,     R2  ; copy R0 to R2
+480C  03B9 0007             ANDI    #7,     R1  ; isolate the 3 least significant bits
+                      
+480E  0275            line  PSHR    R5          ; save R5 on the stack
+480F  0082                  MOVR    R0,     R2  ; copy R0 to R2
+4810  0066                  SLR     R2,     2   ; right-shift R2 by 3 positions
+4811  0062                  SLR     R2
 4812  03BA 0007             ANDI    #7,     R2  ; isolate the 3 least significant bits
 4814  00D5                  ADDR    R2,     R5  ; add that to R5
 4815  0083                  MOVR    R0,     R3  ; copy R0 to R3
-4816  03BB 0078             ANDI    #$78,   R3  ; isolate the bits holding the width
-4818  02BA 0057             MVII    #$0057, R2  ; load the value of a white '*' in R2
-                            
-481A  026A            char  MVO@    R2,     R5  ; write the character
-481B  033B 0008             SUBI    #8,     R3  ; subtract 8 from R3
-481D  022C 0004             BNEQ    char        ; keep drawing while it's not zero
-                            
-481F  02B5                  PULR    R5          ; restore R5
-4820  02FD 0014             ADDI    #20,    R5  ; advance to the next line
-                            
-4822  0011                  DECR    R1          ; decrement R1
-4823  022C 0014             BNEQ    line        ; draw another line if it's not zero
-4825  0220 001F             B       loop        ; or process the next value
-                            
-4827  02BD 0030       done  MVII    #$30,   R5  ; R5 = pointer into STIC registers
-4829  0268                  MVO@    R0,     R5  ; no horizontal delay
-482A  0268                  MVO@    R0,     R5  ; no vertical delay
-482B  0268                  MVO@    R0,     R5  ; no border extension
-                            
-482C  0017            spin  DECR    R7          ; loop forever
-                            
-482D  0114            data  DECLE   $114        ; data format: NNNWWWWPPP
-482E  03A3                  DECLE   $3A3        ; N = number of lines
-482F  01D0                  DECLE   $1D0        ; W = width
-4830  0000                  DECLE   0           ; P = left padding
+4816  02BA 0057             MVII    #$0057, R2  ; load the value of a white '*' in R2
+                      
+4818  026A            char  MVO@    R2,     R5  ; write the character
+4819  033B 0040             SUBI    #$40,   R3  ; subtract 64 from R3
+481B  0223 0004             BPL     char        ; keep drawing while it's positive
+                      
+481D  02B5                  PULR    R5          ; restore R5
+481E  02FD 0014             ADDI    #20,    R5  ; advance to the next line
+                      
+4820  0011                  DECR    R1          ; decrement R1
+4821  022C 0014             BNEQ    line        ; draw another line if it's not zero
+4823  0220 001D             B       loop        ; or process the next value
+                      
+4825  02BD 0030       done  MVII    #$30,   R5  ; R5 = pointer into STIC registers
+4827  0268                  MVO@    R0,     R5  ; no horizontal delay
+4828  0268                  MVO@    R0,     R5  ; no vertical delay
+4829  0268                  MVO@    R0,     R5  ; no border extension
+                      
+482A  0017            spin  DECR    R7          ; loop forever
+                      
+482B  0062            data  DECLE   $062        ; data format: WWWWPPPNNN
+482C  00DF                  DECLE   $0DF        ; W = width - 1
+482D  0243                  DECLE   $243        ; P = left padding
+482E  0000                  DECLE   0           ; N = number of lines
 </code></pre>
 <h2>Output</h2>
 <p><a href="https://i.stack.imgur.com/VrtT2.gif" rel="nofollow noreferrer"><img src="https://i.stack.imgur.com/VrtT2.gif" alt="screenshot" /></a></p>
