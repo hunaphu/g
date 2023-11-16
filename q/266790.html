@@ -26,8 +26,8 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>055</td><td>PowerShell</td><td>231116T101009Z</td><td><a href="https://codegolf.stackexchange.com/questions/266790/decode-the-date-in-christmas-eve-format/266803#266803">user3141</a></td></tr>
-<tr d-ix="1"><td>067</td><td>Google Sheets</td><td>231116T161357Z</td><td><a href="https://codegolf.stackexchange.com/questions/266790/decode-the-date-in-christmas-eve-format/266816#266816">doubleun</a></td></tr>
+<tr d-ix="0"><td>067</td><td>Google Sheets</td><td>231116T161357Z</td><td><a href="https://codegolf.stackexchange.com/questions/266790/decode-the-date-in-christmas-eve-format/266816#266816">doubleun</a></td></tr>
+<tr d-ix="1"><td>055</td><td>PowerShell</td><td>231116T101009Z</td><td><a href="https://codegolf.stackexchange.com/questions/266790/decode-the-date-in-christmas-eve-format/266803#266803">user3141</a></td></tr>
 <tr d-ix="2"><td>098</td><td>Scala</td><td>231116T225953Z</td><td><a href="https://codegolf.stackexchange.com/questions/266790/decode-the-date-in-christmas-eve-format/266822#266822">138 Aspe</a></td></tr>
 <tr d-ix="3"><td>067</td><td>R</td><td>231116T204724Z</td><td><a href="https://codegolf.stackexchange.com/questions/266790/decode-the-date-in-christmas-eve-format/266820#266820">Nick Ken</a></td></tr>
 <tr d-ix="4"><td>084</td><td>Jelly</td><td>231116T201638Z</td><td><a href="https://codegolf.stackexchange.com/questions/266790/decode-the-date-in-christmas-eve-format/266818#266818">Nick Ken</a></td></tr>
@@ -42,7 +42,19 @@
 <tr d-ix="13"><td>079</td><td>JavaScript Node.js</td><td>231116T053536Z</td><td><a href="https://codegolf.stackexchange.com/questions/266790/decode-the-date-in-christmas-eve-format/266794#266794">tsh</a></td></tr>
 <tr d-ix="14"><td>033</td><td>Excel</td><td>231116T052315Z</td><td><a href="https://codegolf.stackexchange.com/questions/266790/decode-the-date-in-christmas-eve-format/266793#266793">Jos Wool</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/TryItOnline/TioSetup/wiki/Powershell" rel="nofollow noreferrer">PowerShell</a>, <s>35</s> <s>56</s> 55 bytes</h1>
+<div id="pu0" class="pu"><h1>Google Sheets, <s>30</s> 67 bytes</h1>
+<p><code>=(year(today())+(today()&gt;&quot;12-25&quot;+0)&amp;&quot;-12-26&quot;)-counta(split(A1,&quot; &quot;))</code></p>
+<p>Put the input in cell <code>A1</code> and the formula in <code>B1</code>.</p>
+<p>The <code>&quot;12-25&quot;+0</code> pattern coerces the string to a numeric dateserial value in the current year. The <code>&amp;&quot;-12-26&quot;)</code> bit then obtains Boxing day this year or next year, and <code>-counta(split(A1,&quot; &quot;))</code> subtracts the number of <code>Eve</code>s plus one.</p>
+<p>The question specifies &quot;next Christmas&quot;. When the current date is between 26 and 31 December inclusive, the formula looks at Christmas <em>next year</em>, and outputs a date counting down from that Christmas date.</p>
+<p>If that rule is relaxed, you can get away with this (30 bytes):</p>
+<p><code>=&quot;12-26&quot;-counta(split(A1,&quot; &quot;))</code></p>
+<p>These formulas output a dateserial value. The question specifies <em>&quot;format from which the year, month, and date can be easily obtained&quot;</em>. To obtain those date fields, format the formula cell as <strong>Format &gt; Number &gt; Date</strong>.</p>
+<p>You can include formatting in the formula at a cost of 9 bytes:</p>
+<p><code>=to_date(&quot;12-26&quot;)-counta(split(A1,&quot; &quot;))</code></p>
+<p>These formulas assume that the spreadsheet locale has dates in the format month/day (<code>M/d/yyyy</code>) rather than day/month (<code>d/M/yyyy</code>). To test the formulas in a spreadsheet that has the latter date format, replace <code>&quot;12-25&quot;</code> with <code>&quot;25-12&quot;</code>. The <code>&quot;-12-26&quot;</code> constructs an <a href="https://en.wikipedia.org/wiki/ISO_8601" rel="nofollow noreferrer">ISO8601</a> date that will work in any locale.</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/TryItOnline/TioSetup/wiki/Powershell" rel="nofollow noreferrer">PowerShell</a>, <s>35</s> <s>56</s> 55 bytes</h1>
 
 <pre class="lang-powershell prettyprint-override"><code>($c=date 12/26)|% *ars((date)-ge$c)|% *ys(-$args.Count)
 </code></pre>
@@ -61,18 +73,6 @@ $c | ForEach-Object -MemberName AddYears ((Get-Date) -ge $c) | ForEach-Object -M
 <pre class="lang-powershell prettyprint-override"><code>$c = Get-Date 12/26
 $c.AddYears((Get-Date) -ge $c).AddDays(-$args.Count)
 </code></pre>
-</div>
-<div id="pu1" class="pu"><h1>Google Sheets, <s>30</s> 67 bytes</h1>
-<p><code>=(year(today())+(today()&gt;&quot;12-25&quot;+0)&amp;&quot;-12-26&quot;)-counta(split(A1,&quot; &quot;))</code></p>
-<p>Put the input in cell <code>A1</code> and the formula in <code>B1</code>.</p>
-<p>The <code>&quot;12-25&quot;+0</code> pattern coerces the string to a numeric dateserial value in the current year. The <code>&amp;&quot;-12-26&quot;)</code> bit then obtains Boxing day this year or next year, and <code>-counta(split(A1,&quot; &quot;))</code> subtracts the number of <code>Eve</code>s plus one.</p>
-<p>The question specifies &quot;next Christmas&quot;. When the current date is between 26 and 31 December inclusive, the formula looks at Christmas next year, and output a date counting down from that Christmas date.</p>
-<p>If that rule is relaxed, you can get away with this (30 bytes):</p>
-<p><code>=&quot;12-26&quot;-counta(split(A1,&quot; &quot;))</code></p>
-<p>These formulas output a dateserial value. The question specifies <em>&quot;format from which the year, month, and date can be easily obtained&quot;</em>. To obtain those date fields, format the formula cell as <strong>Format &gt; Number &gt; Date</strong>.</p>
-<p>You can include formatting in the formula at a cost of 9 bytes:</p>
-<p><code>=to_date(&quot;12-26&quot;)-counta(split(A1,&quot; &quot;))</code></p>
-<p>These formulas assume that the spreadsheet locale has dates in the format month/day (<code>M/d/yyyy</code>) rather than day/month (<code>d/M/yyyy</code>). To test the formulas in a spreadsheet that has the latter date format, replace <code>&quot;12-25&quot;</code> with <code>&quot;25-12&quot;</code>. The <code>&quot;-12-26&quot;</code> constructs an <a href="https://en.wikipedia.org/wiki/ISO_8601" rel="nofollow noreferrer">ISO8601</a> date that will work in any locale.</p>
 </div>
 <div id="pu2" class="pu"><h1><a href="http://www.scala-lang.org/" rel="nofollow noreferrer">Scala</a>, 98 bytes</h1>
 <p>Golfed version. <a href="https://tio.run/##bY4xC8IwEIX3/oqjUwI1YlGHQgVRN53EQcTh1LRG2qQkZ62Kv70Gq5vDO3jfuwfPHbHA1hwu8kiwQqXhGQCcZAalNwxt7hKYWov33Zqs0vmeJ7DRiiD9fAJUnlKhWcbC2dkqRyU6WNTyp5ALMl2X@8IrAH9rLCBLWIfTyQVrFKRKKZbGD5ojSZ4CtM3fSJiM/cPa3ERVXN0c746NucglbSXaaBBH8YiLUulv1ginHrI/7MW8fbVv" rel="nofollow noreferrer">Try it online!</a></p>
