@@ -26,13 +26,67 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>060</td><td>J</td><td>231117T040113Z</td><td><a href="https://codegolf.stackexchange.com/questions/266657/robinson-schensted-correspondence/266829#266829">Jonah</a></td></tr>
-<tr d-ix="1"><td>115</td><td>R</td><td>231114T131142Z</td><td><a href="https://codegolf.stackexchange.com/questions/266657/robinson-schensted-correspondence/266731#266731">Kirill L</a></td></tr>
-<tr d-ix="2"><td>124</td><td>JavaScript ES12</td><td>231111T112112Z</td><td><a href="https://codegolf.stackexchange.com/questions/266657/robinson-schensted-correspondence/266660#266660">Arnauld</a></td></tr>
-<tr d-ix="3"><td>559</td><td>Python3</td><td>231111T231258Z</td><td><a href="https://codegolf.stackexchange.com/questions/266657/robinson-schensted-correspondence/266664#266664">Ajax1234</a></td></tr>
-<tr d-ix="4"><td>066</td><td>Charcoal</td><td>231111T104257Z</td><td><a href="https://codegolf.stackexchange.com/questions/266657/robinson-schensted-correspondence/266658#266658">Neil</a></td></tr>
+<tr d-ix="0"><td>nan</td><td></td><td>231117T045950Z</td><td><a href="https://codegolf.stackexchange.com/questions/266657/robinson-schensted-correspondence/266830#266830">138 Aspe</a></td></tr>
+<tr d-ix="1"><td>060</td><td>J</td><td>231117T040113Z</td><td><a href="https://codegolf.stackexchange.com/questions/266657/robinson-schensted-correspondence/266829#266829">Jonah</a></td></tr>
+<tr d-ix="2"><td>115</td><td>R</td><td>231114T131142Z</td><td><a href="https://codegolf.stackexchange.com/questions/266657/robinson-schensted-correspondence/266731#266731">Kirill L</a></td></tr>
+<tr d-ix="3"><td>124</td><td>JavaScript ES12</td><td>231111T112112Z</td><td><a href="https://codegolf.stackexchange.com/questions/266657/robinson-schensted-correspondence/266660#266660">Arnauld</a></td></tr>
+<tr d-ix="4"><td>559</td><td>Python3</td><td>231111T231258Z</td><td><a href="https://codegolf.stackexchange.com/questions/266657/robinson-schensted-correspondence/266664#266664">Ajax1234</a></td></tr>
+<tr d-ix="5"><td>066</td><td>Charcoal</td><td>231111T104257Z</td><td><a href="https://codegolf.stackexchange.com/questions/266657/robinson-schensted-correspondence/266658#266658">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.jsoftware.com" rel="nofollow noreferrer">J</a>, 60 bytes</h1>
+<div id="pu0" class="pu"><h1>Scala</h1>
+<p>I was trying to rewrite @Kirill L.'s R code in Scala. <span class="math-container">\$\color{red}{\text{But there are some mistakes in the scala code.}}\$</span></p>
+<p>Any help would be appreciated.</p>
+<hr />
+<p><a href="https://tio.run/##xVPBbtNAEL3nKwarh13hruJQipTSSnCIVIlKIIQ40CraOutkYb121tvExfK3h9m1HSdxD0gcOM57b97OG4@LmCu@28k0z4yFwlUszpQSsZWZZumT5Y9KjEbZ40@E4I5LDdUIYCESSAg3ZgofjOHPP261faBTIE3VYw8hDCAK194EYMMVaKzQiCmhl3a1h/M7bo0skfSdLJFKER2CpmRM96r1X6gMzJAfj3yZZAZICe/P/ZtSL2QsCtqO06iNV/e1bAYkJT0AtwjKBEg7JjGUiVIWtiBzuIExpXDA/Jb5d2lXt3ohSjeiFaaKeSGAbEKY4zpuYOO6apZK/fF5wNVsPgGhEGxTAGxXUqGmcsP1L5EtvcJ5X2GAug8Fx4p2cokvRhTkedRZd2oDr68h2pf/LWrzfN1FPg1x9E3WJ@SsxWd9ltaoyxF2Pc7Cc@6oU7xwvOtl0R32V5Topbvtb1rao8u1ApeAyCdcBmnf801kEkIUwhsaHqEOCgG5ixPirScufNNk2IT0pacnQ88GvfSid94malZCm7R@RoZXL3i8Iq5ya@7PXb2wD4yUeGm33BxXYJUmRTDD30fq/MnCWeUULP3VLIgEIQS0DoYtn6f3@qxqH2Epz8n8pIse1Pf6ZZcv3mX9Ty5BQK@aS2g@eb3b/QE" rel="nofollow noreferrer">Try it online!</a></p>
+<pre class="lang-scala prettyprint-override"><code>import scala.collection.mutable
+
+object Main {
+  def f(arr: Array[Int]): (Array[Array[Int]], Array[Array[Int]]) = {
+    val n = arr.length
+    val pMatrix = Array.fill(n, n)(0)
+    val qMatrix = Array.fill(n, n)(0)
+    var F = 0
+
+    for (x &lt;- arr.indices) {
+      var r = 0
+      var i = arr(x)
+      var w = if (pMatrix(r).exists(_ &gt; 0)) pMatrix(r).zipWithIndex.filter{case (v, _) =&gt; v &gt; 0}.minBy{case (v, _) =&gt; v}._2 else 0
+
+      while ({i = pMatrix(r)(w); i != 0}) {
+        pMatrix(r)(w) = if (i &gt; 1) i-1 else 0
+        r += 1
+        w = if (pMatrix(r).exists(_ &gt; 0)) pMatrix(r).zipWithIndex.filter{case (v, _) =&gt; v &gt; 0}.minBy{case (v, _) =&gt; v}._2 else 0
+      }
+
+      pMatrix(r)(w) = arr(x)
+      qMatrix(r)(w) = F
+      F += 1
+    }
+
+    (pMatrix, qMatrix)
+  }
+
+  def main(args: Array[String]): Unit = {
+    val tests = List(
+      Array(2, 1, 3),
+      Array(1, 3, 2, 4),
+      Array(5, 3, 4, 1, 2),
+      Array(1, 5, 6, 4, 2, 3),
+      Array(4, 2, 6, 5, 7, 3, 1)
+    )
+
+    tests.foreach(test =&gt; {
+      val (pMatrix, qMatrix) = f(test)
+      println(s&quot;For input ${test.mkString(&quot;, &quot;)}&quot;)
+      println(s&quot;P:\n${pMatrix.map(_.mkString(&quot;, &quot;)).mkString(&quot;\n&quot;)}&quot;)
+      println(s&quot;Q:\n${qMatrix.map(_.mkString(&quot;, &quot;)).mkString(&quot;\n&quot;)}&quot;)
+      println(&quot;&quot;);
+    })
+  }
+}
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.jsoftware.com" rel="nofollow noreferrer">J</a>, 60 bytes</h1>
 <pre><code>g=.&lt;`(/:~(-.;$:@])&amp;;2&lt;@-./\_&quot;+]F:.(]`I.`[}~)])@.(1&lt;#)
 ,:&amp;g/:
 </code></pre>
@@ -135,7 +189,7 @@ f=.,:&amp;g/:
 </code></pre>
 <p>Note the 2nd to last test case contains an extraneous blank, but this is allowed.</p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://www.r-project.org" rel="nofollow noreferrer">R</a>, 115 bytes</h1>
+<div id="pu2" class="pu"><h1><a href="https://www.r-project.org" rel="nofollow noreferrer">R</a>, 115 bytes</h1>
 <pre class="lang-r prettyprint-override"><code>\(x){P=Q=!x%o%x;for(i in x){r=1;while(i&lt;-P[r,w&lt;-which.min(P[r,]%in%1:i)]-!(P[r,w]=i))r=r+1;Q[r,w]=F=F+1};list(P,Q)}
 </code></pre>
 <p><a href="https://ato.pxeger.com/run?1=PY3BCoJAEIbvPYUeFnZwN1hTi3SvXtNzeZIWB0xhNRTCJ-liQQ_V27SmeJr_-_5h5vnS41vJz71V_PBtLrSHRyJTafekJn2oak3RwsoyWksRdgWWV4oRT86adRE3nBfbG1Z0EhnBiogjQsbtv-gyiQBaakeE6cyxjB0xhCU2LU1YCsPy-qRoTl0m2A5gM2WTmMu8hXxDnmndtfVZYIy77k85MHZvNgXAfHYc5_kD" rel="nofollow noreferrer">Attempt This Online!</a></p>
@@ -157,7 +211,7 @@ f=.,:&amp;g/:
 }
 </code></pre>
 </div>
-<div id="pu2" class="pu"><h1>JavaScript (ES12), 124 bytes</h1>
+<div id="pu3" class="pu"><h1>JavaScript (ES12), 124 bytes</h1>
 <p>Returns <code>[P, Q]</code>.</p>
 
 <pre class="lang-javascript prettyprint-override"><code>a=&gt;a.map(g=v=&gt;(p=P[y]||=[]).some((V,k)=&gt;V&gt;v?p[n=V,k]=v:0)?g(n,y++):y=(Q[y]||=[]).push(++j)^p.push(v),y=j=0,Q=[],P=[])&amp;&amp;[P,Q]
@@ -193,7 +247,7 @@ a.map(g =           // using a recursive callback function g,
 ) &amp;&amp; [ P, Q ]       // end of map(); return [ P, Q ]
 </code></pre>
 </div>
-<div id="pu3" class="pu"><h1>Python3, 559 bytes</h1>
+<div id="pu4" class="pu"><h1>Python3, 559 bytes</h1>
 <pre class="lang-py prettyprint-override"><code>E=enumerate
 from itertools import*
 Z=zip_longest
@@ -216,7 +270,7 @@ def f(l):
 </code></pre>
 <p><a href="https://tio.run/##XVHLbtwgFN37K1iCQ6qxM00rXLpLqtlU40UeCkIVUXCLyhiGOJHbn59eLnGqmYXx8Xn5@jr@mX6F8eJzTIfDlbTjy84mM9lqSGFH3GTTFIJ/Jm4XQ5rq6kH@dfGHD@NP@zxVd9Kb3eOTIbNQqh6cBz/9HkbLHdNDSMQRN5JZV7eL8V4Y72m@ZuX0FzjOmv/OZKCXejvSmZ03jGVhzsI9q57sQG5o5IaJqFb6TCqjkfxGt9zwDRNbtTlvtFR1AUrkIsCaaZ5vCki@iO@a0LrLAPpQhBzopXqgnomKRL6XSvkPMUS6YlpzpbKD4Nzc5AGvqOdt9pJr2cCZpQ1/LVKeFzXiBvL61SAE46rbyjv6QOvIWNcXuAd4NI7uenx0vM5AYxZ6bin6t4wxKVcCMzh@I94i/fIx3bIiAD13ALAkyqWh2xfYs6I8Jmt@V/iaa1GW3t3QPfzViiQ7vaQx7@QQkxsnOlDVctJwcqEh/s5lghNQ1kf0R6TXGGhPAyBeotiethXuEi2fsKI5rW2X2uNkiZXydREP/wA" rel="nofollow noreferrer">Try it online!</a></p>
 </div>
-<div id="pu4" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 66 bytes</h1>
+<div id="pu5" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 66 bytes</h1>
 <pre><code>≔Ｅθ⟦⟧ηＦθ«≔⁰ζＷΦ§ηζ›λι«§≔§ηζ⌕§ηζ⌊κι≔⌊κι≦⊕ζ»⊞§ηζι⊞υζ»Ｅ⟦η⊕Ｅθ⌕Ａυκ⟧⭆¹Φιν
 </code></pre>
 <p><a href="https://tio.run/##XZA9a8MwEIZn@1fcqIMrNOnX4MlLQoZAoKPxYGw1OiIrjSy3pSW/XZVUuy1e73mfl5drVWPbc6O9L4eBj0bsm1dxIahqJFBY5C9nC@KC8JVnU@KW4DOA7F2xliA2rJ20onQ708kPoSIl2FrZxLMmYMSkT/4cXAgbNt3ytmfD/diLE2KsKX47xB@ZQdg9sZ1preylcbKbll7z7DAOalmfxATGn@A1P1g2Lv2gCqF/TfNf4sxS62iEVVgTPLvgHCNeRZyewQQmUCy8r6p7gjXBI8EDwRPBHcGqrv3Nm/4G" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code. Explanation:</p>
