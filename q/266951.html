@@ -26,16 +26,26 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>298</td><td>sed n</td><td>231121T220045Z</td><td><a href="https://codegolf.stackexchange.com/questions/266951/get-the-bible-verse/266969#266969">Philippo</a></td></tr>
+<tr d-ix="0"><td>283</td><td>GNU sed En</td><td>231121T220045Z</td><td><a href="https://codegolf.stackexchange.com/questions/266951/get-the-bible-verse/266969#266969">Philippo</a></td></tr>
 <tr d-ix="1"><td>238</td><td>JavaScript Node.js</td><td>231121T210243Z</td><td><a href="https://codegolf.stackexchange.com/questions/266951/get-the-bible-verse/266967#266967">Arnauld</a></td></tr>
 <tr d-ix="2"><td>070</td><td>Jelly</td><td>231121T211417Z</td><td><a href="https://codegolf.stackexchange.com/questions/266951/get-the-bible-verse/266968#266968">Nick Ken</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>sed <code>-n</code>: <s> 330 321 303 </s> 298 bytes <em>(291 with GNU <code>sed -nE</code>)</em></h1>
-<ul>
-<li>Tested with BSD <code>sed</code>, so I could not use <code>-E</code> in combination with back references, which did cost me quite a few bytes.</li>
-<li>The reference is given in the first line. In real life you can do this like <code>sed 'the script' &lt;&lt;(echo Luke 19:10;cat pg10.txt)</code></li>
-<li>The DOS-style CRLF is nasty, eating some extra bytes</li>
-</ul>
+<div id="pu0" class="pu"><h1>GNU sed <code>-En</code>: <s> 330 321 303 298 </s> 283 bytes</h1>
+<p>The reference is given in the first line. In real life you can do this like <code>sed 'the script' &lt;&lt;(echo Luke 19:10;cat pg10.txt)</code></p>
+<pre><code>1{s/^([123]) /\1/;s/.* S/S/;/:/!s/ / 1:/;h}
+/\n/!N;N;/^.{5}$/!D;n;n;s/\r//;/Bi/D
+/Ac|La|Re/s/ of.*// 
+s/The Fi/1/;s/The Se/2/;s/The Th/3/;s/^[123].*M//
+s/[^0-9]* //;s/ms$/m/;G;/^(..*)\n\1/!d
+:1
+n;G;/(.*:.*) .*\n.* \1$/!b1
+s/\n.*//;s/.*[0-9]:\S* //
+:2
+N;/ *[0-9]*[:*]\S.*/!b2
+s///;s/\r\n/ /gp
+</code></pre>
+<p><strong>Explanation:</strong> The first line forms the given verse to remove the whitespace after a number, rename the Song of Salomon and add <code>1:</code> for one-chapter books; this gets saved in the hold space. The second line finds book titles, the following three convert them to a canonical form and check for a match with the given verse. The rest of the script search for the exact verse inside the book and strip it to only that verse.</p>
+<p>This was the original POSIX <code>sed -n</code> version with 298 bytes:</p>
 <pre><code>1{s/^\([123]\) /\1/;s/.* S/S/;/:/!s/ / 1:/;h;}
 /\n/!N;N;/^.....$/!D;n;n;s/^M//;/Bi/D
 /[ALR][cae]/s/ of.*//
