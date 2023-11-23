@@ -26,9 +26,9 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>nan</td><td></td><td>231122T185825Z</td><td><a href="https://codegolf.stackexchange.com/questions/51323/tips-for-golfing-in-sed/266986#266986">Philippo</a></td></tr>
-<tr d-ix="1"><td>nan</td><td>i</td><td>210915T104630Z</td><td><a href="https://codegolf.stackexchange.com/questions/51323/tips-for-golfing-in-sed/235336#235336">user4180</a></td></tr>
-<tr d-ix="2"><td>nan</td><td>Okay</td><td>210914T140407Z</td><td><a href="https://codegolf.stackexchange.com/questions/51323/tips-for-golfing-in-sed/235308#235308">user4180</a></td></tr>
+<tr d-ix="0"><td>nan</td><td>Okay</td><td>210914T140407Z</td><td><a href="https://codegolf.stackexchange.com/questions/51323/tips-for-golfing-in-sed/235308#235308">user4180</a></td></tr>
+<tr d-ix="1"><td>nan</td><td></td><td>231122T185825Z</td><td><a href="https://codegolf.stackexchange.com/questions/51323/tips-for-golfing-in-sed/266986#266986">Philippo</a></td></tr>
+<tr d-ix="2"><td>nan</td><td>i</td><td>210915T104630Z</td><td><a href="https://codegolf.stackexchange.com/questions/51323/tips-for-golfing-in-sed/235336#235336">user4180</a></td></tr>
 <tr d-ix="3"><td>nan</td><td></td><td>210914T135617Z</td><td><a href="https://codegolf.stackexchange.com/questions/51323/tips-for-golfing-in-sed/235307#235307">user4180</a></td></tr>
 <tr d-ix="4"><td>nan</td><td></td><td>210123T104813Z</td><td><a href="https://codegolf.stackexchange.com/questions/51323/tips-for-golfing-in-sed/217929#217929">user4180</a></td></tr>
 <tr d-ix="5"><td>nan</td><td></td><td>210907T153358Z</td><td><a href="https://codegolf.stackexchange.com/questions/51323/tips-for-golfing-in-sed/235144#235144">user4180</a></td></tr>
@@ -51,7 +51,23 @@
 <tr d-ix="22"><td>nan</td><td>The GNU sed documentation describes the s command as "sed's Swiss Army Knife".  But if all you want to do is replace all instances of one character with another</td><td>150605T173901Z</td><td><a href="https://codegolf.stackexchange.com/questions/51323/tips-for-golfing-in-sed/51351#51351">Digital </a></td></tr>
 <tr d-ix="23"><td>nan</td><td>Consider using extended regex syntax in GNU sed.  The r option costs one byte in scoring</td><td>150605T112301Z</td><td><a href="https://codegolf.stackexchange.com/questions/51323/tips-for-golfing-in-sed/51327#51327">Toby Spe</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Use back references</h1>
+<div id="pu0" class="pu"><p>Okay, here's a weird functioning of (GNU) sed's regex. For example, if the pattern space is only <code>qqq</code>, then the extended regex <code>s/^|q|$/&lt;&amp;&gt;/g</code> gives <code>&lt;q&gt;&lt;q&gt;&lt;q&gt;</code>. <a href="https://tio.run/##K05N@f@/WD@uprBGRd9GzU4//f//wsLCf/kFJZn5ecX/dYsA" rel="nofollow noreferrer" title="sed 4.2.2 – Try It Online">Try it online!</a></p>
+<p>I'm not sure, but I think it is because if a character matches, then do the empty strings surrounding it. So because the terminal <code>q</code> matches, the match also includes the end of the pattern space, so <code>$</code> by itself doesn't get matched because otherwise it would overlap with the previous match (and likewise for <code>^</code> and even I think for word boundaries and the like).</p>
+<p>An example where this is useful is in the following (rather contrived) task:</p>
+<ul>
+<li>an input of <code>a</code> should give <code>ab</code>,</li>
+<li>and inputs matching <code>/a(c+)/</code> should give <code>ab\1b</code>, for example, an input of <code>accc</code> should give <code>abcccb</code></li>
+</ul>
+<p>Without the trick I can get 11 bytes (with the <code>-E</code> flag)</p>
+<pre><code>s/a|c+/&amp;b/g
+</code></pre>
+<p>but using it gives 10 bytes</p>
+<pre><code>s/a|$/&amp;b/g
+</code></pre>
+<p><a href="https://tio.run/##K05N@f@/WD@xRkVfLUk//f//RK7EZCACYwiR/C@/oCQzP6/4v24RAA" rel="nofollow noreferrer" title="sed 4.2.2 – Try It Online">Try it online!</a></p>
+<p>(Do let me know if there is a better example that uses this behaviour).</p>
+</div>
+<div id="pu1" class="pu"><h1>Use back references</h1>
 <p>Most people know that you can mark some parts of your regex with <code>\(\)</code> and later refer to it as <code>\1</code> (or <code>\2</code> for the second and so on) in your substitution.</p>
 <p>But you hardly ever see <em>back references</em>, using <code>\1</code> in the regex itself. For extended regular expressions (option <code>-E</code> to <code>sed</code>), this has been removed from the standard, but GNU <code>sed</code> supports it anyhow, so it works at tio.run, for example.</p>
 <p>For example, this ERE <code>(.)\1</code> matches a double character or this one <code>(.).*\1</code> appearing twice in the pattern space. <a href="https://codegolf.stackexchange.com/a/266985/72726">See here</a> for an example, how this makes things easier (and much shorter!).</p>
@@ -59,7 +75,7 @@
 <h1>Math with back references</h1>
 <p>And it's great for teaching <code>sed</code> to count. I know you can solve some of those problems using <code>y</code>, but as soon as you have more than one thing to increment or decrement, this is the way to go. See examples <a href="https://codegolf.stackexchange.com/questions/264903/order-by-earliest-lower-digit/265011#265011">here</a> or <a href="https://codegolf.stackexchange.com/questions/38325/minimum-excluded-number/265157#265157">here</a> or <a href="https://tio.run/##XcyxDsIgFIXhnae4Boe2CT1woRbs7FsQpxrj0jYBX1@UbjY505ecPz1m9VzepSTcobRh64bL6IOEuBqR0DR9@1vftdEqRBM54J9ZVra6MkmQ0ZhyvUoNWbHvJAHbBMJpPiRpT9Ixed6TENmUYskJp4kFs/WaxuCt@6xbfq1LKur2BQ" rel="nofollow noreferrer" title="sed – Try It Online">try the 151-byte decimal add online</a> to examine how it works.</p>
 </div>
-<div id="pu1" class="pu"><h1><code>i</code>, <code>a</code>, and <code>c</code></h1>
+<div id="pu2" class="pu"><h1><code>i</code>, <code>a</code>, and <code>c</code></h1>
 <p>(The answer focuses on GNU sed because GNU sed's invocation of these commands is slightly shorter than that of POSIX, but otherwise I think the functionality should be the same).</p>
 <p>These insert to, append to, and change the pattern space respectively. The lines they add are printed and so are not edited into the pattern space, meaning that the program will not be able to manipulate these lines. But they are shorter than <code>s</code>, if you want to insert some unchanging lines. Compare the following two lines:</p>
 <pre><code>s/^/text\n/ # 11 bytes
@@ -79,22 +95,6 @@ cHello, World!     # 14 bytes
 cBad
 </code></pre>
 <p>If the input matches <code>/B/</code>, i.e. it the input is <code>Bad</code>, <code>Good</code> is printed and the program skips processing this input line. So the program only ever reaches the second line if the input doesn't match <code>B</code>, i.e. if the input is <code>Good</code>. Then in this case the output is set to <code>Bad</code>.</p>
-</div>
-<div id="pu2" class="pu"><p>Okay, here's a weird functioning of (GNU) sed's regex. For example, if the pattern space is only <code>qqq</code>, then the regex <code>s/^|q|$/&lt;&amp;&gt;/g</code> gives <code>&lt;q&gt;&lt;q&gt;&lt;q&gt;</code>. <a href="https://tio.run/##K05N@f@/WD@uprBGRd9GzU4//f//wsLCf/kFJZn5ecX/dYsA" rel="nofollow noreferrer" title="sed 4.2.2 – Try It Online">Try it online!</a></p>
-<p>I'm not sure, but I think it is because if a character matches, then do the empty strings surrounding it. So because the terminal <code>q</code> matches, the match also includes the end of the pattern space, so <code>$</code> by itself doesn't get matched because otherwise it would overlap with the previous match (and likewise for <code>^</code> and even I think for word boundaries and the like).</p>
-<p>An example where this is useful is in the following (rather contrived) task:</p>
-<ul>
-<li>an input of <code>a</code> should give <code>ab</code>,</li>
-<li>and inputs matching <code>/a(c+)/</code> should give <code>ab\1b</code>, for example, an input of <code>accc</code> should give <code>abcccb</code></li>
-</ul>
-<p>Without the trick I can get 11 bytes (with the <code>-r</code> flag)</p>
-<pre><code>s/a|c+/&amp;b/g
-</code></pre>
-<p>but using it gives 10 bytes</p>
-<pre><code>s/a|$/&amp;b/g
-</code></pre>
-<p><a href="https://tio.run/##K05N@f@/WD@xRkVfLUk//f//RK7EZCACYwiR/C@/oCQzP6/4v24RAA" rel="nofollow noreferrer" title="sed 4.2.2 – Try It Online">Try it online!</a></p>
-<p>(Do let me know if there is a better example that uses this behaviour).</p>
 </div>
 <div id="pu3" class="pu"><h1>Combine <code>s</code> substitutions</h1>
 <p>The <code>s</code> command takes many bytes (4 + 1 for the statement separator), so combining them can save bytes.</p>
