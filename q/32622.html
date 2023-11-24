@@ -1,0 +1,1529 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::32622</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>nan</td><td>In case you're interested to play this with an online community and maybe speak German</td><td>231124T182949Z</td><td><a href="https://codegolf.stackexchange.com/questions/32622/to-vectory-the-vector-racing-grand-prix/267068#267068">Didi</a></td></tr>
+<tr d-ix="1"><td>nan</td><td>Python 2</td><td>140628T064713Z</td><td><a href="https://codegolf.stackexchange.com/questions/32622/to-vectory-the-vector-racing-grand-prix/32704#32704">user2357</a></td></tr>
+<tr d-ix="2"><td>nan</td><td></td><td>140830T234001Z</td><td><a href="https://codegolf.stackexchange.com/questions/32622/to-vectory-the-vector-racing-grand-prix/37108#37108">user1699</a></td></tr>
+<tr d-ix="3"><td>nan</td><td>Python 3 6.49643 Optimal</td><td>140701T080006Z</td><td><a href="https://codegolf.stackexchange.com/questions/32622/to-vectory-the-vector-racing-grand-prix/32773#32773">Ray</a></td></tr>
+<tr d-ix="4"><td>031</td><td>Random Racer 2.0</td><td>140627T135628Z</td><td><a href="https://codegolf.stackexchange.com/questions/32622/to-vectory-the-vector-racing-grand-prix/32669#32669">pseudony</a></td></tr>
+<tr d-ix="5"><td>nan</td><td>C++</td><td>140627T005951Z</td><td><a href="https://codegolf.stackexchange.com/questions/32622/to-vectory-the-vector-racing-grand-prix/32655#32655">nneonneo</a></td></tr>
+<tr d-ix="6"><td>nan</td><td>RandomRacer</td><td>140626T140131Z</td><td><a href="https://codegolf.stackexchange.com/questions/32622/to-vectory-the-vector-racing-grand-prix/32624#32624">Martin E</a></td></tr>
+</table>
+<div id="pu0" class="pu"><p>In case you're interested to play this with an online community (and maybe speak German), you can visit karopapier.de / graphracer.com</p>
+<p>Sorry for the advertisement, I hope you can excuse it for the sake of the fun</p>
+</div>
+<div id="pu1" class="pu"><h2><a href="https://www.python.org/" rel="nofollow noreferrer">Python 2</a>, deterministic, optimal</h2>
+<p>Here's my racer. I haven't tested it on the benchmark (still waffling about what version and installer of Ruby to install), but it should solve everything optimally and under the time limit. The command to run it is <code>python whateveryoucallthefile.py</code>. Needs the <code>-s</code> controller flag.</p>
+<pre><code># Breadth-first search.
+# Future directions: bidirectional search and/or A*.
+
+import operator
+import time
+
+acceleration_options = [(dvx, dvy) for dvx in [-1, 0, 1] for dvy in [-1, 0, 1]]
+
+class ImpossibleRaceError(Exception): pass
+
+def read_input(line_source=raw_input):
+    # We don't use the target.
+    target = int(line_source())
+    
+    width, height = map(int, line_source().split())
+    input_grid = [line_source() for _ in xrange(height)]
+    
+    start = None
+    for i in xrange(height):
+        for j in xrange(width):
+            if input_grid[i][j] == 'S':
+                start = i, j
+                break
+        if start is not None:
+            break
+    
+    walls = [[cell == '#' for cell in row] for row in input_grid]
+    goals = [[cell == '*' for cell in row] for row in input_grid]
+    
+    return start, walls, goals
+
+def default_bfs_stop_threshold(walls, goals):
+    num_not_wall = sum(sum(map(operator.not_, row)) for row in walls)
+    num_goals = sum(sum(row) for row in goals)
+    return num_goals * num_not_wall
+
+def bfs(start, walls, goals, stop_threshold=None):
+    if stop_threshold is None:
+        stop_threshold = default_bfs_stop_threshold(walls, goals)
+    
+    # State representation is (x, y, vx, vy)
+    x, y = start
+    initial_state = (x, y, 0, 0)
+    frontier = {initial_state}
+    # Visited set is tracked by a map from each state to the last move taken
+    # before reaching that state.
+    visited = {initial_state: None}
+    
+    while len(frontier) &lt; stop_threshold:
+        if not frontier:
+            raise ImpossibleRaceError
+        
+        new_frontier = set()
+        for x, y, vx, vy in frontier:
+            for dvx, dvy in acceleration_options:
+                new_vx, new_vy = vx+dvx, vy+dvy
+                new_x, new_y = x+new_vx, y+new_vy
+                new_state = (new_x, new_y, new_vx, new_vy)
+                
+                if not (0 &lt;= new_x &lt; len(walls) and 0 &lt;= new_y &lt; len(walls[0])):
+                    continue
+                if walls[new_x][new_y]:
+                    continue
+                if new_state in visited:
+                    continue
+                
+                new_frontier.add(new_state)
+                visited[new_state] = dvx, dvy
+                
+                if goals[new_x][new_y]:
+                    return construct_path_from_bfs(new_state, visited)
+        frontier = new_frontier
+
+def construct_path_from_bfs(goal_state, best_moves):
+    reversed_path = []
+    current_state = goal_state
+    while best_moves[current_state] is not None:
+        move = best_moves[current_state]
+        reversed_path.append(move)
+        
+        x, y, vx, vy = current_state
+        dvx, dvy = move
+        old_x, old_y = x-vx, y-vy # not old_vx or old_vy
+        old_vx, old_vy = vx-dvx, vy-dvy
+        current_state = (old_x, old_y, old_vx, old_vy)
+    return reversed_path[::-1]
+
+def main():
+    t = time.time()
+    
+    start, walls, goals = read_input()
+    path = bfs(start, walls, goals, float('inf'))
+    for dvx, dvy in path:
+        # I wrote the whole program with x pointing down and y pointing right.
+        # Whoops. Gotta flip things for the output.
+        print dvy, dvx
+
+if __name__ == '__main__':
+    main()
+</code></pre>
+<p>After inspecting nneonneo's racer (but not actually testing it, since I also don't have a C++ compiler), I have found that it seems to perform a nearly-exhaustive search of the state space, no matter how close the goal or how short a path has already been found. I have also found that the time rules mean building a map with a long, complex solution requires a long, boring time limit. Thus, my map submission is pretty simple:</p>
+<h2><a href="https://github.com/mbuettner/ppcg-vector-racing/blob/master/benchmark.txt#L528" rel="nofollow noreferrer">New Testcase</a></h2>
+<p>(GitHub cannot display the long line. The track is <code>*S.......[and so on].....</code>)</p>
+<hr />
+<h3>Additional submission: Python 2, bidirectional search</h3>
+<p>This is an approach I wrote up about two months ago, when trying to optimize my breadth-first submission. For the test cases that existed at the time, it didn't offer an improvement, so I didn't submit it, but for kuroi's new map, it seems to just barely squeeze by under the memory cap. I'm still expecting kuroi's solver to beat this, but I'm interested in how it holds up.</p>
+<pre><code># Bidirectional search.
+# Future directions: A*.
+
+import operator
+import time
+
+acceleration_options = [(dvx, dvy) for dvx in [-1, 0, 1] for dvy in [-1, 0, 1]]
+
+class ImpossibleRaceError(Exception): pass
+
+def read_input(line_source=raw_input):
+    # We don't use the target.
+    target = int(line_source())
+    
+    width, height = map(int, line_source().split())
+    input_grid = [line_source() for _ in xrange(height)]
+    
+    start = None
+    for i in xrange(height):
+        for j in xrange(width):
+            if input_grid[i][j] == 'S':
+                start = i, j
+                break
+        if start is not None:
+            break
+    
+    walls = [[cell == '#' for cell in row] for row in input_grid]
+    goals = [[cell == '*' for cell in row] for row in input_grid]
+    
+    return start, walls, goals
+
+def bfs_to_bidi_threshold(walls, goals):
+    num_not_wall = sum(sum(map(operator.not_, row)) for row in walls)
+    num_goals = sum(sum(row) for row in goals)
+    return num_goals * (num_not_wall - num_goals)
+
+class GridBasedGoalContainer(object):
+    '''Supports testing whether a state is a goal state with `in`.
+    
+    Does not perform bounds checking.'''
+    def __init__(self, goal_grid):
+        self.goal_grid = goal_grid
+    def __contains__(self, state):
+        x, y, vx, vy = state
+        return self.goal_grid[x][y]
+
+def forward_step(state, acceleration):
+    x, y, vx, vy = state
+    dvx, dvy = acceleration
+    
+    new_vx, new_vy = vx+dvx, vy+dvy
+    new_x, new_y = x+new_vx, y+new_vy
+    
+    return (new_x, new_y, new_vx, new_vy)
+
+def backward_step(state, acceleration):
+    x, y, vx, vy = state
+    dvx, dvy = acceleration
+    
+    old_x, old_y = x-vx, y-vy
+    old_vx, old_vy = vx-dvx, vy-dvy
+    
+    return (old_x, old_y, old_vx, old_vy)
+
+def bfs(start, walls, goals):
+    x, y = start
+    initial_state = (x, y, 0, 0)
+    initial_frontier = {initial_state}
+    visited = {initial_state: None}
+    
+    goal_state, frontier, visited = general_bfs(
+        frontier=initial_frontier,
+        visited=visited,
+        walls=walls,
+        goalcontainer=GridBasedGoalContainer(goals),
+        stop_threshold=float('inf'),
+        step_function=forward_step
+    )
+    
+    return construct_path_from_bfs(goal_state, visited)
+
+def general_bfs(
+        frontier,
+        visited,
+        walls,
+        goalcontainer,
+        stop_threshold,
+        step_function):
+    
+    while len(frontier) &lt;= stop_threshold:
+        if not frontier:
+            raise ImpossibleRaceError
+        
+        new_frontier = set()
+        for state in frontier:
+            for accel in acceleration_options:
+                new_state = new_x, new_y, new_vx, new_vy = \
+                        step_function(state, accel)
+                
+                if not (0 &lt;= new_x &lt; len(walls) and 0 &lt;= new_y &lt; len(walls[0])):
+                    continue
+                if walls[new_x][new_y]:
+                    continue
+                if new_state in visited:
+                    continue
+                
+                new_frontier.add(new_state)
+                visited[new_state] = accel
+                
+                if new_state in goalcontainer:
+                    return new_state, frontier, visited
+        frontier = new_frontier
+    return None, frontier, visited
+
+def max_velocity_component(n):
+    # It takes a distance of at least 0.5*v*(v+1) to achieve a velocity of
+    # v in the x or y direction. That means the map has to be at least
+    # 1 + 0.5*v*(v+1) rows or columns long to accomodate such a velocity.
+    # Solving for v, we get a velocity cap as follows.
+    return int((2*n-1.75)**0.5 - 0.5)
+
+def solver(
+        start,
+        walls,
+        goals,
+        mode='bidi'):
+    
+    x, y = start
+    initial_state = (x, y, 0, 0)
+    initial_frontier = {initial_state}
+    visited = {initial_state: None}
+    if mode == 'bidi':
+        stop_threshold = bfs_to_bidi_threshold(walls, goals)
+    elif mode == 'bfs':
+        stop_threshold = float('inf')
+    else:
+        raise ValueError('Unsupported search mode: {}'.format(mode))
+    
+    goal_state, frontier, visited = general_bfs(
+        frontier=initial_frontier,
+        visited=visited,
+        walls=walls,
+        goalcontainer=GridBasedGoalContainer(goals),
+        stop_threshold=stop_threshold,
+        step_function=forward_step
+    )
+    
+    if goal_state is not None:
+        return construct_path_from_bfs(goal_state, visited)
+    
+    # Switching to bidirectional search.
+    
+    not_walls_or_goals = []
+    goal_list = []
+    for x in xrange(len(walls)):
+        for y in xrange(len(walls[0])):
+            if not walls[x][y] and not goals[x][y]:
+                not_walls_or_goals.append((x, y))
+            if goals[x][y]:
+                goal_list.append((x, y))
+    max_vx = max_velocity_component(len(walls))
+    max_vy = max_velocity_component(len(walls[0]))
+    reverse_visited = {(goal_x, goal_y, goal_x-prev_x, goal_y-prev_y): None
+                        for goal_x, goal_y in goal_list
+                        for prev_x, prev_y in not_walls_or_goals
+                        if abs(goal_x-prev_x) &lt;= max_vx
+                        and abs(goal_y - prev_y) &lt;= max_vy}
+    reverse_frontier = set(reverse_visited)
+    while goal_state is None:
+        goal_state, reverse_frontier, reverse_visited = general_bfs(
+            frontier=reverse_frontier,
+            visited=reverse_visited,
+            walls=walls,
+            goalcontainer=frontier,
+            stop_threshold=len(frontier),
+            step_function=backward_step
+        )
+        if goal_state is not None:
+            break
+        goal_state, frontier, visited = general_bfs(
+            frontier=frontier,
+            visited=visited,
+            walls=walls,
+            goalcontainer=reverse_frontier,
+            stop_threshold=len(reverse_frontier),
+            step_function=forward_step
+        )
+    forward_path = construct_path_from_bfs(goal_state, visited)
+    backward_path = construct_path_from_bfs(goal_state,
+                                            reverse_visited,
+                                            step_function=forward_step)
+    return forward_path + backward_path[::-1]
+
+def construct_path_from_bfs(goal_state,
+                            best_moves,
+                            step_function=backward_step):
+    reversed_path = []
+    current_state = goal_state
+    while best_moves[current_state] is not None:
+        move = best_moves[current_state]
+        reversed_path.append(move)
+        current_state = step_function(current_state, move)
+    return reversed_path[::-1]
+
+def main():
+    start, walls, goals = read_input()
+    t = time.time()
+    path = solver(start, walls, goals)
+    for dvx, dvy in path:
+        # I wrote the whole program with x pointing down and y pointing right.
+        # Whoops. Gotta flip things for the output.
+        print dvy, dvx
+
+if __name__ == '__main__':
+    main()
+</code></pre>
+</div>
+<div id="pu2" class="pu"><h1>C++11 - 6.66109</h1>
+
+<p>Yet another breadth first search implementation, only optimized.</p>
+
+<p>It must be run with the <strong>-s</strong> option.<br>
+Its input is not sanitized at all, so wrong tracks might turn it into a pumpkin.</p>
+
+<p>I tested it with Microsoft Visual C++ 2013, release build with the default /O2 flag (optimize for speed).<br>
+DOES build OK with g++ and the Microsoft IDE.<br>
+My barebone memory allocator is a piece of crap, so don't expect it to work with other STL implementations of <code>unordered_set</code>!</p>
+
+<pre><code>#include &lt;cstdint&gt;
+#include &lt;iostream&gt;
+#include &lt;fstream&gt;
+#include &lt;sstream&gt;
+#include &lt;queue&gt;
+#include &lt;unordered_set&gt;
+
+#define MAP_START 'S'
+#define MAP_WALL  '#'
+#define MAP_GOAL  '*'
+
+#define NODE_CHUNK_SIZE   100 // increasing this will not improve performances
+#define VISIT_CHUNK_SIZE 1024 // increasing this will slightly reduce mem consumption at the (slight) cost of speed
+
+#define HASH_POS_BITS 8 // number of bits for one coordinate
+#define HASH_SPD_BITS (sizeof(size_t)*8/2-HASH_POS_BITS)
+
+typedef int32_t tCoord; // 32 bits required to overcome the 100.000 cells (insanely) long challenge
+
+// basic vector arithmetics
+struct tPoint {
+    tCoord x, y;
+    tPoint(tCoord x = 0, tCoord y = 0) : x(x), y(y) {}
+    tPoint operator+ (const tPoint &amp; p) { return tPoint(x + p.x, y + p.y); }
+    tPoint operator- (const tPoint &amp; p) { return tPoint(x - p.x, y - p.y); }
+    bool operator== (const tPoint &amp; p) const { return p.x == x &amp;&amp; p.y == y;  }
+};
+
+// a barebone block allocator. Improves speed by about 30%
+template &lt;class T, size_t SIZE&gt; class tAllocator
+{
+    T * chunk;
+    size_t i_alloc;
+    size_t m_alloc;
+public:
+    typedef T                 value_type;
+    typedef value_type*       pointer;
+    typedef const value_type* const_pointer;
+    typedef std::size_t       size_type;
+    typedef value_type&amp;       reference;
+    typedef const value_type&amp; const_reference;
+    tAllocator()                                              { m_alloc = i_alloc = SIZE; }
+    template &lt;class U&gt; tAllocator(const tAllocator&lt;U, SIZE&gt;&amp;) { m_alloc = i_alloc = SIZE; }
+    template &lt;class U&gt; struct rebind { typedef tAllocator&lt;U, SIZE&gt; other; };
+    pointer allocate(size_type n, const_pointer = 0)
+    {
+        if (n &gt; m_alloc) { i_alloc = m_alloc = n; }      // grow max size if request exceeds capacity
+        if ((i_alloc + n) &gt; m_alloc) i_alloc = m_alloc;  // dump current chunk if not enough room available
+        if (i_alloc == m_alloc) { chunk = new T[m_alloc]; i_alloc = 0; } // allocate new chunk when needed
+        T * mem = &amp;chunk[i_alloc];
+        i_alloc += n;
+        return mem;
+    }
+    void deallocate(pointer, size_type) { /* memory is NOT released until process exits */ }
+    void construct(pointer p, const value_type&amp; x) { new(p)value_type(x); }
+    void destroy(pointer p) { p-&gt;~value_type(); }
+};
+
+// a node in our search graph
+class tNode {
+    static tAllocator&lt;tNode, NODE_CHUNK_SIZE&gt; mem; // about 10% speed gain over a basic allocation
+    tNode * parent;
+public:
+    tPoint pos;
+    tPoint speed;
+    static tNode * alloc (tPoint pos, tPoint speed, tNode * parent) { return new (mem.allocate(1)) tNode(pos, speed, parent); }
+    tNode (tPoint pos = tPoint(), tPoint speed = tPoint(), tNode * parent = nullptr) : parent(parent), pos(pos), speed(speed) {}
+    bool operator== (const tNode&amp; n) const { return n.pos == pos &amp;&amp; n.speed == speed; }
+    void output(void)
+    {
+        std::string output;
+        tPoint v = this-&gt;speed;
+        for (tNode * n = this-&gt;parent ; n != nullptr ; n = n-&gt;parent)
+        {
+            tPoint a = v - n-&gt;speed;
+            v = n-&gt;speed;
+            std::ostringstream ss;  // a bit of shitty c++ text I/O to print elements in reverse order
+            ss &lt;&lt; a.x &lt;&lt; ' ' &lt;&lt; a.y &lt;&lt; '\n';
+            output = ss.str() + output;
+        }
+        std::cout &lt;&lt; output;
+    }
+};
+tAllocator&lt;tNode, NODE_CHUNK_SIZE&gt; tNode::mem;
+
+// node queueing and storing
+static int num_nodes = 0;
+class tNodeJanitor {
+    // set of already visited nodes. Block allocator improves speed by about 20%
+    struct Hasher { size_t operator() (tNode * const n) const 
+    {
+        int64_t hash = // efficient hashing is the key of performances
+            ((int64_t)n-&gt;pos.x   &lt;&lt; (0 * HASH_POS_BITS))
+          ^ ((int64_t)n-&gt;pos.y   &lt;&lt; (1 * HASH_POS_BITS))
+          ^ ((int64_t)n-&gt;speed.x &lt;&lt; (2 * HASH_POS_BITS + 0 * HASH_SPD_BITS))
+          ^ ((int64_t)n-&gt;speed.y &lt;&lt; (2 * HASH_POS_BITS + 1 * HASH_SPD_BITS));
+        return (size_t)((hash &gt;&gt; 32) ^ hash);
+        //return (size_t)(hash);
+    }
+    };
+    struct Equalizer { bool operator() (tNode * const n1, tNode * const n2) const
+        { return *n1 == *n2; }};
+    std::unordered_set&lt;tNode *, Hasher, Equalizer, tAllocator&lt;tNode *, VISIT_CHUNK_SIZE&gt;&gt; visited;
+    std::queue&lt;tNode *&gt; queue; // currently explored nodes queue
+public:
+    bool empty(void) { return queue.empty();  }
+    tNode * dequeue() { tNode * n = queue.front(); queue.pop(); return n; }
+    tNode * enqueue_if_new (tPoint pos, tPoint speed = tPoint(0,0), tNode * parent = nullptr)
+    {
+        tNode signature (pos, speed);
+        tNode * n = nullptr;
+        if (visited.find (&amp;signature) == visited.end()) // the classy way to check if an element is in a set
+        {
+            n = tNode::alloc(pos, speed, parent);
+            queue.push(n);
+            visited.insert (n);
+num_nodes++;
+        }
+        return n;
+    }
+};
+
+// map representation
+class tMap {
+    std::vector&lt;char&gt; cell;
+    tPoint dim; // dimensions
+public:
+    void set_size(tCoord x, tCoord y) { dim = tPoint(x, y); cell.resize(x*y); }
+    void set(tCoord x, tCoord y, char c) { cell[y*dim.x + x] = c; }
+    char get(tPoint pos)
+    {
+        if (pos.x &lt; 0 || pos.x &gt;= dim.x || pos.y &lt; 0 || pos.y &gt;= dim.y) return MAP_WALL;
+        return cell[pos.y*dim.x + pos.x];
+    }
+    void dump(void)
+    {
+        for (int y = 0; y != dim.y; y++)
+        {
+            for (int x = 0; x != dim.x; x++) fprintf(stderr, "%c", cell[y*dim.x + x]);
+            fprintf(stderr, "\n");
+        }
+    }
+};
+
+// race manager
+class tRace {
+    tPoint start;
+    tNodeJanitor border;
+    static tPoint acceleration[9];
+public:
+    tMap map;
+    tRace ()
+    {
+        int target;
+        tCoord sx, sy;
+        std::cin &gt;&gt; target &gt;&gt; sx &gt;&gt; sy;
+        std::cin.ignore();
+        map.set_size (sx, sy);
+        std::string row;
+        for (int y = 0; y != sy; y++)
+        {
+            std::getline(std::cin, row);
+            for (int x = 0; x != sx; x++)
+            {
+                char c = row[x];
+                if (c == MAP_START) start = tPoint(x, y);
+                map.set(x, y, c);
+            }
+        }
+    }
+
+    // all the C++ crap above makes for a nice and compact solver
+    tNode * solve(void)
+    {
+        tNode * initial = border.enqueue_if_new (start);
+        while (!border.empty())
+        {
+            tNode * node = border.dequeue();
+            tPoint p = node-&gt;pos;
+            tPoint v = node-&gt;speed;
+            for (tPoint a : acceleration)
+            {
+                tPoint nv = v + a;
+                tPoint np = p + nv;
+                char c = map.get(np);
+                if (c == MAP_WALL) continue;
+                if (c == MAP_GOAL) return new tNode (np, nv, node);
+                border.enqueue_if_new (np, nv, node);
+            }
+        }
+        return initial; // no solution found, will output nothing
+    }
+};
+tPoint tRace::acceleration[] = {
+    tPoint(-1,-1), tPoint(-1, 0), tPoint(-1, 1),
+    tPoint( 0,-1), tPoint( 0, 0), tPoint( 0, 1),
+    tPoint( 1,-1), tPoint( 1, 0), tPoint( 1, 1)};
+
+#include &lt;ctime&gt;
+int main(void)
+{
+    tRace race;
+    clock_t start = clock();
+    tNode * solution = race.solve();
+    std::cerr &lt;&lt; "time: " &lt;&lt; (clock()-start)/(CLOCKS_PER_SEC/1000) &lt;&lt; "ms nodes: " &lt;&lt; num_nodes &lt;&lt; std::endl;
+    solution-&gt;output();
+    return 0;
+}
+</code></pre>
+
+<h1>Results</h1>
+
+<pre><code> No.       Size     Target   Score     Details
+-------------------------------------------------------------------------------------
+  1       37 x 1        36   0.22222   Racer reached goal at ( 36, 0) in 8 turns.
+  2       38 x 1        37   0.24324   Racer reached goal at ( 37, 0) in 9 turns.
+  3       33 x 1        32   0.25000   Racer reached goal at ( 32, 0) in 8 turns.
+  4       10 x 10       10   0.40000   Racer reached goal at ( 7, 7) in 4 turns.
+  5        9 x 6         8   0.37500   Racer reached goal at ( 6, 0) in 3 turns.
+  6       15 x 7        16   0.37500   Racer reached goal at ( 12, 4) in 6 turns.
+  7       17 x 8        16   0.31250   Racer reached goal at ( 14, 0) in 5 turns.
+  8       19 x 13       18   0.27778   Racer reached goal at ( 0, 11) in 5 turns.
+  9       60 x 10      107   0.14953   Racer reached goal at ( 0, 6) in 16 turns.
+ 10       31 x 31      106   0.23585   Racer reached goal at ( 27, 0) in 25 turns.
+ 11       31 x 31      106   0.24528   Racer reached goal at ( 15, 15) in 26 turns.
+ 12       50 x 20       50   0.24000   Racer reached goal at ( 49, 10) in 12 turns.
+ 13      100 x 100    2600   0.01385   Racer reached goal at ( 50, 0) in 36 turns.
+ 14       79 x 63      242   0.24380   Racer reached goal at ( 3, 42) in 59 turns.
+ 15       26 x 1        25   0.32000   Racer reached goal at ( 25, 0) in 8 turns.
+ 16       17 x 1        19   0.52632   Racer reached goal at ( 16, 0) in 10 turns.
+ 17       50 x 1        55   0.34545   Racer reached goal at ( 23, 0) in 19 turns.
+ 18       10 x 7        23   0.34783   Racer reached goal at ( 1, 3) in 8 turns.
+ 19       55 x 55       45   0.17778   Racer reached goal at ( 50, 26) in 8 turns.
+ 20      101 x 100     100   0.14000   Racer reached goal at ( 99, 99) in 14 turns.
+ 21   100000 x 1         1   1.00000   Racer reached goal at ( 0, 0) in 1 turns.
+ 22       50 x 50      200   0.05500   Racer reached goal at ( 47, 46) in 11 turns.
+ 23      290 x 290    1160   0.16466   Racer reached goal at ( 269, 265) in 191 turns.
+-------------------------------------------------------------------------------------
+TOTAL SCORE:                 6.66109
+</code></pre>
+
+<h1>Performances</h1>
+
+<p>That crappy C++ language has a knack to make you jump through hoops just to move a matchstick. However, you can whip it into producing relatively fast and memory-efficient code.</p>
+
+<h2>Hashing</h2>
+
+<p>Here the key is to provide a good hash table for the nodes. That is by far the dominant factor for execution speed.<br>
+Two implementations of <code>unordered_set</code> (GNU and Microsoft) yielded a 30% execution speed difference (in favor of GNU, yay!).</p>
+
+<p>The difference is not really surprising, what with the truckloads of code hidden behind <code>unordered_set</code>.</p>
+
+<p>Out of curiosity, I did some stats on the final state of the hash table.<br>
+Both algorithms end up with nearly the same bucket/elements ratio, but repartition varies:<br>
+for the 290x290 tie breaker, GNU gets an average of 1.5 elements per non empty bucket, while Microsoft is at 5.8 (!).  </p>
+
+<p>Looks like my hashing function is not very well randomized by Microsoft... I wonder if the  guys in Redmond did really benchmark their STL, or maybe my use case just favors the GNU implementation... </p>
+
+<p>Sure, my hashing function is nowhere near optimal. I could have used the usual integer mixing based on multiple shift/muls <strong>but</strong> a hash-efficient function takes time to compute.</p>
+
+<p>It appears the number of hash table queries is very high compared with the number of insertions. For instance, in the 290x290 tie breaker, you have about 3.6 million insertions for 22.7 million queries.<br>
+In this context, a suboptimal but fast hashing yields better performances.</p>
+
+<h2>Memory allocation</h2>
+
+<p>Providing an efficient memory allocator comes second. It improved performances by about 30%. Whether it is worth the added crap code is debatable :).</p>
+
+<p>The current version uses between 40 and 55 bytes per node.<br>
+The functional data require 24 bytes for a node (4 coordinates and 2 pointers).<br>
+Due to the insane 100.000 lines test case, coordinates have to be stored in 4 bytes words, otherwise you could gain 8 bytes by using shorts (with a max coordinate value of 32767).
+The remaining bytes are mostly consumed by the unordered set's hash table. It means the data handling actually consumes a bit more than the "useful" payload.</p>
+
+<h2>And the winner is...</h2>
+
+<p>On my PC under Win7, the tie breaker (case 23, 290x290) is solved by the worst version (i.e. Microsoft compiled) in about 2.2 seconds, with a memory consumption of about 185 Mb.<br>
+For comparison, the current leader (python code by user2357112) takes a bit more than 30 seconds and consumes about 780 Mb.</p>
+
+<h1>Controller issues</h1>
+
+<p>I'm not quite sure I might be able to code in Ruby to save my life.<br>
+However, I spotted and hacked two problems out of the controller code:</p>
+
+<h2>1) map reading in <code>track.rb</code></h2>
+
+<p>With ruby 1.9.3 installed, the track reader would croak about <code>shift.to_i</code> not being available for <code>string.lines</code>.<br>
+After a long bit of wading through the online Ruby documentation I gave up on strings and used an intermediate array instead, like so (right at the begining of the file):</p>
+
+<pre><code>def initialize(string)
+    @track = Array.new;
+    string.lines.each do |line|
+        @track.push (line.chomp)
+    end
+</code></pre>
+
+<h2>2) killing ghosts in <code>controller.rb</code></h2>
+
+<p>As other posters have already noted, the controller sometimes tries to kill processes that have already exited. To avoid these disgracious error outputs, I simply handled the exception away, like so (around line 134):</p>
+
+<pre><code>if silent
+    begin # ;!;
+        Process.kill('KILL', racer.pid)
+    rescue Exception =&gt; e
+    end
+</code></pre>
+
+<h1>Test case</h1>
+
+<p>To defeat the brute force approach of the BFS solvers, the worst track is the opposite of the 100.000 cells map: a completely free area with the goal as far from the start as possible.</p>
+
+<p>In this example, a 100x400 map with the goal in the upper left corner and the start in the lower right.</p>
+
+<p>This map has a solution in 28 turns, but a BFS solver will explore millions of states to find it (mine counted 10.022.658 states visited, took about 12 seconds and peaked at 600 Mb !).</p>
+
+<p>With less than half the surface of the 290x290 tie breaker, it requires about 3 times more node visits. On the other hand, a heuristic / A* based solver should defeat it easily.</p>
+
+<pre><code>30
+100 400
+*...................................................................................................
+....................................................................................................
+                          &lt; 400 lines in all &gt;
+....................................................................................................
+....................................................................................................
+...................................................................................................S
+</code></pre>
+
+<h1>Bonus: an equivalent (but somewhat less efficient) PHP version</h1>
+
+<p>This is what I started with, before the inherent language slowness convinced me to use C++.<br>
+PHP internal hash tables don't seem as efficient as Python's, at least in this particular case :).</p>
+
+<pre><code>&lt;?php
+
+class Trace {
+    static $file;
+    public static $state_member;
+    public static $state_target;
+    static function msg ($msg)
+    {
+        fputs (self::$file, "$msg\n");
+    }
+
+    static function dump ($var, $msg=null)
+    {
+        ob_start();
+        if ($msg) echo "$msg ";
+        var_dump($var);
+        $dump=ob_get_contents();
+        ob_end_clean();
+        fputs (self::$file, "$dump\n");
+    }
+
+    function init ($fname)
+    {
+        self::$file = fopen ($fname, "w");
+    }
+}
+Trace::init ("racer.txt");
+
+class Point {
+    public $x;
+    public $y;
+
+    function __construct ($x=0, $y=0)
+    {
+        $this-&gt;x = (float)$x;
+        $this-&gt;y = (float)$y;
+    }
+
+    function __toString ()
+    {
+        return "[$this-&gt;x $this-&gt;y]";
+    }
+
+    function add ($v)
+    {
+        return new Point ($this-&gt;x + $v-&gt;x, $this-&gt;y + $v-&gt;y);
+    }
+
+    function vector_to ($goal)
+    {
+        return new Point ($goal-&gt;x - $this-&gt;x, $goal-&gt;y - $this-&gt;y);
+    }
+}
+
+class Node {
+    public $posx  , $posy  ;
+    public $speedx, $speedy;
+    private $parent;
+
+    public function __construct ($posx, $posy, $speedx, $speedy, $parent)
+    {
+        $this-&gt;posx = $posx;
+        $this-&gt;posy = $posy;
+        $this-&gt;speedx = $speedx;
+        $this-&gt;speedy = $speedy;
+        $this-&gt;parent = $parent;
+    }
+
+    public function path ()
+    {
+        $res = array();
+        $v = new Point ($this-&gt;speedx, $this-&gt;speedy);
+        for ($node = $this-&gt;parent ; $node != null ; $node = $node-&gt;parent)
+        {
+            $nv = new Point ($node-&gt;speedx, $node-&gt;speedy);
+            $a = $nv-&gt;vector_to ($v);
+            $v = new Point ($node-&gt;speedx, $node-&gt;speedy);
+            array_unshift ($res, $a);
+        }
+        return $res;
+    }
+}
+
+class Map {
+
+    private static $target;       // maximal number of turns
+    private static $time;         // time available to solve
+    private static $sx, $sy;      // map dimensions
+    private static $cell;         // cells of the map
+    private static $start;        // starting point
+    private static $acceleration; // possible acceleration values
+
+    public static function init ()
+    {
+        // read map definition
+        self::$target = trim(fgets(STDIN));
+        list (self::$sx, self::$sy) = explode (" ", trim(fgets(STDIN)));
+        self::$cell = array();
+        for ($y = 0 ; $y != self::$sy ; $y++) self::$cell[] = str_split (trim(fgets(STDIN)));
+        self::$time = trim(fgets(STDIN));
+
+        // get starting point
+        foreach (self::$cell as $y=&gt;$row)
+        {
+            $x = array_search ("S", $row);
+            if ($x !== false)
+            {
+                self::$start = new Point ($x, $y);
+Trace::msg ("start ".self::$start);
+                break;
+            }
+        }
+
+        // compute possible acceleration values
+        self::$acceleration = array();
+        for ($x = -1 ; $x &lt;= 1 ; $x++)
+        for ($y = -1 ; $y &lt;= 1 ; $y++)
+        {
+            self::$acceleration[] = new Point ($x, $y);
+        }
+    }
+
+    public static function solve ()
+    {
+        $now = microtime(true);
+        $res = array();
+        $border = array (new Node (self::$start-&gt;x, self::$start-&gt;y, 0, 0, null));
+        $present = array (self::$start-&gt;x." ".self::$start-&gt;y." 0 0" =&gt; 1);
+        while (count ($border))
+        {
+if ((microtime(true) - $now) &gt; 1)
+{
+Trace::msg (count($present)." nodes, ".round(memory_get_usage(true)/1024)."K");
+$now = microtime(true);
+}
+            $node = array_shift ($border);
+//Trace::msg ("node $node-&gt;pos $node-&gt;speed");
+            $px = $node-&gt;posx;
+            $py = $node-&gt;posy;
+            $vx = $node-&gt;speedx;
+            $vy = $node-&gt;speedy;
+            foreach (self::$acceleration as $a)
+            {
+                $nvx = $vx + $a-&gt;x;
+                $nvy = $vy + $a-&gt;y;
+                $npx = $px + $nvx;
+                $npy = $py + $nvy;
+                if ($npx &lt; 0 || $npx &gt;= self::$sx || $npy &lt; 0 || $npy &gt;= self::$sy || self::$cell[$npy][$npx] == "#")
+                {
+//Trace::msg ("invalid position $px,$py $vx,$vy -&gt; $npx,$npy");
+                    continue;
+                }
+                if (self::$cell[$npy][$npx] == "*")
+                {
+Trace::msg ("winning position $px,$py $vx,$vy -&gt; $npx,$npy");
+                    $end = new Node ($npx, $npy, $nvx, $nvy, $node);
+                    $res = $end-&gt;path ();
+                    break 2;
+                }
+//Trace::msg ("checking $np $nv");
+                $signature = "$npx $npy $nvx $nvy";
+                if (isset ($present[$signature])) continue;
+//Trace::msg ("*** adding $np $nv");
+                $border[] = new Node ($npx, $npy, $nvx, $nvy, $node);
+                $present[$signature] = 1;
+            }
+        }
+        return $res;
+    }
+}
+
+ini_set("memory_limit","1000M");
+Map::init ();
+$res = Map::solve();
+//Trace::dump ($res);
+foreach ($res as $a) echo "$a-&gt;x $a-&gt;y\n";
+?&gt;
+</code></pre>
+</div>
+<div id="pu3" class="pu"><h1>Python 3: 6.49643 (Optimal, BFS)</h1>
+
+<p>For the old 20 case benchmark file, it got a score of 5.35643. The solution by @nneonneo is not optimal since it got 5.4. Some bugs maybe.</p>
+
+<p>This solution use BFS to search the Graph, each search state is in the form of (x, y, dx, dy). Then I use a map to map from states to distances. In the worst case, it's time and space complexity is O(n^2 m^2). This will rarely happen since the speed won't be too high or the racer will crash. Actually, it cost 3 seconds on my machine to complete all the 22 testcases.</p>
+
+<pre><code>from collections import namedtuple, deque
+import itertools
+
+Field = namedtuple('Map', 'n m grids')
+
+class Grid:
+    WALL = '#'
+    EMPTY = '.'
+    START = 'S'
+    END = '*'
+
+def read_nums():
+    return list(map(int, input().split()))
+
+def read_field():
+    m, n = read_nums()
+    return Field(n, m, [input() for i in range(n)])
+
+def find_start_pos(field):
+    return next((i, j)
+        for i in range(field.n) for j in range(field.m)
+        if field.grids[i][j] == Grid.START)
+
+def can_go(field, i, j):
+    return 0 &lt;= i &lt; field.n and 0 &lt;= j &lt; field.m and field.grids[i][j] != Grid.WALL
+
+def trace_path(start, end, prev):
+    if end == start:
+        return
+    end, step = prev[end]
+    yield from trace_path(start, end, prev)
+    yield step
+
+def solve(max_turns, field, time):
+    i0, j0 = find_start_pos(field)
+    p0 = i0, j0, 0, 0
+    prev = {}
+    que = deque([p0])
+    directions = list(itertools.product((-1, 0, 1), (-1, 0, 1)))
+
+    while que:
+        p = i, j, vi, vj = que.popleft()
+        for dvi, dvj in directions:
+            vi1, vj1 = vi + dvi, vj + dvj
+            i1, j1 = i + vi1, j + vj1
+            if not can_go(field, i1, j1):
+                continue
+            p1 = i1, j1, vi1, vj1
+            if p1 in prev:
+                continue
+            que.append(p1)
+            prev[p1] = p, (dvi, dvj)
+            if field.grids[i1][j1] == Grid.END:
+                return trace_path(p0, p1, prev)
+    return []
+
+def main():
+    for dvy, dvx in solve(int(input()), read_field(), float(input())):
+        print(dvx, dvy)
+
+main()
+</code></pre>
+
+<h1>＃ Results</h1>
+
+<pre><code>± % time ruby controller.rb benchmark.txt python ../mybfs.py                                                                                                                                                                             !9349
+["benchmark.txt", "python", "../mybfs.py"]
+
+Running 'python ../mybfs.py' against benchmark.txt
+
+ No.       Size     Target   Score     Details
+-------------------------------------------------------------------------------------
+  1       37 x 1        36   0.22222   Racer reached goal at ( 36, 0) in 8 turns.
+  2       38 x 1        37   0.24324   Racer reached goal at ( 37, 0) in 9 turns.
+  3       33 x 1        32   0.25000   Racer reached goal at ( 32, 0) in 8 turns.
+  4       10 x 10       10   0.40000   Racer reached goal at ( 7, 7) in 4 turns.
+  5        9 x 6         8   0.37500   Racer reached goal at ( 6, 0) in 3 turns.
+  6       15 x 7        16   0.37500   Racer reached goal at ( 12, 4) in 6 turns.
+  7       17 x 8        16   0.31250   Racer reached goal at ( 14, 0) in 5 turns.
+  8       19 x 13       18   0.27778   Racer reached goal at ( 0, 11) in 5 turns.
+  9       60 x 10      107   0.14953   Racer reached goal at ( 0, 6) in 16 turns.
+ 10       31 x 31      106   0.23585   Racer reached goal at ( 27, 0) in 25 turns.
+ 11       31 x 31      106   0.24528   Racer reached goal at ( 15, 15) in 26 turns.
+ 12       50 x 20       50   0.24000   Racer reached goal at ( 49, 10) in 12 turns.
+ 13      100 x 100    2600   0.01385   Racer reached goal at ( 50, 0) in 36 turns.
+ 14       79 x 63      242   0.24380   Racer reached goal at ( 3, 42) in 59 turns.
+ 15       26 x 1        25   0.32000   Racer reached goal at ( 25, 0) in 8 turns.
+ 16       17 x 1        19   0.52632   Racer reached goal at ( 16, 0) in 10 turns.
+ 17       50 x 1        55   0.34545   Racer reached goal at ( 23, 0) in 19 turns.
+ 18       10 x 7        23   0.34783   Racer reached goal at ( 1, 3) in 8 turns.
+ 19       55 x 55       45   0.17778   Racer reached goal at ( 50, 26) in 8 turns.
+ 20      101 x 100     100   0.14000   Racer reached goal at ( 99, 99) in 14 turns.
+ 21   100000 x 1         1   1.00000   Racer reached goal at ( 0, 0) in 1 turns.
+ 22       50 x 50      200   0.05500   Racer reached goal at ( 47, 46) in 11 turns.
+-------------------------------------------------------------------------------------
+TOTAL SCORE:                 6.49643
+
+ruby controller.rb benchmark.txt python ../mybfs.py  3.06s user 0.06s system 99% cpu 3.146 total
+</code></pre>
+</div>
+<div id="pu4" class="pu"><p><strong>Random Racer 2.0, ~31</strong></p>
+
+<p>Well this isn't going to beat the posted optimal solver, but it is a slight improvement on a random racer. Main difference is that this racer only will consider randomly going where there isn't a wall, unless it runs out of valid places to move, and if it can move to a goal that turn, it will. It also will not move in order to stay in the same spot, unless there is no other move available (unlikely, but possible).</p>
+
+<p>Implemented in Java, compiled with java8, but Java 6 should be fine. No command line parameters. There's a pretty good clusterfuck of hierarchy, so I think I'm doing java right.</p>
+
+<pre class="lang-java prettyprint-override"><code>import java.util.Scanner;
+import java.util.Random;
+import java.util.ArrayList;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+
+public class VectorRacing   {
+    private static Scanner in = new Scanner(System.in);
+    private static Random rand = new Random();
+    private static Track track;
+    private static Racer racer;
+    private static int target;
+    private static double time;
+    public static void main(String[] args)  {
+        init();
+        main_loop();
+    }
+    private static void main_loop() {
+        Scanner linescan;
+        String line;
+        int count = 0,
+            x, y, u, v;
+
+        while(!racer.lost() &amp;&amp; !racer.won() &amp;&amp; count &lt; target)  {
+            Direction d = racer.think();
+            racer.move(d);
+            count++;
+            System.out.println(d);
+
+            line = in.nextLine();
+            if(line.equals("")) {
+                break;
+            }
+            linescan = new Scanner(line);
+            x = linescan.nextInt();
+            y = linescan.nextInt();
+            linescan = new Scanner(in.nextLine());
+            u = linescan.nextInt();
+            v = linescan.nextInt();
+            time = Double.parseDouble(in.nextLine());
+
+            assert x == racer.location.x;
+            assert y == racer.location.y;
+            assert u == racer.direction.x;
+            assert v == racer.direction.y;
+        }
+    }
+    private static void init()  {
+        target = Integer.parseInt(in.nextLine());
+        int width = in.nextInt();
+        int height = Integer.parseInt(in.nextLine().trim());
+        String[] ascii = new String[height];
+        for(int i = 0; i &lt; height; i++) {
+            ascii[i] = in.nextLine();
+        }
+        time = Double.parseDouble(in.nextLine());
+        track = new Track(width, height, ascii);
+        for(int y = 0; y &lt; ascii.length; y++)   {
+            int x = ascii[y].indexOf("S");
+            if( x != -1)    {
+                racer = new RandomRacer(track, new Location(x, y));
+                break;
+            }
+        }
+    }
+
+    public static class RandomRacer extends Racer   {
+        public RandomRacer(Track t, Location l) {
+            super(t, l);
+        }
+        public Direction think()    {
+            ArrayList&lt;Pair&lt;Location, Direction&gt; &gt; possible = this.getLocationsCanMoveTo();
+            if(possible.size() == 0)    {
+                return Direction.NONE;
+            }
+            Pair&lt;Location, Direction&gt; ret = null;
+            do  {
+                ret = possible.get(rand.nextInt(possible.size()));
+            }   while(possible.size() != 1 &amp;&amp; ret.a.equals(this.location));
+            return ret.b;
+        }
+    }
+
+    // Base things
+    public enum Direction   {
+        NORTH("0 -1"), SOUTH("0 1"), EAST("1 0"), WEST("-1 0"), NONE("0 0"),
+        NORTH_EAST("1 -1"), NORTH_WEST("-1 -1"), SOUTH_EAST("1 1"), SOUTH_WEST("-1 1");
+
+        private final String d;
+        private Direction(String d) {this.d = d;}
+        public String toString()    {return d;}
+    }
+    public enum Cell    {
+        WALL('#'), GOAL('*'), ROAD('.'), OUT_OF_BOUNDS('?');
+
+        private final char c;
+        private Cell(char c)    {this.c = c;}
+        public String toString()    {return "" + c;}
+    }
+
+    public static class Track   {
+        private Cell[][] track;
+        private int target;
+        private double time;
+        public Track(int width, int height, String[] ascii) {
+            this.track = new Cell[width][height];
+            for(int y = 0; y &lt; height; y++) {
+                for(int x = 0; x &lt; width; x++)  {
+                    switch(ascii[y].charAt(x))  {
+                        case '#':   this.track[x][y] = Cell.WALL; break;
+                        case '*':   this.track[x][y] = Cell.GOAL; break;
+                        case '.':
+                        case 'S':   this.track[x][y] = Cell.ROAD; break;
+                        default:    System.exit(-1);
+                    }
+                }
+            }
+        }
+        public Cell atLocation(Location loc)    {
+            if(loc.x &lt; 0 || loc.x &gt;= track.length || loc.y &lt; 0 || loc.y &gt;= track[0].length) return Cell.OUT_OF_BOUNDS;
+            return track[loc.x][loc.y];
+        }
+
+        public String toString()    {
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            PrintStream ps = new PrintStream(bos);
+            for(int y = 0; y &lt; track[0].length; y++)    {
+                for(int x = 0; x &lt; track.length; x++)   {
+                    ps.append(track[x][y].toString());
+                }
+                ps.append('\n');
+            }
+            String ret = bos.toString();
+            ps.close();
+            return ret;
+        }
+    }
+
+    public static abstract class Racer  {
+        protected Velocity tdir;
+        protected Location tloc;
+        protected Track track;
+        public Velocity direction;
+        public Location location;
+
+        public Racer(Track track, Location start)   {
+            this.track = track;
+            direction = new Velocity(0, 0);
+            location = start;
+        }
+        public boolean canMove() throws GoHereDammitException {return canMove(Direction.NONE);}
+        public boolean canMove(Direction d) throws GoHereDammitException    {
+            tdir = new Velocity(direction);
+            tloc = new Location(location);
+            tdir.add(d);
+            tloc.move(tdir);
+            Cell at = track.atLocation(tloc);
+            if(at == Cell.GOAL) {
+                throw new GoHereDammitException();
+            }
+            return at == Cell.ROAD;
+        }
+        public ArrayList&lt;Pair&lt;Location, Direction&gt; &gt; getLocationsCanMoveTo()    {
+            ArrayList&lt;Pair&lt;Location, Direction&gt; &gt; ret = new ArrayList&lt;Pair&lt;Location, Direction&gt; &gt;(9);
+            for(Direction d: Direction.values())    {
+                try {
+                    if(this.canMove(d)) {
+                        ret.add(new Pair&lt;Location, Direction&gt;(tloc, d));
+                    }
+                }   catch(GoHereDammitException e)  {
+                    ret.clear();
+                    ret.add(new Pair&lt;Location, Direction&gt;(tloc, d));
+                    return ret;
+                }
+            }
+            return ret;
+        }
+        public void move()  {move(Direction.NONE);}
+        public void move(Direction d)   {
+            direction.add(d);
+            location.move(direction);
+        }
+        public boolean won()    {
+            return track.atLocation(location) == Cell.GOAL;
+        }
+        public boolean lost()   {
+            return track.atLocation(location) == Cell.WALL || track.atLocation(location) == Cell.OUT_OF_BOUNDS;
+        }
+        public String toString()    {
+            return location + ", " + direction;
+        }
+        public abstract Direction think();
+
+        public class GoHereDammitException extends Exception    {
+            public GoHereDammitException()  {}
+        }
+    }
+
+    public static class Location extends Point  {
+        public Location(int x, int y)   {
+            super(x, y);
+        }
+        public Location(Location l) {
+            super(l);
+        }
+        public void move(Velocity d)    {
+            this.x += d.x;
+            this.y += d.y;
+        }
+    }
+
+    public static class Velocity extends Point  {
+        public Velocity(int x, int y)   {
+            super(x, y);
+        }
+        public Velocity(Velocity v) {
+            super(v);
+        }
+        public void add(Direction d)    {
+            if(d == Direction.NONE) return;
+            if(d == Direction.NORTH || d == Direction.NORTH_EAST || d == Direction.NORTH_WEST)  this.y--;
+            if(d == Direction.SOUTH || d == Direction.SOUTH_EAST || d == Direction.SOUTH_WEST)  this.y++;
+            if(d == Direction.EAST || d == Direction.NORTH_EAST || d == Direction.SOUTH_EAST)   this.x++;
+            if(d == Direction.WEST || d == Direction.NORTH_WEST || d == Direction.SOUTH_WEST)   this.x--;
+        }
+    }
+
+    public static class Point   {
+        protected int x, y;
+        protected Point(int x, int y)   {
+            this.x = x;
+            this.y = y;
+        }
+        protected Point(Point c)    {
+            this.x = c.x;
+            this.y = c.y;
+        }
+        public int getX()   {return x;}
+        public int getY()   {return y;}
+        public String toString()    {return "(" + x + ", " + y + ")";}
+        public boolean equals(Point p)  {
+            return this.x == p.x &amp;&amp; this.y == p.y;
+        }
+    }
+
+    public static class Pair&lt;T, U&gt;  {
+        public T a;
+        public U b;
+        public Pair(T t, U u)   {
+            a=t;b=u;
+        }
+    }
+}
+</code></pre>
+
+<p><strong>The Results (Best case I've seen)</strong></p>
+
+<pre><code>Running 'java VectorRacing' against ruby-runner/benchmark.txt
+
+ No.    Size     Target   Score     Details
+-------------------------------------------------------------------------------------
+  1    37 x 1        36   0.38889   Racer reached goal at ( 36, 0) in 14 turns.
+  2    38 x 1        37   0.54054   Racer reached goal at ( 37, 0) in 20 turns.
+  3    33 x 1        32   0.62500   Racer reached goal at ( 32, 0) in 20 turns.
+  4    10 x 10       10   0.40000   Racer reached goal at ( 9, 8) in 4 turns.
+  5     9 x 6         8   0.75000   Racer reached goal at ( 6, 2) in 6 turns.
+  6    15 x 7        16   2.00000   Racer did not reach the goal within 16 turns.
+  7    17 x 8        16   2.00000   Racer hit a wall at position ( 8, 2).
+  8    19 x 13       18   0.44444   Racer reached goal at ( 16, 2) in 8 turns.
+  9    60 x 10      107   0.65421   Racer reached goal at ( 0, 6) in 70 turns.
+ 10    31 x 31      106   2.00000   Racer hit a wall at position ( 25, 9).
+ 11    31 x 31      106   2.00000   Racer hit a wall at position ( 8, 1).
+ 12    50 x 20       50   2.00000   Racer hit a wall at position ( 27, 14).
+ 13   100 x 100    2600   2.00000   Racer went out of bounds at position ( 105, 99).
+ 14    79 x 63      242   2.00000   Racer went out of bounds at position (-2, 26).
+ 15    26 x 1        25   0.32000   Racer reached goal at ( 25, 0) in 8 turns.
+ 16    17 x 1        19   2.00000   Racer went out of bounds at position (-2, 0).
+ 17    50 x 1        55   2.00000   Racer went out of bounds at position ( 53, 0).
+ 18    10 x 7        23   2.00000   Racer went out of bounds at position ( 10, 2).
+ 19    55 x 55       45   0.33333   Racer reached goal at ( 4, 49) in 15 turns.
+ 20    50 x 50      200   2.00000   Racer hit a wall at position ( 14, 7).
+-------------------------------------------------------------------------------------
+TOTAL SCORE:             26.45641
+</code></pre>
+</div>
+<div id="pu5" class="pu"><h1>C++, 5.4 (deterministic, optimal)</h1>
+
+<p>Dynamic programming solution. Provably optimal. Very fast: solves all 20 testcases in 0.2s. Should be especially fast on 64-bit machines. Assumes the board is less than 32,000 places in each direction (which should hopefully be true).</p>
+
+<p>This racer is a little unusual. It computes the optimal path at the starting line, and afterwards executes the computed path instantly. It ignores the time control and assumes it can finish the optimization step on time (which should be true for any reasonably modern hardware). On excessively large maps, there's a small chance that the racer may segfault. If you can convince it to segfault, you get a brownie point, and I'll fix it to use an explicit loop.</p>
+
+<p>Compile with <code>g++ -O3</code>. May require C++11 (for <code>&lt;unordered_map&gt;</code>). To run, just run the compiled executable (no flags or options are supported; all input is taken on stdin).</p>
+
+<pre><code>#include &lt;unordered_map&gt;
+#include &lt;iostream&gt;
+#include &lt;string&gt;
+#include &lt;vector&gt;
+#include &lt;sstream&gt;
+
+#include &lt;cstdint&gt;
+
+#define MOVES_INF (1&lt;&lt;30)
+
+union state {
+    struct {
+        short px, py, vx, vy;
+    };
+    uint64_t val;
+};
+
+struct result {
+    int nmoves;
+    short dvx, dvy;
+};
+
+typedef std::unordered_map&lt;uint64_t, result&gt; cache_t;
+int target, n, m;
+std::vector&lt;std::string&gt; track;
+cache_t cache;
+
+static int solve(uint64_t val) {
+    cache_t::iterator it = cache.find(val);
+    if(it != cache.end())
+        return it-&gt;second.nmoves;
+
+    // prevent recursion
+    result res;
+    res.nmoves = MOVES_INF;
+    cache[val] = res;
+
+    state cur;
+    cur.val = val;
+    for(int dvx = -1; dvx &lt;= 1; dvx++) for(int dvy = -1; dvy &lt;= 1; dvy++) {
+        state next;
+        next.vx = cur.vx + dvx;
+        next.vy = cur.vy + dvy;
+        next.px = cur.px + next.vx;
+        next.py = cur.py + next.vy;
+        if(next.px &lt; 0 || next.px &gt;= n || next.py &lt; 0 || next.py &gt;= m)
+            continue;
+        char c = track[next.py][next.px];
+        if(c == '*') {
+            res.nmoves = 1;
+            res.dvx = dvx;
+            res.dvy = dvy;
+            break;
+        } else if(c == '#') {
+            continue;
+        } else {
+            int score = solve(next.val) + 1;
+            if(score &lt; res.nmoves) {
+                res.nmoves = score;
+                res.dvx = dvx;
+                res.dvy = dvy;
+            }
+        }
+    }
+
+    cache[val] = res;
+    return res.nmoves;
+}
+
+bool solve_one() {
+    std::string line;
+    float time;
+
+    std::cin &gt;&gt; target;
+    // std::cin &gt;&gt; time; // uncomment to use "time" control
+    std::cin &gt;&gt; n &gt;&gt; m;
+    if(!std::cin)
+        return false;
+    std::cin.ignore(); // skip newline at end of "n m" line
+
+    track.clear();
+    track.reserve(m);
+
+    for(int i=0; i&lt;m; i++) {
+        std::getline(std::cin, line);
+        track.push_back(line);
+    }
+
+    cache.clear();
+
+    state cur;
+    cur.vx = cur.vy = 0;
+    for(int y=0; y&lt;m; y++) for(int x=0; x&lt;n; x++) {
+        if(track[y][x] == 'S') {
+            cur.px = x;
+            cur.py = y;
+            break;
+        }
+    }
+
+    solve(cur.val);
+
+    int sol_len = 0;
+    while(track[cur.py][cur.px] != '*') {
+        cache_t::iterator it = cache.find(cur.val);
+        if(it == cache.end() || it-&gt;second.nmoves &gt;= MOVES_INF) {
+            std::cerr &lt;&lt; "Failed to solve at p=" &lt;&lt; cur.px &lt;&lt; "," &lt;&lt; cur.py &lt;&lt; " v=" &lt;&lt; cur.vx &lt;&lt; "," &lt;&lt; cur.vy &lt;&lt; std::endl;
+            return true;
+        }
+
+        int dvx = it-&gt;second.dvx;
+        int dvy = it-&gt;second.dvy;
+        cur.vx += dvx;
+        cur.vy += dvy;
+        cur.px += cur.vx;
+        cur.py += cur.vy;
+        std::cout &lt;&lt; dvx &lt;&lt; " " &lt;&lt; dvy &lt;&lt; std::endl;
+        sol_len++;
+    }
+
+    //std::cerr &lt;&lt; "Score: " &lt;&lt; ((float)sol_len) / target &lt;&lt; std::endl;
+
+    return true;
+}
+
+int main() {
+    /* benchmarking: */
+    //while(solve_one())
+    //    ;
+
+    /* regular running */
+    solve_one();
+    std::string line;
+    while(std::cin) std::getline(std::cin, line);
+
+    return 0;
+}
+</code></pre>
+
+<h2>Results</h2>
+
+<pre><code> No.    Size     Target   Score     Details
+-------------------------------------------------------------------------------------
+  1    37 x 1        36   0.22222   Racer reached goal at ( 36, 0) in 8 turns.
+  2    38 x 1        37   0.24324   Racer reached goal at ( 37, 0) in 9 turns.
+  3    33 x 1        32   0.25000   Racer reached goal at ( 32, 0) in 8 turns.
+  4    10 x 10       10   0.40000   Racer reached goal at ( 7, 7) in 4 turns.
+  5     9 x 6         8   0.37500   Racer reached goal at ( 6, 0) in 3 turns.
+  6    15 x 7        16   0.37500   Racer reached goal at ( 12, 4) in 6 turns.
+  7    17 x 8        16   0.31250   Racer reached goal at ( 15, 0) in 5 turns.
+  8    19 x 13       18   0.27778   Racer reached goal at ( 1, 11) in 5 turns.
+  9    60 x 10      107   0.14953   Racer reached goal at ( 2, 6) in 16 turns.
+ 10    31 x 31      106   0.25472   Racer reached goal at ( 28, 0) in 27 turns.
+ 11    31 x 31      106   0.24528   Racer reached goal at ( 15, 15) in 26 turns.
+ 12    50 x 20       50   0.24000   Racer reached goal at ( 49, 10) in 12 turns.
+ 13   100 x 100    2600   0.01385   Racer reached goal at ( 50, 0) in 36 turns.
+ 14    79 x 63      242   0.26860   Racer reached goal at ( 3, 42) in 65 turns.
+ 15    26 x 1        25   0.32000   Racer reached goal at ( 25, 0) in 8 turns.
+ 16    17 x 1        19   0.52632   Racer reached goal at ( 16, 0) in 10 turns.
+ 17    50 x 1        55   0.34545   Racer reached goal at ( 23, 0) in 19 turns.
+ 18    10 x 7        23   0.34783   Racer reached goal at ( 1, 3) in 8 turns.
+ 19    55 x 55       45   0.17778   Racer reached goal at ( 52, 26) in 8 turns.
+ 20    50 x 50      200   0.05500   Racer reached goal at ( 47, 46) in 11 turns.
+-------------------------------------------------------------------------------------
+TOTAL SCORE:              5.40009
+</code></pre>
+
+<h2><a href="https://github.com/mbuettner/ppcg-vector-racing/blob/master/benchmark.txt#L425">New Testcase</a></h2>
+</div>
+<div id="pu6" class="pu"><h2>RandomRacer, ~40.0 (averaged over 10 runs)</h2>
+
+<p>It's not that this bot <em>never</em> finishes a track, but definitely much less often than once in 10 attempts. (I get a non-worst-case score every 20 to 30 simulations or so.)</p>
+
+<p>This is mostly to act as a baseline case and to demonstrate a possible (Ruby) implementation for a racer:</p>
+
+<pre><code># Parse initial input
+target = gets.to_i
+size = gets.split.map(&amp;:to_i)
+track = []
+size[1].times do
+    track.push gets
+end
+time_budget = gets.to_f
+
+# Find start position
+start_y = track.find_index { |row| row['S'] }
+start_x = track[start_y].index 'S'
+
+position = [start_x, start_y]
+velocity = [0, 0]
+
+while true
+    x = rand(3) - 1
+    y = rand(3) - 1
+    puts [x,y].join ' '
+    $stdout.flush
+
+    first_line = gets
+    break if !first_line || first_line.chomp.empty?
+
+    position = first_line.split.map(&amp;:to_i)
+    velocity = gets.split.map(&amp;:to_i)
+    time_budget = gets.to_f
+end
+</code></pre>
+
+<p>Run it with</p>
+
+<pre><code>ruby controller.rb benchmark.txt ruby randomracer.rb
+</code></pre>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/32622/">32622</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
