@@ -44,20 +44,31 @@
 <p>Deobfuscated:</p>
 <pre class="lang-perl prettyprint-override"><code># Input arrives in $_, pre-trimmed to just digits
 
-# Convert each digit into a pattern of bits corresponding to the
-# segments that are turned on. The order of bits doesn't matter
-# as long as they're consistent, so I've chosen an order that
+# Convert each digit into a pattern of bits corresponding
+# to the segments that are turned on. The order of
+# bits doesn't matter as long as they're
+# consistent, so I've chosen an order that
 # requires the fewest (octal) digits here.
+# (this modifies $_ in-place)
 
-tr/0-9/\167\3\136\37\53\75\175\7\177\77/;  # (this modifies $_ in-place)
+tr/0-9/\167\3\136\37\53\75\175\7\177\77/;
 
-@_ = ($_, &quot;\0$_&quot;);      # make a copy with the starting blank
-                        # included; keep both in the @_ array
+# make a copy with the starting blank included;
+# keep both in the predefined @_ array
 
-for (0,1) {             # iterator is $_
-                        # do the following forwards and backwards
-                        # (segments turned off is simply segments
-                        # turned on when going in reverse)
+@_ = ($_, &quot;\0$_&quot;);
+
+# (Now when we perform bitwise operations on these
+# two values, it will apply the operation to each
+# pair of consecutive bytes.)
+
+# Do the following forwards and backwards to get
+# both the &quot;turned on&quot; and &quot;turned off&quot; counts.
+
+# (Note: loop iterator is $_, since we no longer need
+# it to hold the input.)
+
+for (0,1) {
 
     print unpack &quot;%b*&quot;,  # count &amp; print the bits
                  $_[$_] &amp; ~ $_[!$_]
