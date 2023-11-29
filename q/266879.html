@@ -26,10 +26,137 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>1141</td><td>Python 3.10.9</td><td>231120T083824Z</td><td><a href="https://codegolf.stackexchange.com/questions/266879/bingo-cards-pdf/266925#266925">paki eng</a></td></tr>
-<tr d-ix="1"><td>nan</td><td></td><td>231118T193550Z</td><td><a href="https://codegolf.stackexchange.com/questions/266879/bingo-cards-pdf/266881#266881">doubleun</a></td></tr>
+<tr d-ix="0"><td>380</td><td>Python 3.8 prerelease</td><td>231129T091744Z</td><td><a href="https://codegolf.stackexchange.com/questions/266879/bingo-cards-pdf/267168#267168">SevC_10</a></td></tr>
+<tr d-ix="1"><td>1141</td><td>Python 3.10.9</td><td>231120T083824Z</td><td><a href="https://codegolf.stackexchange.com/questions/266879/bingo-cards-pdf/266925#266925">paki eng</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Python 3.10.9, 1141 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://docs.python.org/3.8/" rel="nofollow noreferrer">Python 3.8 (pre-release)</a>, 380 bytes</h1>
+
+<p>Requires <code>reportlab</code>.
+Install <code>reportlab</code> using <code>pip install reportlab</code>.</p>
+<p>Default A4 pagesize, the margin on the dimensions allows for the rounding on the cards' positions.</p>
+<p>Save the pdf file as &quot;b&quot;.</p>
+<pre class="lang-python prettyprint-override"><code>from reportlab.pdfgen import canvas
+import random
+b=canvas.Canvas('b')
+b.setLineWidth(1)
+b.setFont('Helvetica',20)
+n=list(range(25))
+w=216
+d=43
+for y in(48,313,577):
+ for x in(54,325):
+  random.shuffle(n);b.lines([(x,y,x+w,y),(x,y,x,y+w)])
+  for i in range(25):f,g=x+d*(i%5),y+d*(i//5);b.lines([(x,g+d,x+w,g+d),(f+d,y,f+d,y+w)]);b.drawCentredString(f+22,g+12,str(n[i]+1))
+b.save()
+</code></pre>
+<hr />
+<h1><a href="https://docs.python.org/3.8/" rel="nofollow noreferrer">Python 3.8 (pre-release)</a>, fully parametrized, 551 bytes</h1>
+
+<p>Default A4 pagesize.
+All the dimensions are parametrized:</p>
+<ul>
+<li>font size</li>
+<li>numbers in each card</li>
+<li>number of cards in the page, arranged in rows and columns</li>
+<li>size of card</li>
+</ul>
+<p>Save the pdf file as &quot;b&quot;.</p>
+<pre class="lang-python prettyprint-override"><code>from reportlab.pdfgen import canvas
+from reportlab.lib.units import inch
+import random
+b=canvas.Canvas('b')
+b.setLineWidth(1)
+t=20
+b.setFont('Helvetica',t)
+k=25
+q=int(k**.5)
+n=list(range(k))
+r=3
+c=2
+w=3*inch
+h=3*inch
+d=w/q
+e=h/q
+o=(b._pagesize[0]-w*c)/(c+1)
+v=(b._pagesize[1]-h*r)/(r+1)
+for y in range(r):
+ y=y*(v+h)+v
+ for x in range(c):
+  x=x*(o+w)+o;random.shuffle(n);b.lines([(x,y,x+w,y),(x,y,x,y+h)])
+  for i in range(k):f,g=x+d*(i%q),y+e*(i//q);b.lines([(x,g+e,x+w,g+e),(f+d,y,f+d,y+h)]);b.drawCentredString(f+d/2,g+(e-t)/2,str(n[i]+1))
+b.save()
+</code></pre>
+<hr />
+<p><em>Code with comments</em></p>
+<pre class="lang-python prettyprint-override"><code>from reportlab.pdfgen import canvas
+from reportlab.lib.units import inch
+import random
+
+# pdf canvas, default A4
+b=canvas.Canvas('b')
+b.setLineWidth(1)
+
+t=20
+b.setFont('Helvetica',t)
+
+# numbers in each card
+k=25
+# numbers in cards are arranged in perfect squares
+q=int(k**.5)
+n=list(range(k))
+
+# cards in page, arranged in rows and columns
+r=3
+c=2
+
+# width and height of cards
+w=3*inch
+h=3*inch
+
+# size of cells
+d=w/q
+e=h/q
+
+# spacing between cards
+o=(b._pagesize[0]-w*c)/(c+1)
+v=(b._pagesize[1]-h*r)/(r+1)
+
+# loop on rows in page
+for y in range(r):
+
+    # bottom position of card
+    y=y*(v+h)+v
+
+    # loop on columns in page
+    for x in range(c):
+
+        # left position of card
+        x=x*(o+w)+o
+
+        # randomize numbers
+        random.shuffle(n)
+
+        # draw the bottom and left line of card
+        b.lines([(x,y,x+w,y),(x,y,x,y+h)])
+
+        # loop on numbers
+        for i in range(k):
+
+            # orizontal and vertical position of the lines
+            # as offset from the initial position of the card
+            f,g=x+d*(i%q),y+e*(i//q)
+
+            # draw lines
+            b.lines([(x,g+e,x+w,g+e),(f+d,y,f+d,y+h)])
+
+            # draw number as text, centered in the cell
+            b.drawCentredString(f+d/2,g+(e-t)/2,str(n[i]+1))
+
+# save pdf canvas as file
+b.save()
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>Python 3.10.9, 1141 bytes</h1>
 <p>Install reportlab using <code>pip install reportlab</code></p>
 <pre><code>from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
@@ -55,26 +182,6 @@ for row in range(0, 3):
                 my_canvas.drawCentredString(81.6+colplace+gridplace, 47.6+rowplace+i*43.2, str(a[i+5*grid]))
 my_canvas.save()
 </code></pre>
-</div>
-<div id="pu1" class="pu"><h1>Google Sheets</h1>
-<p>Open a <a href="https://sheets.new/" rel="nofollow noreferrer">blank Google Sheet</a> and put this formula in cell <code>B2</code>:</p>
-<pre><code>=let( 
-  freeze_, lambda(_, _), 
-  card_, lambda(
-    wraprows(sort(sequence(25), randarray(25), true), 5) 
-  ), 
-  h, wraprows(,1,), 
-  v, wrapcols(,2,), 
-  freeze_(ifna(vstack( 
-    hstack(card_(), h, card_()), 
-    v, 
-    hstack(card_(), h, card_()), 
-    v, 
-    hstack(card_(), h, card_())     
-  ))) 
-)
-</code></pre>
-<p>Format the sheet as you like. To download as a PDF file, choose <strong>File &gt; Download</strong>. To get another grid of bingo cards, click the dart ▼ next to <strong>Sheet1</strong> in the tab bar at the bottom of the window and choose <strong>Duplicate</strong>.</p>
 </div>
 
 <table id="st">
