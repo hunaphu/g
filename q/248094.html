@@ -26,7 +26,7 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>096</td><td>Perl</td><td>231128T180101Z</td><td><a href="https://codegolf.stackexchange.com/questions/248094/how-many-light-changes-will-a-7-segment-display-need/267156#267156">Martin K</a></td></tr>
+<tr d-ix="0"><td>096</td><td>Perl 5</td><td>231128T180101Z</td><td><a href="https://codegolf.stackexchange.com/questions/248094/how-many-light-changes-will-a-7-segment-display-need/267156#267156">Martin K</a></td></tr>
 <tr d-ix="1"><td>112</td><td>Python</td><td>220602T155130Z</td><td><a href="https://codegolf.stackexchange.com/questions/248094/how-many-light-changes-will-a-7-segment-display-need/248105#248105">matteo_c</a></td></tr>
 <tr d-ix="2"><td>107</td><td>PARI/GP</td><td>220602T112634Z</td><td><a href="https://codegolf.stackexchange.com/questions/248094/how-many-light-changes-will-a-7-segment-display-need/248096#248096">alephalp</a></td></tr>
 <tr d-ix="3"><td>147</td><td>Rust</td><td>220603T000809Z</td><td><a href="https://codegolf.stackexchange.com/questions/248094/how-many-light-changes-will-a-7-segment-display-need/248129#248129">Aiden4</a></td></tr>
@@ -37,68 +37,39 @@
 <tr d-ix="8"><td>044</td><td>Charcoal</td><td>220602T135239Z</td><td><a href="https://codegolf.stackexchange.com/questions/248094/how-many-light-changes-will-a-7-segment-display-need/248101#248101">Neil</a></td></tr>
 <tr d-ix="9"><td>034</td><td>APL Dyalog Extended</td><td>220602T112045Z</td><td><a href="https://codegolf.stackexchange.com/questions/248094/how-many-light-changes-will-a-7-segment-display-need/248095#248095">Ad&#225;</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Perl, 96 bytes</h1>
-<p><a href="https://tio.run/##DYZdCgIhEICvsolFhYsOokMsQfdoYqgoWFpUzF47epMP30951CWItGrdeLAEEckT@EgeKXjCQNDBbiREO534uNVsFDnNajeVOqc2fFK53l9qfdsro/ms@bL59q76PHMdnAERB/GXS5tzesu4pD8" rel="nofollow noreferrer">try it online</a></p>
+<div id="pu0" class="pu"><h1><a href="https://www.perl.org/" rel="nofollow noreferrer">Perl 5</a>, 96 bytes</h1>
+
 <pre class="lang-perl prettyprint-override"><code>tr/0-9/\167\3\136\37\53\75\175\7\177\77/;@_=($_,&quot;\0$_&quot;);print unpack&quot;%b*&quot;,$_[$_]&amp;~$_[!$_]for 0,1
 </code></pre>
-<p>Deobfuscated:</p>
-<pre class="lang-perl prettyprint-override"><code># Input arrives in $_, pre-trimmed to just digits
-
-# Convert each digit into a pattern of bits corresponding
-# to the segments that are turned on. The order of
-# bits doesn't matter as long as they're
-# consistent, so I've chosen an order that
-# requires the fewest (octal) digits here.
-# (this modifies $_ in-place)
-
-tr/0-9/\167\3\136\37\53\75\175\7\177\77/;
-
-# make a copy with the starting blank included;
-# keep both in the predefined @_ array
-
-@_ = ($_, &quot;\0$_&quot;);
-
-# (Now when we perform bitwise operations on these
-# two values, it will apply the operation to each
-# pair of consecutive bytes.)
-
-# Do the following forwards and backwards to get
-# both the &quot;turned on&quot; and &quot;turned off&quot; counts.
-
-# (Note: loop iterator is $_, since we no longer need
-# it to hold the input.)
-
-for (0,1) {
-
-    print unpack &quot;%b*&quot;,  # count &amp; print the bits
-                 $_[$_] &amp; ~ $_[!$_]
-                        # !$_ changes 0 to 1 and 1 to 0
-                        # (B &amp; ~ A) tells you the bits that aren't
-                        # set in A that are set in B
-
-}
+<p><a href="https://tio.run/##DYbdCsIgFIDv9xRLLCocemZ6NkbQe3RCKgpGQ8XstkfPvPh@4iMtppScpOpGSWCRNIG2pJGMJjQEFaxGQpTTyR233AlGiju2m2KafW4/Pl7vL7a@7Zng7szdZfOtXdV5htQqAaVArxsAaMYBm/5gh1@IeQ7@XbrF/wE" rel="nofollow noreferrer" title="Perl 5 – Try It Online">Try it online!</a></p>
+<h2>Explanation</h2>
+<p>Input arrives in <code>$_</code>, pre-trimmed to just digits</p>
+<p>Convert each digit into a pattern of bits corresponding to the segments that are turned on. The order of bits doesn't matter as long as they're consistent, so this order was chosen so that the whole list is represented with the fewest (octal) digits.</p>
+<p>(<code>tr</code> modifies <code>$_</code> in-place)</p>
+<pre class="lang-perl prettyprint-override"><code>tr/0-9/\167\3\136\37\53\75\175\7\177\77/;
+</code></pre>
+<p>Make a copy with the starting blank included; keep both in the predefined <code>@_</code> array</p>
+<pre class="lang-perl prettyprint-override"><code>@_ = ($_, &quot;\0$_&quot;);
+</code></pre>
+<p>(Now when we perform bitwise operations on these two values, it will apply the operation to each pair of consecutive bytes.)</p>
+<p>Loop (twice) ...</p>
+<pre class="lang-perl prettyprint-override"><code>for 0,1
+</code></pre>
+<p>... to perform the following forwards and backwards, so we get both the &quot;turned on&quot; and &quot;turned off&quot; counts. (Note: loop iterator is <code>$_</code>, which we no longer need it to hold the input.)</p>
+<p>Mask each byte (of the transformed input string) with the &quot;previous&quot; byte, resulting in a string of bytes with bits set indicating change in one direction (which is why we do the whole thing twice):</p>
+<pre class="lang-perl prettyprint-override"><code>$_[$_] &amp; ~ $_[!$_]
+</code></pre>
+<p>(<code>!$_</code> changes 0 to 1 and 1 to 0; <code>(B &amp; ~ A)</code> gives you the bits that aren't set in A that are set in B)</p>
+<p>Count the <code>1</code> bits from the expression above:</p>
+<pre class="lang-perl prettyprint-override"><code>unpack &quot;%b*&quot;,
+</code></pre>
+<p>Output the result:</p>
+<pre class="lang-perl prettyprint-override"><code>print
 </code></pre>
 <p>Invoke Perl with the <code>-l</code> and <code>-n</code> options, for example, as:</p>
 <pre class="lang-bash prettyprint-override"><code>perl -ln -e '«program here»' &lt;&lt;&lt;'«input here»'
 </code></pre>
-<p>Each line of input is treated as a separate test case; after each test two lines are output, with the &quot;turn on&quot; and &quot;turn off&quot; counts:</p>
-<pre class="lang-bash prettyprint-override"><code>$ perl -lne '
-    tr/0-9/\167\3\136\37\53\75\175\7\177\77/;@_=($_,&quot;\0$_&quot;);print unpack&quot;%b*&quot;,$_[$_]&amp;~$_[!$_]for 0,1
-' &lt;&lt;EndOfInput
-123
-111
-987
-2468
-EndOfInput
-7
-2
-2
-0
-7
-4
-11
-4
-</code></pre>
+<p>Each line of input is treated as a separate test case; after each test, the &quot;turn on&quot; and &quot;turn off&quot; counts are output on two separate lines.</p>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, <s>116</s> 112 bytes</h1>
 <p><em>-4 bytes thanks to <a href="https://codegolf.stackexchange.com/users/52210/kevin-cruijssen">@Kevin Cruijssen</a></em></p>
