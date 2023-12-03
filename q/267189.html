@@ -47,7 +47,15 @@ Stop this program at any time to terminate the Web Server.
 Web Server stopped.
 </code></pre>
 <p>Depending on your definition of &quot;standard library&quot;, <code>web-server/insta</code> might be part of Racket's standard library. It is included in the &quot;main distribution&quot; you'd download from <a href="https://download.racket-lang.org" rel="nofollow noreferrer">https://download.racket-lang.org</a>.</p>
-<h2>With <code>text/plain</code>, 263 bytes</h2>
+<h2>HTTPS Only, 241 bytes</h2>
+<pre class="lang-scheme prettyprint-override"><code>#lang web-server (define-syntax-rule(S s)(s'(S s)))(S (λ (s) (local-require web-server/servlet-env) (serve/servlet (λ r (response/xexpr (~a &quot;#lang web-server (define-syntax-rule(S s)(s'(S s)))&quot; (~s s)))) #:ssl? #t #:server-root-path &quot;.&quot;)))
+</code></pre>
+<p>This uses <code>server-cert.pem</code> and <code>private-key.pem</code> from the current directory. It serves on <code>https://localhost:8000/servlets/standalone.rkt</code>.</p>
+<h2>HTTP→HTTPS, 356 bytes</h2>
+<pre class="lang-scheme prettyprint-override"><code>#lang web-server (define-syntax-rule(S s)(s'(S s)))(S (λ (s) (local-require web-server/servlet-env) (thread (λ () (serve/servlet (λ r (redirect-to &quot;https://localhost:8443/servlets/standalone.rkt&quot;))))) (serve/servlet (λ r (response/xexpr (~a &quot;#lang web-server (define-syntax-rule(S s)(s'(S s)))&quot; (~s s)))) #:port 8443 #:ssl? #t #:server-root-path &quot;.&quot;)))
+</code></pre>
+<p>Same certificate configuration as above, but listens on <code>http://localhost:8000/servlets/standalone.rkt</code> and <code>https://localhost:8443/servlets/standalone.rkt</code>.</p>
+<h2>Original: With <code>text/plain</code>, 263 bytes</h2>
 <pre class="lang-scheme prettyprint-override"><code>#lang web-server/insta (define-syntax-rule (S n f) (define n (f '(S n f)))) (S start (λ (s) (λ r (response/output #:mime-type #&quot;text/plain;charset=utf-8&quot; (λ (o) (fprintf o &quot;#lang web-server/insta (define-syntax-rule (S n f) (define n (f '(S n f)))) ~s&quot; s))))))
 </code></pre>
 </div>
