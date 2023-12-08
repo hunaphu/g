@@ -26,18 +26,42 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>063</td><td>Charcoal</td><td>231208T012321Z</td><td><a href="https://codegolf.stackexchange.com/questions/267348/compute-probability-of-seeing-all-the-balls/267359#267359">Neil</a></td></tr>
-<tr d-ix="1"><td>091</td><td>R</td><td>231207T135416Z</td><td><a href="https://codegolf.stackexchange.com/questions/267348/compute-probability-of-seeing-all-the-balls/267353#267353">Evargalo</a></td></tr>
-<tr d-ix="2"><td>054</td><td>PARI/GP</td><td>231207T161011Z</td><td><a href="https://codegolf.stackexchange.com/questions/267348/compute-probability-of-seeing-all-the-balls/267356#267356">alephalp</a></td></tr>
-<tr d-ix="3"><td>081</td><td>JavaScript ES6</td><td>231207T141430Z</td><td><a href="https://codegolf.stackexchange.com/questions/267348/compute-probability-of-seeing-all-the-balls/267355#267355">Arnauld</a></td></tr>
+<tr d-ix="0"><td>081</td><td>JavaScript ES6</td><td>231207T141430Z</td><td><a href="https://codegolf.stackexchange.com/questions/267348/compute-probability-of-seeing-all-the-balls/267355#267355">Arnauld</a></td></tr>
+<tr d-ix="1"><td>063</td><td>Charcoal</td><td>231208T012321Z</td><td><a href="https://codegolf.stackexchange.com/questions/267348/compute-probability-of-seeing-all-the-balls/267359#267359">Neil</a></td></tr>
+<tr d-ix="2"><td>091</td><td>R</td><td>231207T135416Z</td><td><a href="https://codegolf.stackexchange.com/questions/267348/compute-probability-of-seeing-all-the-balls/267353#267353">Evargalo</a></td></tr>
+<tr d-ix="3"><td>054</td><td>PARI/GP</td><td>231207T161011Z</td><td><a href="https://codegolf.stackexchange.com/questions/267348/compute-probability-of-seeing-all-the-balls/267356#267356">alephalp</a></td></tr>
 <tr d-ix="4"><td>094</td><td>Python</td><td>231207T115543Z</td><td><a href="https://codegolf.stackexchange.com/questions/267348/compute-probability-of-seeing-all-the-balls/267351#267351">ovs</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 63 bytes</h1>
+<div id="pu0" class="pu"><h1>JavaScript (ES6), 81 bytes</h1>
+<p>This is based on <a href="https://codegolf.stackexchange.com/a/267351/58563">ovs' answer</a>.</p>
+<p>Returns <code>[numerator, denominator]</code>.</p>
+
+<pre class="lang-javascript prettyprint-override"><code>f=(x,d=0,q)=&gt;[P=x?d*f(d&gt;1&amp;&amp;x,d-1)[0]*f(x-1,d+1,q=Q)[1]+x*P*q:d&gt;0,Q=x?(d+x)*q*Q:1]
+</code></pre>
+<p><a href="https://tio.run/##ZctLCsMgEADQfQ8SHD/FabsKaK4Q1@IiZGJpCbE2oXh767Z0@@A9p8@0z@/H61BboqXWaFiRZLTMYKwfTRmIR0YWu665QvA6NCgKJQmU2TjwGEThI889WS1dK4xEAZ656zHUOW17Wpfzmu4ssgvA6Veuf3IDqF8" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<p>Or with some post-processing to get the simplified fractions: <a href="https://tio.run/##bcsxD4IwEIbhnV9xi6RXilJ1IimMrDA3HQoFoiGUijH991hcHHS44Xvy3l2/9No9bsszna3pt20QxDMjMuZQFLIWvjR0IKbgcRw85SgzFcCnnJmEMycalFwlntbU5abIWBNeiEk8UkebnKutAgFEM2gRRAEtlFCRloGGw0456GjcC7kwcOrTSFjgFKpdMNx3gIqizs6rnfrjZEcykoGcEfEHL//wGnB7Aw" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<h3>Method</h3>
+<p>Since we don't have native fraction support, we have to compute:</p>
+<p><span class="math-container">$$\left(\frac{d\cdot p_0}{q_0}+\frac{x\cdot p_1}{q_1}\right)/(d+x)=\frac{d\cdot p_0\cdot q_1+x\cdot p_1\cdot q_0}{q_0\cdot q_1(d+x)}$$</span></p>
+<p>where <span class="math-container">\$(p_0,q_0)\$</span> are given by a first recursive call and <span class="math-container">\$(p_1,q_1)\$</span> are given by a second recursive call.</p>
+<p>In the JS implementation, we save the numerator and denominator computed by the last call into <code>P</code> and <code>Q</code> respectively.</p>
+<p>This allows us to compute the new numerator as:</p>
+<pre class="lang-javascript prettyprint-override"><code>P = d * f(...)[0]   *   f(..., q = Q)[1] + x * P * q
+//      \_______/       \______________/       |   |
+//   [p0, q0][0] = p0   [p1, q1][1] = q1       p1  q0
+</code></pre>
+<p>and the new denominator as:</p>
+<pre class="lang-javascript prettyprint-override"><code>Q = (d + x) * q * Q
+//            |   |
+//            q0  q1
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 63 bytes</h1>
 <pre><code>Ｎθ⊞υ¹Ｆθ«≔⟦⟧ηＦ⁻θι⊞η▷”V5⊘？º≦kgmＥ\0⦃W‹”⟦⁺∧⊖κ×κ↨η⁰×⊕ι§υ⊕κ⁺⊕ικ⟧≔ηυ»υ
 </code></pre>
 <p><a href="https://ato.pxeger.com/run?1=XVDBSsUwEMTj69UfWHpKIE8UPAieKir0oPQgXkoPabq1oWnqyyYPQfwSL09Q9Jv8GtNaVLzNzuzs7O7zh-qkU6M0u91b8O365HNvP7f3wV-HoUbHNvw0KQJ1LAg4irgdHUQSHpNVRqTvLCsrAV1UVrN0pW0gthGgOYfZ2Am42EoTpMdb6bSsDbK0dVJ5PVo6uFxQKqAsTPRmtmHnqBwOaD02rOcCbvSAxHoBZ5JwmnjI-Q-d299mHdnM57bBh2njv1LPZ8-c8d_S84pPJywnxYAQy6ekcNp6FvEr1YqWD72X6Xpr0url-Lv-Ag" rel="nofollow noreferrer">Attempt This Online!</a> Link is to verbose version of code. Explanation: Another port of @ovs' Python answer, except using dynamic programming instead of recursion and I also replace <code>d*P((d&gt;1)*x,d-1)</code> with <code>(d-1 and d*P(x,d-1))</code> as that way I can make <code>P(0,d)=1</code>. I wanted to remove the dependence on <code>fractions.Fraction</code> as even compressed that takes up 17 bytes but I'm too tired to understand @Arnauld's answer.</p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://www.r-project.org/" rel="nofollow noreferrer">R</a>, <s>110</s> <s>100</s> <s>95</s> <s>93</s> 91 bytes</h1>
+<div id="pu2" class="pu"><h1><a href="https://www.r-project.org/" rel="nofollow noreferrer">R</a>, <s>110</s> <s>100</s> <s>95</s> <s>93</s> 91 bytes</h1>
 
 <pre class="lang-r prettyprint-override"><code>p=\(y,s=1)`if`(y,`if`(s,(y*p(y-1,s+1)+s*p(y,s-1))/(y+s),0),1)
 f=\(x)MASS::fractions(p(x-1))
@@ -46,20 +70,11 @@ f=\(x)MASS::fractions(p(x-1))
 <p>s is the number of balls seen exactly once.</p>
 <p>y is the number of balls never seen.</p>
 </div>
-<div id="pu2" class="pu"><h1><a href="https://pari.math.u-bordeaux.fr" rel="nofollow noreferrer">PARI/GP</a>, 54 bytes</h1>
+<div id="pu3" class="pu"><h1><a href="https://pari.math.u-bordeaux.fr" rel="nofollow noreferrer">PARI/GP</a>, 54 bytes</h1>
 <pre><code>p(x,d)=if(x,(d*p((d&gt;1)*x,d-1)+x*p(x-1,d+1))/(d+x),d,1)
 </code></pre>
 <p><a href="https://ato.pxeger.com/run?1=m728ILEoMz69YMGCpaUlaboWN80KNCp0UjRtM9OAtEaKVoGGRoqdoaYWUFDXUFO7AihQoWuok6JtqKmpr5GiXaGpk6JjqAnVrZyWX6RRoWCrYKSjYKqjUFCUmVcC5Csp6NoBCaBWTU2oUpiFAA" rel="nofollow noreferrer">Attempt This Online!</a></p>
 <p>A port of <a href="https://codegolf.stackexchange.com/a/267351/9288">@ovs's Python answer</a>.</p>
-</div>
-<div id="pu3" class="pu"><h1>JavaScript (ES6), 81 bytes</h1>
-<p>This is based on <a href="https://codegolf.stackexchange.com/a/267351/58563">ovs' answer</a>.</p>
-<p>Returns <code>[numerator, denominator]</code>.</p>
-
-<pre class="lang-javascript prettyprint-override"><code>f=(x,d=0,q)=&gt;[P=x?d*f(d&gt;1&amp;&amp;x,d-1)[0]*f(x-1,d+1,q=Q)[1]+x*P*q:d&gt;0,Q=x?(d+x)*q*Q:1]
-</code></pre>
-<p><a href="https://tio.run/##ZctLCsMgEADQfQ8SHD/FabsKaK4Q1@IiZGJpCbE2oXh767Z0@@A9p8@0z@/H61BboqXWaFiRZLTMYKwfTRmIR0YWu665QvA6NCgKJQmU2TjwGEThI889WS1dK4xEAZ656zHUOW17Wpfzmu4ssgvA6Veuf3IDqF8" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
-<p>Or with some post-processing to get the simplified fractions: <a href="https://tio.run/##bcsxD4IwEIbhnV9xi6RXilJ1IimMrDA3HQoFoiGUijH991hcHHS44Xvy3l2/9No9bsszna3pt20QxDMjMuZQFLIWvjR0IKbgcRw85SgzFcCnnJmEMycalFwlntbU5abIWBNeiEk8UkebnKutAgFEM2gRRAEtlFCRloGGw0456GjcC7kwcOrTSFjgFKpdMNx3gIqizs6rnfrjZEcykoGcEfEHL//wGnB7Aw" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
 </div>
 <div id="pu4" class="pu"><h1><a href="https://www.python.org" rel="noreferrer">Python</a>, <s>100</s> 94 bytes</h1>
 <pre class="lang-python prettyprint-override"><code>from fractions import*
