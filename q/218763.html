@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::218763</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>055</td><td>Z80</td><td>210614T061232Z</td><td><a href="https://codegolf.stackexchange.com/questions/218763/golf-this-thumb-2-constant/229622#229622">NoLonger</a></td></tr>
+<tr d-ix="1"><td>9624</td><td>MMIX</td><td>210614T005704Z</td><td><a href="https://codegolf.stackexchange.com/questions/218763/golf-this-thumb-2-constant/229604#229604">NoLonger</a></td></tr>
+<tr d-ix="2"><td>057</td><td>JavaScript ES6</td><td>210208T145149Z</td><td><a href="https://codegolf.stackexchange.com/questions/218763/golf-this-thumb-2-constant/218764#218764">Arnauld</a></td></tr>
+<tr d-ix="3"><td>072</td><td>C gcc</td><td>210208T162157Z</td><td><a href="https://codegolf.stackexchange.com/questions/218763/golf-this-thumb-2-constant/218770#218770">Noodle9</a></td></tr>
+<tr d-ix="4"><td>056</td><td>Charcoal</td><td>210208T235640Z</td><td><a href="https://codegolf.stackexchange.com/questions/218763/golf-this-thumb-2-constant/218790#218790">Neil</a></td></tr>
+<tr d-ix="5"><td>029</td><td>Jelly</td><td>210208T160934Z</td><td><a href="https://codegolf.stackexchange.com/questions/218763/golf-this-thumb-2-constant/218769#218769">xigoi</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>Z80, <s>59</s> 55 bytes</h1>
+<p>Input value in <code>dehl</code>. Output in <code>c</code>, 0, 1, 2, 3, 4 for <code>ldr</code>, <code>mvn</code>, <code>mov</code>, <code>movw</code>, <code>movs</code> respectively.<br />
+Trashes <code>b</code> and <code>a</code>.
+This is indeed rather silly.</p>
+<pre><code>0E 03 7C B7 20 01 0C 7B
+B2 C8 AF 4F 3C F5 7A 2F
+57 7B 2F 5F 7C 2F 67 7D
+2F 6F 06 20 7A 17 CB 15
+CB 14 CB 13 CB 12 7C B3
+B2 20 03 F1 4F F5 10 EC
+F1 D8 37 3C F5 18 D7
+</code></pre>
+<pre><code>foo:
+  ld c,3                // 0E 03    we might want to return 3
+  ld a,h                // 7C       is h zero?
+  or a                  // B7       the test
+  jr nz,hnz             // 20 01    if so,
+  inc c                 // 0C       increment c
+hnz:                    //          in any case,
+  ld a,e                // 7B       load e
+  or d                  // B2       or in d
+  ret z                 // C8       if both zero return
+  xor a                 // AF       clear a and carry
+  ld c,a                // 4F       and c
+  inc a                 // 3C       actually, set a to 1
+  push af               // F5       store a and carry
+subr:
+  ld a,d                // 7A       complement dehl
+  cpl                   // 2F
+  ld d,a                // 57
+  ld a,e                // 7B
+  cpl                   // 2F
+  ld e,a                // 5F
+  ld a,h                // 7C
+  cpl                   // 2F
+  ld h,a                // 67
+  ld a,l                // 7D
+  cpl                   // 2F
+  ld l,a                // 6F
+  ld b,32               // 06 20    do the following 32 times:
+loop:
+  ld a,d                // 7A       load D into A
+  rla                   // 17       move top bit of A into C flag
+  rl l                  // CB 15    do the rest of
+  rl h                  // CB 14    the left rotation
+  rl e                  // CB 13
+  rl d                  // CB 12
+  ld a,h                // 7C       or together
+  or e                  // B3       the top three
+  or d                  // B2       bytes;
+  jr nz,nofit           // 20 03    if all zero,
+  pop af                // F1       reload old af
+  ld c,a                // 4F       load c
+  push af               // F5       push it back
+nofit:                  //          in any case
+  djnz loop             // 10 EC    end loop
+  pop af                // F1       reload old af
+  ret c                 // D8       return if second time
+  scf                   // 37       marker for second time
+  inc a                 // 3C       and increment a
+  push af               // F5       push those back
+  jr subr               // 18 D7    and try again with complement
+</code></pre>
+<p>Bonus: another version that also checks for the weird constants, in 75 bytes. (Inserted region between »German guillemets«, changed byte in *stars*).</p>
+<pre><code>0E 03 7C B7 20 01 0C 7B
+B2 C8 AF 4F 3C F5 7A 2F
+57 7B 2F 5F 7C 2F 67 7D
+2F 6F»AB 20 11 7C AA 20
+0D AC 28 07 AD 28 04 7D
+B7 20 03 F1 4F F5«06 20
+7A 17 CB 15 CB 14 CB 13
+CB 12 7C B3 B2 20 03 F1
+4F F5 10 EC F1 D8 37 3C
+F5 18*C3*
+</code></pre>
+<pre><code>foo:
+  ld c,3                // 0E 03    we might want to return 3
+  ld a,h                // 7C       is h zero?
+  or a                  // B7       the test
+  jr nz,hnz             // 20 01    if so,
+  inc c                 // 0C       increment c
+hnz:                    //          in any case,
+  ld a,e                // 7B       load e
+  or d                  // B2       or in d
+  ret z                 // C8       if both zero return
+  xor a                 // AF       clear a and carry
+  ld c,a                // 4F       and c
+  inc a                 // 3C       actually, set a to 1
+  push af               // F5       store a and carry
+subr:
+  ld a,d                // 7A       complement dehl
+  cpl                   // 2F
+  ld d,a                // 57
+  ld a,e                // 7B
+  cpl                   // 2F
+  ld e,a                // 5F
+  ld a,h                // 7C
+  cpl                   // 2F
+  ld h,a                // 67
+  ld a,l                // 7D
+  cpl                   // 2F
+  ld l,a                // 6F
+// begin insert
+  xor e                 // AB       check for e=l
+  jr nz,stlp            // 20 11    if not, skip to loop
+  ld a,h                // 7C
+  xor d                 // AA       check for d=h
+  jr nz,stlp            // 20 0D    if not, skip to loop
+  xor h                 // AC       check for h=0 (a 0 already)
+  jr z,succ             // 28 07    if so, skip to succ
+  xor l                 // AD       check for h=l
+  jr z,succ             // 28 04    if so, skip to succ
+  ld a,l                // 7D
+  or a                  // B7       check for l=0
+  jr nz,stlp            // 20 03    if not, skip to loop
+succ:
+  pop af                // F1       reload old af
+  ld c,a                // 4F       load c
+  push af               // F5       push it back
+stlp:
+// end insert
+  ld b,32               // 06 20    do the following 32 times:
+loop:
+  ld a,d                // 7A       load D into A
+  rla                   // 17       move top bit of A into C flag
+  rl l                  // CB 15    do the rest of
+  rl h                  // CB 14    the left rotation
+  rl e                  // CB 13
+  rl d                  // CB 12
+  ld a,h                // 7C       or together
+  or e                  // B3       the top three
+  or d                  // B2       bytes;
+  jr nz,nofit           // 20 03    if all zero,
+  pop af                // F1       reload old af
+  ld c,a                // 4F       load c
+  push af               // F5       push it back
+nofit:                  //          in any case
+  djnz loop             // 10 EC    end loop
+  pop af                // F1       reload old af
+  ret c                 // D8       return if second time
+  scf                   // 37       marker for second time
+  inc a                 // 3C       and increment a
+  push af               // F5       push those back
+  jr subr               // 18 C3    and try again with complement
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>MMIX, 96 bytes (24 instrs)</h1>
+<p>Returns 8 for <code>movs</code>, else is a bitfield (1 for <code>mov</code>, 2 for <code>mvn</code>, 4 for <code>movw</code>). 0 is thus for <code>ldr</code>.</p>
+<p>I'm fairly certain that this can never return 6 or 7.</p>
+<pre><code>00000000: 3fff0008 4aff0003 e3010008 f8020000  ?”¡®J”¡¤ẉ¢¡®ẏ£¡¡
+00000010: 3fffff08 7301ff04 cf040000 e3050000  ?””®s¢”¥Ẇ¥¡¡ẉ¦¡¡
+00000020: fe020004 f2030003 f6040002 28010301  “£¡¥ṗ¤¡¤ẇ¥¡£(¢¤¢
+00000030: 3b030020 e3020000 e3040020 27040401  ;¤¡ ẉ£¡¡ẉ¥¡ '¥¥¢
+00000040: 3fff0338 6302ff01 3bff031f 3f030301  ?”¤8c£”¢;”¤þ?¤¤¢
+00000050: c00303ff 5b04fffa c0010102 f8020000  Ċ¤¤”[¥”«Ċ¢¢£ẏ£¡¡
+</code></pre>
+<pre><code>gt2     SRU   $255,$0,8
+        BNZ   $255,0F               // if(!(n &gt;&gt; 8))
+        SET   $1,8
+        POP   2,0                   // return 8; (movs)
+0H      SRU   $255,$255,8
+        ZSZ   $1,$255,4             // rv = !(n &gt;&gt; 16) &lt;&lt; 2
+        NXOR  $4,$0,0               // y = ~n
+        SET   $5,0
+        GET   $2,rJ
+        PUSHJ $3,0F                 // q = f(y, 0)
+        PUT   rJ,$2
+        2ADDU $1,$3,$1              // rv = rv + q * 2
+0H      SLU   $3,$0,32              // f(n, rv): y = n &lt;&lt; 32
+        SET   $2,0                  // q = 0
+        SET   $4,32                 // i = 32
+0H      SUBU  $4,$4,1               // loop: i--
+        SRU   $255,$3,56
+        CSZ   $2,$255,1             // if(!(y &gt;&gt; 56)) q = 1
+        SLU   $255,$3,31
+        SRU   $3,$3,1
+        OR    $3,$3,$255            // y = (y &gt;&gt; 1) | (y &lt;&lt; 31)
+        PBNZ  $4,0B                 // if(i) goto loop
+        OR    $1,$1,$2              // rv |= q
+        POP   2,0                   // return(rv)
+</code></pre>
+<p>To also support the weird versions of <code>mov</code> and <code>movn</code>, replace <code>SET $2,0</code> (<code>E3020000</code>, <code>ṭ£¡¡</code>) with the following, at a cost of 40 bytes/10 instructions:</p>
+<pre><code>    SRU  $255,$0,16     // ?”¡Ñ t = n &gt;&gt; 16
+    XOR  $255,$255,$0   // İ””¡ t ^= n
+    SLU  $255,$255,48   // ;””0 t &lt;&lt;= 48
+    ZSZ  $4,$255,1      // s¥”¢ i = !t (test for top-equals-bottom)
+    SLU  $255,$3,24     // ;”¤ð t = y &lt;&lt; 24
+    ZSZ  $1,$255,$4     // r¢”¥ q = t? 0 : i (test for low-bytes-zero)
+    XOR  $255,$255,$3   // İ””¤ t ^= y
+    SRU  $255,$255,56   // ?””8 t &gt;&gt;= 56
+    CSZ  $1,$255,$4     // b¢”¥ if(!t) q = i (test for all-bytes-equal)
+    SRU  $255,$3,56     // ?”¤8 t = y &gt;&gt; 56
+    CSZ  $1,$255,$4     // b¢”¥ if(!t) q = i (test for high-bytes-zero)
+</code></pre>
+</div>
+<div id="pu2" class="pu"><h1>JavaScript (ES6), 57 bytes</h1>
+<p>Returns <strong>false</strong> for &quot;mov&quot;, <strong>true</strong> for &quot;movs&quot;, <strong>2</strong> for &quot;ldr&quot;, <strong>3</strong> for &quot;mvn&quot; or <strong>4</strong> for &quot;movw&quot;.</p>
+
+<pre class="lang-javascript prettyprint-override"><code>f=(n,r)=&gt;n&gt;&gt;8?~n&gt;&gt;8?r&gt;31?n&gt;&gt;16?2:4:f(n&gt;&gt;&gt;31|n*2,-~r):3:!r
+</code></pre>
+<p><a href="https://tio.run/##dVDBboMwDL33KzwuTTbakoQxhASc9hXTDqgh0yYWqsBg0rb@OnNaSksLkZLY78l@z/7ImqzamvddvdKlzLtOxUS7hsaJTpIw3R9ekwiWYsSClEd@pAjGCP3qe@6u9oZGIrozXZ1XNcSgIU5gW@qqLPJ1Ub4RQkxeIYFllMIDLJd0vcvks5YksLlDHHzJD6isqPIInM@ycVyozVefVJhxDAtpMBIWbDRG/pFuHfijL6jxaptRhy4W1grxvr3@UNhswDYaE0zMEErdEIwL/zF4Cg8EGhkKuBhJnHDVnyPe6LPAHI5@@LkPlMZ@7aDPwkmd8GrE0SBsvt9hTM@TJ769MC7klEEht5OD9iubMmBL5g1wpkTf73Kh1jXea9wubdBHvPsH" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<h3>Commented</h3>
+<pre class="lang-javascript prettyprint-override"><code>f = (              // f is a recursive function taking:
+  n,               //   n = input
+  r                //   r = rotation counter, initially undefined
+) =&gt;               //
+  n &gt;&gt; 8 ?         // if some of the upper 24 bits of n are not 0's:
+    ~n &gt;&gt; 8 ?      //   if some of the upper 24 bits of n are not 1's:
+      r &gt; 31 ?     //     if the input was rotated 32 times (which means
+                   //     that we've tried all possible rotations and we
+                   //     are back to the original value):
+        n &gt;&gt; 16 ?  //       if some of the upper 16 bits of n are not 0's:
+          2        //         return 2 for &quot;ldr&quot;
+        :          //       else:
+          4        //         return 4 for &quot;movw&quot;
+      :            //     else:
+        f(         //       do a recursive call:
+          n &gt;&gt;&gt; 31 //         rotate n by 1 position to the left
+          | n * 2, //
+          -~r      //         increment r
+        )          //       end of recursive call
+    :              //   else:
+      3            //     return 3 for &quot;mvn&quot;
+  :                // else:
+    !r             //   return true for &quot;movs&quot; if r is zero'ish
+                   //   or false for &quot;mov&quot; if r is greater than 0
+</code></pre>
+</div>
+<div id="pu3" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C (gcc)</a>, <sup><s>105</s> <span class="math-container">\$\cdots\$</span><s>73</s></sup> 72 bytes</h1>
+<p>Saved 15 bytes thanks to <a href="https://codegolf.stackexchange.com/users/94093/easyaspi">EasyasPi</a>!!!<br />
+Saved <s>3</s> 4 bytes thanks to <a href="https://codegolf.stackexchange.com/users/52904/ceilingcat">ceilingcat</a>!!!</p>
+
+<pre class="lang-c prettyprint-override"><code>i;z;f(n){for(i=0;z=n&gt;&gt;8,i++&lt;32&amp;&amp;z&amp;&amp;~z;)n=n*2|n&lt;0;i=z?~z?z&gt;&gt;8?4:3:2:i&gt;1;}
+</code></pre>
+<p><a href="https://tio.run/##bVJRb8IgEH7fryBNbKrWjBbdOrH6sOxt/8A2i6F0kk00pVNSV/@6A0q1biPhjvvu4447jozeCTmfGa5w7vH@Md8WHoshrmI@n0c@Gw5nKHTdynVPFe7zmA/Cbz6DmMXV4lQtKkVajKdoGk7ZPMD1ebNi3Osf74BajJdgs90LEAOIuwhQSNBB9lwj4Q3noBB0RT6zQnPGDULWq2KgcFEWX6RkWy6WqfIeHZ3O8YHWRu25tQ5aqyBOfY1ZUlG@8WUavzoJTGSAEpnnSodoPHl4jBIZIqiXhpvVnjRJ40EQWUajDWYuQJgZMsoMHWXERmpoFlIpghzZW4FNpP3O9ZVU7igpadZUqAv0QVeqoszR131shTH/iMP/bhOhFXWnw2RNyQctbG8T@RIm8ulZ7YnuZsdGbVvN@KhHM55RqcbI6JlgFd3ml0ruG3vQ2ng4NDw7NpfvUVntFxl3im/ceqxyr@zfolShl479vrYrFCX3HCh7MJJgNAe90ViAnkj0mJT@7USJ1AdtB0Qc09Smqu/q8w8" rel="nofollow noreferrer" title="C (gcc) – Try It Online">Try it online!</a></p>
+<p>Returns <span class="math-container">\$0,1,2,3,4\$</span> for <code>movs</code>, <code>mov</code>, <code>mvn</code>, <code>movw</code>, <code>ldr</code>.</p>
+<h3>Explanation (before some golfs)</h3>
+<pre class="lang-c prettyprint-override"><code>i;f(n){                         // function taking a 32 bit parameter n  
+       for(i=0;i++&lt;32           // loop for maximum of 32 times  
+               &amp;&amp;n&gt;&gt;8           // while there's set bits in the 24 msb  
+               &amp;&amp;~n&gt;&gt;8;)        // and in the 24 msb of n's 1s compliment   
+           n=n*2|n&lt;0;           // rotate n 1 bit to the left  
+       i=                       // return:  
+         n&gt;&gt;8?~n&gt;&gt;8?            // if these are still truth values then we   
+                                // must have rotated n 32 times   
+                    n&gt;&gt;16?      // does the original n have set bits in the 
+                                // 16 msb?   
+                          4:    // ldr if it does   
+                          3:    // movw if it doesn't.  
+                                // the ones below are because we stopped  
+                                // looping when we found no/all 1 bits in  
+                                // the 24 msb
+                          2:    // mvn if all 24 msb are set in the   
+                                // current of a rotation of n    
+                          i&gt;1;  // mov if there's no set bits in the 24 msb 
+                                // of the current rotation of n   
+                                // movs if there's no set bit in the 24 msb    
+}                               // of n at the start.
+</code></pre>
+</div>
+<div id="pu4" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 56 bytes</h1>
+<pre><code>≔⍘×⊕Ｘ²¦³²Ｎ²θ¿‹Ｌθ⁴¹movs¿‹Ｌθ⁴⁹movw¿№θ×0²⁴mov¿№θ×1²⁴mvn¦ldr
+</code></pre>
+<p><a href="https://tio.run/##fY5NC8IwDIbv/oqyUwsT9nURT@ppIDLQm3iYW9wKXeeabvPf1wxFGIqBBPrwvEmLOjdFmyvnNoiy0nybIxytkbriJ9kA8lQXBhrQFkqetSMYHvksjoTwWarvvT30zZXg9I6oO7FeyBvje0CkoStb8454EgrBMtprude0A3rkgUJgP@XVTB5n8q7tiXc@e/3PCzy6nIhZ4m8g/AoM@hN4I1UaQs6dg0cUJ8FUF7cc1BM" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code. Explanation:</p>
+<pre><code>≔⍘×⊕Ｘ²¦³²Ｎ²θ
+</code></pre>
+<p>Input the integer, multiply it by 2³²+1, and convert to binary.</p>
+<pre><code>¿‹Ｌθ⁴¹movs
+</code></pre>
+<p>If the length is less than 41, then the original number had 8 bits or fewer, so a <code>movs</code> instruction will work.</p>
+<pre><code>¿‹Ｌθ⁴⁹movw
+</code></pre>
+<p>Otherwise if the length is less than 49, then the original number had 16 bits or fewer, so a <code>movw</code> instruction will work.</p>
+<pre><code>¿№θ×0²⁴mov
+</code></pre>
+<p>Otherwise if the binary contains a string of 24 <code>0</code>s, then they can be rotated to the beginning of the original number, so a <code>mov</code> instruction will work.</p>
+<pre><code>¿№θ×1²⁴mvn
+</code></pre>
+<p>Otherwise if the binary contains a string of 24 <code>1</code>s, then they can be rotated to the beginning of the original number, so a <code>mvn</code> instruction will work.</p>
+<pre><code>¦ldr
+</code></pre>
+<p>Otherwise give up and use <code>ldr</code>.</p>
+<p>This challenge reminds me of the difficulty of loading immediate values using original ARM instructions, so I wrote a 32-byte program that identifies values that can be loaded into a register via <code>mov</code> or <code>mvn</code>:</p>
+<pre><code>≔⍘×⊕Ｘ²¦³²Ｎ⁴θ¿№θ×0¹²mov¿№θ×3¹²mvn
+</code></pre>
+<p><a href="https://tio.run/##bYwxC8IwFIR3f8Uj0wtEiK2bkwpCFynoJg61PjXQvNgkrf77GHXUgxvuuO/aW@Nb13QpLUMwV8ZVE2gXveEr7o2lgBW3nixxpDPW7kEeCwVlIaWCiu9D3A72lMt3nmf3cjExF8C1Gzhir@D7IrRQMMuUhDqfRxTWjSJvqQsE/4DyBxg5Aykd9FNvPtLHNB27Fw" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code. Outputs <code>mov</code> if the value can be used directly as an immediate operand, or <code>mvn</code> if you can at least load it into a register.</p>
+</div>
+<div id="pu5" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 29 bytes</h1>
+<pre><code>+Ø%BḊ¹¬ƭṙJ$Ḅ&lt;⁹Ẹ
+⁹²&gt;;Ç;Ç;&lt;⁹$TṀ
+</code></pre>
+<p><a href="https://tio.run/##y0rNyan8/1/78AxVp4c7ug7tPLTm2NqHO2d6qTzc0WLzqHHnw107uIDUoU121ofbQQgkqBLycGfD/8Ptj5rWPNzd/ahhTm5@WTmEApFleRB2MZDKSSl61DA38v//aC6DCgMo0IGzDY0R7LQ0ENvQyNjE1MzcAixuZAxXnwYFEPXIbKApRhA1hoYWcPUW6HYZIthpBgYpUDONU2DmGKckw@2COgimHiQFYRsZphnDzDEEGwpzG0RvLAA" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></p>
+<p>Returns 0, 1, 2, 3, 4 respectively for <code>ldr</code>, <code>movw</code>, <code>mov</code>, <code>mvn</code> and <code>movs</code>. Probably could be improved.</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/218763/">218763</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
