@@ -428,7 +428,41 @@ type M&lt;N,B,T&gt;=N extends[...B,...infer R]?M&lt;R,B,T&gt;:N extends[]?T:&quo
 <li>It’s long</li>
 </ul>
 <p>This submission has none of the same problems, and uses a technique I’ve been sitting on for a while and haven’t had a chance to use until now.</p>
-<p>Explanation coming soon</p>
+<p>Explanation:</p>
+<pre><code>// M does divisibility (unary numbers)
+type M&lt;
+  N, // N is the dividend
+  B, // B is the divisor
+  T, // T is returned if N is divisible
+&gt;=
+  // if B fits in N, let R be the difference
+  N extends[...B,...infer R] 
+    ?M&lt;R,B,T&gt;    // recurse with N = R
+    :N extends[] // else if N is 0
+    ?T           // return T
+    :&quot;&quot;          // else return &quot;&quot;
+
+// F generates the main FizzBuzz text
+type F&lt;
+  N=[1], // N is the current number (in unary)
+  S=&quot;&quot;,  // S is the whole string
+  O=     // O is the text for the current iteration
+    `${ // Fizz if N divisible by 3
+      M&lt;N,[1,1,1],&quot;Fizz&quot;&gt;
+    }${ // concatenated to Buzz if N divisible by 5
+      M&lt;N,[1,1,1,1,1],&quot;Buzz&quot;&gt;
+    }`,
+  Z=N[&quot;length&quot;] // Z is an alias for N in decimal
+&gt;=
+  Z extends 101 // if N is 101,
+    ?S          // return S
+    :F&lt;         // else recurse with 
+      [...N,1], // N + 1
+      `${S}${   // append to S:
+        O extends&quot;&quot;?Z:O // Z if O is empty, else O
+      }\n`      // append a newline
+    &gt;
+</code></pre>
 </div>
 <div id="pu1" class="pu"><h1>Fortran, 187 bytes</h1>
 <pre><code>do i=1,100
