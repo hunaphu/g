@@ -26,7 +26,7 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>063</td><td>sed E</td><td>231208T133244Z</td><td><a href="https://codegolf.stackexchange.com/questions/267180/just-another-traffic-jam/267372#267372">Philippo</a></td></tr>
+<tr d-ix="0"><td>059</td><td>GNU sed E</td><td>231208T133244Z</td><td><a href="https://codegolf.stackexchange.com/questions/267180/just-another-traffic-jam/267372#267372">Philippo</a></td></tr>
 <tr d-ix="1"><td>159</td><td>Python</td><td>231204T083551Z</td><td><a href="https://codegolf.stackexchange.com/questions/267180/just-another-traffic-jam/267269#267269">G&#225;b</a></td></tr>
 <tr d-ix="2"><td>099</td><td>Bash</td><td>231203T144905Z</td><td><a href="https://codegolf.stackexchange.com/questions/267180/just-another-traffic-jam/267252#267252">David G.</a></td></tr>
 <tr d-ix="3"><td>029</td><td>Perl 5 + p0</td><td>231201T195956Z</td><td><a href="https://codegolf.stackexchange.com/questions/267180/just-another-traffic-jam/267224#267224">Dom Hast</a></td></tr>
@@ -47,14 +47,17 @@
 <tr d-ix="18"><td>275</td><td>Vyxal s</td><td>231129T224724Z</td><td><a href="https://codegolf.stackexchange.com/questions/267180/just-another-traffic-jam/267182#267182">lyxal</a></td></tr>
 <tr d-ix="19"><td>003</td><td>Jelly</td><td>231129T224331Z</td><td><a href="https://codegolf.stackexchange.com/questions/267180/just-another-traffic-jam/267181#267181">Jonathan</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.gnu.org/software/sed/" rel="nofollow noreferrer">sed</a> <code>-E</code>, 63 bytes</h1>
-<p>For some reason nobody did give an <code>sed</code> answer, so here it is:</p>
-<pre><code>:1
-s/((.?)\2*)(.*,)((\S?)\5*)(.*)/\3\6 \1\4/
-/^, /!b1
-s/[, ]//g
+<div id="pu0" class="pu"><h1>GNU <a href="https://www.gnu.org/software/sed/" rel="nofollow noreferrer">sed</a> <code>-E</code>, <s> 63 </s> 59 bytes</h1>
+<p>The first approach did build a third string behind the two strings to be merged, but it turned out it's cheaper to invest in introducing a mark <code>_</code> in the first string marking the position where to insert the chars from the second string:</p>
+<pre><code>s/^/_/
+:1
+s/_((.?)\2*)(.*,)((.?)\5*)/\1\4_\3/
+/_,/!b1
+s///g
 </code></pre>
-<p><a href="https://tio.run/##bcu7DoIwFIDhvU@BW4sHmnIbXByMA4m6GAdjNSlyQCKhRC6JPLy1urj4bf/wd5h7ZTMYsxCk45T6SyYDl1HfBUap3NuMv8m4DGXiSCEjTvgFHD7LPssJnDPnpTG7aaprqJRCJEpl19zCDxBCBGEUW4kQpNB6nqkH6H9IYYdhxDgOqx8gEAXkMPbblcIyPQ4V9tBqfN7qusFCb@7pS7d9pZvOeOs3" rel="nofollow noreferrer" title="sed – Try It Online">Try it online!</a></p>
+<p>The magic mainly takes place in the third line: The ERE <code>(.?)\2*</code> (and the same with <code>5</code>) match zero or more occurences of the same character (using a backreference, which is not required for ERE by POSIX, but supported by the GNU implementation. Thus, we move those matches in front of the <code>_</code>.</p>
+<p>We can't use <code>t</code> for looping, because an empty <code>s</code>ubstitution is always possible, but that's not too expensive, because the addess pattern <code>_,</code> can be reused for removing.</p>
+<p><a href="https://tio.run/##bcu9DoIwGIXhvXfhRrHwpfw4uDgYBxJ1czBpbIp8YGNDiQUSuXgrxsHFZ3uTcxxWUdMO3ju4gASy5sSBDIJ4Q0US0iAOGf1WHlIQXGRSpEBAMliUny1A4/1xmoxhWilEolR5rWb4wTjnSZrlsxXnpLZ2WaoHs/@Qej4MI@Z5qn8YYVlCTmN/2CpsivOgsWedxefNmBZru78XL9v12rbOR7s3" rel="nofollow noreferrer" title="sed – Try It Online">Try it online!</a></p>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, <s>160</s> 159 bytes</h1>
 <pre class="lang-python prettyprint-override"><code>from itertools import*
