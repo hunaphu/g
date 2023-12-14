@@ -26,8 +26,8 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>050</td><td>APL Dyalog Classic</td><td>231212T044209Z</td><td><a href="https://codegolf.stackexchange.com/questions/267442/implement-a-simple-stack-language/267477#267477">Tbw</a></td></tr>
-<tr d-ix="1"><td>126</td><td>PowerShell Core</td><td>231211T201547Z</td><td><a href="https://codegolf.stackexchange.com/questions/267442/implement-a-simple-stack-language/267469#267469">Julian</a></td></tr>
+<tr d-ix="0"><td>121</td><td>PowerShell Core</td><td>231211T201547Z</td><td><a href="https://codegolf.stackexchange.com/questions/267442/implement-a-simple-stack-language/267469#267469">Julian</a></td></tr>
+<tr d-ix="1"><td>050</td><td>APL Dyalog Classic</td><td>231212T044209Z</td><td><a href="https://codegolf.stackexchange.com/questions/267442/implement-a-simple-stack-language/267477#267477">Tbw</a></td></tr>
 <tr d-ix="2"><td>122</td><td>Python</td><td>231211T083036Z</td><td><a href="https://codegolf.stackexchange.com/questions/267442/implement-a-simple-stack-language/267443#267443">bsoelch</a></td></tr>
 <tr d-ix="3"><td>251</td><td>TypeScript’s type system</td><td>231211T151329Z</td><td><a href="https://codegolf.stackexchange.com/questions/267442/implement-a-simple-stack-language/267460#267460">noodle m</a></td></tr>
 <tr d-ix="4"><td>229</td><td>C gcc</td><td>231212T225939Z</td><td><a href="https://codegolf.stackexchange.com/questions/267442/implement-a-simple-stack-language/267492#267492">AShelly</a></td></tr>
@@ -45,7 +45,24 @@
 <tr d-ix="16"><td>048</td><td>Charcoal</td><td>231211T144410Z</td><td><a href="https://codegolf.stackexchange.com/questions/267442/implement-a-simple-stack-language/267458#267458">Neil</a></td></tr>
 <tr d-ix="17"><td>nan</td><td>Regex PCRE 2</td><td>231211T120535Z</td><td><a href="https://codegolf.stackexchange.com/questions/267442/implement-a-simple-stack-language/267453#267453">mousetai</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.dyalog.com/" rel="nofollow noreferrer">APL (Dyalog Classic)</a>, 50 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://github.com/PowerShell/PowerShell" rel="nofollow noreferrer">PowerShell Core</a>, 121 bytes</h1>
+
+<pre class="lang-powershell prettyprint-override"><code>switch -r($args){[-+su]{$a,$b,$s=$s}s{$s=$b,$a+$s}[-+]{$s=,(&quot;$b$_$a&quot;|iex)+$s}u{$s=$a,$a,$b+$s}r{$b,$s=$s}\d{$s=,$_+$s}}$s
+</code></pre>
+<p><a href="https://tio.run/##bU5Nb4JAEL3zKyZkUiGyjdT00IMJiWmvbao3a8wKa8VgoTsQTZDfTncgoJjuZWfe17wsPSlNe5UkIky1qnE3K2s6xXm4B6EdlPqb3HIlxlSsS5Qebj2kGVJFJf9mk2OzGcGaAc@xcYsblPYlVmeXqaIRGiebGdBlH/IVNSbcMF4h1ZVlBY4F5nkQOLYPTzC2PbCntnuLRjrNGB6gEyMWMG0Nvn/LvUBUZCCYmAyTnmDa5JvBv7thHN31IcfiZ6CTbDrwzPVcuMBbql9luBfv24MKcygbD@aK8rkk5QGqc2YIFcEMcDNkGepnQVkS5zCCkdWqtKIiyY3mAXcQdLp7spvEIY1/ru7Vx2JeUJ4e217roC3Gb1GEoSICNvflhPrtoh6XOj46bq9f/tu2P9fJPtsecO3UUJVVWfUf" rel="nofollow noreferrer" title="PowerShell Core – Try It Online">Try it online!</a></p>
+<p>Takes an array in parameter containing the instructions, returns an array top to bottom.</p>
+<p>Explanation for the previous version, but the idea is still more or less the same:</p>
+<pre class="lang-powershell prettyprint-override"><code>switch -r($args){                       # for each of the instruction switch as regular expressions:
+s{$a,$b,$s=$s;$s=$b,$a+$s}              # s for Swap
+u{$b,$s=$s;$s=$b,$b+$s}                 # u for dUp
+r{$b,$s=$s}                             # r for dRop
+[+-]{$a,$b,$s=$s;$s=,(&quot;$b$_$a&quot;|iex)+$s} # + or - for subtract and sum
+\d{$s=,$_+$s}                           # to push a number
+}                                       # end of the foreach
+$s                                      # return the stack
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.dyalog.com/" rel="nofollow noreferrer">APL (Dyalog Classic)</a>, 50 bytes</h1>
 
 <pre class="lang-apl prettyprint-override"><code>T←{(⍺⍺2↑⍵),2↓⍵}
 p←+/T
@@ -72,24 +89,6 @@ E.g. using Polish notation <code>1 dup 2 +</code> becomes <code>p 2,x 1,⍬</cod
 <p>My first time using <em>dops</em> (user-defined operators) in APL. Doesn't seem too useful for golfing, unless you are defining multiple similar functions. <code>T</code> is a dop defined as <code>{(⍺⍺2↑⍵),2↓⍵}</code>. This is a monadic operator that takes a monadic function on the left, and applies it to the first two elements of the array on the right, then catenates with the rest of the array (you can even use this to define new stack operations).</p>
 <p>Would love to know how this can be improved upon.</p>
 <p>EDIT: There was a bug in my minus function that would negate the whole stack. None of the test cases noticed it though. Fixed now but had to add one byte.</p>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://github.com/PowerShell/PowerShell" rel="nofollow noreferrer">PowerShell Core</a>, 126 bytes</h1>
-
-<pre class="lang-powershell prettyprint-override"><code>switch -r($args){[-+s]{$a,$b,$s=$s}s{$s=$b,$a+$s}[-+]{$s=,(&quot;$b$_$a&quot;|iex)+$s}u{$b,$s=$s
-$s=$b,$b+$s}r{$b,$s=$s}\d{$s=,$_+$s}}$s
-</code></pre>
-<p><a href="https://tio.run/##bU5Nb4JAEL3zKyZkUiGyjWh66MGExLTXNtWbNWaBtWKw0J0lmiC/ne5CQTHdy755HzMvz05C0l6kKYsyKWrczcuaTomK9sCkg1x@kVuu2Zg2JXIPQw9pjlRRaX498bGetL4xhOfYGOIWuX1JxNk1UlF2GesvERpa9nT1GTdR3Bq@QqorywocC/TzIHBsH6Ywtj2wZ7Z7y8Yyyw09YCfazGDWBnz/VnuGuMiBGWEy3DSFWbNfA//uhk5014eaMT8BnXjTwWBTz4ULvGbyhUd79hYeRKSgbDKoBKkFJ@EBinOuBRHDHHA7VA3VY0Z5migYwchqXVJQkSrtecAdBJ3vXuwQO2TJ9zW9fl8uClLZse21Cdpi5i2LKBJEYMJ9OSZ@ulWPK5kcHbf3r/5t25/rbB9tD7h2aqTKqqz6Fw" rel="nofollow noreferrer" title="PowerShell Core – Try It Online">Try it online!</a></p>
-<p>Takes an array in parameter containing the instructions, returns an array top to bottom.</p>
-<p>Explanation for the previous version, but the idea is still more or less the same:</p>
-<pre class="lang-powershell prettyprint-override"><code>switch -r($args){                       # for each of the instruction switch as regular expressions:
-s{$a,$b,$s=$s;$s=$b,$a+$s}              # s for Swap
-u{$b,$s=$s;$s=$b,$b+$s}                 # u for dUp
-r{$b,$s=$s}                             # r for dRop
-[+-]{$a,$b,$s=$s;$s=,(&quot;$b$_$a&quot;|iex)+$s} # + or - for subtract and sum
-\d{$s=,$_+$s}                           # to push a number
-}                                       # end of the foreach
-$s                                      # return the stack
-</code></pre>
 </div>
 <div id="pu2" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 122 bytes</h1>
 <p><em>-8 bytes, thanks to <code>psmears</code></em></p>
