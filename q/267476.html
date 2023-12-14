@@ -36,11 +36,67 @@
 <div id="pu0" class="pu"><h1>JavaScript (ES6), 123 bytes</h1>
 <p>Expects <code>(year, month)(weekday)</code>, where <em>weekday</em> is 0-indexed SMTWTFS.</p>
 
-<pre class="lang-javascript prettyprint-override"><code>(y,m,n=0)=&gt;g=w=&gt;n++&lt;35?(n-(h=k=&gt;i=new Date(y,m-1,n-w+k).getDate())``&amp;56?&quot;#&quot;+i:i)+(n*h(7)&gt;868?&quot;/&quot;+i:&quot;&quot;)+`
+<pre class="lang-javascript prettyprint-override"><code>(y,m,n=0)=&gt;g=w=&gt;n++&lt;35?(n-(h=k=&gt;i=new Date(y,m-1,n-w+k).getDate())``&amp;~7?&quot;#&quot;+i:i)+(n*h(7)&gt;868?&quot;/&quot;+i:&quot;&quot;)+`
  `[n%7&amp;&amp;1]+g(w):&quot;&quot;
 </code></pre>
-<p><a href="https://tio.run/##XY/LboMwEEX3fMXIVdFMbdOYKBA1tdm0X4GQQNQ8msSuElTE11OoukBdnnPP5n5W39W9vvVfg3T@w86NnnESV@H0jrRp9aiN4/x1f8jQSez0WZteOzvCWzXYtZRKODnyM0WtHX4lUVmGhyRjD4z3Lz1xdE8dpmSOyTFjz6tkjHgZQJm7xzQMVcFbHGmx8ykPAHKId/FeAKRQiA0r9Y/jDSdLv3BQBFHjb@9V3SHmMAm4QkGgDdTe3f3FRhffYoPrQLg5snQS1N@LaTlBdJp/AA" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
-</div>
+<p><a href="https://tio.run/##XY/LboMwEEX3fMWIqmimtmlM1BAltdm0X4GQQNQ88rCrBBWx6a9TU3WBujznns09VV/Vvb71n4Ow7sPMjZpx4ldu1YaUbtWotGXsdfuSoRXYqbPSvbJmhLdqMEspJLdiZGeKWzP8SqKyjL7TLHwIWX/oiaF96jAlvd/ts/B5kWFIrAygzO1jGkWyYC2O5O18zAOAHJJNsuUAKRR8xVL@42TFO997Doogbtztvao7xBwmDlcoCJSG2tm7u5j44lpscBkIV0d8J0D@vZj8CaLj/AM" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<h3>Method</h3>
+<p>We walk through the calendar slots by iterating from <code>n=1</code> to <code>n=35</code>.</p>
+<p>The helper function <code>h</code> takes a parameter <code>k</code> and returns the date of the month for the year <code>y</code>, month <code>m</code> and day <code>n-w+k</code>. The result is saved in the global variable <code>i</code>.</p>
+<pre class="lang-javascript prettyprint-override"><code>h = k =&gt;
+  i = new Date(y, m - 1, n - w + k).getDate()
+</code></pre>
+<p>If <code>n - h(0)</code> is negative or greater than 7, it means that the date belongs to the previous or the next month respectively. Hence the test:</p>
+<pre class="lang-javascript prettyprint-override"><code>n - h(0) &amp; ~7 ? &quot;#&quot; + i : i
+</code></pre>
+<p>We have to add the <code>/xx</code> pattern if we are located on the last row of the calendar (<code>n &gt; 28</code>) and the date at +7 days still belongs to the current month. For this purpose, we use the test:</p>
+<pre class="lang-javascript prettyprint-override"><code>n * h(7) &gt; 868
+</code></pre>
+<p>Because <code>h(7) &lt;= 31</code>, this test is true only if <code>n &gt;= 29</code> and <code>h(7)</code> matches one of the last few days of the month:</p>
+<div class="s-table-container">
+<table class="s-table">
+<thead>
+<tr>
+<th style="text-align: center;">n</th>
+<th style="text-align: center;">h(7)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">28</td>
+<td style="text-align: center;">≥32 (impossible)</td>
+</tr>
+<tr>
+<td style="text-align: center;">29</td>
+<td style="text-align: center;">≥30</td>
+</tr>
+<tr>
+<td style="text-align: center;">30</td>
+<td style="text-align: center;">≥29</td>
+</tr>
+<tr>
+<td style="text-align: center;">31</td>
+<td style="text-align: center;">≥29</td>
+</tr>
+<tr>
+<td style="text-align: center;">32</td>
+<td style="text-align: center;">≥28</td>
+</tr>
+<tr>
+<td style="text-align: center;">33</td>
+<td style="text-align: center;">≥27</td>
+</tr>
+<tr>
+<td style="text-align: center;">34</td>
+<td style="text-align: center;">≥26</td>
+</tr>
+<tr>
+<td style="text-align: center;">35</td>
+<td style="text-align: center;">≥25</td>
+</tr>
+</tbody>
+</table>
+</div></div>
 <div id="pu1" class="pu"><h1>Google Sheets, 134 bytes</h1>
 <p><code>=wraprows(index(regexreplace(substitute(text(sequence(35,1,A1-weekday(A1,2)*(mod(A1,6)&lt;&gt;4)),&quot;MMMd&quot;),text(A1,&quot;MMM&quot;),),&quot;[A-z]+&quot;,&quot;#&quot;)),7)</code></p>
 <p>Put a value like <code>Nov 2023</code> in cell <code>A1</code> and the formula in cell <code>B1</code>.</p>
