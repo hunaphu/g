@@ -26,23 +26,37 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>nan</td><td>It looks like a loophole in the function definition restriction</td><td>231210T230652Z</td><td><a href="https://codegolf.stackexchange.com/questions/267409/point-free-javascript-write-a-function-runner/267432#267432">Bergi</a></td></tr>
-<tr d-ix="1"><td>017</td><td>17 bytes</td><td>231209T230756Z</td><td><a href="https://codegolf.stackexchange.com/questions/267409/point-free-javascript-write-a-function-runner/267410#267410">emanresu</a></td></tr>
+<tr d-ix="0"><td>074</td><td>JavaScript Node.js</td><td>231215T195108Z</td><td><a href="https://codegolf.stackexchange.com/questions/267409/point-free-javascript-write-a-function-runner/268570#268570">TwiNight</a></td></tr>
+<tr d-ix="1"><td>nan</td><td></td><td>231209T230756Z</td><td><a href="https://codegolf.stackexchange.com/questions/267409/point-free-javascript-write-a-function-runner/267410#267410">emanresu</a></td></tr>
+<tr d-ix="2"><td>nan</td><td>It looks like a loophole in the function definition restriction</td><td>231210T230652Z</td><td><a href="https://codegolf.stackexchange.com/questions/267409/point-free-javascript-write-a-function-runner/267432#267432">Bergi</a></td></tr>
 </table>
-<div id="pu0" class="pu"><p>It looks like a loophole in the function definition restriction, but you can still define a setter:</p>
+<div id="pu0" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 74 bytes</h1>
+<pre class="lang-javascript prettyprint-override"><code>[].forEach.bind([{[Symbol.split]:(c=Map.call).bind(c),length:0}],''.split)
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=bU-xCsIwEN39ituSQA0iDlLp6CI4OZYObdq0hZiUJAWl9EtcKujkF_k3XmkXxeWOe_feu3e3hzZ5MbyE0c6DbTVEz9bL5fZ9iBMujd2nouJZrXMad_Hpes6M4q5RtU9CKqJj2nCRKsUmimCBKnTpq3DVJwEhE5PNjnfZauFro0FSznlqS8egg_G0UQVXpqRkNCNs9wP6CwnAV7XDDWYCOsVFBzAS_hohiBqsKOnBFr61GjZrHBZfPNwgDx-nks1Bh2HqHw" rel="nofollow noreferrer">Attempt This Online!</a></p>
+</div>
+<div id="pu1" class="pu"><h2>Why I believe this is impossible (as stated)</h2>
+<p>There aren't very many JS builtins that call a function, and even fewer that call one with arbitrary arguments. The ones that I've found are the string methods <code>replace</code> and <code>replaceAll</code>, the array methods <code>every</code>, <code>filter</code>, <code>find</code>, <code>findIndex</code>, <code>findLast</code>, <code>findLastIndex</code>, <code>flatMap</code>, <code>forEach</code>, <code>map</code>, <code>reduce</code>, <code>reduceRight</code>, and <code>some</code>; the the function methods <code>apply</code> and <code>call</code>; the global functions <code>Reflect.apply</code>, <code>setTimeout</code>, <code>setInterval</code>, the <code>Promise</code> constructor and (browser only) <code>requestAnimationFrame</code> and <code>addEventListener</code>, and also some weird stuff like <code>RegExp[@@replace]</code>.</p>
+<p>All the array methods are useless, as they all call functions with the signature <code>f(item, index, array)</code>.</p>
+<p>There are a few that call the function but can't return undefined. <code>String#replace</code> (along with <code>String#replaceAll</code> and <code>RegExp[@@replace]</code>) almost work with <code>''.replace.bind('', /(?:)/g)</code>, but returns the function's result stringified. <code>setTimeout</code> ignores the function's return value, but returns a uid for that particular call (ditto with <code>setInterval</code>).</p>
+<p>Likewise, the function methods <code>apply</code> and <code>call</code> return the return value of whatever function they're called with. <code>Reflect.construct</code> can be used to trigger the <code>Promise</code> constructor, but requires the arguments passed to the constructor function to be placed in an array.</p>
+<p>Event listeners are somewhat promising, taking a function and returning undefined, but there's no way to create an object which has an event occur on it every time the function is called. <code>window.addEventListener.bind(window, 'click')</code> (browser only) does work to call a function every time a click is called though.</p>
+<p>As calling the expression with the input function has to be the last operation performed on the expression, I don't think there's any way to transform whatever non-<code>undefined</code> value is returned into <code>undefined</code>. And since there's no built-in function capable of both instantly calling the function a single time without arguments and returning <code>undefined</code>, I don't think this challenge is possible.</p>
+<hr />
+<h3>(old answer, calls with nonempty args) 17 bytes</h3>
+
+<pre class="lang-javascript prettyprint-override"><code>[].find.bind([,])
+</code></pre>
+<p><a href="https://tio.run/##VcqxDYAgEEDRVa6DS5ANdBFDgYCKEM7oqWyPtja/eX@ztz3dEXfuCvnQEvTQRqPnWLyevshRGWyOykk56EyLFHTxfrFQkGSFfoAfOptz8PBEXr@jImJ7AQ" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<p><s>I'm pretty sure this is optimal</s> -3 bytes thanks to Neil.</p>
+<p>Calls the function on an array <code>[,]</code>, passing <code>undefined</code> to it. If the function's return value is truthy, the <code>undefined</code> is returned; if it's falsy the <code>find</code> call fails and returns <code>undefined</code>.</p>
+</div>
+<div id="pu2" class="pu"><p>It looks like a loophole in the function definition restriction, but you can still define a setter:</p>
 <pre><code>({set s(f){f()}}).__lookupSetter__('s')
 </code></pre>
 <p><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/__lookupSetter__" rel="nofollow noreferrer"><code>__lookupSetter__</code></a> is non-standard and deprecated, but shorter than</p>
 <pre><code>Object.getOwnPropertyDescriptor({set s(f){f()}},'s').set
 </code></pre>
-</div>
-<div id="pu1" class="pu"><h1>17 bytes</h1>
-
-<pre class="lang-javascript prettyprint-override"><code>[].find.bind([,])
-</code></pre>
-<p><a href="https://tio.run/##VcqxDYAgEEDRVa6DS5ANdBFDgYCKEM7oqWyPtja/eX@ztz3dEXfuCvnQEvTQRqPnWLyevshRGWyOykk56EyLFHTxfrFQkGSFfoAfOptz8PBEXr@jImJ7AQ" rel="noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
-<p><s>I'm pretty sure this is optimal</s> -3 bytes thanks to Neil.</p>
-<p>Calls the function on an array <code>[,]</code>, passing <code>undefined</code> to it. If the function's return value is truthy, the <code>undefined</code> is returned; if it's falsy the <code>find</code> call fails and returns <code>undefined</code>.</p>
 </div>
 
 <table id="st">
