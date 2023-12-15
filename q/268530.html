@@ -26,10 +26,100 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>012</td><td>APL Dyalog Unicode</td><td>231213T202953Z</td><td><a href="https://codegolf.stackexchange.com/questions/268530/yin-yang-table-generator/268532#268532">Ad&#225;</a></td></tr>
-<tr d-ix="1"><td>045</td><td>Python 3</td><td>231213T202746Z</td><td><a href="https://codegolf.stackexchange.com/questions/268530/yin-yang-table-generator/268531#268531">Somebody</a></td></tr>
+<tr d-ix="0"><td>010</td><td>05AB1E</td><td>231215T105739Z</td><td><a href="https://codegolf.stackexchange.com/questions/268530/yin-yang-table-generator/268559#268559">Kevin Cr</a></td></tr>
+<tr d-ix="1"><td>012</td><td>APL Dyalog Unicode</td><td>231213T202953Z</td><td><a href="https://codegolf.stackexchange.com/questions/268530/yin-yang-table-generator/268532#268532">Ad&#225;</a></td></tr>
+<tr d-ix="2"><td>045</td><td>Python 3</td><td>231213T202746Z</td><td><a href="https://codegolf.stackexchange.com/questions/268530/yin-yang-table-generator/268531#268531">Somebody</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.dyalog.com/" rel="nofollow noreferrer">APL (Dyalog Unicode)</a>, 12 <a href="https://codegolf.meta.stackexchange.com/q/9428/43319">bytes</a></h1>
+<div id="pu0" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, 10 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
+<p>Same output (based on input) on each run:</p>
+<pre><code>Å1āÉI&lt;.Da)
+</code></pre>
+<p>Port of <a href="https://codegolf.stackexchange.com/a/268531/52210"><em>@Somebody</em>'s Python answer</a>.</p>
+<p><a href="https://tio.run/##yy9OTMpM/f//cKvhkcbDnZ42ei6Jmv//WwIA" rel="nofollow noreferrer">Try it online</a> or <a href="https://tio.run/##yy9OTMpM/W8UcnRHmZJnXkFpiZWCkn2lDpeSf2kJjPf/cKvhkcbDnZU2ei6Jmv9tlQKKUktKKnULijLzSlJTFPJhSnW8Du3WObTN/j8A" rel="nofollow noreferrer">verify the first ten sizes</a>.</p>
+<h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, 73 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
+<p>Random valid output on each run:</p>
+<pre><code>1ÝIãIãʒ€ü2ü2εøOO4Ö≠}˜P}ʒD_‚ε©˜ƶ®gäΔ2Fø0δ.ø}2Fø€ü3}®*εεÅsyøÅs«à}}}˜Ùg&lt;}P}Ω
+</code></pre>
+<p><a href="https://tio.run/##yy9OTMpM/f/f8PBcz8OLgejUpEdNaw7vMQKic1sP7/D3Nzk87VHngtrTcwJq9Yr0zk1xiX/UMOvc1kMrT885tu3QuvTDS85NMXI7vMPg3Ba9wztqQUywCca1h9ZpndsKNKS1uPLwDiB5aPXhBbW1QJMOz0y3qQ34/98YAA" rel="nofollow noreferrer">Try it online.</a> (Slightly modified <code>ʒ...}Ω</code> to <code>.r.Δ...</code> to speed it up, but unfortunately it'll still time out for <span class="math-container">\$n\geq4\$</span>.)</p>
+<p><strong>Explanation:</strong></p>
+
+<pre class="lang-python prettyprint-override"><code>Å1            # Push a list of the (implicit) input amount of 1s
+  ā           # Push a list in the range [1,length] (without popping)
+   É          # Check for each whether it's odd: [1,0,1,0,1,0,...]
+    I&lt;        # Push the input-1
+      .D      # Duplicate the [1,0,1,0,1,0,...]-list that many times
+        a     # Change the top list to a list of 0s instead with an is_letter check
+         )    # Wrap all lists on the stack into a list
+              # (after which this matrix is output implicitly as result)
+</code></pre>
+<p>Step 1: Create a list of all possible input by input matrices with <code>0</code>s and <code>1</code>s:</p>
+<pre class="lang-python prettyprint-override"><code>1Ý            # Push pair [0,1]
+  Iã          # Take the cartesian power of the input to get all input-sized lists using
+              # 0s and 1s
+    Iã        # And again, to get all possible matrices
+</code></pre>
+<p>Step 2: Filter this list of matrices to keep all where each overlapping 2x2 block contains at least one <code>1</code> and at least one <code>0</code>:</p>
+<pre class="lang-python prettyprint-override"><code>ʒ             # Filter this list of matrices by:
+ €ü2ü2εø      #  Get all overlapping 2x2 blocks:
+ €            #   Map over each row:
+  ü2          #    Get its overlapping pairs
+    ü2        #   Get the overlapping lists of lists of pairs
+      ε       #   Map over each:
+       ø      #    Zip/transpose; swapping rows/columns
+ OO           #    Sum each inner 2x2 block
+   4Ö≠        #    Check for each sum whether it's NOT divisible by 4
+              #    (aka it's 1, 2, or 3, and NOT 0 or 4)
+      }       #   Close the map
+       ˜      #   Flatten this matrix of 2x2 block sum checks
+        P     #   Check that all are truthy by taking the product
+}             # Close the filter
+</code></pre>
+<p>Step 3: Filter it again to keep those where all matrices where both the <code>1</code>s and <code>0</code>s form a single island:</p>
+<pre class="lang-python prettyprint-override"><code>ʒ             # Filter this list of matrices again:
+ D            #  Duplicate this matrix
+  _           #  Invert each 0s to 1 and vice-versa in the copy
+   ‚          #  Pair the two inverted matrices together
+ ε            #  Map over this pair:
+  ©           #   Store the current matrix in variable `®` (without popping)
+   ˜          #   Flatten it to a single list
+    ƶ         #   Multiply each value by its 1-based index
+     ®gä      #   Convert it back to a matrix of size `®`
+  Δ           #   Loop until the result no longer changes to flood-fill:
+   2Fø0δ.ø}   #    Add a border of 0s around the matrix:
+   2F     }   #     Loop 2 times:
+     ø        #     Zip/transpose; swapping rows/columns
+       δ      #     Map over each row:
+      0 .ø    #      Add a leading/trailing 0
+   2Fø€ü3}    #    Convert it into overlapping 3x3 blocks: 
+   2F    }    #     Loop 2 times again:
+     ø        #      Zip/transpose; swapping rows/columns
+      €       #      Map over each inner list:
+       ü3     #       Convert it to a list of overlapping triplets
+   ®*         #    Multiply each 3x3 block by the value in matrix `®`
+              #    (so the 0s remain 0s)
+   εεÅsyøÅs«à #    Get the largest value from the horizontal/vertical cross of each
+              #    3x3 block:
+   εε         #     Nested map over each 3x3 block:
+     Ås       #       Pop and push its middle row
+       y      #       Push the 3x3 block again
+        ø     #       Zip/transpose; swapping rows/columns
+         Ås   #       Pop and push its middle rows as well (the middle column)
+           «  #       Merge the middle row and column together to a single list
+            à #       Pop and push its maximum
+   }}         #     Close the nested maps
+  }           #   Close the changes-loop
+   ˜          #   Flatten the flood-filled matrix
+    Ù         #   Uniquify this list
+     g&lt;       #   Pop and push its length-1
+              #   (only 1 is truthy in 05AB1E, so this checks if two islands remain)
+ }            #  Close the map
+  P           #  Check that both are truthy, for the regular and inverted matrix
+}             # Close the filter
+ Ω            # Pop and push a random matrix from this filtered list
+              # (which is output implicitly as result)
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.dyalog.com/" rel="nofollow noreferrer">APL (Dyalog Unicode)</a>, 12 <a href="https://codegolf.meta.stackexchange.com/q/9428/43319">bytes</a></h1>
 
 <p>Anonymous tacit prefix function, returning a matrix of 0s and 1s.</p>
 <pre class="lang-apl prettyprint-override"><code>⊢↑1⍪2↓,⍨⍴2|⍳
@@ -44,7 +134,7 @@
 <p><code>↑</code> take the following number of rows, padding with all-0 rows:</p>
 <p> <code>⊢</code> n (lit. the identity function applied to n)</p>
 </div>
-<div id="pu1" class="pu"><h1>Python 3, 45 bytes</h1>
+<div id="pu2" class="pu"><h1>Python 3, 45 bytes</h1>
 <pre class="lang-python prettyprint-override"><code>lambda n:[&quot;1&quot;*n]+[(&quot;10&quot;*n)[:n]]*(n-2)+[&quot;0&quot;*n]
 </code></pre>
 <p><a href="https://tio.run/##TY1BCsIwFET3PcXnr/JbFVN3AU@SBkkx1kidlJCNp49xI53VzOPBbJ/yTLjUJeBW/LwGutJUV/@e755gLGvu4QarWJ9bE2vgXK9wHGWw/EOuPlKmSBGUPZagxgNpLaajli1HFBVlN3gCn14pQv0/myB7Rbr6BQ" rel="nofollow noreferrer">Try it online!</a></p>
