@@ -26,8 +26,8 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>008</td><td>Vyxal 3 j</td><td>231215T131541Z</td><td><a href="https://codegolf.stackexchange.com/questions/143839/the-three-rs-reverse-reorder-repeat/268561#268561">Pacmanbo</a></td></tr>
-<tr d-ix="1"><td>190</td><td>TypeScript’s type system</td><td>231214T174944Z</td><td><a href="https://codegolf.stackexchange.com/questions/143839/the-three-rs-reverse-reorder-repeat/268549#268549">noodle m</a></td></tr>
+<tr d-ix="0"><td>183</td><td>TypeScript’s type system</td><td>231214T174944Z</td><td><a href="https://codegolf.stackexchange.com/questions/143839/the-three-rs-reverse-reorder-repeat/268549#268549">noodle m</a></td></tr>
+<tr d-ix="1"><td>008</td><td>Vyxal 3 j</td><td>231215T131541Z</td><td><a href="https://codegolf.stackexchange.com/questions/143839/the-three-rs-reverse-reorder-repeat/268561#268561">Pacmanbo</a></td></tr>
 <tr d-ix="2"><td>033</td><td>GolfScript</td><td>200110T092344Z</td><td><a href="https://codegolf.stackexchange.com/questions/143839/the-three-rs-reverse-reorder-repeat/197871#197871">user8505</a></td></tr>
 <tr d-ix="3"><td>012</td><td>Japt</td><td>170927T110127Z</td><td><a href="https://codegolf.stackexchange.com/questions/143839/the-three-rs-reverse-reorder-repeat/143863#143863">Shaggy</a></td></tr>
 <tr d-ix="4"><td>017</td><td>Stax</td><td>180514T194643Z</td><td><a href="https://codegolf.stackexchange.com/questions/143839/the-three-rs-reverse-reorder-repeat/164815#164815">Multi</a></td></tr>
@@ -51,19 +51,54 @@
 <tr d-ix="22"><td>142</td><td>Mathematica</td><td>170927T031355Z</td><td><a href="https://codegolf.stackexchange.com/questions/143839/the-three-rs-reverse-reorder-repeat/143843#143843">ZaMoC</a></td></tr>
 <tr d-ix="23"><td>010</td><td>Jelly</td><td>170927T024622Z</td><td><a href="https://codegolf.stackexchange.com/questions/143839/the-three-rs-reverse-reorder-repeat/143841#143841">hyper-ne</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/Vyxal/Vyxal/tree/version-3" rel="nofollow noreferrer">Vyxal 3</a> <code>j</code>, 8 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://typescriptlang.org/" rel="nofollow noreferrer">TypeScript</a>’s type system, <s>203</s> <s>193</s> <s>190</s> 183 bytes</h1>
+<pre class="lang-typescript prettyprint-override"><code>//@ts-ignore
+type F&lt;N,A=[],E=A,O=N,G=[...N,...A]&gt;=N extends[1,...infer D]?F&lt;D,[N,...A]&gt;:A extends[...infer R,infer X,infer Y]?F&lt;[...N,X,Y],R,E,O&gt;:E extends O[any]?O:F&lt;[],G,E,[...O,G]&gt;
+</code></pre>
+<p><a href="https://www.typescriptlang.org/play?#code/PTACBcGcFoEsHMB2B7ATgUwLAChwE8AHdAAgDEAeAOQBoBBAXgG0BdagUXtuoHl6aBxJgDoRNEUNrMAfH2LoAHuHSIAJpEYBGauNiIAZulTEAIswD8FY9UZiRkqQC5acxcrWMd+w8QBK1XQZGABr+XkYAmuYUHqLUIZHUfmw8jmwuSqqQxNyMAIaIeObcDtGs-OzW4tzU-NI4OPhExFn0ZOSa1FpdnXXYDYQkucSt6gAMzDggxNMAemb9TQBGw82aE9hTs-O4A8QAxivqAEzrm8RzCyQqh4wAzKfA0+fbjSQkI4wALA9PF9hAA" rel="nofollow noreferrer">Try it at the TS playground</a></p>
+<p>This is a generic type <code>F</code>, which takes input as a tuple type of 1s representing a unary number, and outputs a list of unary numbers in the same format.</p>
+<p>I can’t believe I got this all to fit in a single type. This is definitely one of the coolest TS types submissions I’ve posted.</p>
+<p>The rest of this post can serve as an explanation as to how the solution works.</p>
+<p>The <code>//@ts-ignore</code> comment on the first line tells the compiler to suppress any warnings from the following line.</p>
+<p>The beginning of the type describes its arguments:</p>
+<pre class="lang-typescript prettyprint-override"><code>type F&lt;N,A=[],E=A,O=N,G=[...N,...A]&gt;
+</code></pre>
+<p>What the arguments do is explained later, but you should know that <code>G</code> is an alias for N with A appended to it; it comes in handy later.</p>
+<p>The type has three “stages”, which are entered at different times in the evaluation of the type.</p>
+<ul>
+<li><p>The first stage converts the unary number to the range of unary numbers between 1 and the input. (At this stage, the input is in N, and A is the empty tuple.)</p>
+<pre class="lang-typescript prettyprint-override"><code>N extends[1,...infer D]
+</code></pre>
+<p>Is the first item of N a one? If so, remove it and call the rest D, and…</p>
+<pre class="lang-typescript prettyprint-override"><code>F&lt;D,[N,...A]&gt;
+</code></pre>
+<p>…recurse, with N set to D, and with N prepended to A.</p>
+<p>By the end of stage 1, A will contain the range from 1 to the input, E will be set equal to A, and N and O will both be the empty tuple.</p>
+<p>(E is the initial step; this will be how the type knows to terminate. O will be the list of intermediate results, which will be the final return value.)</p>
+</li>
+<li><p>If the first stage was not entered, because N is either empty or contains elements that aren’t ones, then the second stage is entered, to reverse and reorder the elements of A.</p>
+<pre class="lang-typescript prettyprint-override"><code>A extends[...infer R,infer X,infer Y]
+</code></pre>
+<p>If A has two or more items, call the last two X and Y respectively, and the rest R.</p>
+<pre class="lang-typescript prettyprint-override"><code>F&lt;[...N,X,Y],R,E,O&gt;
+</code></pre>
+<p>Recurse, appending X and Y to N, setting A to R, and keeping the values of E and O as they already are.</p>
+<p>By the end of this stage, N will contain the reversed and reordered items of A. A will be empty if it originally had an even number of items, but if its length was odd then it will contain the last item to be appended to N. This is a minor pain point of the solution, adding 14 bytes to alias G to N with A appended.</p>
+</li>
+<li><p>The third stage does the “repeat” step.</p>
+<pre class="lang-typescript prettyprint-override"><code>E extends O[any]?O
+</code></pre>
+<p>If E (the initial result) is contained in O (the list of intermediate results), then the program is finished; return O.</p>
+<pre class="lang-typescript prettyprint-override"><code>F&lt;[],G,E,[...O,G]&gt;
+</code></pre>
+<p>Otherwise, recurse with N set to the empty tuple (skipping stage 1 and going straight to stage 2), A set to G (the alias for N with A appended), E left unchanged, and O with G appended.</p>
+</li>
+</ul>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/Vyxal/Vyxal/tree/version-3" rel="nofollow noreferrer">Vyxal 3</a> <code>j</code>, 8 bytes</h1>
 <pre><code>ɾᶨλṚ2ẆVf
 </code></pre>
 <p><a href="https://vyxal.github.io/latest.html#WyJqIiwiIiwiyb7htqjOu+G5mjLhuoZWZiIsIiIsIjUiLCIzLjMuMCJd" rel="nofollow noreferrer">Try it Online!</a></p>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://typescriptlang.org/" rel="nofollow noreferrer">TypeScript</a>’s type system, <s>203</s> <s>193</s> 190 bytes</h1>
-<pre class="lang-typescript prettyprint-override"><code>//@ts-ignore
-type F&lt;N,A=[],E=A,O=[]&gt;=N extends[1,...infer D]?F&lt;D,[N,...A]&gt;:A extends[...infer R,infer X,infer Y]?F&lt;[...N,X,Y],R,E,O&gt;:E extends O[any]?O:F&lt;[],[...N,...A],E,[...O,[...N,...A]]&gt;
-</code></pre>
-<p><a href="https://www.typescriptlang.org/play?#code/PTACBcGcFoEsHMB2B7ATgUwLAChwE8AHdAAgDEAeAOQBoBBAXgG0BdagUXtuoHknmA+epWLoAHuHSIAJpEYBGagDplsRADN0qYgBFmAfgrbqjGssW0BALlojxkmYzOqNWgErVnm4gA0P6rwCa+hSOyjS+QdTubDz8lmy2EtKQxNyMAIaIePrcliGsoYqmyhbsxmbc5WFKJcwCODj4RMQp9GTk8tQK3V312I2EJOnEbbIADMw4IMQzAHp6A80ARiMt8pPY03MLuIPEAMarsgBMG1vE84skUkeMAMxnwDMXO00kJKOMACyPz5fYQA" rel="nofollow noreferrer">Try it at the TS playground</a></p>
-<p>I/O uses unary numbers.</p>
-<p>I can’t believe I got this all to fit in a single type, this is definitely one of the coolest TS types submissions I’ve posted.</p>
-<p>I haven’t come up with a good way to explain this program, since each input means different things at different stages, but each stage is very short.</p>
 </div>
 <div id="pu2" class="pu"><h1><a href="http://www.golfscript.com/golfscript/" rel="nofollow noreferrer">GolfScript</a>, 33 bytes</h1>
 
