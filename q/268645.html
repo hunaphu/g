@@ -31,27 +31,27 @@
 </table>
 <div id="pu0" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, <span class="math-container">\$\mathcal O(n^2)\$</span></h1>
 <pre class="lang-python prettyprint-override"><code>def best_pentagon(grid):
-    best = float(&quot;-inf&quot;)
-    rectangles = pentagons = [0] * len(grid[0])
-    for row in grid:
-        row_sum = 0
-        row_sums = [row_sum := row_sum + value for value in row]
-        rectangles = [
-            rectangle + row_sum for rectangle, row_sum in zip(rectangles, row_sums)
-        ]
-        pentagons = [
-            max(rectangle, pentagon + row_sum)
-            for rectangle, pentagon, value in zip(rectangles, pentagons[1:], row_sums)
-        ] + [rectangles[-1]]
-        best = max(best, max(pentagons))
+    best = float(&quot;-inf&quot;), -1, -1, -1
+    rects = [0] * len(grid[0])
+    pents = [(0, 0)] * len(grid[0])
+    for y, row in enumerate(grid):
+        line = 0
+        lines = [line := line + value for value in row]
+        rects = [rect + line for rect, line in zip(rects, lines)]
+        pents = [
+            max((rect, y), (pent + line, z))
+            for rect, (pent, z), value in zip(rects, pents[1:], lines)
+        ] + [(rects[-1], y)]
+        best = max(best, max((pent, x, y, z) for x, (pent, z) in enumerate(pents)))
     return best
 </code></pre>
-<p><a href="https://ato.pxeger.com/run?1=dZRNboMwEIWlLnOD7kZZ4daWMGyqSDkJQhFtTIpEDALTtL1KN9m0h-ppamyPzU-KANkz8755NhZfP-2Hem3k9fo9qJI9_d4lR1HCs-jVoRVSFadGRqeuOpLdBvQ1JmAPZd0UKtqySpZbYhKdeFGFPNWi12lUjuMszuEBamExembry6aDrrlAJWGMW7oBNZdDP5y1Ml7GDA7zu70vfYS3oh6EYdqRpupkHgBTd5kPz1Iag0BjDuPUhzX1s2qjAPOpnnhmaDrbhVnPc_EeTfhYGByQWfnCDpbTsNilLd8647v8pkvdKwuKjPE8GHcfeXQ5DqkZeSTBD66GTppaPDr3bVdJFfmDEk6QR8_3IUspxBQSCix1D9ePnnM7jHM6F5gg3gyFiWWY6VKhBam5uaViExtfNQhka4ybd4Kif_x4fOq18X_ljCMVvfMgWglS7B_IE_ssWQnWzl253eJb9ejBtXBs13OlSHC5bu1TN4s12yNFNsSeEPzJ_AE" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<p><a href="https://ato.pxeger.com/run?1=bVRLTsMwEBUsOYXVlQ22lMRCQpV6kshCgTolUupErgNtr8KmG7gDV-E02ONfWmollcd-894be9LP7_Fg3gZ1On1NpmVPv7ePa9miF7kzz6NUptkMCm90tybLO2SH20Ar1PZDY_CCdapdEIpYGV8AaflqdhZVFwLdo156BhsR2Ha8sI0LigpyFdMOGh0o0sMH6hSSatpK3Rg5t-JG3ylpmYqzBeCGneXKIx7Qe9NPElj9zJJabpHykmU3sXhIc3AXUx_anGM3YoD6pR3JDKmqtOLGttlj7DkO9qCwQwV6io6EnIGzHuAcgGa_M23QqsuliDYSjbDktYfVrBRONVsMl-c8uSn17rzUnrrzPhIwsZ85OD9_UCbBt5Zm0gpoQ_fc_LgLSqdQc3vBFFW2M3h4XZfYODRMIagHQhAfFhMqnwthRFogh6f0LDy3H58RZiZvoITfKoIvdBMdTznFJYyVkSV6KzM4AXnUyUwze6xKwP_O4kfE5-WyKmsFysAVNBKyimWEmuaqoRZxN-pOGXzl8yb-BuP_wB8" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<p>Returns a tuple <code>(sum, x, y, z)</code> for a pentagon summing to <code>sum</code> whose bottom row ends at <span class="math-container">\$(x, y)\$</span> and whose rightmost column ends at <span class="math-container">\$(x + y - z, z)\$</span>.</p>
 <h3>How it works</h3>
 <p>A pentagon whose bottom row ends at <span class="math-container">\$(x, y)\$</span> is either</p>
 <ul>
 <li>the rectangle with corner <span class="math-container">\$(x, y)\$</span>, or</li>
-<li>the union of the partial row ending there with a pentagon whose bottom row ends at <span class="math-container">\$(x + 1, y - 1)\$</span>.</li>
+<li>the union of the partial row <span class="math-container">\$(0, y)…(x, y)\$</span> with a pentagon whose bottom row ends at <span class="math-container">\$(x + 1, y - 1)\$</span>.</li>
 </ul>
 <p>This leads to a straightforward dynamic programming solution.</p>
 </div>
