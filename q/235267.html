@@ -26,9 +26,47 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>857</td><td>closest so far “"^zHf%» => '"*zHf%' 6/7</td><td>231213T030505Z</td><td><a href="https://codegolf.stackexchange.com/questions/235267/jelly-compression-quine/267507#267507">guest430</a></td></tr>
+<tr d-ix="0"><td>009</td><td>No solution without the dictionary using at most</td><td>231221T064128Z</td><td><a href="https://codegolf.stackexchange.com/questions/235267/jelly-compression-quine/268668#268668">Command </a></td></tr>
+<tr d-ix="1"><td>nan</td><td></td><td>231213T030505Z</td><td><a href="https://codegolf.stackexchange.com/questions/235267/jelly-compression-quine/267507#267507">guest430</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h2>closest so far: <code>“&quot;^zHf-%»</code> =&gt; <code>'&quot;*zHf-%'</code>: 6/7, 85.7%</h2>
+<div id="pu0" class="pu"><h2>No solution without the dictionary using at most 9 characters</h2>
+<p>Using meet-in-the-middle, we can check that there are no solutions without the dictionary using under 9 characters with the following code:</p>
+<pre class="lang-python prettyprint-override"><code>import itertools
+import tqdm
+
+
+code_page  = '''¡¢£¤¥¦©¬®µ½¿€ÆÇÐÑ×ØŒÞßæçðıȷñ÷øœþ !&quot;#$%&amp;'()*+,-./0123456789:;&lt;=&gt;?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~¶'''
+code_page += '''°¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁼⁽⁾ƁƇƊƑƓƘⱮƝƤƬƲȤɓƈɗƒɠɦƙɱɲƥʠɼʂƭʋȥẠḄḌẸḤỊḲḶṂṆỌṚṢṬỤṾẈỴẒȦḂĊḊĖḞĠḢİĿṀṄȮṖṘṠṪẆẊẎŻạḅḍẹḥịḳḷṃṇọṛṣṭ§Äẉỵẓȧḃċḋėḟġḣŀṁṅȯṗṙṡṫẇẋẏż«»‘’“”'''
+
+pos = code_page[32:96+32]
+
+rev = {a: 3*(code_page.index(a) - 32) for a in pos}
+ver = {a: code_page.find(a) + 1 for a in pos}
+
+
+n = 9
+poss = []
+for i in range(n):
+    spos = []
+    for c in pos:
+        spos.append(ver[c] * 250**(n-1-i) - rev[c] * 228**i)
+    poss.append(spos)
+
+print(poss)
+
+v1 = {sum(x) for x in tqdm.tqdm(itertools.product(*poss[:n//2]), total=96**(n//2))}
+
+for x in tqdm.tqdm(itertools.product(*poss[n//2:]), total=96**((n+1)//2)):
+    if -sum(x) in v1:
+        print(x, sum(x))
+        exit(0)
+</code></pre>
+<p>Projecting from the runtime for 9 characters, running it for 10 characters would either take a lot of memory (128GB might be enough) and a couple of hours, or around 1GB and a few days.</p>
+</div>
+<div id="pu1" class="pu"><h2>closest so far: <code>“&quot;^zHf-%»</code> =&gt; <code>'&quot;*zHf-%'</code> and
+<code>“)`Kh/-&amp;»</code> =&gt; <code>')`K0/-&amp;'</code>: 6/7, 85.7%</h2>
+<p>floor: 250^8<br />
+ceiling: 129×250^34</p>
 <p>no solution yet, but some preliminary results which may be helpful to others.</p>
 <p>in the first step of decompression, you divmod by 3 to either select making a character or using one of the dictionaries. if you ignore the dictionary, this  means it basically reduces to a base conversion problem where one side is base <a href="https://en.wikipedia.org/wiki/Non-integer_base_of_numeration" rel="nofollow noreferrer" title="just a cooler way of saying the digits are read backwards, but otherwise the same as normal base 288 (obv. excluding the radix point)">1/288</a>: (using the <code>�</code> for when it would touch a dictionary and ¶ for a newline)</p>
 <pre><code> ��!��&quot;��#��$��%��&amp;��'��(��)��*��+��,��-��.��/��0��1��2��3��4��5��6��7��8��9��:��;��&lt;��=��&gt;��?��@��A��B��C��D��E��F��G��H��I��J��K��L��M��N��O��P��Q��R��S��T��U��V��W��X��Y��Z��[��\��]��^��_��`��a��b��c��d��e��f��g��h��i��j��k��l��m��n��o��p��q��r��s��t��u��v��w��x��y��z��{��|��}��~��¶��
@@ -37,7 +75,7 @@
 <pre><code>¡¢£¤¥¦©¬®µ½¿€ÆÇÐÑ×ØŒÞßæçðıȷñ÷øœþ !&quot;#$%&amp;'()*+,-./0123456789:;&lt;=&gt;?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~¶°¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁼⁽⁾ƁƇƊƑƓƘⱮƝƤƬƲȤɓƈɗƒɠɦƙɱɲƥʠɼʂƭʋȥẠḄḌẸḤỊḲḶṂṆỌṚṢṬỤṾẈỴẒȦḂĊḊĖḞĠḢİĿṀṄȮṖṘṠṪẆẊẎŻạḅḍẹḥịḳḷṃṇọṛṣṭ§Äẉỵẓȧḃċḋėḟġḣŀṁṅȯṗṙṡṫẇẋẏż
 </code></pre>
 <p>since the symbols have different values from each other I think it's just a matter of coincidence to get the same number to be represented with the same symbols.</p>
-<p>what this means is that until one of them out-bases the other (after 250^40 (roughly 8.27e95 or 2^318.7), base250 will always take more digits and you'd have to use the dictionaries to pad the output), there may be a number that matches somewhere. what I'm calling a 'near miss' is when an n-1 long string of digits are the same in both bases. I wrote some terrible python code to find a few, but I'm trying to translate it to rust and optimize a bit, and will update the answer when I can get more digits.</p>
+<p>what this means is that until one of them out-bases the other, there may be a number that matches somewhere. (after 250^40 (roughly 8.27e95 or 2^318.7), base250 will always take more digits and you'd have to use the dictionaries to pad the output; but past 129x250^34 (roughly 4.37e83 or 2^277.8) every base250 number the same length as the corresponding base288 number will start with a digit greater than <code>¶</code> so it will never be ascii-only anymore). what I'm calling a 'near miss' in this first section is when an n-1 long string of digits are the same in both bases. this was found with slow python code; but the 'near miss' qualification was different so I'll leave the results in the answer.</p>
 <p>near misses at one digit: [<code>“/»</code> = <code>'0'</code>(2 off) and <code>“2»</code> = <code>'1'</code>(1 off)]<br />
 near misses at two digits: [<code>“-Ñ»</code> = <code>'¶-'</code>(111 off) jumps to <code>“/_»</code> = <code>' .'</code>(303 off)]</p>
 <pre><code>'&quot;*'   “S*»    8,793
@@ -103,8 +141,8 @@ also spotted “y©» = 'yC' which I thought was funny since the c is just circl
 <pre><code>'^)L75'   “n^)L7»   435,080,769,306
 'f&gt;-A8'   “~f&gt;-A»   497,707,074,066
 </code></pre>
-<p>running the rust code overnight, it made it to somewhere in the middle of 7 digits. after fixing the bug and adding a new optimization, we are now almost caught up and are somewhere between <code>6 digits</code> and <code>&quot;</code>. I was able to remove the 'continue' statement from my code so next I'm going to try to parallelize it but until then it'll just be running in the background.<br />
-using a different definition of 'near miss' meaning checking that n-1 digits are the same, comparing at each index, and printing the number of digits after checking every valid value:</p>
+<p>this section is now from much faster rust code; but as is the nature of exponentials it only gets a bit farther. every ascii-only, non-dictionary, number 7 digits or under has now been checked. I'll be starting the 8 digit calculation today; I am anticipating that it will finish in the next week or so.<br />
+if you want to steal the code and run it on your computer as well you can see the gist linked in the comments parallelized and optimized with help from @pan. as for how it works: most numbers are either not ascii-jelly or not dictionary-free, meaning once you've built one of the strings and you find out there's a non-ascii somewhere in the other one all the work you spent making those strings is wasted. we start with the jelly side; writing a for loop that runs through the combinatorial product of n ascii digits. we then put it through an if that checks it's a non-dictionary decompressed string. since we now know that all numbers used are valid, we construct both vectors, and it prints it if there's n-1 digits with the same chars in the same indices.</p>
 <pre><code>'&quot;*'        “S*»                        8,793
 '),'        “[,»                       10,545
 '0.'        “c.»                       12,297
@@ -137,6 +175,8 @@ using a different definition of 'near miss' meaning checking that n-1 digits are
 5 digits              
 6 digits              
 '&quot;^zHf-%'   “&quot;*zHf-%»   8,638,176,928,324,038
+')`K0/-&amp;'   “)`Kh/-&amp;»  10,348,931,331,136,539
+7 digits
 </code></pre>
 </div>
 
