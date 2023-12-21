@@ -26,9 +26,9 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>037</td><td>Bash + core utilities</td><td>231221T003117Z</td><td><a href="https://codegolf.stackexchange.com/questions/268620/am-i-vaccinated/268664#268664">0x2b3bfa</a></td></tr>
-<tr d-ix="1"><td>050</td><td>Python</td><td>231220T225512Z</td><td><a href="https://codegolf.stackexchange.com/questions/268620/am-i-vaccinated/268662#268662">Karl Kne</a></td></tr>
-<tr d-ix="2"><td>065</td><td>Google Sheets</td><td>231218T180831Z</td><td><a href="https://codegolf.stackexchange.com/questions/268620/am-i-vaccinated/268621#268621">doubleun</a></td></tr>
+<tr d-ix="0"><td>064</td><td>Google Sheets</td><td>231218T180831Z</td><td><a href="https://codegolf.stackexchange.com/questions/268620/am-i-vaccinated/268621#268621">doubleun</a></td></tr>
+<tr d-ix="1"><td>037</td><td>Bash + core utilities</td><td>231221T003117Z</td><td><a href="https://codegolf.stackexchange.com/questions/268620/am-i-vaccinated/268664#268664">0x2b3bfa</a></td></tr>
+<tr d-ix="2"><td>050</td><td>Python</td><td>231220T225512Z</td><td><a href="https://codegolf.stackexchange.com/questions/268620/am-i-vaccinated/268662#268662">Karl Kne</a></td></tr>
 <tr d-ix="3"><td>063</td><td>Excel ms365</td><td>231220T094051Z</td><td><a href="https://codegolf.stackexchange.com/questions/268620/am-i-vaccinated/268657#268657">JvdV</a></td></tr>
 <tr d-ix="4"><td>nan</td><td>JavaScript ES6</td><td>231218T194630Z</td><td><a href="https://codegolf.stackexchange.com/questions/268620/am-i-vaccinated/268626#268626">Arnauld</a></td></tr>
 <tr d-ix="5"><td>015</td><td>APLDyalog Unicode</td><td>231219T001451Z</td><td><a href="https://codegolf.stackexchange.com/questions/268620/am-i-vaccinated/268633#268633">Tbw</a></td></tr>
@@ -42,7 +42,20 @@
 <tr d-ix="13"><td>054</td><td>Python 3.8 prerelease</td><td>231218T192259Z</td><td><a href="https://codegolf.stackexchange.com/questions/268620/am-i-vaccinated/268625#268625">spooky_s</a></td></tr>
 <tr d-ix="14"><td>028</td><td>Perl 5 p</td><td>231218T185309Z</td><td><a href="https://codegolf.stackexchange.com/questions/268620/am-i-vaccinated/268622#268622">Xcali</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.gnu.org/software/bash/" rel="nofollow noreferrer">Bash</a> + <a href="https://www.gnu.org/software/coreutils/" rel="nofollow noreferrer">core utilities</a>, 37 bytes</h1>
+<div id="pu0" class="pu"><h1>Google Sheets, 64 bytes</h1>
+<pre><code>=join(,ifna(filter({&quot;A&quot;,&quot;B&quot;,&quot;CWY&quot;},search({&quot;A&quot;,&quot;B*B&quot;,&quot;A&quot;},A1))))
+</code></pre>
+<p>Put the input in cell <code>A1</code> and the formula in cell <code>B1</code>.</p>
+<p>Uses the <code>search()</code> with <code>*</code> wildcard method of <a href="https://codegolf.stackexchange.com/a/268657/119296">JvdV's Excel answer</a>.</p>
+<p>The same can be done without arrays using simple string concatenation and regexes (<strong>81 bytes</strong>):</p>
+<pre><code>=let(a,regexmatch(A1,&quot;A&quot;),if(a,&quot;A&quot;,)&amp;if(regexmatch(A1,&quot;B.*B&quot;),&quot;B&quot;,)&amp;if(a,&quot;CWY&quot;,)
+</code></pre>
+<p>Implementation of the same in JavaScript (<strong>62 bytes</strong>):</p>
+<pre><code>t=&gt;(a=/A/.test(t)?'A':'')+(/B.*B/.test(t)?'B':'')+(a?'CWY':'')
+</code></pre>
+<p><sup>(-4 bytes thanks to <a href="https://codegolf.stackexchange.com/users/108687/noodle-man">noodle man</a>)</sup></p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.gnu.org/software/bash/" rel="nofollow noreferrer">Bash</a> + <a href="https://www.gnu.org/software/coreutils/" rel="nofollow noreferrer">core utilities</a>, 37 bytes</h1>
 <pre class="lang-bash prettyprint-override"><code>sed s/B//|grep -o .|sort -u|tr -d \\n
 </code></pre>
 <h3>Explanation</h3>
@@ -52,23 +65,10 @@ sort -u   | # sort lines and remove duplicates
 tr -d \\n | # remove newlines inserted for sorting
 </code></pre>
 </div>
-<div id="pu1" class="pu"><h1>Python, 50 bytes</h1>
+<div id="pu2" class="pu"><h1>Python, 50 bytes</h1>
 <pre><code>lambda s:''.join(sorted(set(s.replace('B','',1))))
 </code></pre>
 <p>Another port of <a href="https://codegolf.stackexchange.com/a/268624/52210">@NickKennedy's answer</a>, approximately. Python doesn't have a built-in multiset or corresponding set-difference operator; it does have <code>collections.Counter</code>, but that takes way too much setup. Instead, I just remove up to one <code>B</code> from the input before uniquifying and sorting (and producing a string from the resulting list). This works in both Python 2 and Python 3. The <code>count</code> argument for the <code>replace</code> method of strings is not commonly discussed, but it's clearly documented.</p>
-</div>
-<div id="pu2" class="pu"><h1>Google Sheets, 65 bytes</h1>
-<pre><code>=sort(join(,iferror(mid(A1,search({&quot;A&quot;,&quot;B*B&quot;,&quot;C&quot;},A1),{1,1,3}))))
-</code></pre>
-<p>Put the input in cell <code>A1</code> and the formula in cell <code>B1</code>.</p>
-<p>Uses the method of <a href="https://codegolf.stackexchange.com/a/268657/119296">JvdV's Excel answer</a>. The <code>sort()</code> function does not actually sort anything — it is used as an array formula enabler only.</p>
-<p>The same can be done without arrays using simple string concatenation and regexes (<strong>81 bytes</strong>):</p>
-<pre><code>=let(a,regexmatch(A1,&quot;A&quot;),if(a,&quot;A&quot;,)&amp;if(regexmatch(A1,&quot;B.*B&quot;),&quot;B&quot;,)&amp;if(a,&quot;CWY&quot;,)
-</code></pre>
-<p>Implementation of the same in JavaScript (<strong>62 bytes</strong>):</p>
-<pre><code>t=&gt;(a=/A/.test(t)?'A':'')+(/B.*B/.test(t)?'B':'')+(a?'CWY':'')
-</code></pre>
-<p><sup>(-4 bytes thanks to <a href="https://codegolf.stackexchange.com/users/108687/noodle-man">noodle man</a>)</sup></p>
 </div>
 <div id="pu3" class="pu"><h1>Excel ms365, <sup><s>64</s></sup>63 bytes </h1>
 <p>New:</p>
