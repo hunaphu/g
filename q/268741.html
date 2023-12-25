@@ -26,16 +26,69 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>076</td><td>JavaScript Node.js</td><td>231225T015645Z</td><td><a href="https://codegolf.stackexchange.com/questions/268741/convert-from-spoken-binary/268742#268742">l4m2</a></td></tr>
-<tr d-ix="1"><td>055</td><td>APLDyalog Unicode</td><td>231225T050021Z</td><td><a href="https://codegolf.stackexchange.com/questions/268741/convert-from-spoken-binary/268747#268747">Tbw</a></td></tr>
+<tr d-ix="0"><td>127</td><td>Retina</td><td>231225T143647Z</td><td><a href="https://codegolf.stackexchange.com/questions/268741/convert-from-spoken-binary/268753#268753">Neil</a></td></tr>
+<tr d-ix="1"><td>076</td><td>JavaScript Node.js</td><td>231225T015645Z</td><td><a href="https://codegolf.stackexchange.com/questions/268741/convert-from-spoken-binary/268742#268742">l4m2</a></td></tr>
+<tr d-ix="2"><td>055</td><td>APLDyalog Unicode</td><td>231225T050021Z</td><td><a href="https://codegolf.stackexchange.com/questions/268741/convert-from-spoken-binary/268747#268747">Tbw</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>,<s> 78 </s>76 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://github.com/m-ender/retina/wiki/The-Language" rel="nofollow noreferrer">Retina</a>, 127 bytes</h1>
+<pre><code>I
+16HBS
+21
+3
+(?&lt;!\d)[4H]|(?&lt;![\dH])B|^S
+1$&amp;
+S
+BB
+(\d)4(\d?)
+$.($1*4*_$2*
+(\d+)H(\d*)
+$.($1*16*_$2*
++`(\d+)B(\d*)
+$.($1*256*_$2*
+</code></pre>
+<p><a href="https://tio.run/##dY4/i8JAEMX79yk8CJJNOHXGyWrgUNjm1jqliX9ACxsLEa7xu@dmJwpecc28mfd7@9jb@X65Hqmf5uuvj4lrf8rpPv8@9BuQj6EBE@ZIrD25rcTukfZte4qdC49dA8rGaBACcg2IjrVDNskzKqTYZ1wkv3RRZ/EC5AdSHoyFd8bVAPueRp@rEYGTsH4j6RySRCB2VhDDXtWMBdgCS1Uzal0sQrO0DZ1aShYjRnwGuQLHpy3az3FIzPQdBQVKX06ytCvaDG97849vpVxL7RdcV9j8uf0v" rel="nofollow noreferrer" title="Retina – Try It Online">Try it online!</a> Link is to test suite that converts the first number on each line. Explanation:</p>
+<pre><code>I
+16HBS
+</code></pre>
+<p>Special-case <code>I</code> as we only need to support a lone <code>I</code>. (Although this will actually work for numbers up to but not including <code>2I</code>.)</p>
+<pre><code>21
+3
+</code></pre>
+<p><code>2</code> always has an implicit <code>1</code> preceding it. If it also has a <code>1</code> following it, that's then <code>3</code>.</p>
+<pre><code>(?&lt;!\d)[4H]|(?&lt;![\dH])B|^S
+1$&amp;
+</code></pre>
+<p>Put in explicit <code>1</code>s in places that need them.</p>
+<pre><code>S
+BB
+</code></pre>
+<p>Change <code>S</code> to <code>BB</code> as we can multiply by <code>256</code> twice without ambiguity. (See below.)</p>
+<pre><code>(\d)4(\d?)
+$.($1*4*_$2*
+</code></pre>
+<p>For each <code>4</code>, multiply the digit before by <code>4</code> and add any digit after. Conveniently after this stage all the decimal digits are now part of the computation rather than the input.</p>
+<pre><code>(\d+)H(\d*)
+$.($1*16*_$2*
+</code></pre>
+<p>For each <code>H</code>, multiply the number before by <code>16</code> and add any number after.</p>
+<pre><code>+`(\d+)B(\d*)
+$.($1*256*_$2*
+</code></pre>
+<p>For each <code>B</code>, multiply the number before by <code>256</code> and add any number after. Examples for multiple <code>B</code>s:</p>
+<ul>
+<li><code>S1</code> ⇒ <code>1BB1</code> ⇒ <code>256B1</code> ⇒ <code>65537</code></li>
+<li><code>SB1</code> ⇒ <code>1BB1B1</code> ⇒ <code>256B257</code> ⇒ <code>65793</code></li>
+<li><code>BSB1</code> ⇒ <code>1BBB1B1</code> ⇒ <code>256BB257</code> ⇒ <code>65536B257</code> ⇒ <code>16777473</code></li>
+<li><code>B1SB1</code> ⇒ <code>1B1BB1B1</code> ⇒ <code>257BB257</code> ⇒ <code>65792B257</code> ⇒ <code>16843009</code>.</li>
+</ul>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>,<s> 78 </s>76 bytes</h1>
 
 <pre class="lang-javascript prettyprint-override"><code>f=(x,i=6,z)=&gt;i--?x.split('24HBSI'[i]).map(s=&gt;z=(z|z&lt;1)*2**2**i+f(s,i))&amp;&amp;z:+x
 </code></pre>
 <p><a href="https://tio.run/##dVBNb4IwGL73V/SkrRSk7wqOZWWJJzx7NGYSBqYLChGzANl/Z@2rS9xhSdPns8@hn/lX3hUX0179c/NRTlOlWS@MjsXIdWp8/60PurY2VzYHla23m/nO7HlwylvW6XTUbPweXyVfwMId41WsE4bz2Wx88fqpaM5dU5dB3RzZgUjqp1QScAAEUD4R5UARhTIiCuPYIhorAlh4tohGYglWZOjYbVNSavewKIFakd3bEDkF2T1UykkF2a0ahvhubVNb@fVC3AKZ4b1@4Nt/fJyGRCXxCpKIbP7omByCS9nWeVGyJQs87lKHy9NRUPYuejHYr95VrOdaD8KhGPacTz8" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://dyalog.com" rel="nofollow noreferrer">APL(Dyalog Unicode)</a>, <sup><s>57</s></sup>55 bytes <sup><a href="https://github.com/abrudz/SBCS" rel="nofollow noreferrer">SBCS</a></sup></h1>
+<div id="pu2" class="pu"><h1><a href="https://dyalog.com" rel="nofollow noreferrer">APL(Dyalog Unicode)</a>, <sup><s>57</s></sup>55 bytes <sup><a href="https://github.com/abrudz/SBCS" rel="nofollow noreferrer">SBCS</a></sup></h1>
 <pre><code>{⍵≡⍬:⍺⋄M⊥(1∇¯1↓N↑⍵),0∇⍵↓⍨N←⍸⍵=M←⌈/⍵}{2*⌊2*6-'ISBH42'⍳⍵}
 </code></pre>
 <p><a href="https://razetime.github.io/APLgolf/?h=AwA&amp;c=q37Uu/VR58JHvWusHvXuetTd4vuoa6mG4aOO9kPrDR@1TfZ71DYRqERTxwAoBFLbNvlR7wqg6IRHvTuAfFtfELOnQx/Irq020nrU02WkZaar7hns5GFipP6odzNIAgA&amp;f=S1M3MfIwMjRxAmIQbRQMIgxhXEN1AA&amp;i=AwA&amp;r=tryapl&amp;l=apl-dyalog-extended&amp;m=train&amp;n=f" rel="nofollow noreferrer">Try it on APLgolf!</a></p>
