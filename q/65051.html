@@ -99,65 +99,32 @@
    return sorted
 }
 </code></pre>
-<blockquote>
-<p><strong>NOTE:</strong> The following explanation and notes are outdated, and refer to the following version:</p>
-<pre class="lang-swift prettyprint-override"><code>extension Collection{var c:[[Element]]{isEmpty ?[]:map{[first!,$0]}+dropFirst().c}}
-var t={Set((1...$0).c.map{$0[0]*$0[1]}).sorted()}
+<p>Let's run through this step by step. We'll assume that <code>n</code> is 4.</p>
+<p>First, we create a closed range containing all the numbers from 1 to <code>n</code>, inclusive. So, <code>range</code> is set to <code>1...4</code>. (In the golfed version, it's more efficient to just create the range twice.)</p>
+<p>Now we <code>map</code> over <code>range</code> twice, one <code>map</code> inside the other. This effectively creates a nested array containing every permutation of two numbers within the range <code>1...n</code>. We then join these arrays to remove the nesting. For our example, this sets <code>combos</code> to</p>
+<pre class="lang-swift prettyprint-override"><code>[
+   (1, 1), (1, 2), (1, 3), (1, 4),
+   (2, 1), (2, 2), (2, 3), (2, 4),
+   (3, 1), (3, 2), (3, 3), (3, 4),
+   (4, 1), (4, 2), (4, 3), (4, 4)
+]
 </code></pre>
-<p>And its corresponding expansion:</p>
-<pre class="lang-swift prettyprint-override"><code>extension Collection&lt;Int&gt; {
-   func combos() -&gt; [[Int]] {
-      if isEmpty { return [] }
-
-      let partialCombos = map { [first!, $0] }
-      return partialCombos + dropFirst().combos()
-   }
-}
-
-func table(n: Int) -&gt; [Int] {
-   let combos = (1...n).combos()
-   let products = combos.map { $0[0] * $0[1] }
-   let uniqueProducts = Set(products)
-   return uniqueProducts.sorted()
-}
+<p>(In actuality, it's a <code>FlattenSequence</code> instead of an <code>Array</code>, but that doesn't matter for what we're going to do with it.)</p>
+<p>Next, we <code>map</code> over <code>combos</code>, returning the results of multiplying each tuple's elements together. (Using tuples instead of more arrays saves 2 bytes due to the shorter element access syntax.) This sets <code>products</code> to</p>
+<pre class="lang-swift prettyprint-override"><code>[
+   1, 2, 3, 4,
+   2, 4, 6, 8,
+   3, 6, 9, 12,
+   4, 8, 12, 16
+]
 </code></pre>
-<p>I don't have the time or patience to rewrite it all on mobile, but some of it is still useful for the new, recursion-less version, so I’m leaving it for the time being. I'll (hopefully) update it the next time I have access to a physical keyboard.</p>
-</blockquote>
-<p>Let's look at <code>combos()</code> first.</p>
-<ol>
-<li>First, we check if <code>self</code> is empty; if so, we just return an empty array.</li>
-<li>We then call <code>map</code> to transform it into an array of two-element arrays, each starting with <code>self.first</code>.</li>
-<li>We call <code>combos()</code> again on the result of <code>self.dropFirst()</code>, before returning the concatenation of that with <code>partialCombos</code>.</li>
-</ol>
-<p>This effectively creates an array containing all the possible combinations of the provided elements. So, for example, the result of calling <code>(1...4).combos()</code> would be:</p>
-<pre class="lang-swift prettyprint-override"><code>[[1, 1], [1, 2], [1, 3], [1, 4], [2, 2], [2, 3], [2, 4], [3, 3], [3, 4], [4, 4]]
-</code></pre>
-<p>Now for <code>table(n:)</code>. We'll pretend that <code>n</code> is <code>4</code> for purposes of demonstration.</p>
-<ol>
-<li><p>First, we create a closed range from <code>1</code> to <code>4</code> and call <code>combos()</code> on it. The result of this is shown above.</p>
-</li>
-<li><p>We then map each array in <code>combos</code> to the product of its elements – so, for example, <code>[2, 3]</code> would be mapped to <code>6</code>. This results in:</p>
-<pre class="lang-swift prettyprint-override"><code>[1, 2, 3, 4, 4, 6, 8, 9, 12, 16]
-</code></pre>
-</li>
-<li><p>We initialize a <code>Set</code> from this mapping. <code>Set</code>s in Swift are unordered, and can only contain one of each element. So, for all intents and purposes, the result of this is:</p>
+<p>We then create a <code>Set</code> from this array. <code>Set</code>s are unordered, and can only contain one of each item. This enables us to concisely remove duplicate products, at the cost of losing the order of the products. For all intents and purposes, this sets <code>uniques</code> to</p>
 <pre class="lang-swift prettyprint-override"><code>[1, 2, 3, 4, 6, 8, 9, 12, 16].shuffled()
 </code></pre>
-<p>Notice that the duplicate <code>4</code> has been removed. Most duplicates are the result of multiplying the same two numbers in a different order, which <code>combos()</code> already dealt with, so the effect of this is minimal, but nonetheless necessary.</p>
-</li>
-<li><p>Finally, we call <code>sorted()</code> on the set. Calling <code>sorted()</code> without an argument is equivalent to calling <code>sorted(by: &lt;)</code>, which sorts by increasing order.</p>
-</li>
-</ol>
-<h2>Extra Notes</h2>
-<ul>
-<li>The combo-producing logic needs to be separated from the rest in order for recursion to work. Figuring out how to do this without recursion would probably shave off a huge amount of bytes.</li>
-<li>Extending <code>Collection&lt;Int&gt;</code> saved a few bytes by removing the need for a bulky function signature.</li>
-<li>I need to extend the more generic <code>Collection</code> instead of something like <code>ClosedRange</code> because a whole bunch of type checking fails if I don't.</li>
-<li>Using a computed property instead of a function saved quite a few bytes here and there.</li>
-<li>The space before the <code>?</code> in the ternary conditional is required to prevent Swift from trying to optional-chain something that isn't <code>Optional</code>. The space afterward isn't needed, which is a weird exception to Swift's operator whitespace rules, but if it saves me a byte, I'll take it.</li>
-<li>Assigning a closure to a variable saved a total of 13 bytes over using a proper function (primarily thanks to type inference), with the added benefit that there are no argument labels when calling it.</li>
-<li>Multiplying the array elements by hand instead of calling <code>reduce(_:_:)</code> saved 3 bytes.</li>
-</ul>
+<p>Finally, we call <code>sorted()</code> on <code>uniques</code> to get our ordering back, and return the result, which is</p>
+<pre class="lang-swift prettyprint-override"><code>[1, 2, 3, 4, 6, 8, 9, 12, 16]
+</code></pre>
+<p>By default, <code>sorted()</code> does the same thing as <code>sorted(by: &lt;)</code>, which sorts in increasing order.</p>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 69 bytes</h1>
 
