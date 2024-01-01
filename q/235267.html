@@ -31,8 +31,10 @@
 </table>
 <div id="pu0" class="pu"><h2>closest so far: <code>'xC~x9u1'</code> from  <code>“xC~x9u+»</code>  and
 <code>'zC~x9u1'</code> from <code>“xC~x9u1»</code>: 6/7, 85.7%</h2>
-<p>floor: 250^8<br />
-ceiling: 129×250^34</p>
+<p>floor: above 33*250^9<br />
+ceiling: below 129×250^34</p>
+<p>update from last time: no matches in 8 or 9 digits; my computer is too slow to find any more near misses. 9 digits alone took around 634 CPU hours (~26 days, split onto 4 cores), checking the same way for 10 digits would take over 6 CPU years on my computer. I recently thought of a new strategy for skipping a large percent of numbers but it means I also skip near misses as well; so any further digits I do will have yet another new definition for near miss. I also haven't figured out if it's guaranteed that it'll hit every match or if it has a chance to skip some, so I'm gonna do some more math before I figure out how to explain it here. if you know how to improve code performance, I'm still putting new iterations of my code as comments at the bottom of the <a href="https://gist.github.com/panstx/7d008d6d80dbd7fa2de301032659df37" rel="nofollow noreferrer">gist linked in the comments</a>, and I would love any suggestions you have. it's still in rust right now; but I have no idea what I'm doing when it comes to optimizations. there were quite a few near misses in the 7 digit range so I am rather disappointed that there were none in 8 or 9; if you spot a bug in my algorithm that'd be cool as well.</p>
+<p>no other changes since last time:</p>
 <p>no solution yet, but some preliminary results which may be helpful to others.</p>
 <p>in the first step of decompression, you divmod by 3 to either select making a character or using one of the dictionaries. if you ignore the dictionary, this  means it basically reduces to a base conversion problem where one side is base <a href="https://en.wikipedia.org/wiki/Non-integer_base_of_numeration" rel="nofollow noreferrer" title="just a cooler way of saying the digits are read backwards, but otherwise the same as normal base 288 (obv. excluding the radix point)">1/288</a>: (using the <code>�</code> for when it would touch a dictionary and ¶ for a newline)</p>
 <pre><code> ��!��&quot;��#��$��%��&amp;��'��(��)��*��+��,��-��.��/��0��1��2��3��4��5��6��7��8��9��:��;��&lt;��=��&gt;��?��@��A��B��C��D��E��F��G��H��I��J��K��L��M��N��O��P��Q��R��S��T��U��V��W��X��Y��Z��[��\��]��^��_��`��a��b��c��d��e��f��g��h��i��j��k��l��m��n��o��p��q��r��s��t��u��v��w��x��y��z��{��|��}��~��¶��
@@ -41,7 +43,7 @@ ceiling: 129×250^34</p>
 <pre><code>¡¢£¤¥¦©¬®µ½¿€ÆÇÐÑ×ØŒÞßæçðıȷñ÷øœþ !&quot;#$%&amp;'()*+,-./0123456789:;&lt;=&gt;?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~¶°¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁼⁽⁾ƁƇƊƑƓƘⱮƝƤƬƲȤɓƈɗƒɠɦƙɱɲƥʠɼʂƭʋȥẠḄḌẸḤỊḲḶṂṆỌṚṢṬỤṾẈỴẒȦḂĊḊĖḞĠḢİĿṀṄȮṖṘṠṪẆẊẎŻạḅḍẹḥịḳḷṃṇọṛṣṭ§Äẉỵẓȧḃċḋėḟġḣŀṁṅȯṗṙṡṫẇẋẏż
 </code></pre>
 <p>since the symbols have different values from each other I think it's just a matter of coincidence to get the same number to be represented with the same symbols.</p>
-<p>what this means is that until one of them out-bases the other, there may be a number that matches somewhere. (after 250^40 (roughly 8.27e95 or 2^318.7), base250 will always take more digits and you'd have to use the dictionaries to pad the output; but past 129x250^34 (roughly 4.37e83 or 2^277.8) every base250 number the same length as the corresponding base288 number will start with a digit greater than <code>¶</code> so it will never be ascii-only anymore). what I'm calling a 'near miss' in this first section is when an n-1 long string of digits are the same in both bases. this was found with slow python code; but the 'near miss' qualification was different so I'll leave the results in the answer.</p>
+<p>what this means is that until one of them out-bases the other, there may be a number that matches somewhere. (after 250^40 [roughly 8.27e95 or 2^318.7], base250 will always take more digits and you'd have to use the dictionaries to pad the output; but past ~129x250^34 [roughly 4.37e83 or 2^277.8] every base250 number the same length as the corresponding base288 number will start with a digit greater than <code>¶</code> so it will never be ascii-only anymore). what I'm calling a 'near miss' in this first section is when an n-1 long string of digits are the same in both bases. this was found with slow python code; but the 'near miss' qualification was different so I'll leave the results in the answer.</p>
 <p>near misses at one digit: [<code>“/»</code> = <code>'0'</code>(2 off) and <code>“2»</code> = <code>'1'</code>(1 off)]<br />
 near misses at two digits: [<code>“-Ñ»</code> = <code>'¶-'</code>(111 off) jumps to <code>“/_»</code> = <code>' .'</code>(303 off)]</p>
 <pre><code>'&quot;*'   “S*»    8,793
@@ -147,6 +149,7 @@ if you want to steal the code and run it on your computer as well you can see th
 'zC~x9u1'   “xC~x9u1»  29,607,919,863,029,550
 7 digits
 8 digits
+9 digits
 </code></pre>
 </div>
 <div id="pu1" class="pu"><h2>No solution without the dictionary using at most 9 characters</h2>
