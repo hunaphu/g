@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::217444</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>015</td><td>Vyxal</td><td>240107T110037Z</td><td><a href="https://codegolf.stackexchange.com/questions/217444/the-caged-circles/269053#269053">emanresu</a></td></tr>
+<tr d-ix="1"><td>199</td><td>Javascript</td><td>210115T002738Z</td><td><a href="https://codegolf.stackexchange.com/questions/217444/the-caged-circles/217603#217603">Hannesh</a></td></tr>
+<tr d-ix="2"><td>108</td><td>PowerShell</td><td>210108T220339Z</td><td><a href="https://codegolf.stackexchange.com/questions/217444/the-caged-circles/217459#217459">Zaelin G</a></td></tr>
+<tr d-ix="3"><td>050</td><td>MATL</td><td>210109T005956Z</td><td><a href="https://codegolf.stackexchange.com/questions/217444/the-caged-circles/217467#217467">Luis Men</a></td></tr>
+<tr d-ix="4"><td>225</td><td>Perl 5</td><td>210109T041809Z</td><td><a href="https://codegolf.stackexchange.com/questions/217444/the-caged-circles/217469#217469">Kjetil S</a></td></tr>
+<tr d-ix="5"><td>117</td><td>Charcoal</td><td>210109T001642Z</td><td><a href="https://codegolf.stackexchange.com/questions/217444/the-caged-circles/217466#217466">Neil</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1><a href="https://github.com/Vyxal/Vyxal/tree/version-2" rel="nofollow noreferrer">Vyxal</a>, 15 bytes</h1>
+<pre><code>9:NṡvJΠ$v∆dsĠ@¦
+</code></pre>
+<p><a href="https://vyxal.pythonanywhere.com/?v=2&amp;c=1#WyIiLCLin6ggMSAzIC8gfCAxTiAzIC8g4p+pOiIsIjk6TuG5oXZKzqAkduKIhmRzxKBAwqYiLCIiLCIiXQ==" rel="nofollow noreferrer">Try it Online!</a></p>
+<p>Mostly a port of <a href="https://codegolf.stackexchange.com/a/217459/100664">Zaelin Goodwin's Powershell answer</a>, go look at that if you want to understand why this works. Outputs more than the first 16 terms, although beyond that not all terms may be accurate.</p>
+<pre><code>   ṡ            # Range from 
+9               # 9 to
+ :N             # -9
+    vJ          # Append x and y to two copies of that
+      Π         # Take the cartesian product
+       $v∆d     # Distance between each point and the input
+           s    # Sort
+            Ġ@  # Take lengths of runs of identical items
+              ¦ # Cumulative sum
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h2>Javascript, 199 bytes</h2>
+<p>My first code golf in a long time!</p>
+<p>I originally started with a brute force solution, but couldn't get the step sizes small enough to have it produce the correct answers in a timely manner. So here's a more elegant solution that iterates points in a similar fashion to Zaelin's answer.</p>
+<pre><code>(x,y)=&gt;{b={0:1};g=w=&gt;b[d=parseInt(w*1e7)]=1+(b[d]|0);for(u=x%1-9;++u&lt;9;){g(u*u);for(v=y%1-9;++v&lt;9;)g(u*u+v*v)||u+1&lt;9||g(v*v)}s=0;return Object.keys(b).sort((a,b)=&gt;a-b).map(v=&gt;(s+=b[v])).slice(0,16)}
+</code></pre>
+<p><a href="https://jsfiddle.net/v1L756kc/1/" rel="nofollow noreferrer">Try it online!</a></p>
+<h3>Ungolfed</h3>
+<pre><code>(x, y) =&gt; {
+  b = { 0: 1 };             // initialize a map for the lengths
+  g = (w) =&gt; {              // function g is used to add to the map
+    d = parseInt(w * 1e7);  // avoid floating point rounding errors
+    b[d] = 1 + (b[d] | 0);  // increment point with length d
+  }
+  for (u = (x % 1) - 9; ++u &lt; 9; ) {    //loop over &quot;u&quot; coordinates
+    g(u * u);                           // add horizontal line
+    for (v = (y % 1) - 9; ++v &lt; 9; )    // loop over &quot;v&quot; coords
+      g(u * u + v * v);                 // add corner
+      (u + 1 &lt; 9) || g(v * v);          // add vertical line (but only once per above for loop)
+  }
+  s = 0;                        // sum of circles up to this point
+  return Object.keys(b)
+    .sort((a, b) =&gt; a - b)
+    .map((v) =&gt; (s += b[v]))    // aggregate number of circles visited
+    .slice(0, 16);        // first 16 terms only
+};
+</code></pre>
+<p>It relies on the fact that every new vertical, horizontal and corner node found represents exactly one new grid square found. Note that the x=0 or y=0 cases do not have to be treated specially, it just means that we hit a node and a vertical/horizontal line at the same time, which represents the multiple new grid squares hit.</p>
+</div>
+<div id="pu2" class="pu"><h1><a href="https://github.com/TryItOnline/TioSetup/wiki/Powershell" rel="nofollow noreferrer">PowerShell</a>, <strike>317 313 305 298 281 274 231 221 210 207 195 181 136 126 111 109</strike> 108 bytes</h1>
+<p>-an enormous 94 bytes thanks to mazzy!</p>
+<p>I must say, I never expected to beat Charcoal in this challenge; and when I posted that 317 byte answer, I certainly never expected to get it all the way down to the low 100s. I'm hopeful I can shave those final 10 to get to sub-100, but this feels so very optimized!</p>
+<p>Takes the x and y offsets (center of the circle) as inputs. Generates all points in the range <code>(-9..9,-9..9)</code>, then adds points for potential border intersections, which handles offset circles, and handles doubling point values on x,0 or 0,y coordinates when the circle is centered on the origin. Groups all of those points by their squared distance from the origin, then for each group outputs the sum of the group's count and the counts of all groups with distance smaller than that group. Multiplies all of the squared distances by 1e7 then casts to Integer to avoid issues with floating points.</p>
+<p>Because it groups the distances, it does output more than the first 16 terms, but as the challenger stated that this is acceptable, the TIO link truncates the output to the first 16 terms to make it more clear which tests succeed.</p>
+
+<pre class="lang-powershell prettyprint-override"><code>$x,$y=$args|%{,(-9..9+($p=$_%1)|%{($t=$_-$p)*$t*1e7})}
+$x|%{$n=$_;$y|%{[Int]($n+$_)}}|group|% c*|%{($s+=$_)}
+</code></pre>
+<p><a href="https://tio.run/##jZNNj9owEIbv/IpRZLoJSdjY@RaKhLRSpV7aquwNIQTUu2UFSRo7KivIb6djJ6Fc2OJD4vnwPO9Y47L4wyvxi@92Z/JS5xu5LfJsALiOZ3JwyHtGVtWrOA2Pjumm43Fqm6TMyHJILfSZROLeJaU1InJEedxYzYAcMEJyDEzIO27nX3K5MEluk6XVNKfXqqjL0xA2I11A2Jnyn/Gc5EI@rQQXkMHU1CKmR/1Ta5uXtVQbFfQcz7pE@KHkG8l/6ogRAGVAI2AB@Az8CIIAQgaRB1ECcQSJB0kC1MM8lcg8o63UOLdgZvhILQe/zLoFxfqQ9GAPGAMWgY8KEgg8pSBIlIgwQh3/59FHH3kJUm/zgpboaSj2kvTcQKFZAr6n@w/uwTHE@R@0RyGEFKgPjAILgaXgxxCEEKQQUYhSiGNIKCQppPG97bnqdxvodx0ilioyDYHGQFMt4dJmeg8t1ZcZfwBjGhciMG6RnqYyDQ40O@pJA2tAnnFSRTY1rauhVUOvjK/1fs2rjDatIKLVOKRH4rSPO9dy3DvbzIqLeidRk/np8hZhqpOtk@A7TAX3ZVsJiXKuis9kpQ61Bsow5sTEV/lWbHPDAcNaGI2lLVBme1DUmw0XIjM6quHy38ZFZJek27Sz@ffZUy1ksf@2fsPwYnp8UJGH7Kpf257MupJ97ckPXfkfohk03dWdPhfVfiXd59V6x89/AQ" rel="nofollow noreferrer" title="PowerShell – Try It Online">Try it online!</a></p>
+<h1>Ungolfed</h1>
+<p>At this point, the ungolfed solution is more a representation of the logic behind my solution than it is an ungolfed version of the solution - as the iterations have been made, I haven't been able to keep up with the changes on the ungolfed version. I am leaving it in here, despite the discrepancy, in hopes that it will inspires to answer in their language of choice (or port it to their language)</p>
+
+<pre class="lang-powershell prettyprint-override"><code>
+#Take the x-offset, y-offset, and starting radius as a parameter
+#radius starts at 0, so that the first element will be the count of points on the origin of the circle
+param($xOffset,$yOffset,$radius=0)
+#set the x and y offsets to be in the range [0,1)
+$xOffset=$xOffset % 1
+$yOffset=$yOffset % 1
+#do 16 times (for the required 16 elements)
+1..16|%{
+&#9;#make an array of points
+&#9;$points = @()
+&#9;#set our limits to the edge of the bounding box of the circle
+&#9;#this will normally be within 1 of the actual circle, but offsets of .5
+&#9;#will increase the search space due to .NET's banker's rounding
+&#9;$upperSearchLimitX = [Int]($xOffset+$radius+1)
+&#9;$lowerSearchLimitX = -$upperSearchLimitX 
+&#9;$upperSearchLimitY = [Int]($yOffset+$radius+1)
+&#9;$lowerSearchLimitY = -$upperSearchLimitY 
+&#9;#generate x and y for every combination of values in those ranges
+&#9;$lowerSearchLimitX..$upperSearchLimitX | %{
+&#9;&#9;$x = $_
+&#9;&#9;$lowerSearchLimitY..$upperSearchLimitY | %{
+&#9;&#9;&#9;$y = $_
+&#9;&#9;&#9;#add the point to our list
+&#9;&#9;&#9;$points+=@{x=$x;y=$y}
+&#9;&#9;&#9;#If x is zero, also add a special point that represents a border intersection to the list
+&#9;&#9;&#9;#this will also make x,0 points count for two when the center is at 0,0
+&#9;&#9;&#9;if (!$x) {
+&#9;&#9;&#9;&#9;$points+=@{x=$x+$xOffset;y=$y}
+&#9;&#9;&#9;}
+&#9;&#9;&#9;#If y is zero, also add a special point that represents a border intersection to the list
+&#9;&#9;&#9;#this will also make 0,y points count for two when the center is at 0,0
+&#9;&#9;&#9;if (!$y) {
+&#9;&#9;&#9;&#9;$points+=@{x=$x;y=$y+$yOffset}
+&#9;&#9;&#9;}
+&#9;&#9;}
+&#9;}
+&#9;#add the center point to the list
+&#9;$points += @{x=$xOffset;y=$yOffset}
+&#9;#set the minimum point as the closest point to our current circle that's outside of the bounds of the circle
+&#9;$minimum =&#9;$points|?{&#32;
+&#9;&#9;&#9;&#9;($_.distance=[Math]::Sqrt(($_.x-$xOffset)*($_.x-$xOffset)+($_.y-$yOffset)*($_.y-$yOffset))) -gt $radius
+&#9;&#9;&#9;}|sort distance -t 1
+&#9;#set our new radius to be that point's distance from the x offset
+&#9;$radius = $minimum.distance
+&#9;#count the number of points that lie inside (but not on the boundary of) this new circle, output implicitly
+&#9;@($points|?{$_.distance -lt $radius}).Count
+}
+</code></pre>
+<p><a href="https://tio.run/##jZVtb9owEMdfk09xi7I1WQiNnedW0ZAqTZq0rdPoiyGEqpSaNRUBmjgaCPLZme3EAXXQgQTx5R5@/7vYYbn4Q/LiicxmO21azic0XcxjBdhns1smeZLp2up2Oi0I7WpruciTx7QsYttQpDOWC3gPSJGRsVyIu6jXQ/72/UbpaMtFOqcFxNDXDWaWyyXJByTJJ09f0yylv5hn9GVOxy3cbJgm4vEzLvpVvHWkypHSw33p9Tmlh0dLD@GYil7viIYt8I472ooV0u756h/EkbyhzOtoa5kox2bG/c2KDfx6zeZbcUc6Bf2dtjJAZLyOM@UQ9wkHWesTWSLYlENqs9i32j9Akz1BEX0AaBO0LJ2nWZlBLOO3nzYgWLp233tMC5rMJyQefUvo0/jqavCSU517VpYsaHx8ZZvcXluSUvsPbMMA6zeF5pEK0dtikVOQNLAo24qdJoCPtlHZ6lE6fX2v90AoWLO2cmX0bhblnCrVrlI0Sgp6kxSk3tHi9PQ34sI/6XxZUr7gTrvLTo30kNWSTCh5FB7VBYQB@YBdcDA4PrgueBh8G/wQAh9CG8IQkM3ieCC21bpS1T0F071LZHTZLzZOQVl9CCXYBowB@@AwBSG4NlfghlyE5zMd/@ehS4fxQkY9zXNroi2grJdQcl2OxiE4tujfPQeHGc55oz0EHkSAHMAIsAc4AicA1wM3Ah@BH0EQQIggjCAKzm3P4pfTQKfpkGERJyMPUAAoEhLaNqNzaJEYZvAGDAucx4BBjbQFFQuwK9i@JCnsdX3HdmoR87fuftOyV7IwvpfZA8ljVNWCNKGmq0lkzI5Cc@u@J2/WkTkpSnY2YvjQ/odAX8QeVBrQnEXotcGY6khjh9d6ZidN7YJqjNXKEBZws04sysmEFEWsNgjVIi9qq6gJEj2Z8ejH4KYs6CK7fXhm7nF/c8E9F/FBc6Z5PWhKytrXP0XlPaJSqmZO28@LPEuodZc8zMjuLw" rel="nofollow noreferrer" title="PowerShell – Try It Online">Try it online!</a></p>
+<p>I'm not the best at making images; if anyone can recommend a good tool for things like these, let me know. But here's a rough sketch of all the points that get checked along with the order we iterate to them in for x=3/8, y=1/4</p>
+<p><a href="https://i.stack.imgur.com/XkBKk.png" rel="nofollow noreferrer"><img src="https://i.stack.imgur.com/XkBKk.png" alt="First 9 iterations" /></a></p>
+</div>
+<div id="pu3" class="pu"><h1><a href="https://github.com/lmendo/MATL" rel="nofollow noreferrer">MATL</a>, <s>51</s> 50 bytes</h1>
+<pre><code>p-9:9*tJ*!+1ei1GP*1Gp\tFF5Mth3$v-!Z}J*!+u-|X&lt;S&amp;Y'Ys
+</code></pre>
+<p>The input consists of an array containing the denominators followed by an array containing the numerators. The output may contain more than 16 terms.</p>
+<p><a href="https://tio.run/##y00syfn/v0DX0spSq8RLS1HbMNU9IFPL0L0gpsTNzdS3JMNYpUxXMaoWJFeqWxNhE6wWqR5Z/P9/tKGCYSxXtIGCQSwA" rel="nofollow noreferrer">Try it online!</a> Or <a href="https://tio.run/##y00syfmf8L9A19LKUqvES0tR2zDVPSBTy9C9IKbEzc3UtyTDWKVMVzGqFiRXqlsTYROsFqkeWfzf0MxK0yWqIuR/tKGCYSxXtIGCAZA0VDACkqYKpkDSGCxuqGABJI3A4oYKxmBxYzBbFyRtqWAOVQQA" rel="nofollow noreferrer">verify all test cases</a> (with output trimmed to 16 terms for convenience)</p>
+<h3>Explanation</h3>
+<p>Let (<em>x</em>, <em>y</em>) be the input values modulo 1. The code checks the distance from the (<em>x</em>, <em>y</em>) to each square with lower left corner (<em>a</em>, <em>b</em>), where <em>a</em> and <em>b</em> are integers. To do that, 9 points of the square are tested: (<em>a</em>+<em>m</em>,<em>b</em>+<em>n</em>) with <em>m</em> = 0, <em>x</em>, 1 and <em>n</em> = 0, <em>y</em>, 1, and the minimum of the 9 distances is kept.</p>
+<p>A grid of 19×19 squares with <em>a</em>, <em>b</em> = −9, −8, ..., 9 is generated. The distance from (<em>x</em>, <em>y</em>) to each square is computed as described in the preceding paragraph. The 361 distances are sorted and run-length encoded, and the cumulative sum of the run lengths is the desired output.</p>
+<p>To keep floating-point issues as controlled as possible, instead of using the actual values for <em>x</em>, <em>y</em>, <em>a</em>, <em>b</em>, <em>m</em>, <em>n</em>, the code uses those values multiplied by the product of the two input denominators.</p>
+<pre><code>p       % Implicit input: array with the denominators. Product
+-9:9    % Push [-9, -8, ... 9]
+*       % Multiply, element-wise
+tJ*     % Duplicate, multiply by j (imaginary unit) element-wise
+!+      % Transpose, add with broadcast. This generates the 19×19 grid of
+        % complex values
+1e      % Linearize into a row vector
+i       % Input: array with the numerators
+1GP     % Push first input again. Flip it
+*       % Multiply, element-wise
+1Gp     % Push first input again. Product (*)
+\       % Modulo, element-wise (**)
+t       % Duplicate
+FF      % Push [0 0]
+5Mth    % Push (*) again. Duplicate, concatenate with itself horizontally
+3$v     % Concatenate three elements vertically. Gives a 3×2 matrix
+-       % Subtract (*) with broadcast
+!       % Transpose. The result is a 2×3 matrix
+Z}      % Split into two rows with 3 elements
+J*      % Multiply by j (imaginary unit) element-wise
+!+      % Transpose, add with broadcast. This gives a 3×3 matrix with the
+        % 9 points to be considered in each square
+u       % Unique. This gives a column vector with the (unique) values
+-|      % Subtract with broadcast, absolute value. Gives a 9×361 matrix
+X&lt;      % Minimum of each column. This gives the 361 distances
+S       % Sort
+&amp;Y'     % Run-length encoding, producing only the run lengths
+Ys      % Cumulative sum. Implicit display
+</code></pre>
+</div>
+<div id="pu4" class="pu"><h1><a href="https://www.perl.org/" rel="nofollow noreferrer">Perl 5</a>, 225 bytes</h1>
+
+<pre class="lang-perl prettyprint-override"><code>sub f{my($x,$y,@a,@r,%b,$n,$i)=(@_,map{[cos,sin],[-cos,sin],[cos,-sin],[-cos,-sin]}map$_/12.566,0..720);while(@r&lt;16){$n+=2e-3;$b{int$x+$n*<span class="math-container">$$_[0]+1e4,int$y+$n*$$</span>_[1]+1e4}++for@a;$b=keys%b;$i=0,push@r,$b if$b&gt;$r[-1]&amp;&amp;$i++&gt;1}@r}
+</code></pre>
+<p><a href="https://tio.run/##TVHbbqswEHzPV/jBbeGwSWxzTTlE/EDf@oZQFCpy6rYBBIlOEOLb012HXJBsxrO7M2NoyvbHPx@7kr2X3eH19a1uS3ZA2CVrP57te5bSKbFmGcvEUgLDLQeWMQ@YVLgCYAqxi9hF7CH2EQcCVwQsRC5CHCGWgobMlBI5y4FEfRL1l8qIYonhAIsexHFYIVaIXTLCmicuRh5i48Z8mgpuonLpouWUlOreg7CYxClM9GDgXUwUibqCNpp0vbso3XFKKskU1wpF0EvhWeFZ4dkNMRliD3GAfIDvMCRzGopWNBXeRVeUNLyJGs8psT@lDi/JjRmll9MNqI@uwSR1ysCI2vFsV7eW@W/2MGP47HuL66oBXp4aO0n5Jr7RJ@A9UVi@kvxffUi@al29wAvsppZLUXcWVYGqFpVTIwlEYst47o4F2w1XYUi3kLbwVACvgGs7sdIN7LfNkH3UHXS6yiGb3yGh@QNr8Ij9fLOUauEHAYjFIlTCjv9/6p/SStu/MrAHXjmJKuduzItBVwd@cnj1h/NNJnJHlh4Q1185abjRcfAjpVscSb7LvnsqYq4TAc2x@8TEvGB6x4s1b7O5zJ@fuXactRzTdjyffwE" rel="nofollow noreferrer" title="Perl 5 – Try It Online">Try it online!</a></p>
+<p>All brawn and no brain, but the 5 given tests passes in about 11 seconds at link above. It's easy to find new tests that will fail. The function f starts at the given input (x,y) and circles around in ever wider circles counting boxes it falls into. To be (almost) sure it found all boxes it needs two rounds for a new number of boxes to be registered into the return array @r. This solution is bound to have floating point &quot;rounding errors&quot; and &quot;over- or understepping&quot; when the radius is increased. To solve this properly I'd try to sort the distances of the edges of the close by boxes, but I'm too lazy to even think about that now.</p>
+<pre class="lang-perl prettyprint-override"><code>sub f{
+  my($x,$y,@a,@r,%b,$n,$i)=
+    ( @_, map {[cos,sin],[-cos,sin],
+               [cos,-sin],[-cos,-sin]}
+          map $_/12.566, 0..720 );     #12.566 ~ 4*π
+  while(@r&lt;16){                        #repeat until 16 elems found
+    $n+=2e-3;                          #increase radius
+    $b{ int$x+$n*<span class="math-container">$$_[0]+1e4,           #keys of dict b contains found boxes
+        int$y+$n*$$</span>_[1]+1e4 }++        #+1e4 to avoid rounding up for x&lt;0 or y&lt;0
+      for @a;                          #for all angles tested
+    $b=keys%b;                         #b = number of boxes so far
+    $i=0, push@r,$b                    #register b in solution if
+      if !@r || $b &gt; $r[-1] &amp;&amp; $i++ &gt; 1#it's &gt; last number and if it's
+                                       #found at least twice
+  }
+  @r                                   #return the 16 counts found
+}
+</code></pre>
+</div>
+<div id="pu5" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="noreferrer">Charcoal</a>, 117 bytes</h1>
+<pre><code>ＮθＮηＮζＮε≧×εθ≧×ηζ≧×ηε≔⁰ηＷ‹Ｌυ¹⁶«≔⟦⟧δＦ…·±ηηＦ…·±ηηＦ¬›ΣＸ⟦κλ⟧²ηＦ…·÷⁺θκε±÷⁺θκ±εＦ…·÷⁺ζλε±÷⁺ζλ±εＦ¬№δ⟦νξ⟧⊞δ⟦νξ⟧Ｆ¬№υＬδ⊞υＬδ≦⊕η»Ｉυ
+</code></pre>
+<p><a href="https://tio.run/##jVFLa8JAED7rr5jjLGyhCvbSU7FQhFaC7U08pGaaXUw2uo9YUvrb0wlJrUoqXpb9HvvNzM5axXZdxFldz8w2@HnI38niTtwPj7E6w9UZJsYv8fbBOZ2ahU6Vxzedk5NAEnb/ikpCdUlsYlsFb5lgtFc6I8Bnco4Pk3qFQUgY3QkBX8NBZ16uJCTsHnwUFnBm1llwuqRFbFLCOaWxJx6pSRRwrWVeeHyyxLzF15BjVOz5ttxIyLjaWLTe/ryZ8Y@61AlhxDTuJGxEM52ErlK/oRNJiCuDK27mYnBn6AluxpsWwXhMJCyNhM9Vo0XBqSPm90v/3EFCt4dEHB6ckPzmsOCmf0s5GU9Ju9DvYWQ150xjx2HsrusJjGAC4/qmzH4A" rel="noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code. Takes input as numerator denominator numerator denominator. Explanation:</p>
+<pre><code>ＮθＮηＮζＮε
+</code></pre>
+<p>Input the co-ordinates.</p>
+<pre><code>≧×εθ≧×ηζ≧×ηε
+</code></pre>
+<p>Increase the scale of the grid so that the gridlines are drawn at intervals given by the product of the denominators.</p>
+<pre><code>≔⁰η
+</code></pre>
+<p>Start enumerating circles with radius <span class="math-container">\$ \sqrt h + ε \$</span>.</p>
+<pre><code>Ｗ‹Ｌυ¹⁶«
+</code></pre>
+<p>Repeat until 16 box counts have been found.</p>
+<pre><code>≔⟦⟧δ
+</code></pre>
+<p>Start with an empty list of boxes.</p>
+<pre><code>Ｆ…·±ηηＦ…·±ηη
+</code></pre>
+<p>Search points with a distance of up to and including <span class="math-container">\$ h \$</span> both horizontally and vertically.</p>
+<pre><code>Ｆ¬›ΣＸ⟦κλ⟧²η
+</code></pre>
+<p>Skip points whose distance from the desired point is greater than <span class="math-container">\$ h \$</span>.</p>
+<pre><code>Ｆ…·÷⁺θκε±÷⁺θκ±εＦ…·÷⁺ζλε±÷⁺ζλ±ε
+</code></pre>
+<p>Consider all boxes touching this point.</p>
+<pre><code>Ｆ¬№δ⟦νξ⟧⊞δ⟦νξ⟧
+</code></pre>
+<p>Add the box to the list of boxes if it's not already present.</p>
+<pre><code>Ｆ¬№υＬδ⊞υＬδ
+</code></pre>
+<p>Add the count of boxes to the list of box counts if it's not already present.</p>
+<pre><code>≦⊕η
+</code></pre>
+<p>Move on to the next radius.</p>
+<pre><code>»Ｉυ
+</code></pre>
+<p>Print all of the box counts found.</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/217444/">217444</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
