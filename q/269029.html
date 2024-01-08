@@ -26,8 +26,8 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>126</td><td>C gnu99</td><td>240108T182201Z</td><td><a href="https://codegolf.stackexchange.com/questions/269029/calculate-500-digits-of-e/269083#269083">qwr</a></td></tr>
-<tr d-ix="1"><td>104</td><td>R</td><td>240108T172257Z</td><td><a href="https://codegolf.stackexchange.com/questions/269029/calculate-500-digits-of-e/269079#269079">qwr</a></td></tr>
+<tr d-ix="0"><td>104</td><td>R</td><td>240108T172257Z</td><td><a href="https://codegolf.stackexchange.com/questions/269029/calculate-500-digits-of-e/269079#269079">qwr</a></td></tr>
+<tr d-ix="1"><td>126</td><td>C gnu99</td><td>240108T182201Z</td><td><a href="https://codegolf.stackexchange.com/questions/269029/calculate-500-digits-of-e/269083#269083">qwr</a></td></tr>
 <tr d-ix="2"><td>029</td><td>GolfScript</td><td>240106T231641Z</td><td><a href="https://codegolf.stackexchange.com/questions/269029/calculate-500-digits-of-e/269043#269043">noodle m</a></td></tr>
 <tr d-ix="3"><td>045</td><td>JavaScript ES11</td><td>240106T213602Z</td><td><a href="https://codegolf.stackexchange.com/questions/269029/calculate-500-digits-of-e/269040#269040">Arnauld</a></td></tr>
 <tr d-ix="4"><td>053</td><td>Python 2</td><td>240107T194635Z</td><td><a href="https://codegolf.stackexchange.com/questions/269029/calculate-500-digits-of-e/269058#269058">Albert.L</a></td></tr>
@@ -42,21 +42,33 @@
 <tr d-ix="13"><td>063</td><td>Python 3.8</td><td>240106T174804Z</td><td><a href="https://codegolf.stackexchange.com/questions/269029/calculate-500-digits-of-e/269032#269032">m90</a></td></tr>
 <tr d-ix="14"><td>011</td><td>Vyxal</td><td>240106T173417Z</td><td><a href="https://codegolf.stackexchange.com/questions/269029/calculate-500-digits-of-e/269030#269030">emanresu</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>C gnu99, 126 bytes</h1>
-<p>Port of <a href="https://codegolf.stackexchange.com/a/269079/17360">my R answer</a>. The initialization of array <code>C</code> to 1s is a GNU extension.</p>
-<pre class="lang-c prettyprint-override"><code>i;d;j;t;C[]={[0 ...255]=1};main(){puts(&quot;2&quot;);while(++i&lt;500){d=0;j=254;while(j--&gt;2)t=10*C[j]+d,d=t/j,C[j]=t-d*j;putchar(d+48);}}
-</code></pre>
-<p><a href="https://ato.pxeger.com/run?1=m700OT49OXnBgqWlJWm6FjfrMq1TrLOsS6ydo2Ntq6MNFPT09IxMTWNtDWutcxMz8zQ0qwtKS4o1lIyUNK3LMzJzUjW0tTNtTA0MNKtTbA2ss2yNTE2gElm6unZGmiW2hgZaztFZsdopOim2JfpZOiCObYluilaWNdCs5IzEIo0UbRMLTevaWogroI6BOQoA" rel="nofollow noreferrer">Attempt This Online!</a></p>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://www.r-project.org" rel="nofollow noreferrer">R</a>, 104 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.r-project.org" rel="nofollow noreferrer">R</a>, 104 bytes</h1>
 <p>Since R doesn't have arbitrary precision arithmetic, and other answers already have used the limit definition and Taylor series of <em>e</em>, I use a decimal spigot algorithm to spice things up. I don't usually write loop-based code in R, so there is plenty of room for improvement. (<code>divmod</code> would be useful).</p>
-<p>Based on <a href="https://academic.oup.com/comjnl/article/11/2/229/378761?login=true" rel="nofollow noreferrer"><em>The Calculation of e to Many Significant Digits</em> by AHJ Sale (1968)</a>.</p>
 <pre class="lang-r prettyprint-override"><code>m=254
 C=rep(1,m)
 cat(2)
 for(i in 1:500){d=0;j=m;while(j&gt;1){t=10*C[j]+d;d=t%/%j;C[j]=t-d*j;j=j-1};cat(d)}
 </code></pre>
 <p><a href="https://ato.pxeger.com/run?1=m72waMGCpaUlaboWNzNybY1MTbicbYtSCzQMdXI1uZITSzSMNLnS8os0MhUy8xQMrUwNDDSrU2wNrLNsc63LMzJzUjWy7Aw1q0tsDQ20nKOzYrVTrFNsS1T1VbOsQVzbEt0UrSyg6ixdw1prkHkpmrUQ-6DWwqwHAA" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<p>Based on <a href="https://academic.oup.com/comjnl/article/11/2/229/378761?login=true" rel="nofollow noreferrer"><em>The Calculation of e to Many Significant Digits</em> by AHJ Sale (1968)</a>. The basic idea is to truncate the infinite series in nested form to a finite sum, extract an integer and fractional part, multiply the fractional part by 10, and repeat. Here's an example extracting the first decimal digit using the series up to the 4th term:</p>
+<p><span class="math-container">$$
+e = 2 + \left[  \frac 1 2 \left(1 + \frac 1 3 \left( 1 + \frac 1 4 (1) \right)  \right) \right]  \\
+= 2 + \frac 1 {10}  \left[ \frac 1 2 \left(10 + \frac 1 3 \left( 10 + \frac 1 4 (10) \right)  \right) \right]  \\
+= 2 + \frac 1 {10}  \left[ \frac 1 2 \left(10 + \frac 1 3 \left( 12 + \frac 1 4 (2) \right)  \right) \right]  \\
+= 2 + \frac 1 {10}  \left[ \frac 1 2 \left(14 + \frac 1 3 \left( 0 + \frac 1 4 (2) \right)  \right) \right]  \\
+= 2 + \frac 1 {10}  \left[ 7 + \frac 1 2 \left(0 + \frac 1 3 \left( 0 + \frac 1 4 (2) \right)  \right) \right]  \\
+= 2 + \frac 1 {10}  \left[ 7 + \frac 1 {10} \left[ \frac 1 2 \left(0 + \frac 1 3 \left( 0 + \frac 1 4 (20) \right)  \right) \right] \right]  \\
+\vdots
+$$</span>
+(idk how to do a proper mathjax align for each term)</p>
+<p>I believe for <span class="math-container">\$m\$</span> terms, the integers involved never exceed <span class="math-container">\$10m\$</span>, and the fractional part is always less than 1, so the computed digit can't exceed 9 and affect the previous digit. <span class="math-container">\$m\$</span> can be calculated beforehand from the error of the finite sum using Stirling's approximation. For $n$ digits (including 2 at the start), <span class="math-container">\$m\$</span> is the max integer such that</p>
+<p><span class="math-container">$$m (\ln n-1) + 0.5 \ln (6.2831852 m) \le 2.30258509 n$$</span></p>
+</div>
+<div id="pu1" class="pu"><h1>C gnu99, 126 bytes</h1>
+<p>Port of <a href="https://codegolf.stackexchange.com/a/269079/17360">my R answer</a>. The initialization of array <code>C</code> to 1s is a GNU extension.</p>
+<pre class="lang-c prettyprint-override"><code>i;d;j;t;C[]={[0 ...255]=1};main(){puts(&quot;2&quot;);while(++i&lt;500){d=0;j=254;while(j--&gt;2)t=10*C[j]+d,d=t/j,C[j]=t-d*j;putchar(d+48);}}
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=m700OT49OXnBgqWlJWm6FjfrMq1TrLOsS6ydo2Ntq6MNFPT09IxMTWNtDWutcxMz8zQ0qwtKS4o1lIyUNK3LMzJzUjW0tTNtTA0MNKtTbA2ss2yNTE2gElm6unZGmiW2hgZaztFZsdopOim2JfpZOiCObYluilaWNdCs5IzEIo0UbRMLTevaWogroI6BOQoA" rel="nofollow noreferrer">Attempt This Online!</a></p>
 </div>
 <div id="pu2" class="pu"><h1><a href="http://www.golfscript.com/golfscript/" rel="nofollow noreferrer">GolfScript</a>, 29 bytes</h1>
 <pre><code>2 4000:a?:b){.*b/}a*5a?*+500&lt;
