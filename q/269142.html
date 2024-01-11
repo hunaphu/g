@@ -26,12 +26,53 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>061</td><td>05AB1E</td><td>240111T153912Z</td><td><a href="https://codegolf.stackexchange.com/questions/269142/print-abracadabra-with-7-different-alterations/269149#269149">Kevin Cr</a></td></tr>
-<tr d-ix="1"><td>205</td><td>Python 3.8 prerelease</td><td>240111T135556Z</td><td><a href="https://codegolf.stackexchange.com/questions/269142/print-abracadabra-with-7-different-alterations/269144#269144">enzo</a></td></tr>
+<tr d-ix="0"><td>202</td><td>Python 3.8 prerelease</td><td>240111T135556Z</td><td><a href="https://codegolf.stackexchange.com/questions/269142/print-abracadabra-with-7-different-alterations/269144#269144">enzo</a></td></tr>
+<tr d-ix="1"><td>061</td><td>05AB1E</td><td>240111T153912Z</td><td><a href="https://codegolf.stackexchange.com/questions/269142/print-abracadabra-with-7-different-alterations/269149#269149">Kevin Cr</a></td></tr>
 <tr d-ix="2"><td>114</td><td>JavaScript ES6</td><td>240111T135940Z</td><td><a href="https://codegolf.stackexchange.com/questions/269142/print-abracadabra-with-7-different-alterations/269145#269145">Arnauld</a></td></tr>
 <tr d-ix="3"><td>098</td><td>Retina 0.8.2</td><td>240111T135033Z</td><td><a href="https://codegolf.stackexchange.com/questions/269142/print-abracadabra-with-7-different-alterations/269143#269143">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, 61 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
+<div id="pu0" class="pu"><h1><a href="https://docs.python.org/3.8/" rel="nofollow noreferrer">Python 3.8 (pre-release)</a>, <s>263</s> <s>247</s> <s>205</s> 202 bytes</h1>
+
+<pre class="lang-python prettyprint-override"><code>F=lambda j:lambda c:(chr(ord(c)+(j&gt;2)*65248),'Dyk '[j])[c=='dac '[j]]
+p=print;p(s:='abracadabra');p(s+'!')
+for f in 0,1,2,3:p(*map(F(f),s),sep='')
+for f in'0;34','44':p('\033[',f,'m',s,'\033[0m',sep='')
+</code></pre>
+<p><a href="https://tio.run/##ZVBLbsIwFNz7Ct24bJ4NFkpJWqEgd4WQuuqiy5SF84MAiS07VMqynxP0PpyJI1DHCWqqSpHfzLyx896opt7Kyp8rfSlKJXWNTWOQqVN5rDFvybQjCPX9QqL4mOeZtu1CTl9qXVSbp2dC0a/ZtjrPZcUPooxTgXdhD5KQJFtNpE5JQidk9zij44f7WTCnDJbNHkO0W9Mo4RxSkTi2Roor@5d6oYgJOYhYi0SkbQHaahO4BYpyqXGOiwp77I7NmB8qMi6FIiuSU2bslykOAx94Cz8ABkEA1gqvnu9HwHIGJTDDOu61uLt3@bPeNRR7qMG@001Wv4nDMbNxIGFMZgO7WjgejUaD2dEA3/Zk6RpNrJukSdvi9H1/4Xx6P58@zqdvBz7d@TUU0U3ULlUOXrZKaeXgv2inQcjlSkDubTAdvtZubJZVqdv@Bw" rel="nofollow noreferrer" title="Python 3.8 (pre-release) – Try It Online">Try it online!</a></p>
+<p>Not a very good Python solution, but worth the try. Outputs</p>
+<ol>
+<li>base case: <code>abracadabra</code></li>
+<li>exclamation mark appended: <code>abracadabra!</code></li>
+<li>case swapped: <code>abracaDabra</code> (<code>d</code> replaced with <code>D</code>)</li>
+<li>vowels replaced: <code>ybrycydybry</code> (<code>a</code> replaced with <code>y</code>)</li>
+<li>single consonant replaced: <code>abrakadabra</code> (<code>c</code> replaced with <code>k</code>)</li>
+<li>width filled: <code>ａｂｒａｃａｄａｂｒａ</code></li>
+<li>with blue foreground: <code>abracadabra</code></li>
+<li>with blue blackground: <code>abracadabra</code></li>
+</ol>
+<p><strong>How it works?</strong></p>
+<p><code>F</code> groups <span class="math-container">\$4\$</span> steps: 3, 4, 5 and 6.</p>
+<p>Therefore, <span class="math-container">\$0 \leq j \lt 4\$</span>: for step 3, <span class="math-container">\$j=0\$</span>; for step 4, <span class="math-container">\$j=1\$</span>; and so on.</p>
+<p>Note that for steps 3, 4 and 5, a single letter is replaced by another single letter. This allows us to do</p>
+<pre class="lang-python prettyprint-override"><code>[c,'Dyk '[j]][c=='dac '[j]]
+</code></pre>
+<p>Also note that for step 6, ASCII character <code>a</code> is 65248 characters apart from <code>ａ</code>:</p>
+<pre class="lang-python prettyprint-override"><code>chr(ord(c)+65248)
+</code></pre>
+<p>Since they're different types of replacement, we can filter it using</p>
+<pre class="lang-python prettyprint-override"><code>(j&gt;2)*65248
+</code></pre>
+<p>where it'll be evaluated to 65248 only for <span class="math-container">\$j=3\$</span> (step 6).</p>
+<p>Since this conditional is not lazy-evaluated, we must add a space after <code>Dyk</code> and <code>dac</code> for considering the case where <span class="math-container">\$j=3\$</span>.</p>
+<p>The second line sets an alias for <code>print</code> and executes steps 1 and 2.</p>
+<p>The third line maps each character of &quot;abracadabra&quot; using the logic from <code>F</code>.</p>
+<p>The fourth line handles the colors.</p>
+<p><strong>Changes</strong></p>
+<p><em>-16 bytes</em> by reducing the lambdas to a curry.</p>
+<p><em>-42 bytes</em> by assuming that &quot;change the casing&quot; means &quot;change the case of any letter&quot; as other answers did.</p>
+<p><em>-3 bytes</em> by inlining the <code>j &gt; 2</code> condition</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, 61 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
 <pre><code>.•ÒÔt_º°•D©™®'!«®žOÂ‡®'f1ǝ₆41‚ε®27çDr&quot;[ÿmÿÿ[0m&quot;«}`®Ç65248+çJ»
 </code></pre>
 <p>Alteration options in the same order as the challenge description.</p>
@@ -74,48 +115,8 @@ D               # Duplicate it
       »         # Join all strings on the stack by newlines
                 # (after which the result is output implicitly)
 </code></pre>
-<p>The cumulative program is pretty similar, except uses <code>=</code> (print with trailing newline without popping the string). And the <code>␛[0m</code> isn't necessary to reset the colors.</p>
+<p>The cumulative program is pretty similar, except uses <code>=</code> (print with trailing newline without popping the string). And the <code>␛[0m</code> to reset the colors aren't necessary.</p>
 <p><a href="https://codegolf.stackexchange.com/a/166851/52210">See this 05AB1E tip of mine (section <em>How to compress strings not part of the dictionary?</em>)</a> to understand why <code>.•ÒÔt_º°•</code> is <code>&quot;abracadabra&quot;</code>.</p>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://docs.python.org/3.8/" rel="nofollow noreferrer">Python 3.8 (pre-release)</a>, <s>263</s> <s>247</s> 205 bytes</h1>
-
-<pre class="lang-python prettyprint-override"><code>F=lambda j:lambda c:[[c,'Dyk '[j]][c=='dac '[j]],chr(ord(c)+65248)][j&gt;2]
-p=print;p(s:='abracadabra');p(s+'!')
-for f in 0,1,2,3:p(*map(F(f),s),sep='')
-for f in'0;34','44':p('\033[',f,'m',s,'\033[0m',sep='')
-</code></pre>
-<p><a href="https://tio.run/##ZVBLboMwFNz7Ct042TzTWBENtIqI3FUUqasuuqQsjIGEJGDLJpVY9nOC3idnyhFS81OpKiG/mXlj896outrJ0lsqfc0LJXWFTW2QqRJ5qjBryLwjCPX9XKL4lGWptu1czl8qnZfbp2fioF@zbXWe64YdeREnHO@DHoggDAWFdX3AEO6jKBSMQcJFx6jYaSJ1QoQze7hf@EsnCvePiwgppuyPqpUiJmDAY80FT5oCTqPNYAIOyqTGGc5L7NI7uqBeoMhtwRXZkMyhxn6pYjDygbvyfKDg@2Ct8Op6Xgg0o1AANbTjboO7e9c/Gw652EONVp5v0@qNH0@pTQRxY1Kb2WBheDqdjmZHIzzpybpt1LGuRZ00pdUP/YXL@f1y/ricv1vw2Z5fYxHdhM1SxehlqxRW9v@LdhqE2lwJyIMNpsND7camaZm02/8A" rel="nofollow noreferrer" title="Python 3.8 (pre-release) – Try It Online">Try it online!</a></p>
-<p>Not a very good Python solution, but worth the try. Outputs</p>
-<ol>
-<li>base case: <code>abracadabra</code></li>
-<li>exclamation mark appended: <code>abracadabra!</code></li>
-<li>case swapped: <code>abracaDabra</code> (<code>d</code> replaced with <code>D</code>)</li>
-<li>vowels replaced: <code>ybrycydybry</code> (<code>a</code> replaced with <code>y</code>)</li>
-<li>single consonant replaced: <code>abrakadabra</code> (<code>c</code> replaced with <code>k</code>)</li>
-<li>width filled: <code>ａｂｒａｃａｄａｂｒａ</code></li>
-<li>with blue foreground: <code>abracadabra</code></li>
-<li>with blue blackground: <code>abracadabra</code></li>
-</ol>
-<p><strong>How it works?</strong></p>
-<p><code>F</code> groups <span class="math-container">\$4\$</span> steps: 3, 4, 5 and 6.</p>
-<p>Therefore, <span class="math-container">\$0 \leq j \lt 4\$</span>: for step 3, <span class="math-container">\$j=0\$</span>; for step 4, <span class="math-container">\$j=1\$</span>; and so on.</p>
-<p>Note that for steps 3, 4 and 5, a single letter is replaced by another single letter. This allows us to do</p>
-<pre class="lang-python prettyprint-override"><code>[c,'Dyk '[j]][c=='dac '[j]]
-</code></pre>
-<p>Also note that for step 6, ASCII character <code>a</code> is 65248 characters apart from <code>ａ</code>:</p>
-<pre class="lang-python prettyprint-override"><code>chr(ord(c)+65248)
-</code></pre>
-<p>Since they're different types of replacement, we can filter it using</p>
-<pre class="lang-python prettyprint-override"><code>[...,...][j&gt;2]
-</code></pre>
-<p>where the element at index 1 will be returned for <span class="math-container">\$j=3\$</span> (step 6).</p>
-<p>Since this conditional is not lazy-evaluated, we must add a space after <code>Dyk</code> and <code>dac</code> for considering the case where <span class="math-container">\$j=3\$</span>.</p>
-<p>The second line sets an alias for <code>print</code> and executes steps 1 and 2.</p>
-<p>The third line maps each character of &quot;abracadabra&quot; using the logic from <code>F</code>.</p>
-<p>The fourth line handles the colors.</p>
-<p><strong>Changes</strong></p>
-<p><em>-16 bytes</em> by reducing the lambdas to a curry.</p>
-<p><em>-42 bytes</em> by assuming that &quot;change the casing&quot; means &quot;change the case of any letter&quot; as other answers did.</p>
 </div>
 <div id="pu2" class="pu"><h1>JavaScript (ES6), 114 bytes</h1>
 <p><em>-2 thanks to <a href="https://codegolf.stackexchange.com/users/52210/kevin-cruijssen">Kevin Cruijssen</a> (and another -4 from there)</em></p>
