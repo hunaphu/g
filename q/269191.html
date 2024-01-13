@@ -41,33 +41,33 @@ P={16541247:b*c*c,9077073:c*c,235968:c*10,557328:c*5,8519745:c*2,541729:c,108345
 <p>Hardcodes the matches into a dictionary (can be improved).</p>
 <h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a>, 289 bytes</h1>
 <p><a href="https://codegolf.stackexchange.com/questions/269191/how-much-do-you-win-in-the-bingo-golf-flax-lottery/269194#comment584589_269194">@Arnauld brought</a> something extremely relevant to my answer: the &quot;free&quot; cell.</p>
-<p>This modification changes the hardcoded dictionary to contain an additional bit and add a new condition to be evaluated: <code>p&gt;&gt;11^(len(e)&gt;5)</code>. It checks if the pattern contains a &quot;free&quot; cell as a 1-bit and checks if it has at least 5 drawn numbers so the cell can act as an wildcard. I'm waiting further confirmation to make this as the <em>de facto</em> solution.</p>
+<p>This modification changes the hardcoded dictionary to contain an additional bit and add a new condition to be evaluated: <code>p&gt;&gt;11^(len(e)&gt;4)</code>. It checks if the pattern contains a &quot;free&quot; cell as a 1-bit and checks if it has at least 5 drawn numbers so the cell can act as an wildcard. I'm waiting further confirmation to make this as the <em>de facto</em> solution.</p>
 
-<pre class="lang-python prettyprint-override"><code>lambda a,e:next((P[p]for p in P if all(a[k]in e for k in range(24)if(p&gt;&gt;k+(k&gt;11))&amp;1)*(p&gt;&gt;11^(len(e)&gt;5))),0)
+<pre class="lang-python prettyprint-override"><code>lambda a,e:next((P[p]for p in P if all(a[k]in e for k in range(24)if(p&gt;&gt;k+(k&gt;11))&amp;1)*(p&gt;&gt;11^(len(e)&gt;4))),0)
 b,c=50,100
 P={33080895:b*c*c,18157905:c*c,473536:c*10,1118480:c*5,17043521:c*2,1082401:c,2164802:c,4329604:c,8659208:c,17318416:c,31:b,992:b,31744:b,1015808:b,32505856:b,17825809:b}
 </code></pre>
-<p><a href="https://tio.run/##nVLLjhoxELzzFX3K2sSKum23HyPBN3AnZDWwQ4JgZ0fAIVGUbydlEmX3ksv64Kl@VHXZ4@nH9dvLGG57WtDn26l/3j711LuhG4fvV2NW62mzfznTRIeRVnTYU386mX593CAeqJWOrXTux6@D8dEe9mZaLo8fzXEpYu0HsfOWEPliTsNoBrtUa61jO9u63ULZCfNstfgZAhcuVbvtfDffOSmiubJ2LYg5aEiAgnaREgsjUCeZY1AvCDx0io8M7LwkdHigGHxNHIFK0uq5AEkOUBDIuSDd1tXqsQfJMeIrLAofLeOVtWhqyVw8srXb/rrt@stwwV2ZGWGt73tbD0peKERSoRwpkE8UKiWmDEy@kCLKJJ4CUwgUK2UlYZJMkUmZUnpwr3poQfFOgAi6faBQSLTRQAj8t3vj3m8lvdsK8D8rNbc5tf7XUCXBFIq@jfWxzZGmByXfpHEjUajcRSN5bnYVThXmY6EU37oBCVoQFGlyEIUi6LD9R7CdNTY@qDiwvtqys/Zg@8eLo@Hx0t7t/Xd29/p0PoxXszfr@XM/GWDXOj9dptPhaqzdOHpTGd5WrJ3R7Tc" rel="nofollow noreferrer" title="Python 3 – Try It Online">Try it online!</a></p>
+<p><a href="https://tio.run/##nVLLjhoxELzzFX3K2sSK3Ha3HyPBN3AnZDWwQ4JgZ0fAIVGUbydlEmX3ksv64Kl@VHXZ4@nH9dvLGG97WtDn26l/3j711LuhG4fvV2NW62mzfznTRIeRVnTYU386mX593CAeqJWOrXTux6@DCWIPezMtl8eP5rhktvYD23lLMH8xp2E0g12KtdZ5O9u63UK9Y@9nq8XPGH3xpWq3ne/mO8eFNVevXQskR40JkNHOXKR4BOo4e4kaGEGATgnigV3ghI4AJDHU5AWoJK3BFyDOEQoMORe527paA/bIWQRf9qzw0TJBvRZNLZlLQLZ221@3XX8ZLrgrMyOs9X1v60EpMEUhZcpCkUKiWCl5ysAUCimiTBwoeoqRpFJWYk@cSTypp5Qe3KseWlC8EyCC7hApFmJtNBCi/9u9ce@3kt5tBfiflZrbnFr/a6gSYwpJaGODtDnc9KAUmjRuRJjKXVQo@GZX4VRhXgoleesGJGhBkLnJQRSKoMP2H8F2Vml8UHFgfbVlZ@3B9o8XR8Pjpb3b@@/s7vXpfBivZm/W8@d@MsCudX66TKfD1Vi7cfSmMrytWDuj228" rel="nofollow noreferrer" title="Python 3 – Try It Online">Try it online!</a></p>
 <hr />
 <h2>How it works?</h2>
 <p><code>P</code> actually represents the following dictionary:</p>
 <pre class="lang-python prettyprint-override"><code>P = {
-    0b111111000110011000111111: 500000, # Border
-    0b100010101000000101010001: 10000,  # Cross
-    0b000000111001100111000000: 1000,   # Picture
-    0b000010001000000100010000: 500,    # Forward diagonal
-    0b100000100000000001000001: 200,    # Backward diagonal
-    0b000010000100010000100001: 100,    # Any vertical line
-    0b000100001000100001000010: 100,
-    0b001000010000000010000100: 100,
-    0b010000100001000100001000: 100,
-    0b100001000010001000010000: 100,
-    0b000000000000000000011111: 50,     # Any horizontal line
-    0b000000000000001111100000: 50,
-    0b000000000011110000000000: 50,
-    0b000001111100000000000000: 50,
-    0b111110000000000000000000: 50,
-    0b100010000000000000010001: 30,     # All corners
+    0b1111110001100011000111111: 500000, # Border
+    0b1000101010001000101010001: 10000,  # Cross
+    0b0000001110011100111000000: 1000,   # Picture
+    0b0000100010001000100010000: 500,    # Forward diagonal
+    0b1000001000001000001000001: 200,    # Backward diagonal
+    0b0000100001000010000100001: 100,    # Any vertical line
+    0b0001000010000100001000010: 100,
+    0b0010000100001000010000100: 100,
+    0b0100001000010000100001000: 100,
+    0b1000010000100001000010000: 100,
+    0b0000000000000000000011111: 50,     # Any horizontal line
+    0b0000000000000001111100000: 50,
+    0b0000000000111110000000000: 50,
+    0b0000011111000000000000000: 50,
+    0b1111100000000000000000000: 50,
+    0b1000100000000000000010001: 30,     # All corners
 }
 </code></pre>
 <p>where each key is a mask to the actual grid. The 5 least-significant bits are the first row, the following 5 are the second row, and so on.</p>
