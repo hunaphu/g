@@ -27,10 +27,11 @@
     <th class="tlink">Link</th>
   </tr>
 <tr d-ix="0"><td>161</td><td>Google Sheets</td><td>240114T184018Z</td><td><a href="https://codegolf.stackexchange.com/questions/269222/find-the-child-anagrams-of-a-word/269228#269228">doubleun</a></td></tr>
-<tr d-ix="1"><td>080</td><td>JavaScript ES6</td><td>240114T154055Z</td><td><a href="https://codegolf.stackexchange.com/questions/269222/find-the-child-anagrams-of-a-word/269224#269224">Arnauld</a></td></tr>
+<tr d-ix="1"><td>064</td><td>Retina</td><td>240114T192008Z</td><td><a href="https://codegolf.stackexchange.com/questions/269222/find-the-child-anagrams-of-a-word/269231#269231">Neil</a></td></tr>
+<tr d-ix="2"><td>080</td><td>JavaScript ES6</td><td>240114T154055Z</td><td><a href="https://codegolf.stackexchange.com/questions/269222/find-the-child-anagrams-of-a-word/269224#269224">Arnauld</a></td></tr>
 </table>
 <div id="pu0" class="pu"><h1>Google Sheets, 161 bytes</h1>
-<pre><code>=let(_,lambda(w,join(,sort(mid(w,sequence(len(w)),1)))),l,len(B1),j,sequence(l),ifna(filter(A1:A,match(map(A1:A,_),map(sort(left(B1,j-1)&amp;mid(B1,j+1,l-1)),_),))))
+<pre><code>=let(_,lambda(w,join(,sort(mid(w,sequence(len(w)),1)))),l,len(B1),j,sequence(l),ifna(filter(A1:A,match(map(A1:A,_),map(sort(left(B1,j-1)&amp;mid(B1,j+1,l-j)),_),))))
 </code></pre>
 <p>Insert 68903 rows in a blank Google Sheet and paste the dictionary in cells <code>A1:A</code>, or put this formula in cell <code>A1</code>:</p>
 <pre><code>=importdata(&quot;https://websites.umich.edu/~jlawler/wordlist&quot;)
@@ -45,10 +46,10 @@ l, len(B1),
 j, sequence(l), 
 
 // &quot;code&quot; → ode, cde, coe, cod → deo, cde, ceo, cdo
-n, map(sort(left(B1, j - 1) &amp; mid(B1, j + 1, l - 1)), _), 
+n, map(sort(left(B1, j - 1) &amp; mid(B1, j + 1, l - j)), _), 
 
 // show words where _(word) appears in n
-ifna(filter(A1:A, match(map(A1:A, _), n, 0))) 
+ifna(filter(A1:A, match(map(A1:A, _), n, ))) 
 </code></pre>
 <h3>Results</h3>
 <div class="s-table-container">
@@ -119,7 +120,27 @@ ifna(filter(A1:A, match(map(A1:A, _), n, 0)))
 </tbody>
 </table>
 </div></div>
-<div id="pu1" class="pu"><h1>JavaScript (ES6), 80 bytes</h1>
+<div id="pu1" class="pu"><h1><a href="https://github.com/m-ender/retina/wiki/The-Language" rel="nofollow noreferrer">Retina</a>, 64 bytes</h1>
+<pre><code>s`\w+(?&lt;=^(\w+).*?)
+$&amp;,$&amp;,$1,
+/,\w+/_O`.
+L$`,(.*)(.*),\1.\2,
+$%`
+</code></pre>
+<p><a href="https://tio.run/##LZHBTsRACIbvPEc17Trppp41@wIm@wKN1gPJcBgPQuLjV/6fTTofP5QCQ3817Od7O08/9r@X@fb2/jmnWNbLbZHpueHZmlxbBq9f92OVj@lo83pZcNq@rftrk@npOM/oaj5EhwXhoh6qQxCPoqdBYKSwFAbrBYUJHBeLTAMgXYZqEJDeCaUuUGeGDSXSRcvBjjmKEi6uijMIukROnoZ5nmUcfRJUwU8CEWR1TEIiYEoOgjKH87yEs1b1xAW8ij@mSNOL6eCmzpt6oB4acm3BGUMrll9ETZolguAL3JDRrgR@QdTGA7sGtMhEp@MGBzCVaovdBXcXxoJgOtiG/gM" rel="nofollow noreferrer" title="Retina – Try It Online">Try it online!</a> Link includes <code>theism</code> example compared against a selection from <code>/usr/share/dict/words</code> and therefore includes <code>emits</code> which isn't in the given wordlist for some reason. Takes the original word as the first line of input followed by the wordlist to search. Explanation:</p>
+<pre><code>s`\w+(?&lt;=^(\w+).*?)
+$&amp;,$&amp;,$1,
+</code></pre>
+<p>To each word append a copy of itself and a copy of the first line of input, all words being terminated by commas.</p>
+<pre><code>/,\w+/_O`.
+</code></pre>
+<p>For each copy, sort its characters.</p>
+<pre><code>L$`,(.*)(.*),\1.\2,
+$%`
+</code></pre>
+<p>For each sorted word that's missing exactly one letter from the sorted first word, output its original word.</p>
+</div>
+<div id="pu2" class="pu"><h1>JavaScript (ES6), 80 bytes</h1>
 <p>Expects <code>(dictionary)(word)</code>, where <em>word</em> is given as an array of characters.</p>
 
 <pre class="lang-javascript prettyprint-override"><code>d=&gt;w=&gt;d.filter(W=&gt;w.some((c,i,[...a])=&gt;a.splice(i,1)+a.sort()==c+[...W].sort()))
