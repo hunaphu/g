@@ -36,7 +36,27 @@
 <pre class="lang-perl prettyprint-override"><code>sub{sprintf&quot;A%05X&quot;,0+grep$_ le$_[0]=~y/0-9/a-j/r,map{//;map&quot;N$_$'&quot;=~y/0-9/a-j/r,1..10**(5-length$')-1}&quot;&quot;,grep!/I|O/,A..Z,AA..ZZ}
 </code></pre>
 <p><a href="https://tio.run/##lZNNb9owGMfvfIqnwV2TLhCb4LwQIdUrVNphHYcdJqoKpeAAEySZY7RWKf3qzMFtVbPTfEge@/d/XmWXXGzoAWXDVrvaPdRXeV0VQsI2LeHJw53YSzu/POGqfe15ifpZt2iGLiyXdLsEX17atLPh@VKu0IXTIXvLcpeCl2fe1@fvnsu63anLmu90P2wceLDOzs7zpCrFOpeZxc4x/Wm5KK/LorSd4cuHnPs9tLO0klzAYsdBFjBP56t1voSHnQRCgT9KkcJ8lYrq0NR@EhR/bipBM9hwNLvD90bwfxsy8f92d0hau4rDD17JweBbIXjSygpht0Ctu99/7FsSXjMARkiIQyCY0pDExLl3PygmE2UyjAmlStGPAoJNRUzj6QTYiEaBD4T4AfYpNRVxPJ0qxU0QxErRxzjCcaNov2fBoLP0KDsBxwIViMYmIBr0GB6ZINIt@eMoOAmFdY7@F98APQ1I3MM9A/ga@OSGEtNDD4VEY9Y3c8BrHxifeGhAohHFJmDv4MSDsTdgVhU3q5lmeB02wKmPk94@2UjwZb7bumg9TwtneIVmySsCtCzk8BPK3jSOJuvKboj2cC3@WPK55AtotgM4niqVUgyOEZSt7g/oEOpIG5YKtm8tipzPpLpp6i0kh78" rel="nofollow noreferrer" title="Perl 5 – Try It Online">Try it online!</a></p>
-<p>Generates a list of all 915399 possible N-codes where all digits 0-9 are converted to a-j lowercase in order to use the <code>le</code> (is-less-than-or-equal) string comparison operator against the input N-code which is converted the same way. Returns the string <code>A</code> plus hex of the count of elements in that list less than or equal to the converted input. The <code>le</code> operator compares strings in the standard ascii way where all uppercase letters A-Z is less than all lowercase a-j. <code>&quot;N10&quot; le &quot;N1A&quot;</code> is true but <code>&quot;Nba&quot; le &quot;NbA&quot;</code> is not which is right for this challenge.</p>
+<pre class="lang-perl prettyprint-override"><code>$f=
+sub {
+  sprintf &quot;A%05X&quot;,                 #return &quot;A&quot; plus hex of count
+    0 +                            #return count from grep
+    grep $_ le $_[0]=~y/0-9/a-j/r, #filter list elems less than or equal to
+                                   #the converted input
+    map{
+      //;  #stores outer $_ in $'
+      map &quot;N$_$'&quot; =~ y/0-9/a-j/r,  #N code with 0-9 → a-j
+      1..10**(5-length$')-1        #1-99999 or 1-9999 or 1-999 depending
+                                   #on the current number of letters 0-2
+    }
+    &quot;&quot;,                            #list of one (empty string)
+    grep ! /I|O/,                  #filter out strings with I and O in them
+    A..Z,                          #list of the 26 letters A-Z
+    AA..ZZ                         #list of the 26*26=676 strings AA-ZZ
+}
+;
+print &amp;$f(&quot;N959ZP&quot;);  #AD5863
+</code></pre>
+<p>Generates a list of all 915399 possible N-codes where all digits 0-9 are converted to a-j lowercase in order to use the <code>le</code> (is-less-than-or-equal) string comparison operator against the input N-code which is converted the same way. Returns the string <code>A</code> plus hex of the count of elements in that filtered list less than or equal to the converted input. The <code>le</code> operator compares strings in the standard ascii way where all uppercase letters A-Z is less than all lowercase a-j. <code>&quot;N10&quot; le &quot;N1A&quot;</code> is true but <code>&quot;Nba&quot; le &quot;NbA&quot;</code> is not which is right for this challenge.</p>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://github.com/m-ender/retina/wiki/The-Language" rel="nofollow noreferrer">Retina</a>, 173 bytes</h1>
 <pre><code>&quot;G`$&amp;\b¶$&amp;|;¶&quot;^~(`.+
