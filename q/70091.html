@@ -26,8 +26,8 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>028</td><td>Perl 6</td><td>160125T032644Z</td><td><a href="https://codegolf.stackexchange.com/questions/70091/remove-every-n-th-n/70101#70101">Brad Gil</a></td></tr>
-<tr d-ix="1"><td>027</td><td>Haskell</td><td>240117T224833Z</td><td><a href="https://codegolf.stackexchange.com/questions/70091/remove-every-n-th-n/269324#269324">Wheat Wi</a></td></tr>
+<tr d-ix="0"><td>027</td><td>Haskell + hgl</td><td>240117T224833Z</td><td><a href="https://codegolf.stackexchange.com/questions/70091/remove-every-n-th-n/269324#269324">Wheat Wi</a></td></tr>
+<tr d-ix="1"><td>028</td><td>Perl 6</td><td>160125T032644Z</td><td><a href="https://codegolf.stackexchange.com/questions/70091/remove-every-n-th-n/70101#70101">Brad Gil</a></td></tr>
 <tr d-ix="2"><td>nan</td><td>Perl 5</td><td>240117T170155Z</td><td><a href="https://codegolf.stackexchange.com/questions/70091/remove-every-n-th-n/269314#269314">Xcali</a></td></tr>
 <tr d-ix="3"><td>008</td><td>05AB1E</td><td>220110T110923Z</td><td><a href="https://codegolf.stackexchange.com/questions/70091/remove-every-n-th-n/240838#240838">Kevin Cr</a></td></tr>
 <tr d-ix="4"><td>056</td><td>Haskell</td><td>220109T141853Z</td><td><a href="https://codegolf.stackexchange.com/questions/70091/remove-every-n-th-n/240794#240794">Wheat Wi</a></td></tr>
@@ -55,7 +55,35 @@
 <tr d-ix="26"><td>057</td><td>Python</td><td>160125T102909Z</td><td><a href="https://codegolf.stackexchange.com/questions/70091/remove-every-n-th-n/70116#70116">xnor</a></td></tr>
 <tr d-ix="27"><td>092</td><td>R</td><td>160125T034630Z</td><td><a href="https://codegolf.stackexchange.com/questions/70091/remove-every-n-th-n/70102#70102">mnel</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="http://perl6.org" rel="nofollow noreferrer">Perl 6</a>, 28 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.haskell.org" rel="nofollow noreferrer">Haskell</a> + <a href="https://gitlab.com/wheatwizard/haskell-golfing-library" rel="nofollow noreferrer">hgl</a>, 27 bytes</h1>
+<pre><code>gj&lt;&lt;fn(by**(ce~&lt;gj)$gj)&lt;pxn
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=m708I7E4OzUnZ8FNxczcgvyiEoXC0sSczLTM1BSFgKLUnNKUVC6oRMDS0pI0XYu9abbpWTY2aXkaSZVaWhrJqXU26VmaKkBsU1CRB1FzUyE3MTPPtqBIJS3aWMdSx1DHWMcIiA2BEEQbxULULVgAoQE" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<h2>Explanation</h2>
+<p>This code is a rats nest. That's in part because to do the glue for this program I tried structuring it a bunch of different ways, plugging things into the pointfree converted until I ran out of ideas and using the shortest one.</p>
+<p>It's rather difficult to truly explain it, but the rough idea is as follows:</p>
+<p>First we use <code>pxn</code> to get all the prefixes of the list. Then we perform a filter to filter out prefixes where their last element occurs in the prefix a number of times divisible by that last element.  Then we get the last element of each prefix.</p>
+<p>The rats nest is in the part where we &quot;filter out prefixes where their last element occurs in the prefix a number of times divisible by that last element&quot;. By the description it seems like that is a rather complex operation.</p>
+<h2>Reflection</h2>
+<p>There are a couple of things I think would have been really helpful.</p>
+<ul>
+<li>It would be nice to have a combined zip and filter.  What I'd really like is something like
+<pre><code>(Alternative f, Zip f) =&gt; (a -&gt; b -&gt; Bool) -&gt; f a -&gt; f b -&gt; f a
+</code></pre>
+But I'd happily settle for:
+<pre><code>(Alternative f, Zip f) =&gt; f a -&gt; f Bool -&gt; f a
+</code></pre>
+which seems like it would have more general use.</li>
+<li>Speaking of odd filters. Why not have prefix/suffix filters? This solution is doing a filter on the prefix list, and I can imagine it happening again in the future. There are a couple of ways to do this. The best motivated types seem to be
+<pre><code>(a -&gt; List a -&gt; Bool) -&gt; List a -&gt; List a
+</code></pre>
+and
+<pre><code>(List a -&gt; Bool) -&gt; List a -&gt; List (List a)
+</code></pre>
+</li>
+</ul>
+</div>
+<div id="pu1" class="pu"><h1><a href="http://perl6.org" rel="nofollow noreferrer">Perl 6</a>, 28 bytes</h1>
 
 <pre class="lang-perl6 prettyprint-override"><code>{$_=$;grep {++.{$^n}%$n},@_}
 </code></pre>
@@ -102,34 +130,6 @@ say [F(2)];
 say code [3,2,6,F(1),F(1),6,F(2),3,2,6,6,6,F(6),F(1),6,6,F(3),3,7,F(2)];
 # (3 2 6 6 3 2 6 6 6 6 6 3 7)
 </code></pre>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://www.haskell.org" rel="nofollow noreferrer">Haskell</a>, 27 bytes</h1>
-<pre><code>gj&lt;&lt;fn(by**(ce~&lt;gj)$gj)&lt;pxn
-</code></pre>
-<p><a href="https://ato.pxeger.com/run?1=m708I7E4OzUnZ8FNxczcgvyiEoXC0sSczLTM1BSFgKLUnNKUVC6oRMDS0pI0XYu9abbpWTY2aXkaSZVaWhrJqXU26VmaKkBsU1CRB1FzUyE3MTPPtqBIJS3aWMdSx1DHWMcIiA2BEEQbxULULVgAoQE" rel="nofollow noreferrer">Attempt This Online!</a></p>
-<h2>Explanation</h2>
-<p>This code is a rats nest. That's in part because to do the glue for this program I tried structuring it a bunch of different ways, plugging things into the pointfree converted until I ran out of ideas and using the shortest one.</p>
-<p>It's rather difficult to truly explain it, but the rough idea is as follows:</p>
-<p>First we use <code>pxn</code> to get all the prefixes of the list. Then we perform a filter to filter out prefixes where their last element occurs in the prefix a number of times divisible by that last element.  Then we get the last element of each prefix.</p>
-<p>The rats nest is in the part where we &quot;filter out prefixes where their last element occurs in the prefix a number of times divisible by that last element&quot;. By the description it seems like that is a rather complex operation.</p>
-<h2>Reflection</h2>
-<p>There are a couple of things I think would have been really helpful.</p>
-<ul>
-<li>It would be nice to have a combined zip and filter.  What I'd really like is something like
-<pre><code>(Alternative f, Zip f) =&gt; (a -&gt; b -&gt; Bool) -&gt; f a -&gt; f b -&gt; f a
-</code></pre>
-But I'd happily settle for:
-<pre><code>(Alternative f, Zip f) =&gt; f a -&gt; f Bool -&gt; f a
-</code></pre>
-which seems like it would have more general use.</li>
-<li>Speaking of odd filters. Why not have prefix/suffix filters? This solution is doing a filter on the prefix list, and I can imagine it happening again in the future. There are a couple of ways to do this. The best motivated types seem to be
-<pre><code>(a -&gt; List a -&gt; Bool) -&gt; List a -&gt; List a
-</code></pre>
-and
-<pre><code>(List a -&gt; Bool) -&gt; List a -&gt; List (List a)
-</code></pre>
-</li>
-</ul>
 </div>
 <div id="pu2" class="pu"><h1><a href="https://www.perl.org/" rel="nofollow noreferrer">Perl 5</a>, 24 + 1 <code>-p</code>= 25 bytes</h1>
 
