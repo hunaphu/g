@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::43150</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>7564</td><td>Haskell</td><td>230125T213724Z</td><td><a href="https://codegolf.stackexchange.com/questions/43150/build-a-fewest-moves-freecell-solver/257073#257073">nimi</a></td></tr>
+<tr d-ix="1"><td>643</td><td>C 64</td><td>170820T234928Z</td><td><a href="https://codegolf.stackexchange.com/questions/43150/build-a-fewest-moves-freecell-solver/139783#139783">user6318</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>Haskell, Score: 4.98M, 7564 Bytes</h1>
+<pre class="lang-hs prettyprint-override"><code>{-# LANGUAGE BangPatterns #-}
+
+import Control.Concurrent.Async (race)
+import Control.Concurrent.Async.Extra (sequenceConcurrently)
+import qualified Data.Vector as V
+import qualified Data.List   as L
+import qualified Data.IntSet as S
+
+type Deck     = String           -- a line of the input, s.th. like
+                                 -- JD 2D 9H JC 5D 7H 7C...
+type Card     = (Int , Int)      -- (Suit, Rank)
+type Cascade  = [Card]           -- bottom up, i.e. head is the accessible card
+type Board    = V.Vector Cascade -- the whole Board: 16 lots of cascades
+                                 -- 0..7:tableau, 8..11:cells, 12..15:foundation
+type Move     = (Int , Int)      -- 'from' and 'to' board index
+type Game     = (Board, [Move])  -- a Board and the Moves to get there
+type Strategy = Int
+
+idxTbl, idxFnd, idxTblR, idxFrom :: [Int]
+idxTbl  = [ 0.. 7]               -- indices of tableau cascades
+idxTblR = [7,6..0]               -- indices of tableau in reverse order
+idxFnd  = [12..15]               -- indices of foundations
+idxFrom = [ 0..11]               -- all indices where a card can be moved from
+
+(@@) :: Board -&gt; Int -&gt; Cascade  -- return cascade at index i
+(@@) = (V.!)
+
+(@!) :: Board -&gt; Int -&gt; Int      -- return the rank of the top card at index i
+brd @! i = snd $ head $ brd@@i
+
+(//) :: Board -&gt; [(Int, Cascade)] -&gt; Board
+(//) = (V.//)                    -- update from Data.Vector
+
+solved :: Board -&gt; Bool
+solved brd = all ((==13).(brd@!)) idxFnd
+
+--
+--
+--
+
+main :: IO ()
+main = print . sum =&lt;&lt; mapM solveDeck . lines =&lt;&lt; getContents
+
+-- applies different strategies and hash functions to a given deck
+-- does all the concurreny stuff
+solveDeck :: Deck -&gt; IO Int
+solveDeck deck = do
+  putStrLn $ &quot;Playing Deck: &quot; ++ deck
+
+  mvs &lt;- sequenceConcurrently            -- try fast hash funtions concurrently
+         [dfs hsh S.empty s startGame | hsh&lt;-[hashCLS, hashCL], s&lt;-[1..4]]
+  let scores = [(length m, reverse m) | m &lt;- mvs, not $ null m]
+
+  if null scores
+  then do   -- unsolvable by fast hash functions, retry with slow hash function
+    mvs2 &lt;- race' (race' (dfs hashC S.empty 1 startGame)
+                         (dfs hashC S.empty 4 startGame))
+                  (race' (dfs hashC S.empty 2 startGame)
+                         (dfs hashC S.empty 3 startGame))
+    let score2 = length mvs2
+    putStrLn $ &quot;Solution: &quot; ++ show (score2, reverse mvs2)
+    return score2
+  else do   -- at least one slow hash function succeeded, return best result
+    let winner = minimum scores
+    putStrLn $ &quot;Solution: &quot; ++ show winner
+    return $ fst winner
+
+  where
+  !startGame = [(deal deck, [])]
+  race' one two = race one two &gt;&gt;= either return return
+
+-- depth first search with a given strategy and hash function
+dfs :: (Board -&gt; Int) -&gt; S.IntSet -&gt; Strategy -&gt; [Game] -&gt; IO [Move]
+dfs _ _ _ [] = return []
+dfs hashFn seen strat ((brd,mvs):games)
+  | S.member hBrd seen = dfs hashFn seen strat games --skip board if seen before
+  | solved brd = return mvs                          --solution found
+  | otherwise = dfs hashFn (S.insert hBrd seen) strat (newGames++games)
+                                                     --descend the search space 
+  where
+  hBrd = hashFn brd
+  newGames = nextGames mvs brd strat
+
+-- one step in search
+nextGames :: [Move] -&gt; Board -&gt; Strategy -&gt; [Game]
+nextGames moves brd strategy
+  | mv:_ &lt;- autoMoves = doAuto mv
+  | otherwise         = checkMoves $ allMoves strategy 
+
+  where
+
+  -- all possible from/to combinations except between freecells and only to
+  -- first empty freecell. Based on strategy.
+  allMoves 1 = [(f,t) | f&lt;-fList, t&lt;-tList idxTbl,  f&lt;8||f&gt;11||t&lt;8||t&gt;11]
+  allMoves 2 = [(f,t) | f&lt;-fList, t&lt;-tList idxTblR, f&lt;8||f&gt;11||t&lt;8||t&gt;11]
+  allMoves 3 = [(f,t) | t&lt;-tList idxTbl, f&lt;-fList,  f&lt;8||f&gt;11||t&lt;8||t&gt;11]
+  allMoves 4 = [(f,t) | t&lt;-tList idxTblR, f&lt;-fList, f&lt;8||f&gt;11||t&lt;8||t&gt;11]
+  allMoves _ = error &quot;allMoves: strategy out of range&quot;
+
+  -- &quot;from&quot; indices are always ordered by minimum rank in respective cascade 
+  fList = L.sortOn (minimum.map snd.(brd@@)) $ filter (not.null.(brd@@)) idxFrom
+
+  -- order of &quot;to&quot; indices is foundation before freecell before tableau
+  -- * only tableau is subject to strategy
+  -- * only first empty freecell (if any)
+  -- * foundation is &quot;12&quot; for all suits, we'll unravel that later
+  tList idxs
+    | null $ brd@@ 8 = 12: 8:idxs
+    | null $ brd@@ 9 = 12: 9:idxs
+    | null $ brd@@10 = 12:10:idxs
+    | null $ brd@@11 = 12:11:idxs
+    | otherwise      = 12:   idxs
+
+  -- checks which moves from 'allMoves' are actually legal and executes
+  -- them returning a list of games
+  checkMoves [] = []
+  checkMoves (mv@(f,t):mvs)
+    | t == 12   = if fitsFnd then doFnd else checkRest  -- to foundation
+    | t  &lt;  8   = if fitsTbl then doTbl else checkRest  -- to tableau
+    | otherwise = doCell                                -- to cell (alway empty)
+
+    where
+    !cscdT = brd@@t
+    !cscdF = brd@@f
+    !cardF@(suitF,rankF) = head cscdF
+    (suitT,rankT) = head cscdT
+
+    fitsTbl = null cscdT || rankT==rankF+1 &amp;&amp; odd (suitF+suitT)
+    fitsFnd = rankF-1 == brd@!(12+suitF)
+
+    doTbl  = (brd // [(t, cardF:cscdT),  (f, tail cscdF)], mv:moves) : checkRest
+    doCell = (brd // [(t, [cardF]),      (f, tail cscdF)], mv:moves) : checkRest
+    doFnd  = (brd // [(t+suitF, [cardF]),(f, tail cscdF)], (f,t+suitF):moves)
+                                                                     : checkRest
+    checkRest = checkMoves mvs
+
+  -- a list of all greedy automoves
+  autoMoves =
+    [(f,12+s) | f &lt;- idxFrom,                -- keep all 'from' indices
+                let cascade = brd@@f,
+                not $ null cascade,          -- if there's a card in the cascade
+                let (s,r) = head cascade,
+                r-1 == brd@!(12+s),          -- and it fits on its foundation
+                let (j,k) = if even s then (13,15) else (12,14),
+                r-4 &lt;= min(brd@!j)(brd@!k) ] -- and it's not too greedy
+
+  doAuto mv@(f,t)
+    | fCrd:fCrds &lt;- brd@@f = [(brd // [(t,[fCrd]),(f,fCrds)], mv:moves)]
+    | otherwise            = error &quot;nextGames: automove from empty cascade&quot;
+  
+--
+-- parsing and dealing decks
+--
+
+deal :: Deck -&gt; Board
+deal = foldl putCard emptyBoard . zip (cycle idxTbl) . parse
+
+emptyBoard :: Board            -- foundation is initialised with dummy cards
+emptyBoard =                   -- of rank 0, so that aces fit on them nicely 
+  foldl (\b i -&gt; putCard b (i+12, (i,0))) (V.replicate 16 []) [0..3]
+
+putCard :: Board -&gt; (Int,Card) -&gt; Board
+putCard brd (i,crd) = brd // [(i, crd : brd@@i)]
+
+parse :: Deck -&gt; [Card]
+parse [] = []
+parse (' ':cs)       = parse cs
+parse ('1':'0':s:cs) = (chrToSuit s , 10) : parse cs
+parse (r:s:cs) | Just i &lt;- L.elemIndex r &quot; A23456789 JQK&quot;
+                     = (chrToSuit s, i) : parse cs
+parse _              = error &quot;parse: invalid deck&quot;
+
+chrToSuit :: Char -&gt; Int       -- parity important: reds are even, blacks odd
+chrToSuit c | Just i &lt;- L.elemIndex c &quot;DSHC&quot; = i
+chrToSuit _ = error &quot;chrToSuit: invalid char&quot;
+
+--
+-- hash functions
+--
+
+hashCLS, hashCL, hashC :: Board -&gt; Int
+
+hashCLS brd = foldl (\h r -&gt; h*16+r)  c $ map (brd@!) idxFnd
+  where c   = foldl (\h l -&gt; h*32+l)  0 $ L.sort $ map (length.(brd@@)) idxTbl
+
+hashCL  brd = foldl (\h r -&gt; h*16+r)  c $ map (brd@!) idxFnd
+  where c   = foldl (\h l -&gt; h*32+l)  0 $          map (length.(brd@@)) idxTbl
+
+hashC   brd = foldl (\h r -&gt; h*16+r)  c $ map (brd@!) idxFnd
+  where c   = foldl (\h s-&gt;h*26633+s) 0 $ L.sort $ map (hCscd.(brd@@)) idxTbl
+        hCscd cList = foldl (\v (s,r) -&gt; (v*26633+s)*94291+r) 0 cList
+</code></pre>
+<p>The list of games is read via stdin. For each game the output is a pair of the number of moves and a list of moves as (from,to) pairs, where both 'from' and 'to' are indices of board positions. 0 to 7 are the eight cascades, 8 to 11 the four free cells and 12 to 15 the four foundations. E.g.</p>
+<pre><code>Playing Deck: KS 8S 3C 9D QS 4D JD QH 5C 10H 5D 10C 4H 3D 7H AD KC 6S 2S 8D AH 7C QD 6C 7S KH 8C 6H 2C 9C JH KD 4S 5S AC 10S JS 3S 9S 5H AS 4C 8H QC 6D 2H JC 10D 7D 2D 3H 9H
+Solution: (85,[(0,8),(0,13),(2,9),(2,10),(2,15),(4,11),(7,6),(2,3),(2,13),(9,0),(4,9),(4,15),(4,14),(5,14),(0,14),(4,14),(5,13),(0,13),(7,14),(5,6),(11,5),(1,11),(5,0),(1,2),(0,5),(1,13),(5,0),(8,3),(7,8),(7,3),(7,12),(11,12),(2,11),(2,3),(2,15),(11,15),(5,11),(5,12),(5,12),(3,12),(0,12),(0,5),(0,2),(0,15),(3,15),(3,12),(11,15),(3,15),(6,15),(1,11),(1,13),(5,13),(3,5),(9,7),(3,9),(6,7),(1,6),(1,13),(3,1),(3,14),(3,12),(3,15),(3,12),(7,12),(6,7),(6,15),(6,13),(1,13),(6,4),(6,3),(6,14),(6,12),(3,12),(8,12),(10,14),(5,14),(7,14),(4,14),(7,13),(4,13),(0,13),(7,14),(9,15),(2,15),(11,14)])
+</code></pre>
+<p>At the end the total number of moves is printed.</p>
+<p>How it works: The basic approach is a depth first search. As the quality of the search (both number of moves and search time) heavily depends on the search order, I try several orders concurrently and pick the result that finishes first:</p>
+<ul>
+<li><p>two different nested loops</p>
+<ul>
+<li>for each available card look where it can be placed</li>
+<li>for each position look if a card from elsewhere fits on it</li>
+</ul>
+</li>
+<li><p>when looping over the destination try in order</p>
+<ul>
+<li>foundation before free cell before tableau from left to right</li>
+<li>foundation before free cell before tableau from right to left</li>
+</ul>
+</li>
+</ul>
+<p>That's four different orders (or strategies as I call them) in combination. Source order is the same for all strategies: sorted by minimum rank of all cards in the respective cascade/freecell. There's also autoplay, i.e. if a card can safely be placed in the foundation it's the only move in this situation. It turns out that a greedy autoplay leads to slightly better results, so I autoplay up to two additional ranks (e.g. autoplay 8s even if 5s of opposite color are still around).</p>
+<p>However, all this is not good enough (5 games do not finish within reasonable time; about 14.7M moves for the rest), but I had a lucky find: somehow you have to keep track of the boards visited so far to prevent infinite loops during the search. The above method uses a hash which is calculated by rolling through the cascades and including suit and rank of all the cards along the way. Now we are just hashing the length of each cascade plus the top foundation cards (i.e. two boards result in the same hash if (and only if) the foundations are equal and all cascades in order have pairwise the same length). Yes, we do get a lot of collisions but they restrict the search space at pretty good spots and lead to far fewer moves in far less time. In fact, the search is so fast that we can afford to finish all four strategies and pick the best result. A similar hash function where for collision the matching length of a cascade can be anywhere in the tableau and not necessarily at the same index produces even better results - at least on average. Now we can try 8 variants (2 fast hash function with 4 strategies each) and pick the best result. Note: not all variants can solve every game but just one success is enough to get a result. There are 11 games (including the unsolvable #11982) which none of the variants can solve. In these cases I switch back to the slow hash function and pick the fastest result.</p>
+<p>Using 4 cores on my laptop this solves all games in about 1.5h and a total of 4.98M moves.</p>
+<p>Remarks</p>
+<ul>
+<li>The total number of moves can vary by a few hundred, because the result of the games with the slow hash function depends on how the OS assigns CPU time to the strategies and in different a run a different strategy might finish first. But that's just for 10 games.</li>
+<li>If I let all 12 variants (3 hash functions with 4 strategies each) race agains each other and pick the fastest result I get 7.25M moves in 250 sec.</li>
+<li>The source code is not golfed at all. Removing unnecessary things like comments, types, type annotations, whitespace, error handling and switching to single letter names easily brings the byte count to a third and then we can still apply the usual golfing tricks.</li>
+</ul>
+</div>
+<div id="pu1" class="pu"><h1>C 64,643 bytes, Score: ~6.5 million</h1>
+<p>The following Stack Snippet (courtesy of Mego) outputs all of the code as a single standalone C file:</p>
+<p><div class="snippet" data-lang="js" data-hide="true" data-console="false" data-babel="false">
+<div class="snippet-code snippet-currently-hidden">
+<pre class="snippet-code-js lang-js prettyprint-override"><code>$("#a").text(pako.inflate(atob('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'), {to: 'string'}));</code></pre>
+<pre class="snippet-code-html lang-html prettyprint-override"><code>&lt;script src="https://cdn.rawgit.com/nodeca/pako/master/dist/pako.min.js"&gt;&lt;/script&gt;
+&lt;script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"&gt;&lt;/script&gt;
+&lt;pre id="a"&gt;
+  
+&lt;/pre&gt;</code></pre>
+</div>
+</div>
+</p>
+<p><a href="https://github.com/Cis112233/MyLang/blob/master/freecell-solver-0.2.1.zip" rel="noreferrer">Download the original source here</a>.
+Use GCC and run <code>make</code> then using the guideline in the readme.</p>
+<p>My formatting is bad (all the different files are in one code block) and this could be golfed more (12k bytes tho). Any help would be loved!</p>
+<p>Some of the code is not mine. I used it from a un-copyrighted source. I however fixed the input/output method to be within the challenge (a long task since I am horrible at C (5ish hours)). I also had to re-write much of the code and debug everything. Many thanks to my Dad for helping out and being a rubber duck (and pointing out my memory management errors) and for everyone on TNB who dealt with my angry rants about segfaults and C.</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/43150/">43150</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
