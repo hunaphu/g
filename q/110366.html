@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::110366</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>449</td><td>Python3</td><td>240124T191204Z</td><td><a href="https://codegolf.stackexchange.com/questions/110366/is-my-graph-graceful/269534#269534">Ajax1234</a></td></tr>
+<tr d-ix="1"><td>116</td><td>Mathematica</td><td>170217T041257Z</td><td><a href="https://codegolf.stackexchange.com/questions/110366/is-my-graph-graceful/110373#110373">user6198</a></td></tr>
+<tr d-ix="2"><td>012</td><td>Jelly</td><td>170217T044151Z</td><td><a href="https://codegolf.stackexchange.com/questions/110366/is-my-graph-graceful/110376#110376">Dennis</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>Python3, 449 bytes</h1>
+<pre class="lang-py prettyprint-override"><code>R=range
+def f(g):
+ q=[(v:={**{i:-1 for j in g for i in j},0:0},[],{*v}-{0})]
+ while q:
+  m,e,n=q.pop(0)
+  if not n:
+   if all(i in e for i in R(1,len(g)+1)):return m
+   continue
+  for i in n:
+   if(k:=[N for j in g if i in j and m[(N:=j[j[1]!=i])]!=-1]):
+    y=[m[N]for N in k]
+    for o in{*R(min(y)+1,max(y)+len(g)+1)}-{*m.values()}:
+     E=[abs(Y-o)for Y in y]
+     if all(U not in e and U&lt;=len(g)for U in E):q+=[({**m,i:o},e+E,n-{i})] 
+    break
+</code></pre>
+<p><a href="https://tio.run/##jZE9b8IwEIZ3fsV1s8MFJUBbZNUjKwMSQ2VlSIsDhsQJIdCiKL@dnk1LkdpKXV6d7@Pxe3Z1atalHU2q@nyeyzq1K91b6gwytuKiBzup2FHINghaI8IYsrKGDRgLKx8aF246jETUoUqwDY5d2EYdT3rwtja5hh1BoECNVu4GVVmxiFPCZGDLBqwrukOa58yz9Dd2zmLMtSUf/ZhzUevmUFso3MRraRtjD5ria/sXi22FVLNbo8S/@ITULqFQbCbkRm1UnNxJk3DSME64H4eTVIWaJW565ma2iU@7c0nnNpizwlh2Ik9YpO8uuHqkzYNicEzzg94z3l2AMJUqfdmz57DkjvLsqKcL9WvzhX8Mv71zuHiSF6brX7j8lItdn36CvqFAI8oOdX@KNmwNvTR41kut0@25qo1tWMYUizDmSDokjUkTzns/q@PPKrIhjkhHlPmt8/89MT56nVz7h/jwOYVsjPd/OBneEEZex993nT8A" rel="nofollow noreferrer">Try it online!</a></p>
+</div>
+<div id="pu1" class="pu"><h2>Mathematica, <strike>121</strike> 116 bytes</h2>
+
+<p><em>Edit: Saved 5 bytes thanks to JungHwan Min and Martin Ender</em></p>
+
+<pre><code>Cases[Range[1+Tr[n=Range@Length[e=EdgeList@#]]]~Tuples~VertexCount@#,w_/;Sort[Abs[#-#2]&amp;@@w[[List@@#]]&amp;/@e]==n]!={}&amp;
+</code></pre>
+
+<h2>Explanation</h2>
+
+<p><a href="https://i.stack.imgur.com/lg31d.png" rel="nofollow noreferrer"><img src="https://i.stack.imgur.com/lg31d.png" alt="enter image description here"></a></p>
+
+<p>Pure function which takes a Mathematica <code>Graph</code> object with vertices <code>{1, 2, ..., k}</code> for some nonnegative integer <code>k</code>. In the worst case, we will only need vertex labels ranging from <code>1</code> to <code>1 + (1 + 2 + ... EdgeCount@#)</code>. Since it saves us some bytes later, we will let <code>e</code> be the list of edges and <code>n</code> be the list <code>{1, 2, ..., EdgeCount@#}</code>, so the vertex weights will be drawn from <code>Range[1+Tr[n=Range@Length[e=EdgeList@#]]]</code>. We generate a list of all <code>Tuples</code> of length <code>VertexCount@#</code>, then we choose the <code>Cases</code> which give graceful labelings and check to see that the result is <code>Unequal</code> to the empty list <code>{}</code>. Gracefulness of the list of vertex weights <code>w</code> is checked by <code>Map</code>ping the function <code>Abs[#-#2]&amp;@@w[[List@@#]]&amp;</code> over the list of edges <code>e</code>, <code>Sort</code>ing the result, and checking whether the result is <code>Equal</code> to <code>n</code>. Here is a breakdown of that function:</p>
+
+<pre><code>               List@@#     Replace the Head of the edge with List; i.e., UndirectedEdge[a,b] becomes {a,b}.
+            w[[       ]]&amp;  Select the corresponding vertex weights from the list w.
+          @@               Replace the Head of that expression (List) with the function
+Abs[#-#2]&amp;                   which returns the absolute difference between its first two arguments.
+                           This effectively passes the vertex weights into the absolute difference function. 
+</code></pre>
+</div>
+<div id="pu2" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="noreferrer">Jelly</a>, 12 bytes</h1>
+
+<pre><code>FSŒ!ị@€ḅ-AċJ
+</code></pre>
+
+<p>Takes an array of edges as 1-indexed node pairs.</p>
+
+<p><a href="https://tio.run/nexus/jelly#@@8WfHSS4sPd3Q6PmtY83NGq63ik2@v////RGoY6Rpo6GkY6xpqxAA" rel="noreferrer" title="Jelly – TIO Nexus">Try it online!</a> (Horrendously inefficient. Don't bother with the actual test cases.)</p>
+
+<h3>How it works</h3>
+
+<pre><code>FSŒ!ị@€ḅ-AċJ  Main link. Argument: A (array of pairs)
+
+FS            Flatten and sum, yielding s. This is an upper bound for the labels
+              a graceful labeling (if one exists) would require.
+  Œ!          Take all permutations of [1, ..., s].
+      €       For each permutation P:
+    ị@          Replace each integer in A with the element of P at that index.
+       ḅ-     Convert all pairs from base -1 to integer, mapping (a,b) to b-a.
+         A    Take absolute values.
+           J  Yield the indices of A, i.e., [1, ..., len(A)].
+          ċ   Count the occurrences of [1, ..., len(A)] in the result to the left.
+</code></pre>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/110366/">110366</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
