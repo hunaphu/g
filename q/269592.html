@@ -35,6 +35,33 @@
 </code></pre>
 <p>A monadic Link that accepts a list of two lists of characters <code>[b, a]</code> and yields a list of all integer solutions.</p>
 <p><strong><a href="https://tio.run/##y0rNyan8/98tUOfRxnWpj5rWFFkenVRwcvqhpVEPdyxSqQSKAgUfNe54uKPn0KZHjXsOLdU/1g6UAor@P9x@dNLDnTP@/49W8gxR0lFQ8vN0UooFAA" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></strong> (Too inefficient for the given test cases!)</p>
+<h3>How?</h3>
+<pre><code>FQ,Ɱe€r9Œpɗ¥ZḢ$yⱮ€⁸Ḍ²⁼¥/ƇḢ€ - Link: P = [b, a]
+F                           - flatten P -&gt; all characters
+ Q                          - deduplicate -&gt; our alphabet
+              $             - last two links as a monad - f(P):
+            Z               -   transpose
+             Ḣ              -   head -&gt; first characters of each of b &amp; a
+           ¥                - last two links as a dyad - f(alphabet, firsts):
+          ɗ                 -   last three links as a dyad - f(alphabet, firsts):
+    e€                      -     for each: exists in? -&gt; 1 if a first, 0 otherwise
+      r9                    -     inclusive range with 9 (vectorises)
+                                   -&gt; list of valid digits for each of our alphabet
+        Œp                  -     Cartesian product -&gt; list of possible digit values
+   Ɱ                        -   map across D in that:
+  ,                         -     {our alphabet} par with {D}
+                                 -&gt; assignment map
+                 €          - for each:
+                Ɱ ⁸         -   map across {[b, a]} with:
+               y            -     translate
+                   Ḍ        - convert from decimal (vectorises)
+                        Ƈ   - filter keep those for which:
+                       /    -   reduce by:
+                      ¥     -     last two links as a dyad:
+                    ²       -       square {the translated b}
+                     ⁼      -       equals {the translated a}?
+                         Ḣ€ - head of each
+</code></pre>
 </div>
 <div id="pu1" class="pu"><h1>JavaScript (ES12), 94 bytes</h1>
 <p>Returns an integer (<code>0</code> if there's no solution).</p>
