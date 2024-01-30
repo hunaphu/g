@@ -26,9 +26,45 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>148</td><td>Perl 5 pa</td><td>240129T210554Z</td><td><a href="https://codegolf.stackexchange.com/questions/269616/busy-letters-evil-ceos/269621#269621">Xcali</a></td></tr>
+<tr d-ix="0"><td>183</td><td>Python 3.8 prerelease</td><td>240130T025331Z</td><td><a href="https://codegolf.stackexchange.com/questions/269616/busy-letters-evil-ceos/269627#269627">enzo</a></td></tr>
+<tr d-ix="1"><td>148</td><td>Perl 5 pa</td><td>240129T210554Z</td><td><a href="https://codegolf.stackexchange.com/questions/269616/busy-letters-evil-ceos/269621#269621">Xcali</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.perl.org/" rel="nofollow noreferrer">Perl 5</a> <code>-pa</code>, 148 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://docs.python.org/3.8/" rel="nofollow noreferrer">Python 3.8 (pre-release)</a>, 183 bytes (partial answer)</h1>
+
+<pre class="lang-python prettyprint-override"><code>def g(x):
+ for m in range(150):
+  i=m%5;c=x[i]
+  if i&lt;1:K=1
+  if i&lt;4+K:
+   if c==11:x=x[1:]+x[:1];K=0
+   if C:=(c&lt;1)*(i&lt;4)-(c&gt;24)*(i&gt;0):x[i+C]=(x[i+C]+C)%26
+   if 23in x:return m//5+1
+</code></pre>
+<p><a href="https://tio.run/##ZZHdaoNAEIXvfYq5Ka41aVwTQzHZgEkTQpW29CIBgxS7rqkQfzAKlpBnt7tqCpKr5Xxz5swMm/0WP2kyfs7yug5YCEdUKaYEYZpDDFECuZ8cGcKGJihEJH4wZpRUh8gTMoRojk2b4JuYqLbwCUEJwdisuBebnlodTOzNbKJ11ZVJEJ1j5RHxJmWI6EKfCLHgg3i6uvIIal91pTzo065NH/OdKjNnRZknEI9GhorrkJz8@DvweeGIDmkeIKoMp4a4gYobKk@RqH9mZyBwEUEgf1rLd0s2ARuDFmyt/cdagE67W2ez4fotTViH1pbjvvaRvXc2LkdjrQOWu3OWHOiddhxn3cz5B9aLu@uHWHu3HXyVKN9Qk8Ti1QBYlTFasOArLYusLMQlzRVPUcHiM2o@BMCnRemfbh4CIf/AppDlUVKg@5xBv6U1U1DJ3UBC@lapjQzlC72OLieWoGYf5Sor9R8" rel="nofollow noreferrer" title="Python 3.8 (pre-release) – Try It Online">Try it online!</a></p>
+<p>Currently, this is a partial answer. I'm waiting clarification about two test cases I believe that are right according to my understanding of the requirements (KWLFZ and LADZV), but are diverging from the expected test cases.</p>
+<hr />
+<p>A function that receives a list of integers <span class="math-container">\$0 \leq n \lt 26\$</span> of length 5, representing the letters from the alphabet. It returns <code>None</code> if the CEO does not appears, otherwise it returns the day it appeared.</p>
+<p><strong>How does it work?</strong></p>
+<p>The loop iterates <span class="math-container">\$150\$</span> times: <span class="math-container">\$30\$</span> days <span class="math-container">\$\times\$</span> <span class="math-container">\$5\$</span> letters.</p>
+<p>Variable <code>i</code> stores the index of the current letter (0-4) and variable <code>c</code> stores the current letter. Therefore, whenever <code>i</code> is 0, it's the start of a new day.</p>
+<p>Variable <code>K</code> is 0 if and only if a rotation occurred, according to</p>
+<blockquote>
+<p>A letter that wraps around due to <span class="math-container">\$L\$</span>
+will not do anything until the day is over, but the letter may still be changed.</p>
+</blockquote>
+<p>The condition <code>if i&lt;1:K=1</code> implements the &quot;until the day is over&quot; part.</p>
+<p>The condition <code>if i&lt;4+K:</code> implements the &quot;will not do anything&quot; part. It will only execute the current letter's instruction if <code>i &lt; 4</code> (i.e. it's not the last letter) or if <code>K</code> is 1 (i.e. a rotation did not occurred).</p>
+<p>The condition <code>if c==11:</code> checks if the current letter is L. If it is, it rotates the array (<code>x=x[1:]+x[:1]</code>) and sets <code>K</code> to 0 (<code>K=0</code>).</p>
+<p>The next condition is a bit more complex. It makes two checks: <em>i)</em> whether the current letter is A (<code>c&lt;1</code>) and it's not the last letter (<code>i&lt;4</code>); and <em>ii)</em> whether the current letter is Z (<code>c&gt;24</code>) and it's not the first letter (<code>i&gt;0</code>). Then, a subtraction is evaluated between <em>i)</em> and <em>ii)</em>:</p>
+<ul>
+<li>If <em>i)</em> is true (1) and <em>ii)</em> is false (0), <code>C</code> will be +1, implementing &quot;Yells at the letter to its right, forcing that letter to change to the next letter in the alphabet&quot;</li>
+<li>If <em>i)</em> is false (0) and <em>ii)</em> is true (1), <code>C</code> will be -1, implementing &quot;Yells at the letter to its left, forcing that letter to change to the previous letter in the alphabet&quot;</li>
+<li>Otherwise, if <em>i)</em> and <em>ii)</em> are equal, <code>C</code> will be evaluated to 0, not executing the if-clause</li>
+</ul>
+<p>The if-clause contents changes the previous or the next element on the array (<code>i+C</code>) and forces it to the previous or the next letter on the alphabet, handling the overflow (<code>(x[...]+C)%26</code>).</p>
+<p>Finally, after these steps, we check whether X is present in the array. If it is, <code>m//5 + 1</code> is returned. Since <span class="math-container">\$0 \leq m \lt 150\$</span>, then <span class="math-container">\$0 \leq m/5 \lt 30\$</span>, the current day (where the CEO appeared).</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.perl.org/" rel="nofollow noreferrer">Perl 5</a> <code>-pa</code>, 148 bytes</h1>
 
 <pre class="lang-perl prettyprint-override"><code>for$;(1..30){map{$_&amp;&amp;$F[$_]==26?--$F[$_-1]:$_&lt;4&amp;&amp;$F[$_]==1?++$F[$_+1]:$F[$_]-12||push@F,shift@F;$\||=$;if grep/24/,@F}0..4;@F=map$_%26,@F[-5..-1]}}{
 </code></pre>
