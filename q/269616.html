@@ -26,36 +26,32 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>178</td><td>Python 3</td><td>240130T025331Z</td><td><a href="https://codegolf.stackexchange.com/questions/269616/busy-letters-evil-ceos/269627#269627">enzo</a></td></tr>
+<tr d-ix="0"><td>169</td><td>Python 3</td><td>240130T025331Z</td><td><a href="https://codegolf.stackexchange.com/questions/269616/busy-letters-evil-ceos/269627#269627">enzo</a></td></tr>
 <tr d-ix="1"><td>148</td><td>Perl 5 pa</td><td>240129T210554Z</td><td><a href="https://codegolf.stackexchange.com/questions/269616/busy-letters-evil-ceos/269621#269621">Xcali</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a>, 178 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a>, 169 bytes</h1>
 
 <pre class="lang-python prettyprint-override"><code>def g(x):
  for m in range(150):
+  if m%5&lt;1:K=0
   if 23in x:return m//5+1
-  i=m%5;c=x[i]
-  if i&lt;1:K=1
-  if i&lt;4+K:
-   if c==11:x=x[1:]+x[:1];K=0
-   C=(c&lt;1)*(i&lt;4)-(c&gt;24)*(i&gt;0);x[i+C]=(x[i+C]+C)%26
+  i=m%5-K;c=x[i]
+  if c==11:x=x[1:]+x[:1];K+=1
+  C=(c&lt;1)*(i&lt;4)-(c&gt;24)*(i&gt;0);x[i+C]=(x[i+C]+C)%26
 </code></pre>
-<p><a href="https://tio.run/##ZZFfb4IwFMXf@RT3xdgOnRTFB7Qm6DRmkm3ZgyYYsrBSHIn8CULCYvzsrAVcQnxqzu@ennuapr/5TxKPq8rnAZxQiU0FgiSDCMIYMi8@cUQMTVIIA9DHgpZmxvMiiyEajQyVyAmNesaM0fIYuo0xnBNzR8ldTNSdTJCCUUqIWQovMV21PJrEne2oJqcritic4CckLuAhYgt9IsVCwzORrK5cippTXeGePq0Cevaib98TjU7omGQ@Yng4NWR9JuuXLlaYd@EXoHCVC6D/aS3frb4JxBg0YGsdPtYStNrZ2puN0G9JzFu0tmzntYt2B3vjCDTWWmA5e3spgN5q27bX9Z5/YL04@26IdXCaxTeFiYaaIouXA@BlylnO/a@kyNMily@pX/Ec5jy6oPovADyWF9757qEQiL@rB2kWxjl6zBl0rzRmBip9WEhp16o0kUH/ym6j65nHqO6Db31c/QE" rel="nofollow noreferrer" title="Python 3 – Try It Online">Try it online!</a></p>
-<p>Currently, this is a partial answer. I'm waiting clarification about two test cases I believe that are right according to my understanding of the requirements (KWLFZ and LADZV), but are diverging from the expected test cases.</p>
-<hr />
+<p><a href="https://tio.run/##ZZFPa4NAEMXvfoq5hKw1adwk5mCyAZMmlCpt6SEBgxS7rqkQ/2BW2FL62e2u2oLktLzfvJ03wxRf/DPPZnUdsRjOSOi2BnFeQgpJBmWYnRnClqkoJDGkA2uFbZeYrZzOpEnYJeNVmUE6mVgGVhUifWN3SYk4JUFrpYRgbAtJsB0Y4mTjYOkaRNm3BNEV1u9QsprrY0TX07kSa1Nfyv/GNiCofY2tPpgu6phcwvQjCmXyGZ3yMkJUHy8sNTVVU4tA12h4ZVcg8C37AwzfnM2LM7QBW6MWPDrH150CnfYfvf1e6uc8Yx3aOZ7/1Efu0dv7Es3MDjj@wdtIMO2053m7JucfOA/@od/EOfpt8I9G5YSmpgYXI2CiYJSz6D2veFFxtUmzxX3CWXpFzQkAQsqr8PLnIRDLkzWFokwyjm77jPpfWjMFg9wEEtK31r8" rel="nofollow noreferrer" title="Python 3 – Try It Online">Try it online!</a></p>
 <p>A function that receives a list of integers <span class="math-container">\$0 \leq n \lt 26\$</span> of length 5, representing the letters from the alphabet. It returns <code>None</code> if the CEO does not appears, otherwise it returns the day it appeared.</p>
 <p><strong>How does it work?</strong></p>
 <p>The loop iterates <span class="math-container">\$150\$</span> times: <span class="math-container">\$30\$</span> days <span class="math-container">\$\times\$</span> <span class="math-container">\$5\$</span> letters.</p>
-<p>We first check whether X is present in the array. If it is, <code>m//5 + 1</code> is returned. Since <span class="math-container">\$0 \leq m \lt 150\$</span>, then <span class="math-container">\$0 \leq m/5 \lt 30\$</span>, the current day (where the CEO appeared).</p>
-<p>Variable <code>i</code> stores the index of the current letter (0-4) and variable <code>c</code> stores the current letter. Therefore, whenever <code>i</code> is 0, it's the start of a new day.</p>
-<p>Variable <code>K</code> is 0 if and only if a rotation occurred, according to</p>
+<p>Variable <code>K</code> contains the number of rotations happened in the current day, according to</p>
 <blockquote>
 <p>A letter that wraps around due to <span class="math-container">\$L\$</span>
 will not do anything until the day is over, but the letter may still be changed.</p>
 </blockquote>
-<p>The condition <code>if i&lt;1:K=1</code> implements the &quot;until the day is over&quot; part.</p>
-<p>The condition <code>if i&lt;4+K:</code> implements the &quot;will not do anything&quot; part. It will only execute the current letter's instruction if <code>i &lt; 4</code> (i.e. it's not the last letter) or if <code>K</code> is 1 (i.e. a rotation did not occurred).</p>
-<p>The condition <code>if c==11:</code> checks if the current letter is L. If it is, it rotates the array (<code>x=x[1:]+x[:1]</code>) and sets <code>K</code> to 0 (<code>K=0</code>).</p>
+<p>The condition <code>if m%5&lt;1:K=0</code> implements the &quot;until the day is over&quot; part.</p>
+<p>We then check whether X is present in the array. If it is, <code>m//5 + 1</code> is returned. Since <span class="math-container">\$0 \leq m \lt 150\$</span>, then <span class="math-container">\$0 \leq m/5 \lt 30\$</span>, the current day (where the CEO appeared).</p>
+<p>Variable <code>i</code> stores the index of the current letter (0-4) and variable <code>c</code> stores the current letter. Since whenever a rotation occurs, the current letter should be shifted back, a subtraction by <code>K</code> is made.</p>
+<p>The condition <code>if c==11:</code> checks if the current letter is L. If it is, it rotates the array (<code>x=x[1:]+x[:1]</code>) and increments <code>K</code>.</p>
 <p>The next line is a bit more complex. It evaluates two conditions: <em>i)</em> whether the current letter is A (<code>c&lt;1</code>) and it's not the last letter (<code>i&lt;4</code>); and <em>ii)</em> whether the current letter is Z (<code>c&gt;24</code>) and it's not the first letter (<code>i&gt;0</code>). Then, a subtraction is evaluated between <em>i)</em> and <em>ii)</em>:</p>
 <ul>
 <li>If <em>i)</em> is true (1) and <em>ii)</em> is false (0), <code>C</code> will be +1, implementing &quot;Yells at the letter to its right, forcing that letter to change to the next letter in the alphabet&quot;</li>
