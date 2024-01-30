@@ -26,11 +26,72 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>364</td><td>Google Sheets</td><td>240129T175115Z</td><td><a href="https://codegolf.stackexchange.com/questions/269553/relaxing-romans/269611#269611">doubleun</a></td></tr>
-<tr d-ix="1"><td>056</td><td>Jelly</td><td>240127T144709Z</td><td><a href="https://codegolf.stackexchange.com/questions/269553/relaxing-romans/269579#269579">Nick Ken</a></td></tr>
+<tr d-ix="0"><td>068</td><td>Jelly</td><td>240127T144709Z</td><td><a href="https://codegolf.stackexchange.com/questions/269553/relaxing-romans/269579#269579">Nick Ken</a></td></tr>
+<tr d-ix="1"><td>364</td><td>Google Sheets</td><td>240129T175115Z</td><td><a href="https://codegolf.stackexchange.com/questions/269553/relaxing-romans/269611#269611">doubleun</a></td></tr>
 <tr d-ix="2"><td>079</td><td>Charcoal</td><td>240128T095727Z</td><td><a href="https://codegolf.stackexchange.com/questions/269553/relaxing-romans/269589#269589">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Google Sheets, 364 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 68 bytes</h1>
+<pre><code>IḢ_ḂṪµƝ&gt;⁴;Ṫ&gt;ḢƊ3Ƥ;_ṪṠ‘Ʋ4ƤḌ=⁵ƲṆ5,2ṁṖPƲ€N&lt;ƝT$¦SƊ}Ẹ?
+1ḃ7Ç⁼ɗ1#ḃ7ị“IVXLCDM
+</code></pre>
+<ul>
+<li><a href="https://tio.run/##AYsAdP9qZWxsef//SeG4ol/huILhuarCtcadPuKBtDvhuao@4biixoozxqQ7X@G5quG5oOKAmMayNMak4biMPeKBtcay4bmGNSwy4bmB4bmWUMay4oKsTjzGnVQkwqZTxop94bq4Pwox4biDN8OH4oG8yZcxI@G4gzfhu4vigJxJVlhMQ0RN////Mzk5Of81" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></li>
+</ul>
+<ul>
+<li><a href="https://tio.run/##TY7NSsNAFIX38xQBXUZsmvgTonFhNwMdEZQhrrrqRvoCLoQkgoXoSkEFDYiWilJcBAszrbhI6ICPcedF4k2N2M3lfOeew73H3V7vpCwpiKcOiBjkWz5WqZ@/eyh9dFViq4HXQQL5qMM7lTlqAOJyW0djlYE8XzObICOQN/sq0/Fob0ulh8v58EAlpzARO8QCcbZR9HX0@X1rLVUA0wsdPlAetHdbrNRhSkDe5684dCSKPtKXhwFjxTdw6RUvqwSmH7NrkM//Nr42u@IqwZP4VSMfosAr8eioLC3TaFQxSlA5v8px3T/dIpZbUbMiFjAa1IY9NzijvDbmeUYZcTZNw6qAtymlxHXtuo5tZEyvL9SJvdBm2P8B" rel="nofollow noreferrer">Test suite</a></li>
+</ul>
+<p>A full program taking the Arabic number as the first argument and the 1-indexed relaxation level as the second argument. Prints the Roman numeral to STDOUT.</p>
+<p>Full explanation to follow, but overall strategy is:</p>
+<ol>
+<li>Starting at 1, find the first integer that satisfies the following:
+<ol>
+<li>Convert to bijective base 7</li>
+<li>Check if any of the following are true:
+<ul>
+<li>A smaller integer precedes a larger one, and the gap is too big per the relaxation rules; this is determined by taking the difference between consecutive digits, subtracting one if the second digit was odd, and then comparing to the relaxation level</li>
+<li>We have a pattern <code>a, b, c</code> where <code>a &lt; c</code>; examples would be <code>1, 1, 7</code> or <code>1, 3, 5</code>.</li>
+<li>We have a pattern <code>a, b, c, b</code> where <code>a &lt; b</code> and <code>c &lt; b</code>, for example <code>1,7,1,7</code></li>
+</ul>
+</li>
+<li>If none of those were true, index the digit list into <code>1,5,10,50,100,500,1000</code>, negate smaller digits that precede larger ones, and sum.</li>
+<li>Compare to the desired Arabic number</li>
+</ol>
+</li>
+<li>If different, proceed to the next integer and run through the steps above</li>
+<li>If we’ve reached our target, bijective convert to base 7 and index into <code>&quot;IVXLCDM&quot;</code></li>
+</ol>
+<h2>Explanation (outdated)</h2>
+<pre><code>IḢ_ḂṪµƝ&gt;⁴;Ṫ&gt;ḢƊ3ƤṆ5,2ṁṖPƲ€N&lt;ƝT$¦SƊ}Ẹ?  # ‎⁡Helper link: test whether a Roman numeral (expressed as digits from 1 to 7) is valid, and if so, convert to Arabic
+     µƝ                               # ‎⁢Following as a monad for each neighbouring pair of digits:
+I                                     # ‎⁣- Increments (differences)
+ Ḣ                                    # ‎⁤- Head (effectively just remove the one and only increment from its list)
+  _Ḃ                                  # ‎⁢⁡- Subtract the original pair mod 2
+    Ṫ                                 # ‎⁢⁢- Tail; this will effectively be (b - a) - (b % 2)
+       &gt;⁴                             # ‎⁢⁣Greater then the relaxation level
+         ;   Ɗ3Ƥ                      # ‎⁢⁤Concatenate to the following, run as a monad over each overlapping infix length 3:
+          Ṫ&gt;Ḣ                         # ‎⁣⁡- Tail greater than head
+                                  Ẹ?  # ‎⁣⁢If any are non-zero:
+                Ṇ                     # ‎⁣⁣- Not (will yield zero)
+                                Ɗ}    # ‎⁣⁤Else: following applied as a monad to the link’s original argument (the digit list)
+                       Ʋ€             # ‎⁤⁡- For each digit:
+                 5,2ṁ                 # ‎⁤⁢  - Mould [5,2] into that length (so 5 becomes [5,2,5,2,5]
+                     Ṗ                # ‎⁤⁣  - Remove last (so 5 would now be [5,2,5,2]
+                      P               # ‎⁤⁤  - Product (so 5 would now be 100)
+                         N&lt;ƝT$¦       # ‎⁢⁡⁡- Negate those where a smaller digit precedes a larger
+                               S      # ‎⁢⁡⁢- Sum
+‎⁢⁡⁣
+1ḃ7Ç⁼ɗ1#ḃ7ị“                          # ‎⁢⁡⁤Main link
+1    ɗ1#                              # ‎⁢⁢⁡Starting at 1, find the first positive integer which satisfies the following, called as a monad with the main link’s left argument as its right:
+ ḃ7                                   # ‎⁢⁢⁢- Convert to bijective base 7
+   Ç                                  # ‎⁢⁢⁣- Call helper link
+    ⁼                                 # ‎⁢⁢⁤- Equal to (main link’s left argument)
+        ḃ7                            # ‎⁢⁣⁡Convert to bijective base 7
+          ị“IVXLCDM                   # ‎⁢⁣⁢Index into &quot;IVXLCDM&quot; (last closing quote is implicit) and then implicitly print
+💎
+</code></pre>
+<p>Created with the help of <a href="https://vyxal.github.io/Luminespire" rel="nofollow noreferrer">Luminespire</a>.</p>
+</div>
+<div id="pu1" class="pu"><h1>Google Sheets, 364 bytes</h1>
 <pre><code>=let(ø,tocol(,1),r,roman(A2),a,vstack({&quot;C(D|M)XC&quot;,&quot;L$1XL&quot;;&quot;C(D|M)L&quot;,&quot;L$1&quot;;&quot;X(L|C)IX&quot;,&quot;V$1IV&quot;;&quot;X(L|C)V&quot;,&quot;V$1&quot;},if(B1&lt;2,ø,{&quot;V(L|C)IV&quot;,&quot;I$1&quot;;&quot;L(D|M)XL&quot;,&quot;X$1&quot;;&quot;L(D|M)VL&quot;,&quot;X$1V&quot;;&quot;L(D|M)IL&quot;,&quot;X$1IX&quot;}),if(B1&lt;3,ø,{&quot;X(D|M)V&quot;,&quot;V$1&quot;;&quot;X(D|M)IX&quot;,&quot;V$1IV&quot;}),if(B1&lt;4,ø,{&quot;V(D|M)IV&quot;,&quot;I$1&quot;})),if(B1,reduce(r,sequence(rows(a)),lambda(r,i,regexreplace(r,index(a,i,1),index(a,i,2)))),r))
 </code></pre>
 <p>Put the number in cell <code>A2</code>, the level in cell <code>B1</code>, and the formula in cell <code>B2</code>.</p>
@@ -72,66 +133,6 @@
   )))
 )
 </code></pre>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 56 bytes</h1>
-<pre><code>IḢ_ḂṪµƝ&gt;⁴;Ṫ&gt;ḢƊ3ƤṆ5,2ṁṖPƲ€N&lt;ƝT$¦SƊ}Ẹ?
-1ḃ7Ç⁼ɗ1#ḃ7ị“IVXLCDM
-</code></pre>
-<ul>
-<li><a href="https://tio.run/##AXEAjv9qZWxsef//SeG4ol/huILhuarCtcadPuKBtDvhuao@4biixoozxqThuYY1LDLhuYHhuZZQxrLigqxOPMadVCTCplPGin3hurg/CjHhuIM3w4figbzJlzEj4biDN@G7i@KAnElWWExDRE3///80OTn/MQ" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></li>
-</ul>
-<ul>
-<li><a href="https://tio.run/##y0rNyan8/9/z4Y5F8Q93ND3cuerQ1mNz7Q6tswYy7YCix7qMjy15uLPNVMfo4c7GhzunBRzb9KhpjZ/NsbkhKoeWBR/rqn24a4c9l@HDHc3mh9sfNe45Od1QGcR5uLv7UcMcz7AIH2cX3/@PGuZyPdw5@9BKIPGoccfhdiBvnzVQgYKunQJQ0vrwcn2uh7u3HJ38cOdihDDQBUcnhR3rAlr5qGGGwaFlQAbQlqY1kf//G@ooGICUeXIBWSYQlomlJYztwmVoCeIZgXi@Eb6eEVABY7BAmK9nGFQArN7X05fLxEJHwRDECfPx9PTksrQ0hmoH6gbygarNkLRzGSPp9gXqBwA" rel="nofollow noreferrer">Test suite</a></li>
-</ul>
-<p>A full program taking the Arabic number as the first argument and the 1-indexed relaxation level as the second argument. Prints the Roman numeral to STDOUT.</p>
-<p>Full explanation to follow, but overall strategy is:</p>
-<ol>
-<li>Starting at 1, find the first integer that satisfies the following:
-<ol>
-<li>Convert to bijective base 7</li>
-<li>Check if either of the following are true:
-<ul>
-<li>A smaller integer precedes a larger one, and the gap is too big per the relaxation rules; this is determined by taking the difference between consecutive digits, subtracting one if the second digit was odd, and then comparing to the relaxation level</li>
-<li>We have a pattern <code>a, b, c</code> where <code>a &lt; c</code>; examples would be <code>1, 1, 7</code> or <code>1, 3, 5</code>.</li>
-</ul>
-</li>
-<li>If neither of those were true, index the digit list into <code>1,5,10,50,100,500,1000</code>, negate smaller digits that precede larger ones, and sum.</li>
-<li>Compare to the desired Arabic number</li>
-</ol>
-</li>
-<li>If different, proceed to the next integer and run through the steps above</li>
-<li>If we’ve reached our target, bijective convert to base 7 and index into <code>&quot;IVXLCDM&quot;</code></li>
-</ol>
-<h2>Explanation</h2>
-<pre><code>IḢ_ḂṪµƝ&gt;⁴;Ṫ&gt;ḢƊ3ƤṆ5,2ṁṖPƲ€N&lt;ƝT$¦SƊ}Ẹ?  # ‎⁡Helper link: test whether a Roman numeral (expressed as digits from 1 to 7) is valid, and if so, convert to Arabic
-     µƝ                               # ‎⁢Following as a monad for each neighbouring pair of digits:
-I                                     # ‎⁣- Increments (differences)
- Ḣ                                    # ‎⁤- Head (effectively just remove the one and only increment from its list)
-  _Ḃ                                  # ‎⁢⁡- Subtract the original pair mod 2
-    Ṫ                                 # ‎⁢⁢- Tail; this will effectively be (b - a) - (b % 2)
-       &gt;⁴                             # ‎⁢⁣Greater then the relaxation level
-         ;   Ɗ3Ƥ                      # ‎⁢⁤Concatenate to the following, run as a monad over each overlapping infix length 3:
-          Ṫ&gt;Ḣ                         # ‎⁣⁡- Tail greater than head
-                                  Ẹ?  # ‎⁣⁢If any are non-zero:
-                Ṇ                     # ‎⁣⁣- Not (will yield zero)
-                                Ɗ}    # ‎⁣⁤Else: following applied as a monad to the link’s original argument (the digit list)
-                       Ʋ€             # ‎⁤⁡- For each digit:
-                 5,2ṁ                 # ‎⁤⁢  - Mould [5,2] into that length (so 5 becomes [5,2,5,2,5]
-                     Ṗ                # ‎⁤⁣  - Remove last (so 5 would now be [5,2,5,2]
-                      P               # ‎⁤⁤  - Product (so 5 would now be 100)
-                         N&lt;ƝT$¦       # ‎⁢⁡⁡- Negate those where a smaller digit precedes a larger
-                               S      # ‎⁢⁡⁢- Sum
-‎⁢⁡⁣
-1ḃ7Ç⁼ɗ1#ḃ7ị“                          # ‎⁢⁡⁤Main link
-1    ɗ1#                              # ‎⁢⁢⁡Starting at 1, find the first positive integer which satisfies the following, called as a monad with the main link’s left argument as its right:
- ḃ7                                   # ‎⁢⁢⁢- Convert to bijective base 7
-   Ç                                  # ‎⁢⁢⁣- Call helper link
-    ⁼                                 # ‎⁢⁢⁤- Equal to (main link’s left argument)
-        ḃ7                            # ‎⁢⁣⁡Convert to bijective base 7
-          ị“IVXLCDM                   # ‎⁢⁣⁢Index into &quot;IVXLCDM&quot; (last closing quote is implicit) and then implicitly print
-💎
-</code></pre>
-<p>Created with the help of <a href="https://vyxal.github.io/Luminespire" rel="nofollow noreferrer">Luminespire</a>.</p>
 </div>
 <div id="pu2" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 79 bytes</h1>
 <pre><code>ＮθＮηＦ⁷«≦⁻⁶ι≔⊗÷⊖ι²ζＦ⮌⊞ＯＥ⊕⌊⟦ζη⟧⟦⁻ζκι⟧⟦ι⟧«≔↨Ｅκ×Ｘχ÷λ²⊕×⁴﹪λ²±¹εＷ¬‹θε«Ｆκ§IVXLCDMμ≧⁻εθ
