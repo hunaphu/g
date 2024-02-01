@@ -26,11 +26,42 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>141</td><td>JavaScript ES6</td><td>240201T141322Z</td><td><a href="https://codegolf.stackexchange.com/questions/269668/horsey-sightseeing/269671#269671">Arnauld</a></td></tr>
-<tr d-ix="1"><td>205</td><td>Python 3.8 prerelease</td><td>240201T173532Z</td><td><a href="https://codegolf.stackexchange.com/questions/269668/horsey-sightseeing/269676#269676">enzo</a></td></tr>
+<tr d-ix="0"><td>205</td><td>Python 3.8 prerelease</td><td>240201T173532Z</td><td><a href="https://codegolf.stackexchange.com/questions/269668/horsey-sightseeing/269676#269676">enzo</a></td></tr>
+<tr d-ix="1"><td>141</td><td>JavaScript ES6</td><td>240201T141322Z</td><td><a href="https://codegolf.stackexchange.com/questions/269668/horsey-sightseeing/269671#269671">Arnauld</a></td></tr>
 <tr d-ix="2"><td>019</td><td>Vyxal 3</td><td>240201T173159Z</td><td><a href="https://codegolf.stackexchange.com/questions/269668/horsey-sightseeing/269675#269675">Mukundan</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>JavaScript (ES6), 141 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://docs.python.org/3.8/" rel="nofollow noreferrer">Python 3.8 (pre-release)</a>, 205 bytes</h1>
+
+<pre class="lang-python prettyprint-override"><code>def f(n,P=[(0,0)]):
+ V=[1,-1];x,y=P[-1]
+ for j in range(8):
+  a,b=[1,2][::V[j&gt;&gt;0&amp;1]];q=(x+a*V[j&gt;&gt;1&amp;1],y+b*V[j&gt;&gt;2&amp;1])
+  if all(0&lt;=v&lt;n for v in q)*(q not in P)and len(R:=f(n,[*P,q]))==n*n:P=R;break
+ return P
+</code></pre>
+<p><a href="https://tio.run/##JY/BboMwEETvfMWeKi9xJEhVKTLZfIOVQy6WD0YxLSlawCIIvp7Y5LYzmjfaGdbpr@fv8xC27eEbaARLTUYUskCLKoM7mVIeS1stciVt4pVB0wd4QssQHP96cU45cLJO0ZM1St3N83otvkprq5HEcnD57pTRkeuh/qhTVBjBtgHXdaK40HzhvXtO3SPmYgTupyQ0On5A51ncFKUfTa7laBGJOGel6VbVwbv/DIKfXiECmwaKa34wG0LLk9ByxzXi9gY" rel="nofollow noreferrer" title="Python 3.8 (pre-release) – Try It Online">Try it online!</a></p>
+<p><em>Extremely</em> inefficient, but it works in theory. It can run <span class="math-container">\$n = 5\$</span> on TIO, but it takes ~8 minutes to run <span class="math-container">\$n = 6\$</span> on my local interpreter.</p>
+<p>A function that accepts <span class="math-container">\$n\$</span> as first argument and returns a list of sized-2 tuples.</p>
+<p><strong>How it works?</strong></p>
+<p>The algorithm always start on the top-left corner and uses <code>P</code> as a
+<code>list[tuple[int, int]]</code>.</p>
+<p>A horse can have 8 movements, so they can be encoded in an integer (for example, <code>0b101</code>):</p>
+<ol>
+<li>if the first bit is set, then the horse moves 1 piece horizontally and 2 pieces vertically. Otherwise, it moves 2 pieces horizontally and 1 piece vertically</li>
+<li>if the second bit is set, then the horse moves up. Otherwise, it moves down</li>
+<li>if the third bit is set, then the horse moves left. Otherwise, it moves right</li>
+</ol>
+<p>Therefore, for each movement a horse can make (<code>for j in range(8):</code>), decode <code>a</code> and <code>b</code> as the movement offsets on the board (by reading the first bit of <code>j</code>) and calculate <code>q</code>, a sized-2 tuple containing the new position of the horse on the board (decoding the movement directions by reading the second and third bits of <code>j</code>).</p>
+<p>It then checks if the new calculated position is within the board (<code>all(0&lt;=v&lt;n for v in q)</code>) and if that position is not already occupied (<code>q not in P</code>). If it's valid, then it calls <code>f</code> again with that position stored in <code>P</code>. If, in any step of the recursion, <code>P</code> contains exactly <span class="math-container">\$n^2\$</span> elements (i.e. all positions in the board are occupied), then return it.</p>
+<p>It outputs</p>
+<ul>
+<li><p><code>[(0, 0), (2, 1), (4, 0), (3, 2), (1, 1), (3, 0), (4, 2), (3, 4), (1, 3), (0, 1), (2, 0), (4, 1), (2, 2), (0, 3), (2, 4), (4, 3), (3, 1), (1, 0), (0, 2), (1, 4), (3, 3), (1, 2), (0, 4), (2, 3), (4, 4)]</code> for <span class="math-container">\$n=5\$</span></p>
+</li>
+<li><p><code>[(0, 0), (2, 1), (4, 0), (3, 2), (1, 1), (3, 0), (5, 1), (4, 3), (5, 5), (3, 4), (1, 3), (0, 1), (2, 0), (1, 2), (3, 1), (5, 0), (4, 2), (5, 4), (3, 5), (1, 4), (0, 2), (1, 0), (2, 2), (4, 1), (5, 3), (4, 5), (3, 3), (5, 2), (4, 4), (2, 5), (0, 4), (2, 3), (1, 5), (0, 3), (2, 4), (0, 5)]</code> for <span class="math-container">\$n=6\$</span></p>
+</li>
+</ul>
+</div>
+<div id="pu1" class="pu"><h1>JavaScript (ES6), 141 bytes</h1>
 <p>Returns a list of 0-indexed coordinates as a single string.</p>
 
 <pre class="lang-javascript prettyprint-override"><code>f=(n,x=0,y=0,o=&quot;&quot;,k=n*n)=&gt;x/n|y/n||(o+=p=` ${[x,y]} `).match(p+&quot;.|-&quot;)?0:--k?[...s=&quot;01344310&quot;].some((d,i)=&gt;f(n,d-2+x,s[i+6&amp;7]-2+y,o,k))&amp;&amp;O:O=o
@@ -76,28 +107,6 @@ y / n ||                // or y &gt;= n
 <pre class="lang-javascript prettyprint-override"><code>n=&gt;(m=[...s=&quot;&quot;.padEnd(n)].map(_=&gt;[...s]),g=(x,y,k)=&gt;!(m[y][x]=--k)|m.some((r,Y)=&gt;r.some((v,X)=&gt;v|(X-x)**2+(Y-y)**2-5?0:g(X,Y,k)))?m:m[y][x]=0)(0,0,n*n)
 </code></pre>
 <p><a href="https://tio.run/##XY/PaoNAGMTveYqt9PB9urtIIFBi15z6BLkoVhqJfzBxd2VdJJLk2e0qbQ89zW@YYWAuxVgMZ9P2lildVnMtZiVikCLjnA/C83hflB@qBIU5l0UPXyJeoxxpI@BGJ3pFEb@AzKY8u@WCsSs@JB@0rAAMTV1oftxIE@fGByTshr6/DSBl0wJsdwj3DSQ0dWOIB7n/XQsRQhpS5Suca22gqyxRRJBd5ORdkDenQYDkviHkrNWgu4p3uoHTUnq9q@cJo39R7a6sTwwRMTErjguO3OqjNa1qAJfXR1sYC1tEftGtAo94f/ipPCQBWTXaPOdv" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://docs.python.org/3.8/" rel="nofollow noreferrer">Python 3.8 (pre-release)</a>, 205 bytes</h1>
-
-<pre class="lang-python prettyprint-override"><code>def f(n,P=[(0,0)]):
- V=[1,-1];x,y=P[-1]
- for j in range(8):
-  a,b=[1,2][::V[j&gt;&gt;0&amp;1]];q=(x+a*V[j&gt;&gt;1&amp;1],y+b*V[j&gt;&gt;2&amp;1])
-  if all(0&lt;=v&lt;n for v in q)*(q not in P)and len(R:=f(n,[*P,q]))==n*n:P=R;break
- return P
-</code></pre>
-<p><a href="https://tio.run/##JY/BboMwEETvfMWeKi9xJEhVKTLZfIOVQy6WD0YxLSlawCIIvp7Y5LYzmjfaGdbpr@fv8xC27eEbaARLTUYUskCLKoM7mVIeS1stciVt4pVB0wd4QssQHP96cU45cLJO0ZM1St3N83otvkprq5HEcnD57pTRkeuh/qhTVBjBtgHXdaK40HzhvXtO3SPmYgTupyQ0On5A51ncFKUfTa7laBGJOGel6VbVwbv/DIKfXiECmwaKa34wG0LLk9ByxzXi9gY" rel="nofollow noreferrer" title="Python 3.8 (pre-release) – Try It Online">Try it online!</a></p>
-<p><em>Extremely</em> inefficient, but it works in theory. It can run <span class="math-container">\$n = 5\$</span> on TIO interpreter, but it takes ~8 minutes to run <span class="math-container">\$n = 6\$</span> on my local interpreter.</p>
-<p>A function that accepts <span class="math-container">\$n\$</span> as first argument and returns a list of sized-2 tuples.</p>
-<p><strong>How it works?</strong></p>
-<p>A horse can have 8 movements, so they can be encoded in an integer. For example, <code>0b000</code> (or 0),</p>
-<ol>
-<li>if the first bit is set, then the horse moves 1 piece horizontally and 2 pieces vertically. Otherwise, it moves 2 pieces horizontally and 1 piece vertically</li>
-<li>if the second bit is set, then the horse moves up. Otherwise, it moves down</li>
-<li>if the third bit is set, then the horse moves left. Otherwise, it moves right</li>
-</ol>
-<p>Therefore, for each movement a horse can make (<code>for j in range(8):</code>), decode <code>a</code> and <code>b</code> as the movement offsets on the board (by reading the first bit of <code>j</code>) and calculate <code>q</code>, a sized-2 tuple containing the new position of the horse on the board (decoding the movement directions by reading the second and third bits of <code>j</code>).</p>
-<p>It then checks if the new calculated position is within the board (<code>all(0&lt;=v&lt;n for v in q)</code>) and if that position is not already occupied (<code>q not in P</code>). If it's valid, then it calls <code>f</code> again with that position stored in <code>P</code>. If, in any step of the recursion, <code>P</code> contains exactly <span class="math-container">\$n^2\$</span> elements (i.e. all positions in the board are occupied), then return it.</p>
 </div>
 <div id="pu2" class="pu"><h1><a href="https://github.com/Vyxal/Vyxal/tree/version-3" rel="nofollow noreferrer">Vyxal 3</a>, 19 bytes</h1>
 <p>This program involves exhaustively examining every coordinate list, making it impractical to run within a reasonable timeframe, even for the smallest input value of <span class="math-container">\$n = 5\$</span>.</p>
