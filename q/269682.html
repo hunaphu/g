@@ -26,12 +26,12 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>270</td><td>Python 3</td><td>240202T020741Z</td><td><a href="https://codegolf.stackexchange.com/questions/269682/possible-moves-in-othello-reversi/269688#269688">enzo</a></td></tr>
+<tr d-ix="0"><td>266</td><td>Python 3</td><td>240202T020741Z</td><td><a href="https://codegolf.stackexchange.com/questions/269682/possible-moves-in-othello-reversi/269688#269688">enzo</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a>, 270 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a>, <s>270</s> 266 bytes</h1>
 
 <pre class="lang-python prettyprint-override"><code>def f(T):
- R=set()
+ R=[]
  for m in range(64):
   i=m//8;j=m%8
   if T[i][j]=='D':
@@ -39,13 +39,16 @@
     a=n//3;b=n%3;f=0
     for q in range(1,8):
      w,z=i+q*a-q,j+q*b-q;d=T[w][z]
-     if d=='L':f=1
-     elif(d=='.')*f*(w&gt;=0&lt;=z):R.add((z,w));break
+     if'L'==d:f=1
+     elif(d=='.')*f*(w&gt;=0&lt;=z):R+=[(z,w)];break
      else:break
- return R
+ return{*R}
 </code></pre>
-<p><a href="https://tio.run/##fVJdb4IwFH3nV9yYGFpXUaPZHKx74rFPxjclBqVsdVoRanAs@@2sFJTost2Xnh7OR8Jt8qneD3JclhGPIUZz7FowoxlXCFsQH1LYg5CQhvKNo8dJ9RUE3Q8GU29L991pdY1hvhDBYhtQavt2pTBG2RqfjQ8gpHIwGHtrKrtjL6ZDQ1baY6sdkWmjhpwUVDwce2H/SLb6XPePXkTnizxYFEEt0eWRrmW2G9NRTfGdiFFFOjbuxT2Uv9LhCy2wO3PCKEKoIDnG3jrl4cfFkHG3uadcnVIJs3ITZjwDCl9G0@l0lpbTzA3wr8CvAWPMv2jYndiMznLhiVj/hF4B8y/p7E9NGzohVpvZdLPa6OvRlKUTfZ8ZwPRpwLWFNWJW203maEqsb6vakZDJSa0UPysC/JzwjeLR6nBSmq22Z36YIxTfZ6haYLhRp3B3EVD9ttoAJ0t2QiF7KW2sn1mSCqlQdkh1IrrxYQI7Ln9xd/W4/AE" rel="nofollow noreferrer" title="Python 3 – Try It Online">Try it online!</a></p>
+<p><a href="https://tio.run/##fZJRT8IwFIXf@ytuSMw6rCDBKG5en/bYJ8LbWMxgrRahjK0ExfjbsesGCxi9Lz29@865y@7yT/O21sPDIRMSJJ34AYExxgkBuS5gBUpDkepXQe/vqkegcNXvj8IFrq5G1VXCJFZJvEgQvcirCGfUrfHR@QBS1P3@MJyhvhqGEm9ds2I3LTtgo4aGHdujut5005sNW9hzdrMJM5zEuyTeJzWipMc9xCyQOKg7Yqkkzeyr9Dy/K7t094y3T7j3g/E1xnTPdn4SzgqRvh/xUgTNvRBmW@iv7vj7ME9LUQLCl6M6nc6U9Jo6E9FJRLXgnEdHhl/ArmxWAA@M/BN6Ejw6pvM/mTb0jpE2s5nNa2Nky7aITYwi7gS3pxOnKbyBeW13mYMRI9@kWpHS@da8GPFhGIiPXMyNyF7WW2O71fLcB@spI1YlrfaXzs02XR4BtP9VG9Ar86Uy1Jtqz/cJ5IXShpbrwibSM5/PYCn0r97FeP/wAw" rel="nofollow noreferrer" title="Python 3 – Try It Online">Try it online!</a></p>
 <p>A function that receives a list of strings and outputs a set containing sized-2 tuples.</p>
+<ul>
+<li><em>-4 bytes</em> by using a set-literal instead of a set-function</li>
+</ul>
 <hr />
 <p><strong>How does it work?</strong></p>
 <p>The output variable here is <code>R</code>. Since the board is 8x8, we can iterate over it as a continuous range (<code>for m in range(64):</code>), storing the current row and column on <code>i</code> and <code>j</code>, respectively.</p>
@@ -61,8 +64,13 @@ n = 6; a = 2; b = 0  --(-1)-&gt;  a = +1; b = -1  (northwest)
 n = 7; a = 2; b = 1  --(-1)-&gt;  a = +1; b =  0  (north)
 n = 8; a = 2; b = 2  --(-1)-&gt;  a = +1; b = +1  (northeast)
 </code></pre>
-<p>Since a board has a limit of 8 pieces in each direction (8x8), we iterate over <code>range(1, 8)</code>. The variable <code>q</code> here describes how far we are going into the direction described by <code>n</code>: if <code>n</code> is north and <code>q</code> is 1, we are looking at the first slot on the top of <code>(i, j)</code>; if <code>n</code> is east and <code>q</code> is 2, we are looking at the second slot on the right of <code>(i, j)</code>. The slot we are looking has coordinates <code>(w, z)</code>, with value <code>d</code>.</p>
-<p>If that slot contains a &quot;L&quot; piece, we can proceed with the validation; set <code>f</code> to true. If the next slot on that direction is an empty spot, a &quot;L&quot; piece has already been visited (i.e. if <code>f</code> is true) and if <code>(w, z)</code> is a valid spot on the board, then add it to <code>R</code> and stop validating.</p>
+<p>Since a board has a limit of 8 pieces in each direction (8x8), we iterate over <code>range(1, 8)</code>. The variable <code>q</code> here describes how far we are going into the direction described by <code>n</code>: if <code>n</code> is north and <code>q</code> is 1, we are looking at the first slot on the top of <code>(i, j)</code>; if <code>n</code> is east and <code>q</code> is 2, we are looking at the second slot on the right of <code>(i, j)</code>. That slot has coordinates <code>(w, z)</code>, with value <code>d</code>.</p>
+<p>If that slot contains a &quot;L&quot; piece, we can proceed with the validation; set <code>f</code>lag to true. That flag implements the requirement</p>
+<blockquote>
+<p>The possible moves are positions where there are one or more pieces of the opponent's color in a straight (horizontal, vertical, or diagonal) line <strong>between that position and a piece of the player's color</strong>.</p>
+</blockquote>
+<p>We only add a possible move to <code>R</code> if the <code>f</code>lag has been set; that is, if there is an &quot;L&quot; piece between a &quot;D&quot; piece and an empty slot.</p>
+<p>If the next slot on that direction is an empty spot, a &quot;L&quot; piece has already been visited (i.e. if <code>f</code> is true) and if <code>(w, z)</code> is a valid spot on the board, then add it to <code>R</code> and stop validating.</p>
 <p>Continue for all &quot;D&quot; pieces, for all possible directions, for all possible offsets.</p>
 </div>
 
