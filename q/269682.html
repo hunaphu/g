@@ -27,7 +27,7 @@
     <th class="tlink">Link</th>
   </tr>
 <tr d-ix="0"><td>030</td><td>Jelly</td><td>240203T004922Z</td><td><a href="https://codegolf.stackexchange.com/questions/269682/possible-moves-in-othello-reversi/269739#269739">Jonathan</a></td></tr>
-<tr d-ix="1"><td>197</td><td>Python 3</td><td>240202T020741Z</td><td><a href="https://codegolf.stackexchange.com/questions/269682/possible-moves-in-othello-reversi/269688#269688">enzo</a></td></tr>
+<tr d-ix="1"><td>191</td><td>Python 3</td><td>240202T020741Z</td><td><a href="https://codegolf.stackexchange.com/questions/269682/possible-moves-in-othello-reversi/269688#269688">enzo</a></td></tr>
 <tr d-ix="2"><td>253</td><td>Google Sheets</td><td>240202T194411Z</td><td><a href="https://codegolf.stackexchange.com/questions/269682/possible-moves-in-othello-reversi/269732#269732">doubleun</a></td></tr>
 <tr d-ix="3"><td>115</td><td>JavaScript ES11</td><td>240202T110845Z</td><td><a href="https://codegolf.stackexchange.com/questions/269682/possible-moves-in-othello-reversi/269708#269708">Arnauld</a></td></tr>
 <tr d-ix="4"><td>060</td><td>Perl p</td><td>240202T125525Z</td><td><a href="https://codegolf.stackexchange.com/questions/269682/possible-moves-in-othello-reversi/269711#269711">Nahuel F</a></td></tr>
@@ -38,18 +38,34 @@
 </code></pre>
 <p>A monadic Link that accepts a list of lists of <code>0</code>s (spaces), <code>1</code>s (light pieces), and <code>2</code>s (dark pieces) and yield a list of valid spaces at which dark may play each as <code>[row, column]</code>, 1-indexed.</p>
 <p><strong><a href="https://tio.run/##y0rNyan8///oJK/DG45OerhzzaPGnfFRD3fO0jnWdXSSi7XKo6Y1D3f1PdzVBmMsONYeCGLvaHq4o8U09fCGY@3/H@7ekukAFAShxn0uPofbQ@MNH@5c9P@/kpJSDJceCPjo6YEYPkAayHABAqAQl54PkOEDZvgAaTADKAZWo@cDVewD0Q40CwA" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></strong> (The footer translates to the input above, calls the Link, and transforms the output to the sorted, 0-indexed <code>[column, row]</code> format used in the question's examples.)</p>
+<h3>How?</h3>
+<pre><code>ŒJðŒṬ⁹_ZṚ,ƊŒD;$€ẎẆ€ẎẠƇQ€ḂḄ5eðƇ - Link: Board (.:0  D:1  L:2)
+ŒJ                             - multidimensional indices -&gt; all coords
+  ð                         ðƇ - keep those for which - f(coord, Board):
+   ŒṬ                          -   array with a 1 at {coord} and 0s elsewhere
+     ⁹_                        -   Board subtract that (i.e. Board -1 @ coord)
+       ZṚ,Ɗ                    -   rotate {that} a quarter and pair with {that}
+           ŒD;$€               -   concatenate each with its major diagonals
+                Ẏ              -   tighten
+                 Ẇ€            -   sublists of each
+                   Ẏ           -   tighten
+                    ẠƇ         -   keep if: all? (those with no spaces)
+                      Q€       -   deduplicate each
+                        Ḃ      -   mod two
+                         Ḅ     -   convert from binary
+                          5e   -   five exists?
+</code></pre>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a>, <s>245</s> <s>238</s> <s>212</s> 197 bytes</h1>
+<div id="pu1" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a>, <s>245</s> <s>238</s> <s>212</s> <s>197</s> 191 bytes</h1>
 
 <pre class="lang-python prettyprint-override"><code>def f(T,R=[]):
  for m in range(576):
-  i,j,n=m//72,m%8,m%9
-  for q in range(1,8*T[i][j]):
-   w,z=i+q*(n//3)-q,j+q*(n%3)-q;d=T[w][z];b=(1-d)*(q&gt;1)*(w&gt;=0&lt;=z)
+  for q in range(1,8*T[m//72][m%8]):
+   n=m%9;w,z=m//72+q*(n//3)-q,m%8+q*(n%3)-q;d=T[w][z];b=(w&gt;=0&lt;=z)*(q&gt;1&lt;2-d)
    if-~d+b:R+=[(z,w)]*b;break
  return{*R}
 </code></pre>
-<p><a href="https://tio.run/##fVLLbsIwELz7K1ZIVZxgoOkLCnVPOfqEuJmoCsS0psQJiVFaKvrr1HZ4qK3alZIdj2Znk/UW7/olV9f7fSoWsMATMqY89ocIFnkJGUgFZaKeBb7t31kWJFkSRbNer39FsouBee4Na8Xrszgkg2DCZcyXzgqgJlsq2@sAq17v2u@sydIdLiwepXTC65hv49GM4rCT@gFeP4bmXT/Sywe69a2DXHQ@0/ZsOG5Tjrek9uNgNpqVInlFUAq9KdVHMN7t50klKqDwYWug1WpNUfcQ30B0AlEDGGPRUcN@iF0YryH0CfrH9ARYdHRnf2rOpjcEnT0PvVlTGJkwFDKOUcQcYCY7cOrCDmLWlDvPcEDQDmVJUUj1bOfhRZ5hCXhdky9NZiZ3wh2yVydVsdFPWrxpAuKtEHMt0qd8ow1rL9UNtSu1yCps71Pnr0LZKXN@6MAdFbs9cNDtQl43jAH2fO7SrYqV1NibKs@PESRzvUlWx4bUrGHTgZhNRFCUUmlc5aX5KPxN6hNYCfWL@/EH/v4L" rel="nofollow noreferrer" title="Python 3 – Try It Online">Try it online!</a></p>
+<p><a href="https://tio.run/##fVJLb8IwDL7nV1hIqGlJeewFg2WnHnNC3LJqKjTdqtG0tEFlTOyvsyTlIZg2X/z5q/05tV18qvdc3u73sUggwTMypTx0xwiSvIQMUgllJN8Evh8@GNbSqzM9ICNvxrNeb3gT8qw9sqUAkmbtx0lNttR@6qw8LHu9W9dfEZ1kw7aJJjGd8Trk23Ayp7h@pv0nunU9vHoePN34sWu00sT/jjvz8bRDOd6S2g29@WReiugDQSnUupRf3nS3X0SVqIDCl6mBVqv1groHuwDBCQQNYIwFxxx2lWxNa41hSNA/oifAgqM6@zPnLHpH0Fnz0Js1hYE2TSGtGATMAqa9Bacu7JDMmnKrORgRtENZVBSpfDPzcAJHswScrvZ97Zn2/mCHzCpTWazVqxIbRUBsCrFQIn7N10qzZsl2qN1UiazCZrMq/xDSTJnzQwduqdDehYX2NvK6YTQw8blLtyqWqcLOi3TcEEG0UOtoeWxI9QE2HYi@QQRFmUqFq7zUj8IXqS6BpZC/uKs/cPc/" rel="nofollow noreferrer" title="Python 3 – Try It Online">Try it online!</a></p>
 <p>A function that receives a list of strings and outputs a set containing sized-2 tuples.</p>
 <ul>
 <li><p><em>-21</em> bytes by removing <code>i</code>, <code>j</code>, <code>a</code> and <code>b</code>, and replacing the <code>if T[i][j]=='D':</code> with a multiplication inside the <code>range</code></p>
@@ -59,6 +75,8 @@
 <li><p><em>-26 bytes</em> by removing the <code>f</code>lag variable and compacting loops <code>m</code> and <code>n</code> into one</p>
 </li>
 <li><p><em>-15 bytes</em> thank to <a href="https://codegolf.stackexchange.com/questions/269682/possible-moves-in-othello-reversi#comment585317_269688">@Yousername</a> (OP) by accepting a matrix of integers instead of a matrix of strings, where the empty slot is <span class="math-container">\$0\$</span>,  a dark piece is <span class="math-container">\$1\$</span>, and a light piece is <span class="math-container">\$-1\$</span></p>
+</li>
+<li><p><em>-6 bytes</em> by inlining <code>i</code> and <code>j</code> and simplifying <code>b</code></p>
 </li>
 </ul>
 <h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a>, <s>270</s> 266 bytes</h1>
