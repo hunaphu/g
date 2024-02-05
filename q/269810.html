@@ -26,15 +26,36 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>048</td><td>Wolfram Language Mathematica</td><td>240205T231324Z</td><td><a href="https://codegolf.stackexchange.com/questions/269810/generate-n-consecutive-composite-numbers-using-the-chinese-remainder-theorem/269812#269812">ZaMoC</a></td></tr>
-<tr d-ix="1"><td>528</td><td>C gcc</td><td>240205T220527Z</td><td><a href="https://codegolf.stackexchange.com/questions/269810/generate-n-consecutive-composite-numbers-using-the-chinese-remainder-theorem/269811#269811">vengy</a></td></tr>
+<tr d-ix="0"><td>012</td><td>Jelly</td><td>240205T234101Z</td><td><a href="https://codegolf.stackexchange.com/questions/269810/generate-n-consecutive-composite-numbers-using-the-chinese-remainder-theorem/269815#269815">Jonathan</a></td></tr>
+<tr d-ix="1"><td>048</td><td>Wolfram Language Mathematica</td><td>240205T231324Z</td><td><a href="https://codegolf.stackexchange.com/questions/269810/generate-n-consecutive-composite-numbers-using-the-chinese-remainder-theorem/269812#269812">ZaMoC</a></td></tr>
+<tr d-ix="2"><td>528</td><td>C gcc</td><td>240205T220527Z</td><td><a href="https://codegolf.stackexchange.com/questions/269810/generate-n-consecutive-composite-numbers-using-the-chinese-remainder-theorem/269811#269811">vengy</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.wolfram.com/wolframscript/" rel="nofollow noreferrer">Wolfram Language (Mathematica)</a>, 48 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 12 <a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">bytes</a></h1>
+<pre><code>Ṁ+P+€J%ÞfÞ⁸Ḣ
+</code></pre>
+<p>A monadic Link that accepts a list of coprime integers and yields a run of the same number of consecutive composites.</p>
+<p><strong><a href="https://tio.run/##ASsA1P9qZWxsef//4bmAK1Ar4oKsSiXDnmbDnuKBuOG4ov///1s3LCAxMSwgMjNd" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></strong></p>
+<h3>How?</h3>
+<pre><code>Ṁ+P+€J%ÞfÞ⁸Ḣ - Link: Coprimes
+Ṁ            - maximum {Coprimes}
+  P          - product {Coprimes}
+ +           - add these -&gt; Max+Product
+     J       - 1-indexed indices {Coprimes} -&gt; [1..n=length(Coprimes)]
+    €        - for each {v in [1..Max+Product]}:
+   +         -   {v} add {[1..n]} (vectorises)
+       Þ     - sort by:
+      %      -   modulo {Coprimes} (vectorises)
+         Þ   - sort by:
+        f ⁸  -   keep if in Coprimes
+           Ḣ - head
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.wolfram.com/wolframscript/" rel="nofollow noreferrer">Wolfram Language (Mathematica)</a>, 48 bytes</h1>
 <pre><code>((r=Range@Tr[1^#])+ChineseRemainder[-r,#,Tr@#])&amp;
 </code></pre>
 <p><a href="https://tio.run/##y00syUjNTSzJTE78n277X0OjyDYoMS891SGkKNowTjlWU9s5IzMvtTg1CKgqMy8ltShat0hHWSekyAEoqfY/oCgzr0RB3yFd36G62kjHuFan2lzH0FDHCMQC8nVMdcyBLGMdoKiBjqExSKL2/38A" rel="nofollow noreferrer" title="Wolfram Language (Mathematica) – Try It Online">Try it online!</a></p>
 </div>
-<div id="pu1" class="pu"><h1>C (gcc), 528 bytes</h1>
+<div id="pu2" class="pu"><h1>C (gcc), 528 bytes</h1>
 <p>The GNU Multiple Precision Arithmetic Library. <a href="https://gmplib.org/" rel="nofollow noreferrer">GMP</a></p>
 <pre><code>#include &lt;gmp.h&gt;
 f(int a[],int b){mpz_t c[b],d[b],e,f,g,h;mpz_inits(e,f,g,h,0);mpz_set_ui(f,1);for(int i=0;i&lt;b;i++){mpz_inits(c[i],d[i],0);mpz_set_ui(c[i],a[i]);mpz_set_si(d[i],-(i+1));mpz_mul(f,f,c[i]);}for(int i=0;i&lt;b;i++){mpz_t j,k;mpz_inits(j,k,0);mpz_divexact(j,f,c[i]);mpz_invert(k,j,c[i]);mpz_mul(g,d[i],k);mpz_mul(g,g,j);mpz_add(e,e,g);mpz_clears(j,k,0);}mpz_mod(e,e,f);for(int i=0;i&lt;b;i++){mpz_add_ui(g,e,i+1);if(mpz_cmp(g,c[i])==0){mpz_add(e,e,f);break;}}for(int i=1;i&lt;=b;i++){mpz_add_ui(h,e,i);gmp_printf(&quot;%Zd &quot;,h);}}
