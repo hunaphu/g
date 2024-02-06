@@ -69,20 +69,29 @@
 <tr d-ix="40"><td>nan</td><td></td><td>201117T140455Z</td><td><a href="https://codegolf.stackexchange.com/questions/215216/high-throughput-fizz-buzz/215304#215304">anatolyg</a></td></tr>
 <tr d-ix="41"><td>nan</td><td>After much trial and error</td><td>201114T182307Z</td><td><a href="https://codegolf.stackexchange.com/questions/215216/high-throughput-fizz-buzz/215218#215218">Isaac G.</a></td></tr>
 </table>
-<div id="pu0" class="pu"><p><strong>130 GB/s</strong> output on AMD Ryzen 9 7950X.</p>
+<div id="pu0" class="pu"><p><strong>205 GB/s</strong> output on AMD Ryzen 9 7700X.</p>
 <p>To build (tested with GCC 13):</p>
-<pre><code>g++ fizzbuzz.cc -march=native -o fizzbuzz -O3 -Wall -std=c++20 -fopenmp
+<pre><code>g++ fizzbuzz.cc -march=native -o fizzbuzz -O3 -Wall -std=c++20
 </code></pre>
 <p>The build takes 1-2 minutes to complete. Compiling with <code>-mno-sse</code>
 may yield better runtime performance depending on the CPU.</p>
 <p>To benchmark (Requires installing <code>pv</code>):</p>
-<pre><code>taskset -c 0-2 ./fizzbuzz | taskset -c 3 pv &gt; /dev/null
+<pre><code>taskset -c 0-5 ./fizzbuzz | taskset -c 6 pv -B 4M &gt; /dev/null
 </code></pre>
-<p>The program uses 3 threads, so the best is to assign 3 cores. It's worth trying different cpu affinities to see what gives the best performance.</p>
-<p>Eg. <code>taskset -c 0,2,4 ./fizzbuzz | taskset -c 6 pv &gt; /dev/null</code></p>
+<p>Requires Linux 2.6.17 or later.</p>
+<h3>Performance tuning</h3>
+<ol>
+<li>The value of the <code>kCoreMultiplier</code> constant in <code>fizzbuzz.cc</code> should be set to
+<code>floor(available CPU cores / 3)</code> or less.</li>
+<li>The program uses <code>kCoreMultiplier * 3</code> threads. It's worth trying different cpu
+affinities to see what gives the best performance.
+Eg. <code>taskset -c 0,2,4,6,8,10 ./fizzbuzz | taskset -c 12 pv -B 4M &gt; /dev/null</code></li>
+<li>For maximum performance, <a href="https://jcvassort.open-web.fr/how-to-disable-cpu-mitigations/#how-to-disable-these-mitigations-to-make-linux-fast-again" rel="nofollow noreferrer">turn off mitigations</a>
+(it's recommended to reenable mitigations after benchmarking since they protect
+against CPU vulnerabilities).</li>
+</ol>
 <p><code>/proc/sys/fs/pipe-max-size</code> must be at least <code>4194304</code> (4MB) or alternatively
 the program must be run as root (<code>sudo ...</code>)</p>
-<p>Requires Linux 2.6.17 or later.</p>
 <hr />
 <h2>The code</h2>
 <pre class="lang-cpp prettyprint-override"><code>#include &lt;array&gt;
@@ -93,7 +102,6 @@ the program must be run as root (<code>sudo ...</code>)</p>
 #include &lt;cstring&gt;
 #include &lt;fcntl.h&gt;
 #include &lt;iostream&gt;
-#include &lt;omp.h&gt;
 #include &lt;optional&gt;
 #include &lt;thread&gt;
 #include &lt;sys/mman.h&gt;
@@ -109,19 +117,58 @@ constexpr int64_t PowTen(int x) {
   return result;
 }
 
+// We process chunks in parallel. When |kCoreMultiplier| is 1, each chunk
+// corresponds one-to-one to sections of the output that share the same prefix.
+// When this number is &gt;1, we split sections with the same prefix further and
+// process them in parallel.
+// The code processes |kChunksInHalfBatch| in parallel, so this number should
+// be set to floor(available CPU cores / 3) or less.
+constexpr int64_t kCoreMultiplier = 2;
 // The last kSuffixDigits digits of each number line are untouched when
 // iterating.
 constexpr int64_t kSuffixDigits = 5;
 // Increment the first right-most touched digit by this much in one step. Must
 // be divisible by 6. The code currently only handles when this is single-digit.
 constexpr int64_t kIncrementBy = 6;
-constexpr int64_t kLinesInChunk = PowTen(kSuffixDigits);
-constexpr int64_t kChunksInHalfBatch = kIncrementBy / 2;
+constexpr int64_t kLinesInChunk = PowTen(kSuffixDigits) / kCoreMultiplier;
+constexpr int64_t kChunksInHalfBatch = kIncrementBy / 2 * kCoreMultiplier;
 constexpr int64_t kMaxLinesInHalfBatch = kLinesInChunk * kChunksInHalfBatch;
+
+static_assert(PowTen(kSuffixDigits) % kCoreMultiplier == 0);
 
 constexpr int kFizzLength = 4;
 constexpr int kBuzzLength = 4;
 constexpr int kNewlineLength = 1;
+
+// A barrier that busy waits until all other threads reach the barrier.
+template &lt;typename Completion&gt;
+class SpinningBarrier {
+    int64_t count_;
+    std::atomic&lt;int64_t&gt; spaces_;
+    std::atomic&lt;int64_t&gt; generation_;
+    Completion completion_cb_;
+
+    public:
+    // Constructs a spinning barrier with |count| participating threads and
+    // completion callback |completion_cb|.
+    // After all threads reach the barrier, the last thread executes the
+    // completion callback. The other threads are blocked until the completion
+    // callback returns.
+    SpinningBarrier(int64_t count, Completion completion_cb) :
+        count_(count), spaces_(count), generation_(0),
+        completion_cb_(completion_cb) {}
+
+    void Wait() {
+        int64_t my_generation = generation_;
+        if (!--spaces_) {
+            spaces_ = count_;
+            completion_cb_();
+            ++generation_;
+        } else {
+            while(generation_ == my_generation);
+        }
+    }
+};
 
 // Implements a double-buffering mechanism for efficient output.
 // We work with two buffers, a output buffer and an update buffer.
@@ -351,40 +398,35 @@ class Run {
       InitHalfBatch(output_handler.GetUpdateBuffer(), 1);
       output_handler.Output(HalfBatchBytes());
 
-      int64_t prefix = PowTen(DIGITS - kSuffixDigits - 1);
-
-      for (int64_t half_batch = 2; half_batch &lt; HalfBatchesInRun();
-           ++half_batch) {
-
-        // This part of the code assumes that kChunksInHalfBatch == 3, if this
-        // changes, this part needs to be rewritten.
-        static_assert(kChunksInHalfBatch == 3);
-
-        // We update the 3 chunks of the half batch in 3 threads. For this to
-        // be efficient, each chunk has to be &quot;big enough&quot;, otherwise the
-        // threading overhead outweighs the performance gains we get from
-        // parallelism.
-        #pragma omp parallel num_threads(3)
-        {
-          switch (omp_get_thread_num()) {
-            case 0:
-              Chunk&lt;0&gt;(output_handler.GetUpdateBuffer(), prefix)
-                .IncrementNumbers();
-              break;
-            case 1:
-              Chunk&lt;1&gt;(output_handler.GetUpdateBuffer(), prefix + 1)
-                .IncrementNumbers();
-              break;
-            case 2:
-              Chunk&lt;2&gt;(output_handler.GetUpdateBuffer(), prefix + 2)
-                .IncrementNumbers();
-              break;
-          }
-        }
-
+      // We update the all chunks of the half batch in separate threads.
+      // We use a spinning barrier for synchronizing between the threads.
+      // After all threads reach the barrier, the completion function is
+      // executed and the output is written out. Then the next half batch is
+      // processed.
+      SpinningBarrier barrier(kChunksInHalfBatch, [&amp;] {
         output_handler.Output(HalfBatchBytes());
-        prefix += kChunksInHalfBatch;
-      }
+      });
+
+      [&amp;]&lt;size_t... CHUNK_ID&gt;(std::index_sequence&lt;CHUNK_ID...&gt;) {
+        // Launch a thread for each chunk. We could also use a thread pool,
+        // but one run takes long enough that launching new threads is
+        // negligible.
+        (std::jthread([&amp;] {
+          // The prefix for one chunk is the same. After updating all numbers
+          // in the chunk, we increment the prefix.
+          int64_t prefix = PowTen(DIGITS - kSuffixDigits - 1) +
+             CHUNK_ID / kCoreMultiplier;
+          for (int64_t half_batch = 2; half_batch &lt; HalfBatchesInRun();
+               ++half_batch) {
+            Chunk&lt;CHUNK_ID&gt;(output_handler.GetUpdateBuffer(), prefix)
+              .IncrementNumbers();
+            // For the next half batch, use the prefix incremented by
+            // kIncrementBy / 2. We divide by 2 because of the double-buffering.
+            prefix += kIncrementBy / 2;
+            barrier.Wait();
+          }
+        }) , ...);
+      }(std::make_index_sequence&lt;kChunksInHalfBatch&gt;());
     }
   }
 
@@ -392,8 +434,9 @@ class Run {
   // |CHUNK_ID| ∈ [0, kChunksInHalfBatch)
   // Since numbers in each chunk need to be incremented at different indexes,
   // we specialize this class so the indexes can be precomputed at compile time.
-  // Each chunk represents a section of the output belonging to line numbers
-  // 10^kSuffixDigits
+  // Line numbers in one chunk share the same prefix. However, multiple chunks
+  // may be processing the same prefix. This is controlled by the
+  // |kCoreMultiplier| constant.
   template&lt;int CHUNK_ID&gt;
   class Chunk {
     static_assert(CHUNK_ID &lt; kChunksInHalfBatch);
@@ -401,6 +444,7 @@ class Run {
     public:
     // Initializes a chunk that resides in the half-batch pointed to by
     // and has prefix |prefix|.
+    // |half_batch| must be aligned to 8 bytes.
     Chunk(char* half_batch, int64_t prefix) : half_batch_(half_batch),
                                               prefix_(prefix) {}
 
@@ -430,7 +474,6 @@ class Run {
     }
 
     // Increments all the numbers in the chunk.
-    // |half_batch| must be aligned to 8 bytes.
     // This function wraps IncrementNumbersImpl for efficiently dispatching to
     // specialized versions based on |prefix|.
     void IncrementNumbers() {
@@ -590,7 +633,6 @@ int main() {
 <li>fizzbuzz function: a function that translates the line number to a fizzbuzz line according to the fizzbuzz logic</li>
 <li>number line: a line of output which is a number (and not fizz, buzz or fizzbuzz)</li>
 <li>fifteener: 15 lines of consecutive output</li>
-<li>chunk: 100,000 lines of consecutive output</li>
 <li>half-batch: 300,000 lines of consecutive output</li>
 <li>run: consecutive output where the line numbers have the same number of digits in base 10, eg. run(6) is the output for line numbers: 100000 ... 999999</li>
 </ul>
@@ -660,9 +702,9 @@ Furthermore, it can happen that more than even the digit before overflows, e.g. 
 </ul>
 <p>The final result is 20439977.</p>
 <p>However, checking in each iteration whether an overflow has occurred is pretty slow.
-This is where chunks are useful. A chunk is 100,000 lines of output,
-eg. from lines 12200000 to 12299999. All numbers in a chunk share a common
-prefix.</p>
+This is where chunks are useful. A chunk is maximum 100,000 lines of output,
+eg. from lines 12200000 to 12299999 or from 12200000 to 12249999. All numbers in
+a chunk share a common prefix.</p>
 <pre><code>122|53126
     -----  suffix (last 5 digits)
 ---        prefix (all previous digits)
@@ -723,9 +765,9 @@ sub QWORD PTR 160[rax], 4
 [many more add/sub]
 </code></pre>
 <p>Most of the time, we only need 8 instructions for each fifteener.</p>
-<p>The 3 chunks can be updated parallelly from 3 threads, I chose openmp (hand
-coding the parallel execution may lead to further performance gains, I haven't tested it).</p>
-<p>I'm still testing whether we can gain extra performance by using more cores and/or SIMD instructions.</p>
+<p>All the chunks are updated in parallel from different threads. Therefore, for
+maximum performance the number of chunks per half-batch should be less than or
+equal to the number of available CPU cores.</p>
 <p><strong>Feedback / ideas for improvement welcome!</strong></p>
 </div>
 <div id="pu1" class="pu"><h1>Ruby</h1>
