@@ -26,20 +26,45 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>528</td><td>C gcc</td><td>240205T220527Z</td><td><a href="https://codegolf.stackexchange.com/questions/269810/generate-a-sequence-of-n-consecutive-composite-numbers/269811#269811">vengy</a></td></tr>
-<tr d-ix="1"><td>015</td><td>05AB1E</td><td>240206T100432Z</td><td><a href="https://codegolf.stackexchange.com/questions/269810/generate-a-sequence-of-n-consecutive-composite-numbers/269823#269823">Kevin Cr</a></td></tr>
-<tr d-ix="2"><td>061</td><td>JavaScript ES6</td><td>240206T080527Z</td><td><a href="https://codegolf.stackexchange.com/questions/269810/generate-a-sequence-of-n-consecutive-composite-numbers/269822#269822">Arnauld</a></td></tr>
+<tr d-ix="0"><td>061</td><td>JavaScript ES6</td><td>240206T080527Z</td><td><a href="https://codegolf.stackexchange.com/questions/269810/generate-a-sequence-of-n-consecutive-composite-numbers/269822#269822">Arnauld</a></td></tr>
+<tr d-ix="1"><td>528</td><td>C gcc</td><td>240205T220527Z</td><td><a href="https://codegolf.stackexchange.com/questions/269810/generate-a-sequence-of-n-consecutive-composite-numbers/269811#269811">vengy</a></td></tr>
+<tr d-ix="2"><td>015</td><td>05AB1E</td><td>240206T100432Z</td><td><a href="https://codegolf.stackexchange.com/questions/269810/generate-a-sequence-of-n-consecutive-composite-numbers/269823#269823">Kevin Cr</a></td></tr>
 <tr d-ix="3"><td>1011</td><td>Jelly</td><td>240205T234101Z</td><td><a href="https://codegolf.stackexchange.com/questions/269810/generate-a-sequence-of-n-consecutive-composite-numbers/269815#269815">Jonathan</a></td></tr>
 <tr d-ix="4"><td>048</td><td>Wolfram Language Mathematica</td><td>240205T231324Z</td><td><a href="https://codegolf.stackexchange.com/questions/269810/generate-a-sequence-of-n-consecutive-composite-numbers/269812#269812">ZaMoC</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>C (gcc), 528 bytes</h1>
+<div id="pu0" class="pu"><h1>JavaScript (ES6), 61 bytes</h1>
+
+<pre class="lang-javascript prettyprint-override"><code>a=&gt;eval(&quot;for(x=1;a.some(v=&gt;++q%v|v/q,q=x++););a.map(_=&gt;x++)&quot;)
+</code></pre>
+<p><a href="https://tio.run/##y0osSyxOLsosKNHNy09J/Z9m@z/R1i61LDFHQyktv0ijwtbQOlGvOD83VaPM1k5bu1C1rKZMv1Cn0LZCW1vTWhMomZtYoBFvawfiK2n@T87PK87PSdXLyU/XSNOINtJRMI7V1ORCEzbXUTA01FEwwiYH0qKjYKqjYI5FEigD0msAxMZQ/f8B" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<p>Or <strong><a href="https://tio.run/##y0osSyxOLsosKNHNy09J/Z9mC0QaiToVtoaatnaJesX5uakaZbZ22tqFqmU1ZfqFOoW2FdramvZpIEWaVol6uYkFGvG2diDB/8n5ecX5Oal6OfnpGmka0UY6CsaxmppcaMLmOgqGhjoKRtjkQFp0FEx1FMyBkv8B" rel="nofollow noreferrer">58 bytes</a></strong> for a recursive version.</p>
+<h3>Commented</h3>
+<p>This is a version without <code>eval()</code> for readability.</p>
+<pre class="lang-javascript prettyprint-override"><code>a =&gt; {              // a[] = input array
+  for(              // loop:
+    x = 1;          //   start with x = 1
+    a.some(v =&gt;     //   stop when there's no value v in a[]
+                    //   such that:
+      ++q % v |     //     v is not a divisor of the current value q
+                    //     (where q = x + i, i ≥ 1)
+      v / q,        //     or v = q
+      q = x++       //     starting with q = x (x incremented afterwards)
+    );              //   end of some()
+  );                // end of for()
+  return a.map(_ =&gt; // return the final list
+    x++             // x, x + 1, ...
+  )                 //
+}                   //
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>C (gcc), 528 bytes</h1>
 <p>The GNU Multiple Precision Arithmetic Library. <a href="https://gmplib.org/" rel="nofollow noreferrer">GMP</a></p>
 <pre><code>#include &lt;gmp.h&gt;
 f(int a[],int b){mpz_t c[b],d[b],e,f,g,h;mpz_inits(e,f,g,h,0);mpz_set_ui(f,1);for(int i=0;i&lt;b;i++){mpz_inits(c[i],d[i],0);mpz_set_ui(c[i],a[i]);mpz_set_si(d[i],-(i+1));mpz_mul(f,f,c[i]);}for(int i=0;i&lt;b;i++){mpz_t j,k;mpz_inits(j,k,0);mpz_divexact(j,f,c[i]);mpz_invert(k,j,c[i]);mpz_mul(g,d[i],k);mpz_mul(g,g,j);mpz_add(e,e,g);mpz_clears(j,k,0);}mpz_mod(e,e,f);for(int i=0;i&lt;b;i++){mpz_add_ui(g,e,i+1);if(mpz_cmp(g,c[i])==0){mpz_add(e,e,f);break;}}for(int i=1;i&lt;=b;i++){mpz_add_ui(h,e,i);gmp_printf(&quot;%Zd &quot;,h);}}
 </code></pre>
 <p><a href="https://tio.run/##fVHZboMwEHzPVyCqSkZZKsihPDj0Q4pQBAYbhyOII62K@PXStd20RFX7sniHmdnxmrmCsXl@kDUrhzSzjqJqnvLnFSey7q04jEB9E2esmvdTb7EwiSBVJQMOAnKqcFnLviNfCHiOBrusPw2ScPAdyi@t9pOBR@UxoXK9No5GyUKpXLHcazUeY/lBO0k00SVy7TsGr4YSx3Bgmjn9Oay3zlAsAmN3G5jKa/YWsx6xm4/hXbO2JwWcF6AaJ0zcYokIOJs2TlNcRgbCtKzM4vZ72qQFF8Pg/6wGXdQOBNLUVankRLtVDWI6TRB439SbXdJmcUGnxRJ8tA1@@@bK16H43KemRSYn9uNLatmQY8ZpVtoqljVxrHGlmjqMwn0UjOMGthOMB/B92KgT9rCHA562gKgH/lb9mKiWlSFqFGUHe4Tub7szqTip1TJLveFmwJexbRViNX8wXsaim93X2S0xKtbqEw" rel="nofollow noreferrer">Try it online!</a></p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, <s>18</s> 15 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
+<div id="pu2" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, <s>18</s> 15 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
 <pre><code>ā∞sδ+ʒp≠P}.ΔIÖP
 </code></pre>
 <p><a href="https://tio.run/##AS0A0v9vc2FiaWX//8SB4oiec860K8qScOKJoFB9Ls6UScOWUP//WzcsIDExLCAyM10" rel="nofollow noreferrer">Try it online</a> or <a href="https://tio.run/##yy9OTMpM/V9Waa@k8KhtkoKSfeWhlf@PND7qmFd8bov2qUkFjzoXBNTqnZtyaN3haQH/a3X@R0cb6RjH6kSb6xga6hiBWEC@jqmOOZBlrAMUNdAxNAZJxAIA" rel="nofollow noreferrer">verify all test cases</a>.</p>
@@ -57,12 +82,6 @@ f(int a[],int b){mpz_t c[b],d[b],e,f,g,h;mpz_inits(e,f,g,h,0);mpz_set_ui(f,1);fo
               P #  Check whether this is truthy for all of them
                 # (after which the found result is output implicitly)
 </code></pre>
-</div>
-<div id="pu2" class="pu"><h1>JavaScript (ES6), 61 bytes</h1>
-
-<pre class="lang-javascript prettyprint-override"><code>a=&gt;eval(&quot;for(x=1;a.some(v=&gt;++q%v|v/q,q=x++););a.map(_=&gt;x++)&quot;)
-</code></pre>
-<p><a href="https://tio.run/##y0osSyxOLsosKNHNy09J/Z9m@z/R1i61LDFHQyktv0ijwtbQOlGvOD83VaPM1k5bu1C1rKZMv1Cn0LZCW1vTWhMomZtYoBFvawfiK2n@T87PK87PSdXLyU/XSNOINtJRMI7V1ORCEzbXUTA01FEwwiYH0qKjYKqjYI5FEigD0msAxMZQ/f8B" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
 </div>
 <div id="pu3" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, (10?)* 11 <a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">bytes</a></h1>
 <pre><code>PḤ+€J%ÞfÞ⁸Ḣ
