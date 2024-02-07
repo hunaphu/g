@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::42206</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>065</td><td>Lexurgy</td><td>220317T212145Z</td><td><a href="https://codegolf.stackexchange.com/questions/42206/distinguish-between-masculine-and-feminine-nouns-in-french-within-100-characters/244278#244278">bigyihsu</a></td></tr>
+<tr d-ix="1"><td>029</td><td>CJam</td><td>141206T044520Z</td><td><a href="https://codegolf.stackexchange.com/questions/42206/distinguish-between-masculine-and-feminine-nouns-in-french-within-100-characters/42210#42210">Martin E</a></td></tr>
+<tr d-ix="2"><td>028</td><td>CJam</td><td>141206T044749Z</td><td><a href="https://codegolf.stackexchange.com/questions/42206/distinguish-between-masculine-and-feminine-nouns-in-french-within-100-characters/42211#42211">Dennis</a></td></tr>
+<tr d-ix="3"><td>050</td><td>Ruby</td><td>141205T225856Z</td><td><a href="https://codegolf.stackexchange.com/questions/42206/distinguish-between-masculine-and-feminine-nouns-in-french-within-100-characters/42207#42207">Martin E</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1><a href="https://www.lexurgy.com/sc" rel="nofollow noreferrer">Lexurgy</a>, 18 incorrect, 65 bytes</h1>
+<p>A quick check for whether the word ends with <code>e</code>.</p>
+
+<pre class="lang-bash prettyprint-override"><code>a:
+*=&gt;|une/e _ $
+else:
+*=&gt;|un/ _ $
+b propagate:
+[]=&gt;*/_ |
+c:
+|=&gt;*
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>CJam, 0 incorrect, <s>32</s> 29 bytes</h1>
+<p>This code uses a few odd characters (some of them unprintable), but they are all well within extended ASCII range. So again, I'm counting each character as a single byte.</p>
+<pre><code>&quot;un&quot;'el2b&quot;zPB:  &quot;:i+:%2/*
+</code></pre>
+<p>Due to the unprintable characters, I'm sure Stack Exchange swallows some, so you might want to copy the code <a href="https://mothereff.in/byte-counter#%22un%22%27el2b%22%C2%85zPB%3A%1A%14%0E%09%04%22%3Ai%2B%3A%252%2F%2a" rel="nofollow noreferrer">from the character counter</a> (it shows bytes with UTF-8 encoding, which is suboptimal for this challenge; also, the link doesn't seem to work in Firefox, but does in Chrome).</p>
+<p><em>A hexdump is provided for reference:</em></p>
+<pre><code>00000000: 2275 6e22 2765 6c32 6222 7a50 423a 1a14  &quot;un&quot;'el2b&quot;zPB:  
+00000010: 0e09 0422 3a69 2b3a 2532 2f2a 0a            &quot;:i+:%2/*.
+</code></pre>
+<p><a href="http://cjam.aditsu.net/" rel="nofollow noreferrer">Test it here.</a></p>
+<p>After some more discussion in chat, we figured that the regex golfing wouldn't bring us much further. So following an earlier (joking) suggestion of mine we started looking into manipulating the character codes of the words with certain functions, such that all words from one group would yield a number with some property that is easy to check. And we got luckier than we expected! Here is what the code does to the words:</p>
+<ul>
+<li>Implicitly convert the characters in the word to their code points.</li>
+<li>Interpret those as digits in base 2 (yes, the digits will be much larger than 0 or 1, but CJam can handle that).</li>
+<li>Repeatedly take the result modulo... the following numbers: <code>[133, 122, 80, 66, 58, 26, 20, 14, 9, 4]</code>. This sequence of numbers is itself encoded as the code points of a string (this is where the weird and unprintable characters come in).</li>
+<li>As if by magic, all 25 masculine nouns yield <code>0</code> or <code>1</code>, and all 25 feminine nouns yield <code>2</code> or <code>3</code> with this procedure. So if we divide this by <code>2</code> (integer division) we get zeroes for masculine nouns and ones for feminine nouns.</li>
+</ul>
+<p>To round it off, we push <code>&quot;un&quot;</code> on the stack, the we push a single <code>e</code>. Then we read the input word from STDIN and perform the above computation, and finally multiply the <code>e</code> by the result.</p>
+<p>I have never folded modulo onto any list before, and I feel like I never will again...</p>
+<p>Many thanks for xnor and Sp3000 for throwing ideas around and helping with the search for divisor chain.</p>
+</div>
+<div id="pu2" class="pu"><h1>CJam, 0 errors (<s>36</s> <s>32</s> <s>29</s> 28 bytes)</h1>
+
+<pre><code>{"un"oEb72^"+ÕåWïº"583b2b='e*o}:F;
+</code></pre>
+
+<p>This is a named function, so I'm only counting the inner code. Also, <code>o</code> is a print statement, so it doesn't contribute to the byte count.</p>
+
+<p>Try the test cases in the <a href="http://cjam.aditsu.net/#code=%7B%22un%22oEb72%5E%22%2B%C3%95%C3%A5%C2%8EW%C3%AF%C2%BA%22583b2b%3D&#39;e*o%7D%3AF%3B%0A%0AqN%25%7BS%25%7BFSo%7D%2FNo%7D%2F&amp;input=ami%20caf%C3%A9%20chapeau%20concert%20crayon%20garage%20gar%C3%A7on%20lit%20livre%20mari%20mus%C3%A9e%20oncle%20ordinateur%20pantalon%20piano%20pique-nique%20portable%20p%C3%A8re%20sandwich%20saxophone%20stade%20stylo%20th%C3%A9%C3%A2tre%20t%C3%A9l%C3%A9phone%20voisin%0Abotte%20boum%20chaise%20chaussette%20chemise%20clarinette%20copine%20femme%20fille%20glace%20heure%20lampe%20maison%20montagne%20personne%20piscine%20pizza%20radio%20raquette%20salade%20souris%20s%C5%93ur%20table%20t%C3%A9l%C3%A9%20voiture" rel="nofollow">CJam interpreter</a>.</p>
+
+<h2>How it works</h2>
+
+<pre><code>"un"o       " Print 'un'.                                                  ";
+Eb          " Consider the input a base 14 number.                        ";
+72^         " XOR the result with 72.                                     ";
+"+ÕåWïº"    " Push that string.                                           ";
+583b2b      " Convert from base 583 to base 2.                            ";
+=           " Retrieve the corresponding element (0 or 1) from the array. ";
+'e*o        " Print 'e' that many times.                                  ";
+</code></pre>
+
+<p>Just a hash function and a table lookup.</p>
+</div>
+<div id="pu3" class="pu"><h1>Ruby, 0 incorrect, <s>63</s> <s>56</s> <s>53</s> <s>52</s> <s>51</s> 50 bytes</h1>
+
+<p>All characters are in <a href="http://en.wikipedia.org/wiki/Extended_ASCII" rel="nofollow noreferrer">extended ASCII</a>, specifically <a href="http://en.wikipedia.org/wiki/ISO/IEC_8859-1" rel="nofollow noreferrer">ISO 8859-1</a>, so I'm counting each character as a single byte.</p>
+
+<pre><code>f=-&gt;s{s[/la|tt|i.e|[égdzœu]..$|^b|^f|so|^ta/]?'une':'un'}
+</code></pre>
+
+<p>It looks like your test set was a bit too short. I've generated the regex with <a href="http://nbviewer.ipython.org/url/norvig.com/ipython/xkcd1313.ipynb" rel="nofollow noreferrer">Peter Norvig's meta regex golfer</a>.</p>
+
+<p>You can call the above function like <code>f["ami"]</code>. You can use this test harness to check all test cases:</p>
+
+<pre><code>puts "ami café chapeau concert crayon garage garçon lit livre mari musée 
+      oncle ordinateur pantalon piano pique-nique portable père sandwich 
+      saxophone stade stylo théâtre téléphone voisin botte boum chaise 
+      chaussette chemise clarinette copine femme fille glace heure lampe 
+      maison montagne personne piscine pizza radio raquette salade souris 
+      sœur table télé voiture".split.map{|s|f[s]+" "+s}
+</code></pre>
+
+<p><a href="http://www.tutorialspoint.com/execute_ruby_online.php" rel="nofollow noreferrer">Test it on Coding Ground.</a></p>
+
+<p><strong>Edit:</strong> Using <a href="http://nbviewer.ipython.org/url/norvig.com/ipython/xkcd1313-part2.ipynb" rel="nofollow noreferrer">Peter Norvig's second script</a> I found a different regex, that was actually <em>one</em> byte longer, but which I could shorten by <em>two</em> bytes by hand.</p>
+
+<p><strong>Edit:</strong> <a href="https://codegolf.stackexchange.com/users/21487/sp3000">Sp3000</a> set the regex golfer he wrote for my recent regex challenge on it, and found a <s>36</s> <s>35</s> 34 byte regex for me to use. Thanks for that!</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/42206/">42206</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
