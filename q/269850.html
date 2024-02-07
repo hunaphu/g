@@ -42,6 +42,36 @@
 <pre class="lang-javascript prettyprint-override"><code>n=&gt;k=&gt;eval(&quot;for(j=t=n**n;j--;)t-=(a=[...Array(n)].map((_,i)=&gt;x=j/n**i%n|0)).some(r=&gt;a.map(v=&gt;q-=v&lt;r,q=r)|q|~x+k)&quot;)
 </code></pre>
 <p><a href="https://tio.run/##dZB9a4MwEIf/36eQQiHXxbgkUgbtCfscRUbodGhtUqNIB7Kv7jLfytBBIAfP755LLleNqs42u9W@Nh9Jl2KnMbpglDSqIJvUWJJjjXq304fc9w9Q@0gUnhhjb9aqL6IhZld1I@SdZoDRHfPAhbOtbl8AWGWuCbEYqT7TYFT62BwtLdFCW7bf9@cLbKA7G12ZImGF@SQp4eAOeEHgcY@ceAxPf7mYufjllMfUc5dYC4qHSNClSs6q/aCaZJzKoZCz3g0YixmJNeE4MhxGDmExeZxlKvh6uxzapWuX03tkH@6LtV@Ej4Xsl2hawesSyf9ROCLZ/QA" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<h3>Commented</h3>
+<p>This is a version without <code>eval()</code> for readability.</p>
+<pre class="lang-javascript prettyprint-override"><code>n =&gt;                 // outer function taking n
+k =&gt; {               // inner function taking k
+  for(               // loop:
+    j = t = n ** n;  //   start with j = t = n ** n, where:
+                     //     j = iteration counter
+                     //     t = success counter
+    j--;             //   stop once j = 0 has been processed
+  )                  //
+    t -=             //   decrement t for each failure
+    ( a =            //   let a[] be an array of n entries,
+      [...Array(n)]  //   which are turned into 0-indexed rankings
+      .map((_, i) =&gt; //   for each value at index i in a[]:
+        x =          //     save the last value in x
+        j / n ** i   //     fill with an integer in [0 .. n-1],
+        % n | 0      //     according to j and i
+      )              //   end of map()
+    ).some(r =&gt;      //   for each ranking r in a[]:
+      a.map(v =&gt;     //     for each ranking v in a[]:
+        q -= v &lt; r,  //       decrement q if v &lt; r
+        q = r        //       starting with q = r
+      )              //     end of map()
+      | q            //     some() is triggered if q != 0
+      | ~x + k       //     or x != k - 1 (i.e. the last ranking
+                     //     is not Alice's ranking)
+    );               //   end of some() / end of for()
+  return t           // return the success counter
+}                    //
+</code></pre>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://dyalog.com" rel="nofollow noreferrer">APL(Dyalog Unicode)</a>, <sup><s></s></sup>58 bytes <sup><a href="https://github.com/abrudz/SBCS" rel="nofollow noreferrer">SBCS</a></sup></h1>
 <pre><code>{⍵÷⍨⍺(⊣{n×⍵÷1⌈(⌽-⍺∘=)⍳n←≢⍵}¯1↓⊢/⍤⊢+⊢×(≠∨=∘⍳)∘≢)⍣⍵⊢0,⍨⍺≤⍳⍵}
