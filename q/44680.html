@@ -344,11 +344,11 @@
 <h3>Length 12 Snippet</h3>
 <pre><code>'1,4d;9,/^$/d'
 </code></pre>
-<p>Speaking of restricting to ranges or regex, you can even do both at the same time. The first command <code>d</code>elets lines 1-4 (counting the 1st line as line 1) and the second <code>d</code>eletes line 9, and then continues deleting until (and including) it hits an empty line.</p>
+<p>Speaking of restricting to ranges or regex, you can even do both at the same time. The first command <code>d</code>eletes lines 1-4 (counting the 1st line as line 1) and the second <code>d</code>eletes line 9, and then continues deleting until (and including) it hits an empty line.</p>
 <h3>Length 13 Snippet</h3>
 <pre><code>'/i/,/a/s/a/A/'
 </code></pre>
-<p>If you start a range with a regex, sed will start a new range each time you hit that regex. This capitilizes the first <code>a</code> after each line with an i. (it also capitalizes the first a on the same line as an <code>i</code>, if there is one; the second address is not checked until the range starts)</p>
+<p>(Read '/i/,/a/' as a range and then 's/a/A/' as the commnad) If you start a range with a regex, sed will start a new range each time you hit that regex. This capitilizes the first <code>a</code> after each line with an i. (it also capitalizes the first a on the same line as an <code>i</code>, if there is one; the second address is not checked until the range starts)</p>
 <h3>Length 14 Snippet</h3>
 <pre><code>:l;N;$!bl;p;p;
 </code></pre>
@@ -357,6 +357,34 @@
 <pre><code>'/a/,+9d;/i/,~5d'
 </code></pre>
 <p>GNU Sed adds some interesting ranging options in addition to the earlier ones. <code>,+#</code> will match <code>#</code> lines following the first address and <code>,~#</code> will continue to match until the line number is divisible by <code>#</code>.</p>
+<h3>Length 16 Snippet</h3>
+<pre><code>'5,10w output.txt'
+</code></pre>
+<p>and</p>
+<pre><code>'r insertfile.txt'
+</code></pre>
+<p>Sed has a way to act directly on files with a command option (<code>-i</code> for edit-<code>i</code>n-place, with an optional backup file using <code>-i.bak</code> or whatever other suffix you want to add) but you can technically read and write to files inside your script. However, be careful when using them; <code>r</code>, for example, will output the entire file at the end of each cycle rather than appending it to the input as you may expect it to. To do this, just give each file name as another command line option like:</p>
+<h3>Length 17 Snippet</h3>
+<pre><code>sed -s '1F' in.txt file.txt
+</code></pre>
+<p>The <code>-s</code> command lets you treat each added file as an entirely new group of lines, starting the line count over and reseting your ranges. This script, for example, will print the current <code>F</code>ilename whenever it hits the first line of a file, allowing you to see where one file ends and the next begins.</p>
+<h3>Length 18 Snippet</h3>
+<pre><code>'N;N;P;D;P#comments'
+</code></pre>
+<p>Sed is pretty small in terms of built in commands, so we've almost covered everything. Several commands have a uppercase version which does things one line at a time for when you decide to load more lines into the pattern space with <code>N</code>: <code>P</code>rint up to first newline, <code>D</code>elete up to the first newline, etc. This is also a good a time as any to mention <code>#</code> makes the rest of the line into a comment, and will not be executed.</p>
+<h3>Length 18 Snippet</h3>
+<pre><code>sed ':l;N;$!bl;e' srpt.sh
+</code></pre>
+<p>Coming full circle to rendering other commands in sed, this is roughly the same as <code>sh srpt.sh</code>. The first bit we talked about earlier, loading the full input into the pattern space; and the <code>e</code>xecute command runs the pattern space as a bash script and replaces the pattern space with the resulting output. In this example that means it just prints with the standard end-of-cycle output. You can disable <code>e</code>, as well as <code>r</code> and <code>w</code>, with the <code>--sandbox</code> command line option.</p>
+<h3>Length 19 Snippet</h3>
+<pre><code>sed '/\\\//,//s///g' --debug
+</code></pre>
+<p>The <code>--debug</code> option is a great help whenever sed does something completely unexpected, as it shows each step sed takes in each cycle. It tells you, for each cycle: where the input is coming from, the new pattern space, the hold space if there is any, each command that is run with the results of that command, and the end of cycle output. It also renders your sed program in a more readable multiline form at the very start.</p>
+<p>In this case, what happens is that an empty regex <code>//</code> is replaced with the most recently used regex when an empty regex wouldn't make sense. Since ranges are active whenever they are open, this is the same as just doing <code>'s/\\\///'</code>; ie it <code>s</code>waps each <code>\/</code> with an empty string.a</p>
+<h3>Length 20 Snippet</h3>
+<pre><code>sed -nE 's/(a|b{2})/\u\1/gp'
+</code></pre>
+<p>The last thing I want to mention is the <code>-E</code> extended regex option, and a few fancy things on the <code>s</code>wap command. <code>-E</code> allows you to use characters for their regex meaning rather than their literal meaning. There are also many 'backslash escapes' you can incorperate into your replace string; used here are <code>\u</code> for 'next letter uppercase' and <code>\1</code> for 'first capture group'. Finally, many standalone commands have a 'flag version' that work at the end of a <code>s</code>wap statement, like the <code>p</code> which prints if there was a successful swap.</p>
 </div>
 <div id="pu1" class="pu"><h1>APL</h1>
 <h2>Factoid</h2>
