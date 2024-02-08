@@ -26,8 +26,8 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>013</td><td>Jelly</td><td>240208T014931Z</td><td><a href="https://codegolf.stackexchange.com/questions/269850/counting-rankings/269889#269889">Jonathan</a></td></tr>
-<tr d-ix="1"><td>028</td><td>Jelly</td><td>240208T004021Z</td><td><a href="https://codegolf.stackexchange.com/questions/269850/counting-rankings/269884#269884">Jonathan</a></td></tr>
+<tr d-ix="0"><td>027</td><td>Jelly</td><td>240208T004021Z</td><td><a href="https://codegolf.stackexchange.com/questions/269850/counting-rankings/269884#269884">Jonathan</a></td></tr>
+<tr d-ix="1"><td>013</td><td>Jelly</td><td>240208T014931Z</td><td><a href="https://codegolf.stackexchange.com/questions/269850/counting-rankings/269889#269889">Jonathan</a></td></tr>
 <tr d-ix="2"><td>084</td><td>Python 3</td><td>240207T101033Z</td><td><a href="https://codegolf.stackexchange.com/questions/269850/counting-rankings/269860#269860">ovs</a></td></tr>
 <tr d-ix="3"><td>080</td><td>JavaScript ES6</td><td>240207T015133Z</td><td><a href="https://codegolf.stackexchange.com/questions/269850/counting-rankings/269852#269852">Arnauld</a></td></tr>
 <tr d-ix="4"><td>058</td><td>APLDyalog Unicode</td><td>240207T130527Z</td><td><a href="https://codegolf.stackexchange.com/questions/269850/counting-rankings/269861#269861">ovs</a></td></tr>
@@ -38,7 +38,42 @@
 <tr d-ix="9"><td>120</td><td>JavaScript Node.js</td><td>240207T035808Z</td><td><a href="https://codegolf.stackexchange.com/questions/269850/counting-rankings/269854#269854">l4m2</a></td></tr>
 <tr d-ix="10"><td>222</td><td>Python3</td><td>240207T024520Z</td><td><a href="https://codegolf.stackexchange.com/questions/269850/counting-rankings/269853#269853">Ajax1234</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 13 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a> (golf version)</h1>
+<div id="pu0" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 27 <a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">bytes</a> (fast version)</h1>
+<pre><code>cⱮ`€U;ḋ¥ƒ1H1¦ṖṚ,Ʋ⁹ịⱮPḤ×c×÷⁸
+</code></pre>
+<p>A dyadic Link that accepts <span class="math-container">\$n\$</span> on the left and <span class="math-container">\$k\$</span> on the right and yields the count of weak orderings given a labelled item's rank.</p>
+<p><strong><a href="https://tio.run/##AUUAuv9qZWxsef//Y@KxrmDigqxVO@G4i8KlxpIxSDHCpuG5luG5mizGsuKBueG7i@KxrlDhuKTDl2PDl8O34oG4////NDD/MjA" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></strong> Or see the <a href="https://tio.run/##y0rNyan8/z/50cZ1CY@a1oRaP9zRfWjpsUmGHoaHlj3cOe3hzlk6xzY9atz5cHc3UE3Awx1LDk9PPjz98PZHjTv@60C1PdzVd2jr0UkPd87QObxcP@tRwxwFWzuFRw1zNSP//zc0AAA" rel="nofollow noreferrer" title="Jelly – Try It Online">test-suite</a>.</p>
+<h3>How?</h3>
+<p>First calculates the first <span class="math-container">\$n+1\$</span> Fubini numbers (<a href="https://oeis.org/A000670" rel="nofollow noreferrer">A000670</a>): <span class="math-container">\$F(a) \forall a \in [0,n]\$</span>.</p>
+<p>This is achieved by expanding the recursive calculation <span class="math-container">\$F(a) = \sum_{j=1}^a{F(a-j)\binom{a}{j}}, F(0)=1\$</span> as a reduction of dot-products over the relevant portion of Pascal's triangle. (I think this can probably be golfed a little by using the recursive calculation itself.)</p>
+<p>Then uses that to calculate half of the number of necklaces of partitions of n+1 labelled beads (<span class="math-container">\$\frac{1}{2}\$</span><a href="https://oeis.org/A000629" rel="nofollow noreferrer">A000629</a>) which is simply <span class="math-container">\$F\$</span> but with the first term halved: <span class="math-container">\$\frac{N(a)}{2} \forall a \in [0,n]\$</span></p>
+<p>Finally applies the formula suggested by <a href="https://codegolf.stackexchange.com/users/69059/nitrodon">Nitrodon</a> in the comments:</p>
+<p><span class="math-container">$$R(n,k)=F(k-1)N(n-k)\binom{n-1}{k-1}$$</span></p>
+<pre><code>cⱮ`€U;ḋ¥ƒ1H1¦ṖṚ,Ʋ⁹ịⱮPḤ×c×÷⁸ - Link: n, k
+   €                        - for each {v in [1..n]}:
+ Ɱ`                         -   map across {w in [1..v]} with:
+c                           -     {v} choose {w}
+    U                       - reverse each -&gt; [[1C1], [2C2, 2C1], [3C3, 3C2, 3C1], ...]
+        ƒ1                  - starting with 1 reduce by:
+       ¥                    -   last two links as a dyad f(current, next):
+      ḋ                     -     {current} dot-product {next}
+     ;                      -     {current} concatenate {that}
+                               -&gt; [F(a) for a in [0..n]] = Fubinis
+                Ʋ           - last four links as a monad - f(Fubinis):
+          H1¦               -   halve the first term
+             Ṗ              -   remove the last term
+              Ṛ             -   reverse
+               ,            -   pair {Fubinis} -&gt; [Necklaces/2, Fubinis]
+                 ⁹ịⱮ        - kth element of each -&gt; [N(n-k)/2, F(k-1)]
+                    P       - product
+                     Ḥ      - double -&gt; F(k-1)*N(n-k)
+                       c    - {n} choose {k}
+                      ×     - multiply -&gt; F(k-1) * N(n-k) * nCk
+                        ×   - multiply by {k}
+                         ÷⁸ - divide by {n} -&gt; F(k-1) * N(n-k) * (n-1)C(k-1)
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 13 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a> (golf version)</h1>
 <pre><code>ṗ`&lt;Ɱ`§‘ƊƑƇḢ€ċ
 </code></pre>
 <p>A dyadic Link that accepts <span class="math-container">\$n\$</span> on the left and <span class="math-container">\$k\$</span> on the right and yields the count of weak orderings given a labelled item's rank.</p>
@@ -55,42 +90,6 @@
                  -&gt; all valid rankings
           Ḣ€  - head each -&gt; Alice's rank in each valid ranking
             ċ - count occurrences of {k}
-</code></pre>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 28 <a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">bytes</a> (fast version)</h1>
-<pre><code>cⱮ`€U;ḋ¥ƒ1H1¦ṖṚ,Ʋ⁹ịⱮPḤ×’c’}ɗ
-</code></pre>
-<p>A dyadic Link that accepts <span class="math-container">\$n\$</span> on the left and <span class="math-container">\$k\$</span> on the right and yields the count of weak orderings given a labelled item's rank.</p>
-<p><strong><a href="https://tio.run/##AUcAuP9qZWxsef//Y@KxrmDigqxVO@G4i8KlxpIxSDHCpuG5luG5mizGsuKBueG7i@KxrlDhuKTDl@KAmWPigJl9yZf///80MP8yMA" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></strong> Or see the <a href="https://tio.run/##y0rNyan8/z/50cZ1CY@a1oRaP9zRfWjpsUmGHoaHlj3cOe3hzlk6xzY9atz5cHc3UE3Awx1LDk9/1DAzGYhrT07/rwPV@HBX36GtRyc93DlD5/By/axHDXMUbO0UHjXM1Yz8/9/QAAA" rel="nofollow noreferrer" title="Jelly – Try It Online">test-suite</a>.</p>
-<h3>How?</h3>
-<p>First calculates the first <span class="math-container">\$n+1\$</span> Fubini numbers (<a href="https://oeis.org/A000670" rel="nofollow noreferrer">A000670</a>): <span class="math-container">\$F(a) \forall a \in [0,n]\$</span>.</p>
-<p>This is achieved by expanding the recursive calculation <span class="math-container">\$F(a) = \sum_{j=1}^a{F(a-j)\binom{a}{j}}, F(0)=1\$</span> as a reduction of dot-products over the relevant portion of Pascal's triangle. (I think this can probably be golfed a little by using the recursive calculation itself.)</p>
-<p>Then uses that to calculate half of the number of necklaces of partitions of n+1 labelled beads (<span class="math-container">\$\frac{1}{2}\$</span><a href="https://oeis.org/A000629" rel="nofollow noreferrer">A000629</a>) which is simply <span class="math-container">\$F\$</span> but with the first term halved: <span class="math-container">\$\frac{N(a)}{2} \forall a \in [0,n]\$</span></p>
-<p>Finally applies the formula suggested by <a href="https://codegolf.stackexchange.com/users/69059/nitrodon">Nitrodon</a> in the comments:</p>
-<p><span class="math-container">$$R(n,k)=F(k-1)N(n-k)\binom{n-1}{k-1}$$</span></p>
-<pre><code>cⱮ`€U;ḋ¥ƒ1H1¦ṖṚ,Ʋ⁹ịⱮPḤ×’c’}ɗ - Link: n, k
-   €                         - for each {v in [1..n]}:
- Ɱ`                          -   map across {w in [1..v]} with:
-c                            -     {v} choose {w}
-    U                        - reverse each -&gt; [[1c1], [2c2, 2c1], [3c3, 3c2, 3c1], ...]
-        ƒ1                   - starting with 1 reduce by:
-       ¥                     -   last two links as a dyad f(current, next):
-      ḋ                      -     {current} dot-product {next}
-     ;                       -     {current} concatenate {that}
-                                -&gt; [F(a) for a in [0..n]] = Fubinis
-                Ʋ            - last four links as a monad - f(Fubinis):
-          H1¦                -   halve the first term
-             Ṗ               -   remove the last term
-              Ṛ              -   reverse
-               ,             -   pair {Fubinis} -&gt; [Necklaces/2, Fubinis]
-                 ⁹ịⱮ         - kth element of each -&gt; [N(n-k)/2, F(k-1)]
-                    P        - product
-                     Ḥ       - double -&gt; F(k-1)*N(n-k)
-                           ɗ - last three links as a dyad - f(n, k):
-                       ’     -   decrement {n} -&gt; n-1
-                         ’}  -   decrement {k} -&gt; k-1
-                        c    -   {n-1} choose {k-1}
-                      ×      - multiply -&gt; F(k-1)*N(n-k)*((n-1)c(k-1))
 </code></pre>
 </div>
 <div id="pu2" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a>, <s>93</s> 84 bytes</h1>
