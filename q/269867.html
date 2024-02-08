@@ -26,17 +26,30 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>152</td><td>Ada/GNAT</td><td>240208T171401Z</td><td><a href="https://codegolf.stackexchange.com/questions/269867/is-it-a-valid-arm-immediate-value/269911#269911">Devsman</a></td></tr>
-<tr d-ix="1"><td>147</td><td>Go</td><td>240207T193229Z</td><td><a href="https://codegolf.stackexchange.com/questions/269867/is-it-a-valid-arm-immediate-value/269871#269871">bigyihsu</a></td></tr>
-<tr d-ix="2"><td>017</td><td>05AB1E</td><td>240208T083211Z</td><td><a href="https://codegolf.stackexchange.com/questions/269867/is-it-a-valid-arm-immediate-value/269895#269895">Kevin Cr</a></td></tr>
-<tr d-ix="3"><td>052</td><td>Python</td><td>240208T071010Z</td><td><a href="https://codegolf.stackexchange.com/questions/269867/is-it-a-valid-arm-immediate-value/269894#269894">loopy wa</a></td></tr>
-<tr d-ix="4"><td>052</td><td>Rust</td><td>240208T061433Z</td><td><a href="https://codegolf.stackexchange.com/questions/269867/is-it-a-valid-arm-immediate-value/269891#269891">Bubbler</a></td></tr>
-<tr d-ix="5"><td>043</td><td>JavaScript Node.js</td><td>240208T004619Z</td><td><a href="https://codegolf.stackexchange.com/questions/269867/is-it-a-valid-arm-immediate-value/269886#269886">tsh</a></td></tr>
-<tr d-ix="6"><td>101</td><td>Retina</td><td>240208T005555Z</td><td><a href="https://codegolf.stackexchange.com/questions/269867/is-it-a-valid-arm-immediate-value/269887#269887">Neil</a></td></tr>
-<tr d-ix="7"><td>047</td><td>JavaScript ES6</td><td>240207T191904Z</td><td><a href="https://codegolf.stackexchange.com/questions/269867/is-it-a-valid-arm-immediate-value/269870#269870">Arnauld</a></td></tr>
-<tr d-ix="8"><td>021</td><td>Charcoal</td><td>240208T003824Z</td><td><a href="https://codegolf.stackexchange.com/questions/269867/is-it-a-valid-arm-immediate-value/269883#269883">Neil</a></td></tr>
+<tr d-ix="0"><td>032</td><td>ARMv2</td><td>240208T233000Z</td><td><a href="https://codegolf.stackexchange.com/questions/269867/is-it-a-valid-arm-immediate-value/269926#269926">Neil</a></td></tr>
+<tr d-ix="1"><td>152</td><td>Ada/GNAT</td><td>240208T171401Z</td><td><a href="https://codegolf.stackexchange.com/questions/269867/is-it-a-valid-arm-immediate-value/269911#269911">Devsman</a></td></tr>
+<tr d-ix="2"><td>147</td><td>Go</td><td>240207T193229Z</td><td><a href="https://codegolf.stackexchange.com/questions/269867/is-it-a-valid-arm-immediate-value/269871#269871">bigyihsu</a></td></tr>
+<tr d-ix="3"><td>017</td><td>05AB1E</td><td>240208T083211Z</td><td><a href="https://codegolf.stackexchange.com/questions/269867/is-it-a-valid-arm-immediate-value/269895#269895">Kevin Cr</a></td></tr>
+<tr d-ix="4"><td>052</td><td>Python</td><td>240208T071010Z</td><td><a href="https://codegolf.stackexchange.com/questions/269867/is-it-a-valid-arm-immediate-value/269894#269894">loopy wa</a></td></tr>
+<tr d-ix="5"><td>052</td><td>Rust</td><td>240208T061433Z</td><td><a href="https://codegolf.stackexchange.com/questions/269867/is-it-a-valid-arm-immediate-value/269891#269891">Bubbler</a></td></tr>
+<tr d-ix="6"><td>043</td><td>JavaScript Node.js</td><td>240208T004619Z</td><td><a href="https://codegolf.stackexchange.com/questions/269867/is-it-a-valid-arm-immediate-value/269886#269886">tsh</a></td></tr>
+<tr d-ix="7"><td>101</td><td>Retina</td><td>240208T005555Z</td><td><a href="https://codegolf.stackexchange.com/questions/269867/is-it-a-valid-arm-immediate-value/269887#269887">Neil</a></td></tr>
+<tr d-ix="8"><td>047</td><td>JavaScript ES6</td><td>240207T191904Z</td><td><a href="https://codegolf.stackexchange.com/questions/269867/is-it-a-valid-arm-immediate-value/269870#269870">Arnauld</a></td></tr>
+<tr d-ix="9"><td>021</td><td>Charcoal</td><td>240208T003824Z</td><td><a href="https://codegolf.stackexchange.com/questions/269867/is-it-a-valid-arm-immediate-value/269883#269883">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Ada/GNAT, 152 bytes</h1>
+<div id="pu0" class="pu"><h1>ARMv2, 32 bytes</h1>
+<p>Input is in <code>R0</code>, output is in <code>CF</code>. If you want output in a register, then <code>R2</code> will be zero if the input is an invalid constant.</p>
+<pre><code>VALID:  MOV R2, #-16
+LOOP:   MVN R1, R0, ROR#2
+        MOV R0, R0, ROR#2
+        TST R1, #-256
+        TSTNE R0, #-256
+        ADDSNE R2, R2, #1
+        BNE LOOP
+        MOV R15, R14
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>Ada/GNAT, 152 bytes</h1>
 <pre><code>type T is mod 2**32;function G(X:T;C:T:=0) return Boolean is (C&lt;30 and then ((((X and 255)=X or (X or not 255)=X) or else G((X mod 4)*2**30+X/4,C+1))));
 </code></pre>
 <p>G is a recursive function that:</p>
@@ -51,7 +64,7 @@
 </li>
 </ol>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://go.dev" rel="nofollow noreferrer">Go</a>, <s>157</s> 147 bytes</h1>
+<div id="pu2" class="pu"><h1><a href="https://go.dev" rel="nofollow noreferrer">Go</a>, <s>157</s> 147 bytes</h1>
 <pre class="lang-go prettyprint-override"><code>import.&quot;math/bits&quot;
 func f(n uint32)(r bool){F:=uint32(0xFF)
 for k:=2;k&lt;31;k+=2{j:=RotateLeft32(n,k)
@@ -84,7 +97,7 @@ return 1}
 <p><a href="https://ato.pxeger.com/run?1=lZHfSsMwFIfxtk9xLHSkkumJU5FiCoILXoiIzgtRJ92fjK4uG10LHbVP4s0QfAifRPRpTNPhUCfoaUj7Ownk-5rHp8F4_jIJulEw6MMoCJUVjibjONm05Sixn9NE1vffZjJVXZBE0QjSUCWNbVfPufB4lQhmQrhWKEHV2sLHPKrXyxQdsDzuJ2msAAtr6HG1sfOgfL-BZrXG9NYhb6vCWuySZEgj9zOyogJ4X3s1BCUfcSG3zmJ97r0iNue8dX7ZOr7SH7ZryXEMd3QKHoc4UNro-rYizDFDU0JQzKSu3l5D0pK76lPsMDQPQ1y22DJ-r3Kt0CyBxyWZUv1PSqlgnTPIDZ8kNmZOBluAHacD3AenB8TpuTfKpjA1I6DAXCis4ouSODy5aP5ViYlm6VG6GehsV1fFb0RlH9kKu9V6y_irHv5PD-GnX_P0qJJb3O98Xr0_AA" rel="nofollow noreferrer">Attempt This Online!</a></p>
 <p>A direct port of <a href="https://codegolf.stackexchange.com/a/269870/77309">@Arnauld's JS answer</a>.</p>
 </div>
-<div id="pu2" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, 17 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
+<div id="pu3" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, 17 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
 <pre><code>4B16°+¦2×30S12×åà
 </code></pre>
 <p>Port of <a href="https://codegolf.stackexchange.com/a/269883/52210"><em>@Neil</em>'s Charcoal answer</a>, so make sure to upvote that answer as well.</p>
@@ -104,7 +117,7 @@ return 1}
                   # (after which the result is output implicitly)
 </code></pre>
 </div>
-<div id="pu3" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 52 bytes</h1>
+<div id="pu4" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 52 bytes</h1>
 <pre class="lang-python prettyprint-override"><code>f=lambda n:n&gt;4**32or 0&lt;n%~-4**16&gt;&gt;8&lt;8**8-1and f(n*4)
 </code></pre>
 <p><a href="https://ato.pxeger.com/run?1=jZBNSsQwGIZx21N8GyENrSROHeow0509xYAkJHEKbVLSVKcuvIibAdE76WlM0sKguPAN5D9PnuT1o5_cwejTm9rt30en8vKzULuWdVww0BtdFRivro0FstWXL7kf0XVVldsS4zKnTAtQSOMiXc7eKr-1zfA9NBo61qPB2auhbxuXmV5qRNJ0kwBAbxvtkEKhbjM_uwBOXxd7ciQxdZ2Qo_IR65Xy3bqe5xPCKYmFkiWASmCWN84yO4FvhwyUaVvzJAXwCeSj1KDHjksLRsGztGZIA4eeGb8T1gDRJWCNY87TbPNwcIFZxHs8Zdal9V1wDN7R8XjjM-vGRyhJ6B_mUT2AgI_uh7MR4n_K5-Gs7IzxX68nGHormciNB9N8lp1_-Rs" rel="nofollow noreferrer">Attempt This Online!</a></p>
@@ -112,10 +125,10 @@ return 1}
 <h2>How?</h2>
 <p>Uses <code>mod 0xffffffff</code> to get from a linear left shift to a cyclic left shift. Advantages of linear being 1) Python actually has it. 2) easier stopping criterion.</p>
 </div>
-<div id="pu4" class="pu"><h1><a href="https://www.rust-lang.org" rel="nofollow noreferrer">Rust</a>, 52 bytes</h1>
+<div id="pu5" class="pu"><h1><a href="https://www.rust-lang.org" rel="noreferrer">Rust</a>, 52 bytes</h1>
 <pre class="lang-rust prettyprint-override"><code>|n|(0..16).any(|i|(n&lt;&lt;33^n&lt;&lt;32^n*2^n)&lt;&lt;i*2&gt;&gt;41&lt;1u64)
 </code></pre>
-<p><a href="https://ato.pxeger.com/run?1=jVFLTsMwEBXbnGKSlV0llZ2EqkrTsiJbDlC1KBBbshSmVepIRU1OwqYLOAEbbsAZ4DTEiWhD2wXP8oz85uOnmZfXotzoj7njeSJTWq1w6jOfOy443p2zeJcIT6lCQmFn5UKDhOlbqaU3_gorrAgbDvmIDlN8JpWqCMZxECyN9Zc4aC6NYzXwZ7OQx7wchbSr_b76nFhyVQBBF8R2LR61yCgohLlF2Ja1SJL7MvBd0EUpqGt42SAbBbLPJUmX3eMeOGsPZ-xCjB_5U5jYIfcghCe3Lsg03_z-aLS1XXvkdQN2Shq9UjDeJ8_Esb_RM3nHZyevS7YWzT4A1oVCnaNNnF3ExtsaIthFNzUQY2mzxGa-kiCkGzDT7w178p9quy0nNtKLHWqr7va533f-Bw" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<p><a href="https://ato.pxeger.com/run?1=jVFLTsMwEBXbnGKSlV0llZ2EqkrTsiJbDlC1KBBbshSmVepIRU1OwqYLOAEbbsAZ4DTEiWhD2wXP8oz85uOnmZfXotzoj7njeSJTWq1w6jOfOy443p2zeJcIT6lCQmFn5UKDhOlbqaU3_gorrAgbDvmIDlN8JpWqCMZxECyN9Zc4aC6NYzXwZ7OQx7wchbSr_b76nFhyVQBBF8R2LR61yCgohLlF2Ja1SJL7MvBd0EUpqGt42SAbBbLPJUmX3eMeOGsPZ-xCjB_5U5jYIfcghCe3Lsg03_z-aLS1XXvkdQN2Shq9UjDeJ8_Esb_RM3nHZyevS7YWzT4A1oVCnaNNnF3ExtsaIthFNzUQY2mzxGa-kiCkGzDT7w178p9quy0nNtKLHWqr7va533f-Bw" rel="noreferrer">Attempt This Online!</a></p>
 <p>A closure that takes an unsigned 32-bit value of type <code>u64</code> and returns a bool.</p>
 <ul>
 <li>A 32-bit value <code>n</code> is acceptable</li>
@@ -126,14 +139,14 @@ return 1}
 <li><span class="math-container">\$\Leftrightarrow\$</span> <code>(n&lt;&lt;33^n&lt;&lt;32^n&lt;&lt;1^n)&lt;&lt;i&gt;&gt;41</code> is zero for some even <code>i</code> between 0 and 30 inclusive</li>
 </ul>
 </div>
-<div id="pu5" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 43 bytes</h1>
+<div id="pu6" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 43 bytes</h1>
 
 <pre class="lang-javascript prettyprint-override"><code>f=n=&gt;++i&amp;31&amp;&amp;n&gt;&gt;8==n&gt;&gt;31|f(n&gt;&gt;&gt;2|n&lt;&lt;30);i=0
 </code></pre>
 <p><a href="https://tio.run/##y0osSyxOLsosKNHNy09J/f8/zTbP1k5bO1PN2FBNLc/OzsLWFkgaG9akaQBpO6OaPBsbYwNN60xbg//J@XnF@Tmpejn56RppGgYVBmDg5qapyYUulQYEKWbGaVik3Nwg@rBJQU1Ek8JUCFZm6OaKwww37MabAgEOm0HuTUs1MNTU/A8A" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
 <p>Note: This function will not be reusable after about 2<sup>48</sup> invokes. I would argue that should be fine according to the spirit of code-golf though. And fix the limit may <a href="https://tio.run/##y0osSyxOLsosKNHNy09J/f8/zTbP1i7TVls7U83YUE0tz87OwtYWSBob1qRpAGk7o5o8GxtjA03rTFuD/8n5ecX5Oal6OfnpGmkaBhUGYODmpqnJhS6VBgQpZsZpWKTc3CD6sElBTUSTwlQIVmbo5orDDDfsxpsCAQ6bQe5NSzUw1NT8DwA" rel="nofollow noreferrer">cost 2 more bytes</a>.</p>
 </div>
-<div id="pu6" class="pu"><h1><a href="https://github.com/m-ender/retina/wiki/The-Language" rel="nofollow noreferrer">Retina</a>, 101 bytes</h1>
+<div id="pu7" class="pu"><h1><a href="https://github.com/m-ender/retina/wiki/The-Language" rel="nofollow noreferrer">Retina</a>, 101 bytes</h1>
 <pre><code>.+
 $.(23283064365386962890625**
 16{`.+$
@@ -167,7 +180,7 @@ $`
 </code></pre>
 <p>Check for 12 repeated <code>0</code>s or <code>3</code>s. (If any non-zero output is acceptable, the <code>0`</code> can be removed to save two bytes.)</p>
 </div>
-<div id="pu7" class="pu"><h1>JavaScript (ES6), 47 bytes</h1>
+<div id="pu8" class="pu"><h1>JavaScript (ES6), 47 bytes</h1>
 <p>Returns <strong>0</strong> or <strong>1</strong>.</p>
 
 <pre class="lang-javascript prettyprint-override"><code>f=(n,m=~255)=&gt;n&amp;m&amp;&amp;~n&amp;m?m%96&amp;&amp;f(n,m*4|m&gt;&gt;&gt;30):1
@@ -193,10 +206,10 @@ n &amp; m &amp;&amp;       // if n &amp; m is not 0
   1            //   success: return 1
 </code></pre>
 </div>
-<div id="pu8" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 21 bytes</h1>
+<div id="pu9" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="noreferrer">Charcoal</a>, 21 bytes</h1>
 <pre><code>Ｎθ⊙ 3№×²◧⍘θ 123¹⁶×¹²ι
 </code></pre>
-<p><a href="https://ato.pxeger.com/run?1=m70iOSOxKDk_MWfBgqWlJWm6FjdTPPMKSkv8SnOTUos0CjWtuQKKMvNKNBzzKjWUFIyVdBSc80uB_JDM3NRiDSMdhYDEFJ_UtBINp8Ti1OASoNp0jUIdBSUFQyNjJU0dBUMzTSAJUW0IVJ6pCQTWS4qTkouhNi6PVtIty1GKXWxqaAARAQA" rel="nofollow noreferrer">Attempt This Online!</a> Will accept input in decimal by default, but also hex with <code>0x</code> prefix and binary with <code>0b</code> prefix. Outputs a Charcoal boolean, i.e. <code>-</code> for valid, nothing if not. Explanation:</p>
+<p><a href="https://ato.pxeger.com/run?1=m70iOSOxKDk_MWfBgqWlJWm6FjdTPPMKSkv8SnOTUos0CjWtuQKKMvNKNBzzKjWUFIyVdBSc80uB_JDM3NRiDSMdhYDEFJ_UtBINp8Ti1OASoNp0jUIdBSUFQyNjJU0dBUMzTSAJUW0IVJ6pCQTWS4qTkouhNi6PVtIty1GKXWxqaAARAQA" rel="noreferrer">Attempt This Online!</a> Will accept input in decimal by default, but also hex with <code>0x</code> prefix and binary with <code>0b</code> prefix. Outputs a Charcoal boolean, i.e. <code>-</code> for valid, nothing if not. Explanation:</p>
 <pre><code>Ｎθ                      First input as a number
     3                   Literal string ` 3`
   ⊙                     Any character satisfies
