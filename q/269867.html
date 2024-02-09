@@ -38,15 +38,17 @@
 <tr d-ix="9"><td>021</td><td>Charcoal</td><td>240208T003824Z</td><td><a href="https://codegolf.stackexchange.com/questions/269867/is-it-a-valid-arm-immediate-value/269883#269883">Neil</a></td></tr>
 </table>
 <div id="pu0" class="pu"><h1>ARMv2, <s>32</s> 28 bytes</h1>
-<p>Input is in <code>R0</code>, output is in <code>R1</code> which is zero if the input is an invalid constant. <code>CMN</code> trick stolen from the Stack Overflow question linked by Peter Cordes.</p>
+<p>Input is in <code>R0</code>, output is in <code>R1</code> which is zero if the input is an invalid constant. <code>CMN</code> trick stolen from <a href="https://stackoverflow.com/questions/27963312/armv5-and-earlier-mov-and-mvn-operands/27973178#27973178">Notlikethat's answer</a> to the Stack Overflow question linked by Peter Cordes.</p>
 <pre><code>VALID:  MOV R1, #-16
 LOOP:   MOV R0, R0, ROR#2
         CMP R0, #256
-        CMNCC R0, #256
-        ADDSCC R1, R1, #1
+        CMNCC R0, #256        @ compare, predicated on Carry Clear
+        ADDSCC R1, R1, #1     @ Add and Set flags if Carry Clear
         BCC LOOP
-        MOVS R15, R14
+        MOVS R15, R14         @ return
 </code></pre>
+<p>This is ARM mode so each instruction is 4 bytes, unlike Thumb or Thumb 2.<br />
+<code>movs r15, r14</code> copies the return address to the program counter, <code>mov pc, lr</code>, returning from the function like <code>bx lr</code> in modern ARM code.</p>
 </div>
 <div id="pu1" class="pu"><h1>Ada/GNAT, 152 bytes</h1>
 <pre><code>type T is mod 2**32;function G(X:T;C:T:=0) return Boolean is (C&lt;30 and then ((((X and 255)=X or (X or not 255)=X) or else G((X mod 4)*2**30+X/4,C+1))));
