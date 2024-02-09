@@ -26,21 +26,11 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>075</td><td>Python 3</td><td>240209T140635Z</td><td><a href="https://codegolf.stackexchange.com/questions/269940/compute-maximum-excluding-the-current-position/269944#269944">Stef</a></td></tr>
-<tr d-ix="1"><td>054</td><td>JavaScript ES6</td><td>240209T134513Z</td><td><a href="https://codegolf.stackexchange.com/questions/269940/compute-maximum-excluding-the-current-position/269943#269943">Arnauld</a></td></tr>
+<tr d-ix="0"><td>054</td><td>JavaScript ES6</td><td>240209T134513Z</td><td><a href="https://codegolf.stackexchange.com/questions/269940/compute-maximum-excluding-the-current-position/269943#269943">Arnauld</a></td></tr>
+<tr d-ix="1"><td>075</td><td>Python 3</td><td>240209T140635Z</td><td><a href="https://codegolf.stackexchange.com/questions/269940/compute-maximum-excluding-the-current-position/269944#269944">Stef</a></td></tr>
 <tr d-ix="2"><td>072</td><td>JavaScript Node.js</td><td>240209T134417Z</td><td><a href="https://codegolf.stackexchange.com/questions/269940/compute-maximum-excluding-the-current-position/269942#269942">l4m2</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://docs.python.org/3.8/" rel="nofollow noreferrer">Python 3</a>, 75 bytes</h1>
-<pre><code>def f(a):
- h=nlargest(2,a)
- return[h[x==h[0]]for x in a]
-from heapq import*
-</code></pre>
-<p><a href="https://tio.run/##RY/dCsIwDIXv@xTnzk1S0M2BCPVFSi7q3OxAu1or6NPPtoKGBPLzJZz4d7Sza/c@LMt5GDFWpj4IWOWuJlyGR6waMrVAGOIzOG31SymrN8zjHPDC5GBYjGG@wQ7G3zHd/Bzieolp9aGgBZJpvSV0BNkSdoSGCborafd1ZvqDDaHNRILbDP9mMg1l8z0jtxkpnV8wCxYiCzN0ytKKiEPZ7qHKb6XwYXKxMrSS8riiE/UJVwp9vXwA" rel="nofollow noreferrer" title="Python 3.8 (pre-release) – Try It Online">Try it online!</a></p>
-<p>This is almost not golfed: compute the first and second minimum <code>h[0]</code> and <code>h[1]</code> of array <code>a</code>, then output <code>h[0]</code> or <code>h[1]</code> where appropriate.</p>
-<p>Using <code>sorted</code> would take 20 fewer bytes than using <code>heapq.nlargest</code>, but would break the O(n) requirement.</p>
-</div>
-<div id="pu1" class="pu"><h1>JavaScript (ES6), 54 bytes</h1>
+<div id="pu0" class="pu"><h1>JavaScript (ES6), 54 bytes</h1>
 <p><em>-2 thanks to @l4m2</em></p>
 
 <pre class="lang-javascript prettyprint-override"><code>a=&gt;a.map(v=&gt;v-a?a:m,a.map(v=&gt;a&gt;v?m&gt;v?0:m=v:(m=a,a=v)))
@@ -50,6 +40,37 @@ from heapq import*
 <p>During the first pass, we compute <span class="math-container">\$m_0=\max A_i\$</span> and <span class="math-container">\$m_1=\max_{i\neq j}A_i\$</span> where <span class="math-container">\$j\$</span> is the index of the first occurrence of <span class="math-container">\$m_0\$</span>. So we have <span class="math-container">\$m_1=m_0\$</span> if <span class="math-container">\$m_0\$</span> appears more than once and <span class="math-container">\$m_1&lt;m_0\$</span> otherwise.</p>
 <p>During the second pass, we replace each value <span class="math-container">\$v\$</span> in the input array with <span class="math-container">\$m_1\$</span> if <span class="math-container">\$v=m_0\$</span> or <span class="math-container">\$m_0\$</span> otherwise.</p>
 <p>In the JS implementation, we use <code>a</code> for <span class="math-container">\$m_0\$</span> and <code>m</code> for <span class="math-container">\$m_1\$</span>.</p>
+<h3>Commented</h3>
+<pre class="lang-javascript prettyprint-override"><code>a =&gt;           // a[] = input array, re-used as m0
+a.map(v =&gt;     // (2nd pass) for each value v in a[]:
+  v - a ?      //   if v is not equal to a:
+    a          //     output a
+  :            //   else:
+    m,         //     output m
+  a.map(v =&gt;   //   (1st pass) for each value v in a[]:
+    a &gt; v ?    //     if a is a number greater than v:
+      m &gt; v ?  //       if m is a number greater than v:
+        0      //         do nothing
+      :        //       else:
+        m = v  //         save v in m
+    :          //     else:
+      (        //
+        m = a, //       save the previous maximum a in m
+        a = v  //       save the new maximum v in a
+      )        //
+  )            //   end of map()
+)              // end of map()
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://docs.python.org/3.8/" rel="nofollow noreferrer">Python 3</a>, 75 bytes</h1>
+<pre><code>def f(a):
+ h=nlargest(2,a)
+ return[h[x==h[0]]for x in a]
+from heapq import*
+</code></pre>
+<p><a href="https://tio.run/##RY/dCsIwDIXv@xTnzk1S0M2BCPVFSi7q3OxAu1or6NPPtoKGBPLzJZz4d7Sza/c@LMt5GDFWpj4IWOWuJlyGR6waMrVAGOIzOG31SymrN8zjHPDC5GBYjGG@wQ7G3zHd/Bzieolp9aGgBZJpvSV0BNkSdoSGCborafd1ZvqDDaHNRILbDP9mMg1l8z0jtxkpnV8wCxYiCzN0ytKKiEPZ7qHKb6XwYXKxMrSS8riiE/UJVwp9vXwA" rel="nofollow noreferrer" title="Python 3.8 (pre-release) – Try It Online">Try it online!</a></p>
+<p>This is almost not golfed: compute the first and second minimum <code>h[0]</code> and <code>h[1]</code> of array <code>a</code>, then output <code>h[0]</code> or <code>h[1]</code> where appropriate.</p>
+<p>Using <code>sorted</code> would take 20 fewer bytes than using <code>heapq.nlargest</code>, but would break the O(n) requirement.</p>
 </div>
 <div id="pu2" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 72 bytes</h1>
 
