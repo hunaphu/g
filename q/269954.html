@@ -26,8 +26,8 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>nan</td><td></td><td>240210T090227Z</td><td><a href="https://codegolf.stackexchange.com/questions/269954/remove-falsy-rows-and-columns/269972#269972">Houriyah</a></td></tr>
-<tr d-ix="1"><td>063</td><td>Haskell</td><td>240210T061330Z</td><td><a href="https://codegolf.stackexchange.com/questions/269954/remove-falsy-rows-and-columns/269969#269969">totallyh</a></td></tr>
+<tr d-ix="0"><td>063</td><td>Haskell</td><td>240210T061330Z</td><td><a href="https://codegolf.stackexchange.com/questions/269954/remove-falsy-rows-and-columns/269969#269969">totallyh</a></td></tr>
+<tr d-ix="1"><td>nan</td><td></td><td>240210T090227Z</td><td><a href="https://codegolf.stackexchange.com/questions/269954/remove-falsy-rows-and-columns/269972#269972">Houriyah</a></td></tr>
 <tr d-ix="2"><td>015</td><td>J</td><td>240210T072119Z</td><td><a href="https://codegolf.stackexchange.com/questions/269954/remove-falsy-rows-and-columns/269971#269971">Jonah</a></td></tr>
 <tr d-ix="3"><td>016</td><td>K ngn/k</td><td>240210T004923Z</td><td><a href="https://codegolf.stackexchange.com/questions/269954/remove-falsy-rows-and-columns/269964#269964">att</a></td></tr>
 <tr d-ix="4"><td>015</td><td>Uiua SBCS</td><td>240210T040610Z</td><td><a href="https://codegolf.stackexchange.com/questions/269954/remove-falsy-rows-and-columns/269966#269966">chunes</a></td></tr>
@@ -39,33 +39,31 @@
 <tr d-ix="10"><td>032</td><td>Python + numpy</td><td>240209T225848Z</td><td><a href="https://codegolf.stackexchange.com/questions/269954/remove-falsy-rows-and-columns/269958#269958">Stef</a></td></tr>
 <tr d-ix="11"><td>044</td><td>Haskell + hgl</td><td>240209T224548Z</td><td><a href="https://codegolf.stackexchange.com/questions/269954/remove-falsy-rows-and-columns/269957#269957">Wheat Wi</a></td></tr>
 </table>
-<div id="pu0" class="pu"><pre><code>def remove_zeros(matrix):
-rows_to_remove = {i for i, row in enumerate(matrix) if 0 in row}
-cols_to_remove = {j for j in range(len(matrix[0])) if any(matrix[i][j] == 0 for i in range(len(matrix)))}
-
-result = [[matrix[i][j] for j in range(len(matrix[0])) if j not in cols_to_remove] for i in range(len(matrix)) if i not in rows_to_remove]
-
-return result
-</code></pre>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://www.haskell.org/" rel="nofollow noreferrer">Haskell</a>, <s>81</s> 63 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.haskell.org/" rel="nofollow noreferrer">Haskell</a>, <s>81</s> 63 bytes</h1>
 
 <pre class="lang-hs prettyprint-override"><code>f m|p&lt;-product=[[c|(x,c)&lt;-zip[0..]r,p(map(!!x)m)&gt;0]|r&lt;-m,p r&gt;0]
 </code></pre>
 <p><a href="https://tio.run/##bZBNCsIwEIX3PcVz18K0pFb7A9UbeIKQRamKRaMhrSDSu9dJFPzBrF7efPMmk0PTH3en0zTtoUdTx8Zettd2WEnZjuGN2qiO752RIkmUJRPqxoSz2S3S0Vqo0daxJgPLehp2/dBjBQkpU8KckCmCXBCWhFypAK9D/wDxA2TcQ0irFyFYl07Pnek6v3FOyHwks6njnjfhjcIZBRcI3Fpy5U2kfroncg/n3vNE9RHK74MKAt10Z96Rf2GD0NjuPCDBPoJffnoA" rel="nofollow noreferrer" title="Haskell – Try It Online">Try it online!</a></p>
 <p><s>I <em>really</em> want to use the fact that Haskell has <code>product</code> in Prelude but...</s> Never mind, I did it. :P</p>
 <h2>Explanation</h2>
-<pre class="lang-hs prettyprint-override"><code>f m|p&lt;-product=[[c|(x,c)&lt;-zip[0..]r,p(map(!!x)m)&gt;0]|r&lt;-m,p r&gt;0]
+<pre class="lang-hs prettyprint-override"><code>f m                            -- define function f that takes matrix m
+  | p &lt;- product =             -- alias product to p
+    [[c                        -- store c
+      | (x, c) &lt;- zip [0..] r  --     for every pair of index x and value c in r...
+      , p (                    --     if the product of the...
+      map (!! x) m)            --     ...xth element of every row in m (column)...
+      &gt; 0]                     --     ...is greater than 0 (truthy)
+    | r &lt;- m                   --   for every row r in m...
+    , p r &gt; 0]                 --   if the product of r is greater than 0 (truthy)
+</code></pre>
+</div>
+<div id="pu1" class="pu"><pre><code>def remove_zeros(matrix):
+rows_to_remove = {i for i, row in enumerate(matrix) if 0 in row}
+cols_to_remove = {j for j in range(len(matrix[0])) if any(matrix[i][j] == 0 for i in range(len(matrix)))}
 
-f m           =                                                  -- define function f that takes matrix m
-   |p&lt;-product                                                   -- alias product to p
-               [                                   |r&lt;-m      ]  -- for every row r in m...
-                                                        ,p r&gt;0   -- if the product of r is greater than 0 (truthy):
-                [ |(x,c)&lt;-zip[0..]r               ]              --   for every pair of index x and value c in r...
-                                   ,p(         )                 --   if the product of the...
-                                      map(!!x)m                  --   ...xth element of every row in m (column)...
-                                                &gt;0               --   ...is greater than 0 (truthy):
-                 c                                               --     store c
+result = [[matrix[i][j] for j in range(len(matrix[0])) if j not in cols_to_remove] for i in range(len(matrix)) if i not in rows_to_remove]
+
+return result
 </code></pre>
 </div>
 <div id="pu2" class="pu"><h1><a href="http://jsoftware.com/" rel="nofollow noreferrer">J</a>, 15 bytes</h1>
