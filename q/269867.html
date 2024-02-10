@@ -66,6 +66,27 @@ _isValidARMImm:
             MOV R1,#0x01        ;@ true
             BX LR
 </code></pre>
+<p>8 bytes can be saved by returning the result in the zero flag instead of R0.</p>
+<pre><code>_isValidARMImm_ZeroFlag:
+            TST R0,R0           ;@ test negative
+            BPL 1f
+                NEG R0,R0       ;@ convert to positive
+1:
+            TST R0,R0           ;@ test zero
+            BEQ 3f              ;@ branch to true if zero
+            MOV R1,R0           ;@ copy to work register
+            MOV R2,#0x00        ;@ set shifted bit count to 0
+2:
+                LSR R1,#1       ;@ remove following 0 bits
+                BCS 3f          ;@ end if 1 bit shifted in carry flag
+                ADD R2,#0x01    ;@ count following 0 bits
+                B 2b            ;@ loop
+3:
+            LSR R0,R2           ;@ shift out 0 bits
+            UXTB R1,R0          ;@ unsigned byte extend
+            CMP R0,R1           ;@ test (int)R0 == (byte)R1
+            BX LR
+</code></pre>
 </div>
 <div id="pu1" class="pu"><h1>ARMv2, <s>32</s> 28 bytes</h1>
 <p>Input is in <code>R0</code>, output is in <code>R1</code> which is zero if the input is an invalid constant. <code>CMN</code> trick stolen from <a href="https://stackoverflow.com/questions/27963312/armv5-and-earlier-mov-and-mvn-operands/27973178#27973178">Notlikethat's answer</a> to the Stack Overflow question linked by @PeterCordes.</p>
