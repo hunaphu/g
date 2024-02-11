@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::269725</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>002</td><td>Without the \$k\$ constraint</td><td>240204T203216Z</td><td><a href="https://codegolf.stackexchange.com/questions/269725/find-the-best-staircase-to-maximize-the-sum/269778#269778">qwr</a></td></tr>
+<tr d-ix="1"><td>nan</td><td></td><td>240210T094718Z</td><td><a href="https://codegolf.stackexchange.com/questions/269725/find-the-best-staircase-to-maximize-the-sum/269974#269974">doubleun</a></td></tr>
+<tr d-ix="2"><td>nan</td><td></td><td>240203T124649Z</td><td><a href="https://codegolf.stackexchange.com/questions/269725/find-the-best-staircase-to-maximize-the-sum/269747#269747">odomojul</a></td></tr>
+</table>
+<div id="pu0" class="pu"><p>Without the <span class="math-container">\$k\$</span> constraint, <span class="math-container">\$O(n^2)\$</span> is possible using a columnwise DP.</p>
+<p>Define <span class="math-container">\$d[i,j]\$</span> as the maximum sum of columns <span class="math-container">\$0\$</span> to <span class="math-container">\$j\$</span>, given some boundary line with a horizontal boundary above cell <span class="math-container">\$(i,j)\$</span>, and <span class="math-container">\$c[i,j]\$</span> to be the column prefix sum up to row <span class="math-container">\$i\$</span>.  Then
+<span class="math-container">$$d[i,j] = \max_{i \le i' \le n}  d[i',j-1] + c[i,j]$$</span></p>
+<p>This would take linear time, but since max is associative,  we can do it with prefix sums too:
+<span class="math-container">$$ 
+m[i,j] = \max (d[i,j], m[i+1,j]) = \max_{i \le i' \le n}  d[i',j] \\
+d[i,j] = c[i,j] + m[i,j-1] \\
+$$</span></p>
+<p>As requested, here is python code:</p>
+<pre class="lang-python prettyprint-override"><code>import numpy as np
+a = np.array(
+    [[-3, -2,  3,  2, -2],
+     [ 3, -2, -2, -5, -3],
+     [ 0,  3,  1,  1, -3],
+     [ 1,  1,  2,  1, -1],
+     [ 1,  1,  1, -3,  3]])
+n = a.shape[0]
+
+d = np.zeros((n+1, n))
+c = np.zeros((n+1, n))
+m = np.zeros((n+1, n))
+
+for j in range(n):
+    for i in range(n+1):
+        c[i,j] = c[i-1,j] + a[i-1,j] if i &gt; 0 else 0
+        d[i,j] = c[i,j] + (m[i,j-1] if j &gt; 0 else 0)
+
+    for i in range(n,-1,-1):
+        m[i,j] = d[i,j] if i == n else max(d[i,j], m[i+1,j])
+
+
+print(d, max(d[:,-1]))
+</code></pre>
+<p>Finally, the added condition <span class="math-container">\$k\$</span> is a third parameter of the DP counting down how many new horizontal lines are left to use. This requires keeping track if the horizontal boundary row has changed in the max operation. In your example, you don't count changing to the very bottom <span class="math-container">\$i=n\$</span> horizontal boundary in <span class="math-container">\$k\$</span>, so this requires a special case to handle. You should verify that this implements your problem correctly.</p>
+<p>(This may also work if you modify the problem to allow the boundary line to go up and down.)</p>
+<p><span class="math-container">$$d[i,j,k] = c[i,j] + \max(d[i,j-1,k], \max_{i &lt; i' &lt; n} d[i', j-1, k-1], d[n,j-1,k])$$</span></p>
+<p>With max prefix sum:
+<span class="math-container">$$
+m[i,j,k] = \max(d[i,j,k], m[i+1,j,k]) \\
+d[i,j,k] = c[i,j] + \max(d[i,j-1,k], m[i+1,j-1,k-1], d[n,j-1,k])
+$$</span></p>
+<pre class="lang-python prettyprint-override"><code>K = 1
+d = np.zeros((n+1, n, K+1))
+c = np.zeros((n+1, n))
+m = np.zeros((n+1, n, K+1))
+
+for j in range(n):
+    for i in range(n+1):
+        c[i,j] = c[i-1,j] + a[i-1,j] if i &gt; 0 else 0
+
+        for k in range(K+1):
+            d[i,j,k] = c[i,j]
+            if j &gt; 0:
+                d[i,j,k] += max(d[i,j-1,k],
+                                d[n,j-1,k],
+                                m[i+1,j-1,k-1] if i+1 &lt;= n and k &gt; 0
+                                else -np.inf)
+
+    for i in range(n,-1,-1):
+        for k in range(K+1):
+            m[i,j,k] = d[i,j,k] if i == n else max(d[i,j,k], m[i+1,j,k])
+
+
+for k in range(K+1):
+    print(d[:,:,k])
+</code></pre>
+<p>The final time complexity is  <span class="math-container">\$O(n^2 k)\$</span>.</p>
+</div>
+<div id="pu1" class="pu"><p>Pure JavaScript:</p>
+<pre class="lang-js prettyprint-override"><code>const _staircase = (rowIndex, colIndex, prevRowIndex, maxRowIndex, k, sum, rowIndices) =&gt; {
+  result.numIterations += 1;
+  if (maxRowIndex === 0 || k === kMax) {
+    rowIndices += (',' + prevRowIndex).repeat(width - colIndex);
+    for (let j = colIndex; j &lt; width; j++) sum += c[prevRowIndex][j];
+    colIndex = width; // skip further iteration
+  }
+  if (colIndex === width) { // extract result
+    if (sum &gt; result.sum) [result.sum, result.rowIndices] = [sum, rowIndices];
+    return;
+  }
+  const kInc = colIndex === 0 &amp;&amp; rowIndex === height ? 0 : rowIndex !== prevRowIndex;
+  _staircase(0, colIndex + 1, rowIndex, rowIndex, k + kInc, sum + c[rowIndex][colIndex], rowIndices + ',' + rowIndex);
+  if (rowIndex &lt; maxRowIndex) _staircase(rowIndex + 1, colIndex, prevRowIndex, maxRowIndex, k, sum, rowIndices);
+};
+</code></pre>
+<p><a href="https://tio.run/##nVVdb5swFH3Pr7iTpoIVQpNUk6bStNpjJnWTtr0xtHrUBCfERMak7dr89u76C0i6p0mJsO/n8bkHs6Z72uSS79Rk//G1aEWueC2gUZTLnDYs3FIl@WMEm1v6SOB5BHB@DiumIG@3bUUV3zNo2m0DXACjeQl5XbVbgXF5LRoFacn4qlQRPPB7VWawgNSWjCsmVqqMwG7TaeYsWdIl5xjuord0F8r6ARbXgI@4qXjOQkJ0bFFLCCuExDF8luDjCmxXXI/HBEMGQWsMmib4uLKQcOljsG3Ks3StUeIKJjAzu7HHaJy6JS8g1IzAYoHVLC8nQKZDILrUAIxtFBe8qsKpOQOALYdhuDtoBuJWNCUvVCjYA3ySkj6FBjDxeSTRs9D9ylryP7VQtIKKCwarGujvGidjcY86QiVr2kphm2cQ7XapmKR63s0lTCM9xkuYLEXBBVdPkeZ5Ke6RZ3QHQQSH5NXX@dUJBGuFNpChSnD4brWTbP@ts2/pY7/ZmFbD@kSP1XJoEcZH6GDseLHED4pZ/uHlBTZm2avU1Ooa6AphEAU4yiEwEku2Y1RZYnFIHr@byYlsvPeNevR5dIs8HVb3YjHzdqlYxeXh6JoN30HRSlUyCdwf12QcutP2mQuXiwfU2exRSZr7mbo@OkODufZE4oZA2m8i7@jJMS/lyUQ64JKpVopkAMoqYLMU@YASN4izM5DD0Tj136Drsve8Q8@QKFu911Q47ZWEE5tF0CusX23QpVFEln0kX3bE@@wsOhIBWAn4ONJrqsN2NdQqGYLqQgyi/1W6eb31i3R8XPvzd6XdBQHpr0Iu8qq916/bm/nFza7iSsubuHtxNkj0Mjm6SfVhIuDEX6fGtqdVyyJYG6u@u1xPfQXegPHiFINJYK9dqwy4e//8@fvXL3GDxcWKF0@hBUgOP8UblwNDDnfJ6DAadd8b/KD8YI26NQhD@wa7@qmZUTq5iGAyjwAfc73KImt3ZvP/gP8L75ia2Jn59Va7n1vr7NhqAjErQ2Nm8FkGLW9I4AnKxPnx6oG53dQVi6t6Ff7j@6lJe/0L" rel="nofollow noreferrer" title="JavaScript (V8) – Try It Online">Try it online!</a></p>
+<p>The function is a closure that iterates the pre-computed static matrix <code>c</code> recursively. The pre-computed matrix holds cumulative column sums and has a row of zeros prepended.</p>
+<p>The paths that are followed are stored by concatenating 1-indexed row numbers in <code>rowIndices</code> which is a simple delimited text string like <code>,5,5,5,1,0</code>.</p>
+<p>The function keeps track of how deep to go in each column by observing <code>maxRowIndex</code>. The first <code>if()</code> is a simple optimization that skips iteration of further columns when we're on the first row (that only contains zeros in <code>c</code>) and when we're out of horizontal lines to insert.</p>
+<p>The harness is at the TIO link above. It constructs <code>c</code>, calls the recursive function, and shows the result.</p>
+</div>
+<div id="pu2" class="pu">
+<p>Given the constraint that the partition line may only move up or right, this corresponds to the number of combination words defined by north-east lattice-paths: <a href="https://en.wikipedia.org/wiki/Lattice_path" rel="nofollow noreferrer">https://en.wikipedia.org/wiki/Lattice_path</a></p>
+<p>For example, for n=3, we would write:</p>
+<pre class="lang-python prettyprint-override"><code>NNN
+NNE
+NEE
+ENN
+EEN
+EEE
+</code></pre>
+<p>The total number of paths is:
+<code>C(n+n,n) = C(2n,n)</code></p>
+<p>This is the central binomial coefficient: <a href="https://en.wikipedia.org/wiki/Central_binomial_coefficient" rel="nofollow noreferrer">https://en.wikipedia.org/wiki/Central_binomial_coefficient</a></p>
+<blockquote>
+<p>This next section may be considered as speculation on a technicality.</p>
+</blockquote>
+<p>By this constraint you can define that the left-side contains no entries while the right-side contains all entries:</p>
+<pre class="lang-python prettyprint-override"><code>NNN
+</code></pre>
+<p>Or that the left-side contains all entries and the right-side contains no entries.</p>
+<pre class="lang-python prettyprint-override"><code>EEE
+</code></pre>
+<p>These considers the following sub-cases:</p>
+<ul>
+<li>The maximal left-side partition is the entire matrix, because every entry is positive.</li>
+<li>The maximal left-side partition is empty, because the right-side partition contains negative integers for every entry. Subsequently, the entire matrix contains negative entries.</li>
+</ul>
+<hr />
+<p>Calculate the total value of the matrix based on the left-hand side of the partition created by the NE path.
+Words of 'N' and 'E' string movements corresponds from the bottom-left to the top-right corner.</p>
+<pre class="lang-python prettyprint-override"><code>def calculate_partition_value(matrix, path):
+    n = matrix.shape[0]
+    row, col = n - 1, 0  # Start from the bottom-left corner
+    total_value = 0
+
+    # Track boundary created by the path
+    boundary = [(row, col)]
+
+    for move in path:
+        if move == 'N':
+            row -= 1  # Move up
+        elif move == 'E':
+            col += 1  # Move right
+        boundary.append((row, col))
+
+    for i in range(n):
+        for j in range(n):
+            if is_left_of_path((i, j), boundary):
+                total_value += matrix[i, j]
+
+    return total_value
+</code></pre>
+<p>Determine if a cell is on the left-hand side of the path based on the boundary coordinates by checking if the cell is below any segment, then return True. Otherwise, the cell is either right of the path or above, return False.</p>
+<pre class="lang-python prettyprint-override"><code>def is_left_of_path(cell, boundary):
+    for k in range(1, len(boundary)):
+        if cell[1] &lt; boundary[k][1] and cell[0] &gt; boundary[k][0]:
+            return False
+    return True
+</code></pre>
+<p>Sort matrices based on the partition value:</p>
+<pre class="lang-python prettyprint-override"><code>def sort_matrices_by_value(matrices_with_values):
+    return sorted(matrices_with_values, key=lambda x: x[1])
+</code></pre>
+<p>And to provide a simpler example,
+create an nxn matrix with random integers between -1 and 1.</p>
+<pre class="lang-python prettyprint-override"><code>def randomize_matrix_entries(n):
+    return np.random.randint(-1, 1+1, size=(n, n))
+</code></pre>
+<p>Ungolfed code:</p>
+<pre class="lang-python prettyprint-override"><code>import numpy as np
+from itertools import combinations
+
+def generate_ne_paths(n):
+    steps = 'N' * n + 'E' * n
+    return set([''.join(p) for p in combinations(steps, n)])
+
+def randomize_matrix_entries(n):
+    return np.random.randint(-1, 1+1, size=(n, n))
+
+def calculate_partition_value(matrix, path):
+    n = matrix.shape[0]
+    row, col = n - 1, 0
+    total_value = 0
+    boundary = [(row, col)]
+
+    for move in path:
+        if move == 'N':
+            row -= 1
+        elif move == 'E':
+            col += 1
+        boundary.append((row, col))
+
+    for i in range(n):
+        for j in range(n):
+            if is_left_of_path((i, j), boundary):
+                total_value += matrix[i, j]
+
+    return total_value
+
+def is_left_of_path(cell, boundary):
+    for k in range(1, len(boundary)):
+        if cell[1] &lt; boundary[k][1] and cell[0] &gt; boundary[k][0]:
+            return False
+    return True
+
+def sort_matrices_by_value(matrices_with_values):
+    return sorted(matrices_with_values, key=lambda x: x[1])
+
+n = 3
+ne_paths = generate_ne_paths(n)
+matrices_with_values = []
+
+for path in ne_paths:
+    matrix = randomize_matrix_entries(n)
+    value = calculate_partition_value(matrix, path)
+    matrices_with_values.append((matrix, value, path))
+
+sorted_matrices = sort_matrices_by_value(matrices_with_values)
+
+print(&quot;First sorted matrix (example):&quot;)
+print(&quot;Matrix:\n&quot;, sorted_matrices[0][0])
+print(&quot;Total Value:&quot;, sorted_matrices[0][1])
+print(&quot;Path:&quot;, sorted_matrices[0][2])
+</code></pre>
+<hr />
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/269725/">269725</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
