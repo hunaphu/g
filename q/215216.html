@@ -358,9 +358,7 @@ class Run {
   }
 
  public:
-  // Executes this run by using the given |output_handler|.
-  // The code outputs all lines for this run, using the double-buffering
-  // mechanism of |output_handler|.
+  // Outputs all lines for this run by using the buffers from |output_handler|.
   static void Execute(OutputHandler&amp; output_handler) {
     Batch&lt;0&gt; batch0(&amp;output_handler);
     Batch&lt;1&gt; batch1(&amp;output_handler);
@@ -392,8 +390,8 @@ class Run {
           //   batch0 corresponds to prefix 10..00 ( ≡ 1 mod 3),
           //   batch1 corresponds to prefix 10..01 ( ≡ 2 mod 3),
           //   batch2 corresponds to prefix 10..02 ( ≡ 0 mod 3).
-          // Afterwards the prefix is increased by 3, hence the mods don't
-          // change.
+          // After all 3 batches are processed, the prefix is incremented by 3,
+          // hence the mods don't change.
           case 0: batch2.Output(); break;
           case 1: batch0.Output(); break;
           case 2: batch1.Output(); break;
@@ -670,7 +668,7 @@ class Run {
       // The code below only works on little endian systems.
       static_assert(std::endian::native == std::endian::little);
       // Increment the character at index |index| by |by|. This works because
-      // we can guarantee that the byte won't overflow.
+      // we can guarantee that the character won't overflow.
       base_as_union[index / 8].int64 +=
         static_cast&lt;int64_t&gt;(by) &lt;&lt; ((index % 8) * 8);
     }
@@ -714,7 +712,7 @@ int main() {
 <p>I reuse some of the ideas from <a href="https://codegolf.stackexchange.com/a/236630/7251">ais523's answer</a>, namely:</p>
 <ul>
 <li>using vmsplice for zero-copy output into the pipe</li>
-<li>aligning the output buffers to 2MB and using huge pages to minimize TLB lookups</li>
+<li>aligning the output buffers to 2MB and using huge pages</li>
 </ul>
 <h3>Definitions</h3>
 <ul>
@@ -778,7 +776,9 @@ FIZZ
 </code></pre>
 <p>Incrementing single digits is much faster than recomputing the numbers every time.</p>
 <p>We only need to maintain three buffers for the three batches and keep incrementing numbers by 3,000,000.</p>
-<p>It's important to note that the number lines in the buffer contain the string representation of the numbers, eg. 10300003 is actually ['1','0','3','0','0','0','0','3'] = [49, 48, 51, 48, 48, 48, 48, 51].</p>
+<p>It's important to note that the number lines in the buffer contain the string
+representation of the numbers, eg. 103000003 is actually <code>['1','0','3','0','0','0','0','0','3']</code> = <code>[49, 48, 51, 48, 48, 48, 48, 48, 51]</code>.
+Incrementing by 3,000,000 means incrementing the 6th digit (0-indexed) from the right by 3.</p>
 <p>Using three buffers also has an addition benefit: we can put up to two buffers
 into the pipe for the downstream process to read from (see vmsplice and
 <a href="https://mazzo.li/posts/fast-pipes.html" rel="nofollow noreferrer">this article</a>) and update the third buffer in the meantime.</p>
@@ -819,8 +819,8 @@ Furthermore, it can happen that more than even the digit before overflows, e.g. 
 This is where batches are useful once again. Since a batch is 1,000,000 lines of output,
 all numbers in a batch share a common prefix.</p>
 <pre><code>122|531269
-    -----  suffix (last 5 digits)
----        prefix (all previous digits)
+    ------  suffix (last 6 digits)
+---         prefix (all previous digits)
 </code></pre>
 <p>As mentioned above, the suffixes are never touched after the initialization.
 We only increment the prefix.</p>
