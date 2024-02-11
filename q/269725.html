@@ -74,7 +74,7 @@ $$</span></p>
 <pre class="lang-python prettyprint-override"><code>K = 1
 d = np.zeros((n+1, n, K+1))
 c = np.zeros((n+1, n))
-m = np.zeros((n+1, n, K+1))
+m = np.zeros((n, n, K+1))
 
 for j in range(n):
     for i in range(n+1):
@@ -85,16 +85,18 @@ for j in range(n):
             if j &gt; 0:
                 d[i,j,k] += max(d[i,j-1,k],
                                 d[n,j-1,k],
-                                m[i+1,j-1,k-1] if i+1 &lt;= n and k &gt; 0
+                                m[i+1,j-1,k-1] if i+1 &lt; n and k &gt; 0
                                 else -np.inf)
 
-    for i in range(n,-1,-1):
+    for i in range(n-1,-1,-1):
         for k in range(K+1):
-            m[i,j,k] = d[i,j,k] if i == n else max(d[i,j,k], m[i+1,j,k])
+            m[i,j,k] = max(d[i,j,k], m[i+1,j,k] if i+1 &lt; n else -np.inf)
 
 
 for k in range(K+1):
     print(d[:,:,k])
+
+print(max(d[:,-1,K]))
 </code></pre>
 <p>The final time complexity is  <span class="math-container">\$O(n^2 k)\$</span>.</p>
 </div>
