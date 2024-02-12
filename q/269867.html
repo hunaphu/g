@@ -26,7 +26,7 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>038</td><td>ARMv6M CortexM0</td><td>240210T095118Z</td><td><a href="https://codegolf.stackexchange.com/questions/269867/is-it-a-valid-arm-immediate-value/269975#269975">はるき</a></td></tr>
+<tr d-ix="0"><td>017</td><td>Jelly</td><td>240212T205215Z</td><td><a href="https://codegolf.stackexchange.com/questions/269867/is-it-a-valid-arm-immediate-value/270032#270032">Nick Ken</a></td></tr>
 <tr d-ix="1"><td>028</td><td>ARMv2</td><td>240208T233000Z</td><td><a href="https://codegolf.stackexchange.com/questions/269867/is-it-a-valid-arm-immediate-value/269926#269926">Neil</a></td></tr>
 <tr d-ix="2"><td>152</td><td>Ada/GNAT</td><td>240208T171401Z</td><td><a href="https://codegolf.stackexchange.com/questions/269867/is-it-a-valid-arm-immediate-value/269911#269911">Devsman</a></td></tr>
 <tr d-ix="3"><td>147</td><td>Go</td><td>240207T193229Z</td><td><a href="https://codegolf.stackexchange.com/questions/269867/is-it-a-valid-arm-immediate-value/269871#269871">bigyihsu</a></td></tr>
@@ -38,54 +38,20 @@
 <tr d-ix="9"><td>047</td><td>JavaScript ES6</td><td>240207T191904Z</td><td><a href="https://codegolf.stackexchange.com/questions/269867/is-it-a-valid-arm-immediate-value/269870#269870">Arnauld</a></td></tr>
 <tr d-ix="10"><td>021</td><td>Charcoal</td><td>240208T003824Z</td><td><a href="https://codegolf.stackexchange.com/questions/269867/is-it-a-valid-arm-immediate-value/269883#269883">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>ARMv6M (Cortex-M0), 38 bytes</h1>
-<pre><code>;@ Pre-UAL syntax
-;@ bool isValidARMImm(int _X);
-_isValidARMImm:
-            TST R0,R0           ;@ test negative
-            BPL 1f
-                NEG R0,R0       ;@ convert to positive
-1:
-            TST R0,R0           ;@ test zero
-            BEQ 3f              ;@ branch to true if zero
-            MOV R1,R0           ;@ copy to work register
-            MOV R2,#0x00        ;@ set shifted bit count to 0
-2:
-                LSR R1,#1       ;@ remove following 0 bits
-                BCS 1f          ;@ end if 1 bit shifted in carry flag
-                ADD R2,#0x01    ;@ count following 0 bits
-                B 2b            ;@ loop
-1:
-            LSR R0,R2           ;@ shift out 0 bits
-            UXTB R1,R0          ;@ unsigned byte extend
-            CMP R0,R1           ;@ test (int)R0 == (byte)R1
-            BEQ 3f              ;@ branch to true case if equal
-                MOV R0,#0x00    ;@ false
-                BX LR
-3:
-            MOV R0,#0x01        ;@ true
-            BX LR
+<div id="pu0" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 17 bytes</h1>
+<pre><code>+Ø%BḊṙ⁴ḶḤ¤;¬$ḄṂ&lt;⁹
 </code></pre>
-<p>8 bytes can be saved by returning the result in the zero flag instead of R0.</p>
-<pre><code>_isValidARMImm_ZeroFlag:
-            TST R0,R0           ;@ test negative
-            BPL 1f
-                NEG R0,R0       ;@ convert to positive
-1:
-            TST R0,R0           ;@ test zero
-            BEQ 3f              ;@ branch to true if zero
-            MOV R1,R0           ;@ copy to work register
-            MOV R2,#0x00        ;@ set shifted bit count to 0
-2:
-                LSR R1,#1       ;@ remove following 0 bits
-                BCS 3f          ;@ end if 1 bit shifted in carry flag
-                ADD R2,#0x01    ;@ count following 0 bits
-                B 2b            ;@ loop
-3:
-            LSR R0,R2           ;@ shift out 0 bits
-            UXTB R1,R0          ;@ unsigned byte extend
-            CMP R0,R1           ;@ test (int)R0 == (byte)R1
-            BX LR
+<p><a href="https://tio.run/##AUsAtP9qZWxsef//K8OYJULhuIrhuZnigbThuLbhuKTCpDvCrCThuIThuYI84oG5/zvigJwgLT4g4oCdO8OHCuG7tMWSVuKCrMOH4oKsWf8" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></p>
+<p>A monadic link taking an integer and returning 1 for valid and two for invalid.</p>
+<h2>Explanation</h2>
+<pre><code>+Ø%               | Add 2**32
+   B              | Convert to binary
+    Ḋ             | Remove first digit
+     ṙ⁴ḶḤ¤        | Rotate left by each of (0 to 15 doubled)
+          ;¬$     | Concatenate to binary not of this
+             Ḅ    | Unbinary
+              Ṃ   | Max
+               &lt;⁹ | &lt; 256
 </code></pre>
 </div>
 <div id="pu1" class="pu"><h1>ARMv2, <s>32</s> 28 bytes</h1>
