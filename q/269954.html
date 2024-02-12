@@ -50,7 +50,40 @@
 <pre class="lang-python prettyprint-override"><code>lambda m:[q for*q,r in zip(*filter(all,zip(*m)),m)if all(r)]
 </code></pre>
 <p><a href="https://tio.run/##bZBNDsIgEIX3PcUswcyCFm3VpCdBFjVKJOmfyEYvX4dp1WhkQZg337xHZrzHy9DrydWHqW2646mBbm@u4IawumIA38PDj2LlfBvPQTRti1x3UmInvQNSRJB2iudbvEENxpgcoUDQFsGsETYIpbWYwev8AdQPoGkGId8thKL3Nr2LJKbJb5wQUunOF0jxvEqVnhuUmCrCKoQthS69DX/lN59UzY2X51wpFqokVOy5Y6/iQ@TsyETJcPmV/TalQJtltGSIacW8vD3/YAy@j8KJKOX0BA" rel="nofollow noreferrer" title="Python 3 – Try It Online">Try it online!</a></p>
-<p>I wasn't going to post two answers but since nobody else is posting a Python answer that <em>doesn't</em> rely on NumPy... Port of <a href="https://codegolf.stackexchange.com/a/269969">my Haskell answer</a>, but I can't really take any credit for the final result.</p>
+<p>I wasn't going to post two answers but since nobody else is posting a Python answer that <em>doesn't</em> rely on NumPy... Port of <a href="https://codegolf.stackexchange.com/a/269969">my Haskell answer</a>, but I can't really take any credit for the final result, it all goes to <a href="https://codegolf.stackexchange.com/users/91267">Mukundan314</a> and <a href="https://codegolf.stackexchange.com/users/81203">att</a>. I'll try my best to explain this wizardry.</p>
+<h2>Explanation</h2>
+<p>Said wizardry <em>really</em> takes advantage of Python's splat operator <code>*</code>. What it does essentially is unpack an iterable (in this case a two-dimensional list) into separate arguments for a function call. Let's start with a simple matrix, and I'll document the transformations that happen to it along the way.</p>
+<pre class="lang-python prettyprint-override"><code>[[4, 9, 4, 1],
+ [2, 0, 6, 0],
+ [3, 4, 1, 2],
+ [3, 5, 2, 0]]
+</code></pre>
+<p>First, <code>zip(*m)</code> transposes the list. Instead of passing <code>m</code> to the <code>zip</code> function as the list of rows it is, it's passed as separate arguments, effectively zipping the rows of the matrix together to create a list of the columns.</p>
+<pre class="lang-python prettyprint-override"><code>[(4, 2, 3, 3),
+ (9, 0, 4, 5),
+ (4, 6, 1, 2),
+ (1, 0, 2, 0)]
+</code></pre>
+<p>Next, <code>filter(all, ...)</code> removes every column that has a zero in it by checking <code>all</code> of the column against Python's boolean logic: 0 is falsy and every other number is truthy. (Hey, that's half the challenge sorted!)</p>
+<pre class="lang-python prettyprint-override"><code>[(4, 2, 3, 3),
+ (4, 6, 1, 2)]
+</code></pre>
+<p>Cool, that's the truthy columns. After that, <code>zip(*..., m)</code> is once again splatting the previous result and zipping it together with the original input. This basically transposes it back to the rows, except without the falsy columns, and then prepends it to the original rows.</p>
+<pre class="lang-python prettyprint-override"><code>[(4, 4, [4, 9, 4, 1]),
+ (2, 6, [2, 0, 6, 0]),
+ (3, 1, [3, 4, 1, 2]),
+ (3, 2, [3, 5, 2, 0])]
+</code></pre>
+<p>Here comes an interesting bit. Remember what I said about the splat operator? Yeah, it does more than that. Kinda. <code>for *q, r in ...</code>  effectively groups the rows-without-falsy-columns together, while keeping the original rows separate. The splat operator &quot;collects&quot; elements into <code>q</code> when iterating over something until another argument <code>r</code> is required.</p>
+<pre class="lang-python prettyprint-override"><code>[([4, 4], [4, 9, 4, 1]),
+ ([2, 6], [2, 0, 6, 0]),
+ ([3, 1], [3, 4, 1, 2]),
+ ([3, 2], [3, 5, 2, 0])]
+</code></pre>
+<p>Now all that's left to do is get rid of the falsy rows and to do this, <code>q ... if all(r)</code> employs a similar trick to when the falsy columns were removed. While iterating over the previous result, if and only if <code>r</code> (or the original row) is truthy, keep <code>q</code>.</p>
+<pre class="lang-python prettyprint-override"><code>[[4, 4],
+ [3, 1]]
+</code></pre>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://www.mathworks.com/products/matlab.html" rel="nofollow noreferrer">Matlab</a>, <s>74 bytes(?)</s> 52 bytes</h1>
 <p><em>-22 bytes thanks to Luis Mendo because my first attempt was too readable.</em></p>
