@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::11901</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>069</td><td>Perl</td><td>240216T002443Z</td><td><a href="https://codegolf.stackexchange.com/questions/11901/chess960-position-generator/270098#270098">Kjetil S</a></td></tr>
+<tr d-ix="1"><td>105</td><td>Python</td><td>130622T200901Z</td><td><a href="https://codegolf.stackexchange.com/questions/11901/chess960-position-generator/11920#11920">daniero</a></td></tr>
+<tr d-ix="2"><td>069</td><td>K</td><td>130620T155419Z</td><td><a href="https://codegolf.stackexchange.com/questions/11901/chess960-position-generator/11911#11911">tmartin</a></td></tr>
+<tr d-ix="3"><td>047</td><td>GolfScript  48 chars</td><td>130620T140539Z</td><td><a href="https://codegolf.stackexchange.com/questions/11901/chess960-position-generator/11910#11910">Peter Ta</a></td></tr>
+<tr d-ix="4"><td>049</td><td>GolfScript</td><td>130620T091612Z</td><td><a href="https://codegolf.stackexchange.com/questions/11901/chess960-position-generator/11905#11905">Cristian</a></td></tr>
+<tr d-ix="5"><td>056</td><td>J</td><td>130620T092944Z</td><td><a href="https://codegolf.stackexchange.com/questions/11901/chess960-position-generator/11906#11906">John Dvo</a></td></tr>
+<tr d-ix="6"><td>065</td><td>Ruby 1.9</td><td>130620T052347Z</td><td><a href="https://codegolf.stackexchange.com/questions/11901/chess960-position-generator/11902#11902">Paul Pre</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>Perl, 69 chars</h1>
+<pre><code>$_=rrbbnnkq;/r[^k]*r|b.(..)*b/||say while s/(.{@{[time%8]}})(.)/$2$1/
+</code></pre>
+<p>To test it, add <code>$|=1;</code> at the beginning to see progress and keep tabs by pipeing into another perl process like this:</p>
+<pre><code>perl -E'$|=1;$_=rrbbnnkq;/r[^k]*r|b.(..)*b/||say while s/(.{@{[time%7]}})(.)/$2$1/' \
+| perl -nlE'$a{$_}++ or say&quot;$_ &quot;.keys%a'
+</code></pre>
+<p>This will e v e n t u a l l y get the 960 valid permutations.</p>
+<p>To run the test fast, swap out <code>time%8</code> with <code>int rand 8</code> like this:</p>
+<pre><code>perl -E'$_=rrbbnnkq;/r[^k]*r|b.(..)*b/||say while s/(.{@{[int rand 8]}})(.)/$2$1/' \
+| perl -nlE'$a{$_}++||say&quot;$_ &quot;.keys%a'
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>Python, 105 chars</h1>
+
+<p>Basically chron's technique, minus the elegant Ruby stuff.</p>
+
+<pre><code>import re,random
+a='rrbbnnkq'
+while re.search('b.(..)*b|r[^k]*r',a):a=''.join(random.sample(a,8))
+print a
+</code></pre>
+
+<p>Thanks to Peter Taylor for the shortening of the regex.</p>
+</div>
+<div id="pu2" class="pu"><h1>K,69</h1>
+
+<pre><code>(-8?)/[{~*(*/~~':{m=_m:x%2}@&amp;x="b")&amp;(&amp;x="k")within&amp;"r"=x};"rrbbnnkq"]
+</code></pre>
+</div>
+<div id="pu3" class="pu"><h2>GolfScript (<strike>49</strike> 48 chars, or 47 for upper-case output)</h2>
+
+<pre><code>'bbnnrrkq'{{;9rand}$.'b'/1=,1$'r'/1='k'?)!|1&amp;}do
+</code></pre>
+
+<p>This uses the standard technique of permuting randomly until we meet the criteria. Unlike w0lf's GolfScript solution, this does both checks on the string, so it is likely to run through the loop more times.</p>
+
+<p>Using upper case allows saving one char:</p>
+
+<pre><code>'BBNNRRKQ'{{;9rand}$.'B'/1=,1$'R'/1=75?)!|1&amp;}do
+</code></pre>
+</div>
+<div id="pu4" class="pu"><h2>GolfScript <s>60</s> 49</h2>
+<pre class="lang-rb prettyprint-override"><code>;'qbbnnxxx'{{9rand*}$.'b'/1=,2%}do'x'/'rkr'1/]zip
+</code></pre>
+<p>(shortened to 49 chars thanks to Peter Taylor's great tips)</p>
+<p>Online test <a href="http://golfscript.apphb.com/?c=OydxYmJubnh4eCd7ezlyYW5kKn0kLidiJy8xPSwyJX1kbyd4Jy8ncmtyJzEvXXppcA%3D%3D&amp;run=true" rel="nofollow noreferrer">here</a>.</p>
+<p>An explanation of the code:</p>
+<pre><code>;'qbbnnxxx'         # push the string 'qbbnnxxx' on the clean stack
+{
+
+    {9rand*}$       # shuffle the string
+
+    .'b'/1=,2%      # count the number of places between the 'b's
+                    # (including the 'b's themselves)
+                    # if this count is even, the bishops are on
+                    # squares of different colors, so place a 0
+                    # on the stack to make the do loop stop
+
+}do                 # repeat the procedure above until a 
+                    # good string is encountered
+
+'x'/                # split the string where the 'x's are
+
+'rkr'1/]zip         # and put 'r', 'k' and then 'r' again
+                    # where the 'x's used to be
+</code></pre>
+</div>
+<div id="pu5" class="pu"><h3>J, 56 characters</h3>
+<pre><code>{.(#~'(?=.*b(..)*b).*r.*k.*r.*'&amp;rxeq&quot;1)'kqbbnnrr'A.~?~!8
+</code></pre>
+<p>it takes several seconds on my machine due to the inefficient algorithm. Some speed may be gained by adding <code>~.</code>(remove duplicates) before <code>'kqbbnnrr'</code>.</p>
+<p>explanation:</p>
+<ul>
+<li><code>?~!8</code> deals <code>8!</code> random elements from <code>0 ... 8!</code></li>
+<li><code>'kqbbnnrr'A.~</code> uses them as anagram indexes to the string <code>kqbbnnrr</code>.</li>
+<li><code>(#~'...'&amp;rxeq&quot;1)'</code> filters them by the regex in quotes.</li>
+<li><code>{.</code> means &quot;take the first element&quot;</li>
+</ul>
+</div>
+<div id="pu6" class="pu"><h1>Ruby 1.9, <strike>67</strike> 65 characters</h1>
+<p>Ah, the old &quot;keep randomizing until you generate something valid&quot; technique...</p>
+<pre class="lang-ruby prettyprint-override"><code>$_=%w(r r n n b b q k).shuffle*''until/r.*k.*r/&amp;&amp;/b(..)*b/
+$&gt;&lt;&lt;$_
+</code></pre>
+<p>(In Ruby 2.0, <code>%w(r r n n b b q k)</code> could be <code>'rrnnbbqk'.chars</code>)</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/11901/">11901</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
