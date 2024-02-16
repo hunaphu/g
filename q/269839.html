@@ -26,17 +26,18 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>636</td><td>Python 3 PyPy n=4 repeated 40 times in 0.43 seconds</td><td>240216T112902Z</td><td><a href="https://codegolf.stackexchange.com/questions/269839/fastest-count-of-certain-hypercubes-with-labeled-vertices/270106#270106">gsitcia</a></td></tr>
+<tr d-ix="0"><td>625</td><td>Python 3 +Numpy n=4 repeated 40 times in 0.15 seconds</td><td>240216T112902Z</td><td><a href="https://codegolf.stackexchange.com/questions/269839/fastest-count-of-certain-hypercubes-with-labeled-vertices/270106#270106">gsitcia</a></td></tr>
 <tr d-ix="1"><td>nan</td><td>Rust</td><td>240215T115804Z</td><td><a href="https://codegolf.stackexchange.com/questions/269839/fastest-count-of-certain-hypercubes-with-labeled-vertices/270080#270080">138 Aspe</a></td></tr>
 <tr d-ix="2"><td>525</td><td>Ruby</td><td>240211T234521Z</td><td><a href="https://codegolf.stackexchange.com/questions/269839/fastest-count-of-certain-hypercubes-with-labeled-vertices/270004#270004">Level Ri</a></td></tr>
 <tr d-ix="3"><td>nan</td><td></td><td>240207T162425Z</td><td><a href="https://codegolf.stackexchange.com/questions/269839/fastest-count-of-certain-hypercubes-with-labeled-vertices/269865#269865">user1502</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="http://pypy.org/" rel="nofollow noreferrer">Python 3 (PyPy)</a> (n=4 repeated 40 times in 0.43 seconds, n=6 in 36 seconds on TIO)</h1>
+<div id="pu0" class="pu"><h1><a href="http://python.org/" rel="nofollow noreferrer">Python 3 (+Numpy)</a> (n=4 repeated 40 times in 0.15 seconds, n=6 in 2.5 seconds on TIO)</h1>
 
 <pre class="lang-python prettyprint-override"><code>import itertools
 import functools
 from collections import Counter
 import time
+import numpy as np
 
 @functools.lru_cache(None)
 def gen_rectangles(n):
@@ -146,6 +147,8 @@ def gen_cubes(n):
         if b &gt;= k or c &lt; k: continue
         a, b, c, d = 1 &lt;&lt; a, 1 &lt;&lt; b, 1 &lt;&lt; (c-k), 1 &lt;&lt; (d-k)
         masks.append((a|b, c|d, a, d, b, c))
+    num_good = sum(1 for b in good for t in masks if b &amp; t[1] in (t[3], t[5]))
+    prev = np.array(prev, dtype=np.uint64)
     for b in good:
         l = prev
         for ma, mb, pa1, pb1, pa2, pb2 in masks:
@@ -156,8 +159,8 @@ def gen_cubes(n):
                 pa = pa2
             else:
                 continue
-            l = [a for a in l if a&amp;ma != pa]
-        compatible[b] = l
+            l = l[l&amp;ma != pa]#[a for a in l if a&amp;ma != pa]
+        compatible[b] = list(map(int, l))
     for x in reversed(order):
         pre, disc, p = bad[x]
         l = compatible[pre]
@@ -174,11 +177,58 @@ def gen_cubes(n):
         out.extend(x|i for i in l)
     return out
 
+def count_cubes(n):
+    if n == 0:
+        return 2
+    if n == 1:
+        return 4
+    prev = gen_cubes(n-1)
+    half = 2 ** (n-2)
+    k = 2 ** (n-1)
+    full = 2 ** k - 1
+    n1 = n - 1
+    bad = {}
+    good = []
+    for x in prev:
+        bc = bin(x).count('1')
+        if bc &gt; half:&#32;
+            bad[x] = full ^ x, 2, full
+            continue
+        t = reduce(x, n1)
+        if t:
+            bad[x] = t
+            continue
+        good.append(x)
+    order = make_order(bad)
+    compatible = {}
+    masks = []
+    for a,b,c,d in gen_rectangles(n):
+        if b &gt;= k or c &lt; k: continue
+        a, b, c, d = 1 &lt;&lt; a, 1 &lt;&lt; b, 1 &lt;&lt; (c-k), 1 &lt;&lt; (d-k)
+        masks.append((a|b, c|d, a, d, b, c))
+    num_good = sum(1 for b in good for t in masks if b &amp; t[1] in (t[3], t[5]))
+    prev = np.array(prev, dtype=np.uint64)
+    for b in good:
+        l = prev
+        for ma, mb, pa1, pb1, pa2, pb2 in masks:
+            q = b &amp; mb
+            if q == pb1:
+                pa = pa1
+            elif q == pb2:
+                pa = pa2
+            else:
+                continue
+            l = l[l&amp;ma != pa]#[a for a in l if a&amp;ma != pa]
+        compatible[b] = len(l)
+    for x in reversed(order):
+        pre, disc, p = bad[x]
+        compatible[x] = compatible[pre]
+    return sum(compatible.values())
 
 if __name__ == '__main__':
     t = time.time()
     for i in range(7):
-        print(i, len(gen_cubes(i)))
+        print(i, count_cubes(i))
     print(f'{time.time() - t:.1f} seconds 0-6')
     t = time.time()
     for _ in range(40):
@@ -190,7 +240,7 @@ if __name__ == '__main__':
     print(f'{time.time() - t:.3f} seconds 0-4 x40')
 
 </code></pre>
-<p><a href="https://tio.run/##lVdtc5s4EP7Or9B9acDF1HJydzMe13Mz/X5/wOMwAkRCwEIF3JJp2r@e210QQpzT3jlDsVe7j55d7Yuqn7vHWt2u9bN@fn0tzrpuOlZ0sunqumq9UZBfVDoI8qY@s7SuKpl2Ra1aNmp8qi8KrIxBV5yl5/012UVVc4lTkT5K/@9aycDLZM4epIobwBHqoZKtr4Kdx@DTs4/seKKved0woKMso0g3dXZJO/9ICvjxNyH8BaEV8BD@5gLU4EuNjavBlxjW5BSyRmopuo@GI34E8EzgSeHZTFKkLHjIEnhSjtw7a0JmsBaSkVht35MqvEkd3imflIscttjDFnuWuhB9JLSWKvP9ESxk4j65T4OA1BrZXRrFeo@ifBZt6auQlSP1cdX3@X6PjwqCNQ8@fJgEZRC858Fg3H4VOtai6VqCAJLldsQ5c3BhAufD1uftXLgdhZyknN3D@iDB2KHkHfthRBjKHyQyWhlItqtVuWVrevM5fwANAQceCEBm2fp9uFgzadUCXA/wsOqZ86Pfgn4m5mfiBBFIg@U988XhkAX4JdnvszE8eVXMw2MiM4/BEIISg8XZfs9KxwmMnIUi7hTMnctwIuj37HBAhUlqjlMQOCy8sOSXlTdSdjPiuPSGcrnEFG6gRCXoQyEcr6bEoLqd6w4ibkWgdhp8bSSUsERvDYVch6zV4KBhNpW/RoBc2wLoMZQmWisdzOsF1vasd4vFHCQQ3YRMu8DtEtik0P8D5gg8Vlsp47rJZOObxMM0/iZ2yXFzGrpDmODWWQRN7dz6wXfS@gRaYxP1s@iLqC7QEseClmfdPcN6FpXyGaRQD1aFNCrbM78@FpUcTCzfAtZJFOla@9a1J0J9kJ1fhGzIj5nXT6xoSbqDlq@6Ql3ktFyZHlRYkxJ9OD6dgJ/TxkAOLdKN3sBGZJn/ZAFk1UpXjeA@ulVT/afJkl6S2VABFmrBwqQ9ZAU/OUr8ulLIoK3cDqq6kV@A12yj9dgCH0WVY@NiqxUD6dgDy5loVMwvVWWk5RQyhVmopp@JoPQZcuShrjN3OPaYScjFMk5wtCSF8vsgSjGh/Bt@4xwraByI5o45sYa9jj1Gm5hB3yOH8Yej9q9U6MBkVtLc2Wwx/aY9up9joqsmw/oBkKqKWutUYoA2rKX1WYuuSCDzp2hhC27dcEHphWmYYdDeuHyYELEDJB1sCYMa2uqV/J8mb2Y6O0jonYxvP12XgfmerUsbFmJmZ/gLAr1kISJkA2xgGyA1CwyHJYhpg4fuXDrMvNN4pdB4n9Bii9@oK9OW7lF8pvvLNPBm3n/GIgAIV5/SXlCP5m4pV9Zm@6bNdmGzrPSraTD1NjGcH7pS0c3oHdwhfkPck2etTRIcE0yxyi0TCJhsWpn5lDuz84ZQQuCLFg4TR9CQok6wZ8igfJpnCtpdaW9EmqZUQcOEaBRE/@Q5gTMA/AoATaOfAiyjSGYaire4ajBzpLchqi/doq2EGGU1UzfDajYuIa9NYx5BItl3VLAv892dSyloeZ4HbsexEmcZx@j6TRyfRaHi@GaARzb4P4gI//FtKRT2MvGnc36FogFWSeXbjlwEYxUN6/nNtxkmNNhuF/H8O2slZF3Wss36j7FNvrV9bLe/28z2n7aMaA7FaSVFMxuydKd5Y81tQ28oLXz/PXDPfO7yLxy@dRy@Y/3dBpx@ff0H" rel="nofollow noreferrer" title="Python 3 (PyPy) – Try It Online">Try it online!</a></p>
+<p><a href="https://tio.run/##7Vhtb5xIDP6@v2JOJyVDSrbLJu1J0SY6qd/vD6ANGmA2IcAw5aUlatq/ntqGYRhu0@ak@5iNKOCxn7GN/RiqH9v7Sl08P2elruqWZa2s26oqmtUoOHQqGQSHuipZUhWFTNqsUg0bNT5VnQIrY9BmpTTXqiv1IxMNU3q1@nuCWhd1FyUiuZf8n0pJb5XKA7uTKqoBWqi7QjZceVcrBr@eXbNwT5eHqmbgobJOrnVdpV3S8pAU8Mc3Pvx5vhUEPvzNBagRLDU2rkawxLAme5/VUkvRXhsf8SfAzxiOBI7NJEWXReCzGI4kQN9ba0JmsOaTkTjbviNVOJM6nJNgUs4OsMUOttixxIXo10JrqVLORzCfidv4NvE8Uqtl29WK9SvKcimanCuf5aPr4yrnwW6Hh/K888B7/34S5J73LvAG4@ar0JEWddsQBDiZb0ecMoAQJvBg2LrczoXbURiQNGC3sD5IMHcoOWE/jAhT@YNERisFyfbsLN@yczoHc/8B1AccOCABqfWW9/5izZRVA3A9wMPqyjw/uhd0G5vb2EkiOA2Wt4yLm5vUw4t4t0vH9ByKbJ4ek5l5DoYU5JisgO12LHeCwMxZKPKdknnlejg5yHt2c4MKk9Q8TkHgsPDE4t923uiyWxHhMhqq5RxLuIYWlaAPjRAeLYlBdTvXHUSBFYHafoi1ltDCEqM1Lhy0zxoNARrPpvbXCHDQtgF6TKXJ1pn25v0CazvWu81iHiQ4uvGZdoGbJbApof8GHCDw2G25jKo6lTU3hYdl/E1cxeFmP7CDH@PW6RpIrWy49520PoHWyKs8XX8RRQeUODa0LHX7COvpOpePIIV@sCqkUVjO/HqfFXIwsf5msE6ita40t6E9EOqdbHnms6E@ZlE/sKwh6RVMAdVmqpPTcmE4KLMmOcYQPuzBP4fGQA4U6WZv8EakKX@wALJopKtGcNdu1xSvmixJF8@GCnihFl6YsoeqCPaOUnBcyWdAKxeDqq7lF/BrttH5SIH3ojggcbGzMwbSkQPzmWhUPHRFYaT5lDKFVaim21hQ@Qw1cldVqTsce6wk9MV6HONoiTPFe2@dYEHx0@DUeaygcUNuXjEn17BX2GO2yTPgPQoYbxy1f5VCCyazlg6czRbTb9qj/TUmhmoqrB8AqauIWqcWA7RhLalKLdoshsqfsoUU3LjpgtbzEz/FpL3w8mFSxG6g6GBLGNRAq0fqf5q8qWF2kNA5Hs88Oc89c52e5zYt5Jmd4U8I9JT6iJAOsGPjw9tUND70pit5QEEQe5B0ej0aQiW/T1gbBnsU8ja8AMJuww/7EW4sWqXXoq7FI8d72LJ91PIahF2m2o@XlnqnjWxqsGDRynndMZNW48uMxjcZLbZ4tZ18c4vgM705TaN2lvfP2H4A4eqT74KmQ@CSSGFtti/abBc2S445WoAm2iIsTuB15Q8E2v8ZiqGOMLCC3tDs4spimWIMYyz1ImtaXsJcgfz6rPA8t30hnbJuZMqppmd1CImGp5M1UGQ4GofWcR7FbCdQ3s8rGO2O0C4NCpqeGQ05ciOjcPYrJ60GIDgCQFPylwDLHJOZBlLJjhrMAiF2GBin6toF3fmYdTVTN0N0Nsah38zAGEHWsm@JSJ7muzsvy6A1DHCizFcPj@1v5sbl27B4GxZvw@JtWLx@WEjFi/9nQixJ9di0GHkKC2ZGqvbzYwVuR5ESpYwiTN1pFJUiU1F0OniB7Yz//7PGf7j1O7PffX85DkPZ4OSY02w2VRwuHk6/zQCB29qrdXD4zhoJaU8btjn/ODLUS3tHdu/LzWzziX/X9L0QJYUU9exjiL49X1hzGeAFpUXgHzy3dCz/Z78L@MIJ@JL1lxsI@vn5Jw" rel="nofollow noreferrer" title="Python 3 – Try It Online">Try it online!</a></p>
 <p>Based on <a href="https://codegolf.stackexchange.com/a/270004/95116">@Level River St's Ruby answer</a>. The main difference is that this answer exploits additional symmetry.</p>
 <p>As a simple example, consider a single square of the hypercube. There are 3 cases:</p>
 <ul>
