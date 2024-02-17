@@ -26,12 +26,94 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>625</td><td>Python 3 +Numpy n=4 repeated 40 times in 0.15 seconds</td><td>240216T112902Z</td><td><a href="https://codegolf.stackexchange.com/questions/269839/fastest-count-of-certain-hypercubes-with-labeled-vertices/270106#270106">gsitcia</a></td></tr>
-<tr d-ix="1"><td>nan</td><td>Rust</td><td>240215T115804Z</td><td><a href="https://codegolf.stackexchange.com/questions/269839/fastest-count-of-certain-hypercubes-with-labeled-vertices/270080#270080">138 Aspe</a></td></tr>
-<tr d-ix="2"><td>525</td><td>Ruby</td><td>240211T234521Z</td><td><a href="https://codegolf.stackexchange.com/questions/269839/fastest-count-of-certain-hypercubes-with-labeled-vertices/270004#270004">Level Ri</a></td></tr>
+<tr d-ix="0"><td>525</td><td>Ruby</td><td>240211T234521Z</td><td><a href="https://codegolf.stackexchange.com/questions/269839/fastest-count-of-certain-hypercubes-with-labeled-vertices/270004#270004">Level Ri</a></td></tr>
+<tr d-ix="1"><td>625</td><td>Python 3 +Numpy n=4 repeated 40 times in 0.15 seconds</td><td>240216T112902Z</td><td><a href="https://codegolf.stackexchange.com/questions/269839/fastest-count-of-certain-hypercubes-with-labeled-vertices/270106#270106">gsitcia</a></td></tr>
+<tr d-ix="2"><td>nan</td><td>Rust</td><td>240215T115804Z</td><td><a href="https://codegolf.stackexchange.com/questions/269839/fastest-count-of-certain-hypercubes-with-labeled-vertices/270080#270080">138 Aspe</a></td></tr>
 <tr d-ix="3"><td>nan</td><td></td><td>240207T162425Z</td><td><a href="https://codegolf.stackexchange.com/questions/269839/fastest-count-of-certain-hypercubes-with-labeled-vertices/269865#269865">user1502</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="http://python.org/" rel="nofollow noreferrer">Python 3 (+Numpy)</a> (n=4 repeated 40 times in 0.15 seconds, n=6 in 2.5 seconds on TIO)</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a>, n=5 in 25 seconds on TIO</h1>
+<p>This code has been updated to enable <code>n=6</code> to be reached without memory issues.</p>
+<p>Specifically <code>[0,(1&lt;&lt;2**n/2)-1].product(a,a).each</code> has been modified to two nested loops. Facility for counting the iterations of the outer loop <code>#p y</code> has been added but commented out. The number of iterations is equal to the number of solutions for the previous <code>n</code> as explained below.</p>
+<p>Timing facilities have also been added. On my machine this program uses about 33% of my 6 core processor and for <code>n=6</code> it handles about 1000 iterations of the outer loop per hour, which means it would take 4 days to complete <code>n=6</code>. I'm glad to see others have used the ideas in this answer. There are some minor optimisations that could be made, but a different approach such as taking advantage of symmetry (see gsitcia's answer) is needed for major progress.</p>
+
+<pre class="lang-ruby prettyprint-override"><code>N=5
+starttime=Time.now
+f=-&gt;n=1,a=[0]{return if n&gt;N
+#generate rectangles
+u=[]
+(6**(n-1)).times{|i|
+  j=i*6
+  p=q=r=s=0
+  t=0
+  n.times{
+    k=j%6
+    p=p&lt;&lt;1|(k&amp;1); q=q&lt;&lt;1|(41&gt;&gt;k&amp;1); r=r&lt;&lt;1|(25&gt;&gt;k&amp;1); s=s&lt;&lt;1|(26&gt;&gt;k&amp;1)
+    t=k if k&gt;3 
+    j/=6
+  }
+  u&lt;&lt;[p,q,r,s] if t&gt;4
+}
+#check colourings
+b=[]
+[0,(1&lt;&lt;2**n/2)-1].product(a).each_with_index{|z,y|c,d=z;#p y
+  a.each{|e|
+    e=(e^c)|d&lt;&lt;2**n/2
+    h=false
+    u.each{|w|p,q,r,s=w 
+      g=e&gt;&gt;p&amp;1
+      h = g!=e&gt;&gt;q&amp;1 &amp;&amp; g==e&gt;&gt;r&amp;1 &amp;&amp; g!=e&gt;&gt;s&amp;1 
+      break if h
+    }
+  b&lt;&lt;e unless h
+  }
+} 
+p [n,b.size*2]
+f[n+1,b]
+}
+f[]
+p [starttime, Time.now, Time.now-starttime]
+</code></pre>
+<p><a href="https://tio.run/##RZJNcqMwEIX3OkWnXEMBIxPLk3gTmiNklR1FUgKLH@ORQRLlsY3P7ggZZxaI975uNa1GashPt9s7vhJtuDKm@Svwwy6RPBxJictEIqMc01V2UcIMSkJTgkzeyaISUihuBChRGC6rvdBkwDQj/iYMfblkQRBN5fRlbEYCsMMm3Nh3hz0q1Liy2rhVznlWArS4@7VxqsMujtnotx4L3qDH3rkXliR3olA5sn59EI36TjZ34soYbKee2@QPOL97xqn@1T5DHKcd7amiOptyTPJCrmRR1KJooTjsD4NqZKVJPh0rXVGfxfE6DOXzOliyLOrUYTsUxudBJHhRfx0bU381civ@XcYzPY0F3eL5bdHByX6Lu5zLKEbXhUBffBbBuH1UdLTGku@1cHqYNxzHuUU83g8AUKFIks5js60BoXqaWO8x8Dwbn4yajYtoa@b0XAnuRlI7MA0ij2MBg7S/UDt6JVcgHaSS5pFuziJcZ6RM5W9G88xOqLTjsNGfG0PhcWX@q@VPNLvdvgE" rel="nofollow noreferrer" title="Ruby – Try It Online">Try it online!</a></p>
+<h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a>, n=4 repeated 40 times in 1.3 seconds on TIO</h1>
+
+<pre class="lang-ruby prettyprint-override"><code>N=4
+printoutput=true
+f=-&gt;n=1,a=[0]{return if n&gt;N
+#generate rectangles
+u=[]
+(6**(n-1)).times{|i|
+  j=i*6
+  p=q=r=s=0
+  t=0
+  n.times{
+    k=j%6
+    p=p&lt;&lt;1|(k&amp;1); q=q&lt;&lt;1|(41&gt;&gt;k&amp;1); r=r&lt;&lt;1|(25&gt;&gt;k&amp;1); s=s&lt;&lt;1|(26&gt;&gt;k&amp;1)
+    t=k if k&gt;3 
+    j/=6
+  }
+  u&lt;&lt;[p,q,r,s] if t&gt;4
+}
+#check colourings
+b=[]
+[0,(1&lt;&lt;2**n/2)-1].product(a,a).each{|z|c,d,e=z
+  e=(e^c)|d&lt;&lt;2**n/2
+  h=false
+  u.each{|w|p,q,r,s=w 
+    g=e&gt;&gt;p&amp;1
+    h = g!=e&gt;&gt;q&amp;1 &amp;&amp; g==e&gt;&gt;r&amp;1 &amp;&amp; g!=e&gt;&gt;s&amp;1 
+    break if h
+  }
+  b&lt;&lt;e unless h
+} 
+p b.size*2 if printoutput
+f[n+1,b]
+}
+40.times{f[];printoutput=false}
+</code></pre>
+<p><a href="https://tio.run/##TVLbboMwDH3PV2SahoClXdN1fRnmE/oDiElAzaV0achF1Vr67V1ImbSHJD7Hx44dR9ny537fwYZI1QlzskZaA0ZZJDUsUgGcFZCt8qtCY5WgXU1FuiPPDQpUhUGqsDKFaI6oiYUsJ@E2jkOx4FG0NN036uvYjYTSA3Tx1p0SBlCgYeVs43cx65xJaQ@Hl623JMgk4WPYBzz6pAMMHm14mj4YBcoz648/RoN@MNsH49MY6Kea@/Sdenx4gyn/zS2bJJlkA1NM55PGpBtyI89Vi1VPq9PxZN2LNJqUU1vZioU8SdZxLN7W0YLnS6lOe1uZsGBFtMSiaq/jZazYniFcXHaEEL@qaNz/BTmuhbo4apzuniPO41wBnB/1NYBpKgPuQUuBNk8TMwScBoHzTkDNwHu0A15cKix8r@3cX5kkSK1wk9GOu1EiabnU3QXj9ST7N29SZ@KVszJ3/W9W8zzqLP/8/yd86bf7/Rc" rel="nofollow noreferrer" title="Ruby – Try It Online">Try it online!</a></p>
+<p>This is a recursive function which takes the solution for the previous <code>n</code>, makes a cartesian product of two copies, calculates all rectangles that bridge between them, then checks the colourings of these bridging rectangles. Because the solution for the previous <code>n</code> is known to be free of illegal colourings, it is only necessary to check rectangles that span the new dimension. This approach means there are only <code>1882 x 1882 = 3541924</code> colourings to check for <code>n=5</code> instead of <code>2**32 =  4 billion.</code> Also we only calculate colourings where the most significant bit is <code>0</code> which halves the number of calculations; the remaining colourings are the same but with all the 0's and 1's flipped. Precalculating the rectangles before checking colourings also helps.</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="http://python.org/" rel="nofollow noreferrer">Python 3 (+Numpy)</a> (n=4 repeated 40 times in 0.15 seconds, n=6 in 2.5 seconds on TIO)</h1>
 
 <pre class="lang-python prettyprint-override"><code>import itertools
 import functools
@@ -250,7 +332,7 @@ if __name__ == '__main__':
 </ul>
 <p>This answer considers the symmetries of the n-1 hypercube, drastically reducing the amount of work necessary (in the case of n=6, it reduces 94572 cases to only 63 cases)</p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://www.rust-lang.org/" rel="nofollow noreferrer">Rust</a>, n=4 repeated 40 times in 0.6 seconds on TIO</h1>
+<div id="pu2" class="pu"><h1><a href="https://www.rust-lang.org/" rel="nofollow noreferrer">Rust</a>, n=4 repeated 40 times in 0.6 seconds on TIO</h1>
 <p>A port of <a href="https://codegolf.stackexchange.com/a/270004/110802">@Level River St's Ruby answer</a> in Rust.</p>
 <hr />
 <p><a href="https://tio.run/##nVXbjtowEH0uXzGs1MimKQWW8rABPmEf@7LaopA1S4B1gi@t1G2@nY6dC3YSWqkWimX7zJkzFxuhpbpckoxLBY8PoGX6i8EK5tFgsOPwFqecUHgfAI4TU/CmFeQi5WqTaZXjYgVKaBZ5gPgBvrFkqRfzNZ7/YMnwafJcQgRLNjvNE5VmnExDCCy@ml1iWuLtZ5cJ2EDKYTIezyeo5kNLwi4@yUrD/zgpBoWN1rPjVTJCE461rGMKPY7qcJtlpzpR6Q44rOGxWpaSlBa8dudlS5fZIkgdgvehTfowe00m0ioTiw1Cxnn2kxAOn2FKIZag72fUcVv7OCBRCiNYRN4RsQkJLeRcTqKcJEULMgmh@tGow2kSP7luu0XijoTa5IjwA3x0JZiR43YOyyVM4TeQIwQYiI84I@LcIOZTWK@hDycQJxrc7OstnEScvOIWt3BYxSNW8b4Vixkm9KOPLrzVAb6s3Eivp8iqkHXeYtXjXMs9IVgMLAQWQVLaNm/1zbZ7y56v9zCPU2EifcLqkakJt/qWvUKpmdy2ChJTPGs2ThUTxO0jC3gxgLh72ADYXwC1LvO4EAbfIaGY/peusKjXzAS87950z72bPKMk0D0aasJXJGOm9LkpfdSLMw5fYWgFI/JsmwSCwBjXm8LZbJCyp52cBtjf0GXGVrD42G9ZDP69g@zDW/TbssdYj7DiRi97jYfcI@/hvbqx2yc@JHfvxV2Ink7M/G@MYNY8sZ2HmcMnqB/nbdh@l4vL5Q8" rel="nofollow noreferrer">Try it online!</a></p>
@@ -322,81 +404,6 @@ fn rec_function(n: usize, a: &amp;mut Vec&lt;u64&gt;, print_output: &amp;mut boo
     rec_function(n + 1, &amp;mut b, print_output);
 }
 </code></pre>
-</div>
-<div id="pu2" class="pu"><h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a>, n=5 in 25 seconds on TIO</h1>
-
-<pre class="lang-ruby prettyprint-override"><code>N=5
-f=-&gt;n=1,a=[0]{return if n&gt;N
-#generate rectangles
-u=[]
-(6**(n-1)).times{|i|
-  j=i*6
-  p=q=r=s=0
-  t=0
-  n.times{
-    k=j%6
-    p=p&lt;&lt;1|(k&amp;1); q=q&lt;&lt;1|(41&gt;&gt;k&amp;1); r=r&lt;&lt;1|(25&gt;&gt;k&amp;1); s=s&lt;&lt;1|(26&gt;&gt;k&amp;1)
-    t=k if k&gt;3 
-    j/=6
-  }
-  u&lt;&lt;[p,q,r,s] if t&gt;4
-}
-#check colourings
-b=[]
-[0,(1&lt;&lt;2**n/2)-1].product(a,a).each{|z|c,d,e=z
-  e=(e^c)|d&lt;&lt;2**n/2
-  h=false
-  u.each{|w|p,q,r,s=w 
-    g=e&gt;&gt;p&amp;1
-    h = g!=e&gt;&gt;q&amp;1 &amp;&amp; g==e&gt;&gt;r&amp;1 &amp;&amp; g!=e&gt;&gt;s&amp;1 
-    break if h
-  }
-  b&lt;&lt;e unless h
-} 
-p b.size*2
-f[n+1,b]
-}
-f[]
-</code></pre>
-<p><a href="https://tio.run/##NZFNboMwEIX3PoWrqAioQ2OasCnDEXIBRCUgw09IHbBBURNydmoMWdie93lmPE@WQ/Y3TUc4kAK2kQDOUoh3yUNiP0hB64KK6Eg2JQqUaY9UYt6norygIgPECbED17XFljuO19e/qB5jPRJKz1C7gT5b6ECCgp2Oe7OLNU@HlDZwfg9M1EIbhny0G4s737SDzqg9j6KFSJCG@IcXUaAWEizEtOmhmWduoi9q9PkT5v5PvYYwjFvWMclUMuf00Z48ySavMG9ofr1cB1mLUpFsthXvmM3D0Hdd8ek7W554rbyehry3U5Y6HqZ59RjvY85ODOGuuyPY@JM74@lVpFkFRXpROL@9VtzGdQK4LfOVgFHUWtyIigIt32bSWZxalr6dhVyFuVFamORMYmq8Vqu/LAyRDkL/jNLsSUlLM0/Vd3R9UsTig7Ms0YaLOJmmfw" rel="nofollow noreferrer" title="Ruby – Try It Online">Try it online!</a></p>
-<h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a>, n=4 repeated 40 times in 1.3 seconds on TIO</h1>
-
-<pre class="lang-ruby prettyprint-override"><code>N=4
-printoutput=true
-f=-&gt;n=1,a=[0]{return if n&gt;N
-#generate rectangles
-u=[]
-(6**(n-1)).times{|i|
-  j=i*6
-  p=q=r=s=0
-  t=0
-  n.times{
-    k=j%6
-    p=p&lt;&lt;1|(k&amp;1); q=q&lt;&lt;1|(41&gt;&gt;k&amp;1); r=r&lt;&lt;1|(25&gt;&gt;k&amp;1); s=s&lt;&lt;1|(26&gt;&gt;k&amp;1)
-    t=k if k&gt;3 
-    j/=6
-  }
-  u&lt;&lt;[p,q,r,s] if t&gt;4
-}
-#check colourings
-b=[]
-[0,(1&lt;&lt;2**n/2)-1].product(a,a).each{|z|c,d,e=z
-  e=(e^c)|d&lt;&lt;2**n/2
-  h=false
-  u.each{|w|p,q,r,s=w 
-    g=e&gt;&gt;p&amp;1
-    h = g!=e&gt;&gt;q&amp;1 &amp;&amp; g==e&gt;&gt;r&amp;1 &amp;&amp; g!=e&gt;&gt;s&amp;1 
-    break if h
-  }
-  b&lt;&lt;e unless h
-} 
-p b.size*2 if printoutput
-f[n+1,b]
-}
-40.times{f[];printoutput=false}
-</code></pre>
-<p><a href="https://tio.run/##TVLbboMwDH3PV2SahoClXdN1fRnmE/oDiElAzaV0achF1Vr67V1ImbSHJD7Hx44dR9ny537fwYZI1QlzskZaA0ZZJDUsUgGcFZCt8qtCY5WgXU1FuiPPDQpUhUGqsDKFaI6oiYUsJ@E2jkOx4FG0NN036uvYjYTSA3Tx1p0SBlCgYeVs43cx65xJaQ@Hl623JMgk4WPYBzz6pAMMHm14mj4YBcoz648/RoN@MNsH49MY6Kea@/Sdenx4gyn/zS2bJJlkA1NM55PGpBtyI89Vi1VPq9PxZN2LNJqUU1vZioU8SdZxLN7W0YLnS6lOe1uZsGBFtMSiaq/jZazYniFcXHaEEL@qaNz/BTmuhbo4apzuniPO41wBnB/1NYBpKgPuQUuBNk8TMwScBoHzTkDNwHu0A15cKix8r@3cX5kkSK1wk9GOu1EiabnU3QXj9ST7N29SZ@KVszJ3/W9W8zzqLP/8/yd86bf7/Rc" rel="nofollow noreferrer" title="Ruby – Try It Online">Try it online!</a></p>
-<p>This is a recursive function which takes the solution for the previous <code>n</code>, makes a cartesian product of two copies, calculates all rectangles that bridge between them, then checks the colourings of these bridging rectangles. Because the solution for the previous <code>n</code> is known to be free of illegal colourings, it is only necessary to check rectangles that span the new dimension. This approach means there are only <code>1882 x 1882 = 3541924</code> colourings to check for <code>n=5</code> instead of <code>2**32 =  4 billion.</code> Also we only calculate colourings where the most significant bit is <code>0</code> which halves the number of calculations; the remaining colourings are the same but with all the 0's and 1's flipped. Precalculating the rectangles before checking colourings also helps.</p>
 </div>
 <div id="pu3" class="pu"><h1>Python + python-sat (about 1 second on my machine)</h1>
 <pre><code>import itertools
