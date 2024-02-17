@@ -111,7 +111,73 @@ f[n+1,b]
 40.times{f[];printoutput=false}
 </code></pre>
 <p><a href="https://tio.run/##TVLbboMwDH3PV2SahoClXdN1fRnmE/oDiElAzaV0achF1Vr67V1ImbSHJD7Hx44dR9ny537fwYZI1QlzskZaA0ZZJDUsUgGcFZCt8qtCY5WgXU1FuiPPDQpUhUGqsDKFaI6oiYUsJ@E2jkOx4FG0NN036uvYjYTSA3Tx1p0SBlCgYeVs43cx65xJaQ@Hl623JMgk4WPYBzz6pAMMHm14mj4YBcoz648/RoN@MNsH49MY6Kea@/Sdenx4gyn/zS2bJJlkA1NM55PGpBtyI89Vi1VPq9PxZN2LNJqUU1vZioU8SdZxLN7W0YLnS6lOe1uZsGBFtMSiaq/jZazYniFcXHaEEL@qaNz/BTmuhbo4apzuniPO41wBnB/1NYBpKgPuQUuBNk8TMwScBoHzTkDNwHu0A15cKix8r@3cX5kkSK1wk9GOu1EiabnU3QXj9ST7N29SZ@KVszJ3/W9W8zzqLP/8/yd86bf7/Rc" rel="nofollow noreferrer" title="Ruby – Try It Online">Try it online!</a></p>
+<h1>Explanation</h1>
 <p>This is a recursive function which takes the solution for the previous <code>n</code>, makes a cartesian product of two copies, calculates all rectangles that bridge between them, then checks the colourings of these bridging rectangles. Because the solution for the previous <code>n</code> is known to be free of illegal colourings, it is only necessary to check rectangles that span the new dimension. This approach means there are only <code>1882 x 1882 = 3541924</code> colourings to check for <code>n=5</code> instead of <code>2**32 =  4 billion.</code> Also we only calculate colourings where the most significant bit is <code>0</code> which halves the number of calculations; the remaining colourings are the same but with all the 0's and 1's flipped. Precalculating the rectangles before checking colourings also helps.</p>
+<p><strong>Generating rectangles</strong></p>
+<p>Paraphrasing <a href="https://math.stackexchange.com/a/4851134/137034">this post</a> referenced in the question, each rectangle can be represented as 4 points <code>[p, q=p+x, r=p+y, s=p+x+y]</code> where <code>x</code> and <code>y</code> are n-dimensional vectors with values of <code>-1</code>, <code>0</code> or <code>+1</code> in each dimension. For the shape to be a rectangle <code>x</code> and <code>y</code> must be orthogonal, which means that for every dimension <code>i</code>, the product <code>x[i]*y[i]</code> must be zero. <code>p[i]</code> can be <code>0</code> or <code>+1</code> but if either <code>x[i]</code> or <code>y[i]</code> is nonzero <code>p[i]</code> is constrained to only one possibility. This gives the following possibilities:</p>
+<pre class="lang-ruby prettyprint-override"><code> k    =     0   1   2   3   4   5
+ p[i] =     0   1   0   1   0   1
+ x[i] =    +1  -1   0   0   0   0
+ y[i] =     0   0   0   0  +1  -1
+</code></pre>
+<p>The value of <code>j</code> is treated as a base 6 number with <code>n</code> digits, the last of which is zero. Because the least significant digit of <code>j</code> generates the most significant bit of <code>p</code>,<code>q</code>,<code>r</code> and <code>s</code> (representing the new dimension <code>n</code>) this ensures that we only generate rectangles where <code>x[n]</code> is <code>+1</code> ensuring that the generated rectangles span the new dimension.</p>
+<p>To avoid double counting, we keep track of the last nonzero value of <code>k</code> in <code>t</code> and only accept rectangles where <code>t==5</code> meaning the last value of <code>y[i]</code> was negative (not positive.) We also reject cases where <code>y[i]</code> is zero for all dimensions, since if <code>y</code> is zero, the shape is a line, not a rectangle.</p>
+<p><strong>Commented code</strong></p>
+<p>This is the same as the code for n=5 in 25 second above. The comments do not have significant impact on runtime.</p>
+
+<pre class="lang-ruby prettyprint-override"><code># Set a constant N for recursion depth, and record  the start time
+N=5
+starttime=Time.now
+
+# Define a recursive function f where n is the number of dimensons
+# a is the set of solutions for the previous recursion. Each solution is represented by an integer
+# Initially this is [0,1] for n=0 but we consider only colourings where the last bit is zero.
+
+f=-&gt;n=1,a=[0]{return if n&gt;N
+
+# generate rectangles
+u=[]                         # Make an array to store rectangles as arrays of 4 integers corresponding to indices of vertices
+(6**(n-1)).times{|i|         # Iterate through all base 6 numbers with n-1 digits
+  j=i*6                      # Multiply 6 by so that the last digit of j is zero. This ensures we only generate rectangles where x=+1 in the new dimension 
+  p=q=r=s=0                  # Set up variabes for the 4 vertices
+  t=0                        # Set up variable to record a code for value of y
+  n.times{
+    k=j%6                    # Extract the last digit of j and decode the values for the last bit of p,q,r,s shifting any existing bits left
+    p=p&lt;&lt;1|(k&amp;1)
+    q=q&lt;&lt;1|(41&gt;&gt;k&amp;1)
+    r=r&lt;&lt;1|(25&gt;&gt;k&amp;1)
+    s=s&lt;&lt;1|(26&gt;&gt;k&amp;1)
+    t=k if k&gt;3               # If y&lt;&gt;0, record the value of k in t: 4 for positive, 5 for negative
+    j/=6                     # Shift j one base 6 digit right
+  }
+  u&lt;&lt;[p,q,r,s] if t&gt;4        # If y is nonzero in at least one dimension, and the last nonzero dimension was negative, add the rectangle to the list
+}
+
+#check colourings
+b=[]                         # Make an array to store solutions for dimension n
+[0,(1&lt;&lt;2**n/2)-1].product(a).# Consider all possible solutions for n-1 from a with 0 in the most significant bit. Consider also an XOR mask for flipping bits
+  each_with_index{|z,y|      # Iterate through all possibilities. y gives the index for use in monitoring progress
+  c,d=z                      # c is the XOR mask for bit flipping. d is the n-1 cube for the high order bits 
+  #p y                       # (Uncomment to display iteration progress)
+  a.each{|e|                 # Iterate through all possible solutions for n-1 with 0 in the most significant bit. e is the n-1 cube for the low order bits.
+    e=(e^c)|d&lt;&lt;2**n/2        # Proposed solution is e | d&lt;&lt;2**n/2 . c is either 0 or (1&lt;&lt;2**n/2)-1 which is used to flip the low order bits.
+    h=false                  # h=false to indicate no illegal rectangles found
+    u.each{|w|p,q,r,s=w      # Iterate through rectangles where w is an array of integers [p,q,r,s] corresponding to indices of vertices
+      g=e&gt;&gt;p&amp;1               # Find the value g representing the colour (0 or 1) of vertex p   
+      h = g!=e&gt;&gt;q&amp;1 &amp;&amp;       # If g is the same as the diagonally opposite vertex r and different from the adjacent vertices p and s...
+       g==e&gt;&gt;r&amp;1 &amp;&amp; g!=e&gt;&gt;s&amp;1 
+      break if h             # ...h becomes true showing the rectangle is illegal. Break.
+    }
+  b&lt;&lt;e unless h              # If no illegal rectangles were found add e to the list of solutions
+  }
+} 
+p [n,b.size*2]               # Print the value of n and the number of solutions found 
+f[n+1,b]                     # (double the size of b since b only contains solutions where the last bit is zero)
+}
+f[]                          # Call the function, then print the start time, end time and elapsed time.
+p [starttime, Time.now, Time.now-starttime]
+</code></pre>
+<p><a href="https://tio.run/##nVdbb9s2FH73rzhDsMBOFTXOUj8Mlh/WdUAf1hVbBwwIvIKSjiTGMqmQVJyL@9uzc6ib3dhFsSAJKJL6@J3v3ChTxw/PzyfwFzoQkGhlnVAOPkCmDRhMamOlVpBi5YoAhEp5UpsUwBUItNk4cHKNow/Rm5F/5KfoE/0Lld6MRifwK2ZSIaG3cHcIWa0Sx7gZbAo0CAqk9YiqXsdoQGeQEoSyRIggRLdsiSatWV3W/L71NHmhMngndW0HziG8E0nRb2UEg7TNonKYQvxA1oCkcY6GjnivpJOiLB8IjrbS7/VFMF36A1R0AXHtYINeIZkyQ0VbE13q2kiV29YOplIK6yCWjjEe0ehwNMqi84WKpoGIri@WTwZdbejsDNTiAyuUo0IjHDJ5kj8v0Y7q6HoJx35O4HexQjZAGCOIsiZXaLMLAMI2i5YFu@ostcTZkAiVVinx5jcljRL02@7QOB6PxrOzs7E6n04mIfvTPm3lduf0967h6wqj67wA0g1iYRFmrQNJD@kKIATyYy6dHQHcRPJsdtSeunSyIkln7BmrCVq4QU4PwgxvelXhE/uJQqQmc9g13iMHpGxdcx@9mpKtTZThpo0vjgziVkW3kYks@fkAN86NuoI7YaSIcYi5q0EvSodD7x5EKJFVb9OIcy5FD3knyhrZxgeCU63uIwZYRTc/zg4jv7t3RiSHleJsTdHj87LHH9j3YUp7q@A2MIEFW8jMcVgI9QB4L61/oE0WSsycJ1NF1Xw@3Y5Xp9OJn7iNbv3E1XSx6CdNZPzk5ZudSRvZZnK2M@miFafCavHTC@PekxbzxUXQidVbwZxX3pk/kxfYokpbyt87DOBNk7KYC372R9y8jmbHPMMWk1aaKlQbwY2CRuYFG/yF/ur5/LqVaMlc3eJqnyQHpdKK45JZUeSWyPIyah9nTfnspe/2D3G4oZTteNPmtNncBzJHjX@b3DL6QnUjKTBZ7dSgUfy/asZ@MR3oqBFVwPF0Pr88O1OvLyfn02VYGZ3WiRuLSXgCb7tayOlPDrCSY3sfjitAZvSaAt1XhIsuBdeaNLAyVzKTCbccirJwF5JqAHH9548/YS3syoNlpayqLiLJL0gF/jPDfqYahvdP28fgYfutGtWQlCWFCtqQ/JaT1E1n8Qj@lNryExGkjqBZWGouOqciw0cmQRo9HhM46drUHmvOsY55CGnf6UiZpI6xT8iCIg4ozNE0GUennVTE8dhp479VotfkLce@TKWtSnKr9Gaz/zrWnGYiZK2etrg9AHRcqYPu/B4/4lErS73ZMTL0@YnRGP9NJtu0i7WB20ejiQr1690@jrCFYW/Y6I5Ei1AvCB32opbqv6SLAG2pGYi0Ym8cJVNEGQUfHlK8W@qaJoumaFyWlLXlbsvJdK1SD1e3ym@2bQWJNsd0f9GyNky6T1iqeX0TH8rRd7Xz5sQ8wsWiOp2@sOs3qXaLaz5clDxmgW2RgbFXdzrpwCljKkJo8QuIIP@BD7mlQ05Pd0tk3t/gxBr5bsLjVIpcK3/p0pWv4NjBmqZ7ySwjISiqfA3hd0R6IxKe6YwjBrzVhmHY8iBDmYRpSDSMLD20y7FB4VtO8ZUMhFBATK1mzTXBkBK20JtOgqEO8/WwcXkIvzBYczB3ing@R6gVudB@Bd/IcDhaNuxsHzK@6u9V@r3rru9HX2BUwbUK4tDKRzy7XL7w50eqWm6/W6q@@Qw37N3U5rNH2bV6NQ3i5bGCk@ra317YjXQ0Y8Q0Ugn1zu5CrJyQhDhgH78YT6iLZd/oWHTkW65F/G73xRDwE9e2zsLhEySgy2DqR95WLEXl850/RVix/uskgO7zZBid96vL5@f/AA" rel="nofollow noreferrer" title="Ruby – Try It Online">Try it online!</a></p>
 </div>
 <div id="pu1" class="pu"><h1><a href="http://python.org/" rel="nofollow noreferrer">Python 3 (+Numpy)</a> (n=4 repeated 40 times in 0.15 seconds, n=6 in 2.5 seconds on TIO)</h1>
 
