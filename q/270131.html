@@ -32,46 +32,49 @@
 <pre><code>main=s-&gt;E&amp;'$'+E+'$'.s=d-&gt;R&amp;((&quot;-&quot;|&quot;+&quot;|&quot;*&quot;&amp;'\\cdot')-&gt;O&amp;{&quot; &quot;}&amp;d-&gt;S&amp;O&lt;-O+S)/R.d=e-&gt;R&amp;{&quot;/&quot;&amp;{&quot; &quot;}&amp;e-&gt;D&amp;R&lt;-'\\frac{'+R+'}{'+D+'}'}&amp;R.e=t-&gt;R&amp;(&quot;^&quot;&amp;{&quot; &quot;}&amp;t-&gt;E&amp;E&lt;-'^{'+E+'}')/R.t=n|&quot;(&quot;&amp;s-&gt;E&amp;&quot;)&quot;&amp;{&quot; &quot;}&amp;'('+E+')'.n=m-&gt;N&amp;m/N.m=&quot;π&quot;&amp;'\\pi'|&quot;ψ&quot;&amp;'\\psi'|&quot; &quot;|$:alnum.
 </code></pre>
 <p><a href="https://tio.run/##NY7PioMwEMZfJQxlJjEkgj0sLI2neq1gr0WQakHYZJeanlTosW/nI7kxuz3Mnw@@38znGzv0bl1t0zszqLxA2pEsZOh6MK3KK@QcFEwgQyWAdLlc229PQuUljsBgxuA6Y3lQpTyLtNKt6TZshBT@DUEfsTqowN7uzXUkWUmawziGQTNWujM@voL6zfgtSxGYeox5Ztpue@Mm4IAxKYi3mXj0CNLOWJWf0KYnbQ0szxj4p6cJltffPmyCwbT7bL7cw@p1zZhiXd0zyfY132ci4VmyvETKP5LlKX4B" rel="nofollow noreferrer" title="Tamsin – Try It Online">Try it online!</a></p>
-<p>A heavily commented version (bit outdated)</p>
-<pre><code>main = sub → E &amp; '<span class="math-container">$$' + E + '$$</span>'.
+<p>A heavily commented version</p>
+<pre class="lang-python prettyprint-override"><code># main is expr1 (store in E); return '$' + E + '$'
+main = expr1 -&gt; E &amp; '$' + E + '$'.
 
-# sub implements subtraction, addition and multiplication; similar to the `exp` rule (see below)
-sub = div → R &amp; {("-" | "+" | "*" &amp; '\\cdot') → O &amp; {" "} &amp; div → S &amp; R ← R + O + S} &amp; R.
+# implements &quot;-&quot;, &quot;+&quot; and &quot;*&quot; (omitting explanation due to similarity to expr3)
+expr1 = expr2 -&gt; R &amp; ((&quot;-&quot; | &quot;+&quot; | &quot;*&quot; &amp; '\\cdot') -&gt; O &amp; {&quot; &quot;} &amp; expr2 -&gt; E &amp; O &lt;- O + E)/R.
 
-# div implements division; also similar to the `exp` rule (see below)
-div = exp → R &amp; {"/" &amp; {" "} &amp; exp → D &amp; R ← '\\frac{' + R + '}{' + D + '}'} &amp; R.
+# implements &quot;/&quot;                             # expr2 is
+expr2 = expr3 -&gt; R                           #  expr3 (store in R)
+      &amp; {                                    #  followed by zero or more times of:
+        &quot;/&quot;                                  #    &quot;/&quot;
+        &amp; {&quot; &quot;}                              #    followed by zero more more spaces   
+        &amp; expr3 -&gt; E                         #    followed by expr3 (store in E)
+        &amp; R &lt;- '\\frac{' + R +'}{'+ E + '}'  #    R = '\\frac{' + R +'}{'+ E + '}'
+      } &amp; R.                                 #  return R
 
-exp =                     # exp is (implements exponentiation)
-term → R                  #   `term` (store in R)
-&amp;                         #   followed by
-{                         #   any amount of
-"^"                       #     "^"
-&amp; {" "}                   #     followed by any amount of space
-&amp; term → E                #     followed by `term` (store in E)
-&amp; R ← R + '^{' + E + '}'  #     set R to R + "^{" + E + "}"
-} &amp; R.                    #   return R
+# implements &quot;^&quot;               # expr3 is
+expr3 = expr4 -&gt; R             #  expr4 (store in R)
+      &amp; (                      #  followed by zero or more times of:
+        &quot;^&quot;                    #    &quot;^&quot;
+        &amp; {&quot; &quot;}                #    followed by zero more more spaces   
+        &amp; expr4 -&gt; E           #    followed by `expr4` (store in E)
+        &amp; E &lt;- '^{' + E + '}'  #    return '^{' + E + '}' (assignment is dummy; it exists only to return)
+      )/R.                     #  concatenate R and all returns from above matches
 
-term =            # term is
-number            #     `number` (returned)
-|                 #   or
-"("               #     "("
-&amp; sub → E         #     followed by `sub` (store in E)
-&amp; ")"             #     followed by ")"
-&amp; {" "}           #     followed by any amount of space
-&amp; '(' + E + ')'.  #     return "(" + E + ")"
+# implements &quot;()&quot;         # expr4 is
+expr4 = number            #     `number`
+      |                   #   or
+          &quot;(&quot;             #     &quot;(&quot;
+        &amp; expr1 -&gt; E      #     followed by `expr1` (store in E)
+        &amp; &quot;)&quot;             #     followed by &quot;)&quot;
+        &amp; {&quot; &quot;}           #     followed by zero more more spaces
+        &amp; '(' + E + ')'.  #     return '(' + E + ')'
 
-number =                        # number is
-(
-        "π" &amp; '\\pi'            #        π (and replace with \pi)
-        | "ψ" &amp; '\\psi'         #     or ψ (and replace with \psi)
-        | " "                   #     or a space
-        | $:alnum               #     or alphanumeric character
-) → N                           #     (store parsed in N)
-&amp;                               #   followed by
-{                               #   any amount of
-        number → M              #     `number` (store in M)
-        &amp; N ← N + M             #     set N to N + M
-} &amp; N.                          #   return N
+                       # `number` is
+number = digit -&gt; R    #   `digit` (store in R)
+       &amp; digit/R.      #   followed by zero or more digits
+
+                       # `digit` is
+digit = &quot;π&quot; &amp; '\\pi'   #      π (replace with \pi)
+      | &quot;ψ&quot; &amp; '\\psi'  #   or ψ (replace with \psi)
+      | &quot; &quot;            #   or space
+      | $:alnum.       #   or alphanumeric char
 </code></pre>
 </div>
 
