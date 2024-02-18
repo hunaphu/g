@@ -37,6 +37,46 @@ t=n|&quot;(&quot;&amp;s→E&amp;&quot;)&quot;&amp;{&quot; &quot;}&amp;'('+E+')'.
 n=(&quot;π&quot;&amp;'\\pi'|&quot;ψ&quot;&amp;'\\psi'|!(&quot;-&quot;|&quot;+&quot;|&quot;/&quot;|&quot;*&quot;|&quot;^&quot;|&quot;(&quot;|&quot;)&quot;)&amp;any)→N&amp;{n→M&amp;N←N+M}&amp;N.
 </code></pre>
 <p><a href="https://tio.run/##RU8xisMwEOzzCt8SVpJFbHCKq9QlZRxQ2mAwsQMuoguxm0MypAopj/uY/5CP@FaywxVitKuZ0UxXXtrGjOOlbIxqX4/fLbLlksmt9JAsWlXRUqPlsAIHkk4MyI7HU/XVMUFve7QQQY@ed0D9evxouZeHHnWyqFQ9qSGFmeYXm0Ajk/OtPFkmtWQ9wYaABV2tullXvHVdyDbZs8KGhDO7U8YBB5zig3hLGA8sQTWM4jDcQ/BrwxwMz@ne0vDxXy0N9Rz96g0dWQkszbevmaM1BDvMKUIudz3myThm0SqqiyaS0brg60zEPIuHp0j5ZzzcxR8" rel="nofollow noreferrer" title="Tamsin – Try It Online">Try it online!</a></p>
+<p>A heavily commented version</p>
+<pre><code>main = sub → E &amp; '<span class="math-container">$$' + E + '$$</span>'.
+
+# sub implements subtraction, addition and multiplication; similar to the `exp` rule (see below)
+sub = div → R &amp; {("-" | "+" | "*" &amp; '\\cdot') → O &amp; {" "} &amp; div → S &amp; R ← R + O + S} &amp; R.
+
+# div implements division; also similar to the `exp` rule (see below)
+div = exp → R &amp; {"/" &amp; {" "} &amp; exp → D &amp; R ← '\\frac{' + R + '}{' + D + '}'} &amp; R.
+
+exp =                     # exp is (implements exponentiation)
+term → R                  #   `term` (store in R)
+&amp;                         #   followed by
+{                         #   any amount of
+"^"                       #     "^"
+&amp; {" "}                   #     followed by any amount of space
+&amp; term → E                #     followed by `term` (store in E)
+&amp; R ← R + '^{' + E + '}'  #     set R to R + "^{" + E + "}"
+} &amp; R.                    #   return R
+
+term =            # term is
+number            #     `number` (returned)
+|                 #   or
+"("               #     "("
+&amp; sub → E         #     followed by `sub` (store in E)
+&amp; ")"             #     followed by ")"
+&amp; {" "}           #     followed by any amount of space
+&amp; '(' + E + ')'.  #     return "(" + E + ")"
+
+number =                                                    # number is
+(
+&#9;"π" &amp; '\\pi'                                        #        π (and replace with \pi)
+&#9;| "ψ" &amp; '\\psi'                                     #     or ψ (and replace with \psi)
+&#9;| !("-" | "+" | "/" | "*" | "^" | "(" | ")") &amp; any  #     or a char that is not in -+/*^()
+) → N                                                       #     (store parsed in N)
+&amp;                                                           #   followed by
+{                                                           #   any amount of
+&#9;number → M                                          #     `number` (store in M)
+        &amp; N ← N + M                                         #     set N to N + M
+} &amp; N.                                                      #   return N
+</code></pre>
 </div>
 
 <table id="st">
