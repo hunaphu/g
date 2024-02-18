@@ -112,7 +112,7 @@
 <tr d-ix="83"><td>011</td><td>Bash</td><td>111226T160753Z</td><td><a href="https://codegolf.stackexchange.com/questions/4399/shortest-code-that-raises-a-sigsegv/4403#4403">Joey Ada</a></td></tr>
 <tr d-ix="84"><td>019</td><td>19 characters in C</td><td>111226T101030Z</td><td><a href="https://codegolf.stackexchange.com/questions/4399/shortest-code-that-raises-a-sigsegv/4400#4400">saeedn</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h2>Python, 53 characters</h2>
+<div id="pu0" class="pu"><h1>Python, 53 characters</h1>
 <pre><code>class A:__lt__=lambda s,o:o.clear()or s
 vars(A)&gt;A()&lt;0
 </code></pre>
@@ -123,6 +123,45 @@ vars(A)&gt;A()&lt;0
 <li>showcases an actual interpreter crash rather than just explicitly dereferencing null/execing invalid code/etc</li>
 </ol>
 <p>Btw, don't report this upstream, this issue is already known and closed as &quot;wontfix&quot; in CPython: <a href="https://github.com/python/cpython/issues/88004" rel="nofollow noreferrer">https://github.com/python/cpython/issues/88004</a></p>
+<h3>Explanation:</h3>
+<p>The important part is essentially</p>
+<pre class="lang-python prettyprint-override"><code>class A:
+    def __lt__(self, other):
+        other.clear()
+
+AnyClass.__dict__ &gt; A()
+</code></pre>
+<p><code>AnyClass</code> can be any class (<code>A</code> in the short version) and <code>vars(A)</code> is a shorthand for <code>A.__dict__</code>.</p>
+<p>The issue here is that the class <code>__dict__</code> property is supposed to be of type <code>mappingproxy</code> that is implemented as thin wrapper around regular <code>dict</code>s. This special type is supposed to make this dictionary immutable/read-only:</p>
+<pre class="lang-python prettyprint-override"><code>AnyClass.__dict__[&quot;foo&quot;] = 0 # TypeError: 'mappingproxy' object does not support item assignment
+del AnyClass.__dict__[&quot;foo&quot;] # TypeError: 'mappingproxy' object does not support item deletion
+AnyClass.__dict__.clear()    # AttributeError: 'mappingproxy' object has no attribute 'clear'
+</code></pre>
+<p>However, it's possible to circumvent this protection using <a href="https://docs.python.org/3/reference/datamodel.html" rel="nofollow noreferrer">python's data model</a>. Specifically, <code>mappingproxy</code> doesn't reimplement all of the required methods itself, but instead just delegates to the underlying <code>dict</code> implementation.</p>
+<p>So, when we do <code>AnyClass.__dict__ &gt; A()</code> the following happens:</p>
+<ol start="0">
+<li><p><code>m = AnyClass.__dict__</code> is of type <code>mappingproxy</code></p>
+<p><code>a = A()</code> is of type <code>A</code></p>
+</li>
+<li><p>we try to execute <code>m &gt; a</code> or <code>m.__gt__(a)</code></p>
+<p><code>mappingproxy</code> doesn't implement <code>__gt__</code>, so it delegates this call to <code>dict</code></p>
+<p>this essentially does something similar to</p>
+<pre class="lang-python prettyprint-override"><code># except this isn't a real property so it isn't accessible from pure python
+d = m.__internal_reference_to_underlying_dict
+return d.__gt__(a)
+</code></pre>
+<p>where <code>d</code> is the actual underlying storage of type <code>dict</code>, not the safe/immutable/read-only <code>mappingproxy</code> wrapper</p>
+</li>
+<li><p>we try to execute <code>d.__gt__(a)</code></p>
+<p><code>dict</code> also does implement <code>__gt__</code>, but it doesn't know what to do with our custom type <code>A</code>, so it returns the special <code>NotImplemented</code> value</p>
+<p>python's data model says that when <code>x.__gt__(y)</code> (<code>x &gt; y</code>) returns <code>NotImplemented</code>, you should try the swapped version <code>y.__lt__(x)</code> (<code>y &lt; x</code>) before failing</p>
+</li>
+<li><p>we try to execute <code>a.__lt__(d)</code></p>
+<p>our custom class <code>A</code> does have an implementation for <code>__lt__</code> that calls <code>clear()</code> on the &quot;other&quot; object, in this case - <code>d</code></p>
+</li>
+</ol>
+<p>So with this, we were able to call <code>clear()</code> on the underlying storage for the class <code>__dict__</code> that was supposed to be made immutable by exposing it through a <code>mappingproxy</code>. This breaks some core assumptions that python heavily relies on. After that, it's pretty easy to cause a SEGFAULT by attempting to interact with an instance of <code>AnyClass</code> (or <code>A</code> in the minified version).</p>
+<p>The use of <code>__lt__</code> and <code>&gt;</code> here is not mandatory, this also works with any other paired binary operator (<code>eq</code>/<code>ne</code>, <code>add</code>/<code>radd</code>, <code>sub</code>/<code>rsub</code>, <code>mul</code>/<code>rmul</code>, etc).</p>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://docs.python.org/3.8/" rel="nofollow noreferrer">Python 3.8</a>, 14 bytes</h1>
 <p>This <em>only</em> works on Python 3.8 :P. I found this while <a href="https://bugs.python.org/issue38525" rel="nofollow noreferrer">scavenging</a> bug reports.</p>
