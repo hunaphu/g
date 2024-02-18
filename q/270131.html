@@ -26,12 +26,12 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>250</td><td>Tamsin</td><td>240218T123622Z</td><td><a href="https://codegolf.stackexchange.com/questions/270131/compiler-for-latex/270137#270137">Mukundan</a></td></tr>
+<tr d-ix="0"><td>246</td><td>Tamsin</td><td>240218T123622Z</td><td><a href="https://codegolf.stackexchange.com/questions/270131/compiler-for-latex/270137#270137">Mukundan</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/catseye/Tamsin" rel="nofollow noreferrer">Tamsin</a>, 250 bytes</h1>
-<pre><code>main=s-&gt;E&amp;'$'+E+'$'.s=d-&gt;R&amp;((&quot;-&quot;|&quot;+&quot;|&quot;*&quot;&amp;'\\cdot')-&gt;O&amp;{&quot; &quot;}&amp;d-&gt;S&amp;O&lt;-O+S)/R.d=e-&gt;R&amp;{&quot;/&quot;&amp;{&quot; &quot;}&amp;e-&gt;D&amp;R&lt;-'\\frac{'+R+'}{'+D+'}'}&amp;R.e=t-&gt;R&amp;(&quot;^&quot;&amp;{&quot; &quot;}&amp;t-&gt;E&amp;E&lt;-'^{'+E+'}')/R.t=n|&quot;(&quot;&amp;s-&gt;E&amp;&quot;)&quot;&amp;{&quot; &quot;}&amp;'('+E+')'.n=m-&gt;N&amp;m/N.m=&quot;π&quot;&amp;'\\pi'|&quot;ψ&quot;&amp;'\\psi'|&quot; &quot;|$:alnum.
+<div id="pu0" class="pu"><h1><a href="https://github.com/catseye/Tamsin" rel="nofollow noreferrer">Tamsin</a>, 246 bytes</h1>
+<pre><code>main=e-&gt;E&amp;'$'+E+'$'.e=f-&gt;R&amp;((&quot;-&quot;|&quot;+&quot;|&quot;*&quot;&amp;'\\cdot')-&gt;O&amp;{&quot; &quot;}&amp;f-&gt;E&amp;O&lt;-O+E)/R.f=g-&gt;R&amp;{&quot;/&quot;&amp;{&quot; &quot;}&amp;g-&gt;E&amp;R&lt;-'\\frac{'+R+'}{'+E+'}'}&amp;R.g=h-&gt;R&amp;(&quot;^&quot;&amp;{&quot; &quot;}&amp;h-&gt;E&amp;E&lt;-'^{'+E+'}')/R.h=d-&gt;N&amp;d/N|&quot;(&quot;&amp;e-&gt;E&amp;&quot;)&quot;&amp;{&quot; &quot;}&amp;'('+E+')'.d=&quot;π&quot;&amp;'\\pi'|&quot;ψ&quot;&amp;'\\psi'|&quot; &quot;|$:alnum.
 </code></pre>
-<p><a href="https://tio.run/##NY7PioMwEMZfJQxlJjEkgj0sLI2neq1gr0WQakHYZJeanlTosW/nI7kxuz3Mnw@@38znGzv0bl1t0zszqLxA2pEsZOh6MK3KK@QcFEwgQyWAdLlc229PQuUljsBgxuA6Y3lQpTyLtNKt6TZshBT@DUEfsTqowN7uzXUkWUmawziGQTNWujM@voL6zfgtSxGYeox5Ztpue@Mm4IAxKYi3mXj0CNLOWJWf0KYnbQ0szxj4p6cJltffPmyCwbT7bL7cw@p1zZhiXd0zyfY132ci4VmyvETKP5LlKX4B" rel="nofollow noreferrer" title="Tamsin – Try It Online">Try it online!</a></p>
+<p><a href="https://tio.run/##NY7PCoMwDIdfpYTRtJZWcIfBWL15Veh5CDL/wnRjcycVdtzb@UjOdvOQkMD35Zc@a59Ntyxt1nS6kGFEcYciEmtXhS5laChjIGEEsZYHFM/nS37rkcswoQMQmGhpteQkExFx36hSV1YbwIc/UFnAnOTqlo/sMqAwAqfB5Uw4UaMqXbsoSDentk60OunG2du1zmUY09yPR2BA3cPANweZQzmqXMP8ds/eGxxh/vzmp10IjLtjdu1erVqWgEhSpA0RZJ@yfcA9Fnjzh/vs4M1v/gU" rel="nofollow noreferrer" title="Tamsin – Try It Online">Try it online!</a></p>
 <p>A heavily commented version</p>
 <pre class="lang-python prettyprint-override"><code># main is expr1 (store in E); return '$' + E + '$'
 main = expr1 -&gt; E &amp; '$' + E + '$'.
@@ -58,7 +58,8 @@ expr3 = expr4 -&gt; R             #  expr4 (store in R)
       )/R.                     #  concatenate R and all returns from above matches
 
 # implements &quot;()&quot;         # expr4 is
-expr4 = number            #     `number`
+expr4 = digit -&gt; N        #     `digit` (store in N)
+        &amp; digit/N         #     followed by zero or more `digit`s (return N + matches)
       |                   #   or
           &quot;(&quot;             #     &quot;(&quot;
         &amp; expr1 -&gt; E      #     followed by `expr1` (store in E)
@@ -66,15 +67,13 @@ expr4 = number            #     `number`
         &amp; {&quot; &quot;}           #     followed by zero more more spaces
         &amp; '(' + E + ')'.  #     return '(' + E + ')'
 
-                       # `number` is
-number = digit -&gt; R    #   `digit` (store in R)
-       &amp; digit/R.      #   followed by zero or more digits
-
                        # `digit` is
 digit = &quot;π&quot; &amp; '\\pi'   #      π (replace with \pi)
       | &quot;ψ&quot; &amp; '\\psi'  #   or ψ (replace with \psi)
       | &quot; &quot;            #   or space
       | $:alnum.       #   or alphanumeric char
+
+# sed 's/expr\| \|#.*//g; s/&quot;&quot;/&quot; &quot;/g; s/digit/d/g; y/1234/efgh/' latex.tamsin | tr -d '\n' | wl-copy
 </code></pre>
 </div>
 
