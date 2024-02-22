@@ -27,26 +27,86 @@
     <th class="tlink">Link</th>
   </tr>
 <tr d-ix="0"><td>059</td><td>Acc!!</td><td>240222T184515Z</td><td><a href="https://codegolf.stackexchange.com/questions/270235/swap-letter-cases/270240#270240">DLosc</a></td></tr>
-<tr d-ix="1"><td>059</td><td>Python 3</td><td>240222T184058Z</td><td><a href="https://codegolf.stackexchange.com/questions/270235/swap-letter-cases/270239#270239">Alan Bre</a></td></tr>
+<tr d-ix="1"><td>047</td><td>Python 3</td><td>240222T184058Z</td><td><a href="https://codegolf.stackexchange.com/questions/270235/swap-letter-cases/270239#270239">Alan Bre</a></td></tr>
 <tr d-ix="2"><td>012</td><td>Python</td><td>240222T182132Z</td><td><a href="https://codegolf.stackexchange.com/questions/270235/swap-letter-cases/270236#270236">Mukundan</a></td></tr>
 <tr d-ix="3"><td>002</td><td>MATL</td><td>240222T183556Z</td><td><a href="https://codegolf.stackexchange.com/questions/270235/swap-letter-cases/270238#270238">Luis Men</a></td></tr>
 <tr d-ix="4"><td>001</td><td>Vyxal 3</td><td>240222T182232Z</td><td><a href="https://codegolf.stackexchange.com/questions/270235/swap-letter-cases/270237#270237">Alan Bre</a></td></tr>
 </table>
 <div id="pu0" class="pu"><h1><a href="https://github.com/dloscutoff/Esolangs/tree/master/Acc!!" rel="nofollow noreferrer"><em>Acc!!</em></a>, 59 bytes</h1>
-<pre><code>N
+<pre class="lang-python prettyprint-override"><code>N
 Count i while _ {
 Write _+_/65*(90/_-_/97*(122/_))*32
 N
 }
 </code></pre>
 <p><a href="https://tio.run/##S0xOTkr6/9@Pyzm/NK9EIVOhPCMzJ1UhXqGaK7woswTI0o7XNzPV0rA00I/Xjde3NNfSMDQy0o/X1NQyNuLy46r9/9/QyFhZxSGhTiHRMSmyKgoA" rel="nofollow noreferrer" title="Acc!! – Try It Online">Try it online!</a></p>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a>, 59 bytes</h1>
-
-<pre class="lang-python prettyprint-override"><code>lambda s:map(lambda c:chr(ord(c)^32)if c.isalpha()else c,s)
+<h3>Explanation</h3>
+<p>Here's a slightly de-obfuscated version:</p>
+<pre class="lang-python prettyprint-override"><code>N
+Count i while _ {
+  Write _ + (_/65)*(90/_)*32 - (_/97)*(122/_)*32
+  N
+}
 </code></pre>
-<p><a href="https://tio.run/##K6gsycjPM/7/PycxNyklUaHYKjexQAPKSbZKzijSyC9K0UjWjDM20sxMU0jWyyxOzCnISNTQTM0pTlVI1inW/P8fAA" rel="nofollow noreferrer" title="Python 3 – Try It Online">Try it online!</a></p>
-<p><code>ord(chr(c)^32</code> borrowed from <a href="https://codegolf.stackexchange.com/questions/36802/concise-case-changing-code/36828#36828">here</a>.</p>
+<p><code>N</code> reads a character of input and stores its ASCII code in the accumulator.</p>
+<p><code>Count i while _</code> loops while the accumulator's value is nonzero. After the end of input (including an implicit trailing newline), <code>N</code> returns zero, so this loops over the entire input and then halts.</p>
+<p><em>Acc!!</em> doesn't have comparison operators, so we use integer division to determine what range a character code is in:</p>
+<div class="s-table-container"><table class="s-table">
+<thead>
+<tr>
+<th>_/65</th>
+<th>90/_</th>
+<th>_/97</th>
+<th>122/_</th>
+<th>Range</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>&gt;= 1</td>
+<td>0</td>
+<td>&gt;= 1</td>
+<td>_ &lt; A</td>
+</tr>
+<tr>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>A ≤ _ ≤ Z</td>
+</tr>
+<tr>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>Z &lt; _ &lt; a</td>
+</tr>
+<tr>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>a ≤ _ ≤ z</td>
+</tr>
+<tr>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>z &lt; _</td>
+</tr>
+</tbody>
+</table></div>
+<p>Multiplying the first two tells us the character is uppercase, in which case we add 32 to make it lowercase. Multiplying the second two tells us the character is lowercase, in which case we subtract 32 to make it uppercase. We then <code>Write</code> out the modified character and read another one with <code>N</code>.</p>
+<p>For the golfed version, we pull the common factor of 32 out of both products, and then observe that <code>_/65</code> can only ever be 0 or 1, and it's only 0 when we don't want to modify the character, so it can be pulled out as well.</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a>, 47 bytes</h1>
+
+<pre class="lang-python prettyprint-override"><code>lambda s:[chr(ord(c)^32*c.isalpha())for c in s]
+</code></pre>
+<p><a href="https://tio.run/##K6gsycjPM/6fZhvzPycxNyklUaHYKjo5o0gjvyhFI1kzzthIK1kvszgxpyAjUUNTMy2/SCFZITNPoTj2f0FRZl6JRpqGumOiU5Jzsrqm5n8A" rel="nofollow noreferrer" title="Python 3 – Try It Online">Try it online!</a></p>
 </div>
 <div id="pu2" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 12 bytes</h1>
 <pre class="lang-python prettyprint-override"><code>str.swapcase
