@@ -35,19 +35,26 @@
 
 <pre class="lang-javascript prettyprint-override"><code>f=(w,W=[...w],r=n=&gt;n*Math.random()|0,d=[0,1,2].map(_=&gt;r(3)-1),o=d.map(x=&gt;[r(L=w.length),L-1][-x]|0),p=[],g=n=&gt;n--?W.map((_,i)=&gt;g(n,p[n]=i)):W.find((_,j)=&gt;!o.some((x,k)=&gt;x+j*d[k]-p[k]))||String.fromCharCode(65+r(26)))=&gt;/1/.test(d)?g(3):f(w)
 </code></pre>
-<p>Generates a grid as a 3D array of 1-char strings. Hides the given word randomly by selecting one of the 26 valid directions, then selects a valid starting point.</p>
-<p>This doesn't guarantee a unique solution.</p>
 <p><a href="https://tio.run/##ZY9Nb4JAEIbv/IrtyZ26rGJTD5rFGLVeqJg2jQdKDHEBV2WXLLRiSn87RRoTo5eZd5753gXfQbbRIs1NqXhYVRHDR7JiHqX06BPNJLPl42uQb6kOJFcJhrJLOPO6xCI9nyZBitfM1vgJTAuIYrxBBbM9jR12pIdQxvkWiGNavmcWftkFkjLPJ3Ez2jRHq6YDr4kAZsdYktSTPhMAgxWNhOTn1K5OPSiaqSTEuCD7Oizau0fu7X0zrQ1AWb7nWsiYRlolk22gJ/U7uP/c1rjXB6gbOlaH5mGWYw6juL53EOEjVEb0JTe5UBJxkaWH4IRjLTigHwOhjZKZOoT0oOKG/r@GmI2KRp7O8kR3SkjcQi2Ai0RXwadsAWqjxg@NX8O47Ilwa1yXDa/Bx/KWjBfTWzR1V4u7suXSmd1C9228mN/RiTudzV3n5cyrPw" rel="nofollow noreferrer" title="JavaScript – Try It Online">Try it online!</a></p>
+<p>Creates a 3D array.</p>
+<p>It works by choosing a random 3D direction vector <span class="math-container">\$d\$</span>, where each axis is -1, 0, or 1. (If it gets all 0s try again.) Based on the direction, it chooses a random origin point <span class="math-container">\$o\$</span>, for each axis <span class="math-container">\$n\$</span>:</p>
+<p><span class="math-container">$$
+o_n = 
+\begin{cases}
+L-1 &amp;\text{if }d_n = -1\\
+R(0,L) &amp;\text{if }d_n = 0\\
+0 &amp;\text{if }d_n = 1\\
+\end{cases}
+$$</span></p>
+<p>Where <span class="math-container">\$L\$</span> is the length of the input word, and <span class="math-container">\$R(a,b)\$</span> is a random integer in <span class="math-container">\$[a, b)\$</span>.</p>
+<p>It doesn't guarantee that the word appears only once.</p>
 <h3>Ungolfed:</h3>
 
 <pre class="lang-javascript prettyprint-override"><code>f = (w, // the input word
      W = [...w], // split word into array - this'll be handy later
      r = n =&gt; n * Math.random() | 0, // a handy random function
      d = [0,1,2].map(_ =&gt; r(3) - 1), // pick a random direction
-     o = d.map(x =&gt; [r(L=w.length), L-1][-x]|0), // pick a random valid starting point based on direction:
-                                                 //  1 =&gt; 0
-                                                 //  0 =&gt; random [0, length)
-                                                 // -1 =&gt; length - 1
+     o = d.map(x =&gt; [r(L=w.length), L-1][-x]|0), // pick a random valid starting point
      p = [], // place to store current point
      g = n =&gt; // a recursive function to create the grid - taking n = dimension
        n-- // reduce the dimension and check if zero
