@@ -26,9 +26,122 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>211</td><td>Tamsin</td><td>240218T123622Z</td><td><a href="https://codegolf.stackexchange.com/questions/270131/compiler-for-latex/270137#270137">Mukundan</a></td></tr>
+<tr d-ix="0"><td>513</td><td>Python 3</td><td>240223T142808Z</td><td><a href="https://codegolf.stackexchange.com/questions/270131/compiler-for-latex/270275#270275">Arnold P</a></td></tr>
+<tr d-ix="1"><td>211</td><td>Tamsin</td><td>240218T123622Z</td><td><a href="https://codegolf.stackexchange.com/questions/270131/compiler-for-latex/270137#270137">Mukundan</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/catseye/Tamsin" rel="nofollow noreferrer">Tamsin</a>, <sup><s>375</s> <s>220</s></sup> 211 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a>, 513 bytes</h1>
+
+<pre class="lang-python prettyprint-override"><code>from re import*
+R=str.replace
+def F(r,c):
+&#9;while'/^*'[c]in r:
+&#9;&#9;i=r.index('/^*'[c])
+&#9;&#9;r=r[:i-1]+[['\\frac{%s}{%s}','%s^{%s}','%s \\cdot %s'][c]%((c&gt;0)*sub('(%\d+)([}]*)$','(\\1)\\2',r[i-1])or r[i-1],r[i+1])]+r[i+2:]
+&#9;return r
+P=lambda e:R(R(' '.join(F(F(F(findall('%*[.\d]+|i|e|π|ψ|\+|-|\*|/|\^',e),1),0),2)),'π','\\pi'),'ψ','\\psi')
+def f(e,t=[]):
+&#9;while'('in e:
+&#9;&#9;e=sub('\(([^()]*)\)',lambda m:f'%{(len(t),t.append(P(m[1])))[0]}',e)
+&#9;z=lambda e:t and z(R(e,f'%{len(t)-1}',t.pop()))or e
+&#9;return'$%s$'%z(P(e))
+</code></pre>
+<p><a href="https://tio.run/##ZVLBbptAED2brxhFRjsLGMc4kVtL9Jhbq8hXFiRiFoUKA1qwmgZWyjF/509yZ7Edp60Q0s7OvLdv3kzzu3uuq@XxmKt6B0pCsWtq1TnWJmw75SvZlOlWWpnM4QGVt@Vra/LruSglmycOi7ZxUYGiu0kRKr@oMvmClwynWxWqaF3MFrEbRUyIXKXb3m61@ZnH7Db5OIEQ26zuwG5ZTGAbcfvtljvt/gkZ2iJzOUY6dviUqlGIBRciYJ6KDDmvFZxO5sKli9g1h2AdWxMlu70ikdZjWKa7pywFud7gBhkw/2ddVPgwfjmJT8sSme1EvshidygGORzehsP7INxhNghnmA8iYZ7k3oJ7t9wLOPfY4Y0ECdEUzATvp6ClaPQsR@l1YRRfbUNGjknjmAzH5gRilCCn1gRn3lnibp0zu8dSVthxr/PTppFVho@4i6g7zqPbWBsl1uT12lUHaZXBK/UmPQM/oWcLquz8pm6QgOSUvHjCpnY7ZfYr0UrOj/KlUbJti7pqIQSaVwAu4BIcOLxxmAPewQwkT8h2YFOTPA90eZmdsUH3l7o@0HrKYo9ajcgm4gmC@YpyX/0vi5HD1F@xI1cQ6H6lz0Uf6MAwJgU9uUxwGXAHA@fwzue4ckjbWY8p6Qs9FvWmSv/L/UlnS0JXf@n@eAwDF5dz4uUzxLsZvePc8/961v2IolfHfkdKfiG8/0RGmAWHBAL6yc1LNBKes8YqI3kMtIkIH1tWbqYFZl@uo6HNqfdds@9oRrRdtAi0BI0qqg5z1t98T7vt8w0UOZyqwlDSxoAsWwk3P2rYjXk9QG@gGuhwKtSMH/8A" rel="nofollow noreferrer" title="Python 3 – Try It Online">Try it online!</a></p>
+<p>This took quite a while to golf down and for me to feel all right about it, but at this point I think I've done about all that I can without additional help.</p>
+<p>The short explanation is that I use regex to replace inner parenthetical expressions with a meta token, inserting the LaTeX-ed version of that minimal expression into a work list, and after all parenthetical statements are replaced with meta tokens I go back and replace each meta token with its processed form, resulting in the fully LaTeX formatted string.</p>
+<p>Full explanation:</p>
+<pre class="lang-python prettyprint-override"><code># Needed for re.sub and re.findall
+import re
+
+'''
+Parameters:&#9;array - An array of tokens, or expressions, representing the current expression
+&#9;&#9;index - 0 for division, 1 for exponentiation, 2 for multiplication
+Formats the provided array in one of three ways
+    - Start by finding the index of the requested character
+    - While that character is still a lone element in the array
+        - Get the index of the requested opertor
+        - Get the values on either side of the operator
+        - Set the replacement string as appropriate for the operator
+&#9;    - If the operation is exponentiation or multiplication, we need to wrap the lefthand operand in parenthesis if it was a meta token (denoted by a token of the form '%&lt;d&gt;')
+&#9;- Replace indices (i - 1, i, and i + 1) with the LaTeX string representing the operation, and format the string to insert the formatted left and righthand sides
+'''
+def Format(array, index):
+&#9;c = '/^*'[index]&#9;# Get the character we're doing formatting for
+&#9;while c in array:&#9;# Do this until all standalone c have been formatted
+&#9;&#9;i = array.index('/^*'[index])&#9;&#9;# Get the index into the list of c
+&#9;&#9;replacement = ''&#9;&#9;&#9;# Placeholder for the text replacement
+&#9;&#9;l, r = array[i - 1], array[i + 1]&#9;# The left and righthand sides of the operator
+
+&#9;&#9;# If division, insert l and r as-is in the {}'s
+&#9;&#9;if c == '/':
+&#9;&#9;&#9;replacement = '\\frac{%s}{%s}'
+
+&#9;&#9;# If exponentiation, we need to wrap the lefthand side with
+&#9;&#9;#  parenthesis iff it's a meta token (of the form '%\d+')
+&#9;&#9;elif c == '^':
+&#9;&#9;&#9;replacement = '%s^{%s}'
+&#9;&#9;&#9;# Find all occurrences of '%\d+' in array[i - 1]
+&#9;&#9;&#9;l = re.sub('(%\d+)([}]*)$', '(\\1)\\2', array[i-1])
+
+&#9;&#9;# If multiplication, we need to wrap the lefthand side with
+&#9;&#9;#  parenthesis iff it's a meta token (of the form '%\d+')
+&#9;&#9;elif c == '*':
+&#9;&#9;&#9;replacement='%s \\cdot %s'
+&#9;&#9;&#9;l = re.sub('(%\d+)([}]*)$', '(\\1)\\2', array[i-1])
+
+&#9;&#9;# Replace indices (i - 1, i, i + 1) with the LaTeX string,
+&#9;&#9;#  inserting our formatted left and righthand sides
+&#9;&#9;array = array[:i-1] + [replacement % (l, r)] + array[i+2:]
+&#9;
+&#9;# Return array as-is
+&#9;return array
+
+# Takes a string expression of tokens and operators, and returns the string
+#  representation of its LaTeX formatting
+def Process(e):
+&#9;array = re.findall('%*[.\d]+|i|e|π|ψ|\+|-|\*|/|\^',e)&#9;# Split the string into all valid tokens
+&#9;array = Format(array, 1)&#9;&#9;# Format the list for exponentiation
+&#9;array = Format(array, 0)&#9;&#9;# Format the list for division
+&#9;array = Format(array, 2)&#9;&#9;# Format the list for multiplication
+&#9;string = ' '.join(array)&#9;&#9;# Join all of the tokens in the expression
+&#9;string = string.replace('π','\\pi')&#9;# Replace π with LaTeX command
+&#9;string = string.replace('ψ','\\psi')&#9;# Replace ψ with LaTeX command
+&#9;return string&#9;&#9;&#9;&#9;# Return the processed string
+
+# The main function that performs the conversion
+# Takes an expression, and uses a provided list to do work
+def f(e, t=[]):
+&#9;# Define an inner function to hand to re.sub
+&#9;def helper(m):
+&#9;&#9;l = len(t)&#9;&#9;# Get the current length of t
+&#9;&#9;t.append(Process(m[1]))&#9;# Append the processed form of our matched group
+&#9;&#9;return f'%{l}'&#9;&#9;# Return a meta token referencing the index in t we just added
+
+&#9;# While there are parenthesis still to parse through
+&#9;while '(' in e:
+&#9;&#9;# Find all occurrences of parenthesis with no parenthesis inside them
+&#9;&#9;#  and pass them to helper. This will replace an expression of the form
+&#9;&#9;#     (2 / ψ)
+&#9;&#9;#  with a meta token of the form
+&#9;&#9;#     %D
+&#9;&#9;#  where t[D] holds the LaTeX formatted representation of the expression
+&#9;&#9;#     t[D] = '\\frac{2}{\\psi}'
+&#9;&#9;e = re.sub('\(([^()]+)\)', helper, e)
+
+&#9;# Since we only processed sub-expressions, process the remainder
+&#9;e = Process(e)
+
+&#9;# Go through and replace each meta token with its true value
+&#9;# Since we added them 0-&gt;len(t)-1, we replace in reverse order
+&#9;#  by popping the values off of t
+&#9;while t:
+&#9;&#9;# Replace '%i' with the i-th value of t in our expression
+&#9;&#9;e = e.replace(f'%{len(t) - 1}', t.pop())
+
+&#9;# Finally wrap the expression in $'s and return
+&#9;return f'${e}$'
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/catseye/Tamsin" rel="nofollow noreferrer">Tamsin</a>, <sup><s>375</s> <s>220</s></sup> 211 bytes</h1>
 <pre><code>1=2-&gt;E&amp;'$'+E+'$'.2=3-&gt;R&amp;{&quot;/&quot;&amp;3-&gt;E&amp;R&lt;-'\\frac{'+R+'}{'+E+'}'}&amp;((&quot;-&quot;|&quot;+&quot;|&quot;*&quot;&amp;'\\cdot')-&gt;O&amp;2-&gt;E&amp;''+O+E)/R.3=(s&amp;&quot;(&quot;&amp;2-&gt;E&amp;&quot;)&quot;&amp;s&amp;'('+E+')'|(&quot;π&quot;&amp;'\\pi'|&quot;ψ&quot;&amp;'\\psi'|&quot; &quot;|$:alnum)/'')-&gt;R&amp;(&quot;^&quot;&amp;3-&gt;E&amp;'^{'+E+'}')/R.s={&quot; &quot;}.
 </code></pre>
 <p><a href="https://tio.run/##NU7BaoNAEL3nK6ZD2Jl1WSVrIW2p0ou3gOBZBElaEKoN0R6KCh7zd36S3dX2MDvz3rz3drqybqtmWQ6R0XEiaE8qUfb1TRTqOBM9BihCt8peNeX5x60896QyRWO/SkcaBTNqHFDZ8lBY1fny1ZHUcSq2VFKpSmSQ@WHErUDGjUeJohXEa5CkgXGeVv@1ogHn@za3DgAO@5fys/muZUAuOhOMxd9pVPzf4v5oo97KR3@py6qBCHp@wLxBEFA2P84NOoaThXyANzhJB1MLr7eq6dbJ6kbbiPzFgAIOwYN5khAAP4KGd1mY3TxZ0pjgaIln/@mwM25TVFYfFhwa6bHx5rsM@OhZ7y8" rel="nofollow noreferrer" title="Tamsin – Try It Online">Try it online!</a></p>
