@@ -37,14 +37,36 @@
 <p>A full program that accepts an integer, <span class="math-container">\$n\$</span>, and prints the Jelly representation of a list of at least one valid decomposition, each as a list of <span class="math-container">\$n\$</span> composite denominators in ascending order, or nothing possible (when <span class="math-container">\$n \lt 9\$</span>).</p>
 <p><strong><a href="https://tio.run/##ATcAyP9qZWxsef//4biK4bqSw5DhuJ/Fk2PCs1AtxqRT4oG8UMayxocKMMOHMSM8PznhuKLDh////zEx" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></strong> (Too slow for even <span class="math-container">\$n=12\$</span>)</p>
 <h3>How?</h3>
-<p>Brute force.</p>
+<p>Brute force:</p>
+<pre><code>ḊẒÐḟœc³P-ƤS⁼PƲƇ - Link 1: integer, UpperBound
+Ḋ               - dequeue {UpperBound} -&gt; [2..UpperBound]
+ ẒÐḟ            - discard primes
+    œc³         - combinations of program input (n) items (without repeats)
+              Ƈ - keep those for which:
+             Ʋ  -   last four links as a monad - f(Selection):
+        -Ƥ      -     for outfixes of length one less than Selection:
+       P        -       product
+          S     -     sum -&gt; SumProducts
+            P   -   product {Selection} -&gt; TotalProduct
+           ⁼    -   {SumProducts} equals {TotalProduct}?
+
+0Ç1#&lt;?9ḢÇ - Main Link: integer, N:
+     ?    - if...
+    &lt; 9   - ...condition: {N} is less than 9?
+0         - ...then: zero
+  1#      - ...else: start with k=1 and increment collecting the first 1 for which:
+ Ç        -            call Link 1 (empty list is falsey)
+       Ḣ  - head -&gt; k
+        Ç - call Link 1
+          - implicit print
+</code></pre>
 <hr />
 <h2>Original <s> 35 </s> 30 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h2>
 <pre><code>ḢH;2×S$;
-_9µ«0ị““ðØÐ€½µ®©¥‘Ç⁸¡
+_9µ&lt;0ị““ðØÐ€½µ®©¥‘Ç⁸¡
 </code></pre>
 <p>A monadic Link that accepts an integer, <span class="math-container">\$n\$</span>, and yields a valid decomposition as a list of <span class="math-container">\$n\$</span> composite denominators in descending order, or an empty list if not possible (when <span class="math-container">\$n \lt 9\$</span>).</p>
-<p><strong><a href="https://tio.run/##AUUAuv9qZWxsef//4biiSDsyw5dTJDsKXznCtcKrMOG7i@KAnOKAnMOww5jDkOKCrMK9wrXCrsKpwqXigJjDh@KBuMKh////MTk" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></strong> (The numbers get huge pretty quickly!)</p>
+<p><strong><a href="https://tio.run/##AUQAu/9qZWxsef//4biiSDsyw5dTJDsKXznCtTww4buL4oCc4oCcw7DDmMOQ4oKswr3CtcKuwqnCpeKAmMOH4oG4wqH///8xOQ" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></strong> (The numbers get huge pretty quickly!)</p>
 <h3>How?</h3>
 <p>We know <span class="math-container">\$n \lt 9\$</span> is not possible since the sum of the reciprocals of the eight smallest composites is less than one: <span class="math-container">\$\frac{1}{4} + \frac{1}{6} + \frac{1}{8} + \frac{1}{9} + \frac{1}{10} + \frac{1}{12} + \frac{1}{14} + \frac{1}{15} \lt 1\$</span>.</p>
 <p>We can find a solution for <span class="math-container">\$n=9\$</span>: <code>[4, 6, 8, 9, 10, 12, 15, 18, 24]</code>.</p>
@@ -57,6 +79,23 @@ _9µ«0ị““ðØÐ€½µ®©¥‘Ç⁸¡
  &amp; = \frac{1}{F(F+M)} + \frac{1}{M(F+M)} \\
 \end{align}</span></p>
 <p>Since the first <span class="math-container">\$D\$</span>, <span class="math-container">\$24\$</span>, is divisible by <span class="math-container">\$4\$</span> we can fix <span class="math-container">\$F\$</span> at <span class="math-container">\$2\$</span> safe in the knowledge that both <span class="math-container">\$A\$</span> and <span class="math-container">\$B\$</span> will be divisible by <span class="math-container">\$4\$</span> forever, allowing us to continue using <span class="math-container">\$F=2\$</span>.</p>
+<pre><code>ḢH;2×S$; - Link 1: list of integers, Denominators (descending)
+Ḣ        - remove the head and yield it
+ H       - halve that -&gt; M
+  ;2     - concatenate a two -&gt; [M,F]
+      $  - last two links as a monad:
+     S   -   sum them -&gt; M+F
+    ×    -   multiply -&gt; [M(M+F), F(M+F)] = [max(A,B), min(A,B)]
+       ; - concatenate {the beheaded Denominators}
+
+_9µ&lt;0ị““ðØÐ€½µ®©¥‘Ç⁸¡ - Link: integer, N
+_9                    - subtract 9 -&gt; N-9
+  µ                   - start a new monadic Link ~ X=N-9
+   &lt;0                 - {X} less than zero?
+     ị““ðØÐ€½µ®©¥‘    - 1-indexed and modular index into:
+                          [[], [4, 6, 8, 9, 10, 12, 15, 18, 24]]
+                  Ç⁸¡ - call Link 1 X times
+</code></pre>
 </div>
 <div id="pu1" class="pu"><h2>JCram, 30 bytes (SBCS), 87 bytes JS</h2>
 <p>JavaScript solution:</p>
