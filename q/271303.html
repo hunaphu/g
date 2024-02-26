@@ -41,6 +41,14 @@
 </code></pre>
 <p><a href="https://ato.pxeger.com/run?1=fZDBSsNAEIbxuk_xCx6yNcUk7UFLEm-FgmLvYQ-BbHBx026SDSQgvoiXXMRnqk_jbrZaoeBl9p9v5l9m5v3zOW9fuJTj4VJUat9o1F0uRSl4gW3DZVdwcixsPzpdzm8PNxoD-qQvEFxlEv2rwnCf9ixOPe0N1yGdvRkU0LgnZaIRONvXRaR5q1usVngQrYbn4rrh3IHNTlNKXFNCgAzZmiNTCBkzqW9l4MOyEwh9KEQ2LP4yZ5x4yKaqDcvzlrsfsWDszGbTI2L__hL9ek_zTCqYJmWE1HZvsyHmKTZP8KghCVRDSJWLnZHF3jRWj_BqxCgppju4042je78B" rel="nofollow noreferrer">Attempt This Online!</a></p>
 <p>Takes input as a <code>List (Free List Int)</code>.</p>
+<h2>Explanation</h2>
+<p>We use a pretty straightforward recursive approach to the problem.
+<code>t</code> takes a depth <code>y</code> and a list <code>x</code>, it then gets the maximum (<code>xd 0</code>) of:</p>
+<ul>
+<li><code>[l x|p y?&gt;x]</code> the length of <code>x</code>, if <code>y</code> is in the list. (We wrap <code>y</code> with <code>p</code> to specify that we are searching for terminal nodes in the tree, <code>y?&gt;Fe x</code> would search recursively down every level)</li>
+<li><code>(t(y+1)*~|p 0)&lt;x</code> the map across <code>x</code> of <code>t(y+1)</code> (<code>t</code> with the depth one higher) for list elements and <code>p 0</code> (always return 0) for terminal nodes.</li>
+</ul>
+<p>Then our final answer is naturally <code>t 0</code> to start the depth at 0.</p>
 <h1>Point-free, 57 bytes</h1>
 <pre><code>xd 0&lt;jn&lt;ixm(l&lt;&lt;&lt;fl&lt;e)&lt;uef(mm$p(-1)*~|id)(fb$m$id*~|p i)&lt;p
 </code></pre>
@@ -55,7 +63,7 @@
 </ul>
 <h1>Reflection</h1>
 <p>Let's start by pointing out the obvious, Haskell is a strongly typed programming language, and ragged lists are not very nice for strongly typed languages. That's why we have to use the weird type <code>List (Free List Int)</code> here. <code>List (Free List Int)</code> is a pretty specific type and there are not a lot of tools to deal with it, which is why half of the point-free answer is manipulating this type into another form.</p>
-<p>That being said I'm still disappointed in this answer, and there are things I would improve.</p>
+<p>That being said I'm still disappointed in this answer. The fact that the best approach (that I can find) isn't point-free, points to the fact that this is a recursion scheme that isn't well supported in the library. There are issues here, along with a couple small things to be improved.</p>
 <ul>
 <li>The flattening operation I do as <code>uef(mm$p(-1)*~|id)(fb$m$id*~|p i)&lt;p</code> should have a built in. This would save an absurd number of bytes here, and would make operations based on the depth into a ragged list much more doable.</li>
 <li>There should probably just be an operation which tags elements by their depth, like <code>eu</code> but with a behavior specific to free monoids, instead of the insanity that <code>eu</code> does on free monoids. This would be an alternative solution to the same problems solved by the above suggestion.</li>
