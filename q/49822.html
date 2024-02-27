@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::49822</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>nan</td><td>I wrote a Windows executable</td><td>240227T201158Z</td><td><a href="https://codegolf.stackexchange.com/questions/49822/build-an-ascii-fibonacci-clock/271356#271356">Artmaker</a></td></tr>
+<tr d-ix="1"><td>061</td><td>CJam</td><td>150508T192515Z</td><td><a href="https://codegolf.stackexchange.com/questions/49822/build-an-ascii-fibonacci-clock/49848#49848">Sp3000</a></td></tr>
+<tr d-ix="2"><td>182</td><td>Python 2</td><td>150508T155145Z</td><td><a href="https://codegolf.stackexchange.com/questions/49822/build-an-ascii-fibonacci-clock/49837#49837">Sp3000</a></td></tr>
+<tr d-ix="3"><td>421</td><td>Python 2</td><td>150508T154945Z</td><td><a href="https://codegolf.stackexchange.com/questions/49822/build-an-ascii-fibonacci-clock/49836#49836">sirperci</a></td></tr>
+<tr d-ix="4"><td>286</td><td>Ruby</td><td>150508T161840Z</td><td><a href="https://codegolf.stackexchange.com/questions/49822/build-an-ascii-fibonacci-clock/49839#49839">rorlork</a></td></tr>
+</table>
+<div id="pu0" class="pu"><p>I wrote a Windows executable, Fibonacci Clock, that I would like someone who is skilled to create an Android app. What is currently available on the App Store is not easy to read. I believe my screen design is quite easy to read.I am now retired, quite old and no longer interested in learning yet another way of coding. I will freely share my code if it helps. A hardware version using my screen design has also been made. See the links below:</p>
+<p><a href="https://qb45.org/files.php?action=showfile&amp;id=1759" rel="nofollow noreferrer">https://qb45.org/files.php?action=showfile&amp;id=1759</a></p>
+<p><a href="https://youtu.be/IFEdMHbIu7I" rel="nofollow noreferrer">https://youtu.be/IFEdMHbIu7I</a></p>
+<p><a href="https://www.instructables.com/RGB-Fibonacci-Clock/" rel="nofollow noreferrer">https://www.instructables.com/RGB-Fibonacci-Clock/</a></p>
+</div>
+<div id="pu1" class="pu"><h1>CJam, 61 bytes</h1>
+
+<pre><code>l~5/]:A{;L[TT][XXYZ5]{4mr_2bW%Mf*@.+\Ps=M*aM*@+W%z\}fMA=!}gN*
+</code></pre>
+
+<p>Takes two space-separated integers via STDIN, and uses <code>3.14</code> instead of <code>WRGB</code> respectively. <a href="http://cjam.aditsu.net/#code=l~5%2F%5D%3AA%7B%3BL%5BTT%5D%5BXXYZ5%5D%7B4mr_2bW%25Mf*%40.%2B%5CPs%3DM*aM*%40%2BW%25z%5C%7DfMA%3D!%7DgN*&amp;input=7%2017" rel="nofollow noreferrer">Try it online</a>.</p>
+
+<p>Here is the "sane" <code>RGBW</code> version for a few extra bytes:</p>
+
+<pre><code>l~5/]:A{;L[TT][XXYZ5]{4mr_2bW%Mf*@.+\"WRGB"=M*aM*@+W%z\}fMA=!}gN*
+</code></pre>
+
+<h2>Explanation</h2>
+
+<p>The algorithm is the same as my <a href="https://codegolf.stackexchange.com/a/49837/21487">Python answer</a> — rejection sampling by generating clocks until we get one that's correct.</p>
+
+<pre><code>l~5/]:A            Read input and make array [&lt;hours&gt; &lt;minutes&gt;/5]
+{...}g             Do...
+
+  ;                  Pop the only element on the stack
+  L                  Push empty array, which will become our clock
+  [TT]               Push [0 0] for [h m], to keep track of our sample
+  [XXYZ5]{...}fI     For I in [1 1 2 3 5]...
+    4mr                Push random number from [0 1 2 3]
+    _2bW%              Copy and get reversed base 2 rep for one of [0] [1] [0 1] [1 1]
+    If*                Multiply bit(s) by I
+    @.+                Add element-wise to [h m] array
+    \Ps=               Index the random number into stringified pi for one of "3.14"
+    I*aI*              Make into I by I square
+    @+W%z\             Add above clock and rotate clockwise
+
+  A=!              ... while the resulting clock is incorrect
+N*                 Riffle clock with newlines
+</code></pre>
+</div>
+<div id="pu2" class="pu"><h1>Python 2, <s>194</s> 182 bytes</h1>
+
+<pre class="lang-py prettyprint-override"><code>from random import*
+h=m=H,M=input()
+while[h,m]!=[H,M/5]:
+ h=m=0;s=[]
+ for n in 1,1,2,3,5:c=randint(0,3);h+=c%2*n;m+=c/2*n;s=zip(*(["WRGB"[c]*n]*n+s)[::-1])
+for L in s:print"".join(L)
+</code></pre>
+
+<p>The algorithm is just rejection sampling, so it keeps generating clocks until it gets one that's right. The clock is built by starting with nothing, then doing "add a square above and rotate clockwise" 5 times.</p>
+
+<p>Takes two comma-separated integers via STDIN.</p>
+
+<pre><code>&gt;&gt;&gt; ================================ RESTART ================================
+&gt;&gt;&gt; 
+7,17
+BBBWWWWW
+BBRWWWWW
+RRRWWWWW
+RRRWWWWW
+RRRWWWWW
+&gt;&gt;&gt; ================================ RESTART ================================
+&gt;&gt;&gt; 
+7,17
+GGBRRRRR
+GGRRRRRR
+WWWRRRRR
+WWWRRRRR
+WWWRRRRR
+</code></pre>
+</div>
+<div id="pu3" class="pu"><h1>Python 2, 421 bytes</h1>
+<p>Ugh, I'm <em>sure</em> this can be golfed more.</p>
+
+<pre class="lang-python prettyprint-override"><code>from itertools import*
+from random import*
+f,r=[1,1,2,3,5],range
+c={_:[x for x in chain(*[combinations(f,i)for i in r(6)])if sum(x)==_]for _ in r(13)}
+k=[[2,1,4],[2,0,4]]+[[3,4]]*3
+def b(h,m):
+ o=['W']*5;m/=5;h,m=choice(c[h]),choice(c[m])
+ l=dict(zip(zip('WWR',[m,h,m]),'GRB'))
+ for x in h,m:
+    d={1:[0,1],2:[2],3:[3],5:[4]}
+    for _ in x:j=d[_].pop();o[j]=l[o[j],x]
+ print'\n'.join([''.join(o[i]*f[i]for i in _)for _ in k])
+</code></pre>
+<p>Test case:</p>
+<pre class="lang-python prettyprint-override"><code>&gt;&gt;&gt; b(7,20)
+WWBRRRRR
+WWRRRRRR
+GGGRRRRR
+GGGRRRRR
+GGGRRRRR
+&gt;&gt;&gt; b(7,20)
+RRBWWWWW
+RRRWWWWW
+BBBWWWWW
+BBBWWWWW
+BBBWWWWW
+</code></pre>
+</div>
+<div id="pu4" class="pu"><h1>Ruby, 286 bytes</h1>
+
+<p>It may be golfable, but will try some other time.</p>
+
+<pre class="lang-rb prettyprint-override"><code>z=[]
+13.times{z&lt;&lt;[]}
+(0..5).to_a.permutation{|p|l=p.take_while{|n|n&lt;5};z[l.map{|n|[1,1,2,3,5][n]}.reduce(0,:+)]&lt;&lt;l}
+t=Time.now
+h,m=z[t.hour%12].sample,z[t.min/5].sample
+5.times{|y|puts (0..7).map{|x|a=(x&gt;2?4:y&gt;1?3:x&lt;2?2:y&lt;1?1:0);q=m.include?(a);h.include?(a)?q ? ?B:?R: q ??G:?W}*""}
+</code></pre>
+
+<p>Explanation:</p>
+
+<pre class="lang-rb prettyprint-override"><code>z=[]
+13.times{z&lt;&lt;[]}                 # Initialize the array where we will have all the combinations
+(0..5).to_a.permutation{|p|     # Get all the permutations of the 5 positions plus a 5, which will be used as a separator
+    l=p.take_while{|n|n&lt;5};     # Get the permutation until the separator. This way we get all the possible sum combinations of the other five numbers
+    z[l.map{|n|[1,1,2,3,5][n]}.reduce(0,:+)]&lt;&lt;l}     # Add the permutation to the list with id=the permutation's sum
+
+t=Time.now # Get current time
+h,m=z[t.hour%12].sample,z[t.min/5].sample     # For the hour and the minute, get a random permutation that has the expected sum
+5.times{|y|                 # For each row
+    $&gt;&lt;&lt;(0..7).map{|x|      # For each column
+        a=(x&gt;2?4:y&gt;1?3:x&lt;2?2:y&lt;1?1:0);     # Get the panel we are in
+        q=m.include?(a);h.include?(a)?q ? ?B:?R: q ??G:?W     # Get the color this panel is painted
+    }*""}                   # Join the string and print it
+</code></pre>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/49822/">49822</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
