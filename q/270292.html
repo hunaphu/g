@@ -38,6 +38,16 @@
 <pre class="lang-javascript prettyprint-override"><code>f=(m,P,X,Y)=&gt;m.some((r,y)=&gt;r.some((p,x)=&gt;P?{N:(H=x-X,H*=H)+(v=y-Y)*v-5,B:B=H-v*v|(g=A=&gt;u=(c=m[A+=-(A&gt;Y)|A&lt;Y][x+=-(x&gt;X)|x&lt;X])!=P&amp;&amp;c&gt;g|g(A))(y),R:u|=H*=v,Q:B*u,P:H-1}[p]+P=='0k':f(m,p,x,y)))
 </code></pre>
 <p><a href="https://tio.run/##RY5db4IwFEDf@RV3PmiLhbiHvTAvCyRbSJaYqi8Q5QERGJOPWpBgxN/uqluypEl7bk5vznfURU0sc9EaVb1PbrcUSck481lA0S7Npi4TQiQ7K5J/JFiviL9dFhbxsDd85uno0Snp8GwEVO@MF@ZaLnpGp3cDydBB@4QkxnLjTNEgjh3QwZkH4aa/Y2/7dOjnfkifkI/HsZ0NGXEoJWfKVtZpQLW9Y0vL1U@MW57xfN2IcMoRJ7PDxEpVrgpSgZTeZHI85TIho7QZUVMm0f4jL5L1uYrJjJptvW5lXmWEmo0o8paMttW2UmJay/co/iINoA0XDaBIWigBofkXlVZG4lfZmKbZhPRVmXFdNXWRmEWdEZVC1fCqOmB3PABITYAQ4AqhgagA1FFfAATAUoMdcA6Pyf1SjwdyzrXVwoVPWKx@AA" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<h2>Position editor</h2>
+<p><div class="snippet" data-lang="js" data-hide="false" data-console="true" data-babel="false">
+<div class="snippet-code">
+<pre class="snippet-code-js lang-js prettyprint-override"><code>f=(m,P,X,Y)=&gt;m.some((r,y)=&gt;r.some((p,x)=&gt;P?{N:(H=x-X,H*=H)+(v=y-Y)*v-5,B:B=H-v*v|(g=A=&gt;u=(c=m[A+=-(A&gt;Y)|A&lt;Y][x+=-(x&gt;X)|x&lt;X])!=P&amp;&amp;c&gt;g|g(A))(y),R:u|=H*=v,Q:B*u,P:H-1}[p]+P=='0k':f(m,p,x,y)))
+let board = document.getElementById("board"), pce = document.getElementById("pce"), b = [...Array(8)].map(_ =&gt; Array(8).fill(-1)), sel = 5; b[1][2] = 6; b[2][4] = 4; setClick(board, (x, y) =&gt; { b[y][x] = b[y][x] == sel ? -1 : sel; draw(); }); setClick(pce, (x, y) =&gt; { sel = x * 6 + 5 - y; draw(); }); draw(); function setClick(el, callback) { el.addEventListener("click", e =&gt; { let o = el.getBoundingClientRect(); callback(e.clientX - o.left &gt;&gt; 5, e.clientY - o.top &gt;&gt; 5); }) } function draw() { let html = "", m = []; for(let y = 0; y &lt; 8; y++) for(let x = 0; x &lt; 8; x++) { html += `&lt;div class="sq ${x + y &amp; 1 ? "dark" : "light"}"&gt;${~b[y][x] ? `&amp;#${9812 + b[y][x]};` : ""}&lt;/div&gt;`; (m[y] = m[y] || [])[x] = " KQRBNPkqrbnp"[b[y][x] + 1]; } document.getElementById("res").innerHTML = f(m) ? "YES" : "NO"; board.innerHTML = html; html = ""; for(let y = 0; y &lt; 6; y++) for(let x = 0; x &lt; 2; x++) html += `&lt;div class="sq ${x * 6 + 5 - y == sel ? "sel" : x + y &amp; 1 ? "dark" : "light"}"&gt;&amp;#${9817 + x * 6 - y};&lt;/div&gt;`; pce.innerHTML = html; }</code></pre>
+<pre class="snippet-code-css lang-css prettyprint-override"><code>body { font-family:Arial; } #board { float:left; width:256px; height:256px; } #pce { float:left; margin-left:32px; width:64px; height:192px; } .sq { float:left; width:32px; height:32px; line-height:32px; text-align:center; font-size:30px; cursor:pointer; } .dark { background-color:#7ab; } .light { background-color:#9cd; } .sel { background-color:#fd4; }</code></pre>
+<pre class="snippet-code-html lang-html prettyprint-override"><code>&lt;p&gt;Black king in check: &lt;span id="res"&gt;&lt;/span&gt;&lt;/p&gt;&lt;div id="board"&gt;&lt;/div&gt;&lt;div id="pce"&gt;&lt;/div&gt;</code></pre>
+</div>
+</div>
+</p>
 <h2>Commented</h2>
 <h3>Main function</h3>
 <pre class="lang-javascript prettyprint-override"><code>f = (               // f is a recursive function taking:
@@ -88,7 +98,8 @@ H - v * v |         // we must have H = v²
            | x &lt; X  //
     ]               //
   ) != P &amp;&amp;         //   stop when c = P
-  c &gt; g |           //   set u if c is not empty
+  c &gt; g |           //   set u if c is greater than or equal to 'B'
+                    //   (i.e. the square is not empty)
   g(A)              //   recursive call
 )(y)                // initial call to g with A = y
 </code></pre>
