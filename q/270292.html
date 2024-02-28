@@ -38,6 +38,72 @@
 <pre class="lang-javascript prettyprint-override"><code>f=(m,P,X,Y)=&gt;m.some((r,y)=&gt;r.some((p,x)=&gt;P?{N:(H=x-X,H*=H)+(v=y-Y)*v-5,B:B=H-v*v|(g=A=&gt;u=(c=m[A+=-(A&gt;Y)|A&lt;Y][x+=-(x&gt;X)|x&lt;X])!=P&amp;&amp;c&gt;g|g(A))(y),R:u|=H*=v,Q:B*u,P:H-1}[p]+P=='0k':f(m,p,x,y)))
 </code></pre>
 <p><a href="https://tio.run/##RY5db4IwFEDf@RV3PmiLhbiHvTAvCyRbSJaYqi8Q5QERGJOPWpBgxN/uqluypEl7bk5vznfURU0sc9EaVb1PbrcUSck481lA0S7Npi4TQiQ7K5J/JFiviL9dFhbxsDd85uno0Snp8GwEVO@MF@ZaLnpGp3cDydBB@4QkxnLjTNEgjh3QwZkH4aa/Y2/7dOjnfkifkI/HsZ0NGXEoJWfKVtZpQLW9Y0vL1U@MW57xfN2IcMoRJ7PDxEpVrgpSgZTeZHI85TIho7QZUVMm0f4jL5L1uYrJjJptvW5lXmWEmo0o8paMttW2UmJay/co/iINoA0XDaBIWigBofkXlVZG4lfZmKbZhPRVmXFdNXWRmEWdEZVC1fCqOmB3PABITYAQ4AqhgagA1FFfAATAUoMdcA6Pyf1SjwdyzrXVwoVPWKx@AA" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<h2>Commented</h2>
+<h3>Main function</h3>
+<pre class="lang-javascript prettyprint-override"><code>f = (               // f is a recursive function taking:
+  m,                //   m[] = input matrix
+  P,                //   P = piece on the target square
+  X, Y              //   (X, Y) = position of the target square
+) =&gt;                //
+m.some((r, y) =&gt;    // for each row r[] at index y in m[]:
+  r.some((p, x) =&gt;  //   for each piece p at index x in r[]:
+    P ?             //     if P is defined (2nd pass):
+      {             //
+        N: ...,     //       \    test whether the target square is
+        B: ...,     //        |   attacked by the source square (x, y)
+        R: ...,     //        |-- according to the piece p
+        Q: ...,     //        |   these tests (which are detailed below)
+        P: ...      //       /    return 0 for truthy
+      }[p]          //
+      + P           //       append P to the result
+      == '0k'       //       if we get '0k', the enemy king is attacked
+    :               //     else (1st pass):
+      f(m, p, x, y) //       do a recursive call, using the current
+                    //       square as the target square
+  )                 //   end of inner some()
+)                   // end of outer some()
+</code></pre>
+<h3>Knight test</h3>
+<pre class="lang-javascript prettyprint-override"><code>(                   // we define:
+  H = x - X,        //   H = (x - X)²
+  H *= H            //
+) + (               // and:
+  v = y - Y         //   v = y - Y
+) * v               //
+- 5                 // we test whether H + v² = 5, which may only happen
+                    // if we have H = 4, v = 1 or H = 1, v = 4
+</code></pre>
+<h3>Bishop test</h3>
+<pre class="lang-javascript prettyprint-override"><code>B =                 // save the result in B
+H - v * v |         // we must have H = v²
+( g = A =&gt;          // g is a recursive function
+  u =               // which sets a flag u if the path from the source
+  (                 // square to the target square is blocked:
+    c =             //   c is the value of the square that is reached
+    m[              //   when we move towards the target square
+      A += -(A &gt; Y) //   by adding the sign of Y - A to A
+           | A &lt; Y  //
+    ][              //   
+      x += -(x &gt; X) //   and adding the sign of X - x to x
+           | x &lt; X  //
+    ]               //
+  ) != P &amp;&amp;         //   we stop when c = P
+  c &gt; g |           //   we set u if c is not empty
+  g(A)              //   recursive call
+)(y)                // initial call to g with A = y
+</code></pre>
+<h3>Rook test</h3>
+<pre class="lang-javascript prettyprint-override"><code>u |= H *= v         // we must have u = 0 and either H = 0 or v = 0
+</code></pre>
+<h3>Queen test</h3>
+<pre class="lang-javascript prettyprint-override"><code>B * u               // queen = bishop * rook
+</code></pre>
+<h3>Pawn test</h3>
+<pre class="lang-javascript prettyprint-override"><code>H - 1               // we must have (x - X)² = 1 and y - Y = 1
+                    // and H is now (x - X)² * (y - Y)
+</code></pre>
+<h3>King test</h3>
+<p>Assuming that the position is valid, a king may not be attacked by the other king. Therefore, there is no test at all for king attacks.</p>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://www.perl.org/" rel="nofollow noreferrer">Perl 5</a> <code>-MList::Util=pairmap</code>, <s>316</s> 286 bytes</h1>
 
