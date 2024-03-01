@@ -57,26 +57,12 @@
 <tr d-ix="28"><td>066</td><td>JavaScript ES6</td><td>240228T183547Z</td><td><a href="https://codegolf.stackexchange.com/questions/271383/find-the-odd-one-out/271386#271386">Arnauld</a></td></tr>
 </table>
 <div id="pu0" class="pu"><h1><a href="http://www.nasm.us/" rel="nofollow noreferrer">Assembly (nasm, x64, Linux)</a>, 372 bytes</h1>
-<p>Generates a random 32-bit number from [0,512] using <a href="https://www.pcg-random.org/posts/bounded-rands.html" rel="nofollow noreferrer">Lemire's Method</a>.</p>
-<pre><code>; Debiased Integer Multiplication — Lemire's Method
-
-uint32_t bounded_rand(rng_t&amp; rng, uint32_t range) {
-    uint32_t t = (-range) % range;
-    do {
-        uint32_t x = rng();
-        uint64_t m = uint64_t(x) * uint64_t(range);
-        uint32_t l = uint32_t(m);
-    } while (l &lt; t);
-    return m &gt;&gt; 32;
-}
-</code></pre>
-<p>Implemented Lemire's Method in Nasm:</p>
 <pre><code>section .bss
 l resb 33
 section .text
 global _start
 _start:
-mov edi,513
+mov edi,512
 mov eax,edi
 xor edx,edx
 neg eax
@@ -108,7 +94,21 @@ syscall
 dec r14
 jnz p
 </code></pre>
-<p><a href="https://tio.run/##RVDLTsMwELzvV@ytB0yVB1RqeuYfkKoK@aVg5NjBdpHDz4eNHZWTZ2d3ZqzhMepJ2OXZ8TitCfX3HQ/vB8QLJh5GnUBV7lg4paVf1qhlMt7hUcQIFoOOAvseHnTSOcFoveAWPyL5JKjPAJP/Qa0Me237inlmNEP2gfgNZ3B63HhQptyCG4IK3KlCmulOiaQKtJHTvDtk@BLoIH6Gsuy74h7ajtFYsFiSvtqnvruxtsFKZdbsdy@sPcE8lEH@68/MQigst0yVvOIpKM9plLCvEsjt6hrON8YtGCdJWx66tN6TrBrS39qKqIQdRUMplaNk6nGJklsLVPb2M0r6xXm9vGWTHianplS2uWxF7JL1Dw" rel="nofollow noreferrer" title="Assembly (nasm, x64, Linux) – Try It Online">Try it online!</a></p>
+<p><a href="https://tio.run/##RVDLTsMwELzvV@ytB0yVB1RqeuYfkKoK@aVg5NjBdpHDz4eNHZWTZ2d3ZqzhMepJ2OXZ8TitCfX3HQ/vB8QLJh5GnUBV7lg4paVf1qhlMt7hUcQIFoOOAvseHnTSOcFoveAWPyL5JKjPAJP/Qa0Me227inlmNEP2gfgNZ3B63HhQptyCG4IK3KlCmulOiaQKtJHTvDtk@BLoIH6Gsuyre2g7RmPBYkn6ap/67sbaBiuVWbPfvbD2BPNQBvmvPzMLobDcMlXyiqegPKdRwr5KILerazjfGLdgnCRteejSek@yakh/ayuiEnYUDaVUjpKpxyVKbi1Q2dvPKOkX5/Xylk16mJyaUtnmshWxS9Y/" rel="nofollow noreferrer" title="Assembly (nasm, x64, Linux) – Try It Online">Try it online!</a></p>
+<p><strong>Notes</strong></p>
+<p>Implemented <a href="https://www.pcg-random.org/posts/bounded-rands.html" rel="nofollow noreferrer">Lemire's Method</a> to generate a random 32-bit number [0,511].</p>
+<pre><code>; Debiased Integer Multiplication — Lemire's Method
+
+uint32_t bounded_rand(rng_t&amp; rng, uint32_t range) {
+    uint32_t t = (-range) % range;
+    do {
+        uint32_t x = rng();
+        uint64_t m = uint64_t(x) * uint64_t(range);
+        uint32_t l = uint32_t(m);
+    } while (l &lt; t);
+    return m &gt;&gt; 32;
+}
+</code></pre>
 </div>
 <div id="pu1" class="pu"><h1><a href="http://www.golfscript.com/golfscript/" rel="nofollow noreferrer">GolfScript</a>, 22 bytes</h1>
 <pre><code>~511*+{;9.?rand}$32/n*
