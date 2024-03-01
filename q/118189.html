@@ -26,7 +26,7 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>247</td><td>Swift</td><td>240229T231103Z</td><td><a href="https://codegolf.stackexchange.com/questions/118189/may-the-first-be-with-you/271435#271435">macOSist</a></td></tr>
+<tr d-ix="0"><td>225</td><td>Swift</td><td>240229T231103Z</td><td><a href="https://codegolf.stackexchange.com/questions/118189/may-the-first-be-with-you/271435#271435">macOSist</a></td></tr>
 <tr d-ix="1"><td>020</td><td>05AB1E</td><td>240228T210919Z</td><td><a href="https://codegolf.stackexchange.com/questions/118189/may-the-first-be-with-you/271394#271394">Matthew </a></td></tr>
 <tr d-ix="2"><td>102</td><td>Python 3.8 prerelease</td><td>240228T150544Z</td><td><a href="https://codegolf.stackexchange.com/questions/118189/may-the-first-be-with-you/271381#271381">movatica</a></td></tr>
 <tr d-ix="3"><td>018</td><td>Vyxal r</td><td>240228T165408Z</td><td><a href="https://codegolf.stackexchange.com/questions/118189/may-the-first-be-with-you/271382#271382">pacman25</a></td></tr>
@@ -51,26 +51,60 @@
 <tr d-ix="22"><td>066</td><td>CJam</td><td>170501T074701Z</td><td><a href="https://codegolf.stackexchange.com/questions/118189/may-the-first-be-with-you/118220#118220">Esolangi</a></td></tr>
 <tr d-ix="23"><td>088</td><td>JavaScript ES6</td><td>170501T004131Z</td><td><a href="https://codegolf.stackexchange.com/questions/118189/may-the-first-be-with-you/118192#118192">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Swift, <s>127</s> 247 bytes </h1>
-<pre class="lang-swift prettyprint-override"><code>let f={(s:String)in let x={var b=&quot;force&quot;,c=&quot;first&quot;,a:String=$0
-for z in s.lowercased().ranges(of:$1 ?b:c){a.replaceSubrange(z,with:zip($1 ?c:b,a[z]).map{.init($1.isLowercase ?$0.lowercased():$0.uppercased())})}
+<div id="pu0" class="pu"><h1>Swift, <s>127</s> <s>247</s> 225 bytes</h1>
+<pre class="lang-swift prettyprint-override"><code>let f={(s:String)in let x={var b=&quot;force&quot;,c=&quot;first&quot;,a=$0+&quot;&quot;,v=$1&gt;0
+s.lowercased().ranges(of:v ?b:c).map{a.replaceSubrange($0,with:zip(v ?c:b,a[$0]).map{$1.isLowercase ?$0:.init($0.uppercased())})}
 return a}
-return x(x(s,true),false)}
+return x(x(s,1),0)}
 </code></pre>
+<p>Built and tested with Swift 5.9, so TIO is out of the window. <a href="https://www.jdoodle.com/ia/XwP" rel="nofollow noreferrer">Here's a JDoodle link instead.</a></p>
 <p>With whitespace restored:</p>
 <pre class="lang-swift prettyprint-override"><code>let f = { (s: String) in
   let x = {
-    var b = &quot;force&quot;, c = &quot;first&quot;, a: String = $0
-    for z in s.lowercased().ranges(of: $1 ? b : c) {
-      a.replaceSubrange(z, with: zip($1 ? c : b, a[z]).map {
-        .init($1.isLowercase ? $0.lowercased() : $0.uppercased())
+    var b = &quot;force&quot;, c = &quot;first&quot;, a = $0 + &quot;&quot;, v = $1 &gt; 0
+    s.lowercased().ranges(of: v ? b : c).map {
+      a.replaceSubrange($0, with: zip(v ? c : b, a[$0]).map {
+        $1.isLowercase ? $0 : .init($0.uppercased())
       })
     }
     return a
   }
-  return x(x(s, true), false)
+  return x(x(s, 1), 0)
 }
 </code></pre>
+<h2>Explanation</h2>
+<p>There's a lot to follow here, so I'll try and step you through the least Swifty Swift code I've ever written.</p>
+<pre class="lang-swift prettyprint-override"><code>let f = { (s: String) in /* ... */ }
+</code></pre>
+<p>Since function declarations are generally not small, I've opted for a closure instead. The compiler can infer the return type (though it struggles with the parameter). Plus, this means we don't have any pesky argument labels to deal with.</p>
+<pre class="lang-swift prettyprint-override"><code>let x = { /* ... */ }
+</code></pre>
+<p>Another closure definition. The compiler managed to infer everything here.</p>
+<pre class="lang-swift prettyprint-override"><code>var b = &quot;force&quot;, c = &quot;first&quot;, a = $0 + &quot;&quot;, v = $1 &gt; 0
+</code></pre>
+<p><code>b</code> and <code>c</code> are simply there to shave off a few bytes, since I use each of those strings twice.</p>
+<p><code>v</code> is there so I can reference it inside of more closures (since you can only use implicit parameters from one level at a time). The purpose of this argument is to decide whether to replace <code>&quot;force&quot;</code> with <code>&quot;first&quot;</code> (when <code>v</code> is <code>true</code>, and so when <code>$1</code> is <code>1</code>), or to replace <code>&quot;first&quot;</code> with <code>&quot;force&quot;</code> (when <code>v</code> is <code>false</code>, and so when <code>$1</code> is <code>0</code>).</p>
+<p><code>a</code> serves a dual purpose. It's there so I have a mutable copy of the string to work with; and concatenating <code>&quot;&quot;</code> to it lets the type checker know that <code>$0</code> is a <code>String</code>, meaning I don't have to specify that directly.</p>
+<pre class="lang-swift prettyprint-override"><code>s.lowercased().ranges(of: v ? b : c).map { /* ... */ }
+</code></pre>
+<p>This lowercases the original string (to effectively make the substring search case insensitive) before finding all ranges containing the search string (either <code>&quot;force&quot;</code> or <code>&quot;first&quot;</code>, depending on <code>v</code>). These ranges allow us to refer to discovered words in the string even after we start replacing them.</p>
+<p>The call to <code>map</code> here serves the same purpose as a <code>for</code>-<code>in</code> loop, just with less bytes (and a warning since we don't use the result -- if you don't want a warning, replace <code>map</code> with <code>forEach</code>).</p>
+<pre class="lang-swift prettyprint-override"><code>a.replaceSubrange($0, with: zip(v ? c : b, a[$0]).map { /* ... */ }
+</code></pre>
+<p>This line does the actual replacing. <code>replaceSubrange(_:with:)</code> unfortunately does not have a non-<code>mutating</code> counterpart, which is why we declare <code>a</code> above. In this method call, <code>$0</code> is one of the ranges containing a word we want to replace. <code>a[$0]</code> gets the actual contents of the string in that range.</p>
+<p>The call to <code>zip</code> allows us to iterate over the original string and the replacement string simultaneously, allowing us to keep case unchanged. Speaking of which...</p>
+<pre class="lang-swift prettyprint-override"><code>$1.isLowercase ? $0 : .init($0.uppercased())
+</code></pre>
+<p>Here, <code>$1</code> is a character from the original string, and <code>$0</code> is the corresponding character from the replacement string. If <code>$1</code> is lowercase, we return <code>$0</code> unchanged (since I hardcoded the replacement strings to be lowercase). If <code>$1</code> is uppercase (or if it isn't cased at all), we return the result of uppercasing <code>$0</code> (if it isn't cased, this call does nothing).</p>
+<p>We have to wrap the call to <code>uppercased()</code> in a <code>Character.init(_:)</code> since <code>uppercased()</code> on <code>Character</code> returns a <code>String</code> (blame Swift's Unicode support).</p>
+<pre class="lang-swift prettyprint-override"><code>return a
+</code></pre>
+<p>The only line of this program that actually makes sense at first glance.</p>
+<pre class="lang-swift prettyprint-override"><code>return x(x(s, 1), 0)
+</code></pre>
+<p>We call our closure with the original string first, telling it to replace <code>&quot;force&quot;</code> with <code>&quot;first&quot;</code>. We then call the closure again with the result, and replace <code>&quot;first&quot;</code> with <code>&quot;force&quot;</code>. (We avoid replacing words we've already replaced by referencing the original, unmodified string when finding ranges.) Finally, we return the result of <em>that</em> and leave the miniature catastrophe that is the <code>f</code> closure.</p>
+<h2>But why, tho?</h2>
+<p>I've probably overcomplicated a good chunk of this program, but if we're being honest here, Swift was not designed with code golfing in mind. Still, that's what makes golfing fun in the first place!</p>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E" rel="nofollow noreferrer">05AB1E</a>, <s>21</s> 20 bytes</h1>
 <pre><code>„€Û‹›#`UVlY¡XY:Xý¹.Ï
