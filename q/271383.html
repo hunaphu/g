@@ -57,7 +57,20 @@
 <tr d-ix="28"><td>066</td><td>JavaScript ES6</td><td>240228T183547Z</td><td><a href="https://codegolf.stackexchange.com/questions/271383/find-the-odd-one-out/271386#271386">Arnauld</a></td></tr>
 </table>
 <div id="pu0" class="pu"><h1><a href="http://www.nasm.us/" rel="nofollow noreferrer">Assembly (nasm, x64, Linux)</a>, 372 bytes</h1>
-<p>It generates an unbiased random 32-bit number from [0,512] using <a href="https://www.pcg-random.org/posts/bounded-rands.html" rel="nofollow noreferrer">Lemire's Method</a>.</p>
+<p>Generates a random 32-bit number from [0,512] using <a href="https://www.pcg-random.org/posts/bounded-rands.html" rel="nofollow noreferrer">Lemire's Method</a>.</p>
+<pre><code>; Debiased Integer Multiplication — Lemire's Method
+
+uint32_t bounded_rand(rng_t&amp; rng, uint32_t range) {
+    uint32_t t = (-range) % range;
+    do {
+        uint32_t x = rng();
+        uint64_t m = uint64_t(x) * uint64_t(range);
+        uint32_t l = uint32_t(m);
+    } while (l &lt; t);
+    return m &gt;&gt; 32;
+}
+</code></pre>
+<p>Implemented Lemire's Method in Nasm:</p>
 <pre><code>section .bss
 l resb 33
 section .text
