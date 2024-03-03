@@ -26,7 +26,7 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>166</td><td>TypeScript's type system</td><td>240303T012140Z</td><td><a href="https://codegolf.stackexchange.com/questions/229399/remove-all-smalltalk-comments-for-code-golf/271490#271490">noodle m</a></td></tr>
+<tr d-ix="0"><td>142</td><td>TypeScript's type system</td><td>240303T012140Z</td><td><a href="https://codegolf.stackexchange.com/questions/229399/remove-all-smalltalk-comments-for-code-golf/271490#271490">noodle m</a></td></tr>
 <tr d-ix="1"><td>065</td><td>Python 3.8 prerelease</td><td>210610T155748Z</td><td><a href="https://codegolf.stackexchange.com/questions/229399/remove-all-smalltalk-comments-for-code-golf/229411#229411">Jakque</a></td></tr>
 <tr d-ix="2"><td>105</td><td>Haskell</td><td>210613T213750Z</td><td><a href="https://codegolf.stackexchange.com/questions/229399/remove-all-smalltalk-comments-for-code-golf/229596#229596">Kyuuhach</a></td></tr>
 <tr d-ix="3"><td>091</td><td>C</td><td>210610T220456Z</td><td><a href="https://codegolf.stackexchange.com/questions/229399/remove-all-smalltalk-comments-for-code-golf/229446#229446">Soup Gir</a></td></tr>
@@ -40,8 +40,32 @@
 <tr d-ix="11"><td>325</td><td>Smalltalk</td><td>210610T160912Z</td><td><a href="https://codegolf.stackexchange.com/questions/229399/remove-all-smalltalk-comments-for-code-golf/229413#229413">Riolku</a></td></tr>
 <tr d-ix="12"><td>041</td><td>JavaScript Node.js</td><td>210610T141354Z</td><td><a href="https://codegolf.stackexchange.com/questions/229399/remove-all-smalltalk-comments-for-code-golf/229404#229404">l4m2</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>TypeScript's type system, 166 bytes</h1>
+<div id="pu0" class="pu"><h1>TypeScript's type system, 142 bytes</h1>
 
+<pre class="lang-typescript prettyprint-override"><code>type F&lt;S&gt;=S extends`'${infer Z}'${infer X}`?`'${Z}'${F&lt;X&gt;}`:S extends`&quot;${any}&quot;${infer X}`?F&lt;X&gt;:S extends`${infer C}${infer X}`?`${C}${F&lt;X&gt;}`:S
+</code></pre>
+<p><a href="https://www.typescriptlang.org/play?#code/C4TwDgpgBAYgPAZQHwF4FQgD2BAdgEwGcADAcgBIBvAS1wDMIAnKALQF8Kb6moANN4gH4yVdp3i8kAgFzosOAiQBEVAIa4QbFVwbN+QiUlkZseIsSq1dUAMJtL3PQOFU7VQzIQAoL6EhQAFQhCYABGKBRYOGJQgCYAZmIkLwB6FKgMgD1BX3BoIJDYiKiYpVilROS0jKhs3P8C4Hji+FKyytT0rJy-fODgABYW6NI40iTOmrrewP6AVmGyULLSeKUlCeru+r6QgDZF0bKK8aqu2p682ZCAdkXVJVDSWNWlVU3z6avGgA5Ft6UACMlABjDZnKaXBr9ACch1UpEBpBBp0m2xmjVCAAZ7qQlIi8ciPpCdtcwuFIq0HnjgXiQcTtkA" rel="nofollow noreferrer">Try it at the TS playground!</a></p>
+<p>This is a type F that takes and outputs a string type.</p>
+<p>Explanation:</p>
+<pre class="lang-typescript prettyprint-override"><code>type F&lt;S&gt;=
+</code></pre>
+<p>This is the type signature for F. S is the input string type. Since this is a recursive type, S isn't necessarily the original string, but rather whatever part of the string we haven't processed yet.</p>
+<pre class="lang-typescript prettyprint-override"><code>S extends`'${infer Z}'${infer X}`?`'${Z}'${F&lt;X&gt;}`
+</code></pre>
+<p>Attempt to match S against: single quote + a string called Z + single quote + a string called X. If the match succeeded, return single quote + Z + single quote + recurse, with X as the argument.</p>
+<p>This step keeps anything within single quotes.</p>
+<pre class="lang-typescript prettyprint-override"><code>:S extends`&quot;${any}&quot;${infer X}`?F&lt;X&gt;
+</code></pre>
+<p>If the match failed, attempt to match S against: double quote + a string + double quote + a string called X. If the match succeeded, recurse with X as the argument.</p>
+<p>This step discards anything between double quotes.</p>
+<pre class="lang-typescript prettyprint-override"><code>:S extends`${infer C}${infer X}`?`${C}${F&lt;X&gt;}`
+</code></pre>
+<p>If that match failed, match S against: a character called C + a string called X. This basically just extracts the first character and the rest. If the match succeeded, return C + recurse with X as the argument.</p>
+<pre class="lang-typescript prettyprint-override"><code>:S
+</code></pre>
+<p>If that match failed, S must be the empty string, so we just return it because the program has finished.</p>
+<p>Note that this solution isn't tail recursive, so it only works for strings under 50 characters. Here's a tail recursive version that works for strings up to 999 characters:</p>
+<h2>TypeScript's type system, 166 bytes</h2>
 <pre class="lang-typescript prettyprint-override"><code>//@ts-ignore
 type F&lt;S,O=&quot;&quot;&gt;=S extends`'${infer Z}'${infer X}`?F&lt;X,`${O}'${Z}'`&gt;:S extends`&quot;${any}&quot;${infer X}`?F&lt;X,O&gt;:S extends`${infer C}${infer X}`?F&lt;X,`${O}${C}`&gt;:O
 </code></pre>
