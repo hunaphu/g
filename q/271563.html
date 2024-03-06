@@ -26,9 +26,50 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>031</td><td>JavaScript Node.js</td><td>240306T024049Z</td><td><a href="https://codegolf.stackexchange.com/questions/271563/one-dimensional-pinball/271564#271564">l4m2</a></td></tr>
+<tr d-ix="0"><td>nan</td><td>Minecraft Functions</td><td>240306T050206Z</td><td><a href="https://codegolf.stackexchange.com/questions/271563/one-dimensional-pinball/271566#271566">LostXOR</a></td></tr>
+<tr d-ix="1"><td>031</td><td>JavaScript Node.js</td><td>240306T024049Z</td><td><a href="https://codegolf.stackexchange.com/questions/271563/one-dimensional-pinball/271564#271564">l4m2</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 31 bytes</h1>
+<div id="pu0" class="pu"><h1>Minecraft Functions, 378 + 141 + 541 = 1060 bytes</h1>
+<p>Made up of 3 functions in a data pack named <code>a</code>:</p>
+<p><code>a.mcfunction</code>:</p>
+<pre><code>scoreboard objectives add a dummy
+data modify storage s a set from storage s c[0]
+data remove storage s c[0]
+execute at @p if data storage s {a:0} run setblock ~ ~ ~ mud
+execute at @p if data storage s {a:1} run setblock ~ ~ ~ tnt
+execute at @p run tp @p ~1 ~ ~
+execute if data storage s c[0] run schedule function a:a 1
+execute at @p unless data storage s c[0] run function a:b
+</code></pre>
+<p><code>b.mcfunction</code>:</p>
+<pre><code>summon cat
+data modify entity @e[type=cat,limit=1] Pos[0] set from storage s i
+execute at @e[type=cat,limit=1] run tp @p ~.5 ~ ~
+function a:c
+</code></pre>
+<p><code>c.mcfunction</code>:</p>
+<pre><code>execute at @p if block ~ ~ ~ air run tellraw @p {&quot;score&quot;:{&quot;name&quot;:&quot;a&quot;,&quot;objective&quot;:&quot;a&quot;}}
+execute at @p unless block ~ ~ ~ air run schedule function a:c 1
+execute at @p if block ~ ~ ~ mud run data merge storage s {a:0}
+execute at @p if block ~ ~ ~ tnt run data merge storage s {a:1}
+execute at @p if data storage s {a:0} run setblock ~ ~ ~ tnt
+execute at @p if data storage s {a:1} run setblock ~ ~ ~ mud
+execute at @p if data storage s {a:0} run tp @p ~-1 ~ ~
+execute at @p if data storage s {a:1} run tp @p ~1 ~ ~
+scoreboard players add a a 1
+</code></pre>
+<p>The input grid is given as an array <code>c</code> of <code>0</code> (left) and <code>1</code> (right) in storage <code>s</code>. The starting position at is given as a double <code>i</code> in the same storage. They can be set with these commands:</p>
+<pre><code># Set grid (&lt;&gt;&lt;&lt;&lt;&gt;)
+data modify storage s c set value [0,1,0,0,0,1]
+# Set starting position (position 3)
+data modify storage s i set value 3.0d
+</code></pre>
+<p>It's run with <code>/function a:a</code> and outputs the number of seconds to chat. For best results (well, correct results), run in a void world in Spectator mode at x=0.</p>
+<p>Here's a slowed down GIF of it in action for test case #7 (RIP the cat).</p>
+<p><a href="https://i.stack.imgur.com/dIW6M.gif" rel="nofollow noreferrer"><img src="https://i.stack.imgur.com/dIW6M.gif" alt="GIF showing thing" /></a></p>
+<p>Definitely not anywhere near optimal, but it was a fun challenge!</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 31 bytes</h1>
 
 <pre class="lang-javascript prettyprint-override"><code>s=&gt;g=p=&gt;s[p]&amp;&amp;-~g(p-(s[p]*=-1))
 </code></pre>
