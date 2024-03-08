@@ -72,8 +72,41 @@
 <tr d-ix="43"><td>092</td><td>JavaScript ES6</td><td>160909T083923Z</td><td><a href="https://codegolf.stackexchange.com/questions/92776/esolang-comment-template-generator/92792#92792">Neil</a></td></tr>
 </table>
 <div id="pu0" class="pu"><h1>Swift 5.9, 153 bytes</h1>
+
 <pre class="lang-swift prettyprint-override"><code>let f={var x={{String.init}()(&quot; &quot;,$0)},s=($0+&quot;&quot;).split{$0==&quot;|&quot;},i=0
 return {s.map{x(i)+$0+x(s.joined().count-(i+=$0.count,i).1+1)}.joined}()($1+&quot;\n&quot;)+$1}
+</code></pre>
+<p>This is an almost direct port of <a href="https://codegolf.stackexchange.com/users/52210/kevin-cruijssen">Kevin Cruijssen</a>'s <a href="https://codegolf.stackexchange.com/a/92785/118665">Java answer</a>. Here's an ungolfed version:</p>
+<pre class="lang-swift prettyprint-override"><code>let function = { (code: String, comment: String) -&gt; String in
+  // convenience closure to repeat the space character
+  let spaces = { String(repeating: &quot; &quot;, count: $0) }
+  
+  // split the code into substrings using the pipe as
+  // a separator
+  let splitCode = code.split(separator: &quot;|&quot;)
+
+  var indentLevel = 0
+
+  let indentedCode = splitCode.map { line in
+    // start off with the previous indent level
+    let leadingIndent = spaces(indentLevel)
+
+    // update the indent level for the trailing indent
+    // and the next leading indent
+    indentLevel += line.count
+
+    // gets the total length of the code, subtracts the
+    // current indent level, and adds 1 for an extra
+    // trailing space
+    let trailingIndentAmount = splitCode.joined().count - indentLevel + 1
+    let trailingIndent = spaces(trailingIndentAmount)
+
+    return leadingIndent + line + trailingIndent + comment
+  }
+
+  // finally, join the code with newlines and return it
+  return indentedCode.joined(separator: &quot;\n&quot;)
+}
 </code></pre>
 </div>
 <div id="pu1" class="pu"><h1>Uiua, 40 bytes</h1>
