@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::271753</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>2040</td><td>Score 13877</td><td>240312T212852Z</td><td><a href="https://codegolf.stackexchange.com/questions/271753/convert-maximum-values-to-bit-widths/271756#271756">Tavian B</a></td></tr>
+</table>
+<div id="pu0" class="pu"><p>Score: 13877, <span class="math-container">\$n = 2040\$</span>.</p>
+<pre class="lang-c prettyprint-override"><code>#define CHUNK(m, mask) ((m) / ((m) % mask + 1) / mask % mask)
+#define INTERP(m) (7 - 86 / ((m) % 255 + 12))
+#define MAX_TO_WIDTH(m) (8 * CHUNK(m, 255) + INTERP(m))
+</code></pre>
+<hr />
+<p>This idea is due to Hallvard B. Furuseth on a <a href="https://groups.google.com/g/comp.lang.c/c/NfedEFBFJ0k/m/9HAqis6IDqcJ" rel="nofollow noreferrer">comp.lang.c post</a> in 2003.  It uses this helper function</p>
+<pre class="lang-c prettyprint-override"><code>#define CHUNK(m, mask) ((m) / ((m) % mask + 1) / mask % mask)
+</code></pre>
+<p>Which is used to make a repeating sequence like this:</p>
+<p><span class="math-container">$$
+\begin{aligned}
+a_{i,j} &amp; = \texttt{CHUNK}(2^i - 1, 2^j - 1) \\
+a_{0,j}, a_{1,j}, a_{2,j}, \ldots &amp; = \underbrace{0, \ldots, 0}_{\text{$j$ times}}, \underbrace{1, \ldots, 1}_{\text{$j$ times}}, \cdots, \underbrace{2^j-2, \ldots, 2^j - 2}_{\text{$j$ times}}, 0, \ldots
+\end{aligned}
+$$</span></p>
+<p>You can play around with it in Python to see:</p>
+<pre class="lang-python prettyprint-override"><code>&gt;&gt;&gt; def CHUNK(m, mask):
+...     return ((m) // ((m) % mask + 1) // mask % mask)
+... 
+&gt;&gt;&gt; def a(i, j):
+...     return CHUNK(2**i - 1, 2**j - 1)
+... 
+&gt;&gt;&gt; [a(i, 2) for n in range(10)]
+[0, 0, 1, 1, 2, 2, 0, 0, 1, 1]
+&gt;&gt;&gt; [a(i, 3) for n in range(10)]
+[0, 0, 0, 1, 1, 1, 2, 2, 2, 3]
+&gt;&gt;&gt; [a(i, 4) for n in range(10)]
+[0, 0, 0, 0, 1, 1, 1, 1, 2, 2]
+&gt;&gt;&gt; [a(n, 5) for n in range(5 * (2**5 - 1))] == \
+... [i for i in range(2**5 - 1) for j in range(5)]
+True
+</code></pre>
+<p>This sequence has <span class="math-container">\$j \, (2^j - 1)\$</span> values before it wraps, meaning</p>
+<p><span class="math-container">$$
+\texttt{CHUNK}(2^i - 1, 2^j - 1) = \lfloor i/j \rfloor \quad \text{for all $i &lt; j \, (2^j - 1)$.}
+$$</span></p>
+<p>This is almost enough—what we want is <span class="math-container">\$j \, \lfloor i/j \rfloor + (i \bmod j) = i\$</span>.  We can get <span class="math-container">\$(i \bmod j)\$</span> in various ways.  For now, let's fix <span class="math-container">\$j = 8\$</span>.  We know that <span class="math-container">\$2^i \pmod {2^8 - 1}\$</span> will have period 8:</p>
+<pre class="lang-python prettyprint-override"><code>&gt;&gt;&gt; [(2**i - 1) % 255 for i in range(16)]
+[0, 1, 3, 7, 15, 31, 63, 127, 0, 1, 3, 7, 15, 31, 63, 127]
+</code></pre>
+<p>And we can brute force a linear interpolation of these that maps them to <code>[0, 1, 2, ...]</code>:</p>
+<pre class="lang-python prettyprint-override"><code>&gt;&gt;&gt; [(7 - 86 // ((2**i - 1) % 255 + 12)) for i in range(16)]
+[0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3, 4, 5, 6, 7]
+</code></pre>
+<hr />
+<p>The <a href="https://groups.google.com/g/comp.lang.c/c/NfedEFBFJ0k/m/9HAqis6IDqcJ" rel="nofollow noreferrer">original post</a> is more like this:</p>
+<pre class="lang-c prettyprint-override"><code>#define CHUNK(m, mask) ((m) / ((m) % mask + 1) / mask % mask)
+#define INTERP(m) (4 - 12 / ((m) % 31 + 3))
+#define MAX_TO_WIDTH(m) \
+    (30 * CHUNK(m, 0x3fffffffL) + 5 * CHUNK((m) % 0x3fffffff, 31) + INTERP(m))
+</code></pre>
+<p>Which would have score: 21873, <span class="math-container">\$n = 30 \cdot (2^{30} - 1) = 32212254690\$</span>.</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/271753/">271753</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
