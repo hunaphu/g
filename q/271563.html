@@ -26,9 +26,9 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>040</td><td>TIBasic</td><td>240311T232333Z</td><td><a href="https://codegolf.stackexchange.com/questions/271563/one-dimensional-pinball/271723#271723">Youserna</a></td></tr>
-<tr d-ix="1"><td>065</td><td>C gcc</td><td>240310T144558Z</td><td><a href="https://codegolf.stackexchange.com/questions/271563/one-dimensional-pinball/271671#271671">Johann S</a></td></tr>
-<tr d-ix="2"><td>104</td><td>Swift 5.9</td><td>240306T163921Z</td><td><a href="https://codegolf.stackexchange.com/questions/271563/one-dimensional-pinball/271580#271580">macOSist</a></td></tr>
+<tr d-ix="0"><td>094</td><td>Swift 5.9</td><td>240306T163921Z</td><td><a href="https://codegolf.stackexchange.com/questions/271563/one-dimensional-pinball/271580#271580">macOSist</a></td></tr>
+<tr d-ix="1"><td>040</td><td>TIBasic</td><td>240311T232333Z</td><td><a href="https://codegolf.stackexchange.com/questions/271563/one-dimensional-pinball/271723#271723">Youserna</a></td></tr>
+<tr d-ix="2"><td>065</td><td>C gcc</td><td>240310T144558Z</td><td><a href="https://codegolf.stackexchange.com/questions/271563/one-dimensional-pinball/271671#271671">Johann S</a></td></tr>
 <tr d-ix="3"><td>022</td><td>05AB1E</td><td>240306T082205Z</td><td><a href="https://codegolf.stackexchange.com/questions/271563/one-dimensional-pinball/271571#271571">Kevin Cr</a></td></tr>
 <tr d-ix="4"><td>061</td><td>Java 8</td><td>240307T091753Z</td><td><a href="https://codegolf.stackexchange.com/questions/271563/one-dimensional-pinball/271603#271603">Kevin Cr</a></td></tr>
 <tr d-ix="5"><td>085</td><td>PowerShell Core</td><td>240306T194337Z</td><td><a href="https://codegolf.stackexchange.com/questions/271563/one-dimensional-pinball/271588#271588">Julian</a></td></tr>
@@ -48,7 +48,53 @@
 <tr d-ix="19"><td>024</td><td>Charcoal</td><td>240306T060306Z</td><td><a href="https://codegolf.stackexchange.com/questions/271563/one-dimensional-pinball/271568#271568">Neil</a></td></tr>
 <tr d-ix="20"><td>nan</td><td>Minecraft Functions</td><td>240306T050206Z</td><td><a href="https://codegolf.stackexchange.com/questions/271563/one-dimensional-pinball/271566#271566">LostXOR</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>TI-Basic, 40 bytes</h1>
+<div id="pu0" class="pu"><h1>Swift 5.9, <s>104</s> 94 bytes</h1>
+<p><strong>Shaved off 10 bytes thanks to <a href="https://codegolf.stackexchange.com/questions/271563/one-dimensional-pinball/271580?noredirect=1#comment587667_271580">@RolandSchmitz's suggestion
+</a> to use the <code>~=</code> operator and to use <code>[Int]</code> instead of <code>[Bool]</code>; and an additional 6 bytes by shuffling types around and using implicit parameters.</strong></p>
+<pre class="lang-swift prettyprint-override"><code>let s={var n=0,g:[Int]=$0,i=$1+0
+while 0..&lt;g.count~=i{g[i] *= -1
+i-=g[i]
+n+=1}
+return n}
+</code></pre>
+<p><code>g</code> is the grid; <code>1</code> corresponds to <code>&quot;&gt;&quot;</code>, and <code>-1</code> corresponds to <code>&quot;&lt;&quot;</code>. <code>i</code> is the starting position as an <code>Int</code>, 0-indexed.</p>
+<p>When <code>f</code> is called:</p>
+<ol>
+<li><p>Three variables are created:</p>
+<ul>
+<li><p><code>n</code>, which is simply a counter</p>
+</li>
+<li><p><code>g</code>, a mutable copy of the first implicit parameter (<code>$0</code>)</p>
+<blockquote>
+<p>This is where we put the type signature for <code>$0</code> -- this allows us to have a type-less closure header, letting us dispense with the header altogether and use implicit closure parameters instead.</p>
+</blockquote>
+</li>
+<li><p><code>i</code>, similar in purpose to <code>g</code> (we add <code>0</code> to give the type checker a hint)</p>
+</li>
+</ul>
+</li>
+<li><p>The closure loops until <code>i</code> ceases to be a valid index of <code>g</code>.</p>
+<blockquote>
+<p>In Swift, the <code>~=(lhs:rhs:)</code> operator is used internally for pattern matching (<code>switch</code> statements, <code>if case</code>, and the like). Here, we call it directly to take advantage of the overload defined by <code>Range</code>, which checks if <code>rhs</code> is contained in <code>lhs</code>.</p>
+</blockquote>
+<p>Inside this loop, we:</p>
+<ol>
+<li><p>flip the sign of <code>g[I]</code></p>
+<blockquote>
+<p>The whitespace around the <code>*=</code> operator is required so the compiler sees <code>infix operator *=</code> followed by <code>prefix operator -</code>, instead of the nonexistent <code>infix operator *=-</code>.</p>
+</blockquote>
+</li>
+<li><p><em>decrement</em> <code>i</code> by <code>g[i]</code></p>
+</li>
+<li><p>increment <code>n</code></p>
+</li>
+</ol>
+</li>
+<li><p>Once we're out of the loop, <code>n</code> has the number of iterations it took for <code>i</code> to go out of bounds. This is exactly what we want, so we just go ahead and return that.</p>
+</li>
+</ol>
+</div>
+<div id="pu1" class="pu"><h1>TI-Basic, 40 bytes</h1>
 <pre><code>Prompt L,P
 While P and P≤dim(ʟL
 ~ʟL(P→ʟL(P
@@ -59,7 +105,7 @@ C
 </code></pre>
 <p>Takes input as a list (with <code>1</code> for <code>&gt;</code> and <code>~1</code> for <code>&lt;</code>) and a 1-indexed position. <code>~</code> represents the negative sign while <code>-</code> represents the subtraction symbol.</p>
 </div>
-<div id="pu1" class="pu"><h1>C (gcc), <s>98</s> <s>96</s> <s>67</s> 65 bytes</h1>
+<div id="pu2" class="pu"><h1>C (gcc), <s>98</s> <s>96</s> <s>67</s> 65 bytes</h1>
 <pre class="lang-c prettyprint-override"><code>f(g,n,p)int*g;{return-1&lt;p&amp;p&lt;n?g[p]=!g[p],f(g,n,p-=g[p]*2-1)+1:0;}
 </code></pre>
 <p><a href="https://tio.run/##LYxNCsMgEIXX8RTTQIumCrHd1UgPkmZRpJEsMhVrV@LZ7QiF4cH3fsYp71ytK/cSZRAbpsGbHF/pG1HpKZzChHc/h8Uemsp/UdlGw0Vpcda30ZRKS9ifG3IBmXWN/LyAhawljHTFsM698ZOgZUjJlZwQiVbeH7cH9hLad0BqC2FYqT8" rel="nofollow noreferrer" title="C (gcc) – Try It Online">Try it online!</a></p>
@@ -79,43 +125,6 @@ C
 <p>-1 thanks to @noodle man</p>
 <p>-1 by changing the data type of <code>g</code> from <code>char*</code> to <code>int*</code></p>
 <p>-31 thanks to @ceilingcat</p>
-</div>
-<div id="pu2" class="pu"><h1>Swift 5.9, 104 bytes</h1>
-<pre class="lang-swift prettyprint-override"><code>let f={(g:[Bool],i)in
-var n=0,g=g,i=i+0
-while i&gt;=0&amp;&amp;i&lt;g.count{g[i] = !g[i]
-i-=g[i] ?1:-1
-n+=1}
-return n}
-</code></pre>
-<p><code>g</code> is the grid; <code>true</code> corresponds to <code>&quot;&gt;&quot;</code>, and <code>false</code> corresponds to <code>&quot;&lt;&quot;</code>. <code>i</code> is the starting position as an <code>Int</code>, 0-indexed.</p>
-<p>When <code>f</code> is called:</p>
-<ol>
-<li>Three variables are created:
-<ul>
-<li><code>n</code>, which is simply a counter</li>
-<li><code>g</code>, a mutable copy of the parameter with the same name</li>
-<li><code>i</code>, similar in purpose to <code>g</code> (we add <code>0</code> to give the type checker a hint)</li>
-</ul>
-</li>
-<li>The closure loops until <code>i</code> ceases to be a valid index of <code>g</code>. Inside this loop, we:
-<ol>
-<li><p>flip <code>g[I]</code></p>
-<blockquote>
-<p>The whitespace around the <code>=</code> operator is required so the compiler sees <code>infix operator =</code> followed by <code>prefix operator !</code>, instead of the nonexistent <code>infix operator =!</code>.</p>
-</blockquote>
-</li>
-<li><p>increment or decrement <code>i</code> based on the new sign of <code>g[i]</code></p>
-<blockquote>
-<p>Using <code>-=</code> instead of <code>+=</code> allowed us to save a byte by omitting whitespace between <code>?</code> and <code>-1</code> (which was needed for the same reason as the whitespace around <code>=</code> above). The whitespace before <code>?</code> is still required to differentiate the ternary conditional operator from an attempt to optional-chain on a non-<code>Optional</code> type.</p>
-</blockquote>
-</li>
-<li><p>increment <code>n</code></p>
-</li>
-</ol>
-</li>
-<li>Once we're out of the loop, <code>n</code> has the number of iterations it took for <code>i</code> to go out of bounds. This is exactly what we want, so we just go ahead and return it.</li>
-</ol>
 </div>
 <div id="pu3" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, <s>27</s> <s>24</s> 22 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
 <pre><code>V[ā&lt;Yå_#DYè©(YǝY®+V¼}¾
