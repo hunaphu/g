@@ -40,9 +40,25 @@ z||=&quot;RQBP&quot;[~C%2,C/8&gt;i%16?3:2]=~/#{W=s[J+=D]}/||s[i]*((i%9-k%9)*(i/9
 !!z}
 </code></pre>
 <p><a href="https://tio.run/##bVFLb@IwEL77VwxOUyXhYZIilrTrIgE9bFdiA2XVQ5RDCE6x0gYTh5ZC4K@zea26hx3Z45nP8/jGTnbLz0tIL@17eTzQRkRJROhZNukVMWz0zeqk/I3JY8Yzrg6@m0NtTCeUk4F60@TE6hl22@zePdJIv8WAG/T5@npCu@iQZRTPZyMHu@exarXGZHDPVbM/vLm1PHomyvGZSvexSSfeiWSZdLlnaBpX7Xak2rqhcZJbxNZ1w7AoHU6N3gk1GofTRUDo4gSW2wggQQKEgJEQCEQMkC8EuQiAGYIlOA6USHHkRuk6joPm0xH8hOkcYQ@JXSoBa78cSJlMA18yHSGMkLJ4eFrA0@8fiwekhJsEfAj5nq1gufGTVQs27yz5SHjKwH99hX4P5HbnJ0yCxvYBEymkawabON9BsBO8SPwssYjHLzp88HRdulKwgIfFfR4U5NXiVcmkg8pGXYqhFgQJQAT1jPBlCCiG/UK2/4nJDYyK1rQq2@Hxiu21YaSjfu/vF5cMKk1LbdhkUPEw6zzDvKt8twzwKJ5hJVj78QuDt8173qCeY80SVj@uUgtuVamtf5DQrTCvdUWAh1VygxZMT5c/" rel="nofollow noreferrer" title="Ruby – Try It Online">Try it online!</a></p>
-<p>Takes a newline separated string as input.</p>
+<p>Function taking a newline separated string as an argument. See <a href="https://codegolf.meta.stackexchange.com/q/2447/15599">meta</a> for discussion of equivalence of strings and arrays, and use of sentinel values as separators/terminators. A final newline is required (omitting this would cost 1 byte <code>$/*9</code>-&gt;<code>$/*10</code>.) The two <code>!!</code> at the end ensure a clean true/false value is returned. Deleting them would save 2 bytes but return only a truthy/falsy output.</p>
 <p><strong>Explanation</strong></p>
-<p><code>k</code> is the location of the king. Scans for knights by square by square. Knights threaten the king on squares where <code>(i%9-k%9)*(i/9-k/9)</code> is <code>+/-2</code>. Squaring this gives <code>4</code>. Scans along rows, columns and diagonals for rooks, queens, bishops and pawns: 9 possible directions where <code>x=[-1,0,1]</code> and <code>y=-9,0,9</code> (9 characters per row including newline.) The case <code>x=y=0</code> is invalid but that does not make a difference to the result.</p>
+<p>Take a 72-character argument consisting of 8 lines. Add 9 newlines <code>$/</code>to the end. The newlines will act as non-space characters and prevent scanning from circling round to the other side of the board. Assign <code>k</code> to the index of the king by regex <code>/k/</code>. Assign <code>false=!k</code> to <code>z</code>. Iterate 72 times (scan up to 8 squares from the king in 9 possible directions. Simultaneously scan all 72 squares for knights.)</p>
+<pre class="lang-ruby prettyprint-override"><code>-&gt;s{z=!k=/k/=~s+=$/*9
+72.times{|i|
+</code></pre>
+<p>If <code>i%8==0</code> set <code>J</code> to the location of the king and select a new direction <code>C=D</code> to scan in. Offsets for horizontal scanning are <code>i/8%3-1=[-1,0,1]</code> Offsets for vertical scanning are <code>i/8/3*9-9=[-9,0,9]</code>. Combining these gives diagonal scanning <code>+/-10</code> and <code>+/-8</code>. <code>0+0=0</code> is also generated as an offset but makes no difference to the result. If <code>i%8&gt;0</code> then check if the last character scanned <code>W</code> was a space, and if not set <code>D=0</code> to prevent further scanning in that direction.</p>
+<pre class="lang-ruby prettyprint-override"><code>i%8&lt;1?(C=D=i/8%3+i/24*9-10;J=k):&quot; &quot;!=W&amp;&amp;D=0
+</code></pre>
+<p>Check the character at <code>s[J+=D]</code> advancing <code>J</code> in direction <code>D</code>. Depending on the value of <code>C</code> select the values of character that would threaten the king. Where <code>C</code> is odd <code>+/-1</code>,<code>+/-9</code> they start at index 0: <code>RQ</code>. Where <code>C</code> is even <code>+/-8</code>,<code>+/-10</code> they start at index 1: <code>QBP</code>. Pawns should only be checked for on the first step in a diagonal direction <code>i%16=0</code> and where the <code>y</code> direction is positive <code>C/8&gt;0</code>.</p>
+<pre class="lang-ruby prettyprint-override"><code>z||=&quot;RQBP&quot;[~C%2,C/8&gt;i%16?3:2]=~/#{W=s[J+=D]}/
+</code></pre>
+<p>Check also for knights, which threaten the king on squares <code>s[i]</code> where <code>(i%9-k%9)*(i/9-k/9)</code> is <code>+/-2</code>. Squaring this gives <code>4</code>. We take the value of <code>s[i]</code> and multiply by the numerical value, then check if equal to the string <code>?N*4=&quot;NNNN&quot;</code> as this is shorter than separate string and numerical checks.</p>
+<pre class="lang-ruby prettyprint-override"><code>||s[i]*((i%9-k%9)*(i/9-k/9))**2==?N*4
+</code></pre>
+<p>Close the iteration loop and clean up the final value <code>z</code> from truthy/falsy to true/false by inverting twice.</p>
+<pre class="lang-ruby prettyprint-override"><code>}
+!!z}
+</code></pre>
 </div>
 <div id="pu1" class="pu"><h1>JavaScript (ES6), 188 bytes</h1>
 <p>Expects a matrix of characters and returns a Boolean value.</p>
