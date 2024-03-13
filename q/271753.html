@@ -26,16 +26,17 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>2040</td><td>Score 13877</td><td>240312T212852Z</td><td><a href="https://codegolf.stackexchange.com/questions/271753/convert-maximum-values-to-bit-widths/271756#271756">Tavian B</a></td></tr>
+<tr d-ix="0"><td>2040</td><td>Score  13613</td><td>240312T212852Z</td><td><a href="https://codegolf.stackexchange.com/questions/271753/convert-maximum-values-to-bit-widths/271756#271756">Tavian B</a></td></tr>
 </table>
-<div id="pu0" class="pu"><p>Score: 13877, <span class="math-container">\$n = 2040\$</span>.</p>
-<pre class="lang-c prettyprint-override"><code>#define CHUNK(m, mask) ((m) / ((m) % mask + 1) / mask % mask)
-#define INTERP(m) (7 - 86 / ((m) % 255 + 12))
-#define MAX_TO_WIDTH(m) (8 * CHUNK(m, 255) + INTERP(m))
+<div id="pu0" class="pu"><h1>Score: <s>13877</s> 13613, <span class="math-container">\$n = 2040\$</span>.</h1>
+<p><em>-264 thanks to l4m2</em></p>
+<pre class="lang-c prettyprint-override"><code>#define CHUNK(m, mask) (m) / ((m) % mask + 1) / mask % mask
+#define INTERP(m) 7 - 86 / ((m) % 255 + 12)
+#define MAX_TO_WIDTH(m) (CHUNK(m, 255) * 8 + INTERP(m))
 </code></pre>
 <hr />
 <p>This idea is due to Hallvard B. Furuseth on a <a href="https://groups.google.com/g/comp.lang.c/c/NfedEFBFJ0k/m/9HAqis6IDqcJ" rel="nofollow noreferrer">comp.lang.c post</a> in 2003.  It uses this helper function</p>
-<pre class="lang-c prettyprint-override"><code>#define CHUNK(m, mask) ((m) / ((m) % mask + 1) / mask % mask)
+<pre class="lang-c prettyprint-override"><code>#define CHUNK(m, mask) (m) / ((m) % mask + 1) / mask % mask
 </code></pre>
 <p>Which is used to make a repeating sequence like this:</p>
 <p><span class="math-container">$$
@@ -46,7 +47,7 @@ a_{0,j}, a_{1,j}, a_{2,j}, \ldots &amp; = \underbrace{0, \ldots, 0}_{\text{$j$ t
 $$</span></p>
 <p>You can play around with it in Python to see:</p>
 <pre class="lang-python prettyprint-override"><code>&gt;&gt;&gt; def CHUNK(m, mask):
-...     return ((m) // ((m) % mask + 1) // mask % mask)
+...     return (m) // ((m) % mask + 1) // mask % mask
 ... 
 &gt;&gt;&gt; def a(i, j):
 ...     return CHUNK(2**i - 1, 2**j - 1)
@@ -75,12 +76,12 @@ $$</span></p>
 </code></pre>
 <hr />
 <p>The <a href="https://groups.google.com/g/comp.lang.c/c/NfedEFBFJ0k/m/9HAqis6IDqcJ" rel="nofollow noreferrer">original post</a> is more like this:</p>
-<pre class="lang-c prettyprint-override"><code>#define CHUNK(m, mask) ((m) / ((m) % mask + 1) / mask % mask)
-#define INTERP(m) (4 - 12 / ((m) % 31 + 3))
+<pre class="lang-c prettyprint-override"><code>#define CHUNK(m, mask) (m) / ((m) % mask + 1) / mask % mask
+#define INTERP(m) 4 - 12 / ((m) % 31 + 3)
 #define MAX_TO_WIDTH(m) \
-    (30 * CHUNK(m, 0x3fffffffL) + 5 * CHUNK((m) % 0x3fffffff, 31) + INTERP(m))
+    (CHUNK(m, 0x3fffffffL) * 30 + CHUNK((m) % 0x3fffffff, 31) * 5 + INTERP(m))
 </code></pre>
-<p>Which would have score: 21873, <span class="math-container">\$n = 30 \cdot (2^{30} - 1) = 32212254690\$</span>.</p>
+<p>Which would have score: 21477, <span class="math-container">\$n = 30 \cdot (2^{30} - 1) = 32212254690\$</span>.</p>
 </div>
 
 <table id="st">
