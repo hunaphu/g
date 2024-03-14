@@ -43,7 +43,21 @@
 <pre class="lang-javascript prettyprint-override"><code>f=s=&gt;s.replace(/0|(\d+)(\d{3})/g,(_,a,b)=&gt;a&lt;1e15?[f(a),b]:_)
 </code></pre>
 <p><a href="https://tio.run/##dZHrCsIgGIb/dxXiL6Wv6ap1otWFVAzbXBRjRkZsHa59uRoVzkRFeN4HXj4P4iJ0fNofz71cJbJKQ7N1uNDeSR4zEUvC@J2sky41123woGwHJAIBWxouxNyXfrBcpURQ2G5mEa1ilWuVSS9TO5IS7PcHGFmLUoQYQwZ12ukh/pMGw@x8rxYC7MobBIbZRvEySuwwirdRukqhoryiYDSeTHGrVMPAQJcKP5qtglvjnLcm0Wg1ck3C5@@FHZPjYEB9XPVe7T4Pjr@fY6PqCQ" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
-<p><code>1e15</code> still in safe integer</p>
+<pre class="lang-javascript prettyprint-override"><code>f=s=&gt;                 // Will recurse
+s.replace(            // Replace
+  /0|(\d+)(\d{3})/g,  // Leading zero treated as a single part
+                      // which would also convert to 0
+  (_,a,b)=&gt;           // (matched, matched[:-3], matched[-3:]
+    a&lt;1e15?           // If matched &lt; 1e18, then a &lt; 1e15
+                      // Also 1e15 is smaller than MAX_SAFE_INTEGER
+                      // so no error would occur 
+      [f(a),b]        // matched[-3:] is a group
+    :                 // Notice that matched[:-3] also work as a part
+      _               // If matched &gt;= 1e18 or matched is undefined
+                      // aka. matching a single 0,
+)                     // then return as-is.
+</code></pre>
+<p>Looks portable to other languages.</p>
 </div>
 <div id="pu1" class="pu"><h1>JavaScript (ES6), 66 bytes</h1>
 <p><em>-3 thanks to <a href="https://codegolf.stackexchange.com/users/44718/tsh">@tsh</a></em></p>
