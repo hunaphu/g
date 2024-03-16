@@ -26,13 +26,47 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>515</td><td>APLNARS</td><td>240316T134334Z</td><td><a href="https://codegolf.stackexchange.com/questions/241442/egyptian-fractions-summing-to-n/271874#271874">Rosario</a></td></tr>
-<tr d-ix="1"><td>386</td><td>Python3</td><td>220122T201603Z</td><td><a href="https://codegolf.stackexchange.com/questions/241442/egyptian-fractions-summing-to-n/241611#241611">Ajax1234</a></td></tr>
-<tr d-ix="2"><td>125</td><td>Python 3</td><td>220120T134604Z</td><td><a href="https://codegolf.stackexchange.com/questions/241442/egyptian-fractions-summing-to-n/241445#241445">AnttiP</a></td></tr>
-<tr d-ix="3"><td>103</td><td>Haskell</td><td>220120T215431Z</td><td><a href="https://codegolf.stackexchange.com/questions/241442/egyptian-fractions-summing-to-n/241483#241483">Anders K</a></td></tr>
-<tr d-ix="4"><td>161</td><td>Python 3</td><td>220120T155246Z</td><td><a href="https://codegolf.stackexchange.com/questions/241442/egyptian-fractions-summing-to-n/241449#241449">ovs</a></td></tr>
+<tr d-ix="0"><td>152</td><td>Python 3</td><td>220120T155246Z</td><td><a href="https://codegolf.stackexchange.com/questions/241442/egyptian-fractions-summing-to-n/241449#241449">ovs</a></td></tr>
+<tr d-ix="1"><td>515</td><td>APLNARS</td><td>240316T134334Z</td><td><a href="https://codegolf.stackexchange.com/questions/241442/egyptian-fractions-summing-to-n/271874#271874">Rosario</a></td></tr>
+<tr d-ix="2"><td>386</td><td>Python3</td><td>220122T201603Z</td><td><a href="https://codegolf.stackexchange.com/questions/241442/egyptian-fractions-summing-to-n/241611#241611">Ajax1234</a></td></tr>
+<tr d-ix="3"><td>125</td><td>Python 3</td><td>220120T134604Z</td><td><a href="https://codegolf.stackexchange.com/questions/241442/egyptian-fractions-summing-to-n/241445#241445">AnttiP</a></td></tr>
+<tr d-ix="4"><td>103</td><td>Haskell</td><td>220120T215431Z</td><td><a href="https://codegolf.stackexchange.com/questions/241442/egyptian-fractions-summing-to-n/241483#241483">Anders K</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>APL(NARS), 515 chars</h1>
+<div id="pu0" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a>, <s>180</s> <s>161</s> 152 bytes</h1>
+
+<pre class="lang-python prettyprint-override"><code>def f(n):
+ u,*r=0,(0,1,n,1)
+ for l,q,a,b,*x in r:
+  if(l&gt;u&gt;0)|a==0:u=l;o=x
+  if u&lt;1or(u-l)*b&gt;=a*q&gt;0:r+=(l+1,q+1,a*q-b,q*b,*x,q),(l,q+1,a,b,*x)
+ return o
+</code></pre>
+<p><a href="https://tio.run/##JY7BCsMgEETv@Yo9qtmAklta/RdDYxuQtS4RUui/W2MPc5kZ5s37c7wSzbU@tgBBkFwGKKjYahQaDRIaOUBIDBEzelxRnbATcOvBHkR0xWn59dbqpdh4S/bsAZS7SSzKFKVanfUqO73waEUcDeam5kwrZnUNYpYo4t/uhIbk7ShMkOrFpo709NyEQZivk/DmnQ5B2F/L@gM" rel="nofollow noreferrer" title="Python 3 – Try It Online">Try it online!</a></p>
+<p>This does a kind of breadth-first search over sets of fractions. When it finds a first valid representation, it uses the length of that as an upper bound.<br />
+With the upper bound we can cut search branches when the target number can't be reached with the remaining number of fractions.</p>
+<p>This only uses integer arithmetic, given enough memory and time it should be able to calculate any value.</p>
+<p>Local results:</p>
+<pre class="lang-python prettyprint-override"><code>$ time python3 ef.py
+1 [1]
+2 [1, 2, 3, 6]
+3 [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 230, 57960]
+python3 ef.py  15.89s user 2.03s system 98% cpu 18.148 total
+</code></pre>
+<hr />
+<p>At the cost of ~60 bytes we can use sharper bounds for cutting the search, skip fractions that would lead to higher sums, and traverse the search tree in a depth-first order. This allows us to get <span class="math-container">\$n=4\$</span> on TIO:</p>
+
+<pre class="lang-python prettyprint-override"><code>def f(n):
+ u,*r=0,(0,1,n,1)
+ while r:
+  l,q,a,b,*x=r.pop()
+  if a*q==b:
+   if(l+1&gt;u&gt;0)&lt;1:u=l+1;o=x+[q]
+  elif u&lt;1or(u+~l)*b&gt;=a*q&gt;0:A=a*q-b;B=q*b;D,M=divmod(B,A);r+=(l,q+1,a,b,*x),(l+1,max(q+1,D+(M&gt;0)),A,B,*x,q)
+ return o
+</code></pre>
+<p><a href="https://tio.run/##LY9NboQwDIX3cwovHeKpiKpuhgkSaLZzgqoLEKGDlEmCRVrY9OrUVF355z3r80vb8ojh9Zy2tO374EYYMajLCTIVbEvCkgwFMuoE34/JO2DRwNNMHfVUrJZfUkwoMkwjdMVsbX84ZEKvTZ3rUl3NJVsZqmhX/T5/iOy8uPPVRMasf7wq@trKcV1emqOe@6q1c9FXN7rbYfp6xgFbalTF2qLAtfnHKzoo9OxWPJY3jXcBKmqoFZVm@YvdkjlA3MfIEGAKwF34dGgI3o6gwGD/QkubeAoLBgLvArIiYLX/Ag" rel="nofollow noreferrer" title="Python 3 (PyPy) – Try It Online">Try it online!</a></p>
+</div>
+<div id="pu1" class="pu"><h1>APL(NARS), 515 chars</h1>
 <pre><code>r←fi w;a;n;m;c;d;r1;r2;r3;t;ld;rs;tot
 a←w⋄m←0⋄d←0x⋄r←⍬⋄rs←ld←0⋄n←(w&lt;1)×1x+⌊÷w⋄tot←1x
 →0×⍳a=0
@@ -93,7 +127,7 @@ Here</p>
 <p>it sees if the sum difference &quot;a&quot; - 1/denominator(&quot;a&quot;) is of the type 1/q if yes return
 all the array in r and the two elements (1/denominator(&quot;a&quot;)), &quot;a&quot; - 1/denominator(&quot;a&quot;)</p>
 </div>
-<div id="pu1" class="pu"><h1>Python3, 386 bytes:</h1>
+<div id="pu2" class="pu"><h1>Python3, 386 bytes:</h1>
 <pre class="lang-py prettyprint-override"><code>def f(n):
  A,I=[1],[]
  while sum(1/i for i in A)+1/(A[-1]+1)&lt;=n:A.append(A[-1]+1)
@@ -119,7 +153,7 @@ all the array in r and the two elements (1/denominator(&quot;a&quot;)), &quot;a&
 python3 egyptian_tests.py  29.14s user 0.15s system 99% cpu 29.480 total
 </code></pre>
 </div>
-<div id="pu2" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a>, <strike>159</strike> <strike>130</strike> 125 bytes</h1>
+<div id="pu3" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a>, <strike>159</strike> <strike>130</strike> 125 bytes</h1>
 
 <pre class="lang-python prettyprint-override"><code>f=lambda x,s={1},i=1,p=1,l=[]:i&lt;7**x**x**x and f(x,s^{i},1+i*(i in s),p*i,l+[s]*(sum(p//y for y in s)==x*p))or min(l,key=len)
 </code></pre>
@@ -137,7 +171,7 @@ When <span class="math-container">\$x\ge 4\$</span>, <span class="math-container
 <p><span class="math-container">\$xe^{x+xe^x} &lt; x^{x^x}\$</span></p>
 <p><span class="math-container">\$e^{xe^{x+xe^x}}&lt;7^{x^{x^x}}\$</span></p>
 </div>
-<div id="pu3" class="pu"><h1><a href="https://www.haskell.org/" rel="noreferrer">Haskell</a>, 103 bytes</h1>
+<div id="pu4" class="pu"><h1><a href="https://www.haskell.org/" rel="noreferrer">Haskell</a>, 103 bytes</h1>
 
 <pre class="lang-hs prettyprint-override"><code>head.([1..]&gt;&gt;=).g 1 0
 g b i a d=[[]|a&lt;1]++[j:o|j&lt;-[max(div(b-1)a)i+1..div(b*d)a],o&lt;-g(b*j)j(a*j-b)$d-1]
@@ -148,41 +182,6 @@ g b i a d=[[]|a&lt;1]++[j:o|j&lt;-[max(div(b-1)a)i+1..div(b*d)a],o&lt;-g(b*j)j(a
 4 = {}&amp;\frac11 + \frac12 + \frac13 + \frac14 + \frac15 + \frac16 + \frac17 + \frac18 + \frac19 + \frac1{10} + \frac1{11} + \frac1{12}
 + \frac1{13} \\ &amp;+ \frac1{14} + \frac1{15} + \frac1{16} + \frac1{17} + \frac1{18} + \frac1{19} + \frac1{20} + \frac1{21} + \frac1{22} + \frac1{23} + \frac1{24} \\ &amp;+ \frac1{25} + \frac1{26} + \frac1{27} + \frac1{28} + \frac1{30} + \frac1{34} + \frac1{100} + \frac1{11934} + \frac1{14536368}.
 \end{split}</span></p>
-</div>
-<div id="pu4" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a>, <s>180</s> 161 bytes</h1>
-
-<pre class="lang-python prettyprint-override"><code>def f(n):
- u,*r=0,(0,1,n,1)
- for l,q,a,b,*x in r:
-  if a==0:
-   if(l&gt;u&gt;0)&lt;1:u=l;o=x
-  if u&lt;1or(u-l)*b&gt;=a*q&gt;0:r+=(l+1,q+1,a*q-b,q*b,*x,q),(l,q+1,a,b,*x)
- return o
-</code></pre>
-<p><a href="https://tio.run/##JY7RCoQgEEXf@4p5VJtA6a1N/8XY2g1kzCGh/XpX62HgcrnMOcfv/EYaS3mvG2yC5NRBRsVWo9BokNDIDrbIEDChxwXVBTsB1x3sG3hrdYs1i@Cy03I2U7bhFe31LPJsIos8BKkWZ71KTk/cWxF6g6lebYYFk2qfMUkU4alvVGXzemYmiKVJ0M329FmFQRibLRy80ykIb31Z/g" rel="nofollow noreferrer" title="Python 3 – Try It Online">Try it online!</a></p>
-<p>This does a kind of breadth-first search over sets of fractions. When it finds a first valid representation, it uses the length of that as an upper bound.<br />
-With the upper bound we can cut search branches when the target number can't be reached with the remaining number of fractions.</p>
-<p>This only uses integer arithmetic, given enough memory and time it should be able to calculate any value.</p>
-<p>Local results:</p>
-<pre class="lang-python prettyprint-override"><code>$ time python3 ef.py
-1 [1]
-2 [1, 2, 3, 6]
-3 [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 230, 57960]
-python3 ef.py  15.89s user 2.03s system 98% cpu 18.148 total
-</code></pre>
-<hr />
-<p>At the cost of ~60 bytes we can use sharper bounds for cutting the search, skip fractions that would lead to higher sums, and traverse the search tree in a depth-first order. This allows us to get <span class="math-container">\$n=4\$</span> on TIO:</p>
-
-<pre class="lang-python prettyprint-override"><code>def f(n):
- u,*r=0,(0,1,n,1)
- while r:
-  l,q,a,b,*x=r.pop()
-  if a*q==b:
-   if(l+1&gt;u&gt;0)&lt;1:u=l+1;o=x+[q]
-  elif u&lt;1or(u+~l)*b&gt;=a*q&gt;0:A=a*q-b;B=q*b;D,M=divmod(B,A);r+=(l,q+1,a,b,*x),(l+1,max(q+1,D+(M&gt;0)),A,B,*x,q)
- return o
-</code></pre>
-<p><a href="https://tio.run/##LY9NboQwDIX3cwovHeKpiKpuhgkSaLZzgqoLEKGDlEmCRVrY9OrUVF355z3r80vb8ojh9Zy2tO374EYYMajLCTIVbEvCkgwFMuoE34/JO2DRwNNMHfVUrJZfUkwoMkwjdMVsbX84ZEKvTZ3rUl3NJVsZqmhX/T5/iOy8uPPVRMasf7wq@trKcV1emqOe@6q1c9FXN7rbYfp6xgFbalTF2qLAtfnHKzoo9OxWPJY3jXcBKmqoFZVm@YvdkjlA3MfIEGAKwF34dGgI3o6gwGD/QkubeAoLBgLvArIiYLX/Ag" rel="nofollow noreferrer" title="Python 3 (PyPy) – Try It Online">Try it online!</a></p>
 </div>
 
 <table id="st">
