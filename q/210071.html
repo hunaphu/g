@@ -26,8 +26,8 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>027</td><td>Pascal</td><td>240316T105507Z</td><td><a href="https://codegolf.stackexchange.com/questions/210071/the-vanilla-factorial-challenge/271872#271872">Kai Burg</a></td></tr>
-<tr d-ix="1"><td>299</td><td>Assembly nasm</td><td>240315T224125Z</td><td><a href="https://codegolf.stackexchange.com/questions/210071/the-vanilla-factorial-challenge/271861#271861">vengy</a></td></tr>
+<tr d-ix="0"><td>103</td><td>[Assembly nasm</td><td>240315T224125Z</td><td><a href="https://codegolf.stackexchange.com/questions/210071/the-vanilla-factorial-challenge/271861#271861">vengy</a></td></tr>
+<tr d-ix="1"><td>027</td><td>Pascal</td><td>240316T105507Z</td><td><a href="https://codegolf.stackexchange.com/questions/210071/the-vanilla-factorial-challenge/271872#271872">Kai Burg</a></td></tr>
 <tr d-ix="2"><td>001</td><td>HP‑41C series</td><td>240314T151517Z</td><td><a href="https://codegolf.stackexchange.com/questions/210071/the-vanilla-factorial-challenge/271808#271808">Kai Burg</a></td></tr>
 <tr d-ix="3"><td>005</td><td>BQN</td><td>240312T224226Z</td><td><a href="https://codegolf.stackexchange.com/questions/210071/the-vanilla-factorial-challenge/271757#271757">DLosc</a></td></tr>
 <tr d-ix="4"><td>036</td><td>Swift</td><td>230723T200253Z</td><td><a href="https://codegolf.stackexchange.com/questions/210071/the-vanilla-factorial-challenge/263225#263225">macOSist</a></td></tr>
@@ -179,7 +179,57 @@
 <tr d-ix="150"><td>002</td><td>Pyth</td><td>200824T230702Z</td><td><a href="https://codegolf.stackexchange.com/questions/210071/the-vanilla-factorial-challenge/210074#210074">Scott</a></td></tr>
 <tr d-ix="151"><td>004</td><td>Keg</td><td>200824T225746Z</td><td><a href="https://codegolf.stackexchange.com/questions/210071/the-vanilla-factorial-challenge/210072#210072">lyxal</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h2>Pascal, 27 B</h2>
+<div id="pu0" class="pu"><h1>[Assembly (nasm, x64, Linux)], 103 bytes</h1>
+<pre><code>4c89c0e84a0000006683f800770366ffc048be0000000000000000b90a00
+00004831d2f7f180c23066ffce88166683f80075ed66ffc066bf010048ba
+00000000000000004829f20f0549ffc04983f80d7cae5083f801740c66ff
+c8e8f2ffffff48f724244159c3
+</code></pre>
+<p><a href="https://tio.run/##TY9BbsQgDEX3PoX3pVVQu8hwlWoWBDMqEZAUJ1NmLp8aokrd2d/@z9@W2acpPl6z5XQczqTljsVWVUZwNka8gUsrijDAbLFCyE46qOciB5WhVd5VpQeIpi4FC4mfKlDoA7BESFF9jEDeIYfm@BTvVVH8h89PjH/8xqSgdC8aL79o4H062YLgB7d8fb9lFUoZlX6HOaKDm1l3/mqP9ImXAxrmJ/qeoKnnb2mP@P2zFJI46xW8WRfhXKD4DRHYuy0sGd/IblY0nvAC2SBNqIfj@AU" rel="nofollow noreferrer">Try it online!</a></p>
+<p><strong>How it works</strong></p>
+<p>fact.asm</p>
+<pre><code>c:mov rax,r8
+call f
+cmp ax,0
+ja x
+inc ax
+x:mov rsi,n     ; &lt;---+
+mov ecx,10      ;     |
+l:xor rdx,rdx   ;     |
+div ecx         ;     | Decimal to ASCII converter
+add dl,48       ;     |
+dec si          ;     |
+mov[rsi],dl     ;     |
+cmp ax,0        ; &lt;---+
+jnz l
+inc ax          ; &lt;---+
+mov di,1        ;     |
+mov rdx,n+1     ;     | Write factorial to stdout
+sub rdx,rsi     ;     |
+syscall         ; &lt;---+
+inc r8
+cmp r8,13
+jl c
+f:push rax      ; &lt;---+ 
+cmp eax,1       ;     |
+jz e            ;     |
+dec ax          ;     | Compute factorial EAX (in/out)
+call f          ;     |
+mul qword[rsp]  ;     |
+e:pop r9        ;     |
+ret             ; &lt;---+
+section .data
+resb 9
+n: db 10
+</code></pre>
+<p><strong>Build Commands</strong></p>
+<pre><code>nasm -f elf64 fact.asm -o fact.o
+ld fact.o -o fact
+objcopy --dump-section .text=text.bin fact.o
+xxd -p text.bin &gt; text.hex
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h2>Pascal, 27 B</h2>
 <p>The source code is split into a left half containing the boilerplate for a complete Pascal <code>program</code>, and right half containing the necessary step to <em>evaluate</em> <span class="math-container">\$n!\$</span> (i. e. the task).
 Only the <em>extra</em> bytes necessary to achieve <em>the task</em> are counted.</p>
 <pre class="lang-pascal prettyprint-override"><code>{ boilerplate                          }{ necessary for evalution      }
@@ -197,43 +247,6 @@ The value of the built‑in constant <code>maxInt</code> is <em>implementation�
 Today, it is usually <span class="math-container">\$2^{63}-1\$</span>, so you can calculate up to <span class="math-container">\$20!\$</span>.</p>
 <p>Remember that in Pascal <code>for</code>‑loop limits are <em>inclusive</em>, so you subtract <span class="math-container">\$1\$</span> from <span class="math-container">\$n\$</span>.
 This is similar to the limits in mathematical notation <span class="math-container">\$\prod\$</span> and <span class="math-container">\$\sum\$</span>.</p>
-</div>
-<div id="pu1" class="pu"><h1><a href="http://www.nasm.us/" rel="nofollow noreferrer">Assembly (nasm, x64, Linux)</a>, 299 bytes</h1>
-<pre><code>c:mov rax,r8
-call f
-cmp ax,0
-ja x
-inc ax
-x:mov rsi,n
-mov ecx,10
-l:mov dx,0
-div ecx
-add dl,48
-dec si
-mov[rsi],dl
-cmp ax,0
-jnz l
-inc ax
-mov di,1
-mov rdx,n+1
-sub rdx,rsi
-syscall
-inc r8
-cmp r8,13
-jl c
-f:push rax
-test rax,07FFFFFFEh
-jz e
-dec ax
-call f
-mul qword[rsp]
-e:pop r9
-ret  
-section .bss
-resb 9
-n:
-</code></pre>
-<p><a href="https://tio.run/##TY/BTsMwEETv8xV7x6BErUSaO/wE6sGxXdWR7aTeBNL@fFgbkPBpPDv7NKuZXRzC/Tlpjvtu@jh9Utabyh2MDoEuMHEmMRqMmjb4ZOSH7SfIXiUU5cym2gah2rakra8utLVkgzp2sM4Q@xL/kMWzsuEfOz0o/MErw6u2iiy09NSC16FqWQXfuZSr@VJUKLlT7QFjIINLP698LVdgcbzUc5rX9/rerhgf5GoXmf@eGNdAt68pWyk2n@H6eRLiCdktRGBnFj8lehmYxeKBTkj9vn8D" rel="nofollow noreferrer" title="Assembly (nasm, x64, Linux) – Try It Online">Try it online!</a></p>
 </div>
 <div id="pu2" class="pu"><h2>HP‑41C series, 1 B</h2>
 <p>Place <span class="math-container">\$n\$</span> into the <code>X</code> register (that is the top of the stack) and <code>XEQ</code> (execute) the built‑in command</p>
