@@ -26,6 +26,167 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
+<tr d-ix="0"><td>161</td><td>Scala</td><td>231020T090429Z</td><td><a href="https://codegolf.stackexchange.com/questions/266083/write-a-variadic-fixed-point-combinator/266127#266127">138 Aspe</a></td></tr>
+<tr d-ix="1"><td>025</td><td>JavaScript ES6</td><td>231019T234625Z</td><td><a href="https://codegolf.stackexchange.com/questions/266083/write-a-variadic-fixed-point-combinator/266115#266115">Neil</a></td></tr>
+<tr d-ix="2"><td>051</td><td>Python 3</td><td>231019T232025Z</td><td><a href="https://codegolf.stackexchange.com/questions/266083/write-a-variadic-fixed-point-combinator/266114#266114">Nick Ken</a></td></tr>
+<tr d-ix="3"><td>024</td><td>R</td><td>231019T175216Z</td><td><a href="https://codegolf.stackexchange.com/questions/266083/write-a-variadic-fixed-point-combinator/266109#266109">Nick Ken</a></td></tr>
+<tr d-ix="4"><td>170</td><td>Java 8</td><td>231018T145703Z</td><td><a href="https://codegolf.stackexchange.com/questions/266083/write-a-variadic-fixed-point-combinator/266085#266085">Kevin Cr</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1><a href="http://www.scala-lang.org/" rel="nofollow noreferrer">Scala</a>, 161 bytes</h1>
+<p>Port of <a href="https://codegolf.stackexchange.com/a/266085/110802">@Kevin Cruijssen'Java answer</a> in Scala.</p>
+<hr />
+<p>Golfed version. <a href="https://tio.run/##vZG9asMwEMd3P8UROkjQmGTo4taFEBrIUGK6hg6qLQcVVzaSnCYYrX2APmJfxD35MwmBbl2Cufv9P3TRMctYXRvFhIFllfAUDMmDhTxS92O9drNqNimhwbIfRc0oJmkp42ChFDtuV6/NPn9753EP7AjrthFuey6smP/BClKEj5J/on2@50qJhMOQExZ@TFBNqaXW1p3pMxMS@MFwmWhYFAVUHsCeZcD3XG6SZCUOAfR5ELafBBkAFxRBBWdRXX8YHoAaBy4vQUMkUngWBEQKRPpMr6U2TMZ8k27X0mBcCDMKRpUceKY5OGsypz6@xzfXFNM5BQv29l/7pcx1GwvO/i6I/ah3cWiUGpFLPXbD5MjfkfGfoCcSxyNwqe7SOzBvN9e49oyuRJorImRRGniYwgxMDne0ai7YZ71wXWamc3EW@LhGQQcMkwaqSz2HCiWkySTRk7UbBnDTZv58fcMT2uJgjLoH7IqTwXXiTKxn618" rel="nofollow noreferrer">Try it online!</a></p>
+<pre class="lang-scala prettyprint-override"><code>trait C{def t(o:Any):Any}
+trait F{def f():C}
+trait P{def c(func:Array[F]):C}
+object P{def g(a:Array[P]):Array[F]={a.map(p=&gt;new F{override def f():C=p.c(g(a))})}}
+</code></pre>
+<p>Ungolfed version. <a href="https://tio.run/##vZLLSsNAFIb3eYpDcTEDNrQLN9UKpVjoQhrcFhdjMikj8STMTGqLZOsD@Ii@SDyTpEkaC@7chDDn@y9zMaFIRFlaLZSFJXx4AJGMwbJ0Bgs88urrFZ5XE6uWiBnNlt0kaCchi3MMSai1OG5XzycufXmVYR/cMXGiAkedBDCvEADhv4mMZTC/B5TvLhzSvdRaRbLXgfDMDxm5cQ4FJ2XRi3sUCkEerMTIwCLLKuu9SEDuJW6iaKUOXQmyqn5ZFe8yg2Hmr92RxoHLIWgZ1kdIgIqBoS/MGo0VGMpNvF2jpbg5TDhYnUuQiZHgrNmU@7Qx315SjKe0RSiu/7VfLFy3ruDk74LUj3uDgyapVSmas4sO/B3rboL3JI4nYKhu0hswrSeXuPoYXYk41Uxhllu4G8MEbAo3vH5gp6wnafLENi7OgjZXKXiLUVJLNannUKYV2gSZGa3d4gyu6szvzy94IFta6KJugbrSSus6at5tWf4A" rel="nofollow noreferrer">Try it online!</a></p>
+<pre class="lang-scala prettyprint-override"><code>trait C {
+  def t(o: Any): Any
+}
+
+trait F {
+  def f(): C
+}
+
+trait P {
+  def c(func: Array[F]): C
+}
+
+object P {
+  def g(a: Array[P]): Array[F] = {
+    a.map(p =&gt; new F { override def f(): C = p.c(g(a)) })
+  }
+}
+
+object Main extends App {
+  val evenOddFix: Array[P] = Array(
+    new P { override def c(func: Array[F]) = new C { override def t(n: Any) = if (n.asInstanceOf[Int] == 0) true else func(1).f().t(n.asInstanceOf[Int]-1) } },
+    new P { override def c(func: Array[F]) = new C { override def t(n: Any) = if (n.asInstanceOf[Int] == 0) false else func(0).f().t(n.asInstanceOf[Int]-1) } }
+  )
+
+  val evenOddFunctions: Array[F] = P.g(evenOddFix)
+  val evenFunc = evenOddFunctions(0).f()
+  val oddFunc = evenOddFunctions(1).f()
+
+  for(input &lt;- 0 to 5){
+    val evenResult = evenFunc.t(input)
+    val oddResult = oddFunc.t(input)
+    println(s&quot;Input: $input → Even: $evenResult; Odd: $oddResult&quot;)
+  }
+}
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>JavaScript (ES6), 25 bytes</h1>
+<p><div class="snippet" data-lang="js" data-hide="false" data-console="true" data-babel="false">
+<div class="snippet-code">
+<pre class="snippet-code-js lang-js prettyprint-override"><code>g=a=&gt;a.map(p=&gt;_=&gt;p(g(a)))
+
+;h=g([a=&gt;n=&gt;!n||a[1]()(n-1),a=&gt;n=&gt;!!n&amp;&amp;a[0]()(n-1)]);for(i=0;i&lt;6;i++)console.log(h.map(f=&gt;f()(i)));</code></pre>
+</div>
+</div>
+</p>
+<p>Port of @KevinCruijssen's Java answer.</p>
+</div>
+<div id="pu2" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a>, <s>55</s> 51 bytes</h1>
+
+<pre class="lang-python prettyprint-override"><code>y=lambda a:[(lambda x:lambda:x(y(a)))(x)for x in a]
+</code></pre>
+<p><a href="https://tio.run/##hVHNSsQwEL7nKcYFYcZGttm9BXoSzz5AKUt0GrdQp0stkvryNekPrLDobZh8f/PlMg7nTo7TNBat@3hlB86WuI7BLoMNOKIjIgzkux4CNAKumuqvWk4d88k3AQooFaxEvxJBrBRFDpHjS1MhoTwa0jdxdxHnhCMw34CqUuqta1s3fP9hobnILUPjIXoZgLr9rKNKIwPK/SEzNMtpzm47a7ab5X5/0PwP6PggmYmolG27PwXzSJC68ambEa@roWq7IgJHvLqIZk2lykuf4gYNu@dItDsNm0BCBIoPL8y/9mbdPy1y6W1Vjvsly/xPvZP3Go02sYjpBw" rel="nofollow noreferrer" title="Python 3 – Try It Online">Try it online!</a></p>
+<p>A lambda taking a list of mutually recursive functions and returning a list of functions that return functions. Unlike R, Python doesn’t have lazy evaluation of function arguments so an extra step is needed to delay function evaluation from happening within the call to <code>y</code> itself; I think this is analogous to the <a href="https://codegolf.stackexchange.com/a/266085/42248">Java answer from @KevinCruijsson</a>.</p>
+<p>The even odd and Collatz examples here look like this:</p>
+<pre class="lang-python prettyprint-override"><code>even_odd_fix = [
+ lambda f:lambda n:n==0 or f[1]()(n-1),
+ lambda f:lambda n:n!=0 and f[0]()(n-1)
+]
+
+collatz_fix = [
+ lambda f:lambda n,d=0:d if n==1  else f[int(n%2+1)]()(n,d+1),
+ lambda f:lambda n,d:f[0]()(n//2,d),
+ lambda f:lambda n,d:f[0]()(3*n+1,d)
+]
+
+even_odd = [f() for f in y(even_odd_fix)]
+collatz = y(collatz_fix)[0]()
+
+[print(x, &quot;Even:&quot;, even_odd[0](x), &quot;Odd:&quot;, even_odd[1](x), &quot;Collatz:&quot;, collatz(x)) for x in range(1,11)]
+</code></pre>
+<p>Note that the functions returned must be called without an argument to return the actual useful function.</p>
+</div>
+<div id="pu3" class="pu"><h1><a href="https://www.r-project.org" rel="nofollow noreferrer">R</a>, 24 bytes</h1>
+<pre class="lang-r prettyprint-override"><code>y=\(a)Map(\(x)x(y(a)),a)
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=hVPBbtQwED1wQPJXTAWtPGwq4vRSIeXEGS5w61aRiScbS4kd2U67Qf0TLuXAP_AtfA12dtPuFqpeYs2892beTOwfP939_a8xNOeXv6dyzSV-kgNf8y1u-RQjzCTu4D-vXtMNmcoqVTV6CyV02gfOQPsqAVHcjKbGNTd4Yu7uUvA2YpHPzbnAbGbG6Ih4Ys7OFmaqMlMZMtZbdfFPn7xK6Zh6plcx4wftxP8Ehz3zp4riJYV4VCSfb-CL7em2lQFqa4LTN6SgH8Mou24CR_XofMzNQ4BtIJUJ2hoPwYKiQK7XhqC1t9BLM4EPNPhEDC3BR9t1MnyHwdma1OgoiTYU0iFYHdHjFT16zlSZo264KUuBCqjzNLe-uipW5vS0uL5OnFWa-lCEO45I8Psixs_CF-_MSsRM2sFyL6KRiR9eEmT7ZU58-Z84245DVYqG0M7YMgjOpRkzY_-NnI-Yp_BZ9uS5-FDkGaQvxpV_JR88kKzbh33C6LXZgDaBNknbONuDSIsqctbJYehinwdzGSQ_GTz1chRjFmdHv9PuPWUN7t_D8mz-Ag" rel="nofollow noreferrer">Attempt this Online!</a></p>
+<p>A recursive function that takes a list of functions and returns a list of functions. The input list of functions should be a list of mutually recursive functions. Each function within this list should take a list of functions as an argument, and return a function that makes use of one or more members of the function list.</p>
+<p>Inspiration taken from the <a href="https://tio.run/#%23pVGxCoMwFNzzFTcUVFBRO3Vw9Qu6iYNgRGmMRW3p39uXp9YWFFo6vTP37i45q7y/SKXGsYSKm/xqHwg4apR3qZP6gdQAF21RZNCIBVCXBsQICA@V1Dh3N0lYql6aPdgaHkJHCPr40iLJSbx4mPXVhNUWy60MMcrJj4z5jGYmRNMWx4CzGLkwI5xGxKlr5nrpKY53KM@jNJb95MM3X42CN6PoH6NwNtrWcw3Lo2fyhaK5k7w2MUVLvV67Wg@w6f9yuxbSwPdPmfNJmYq3melpu1S4T0ULNT4B" rel="nofollow noreferrer">Haskell answer in Bubbler’s comment</a>, as well as <a href="https://codegolf.stackexchange.com/a/266085/42248">@KevinCruijssen’s Java answer</a>.</p>
+<p>Examples shown in the <a href="https://ato.pxeger.com/run?1=hVPBbtQwED1wQPJXTAWtPGwq4vRSIeXEGS5w61aRiScbS4kd2U67Qf0TLuXAP_AtfA12dtPuFqpeYs2892beTOwfP939_a8xNOeXv6dyzSV-kgNf8y1u-RQjzCTu4D-vXtMNmcoqVTV6CyV02gfOQPsqAVHcjKbGNTd4Yu7uUvA2YpHPzbnAbGbG6Ih4Ys7OFmaqMlMZMtZbdfFPn7xK6Zh6plcx4wftxP8Ehz3zp4riJYV4VCSfb-CL7em2lQFqa4LTN6SgH8Mou24CR_XofMzNQ4BtIJUJ2hoPwYKiQK7XhqC1t9BLM4EPNPhEDC3BR9t1MnyHwdma1OgoiTYU0iFYHdHjFT16zlSZo264KUuBCqjzNLe-uipW5vS0uL5OnFWa-lCEO45I8Psixs_CF-_MSsRM2sFyL6KRiR9eEmT7ZU58-Z84245DVYqG0M7YMgjOpRkzY_-NnI-Yp_BZ9uS5-FDkGaQvxpV_JR88kKzbh33C6LXZgDaBNknbONuDSIsqctbJYehinwdzGSQ_GTz1chRjFmdHv9PuPWUN7t_D8mz-Ag" rel="nofollow noreferrer">ATO link above</a> and below are even/odd, mod 3 and Collatz problem.</p>
+<pre><code>even_odd_fix = list(
+ is_even=\(func)\(n)!n||func$is_odd(n-1),
+ is_odd=\(func)\(n)!!n&amp;&amp;func$is_even(n-1)
+)
+
+mod3_fix = list(
+ is_0_mod3 = \(func)\(n)!n||func$is_2_mod3(n-1),
+ is_1_mod3 = \(func)\(n)!!n&amp;&amp;func$is_0_mod3(n-1),
+ is_2_mod3 = \(func)\(n)!!n&amp;&amp;func$is_1_mod3(n-1)
+)
+
+# Somewhat contrived mutually recursive list of functions to determine how many steps of the Collatz procedure to get to 1
+coll_fix = list(
+ \(func)\(n,d=0)if(n==1)d else func[[2+n%%2]](n,d+1),
+ \(func)\(n,d)func[[1]](n/2,d),
+ \(func)\(n,d)func[[1]](3*n+1,d)
+)
+
+even_odd = y(even_odd_fix)
+mod3 = y(mod3_fix)
+collatz_depth = y(coll_fix)[[1]]
+</code></pre>
+</div>
+<div id="pu4" class="pu"><h1>Java 8, 170 bytes</h1>
+
+<pre class="lang-java prettyprint-override"><code>interface C{Object t(Object o);}interface F{C f();}interface P{C c(F[]f);static F[]g(P[]a){return java.util.Arrays.stream(a).map(p-&gt;(F)()-&gt;p.c(g(a))).toArray(F[]::new);}}
+</code></pre>
+<p>Based on <a href="https://codegolf.stackexchange.com/a/229753/52210"><em>@user</em>'s Java answer</a> for <a href="https://codegolf.stackexchange.com/questions/229602/implement-fix2-combinator">the related <em>Implement Fix2 combinator</em> challenge</a>, as well as <a href="https://codegolf.stackexchange.com/a/266084/52210">my Java answer</a> for <a href="https://codegolf.stackexchange.com/questions/1064/golfed-fixed-point-combinator">the related <em>Golfed fixed point combinator</em> challenge</a>.</p>
+<p><strong>Explanation:</strong></p>
+<pre class="lang-java prettyprint-override"><code>interface C{           // Completed Function interface
+  Object t(Object o);} //  Using a function that transforms a given Object
+
+interface F{           // Function interface
+  C f();}              //  A wrapper to pass the 'Completed Function' as function
+
+interface P{           // Program interface
+  C c(F[]f);           //  Which takes an array of 'Function's as argument,
+                       //  and returns a 'Completed Function'
+  
+  static F[]g(P[]a){   //  Recursive function that accepts an array of 'Program's as argument,
+                       //  and returns an array of 'Function's
+    return java.util.Arrays.stream(a)
+                       //   Convert the given 'Program's-array to a generic Stream
+      .map(p-&gt;         //   Map each 'Program' in this Stream to:
+             (F)       //    A casted 'Function' (necessary since it's a generic instead of typed Stream)
+             ()-&gt;      //    which wraps:
+               p.c(    //     A completed call to its own 'Program' interface
+                 g(    //      Using a recursive call to its own function
+                   a)) //      with the given 'Program's-array as argument
+      .toArray(F[]::new);}}
+                       //   After the map: convert the Stream to a 'Function's-array
+</code></pre>
+<p>The method to call is <code>P::g</code>, which takes an array of <code>P</code> as argument and returns an array of <code>F</code>. To obtain a completed function <code>C</code> from an <code>F</code>, we can call <code>F::f</code> on it. <code>P</code> represents the function to be fixed, and its method <code>c</code> takes <code>F</code> as argument to prevent immediate evaluation, returning a <code>C</code> that represents a complete function to transform a given Object <code>o</code> with <code>C</code>'s <code>t(o)</code>.</p>
+<p><strong>Example even/odd implementation:</strong></p>
+<pre class="lang-java prettyprint-override"><code>P[] evenOddFix = {
+  func -&gt; n -&gt; (int)n == 0 ? true : func[1].f().t((int)n-1),
+  func -&gt; n -&gt; (int)n == 0 ? false : func[0].f().t((int)n-1)
+};
+F[] evenOddFunctions = P.g(evenOddFix);
+C evenFunc = evenOddFunctions[0].f(),
+  oddFunc = evenOddFunctions[1].f();
+Object evenResult = evenFunc.t(input),
+       oddResult = oddFunc.t(input);
+</code></pre>
+<p><a href="https://tio.run/##hZLBbqMwFEX3/YqnrGxlsNLFbMKQahQNUhdVo2YZZeEQwzhDDLIfmUYR2/mAfmJ/JPMMDmmnI3UBmOvDvfcBO3mQ0W7763zWBpXNZaZgfnrc7FSGgCwsKh631/30NIecvZMWJGUsXa1zHjuUqDOgm4ItVmvJT1ZhYw3sKEs0qEvx3Vp5dMKhVXLPJBd7WbM6mrGUMx7NapGxgmTOBVYd662nU6N@U2p7rptNSQlZKZ2DB6kNnG4AghriD5Xewp722BKtNsVqDdIWP3mHAlAxUAdlHrfbVD9DEmSAvDEZRDMw/sRoQm4gSWACd4C2UTDtiNXtWtArEMh6JLrlXz43yGXpBofJB4fOoI27S/qmH9GoK@Oo5UIU7Fqb9@y8Iz1GxL8PhZxLu6rf@h/Yj9Rb5pX1tUCbusFkEveLb8nXsBqP@eWFhV/E2z0p15QYvL0xTdfhQzwMLQY2NBrQOKDLo0O1F1WDoqYPiKVho3tPTGE07kuM4PXPC/ygMK9dG4xHMdBoXhySgm9744/2/Bc" rel="nofollow noreferrer">Try it online.</a></p>
+</div>
 
 <table id="st">
 <!-- Popups content will be added here -->
