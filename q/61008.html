@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::61008</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>320</td><td>Python 2 + PIL</td><td>151016T160813Z</td><td><a href="https://codegolf.stackexchange.com/questions/61008/seamless-conversion-from-square-to-hexagon/61015#61015">dieter</a></td></tr>
+<tr d-ix="1"><td>163</td><td>Matlab</td><td>151016T180003Z</td><td><a href="https://codegolf.stackexchange.com/questions/61008/seamless-conversion-from-square-to-hexagon/61030#61030">flawr</a></td></tr>
+<tr d-ix="2"><td>173</td><td>Mathematica</td><td>151016T184624Z</td><td><a href="https://codegolf.stackexchange.com/questions/61008/seamless-conversion-from-square-to-hexagon/61034#61034">Martin E</a></td></tr>
+<tr d-ix="3"><td>293</td><td>PHP</td><td>151017T140212Z</td><td><a href="https://codegolf.stackexchange.com/questions/61008/seamless-conversion-from-square-to-hexagon/61073#61073">Blackhol</a></td></tr>
+<tr d-ix="4"><td>562</td><td>HTML5 + Javascript</td><td>151017T080928Z</td><td><a href="https://codegolf.stackexchange.com/questions/61008/seamless-conversion-from-square-to-hexagon/61061#61061">adroitwh</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>Python 2 + PIL, 320</h1>
+
+<p>Reads the name of the image file from stdin.</p>
+<pre class="lang-py prettyprint-override"><code>from PIL import ImageDraw as D,Image as I
+i=I.open(raw_input())
+C=A,B=i.size
+i,j=i.resize((int(.75*A),B/2)),I.new('RGBA',C)
+W,H=i.size
+for a,b in[(0,0),(0,H),(W,0),(W,H)]:j.paste(i,(a,b,a+W,b+H))
+p,d=[(0,0),(A/4,0),(0,B/2),(A/4,B),(0,B)],lambda p:D.Draw(j).polygon(p,fill=(0,)*4)
+d(p)
+d([(A-x,B-y)for x,y in p])
+j.show()
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>Matlab, <s>223 215 209 184</s> 163 bytes</h1>
+<p>The rescaling is quite straight forward. For cropping the corners I overlay a coordinate system over the pixels, and make a mask via four linear inequalities, which determine the area of the hexagon.</p>
+<pre><code>​l=imread(input(''));
+u=size(l,1);
+L=imresize(l,u*[2 3]/4);
+L=[L,L;L,L];L=L(1:u,1:u,:);
+[x,y]=meshgrid(1:u);
+r=u/2;x=x*2;
+set(imshow(L),'Al',y&lt;x+r&amp;y+x&gt;r&amp;y+x&lt;5*r&amp;y&gt;x-3*r)
+</code></pre>
+<p><a href="https://i.stack.imgur.com/atg0j.png" rel="nofollow noreferrer"><img src="https://i.stack.imgur.com/atg0j.png" alt="enter image description here" /></a></p>
+<p>PS: This turned into a codegolf <em>nim</em> game with @MartinBüttner's submission: You alternatingly have to make your code shorter (while providing the same functionality) - the one that can make the last 'shortening' wins=)</p>
+</div>
+<div id="pu2" class="pu"><h1>Mathematica, <s>231</s> <s>211</s> <s>209</s> <s>208</s> <s>201</s> <s>188</s> 173 bytes</h1>
+
+<pre><code>ImageCrop[ImageCollage@{#,#,#,#},e,Left]~SetAlphaChannel~ColorNegate@Graphics[RegularPolygon@6,ImageSize-&gt;1.05e,AspectRatio-&gt;1]&amp;@ImageResize[#,{3,2}(e=ImageDimensions@#)/4]&amp;
+</code></pre>
+
+<p>This is an unnamed function which takes an image object and returns an image object:</p>
+
+<p><a href="https://i.stack.imgur.com/2mp5U.png" rel="nofollow noreferrer"><img src="https://i.stack.imgur.com/2mp5U.png" alt="enter image description here"></a></p>
+
+<p>I don't think there's a lot to explain here, but some details which are of note:</p>
+
+<ul>
+<li>Normally, to tile an image 2x2, you'd use <code>ImageAssemble[{{#,#},{#,#}}]</code>, i.e. you hand <code>ImageAssemble</code> a 2x2 matrix with copies of the image. However, there's <code>ImageCollage</code> which is some sort of magic function which tries to arrange a bunch of pictures as "well" as possible (whatever that means... you can even give the individual images weights and stuff). Anyway, it you give it four images of equal size and with equal (or no) weights, it will also arrange them in a 2x2 grid. That allows me to save some bytes for the nesting of the matrix, as well as the function name.</li>
+<li>The hexagon is rendered as a single polygon via <code>Graphics</code>. I'm using the built-in <code>RegularPolygon@6</code>, but enforce an aspect ratio of <code>1</code> to stretch it as necessary. Unfortunately, <code>Graphics</code> needs a couple of expensive options to avoid padding and such, and it also renders black on white instead of the opposite. The result is fixed with <code>ColorNegate</code> and then attached to the image's original channels with <code>SetAlphaChannel</code>.</li>
+<li><code>Graphics</code> puts a small amount of padding around the hexagon, but we want the alpha hexagon to cover the full size of the cutout. However, <code>SetAlphaChannel</code> can combine images of different sizes, by centring them on top of each other and cropping to the smallest size. That means, instead of manually setting <code>PlotRangePadding-&gt;0</code>, we can simply scale up the hexagon image a bit with <code>ImageSize-&gt;1.05e</code> (and we need the `ImageSize option anyway).</li>
+</ul>
+</div>
+<div id="pu3" class="pu"><h2>PHP, 293 bytes</h2>
+
+
+
+<p>I've added some newlines for readability:</p>
+
+<pre class="lang-php prettyprint-override"><code>function($t){$s=imagesx($t);imagesettile($i=imagecreatetruecolor($s,$s),$t=imagescale
+($t,$a=$s*3/4,$b=$s/2));imagefill($i,0,0,IMG_COLOR_TILED);$z=imagefilledpolygon;$z($i,
+[0,0,$s/4,0,0,$b,$s/4,$s,0,$s],5,$f=imagecolorallocate($i,255,0,255));$z($i,[$s,0,$a,
+0,$s,$b,$a,$s,$s,$s],5,$f);return$i;}
+</code></pre>
+
+<p>Here is the ungolfed version:</p>
+
+<pre class="lang-php prettyprint-override"><code>function squareToHexagon($squareImage)
+{
+    $size = imagesx($squareImage);
+    $tileImage = imagescale($squareImage, $size * 3/4, $size/2);
+
+    $hexagonImage = imagecreatetruecolor($size, $size);
+    imagesettile($hexagonImage, $tileImage);
+    imagefill($hexagonImage, 0, 0, IMG_COLOR_TILED);
+
+    $fuchsia = imagecolorallocate($hexagonImage, 255, 0, 255);
+    imagefilledpolygon(
+        $hexagonImage,
+        [
+            0,       0,
+            $size/4, 0,
+            0,       $size/2,
+            $size/4, $size,
+            0,       $size,
+        ],
+        5,
+        $fuchsia
+    );
+    imagefilledpolygon(
+        $hexagonImage,
+        [
+            $size,       0,
+            $size * 3/4, 0,
+            $size,       $size/2,
+            $size * 3/4, $size,
+            $size,       $size,
+        ],
+        5,
+        $fuchsia
+    );
+
+    return $hexagonImage;
+}
+
+header('Content-type: image/gif');
+$squareImage = imagecreatefrompng('squareImage.png');
+$hexagonImage = squareToHexagon($squareImage);
+imagegif($hexagonImage);
+</code></pre>
+</div>
+<div id="pu4" class="pu"><h1>HTML5 + Javascript, 562 bytes</h1>
+
+<pre><code>&lt;html&gt;&lt;form&gt;&lt;input type=text&gt;&lt;/form&gt;&lt;canvas&gt;&lt;script&gt;l=document.body.children;l[0].addEventListener("submit",e=&gt;{e.preventDefault();c=l[1].getContext("2d");i=new Image();i.onload=q=&gt;{l[1].width=l[1].height=d=i.width;c.scale(0.75,0.5);c.drawImage(i,0,0);c.drawImage(i,d,0);c.drawImage(i,0,d);c.drawImage(i,d,d);c.globalCompositeOperation="destination-in";c.scale(1/0.75,2);c.beginPath();c.moveTo(d/4,0);c.lineTo(d/4+d/2,0);c.lineTo(d, d/2);c.lineTo(d/4+d/2, d);c.lineTo(d/4, d);c.lineTo(0, d/2);c.closePath();c.fill();};i.src=e.target.children[0].value;})&lt;/script&gt;
+</code></pre>
+
+<p>Takes input as an image URL via textbox (the URL hopefully counts as a filename).  Outputs the data to canvas.</p>
+
+<h2>Version which works across all browsers (580 bytes):</h2>
+
+<p><div class="snippet" data-lang="js" data-hide="false" data-console="false" data-babel="false">
+<div class="snippet-code">
+<pre class="snippet-code-html lang-html prettyprint-override"><code>&lt;html&gt;&lt;form&gt;&lt;input type=text&gt;&lt;/form&gt;&lt;canvas&gt;&lt;script&gt;l=document.body.children;l[0].addEventListener("submit",function(e){e.preventDefault();c=l[1].getContext("2d");i=new Image();i.onload=function(){l[1].width=l[1].height=d=i.width;c.scale(0.75,0.5);c.drawImage(i,0,0);c.drawImage(i,d,0);c.drawImage(i,0,d);c.drawImage(i,d,d);c.globalCompositeOperation = "destination-in";c.scale(1/0.75,2);c.beginPath();c.moveTo(d/4, 0);c.lineTo(d/4+d/2,0);c.lineTo(d, d/2);c.lineTo(d/4+d/2, d);c.lineTo(d/4, d);c.lineTo(0, d/2);c.closePath();c.fill();};i.src=e.target.children[0].value;})&lt;/script&gt;</code></pre>
+</div>
+</div>
+</p>
+
+<p>Test it with the "blocks" image from earlier via this URL: <a href="https://i.stack.imgur.com/gQAZh.png" rel="nofollow noreferrer">https://i.stack.imgur.com/gQAZh.png</a></p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/61008/">61008</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
