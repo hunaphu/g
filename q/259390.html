@@ -26,6 +26,159 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
+<tr d-ix="0"><td>072</td><td>LOGO</td><td>230701T103642Z</td><td><a href="https://codegolf.stackexchange.com/questions/259390/draw-the-gkms-aperiodic-tile/262342#262342">Level Ri</a></td></tr>
+<tr d-ix="1"><td>150</td><td>JavaScript ES6</td><td>230323T152128Z</td><td><a href="https://codegolf.stackexchange.com/questions/259390/draw-the-gkms-aperiodic-tile/259395#259395">Arnauld</a></td></tr>
+<tr d-ix="2"><td>097</td><td>R</td><td>230326T160547Z</td><td><a href="https://codegolf.stackexchange.com/questions/259390/draw-the-gkms-aperiodic-tile/259475#259475">Dominic </a></td></tr>
+<tr d-ix="3"><td>118</td><td>Python</td><td>230328T203645Z</td><td><a href="https://codegolf.stackexchange.com/questions/259390/draw-the-gkms-aperiodic-tile/259543#259543">ccprog</a></td></tr>
+<tr d-ix="4"><td>168</td><td>Desmos</td><td>230327T154438Z</td><td><a href="https://codegolf.stackexchange.com/questions/259390/draw-the-gkms-aperiodic-tile/259499#259499">CursorCo</a></td></tr>
+<tr d-ix="5"><td>112</td><td>Wolfram Language Mathematica</td><td>230324T093241Z</td><td><a href="https://codegolf.stackexchange.com/questions/259390/draw-the-gkms-aperiodic-tile/259423#259423">lesobrod</a></td></tr>
+<tr d-ix="6"><td>133</td><td>Logo</td><td>230323T141708Z</td><td><a href="https://codegolf.stackexchange.com/questions/259390/draw-the-gkms-aperiodic-tile/259393#259393">Neil</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>LOGO, <s>74 73</s> 72 bytes</h1>
+<p>Answering 3 months after the original post, but the shortest answer so far.</p>
+<p>online interpreter at <a href="https://www.calormen.com/jslogo/" rel="nofollow noreferrer">https://www.calormen.com/jslogo/</a></p>
+<pre><code>TO h :p repeat 14[fd(:p-(#%4%3&gt;0))*200rt(3-#%2)*30*-1^(1149/2^#%2&gt;1)]end
+</code></pre>
+<p>clear screen and call the function by adding the following below the function declaration:</p>
+<pre><code>cs
+h 0.634
+</code></pre>
+<p>use <code>ht</code> and <code>st</code> to hide and show the turtle.</p>
+<p>LOGO is an obvious choice for this challenge, but has some issues. Firstly, the iteration number (available in <code>#</code>) is 1-indexed. Secondly, arithmetic is done in real numbers - hence of use of the <code>&gt;</code> to truncate an expression to <code>0</code> or <code>1</code>, as the <code>int</code> and logic operators are rather verbose.</p>
+<p>An interesting feature is use of sidelength expressions <code>p</code> and <code>p-1</code>. The negative sidelength <code>p-1</code> instead of <code>1-p</code> means that these sides get drawn with the turtle moving backwards. As each change of sidelength occurs at a 90 degree rotation, this can be compensated for by performing the 90 degree rotations in the opposite direction.</p>
+<p>The shape is condidered to have 14 sides with one 0 deg vertex, seven 60 deg vertices and six 90 deg vertices. We start at the 0 deg vertex facing in a northward direction, so the shape is rotated 60 degrees anticlockwise from the orientation in the question.</p>
+<p>The rotations alternate between 60 deg and 90 deg at each turn, and the length expressions alternate between p-1 and p at every second turn. We start with the turtle facing north and go south (backwards) <code>-(p-1)</code> then southwest <code>-(p-1)</code> leaving the turtle facing northeast after moving backwards in a generally clockwise direction. To continue moving in a clockwise sense we now turn the turtle 90 degrees LEFT (northwest) and continue in a forward direction by distance <code>p</code>.</p>
+<p>We follow the pattern in the question (shifted so that the 0 deg rotation occurs at the beginning/end) with the following substitution to encode the direction of rotation:</p>
+<pre><code>S=1 T=0 L=0 R=1
+BTBR ASAR BSBR ATAL BTBR ATAL BTB
+ 0 1  1 1  1 1  0 0  0 1  0 0  0
+</code></pre>
+<p>This in reverse gives the constant <code>1000111110</code> to which we append an extra digit 1 giving <code>10001111101</code>=1149, as the fact that <code>#</code> is 1-indexed means we start by dividing by 2 on the first iteration.</p>
+<p>The expression <code>1149/2^#</code> always gives a noninteger when taken mod 2 because the real arithmetic does not discard fractional digits. Hence we can test for a 1 bit using <code>&gt;1</code> (strictly greater than 1.)</p>
+<p><strong>Commented code</strong></p>
+<pre><code>TO h :p 
+  repeat 14[                       ;iterate through sides #=1 through #=14 
+    fd(:p-(#%4%3&gt;0))*200           ;forward p if #%4 = 0 or 3, back 1-p if #%4 = 1 or 2. Scale factor 200
+    rt(3-#%2)*30*-1^(1149/2^#%2&gt;1) ;turn 90 if # even, 60 if # odd. direction given by -1^(0 or 1)
+  ]                                ;decode the direction in binary from constant 1149 by dividing by 2^# and taking mod 2
+end       
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>JavaScript (ES6), 150 bytes</h1>
+<p><em>-10 thanks to <a href="https://codegolf.stackexchange.com/users/17602/neil">@Neil</a></em></p>
+<p>Generates a SVG.</p>
+<pre class="lang-javascript prettyprint-override"><code>with(Math)f=p=&gt;`&lt;svg viewBox=&quot;-1 -1 9 9&quot;&gt;&lt;path d=&quot;M0 0${&quot;0354105723572&quot;.replace(/./g,v=&gt;`l${(d=v&amp;4?p:1-p)*cos(a+=PI/=v%4*5%9-3)} ${d*sin(a)}`,a=0)}&quot;&gt;`
+</code></pre>
+<p><a href="https://tio.run/##DYzbCoMgAEB/RaSGtixbxdbIBnvbw2CfkJhdhqRk2CD69hac83Y4X@64FdNgZjLqRu77Msw9evO5xy0zrKpL6zrgBrk89Y9BkoCDAhSwKs0RgYbBNwXUWyFN8yyh@fWSHsJokkZxIVEcxV3ojpHyVtQwd8oe5p4QgwOhLeJn9nnFzPlZkPsFSfEGvLUJ7DAijrc65IziDVb1LvRotZKR0h1qEY1uGO9/" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<h3>Move encoding</h3>
+<p>Each move is encoded with a 3-bit value <span class="math-container">\$v\$</span> stored as a single decimal digit.</p>
+<pre><code>Bit: 2 1 0
+     | \_/
+     |  |
+     |  +--> rotation angle <b>a</b> (00: <b>-π/3</b>, 01: <b>π/2</b>, 10: <b>-π/2</b>, 11: <b>π/3</b>)
+     +-----> distance <b>d</b> (<b>p</b> if set, <b>1-p</b> otherwise)</code></pre>
+<p>We use the expression <span class="math-container">\$\big(((v\bmod 4)\times 5)\bmod 9\big)-3\$</span> to convert <span class="math-container">\$v\$</span> into the divisor of <span class="math-container">\$\pi\$</span>:</p>
+<pre><code> v mod 4 | *5 | mod 9 | -3
+---------+----+-------+----
+    0    |  0 |   0   | -3
+    1    |  5 |   5   |  2
+    2    | 10 |   1   | -2
+    3    | 15 |   6   |  3
+</code></pre>
+<p>This is implemented as <code>Math.PI/=v%4*5%9-3</code>. Although <code>Math.PI</code> is read-only, this is a valid syntax which (fortunately!) doesn't modify the value of <span class="math-container">\$\pi\$</span> and is one byte shorter than using parentheses.</p>
+<h3>Drawing</h3>
+<p>Once we have <span class="math-container">\$d\$</span> and <span class="math-container">\$a\$</span>, we compute <span class="math-container">\$(dx,dy)\$</span> with:</p>
+<p><span class="math-container">$$dx=d\times\cos(a)\\dy=d\times\sin(a)$$</span></p>
+<p>and append a statement <code>l dx dy</code> to the SVG path.</p>
+<h3>Animated output</h3>
+<p><div class="snippet" data-lang="js" data-hide="false" data-console="true" data-babel="false">
+<div class="snippet-code">
+<pre class="snippet-code-js lang-js prettyprint-override"><code>with(Math)f=p=&gt;`&lt;svg viewBox="-1 -1 9 9"&gt;&lt;path d="M0 0${"0354105723572".replace(/./g,v=&gt;`l${(d=v&amp;4?p:1-p)*cos(a+=PI/=v%4*5%9-3)} ${d*sin(a)}`,a=0)}"&gt;`
+
+k = 0; setInterval(_ =&gt; { p = 0.5 + 0.5 * Math.cos(k += 0.04); document.body.innerHTML = `&lt;p style="margin-bottom:-40px"&gt;p = ${p.toFixed(2)}&lt;/p&gt;` + f(p); }, 20)</code></pre>
+</div>
+</div>
+</p>
+</div>
+<div id="pu2" class="pu"><h1><a href="https://www.r-project.org/" rel="nofollow noreferrer">R</a>, <s>111</s> <s>100</s> 97 bytes</h1>
+
+<pre class="lang-r prettyprint-override"><code>function(p,t=utf8ToInt(&quot;GEUSKMYSKMDYSG&quot;),u=t%%4-2,`?`=cumsum)plot(?((u&gt;0)-u*p)*1i^?t%%7/3-1,,&quot;l&quot;)
+</code></pre>
+<p><a href="https://rdrr.io/snippets/embed/?code=gkms%3D%0Afunction(p%2Ct%3Dutf8ToInt(%22GEUSKMYSKMDYSG%22)%2Cu%3Dt%25%254-2)plot(cumsum(1i%5Ecumsum(t%25%257%2F3-1)*((u%3E0)-u*p))%2C%2C%22l%22)%0A%0Agkms(0.4)" rel="nofollow noreferrer">Try it at rdrr.io</a></p>
+<p>'Roll-your-own' turtle-graphics-like approach using complex numbers: less than half the length of the <code>TurtleGraphics</code>-package approach below.</p>
+<p><strong>How?</strong>
+We use the code <code>M</code>=LA, <code>E</code>=RA, <code>S</code>=RB, <code>U</code>=SA, <code>Y</code>=TA, <code>G</code>=SB, <code>K</code>=TB, <code>D</code>=TAA.  The Utf8 codepoints (<code>t</code>) modulo-3 minus 1 (<code>%%4-2</code>) then give <code>-1</code>, <code>-2</code> or <code>1</code> to indicate step-lengths of <code>p</code>,<code>2p</code> or <code>1-p</code>, decoded using <code>(u&gt;0)-u*p</code>.  The Utf8 codepoints modulo-7, divided by 3, minus 1 give <code>-1</code>, <code>-2/3</code>, <code>2/3</code> and <code>1</code> corresponding to the powers of <code>i</code> to turn the correct number of degrees.<br />
+We then just take the cumulative sum and plot lines joining all the points on the complex plane.</p>
+<hr />
+<h1><a href="https://www.r-project.org/" rel="nofollow noreferrer">R</a> + <code>TurtleGraphics</code>, <s>256</s> 254 bytes</h1>
+
+<pre class="lang-r prettyprint-override"><code>function(p,f=&quot;forward(x&quot;,g=&quot;left(x&quot;,`+`=function(i,j)sub(&quot;x&quot;,j*10,i))eval(parse(t=paste(&quot;turtle&quot;,c(&quot;init(&quot;,c(f+p,f+(1-p),g+9,g+27,g+6,g+30)[c(1,5,1,4,2,5,2,4,1,6,1,3,w&lt;-c(2,6,2),4,1,6,1,3,w,w,4)],&quot;hide()&quot;),sep=&quot;_&quot;,collapse=&quot;);&quot;)))
+library(TurtleGraphics)
+</code></pre>
+<p><a href="https://rdrr.io/snippets/embed/?code=gkms%3D%0Afunction(p%2Cf%3D%22forward(x)%22%2Cg%3D%22left(x)%22%2C%60%2B%60%3Dfunction(i%2Cj)sub(%22x%22%2Cj*10%2Ci))eval(parse(t%3Dpaste(%22turtle%22%2Cc(%22init()%22%2C%22hide()%22%2Cc(f%2Bp%2Cf%2B(1-p)%2Cg%2B9%2Cg%2B27%2Cg%2B6%2Cg%2B30)%5Bc(1%2C5%2C1%2C4%2C2%2C5%2C2%2C4%2C1%2C6%2C1%2C3%2Cw%3C-c(2%2C6%2C2)%2C4%2C1%2C6%2C1%2C3%2Cw%2Cw%2C4)%5D)%2Csep%3D%22_%22%2Ccollapse%3D%22%3B%22)))%0Alibrary(TurtleGraphics)%0A%0Agkms(0.7)" rel="nofollow noreferrer">Try it at rdrr.io</a>*</p>
+<p>*The rdrr.io output isn't perfect, but you can scroll to the bottom to see the image of the tile.  On my local installation, the output of <code>gkms(0.6)</code> is this:</p>
+<p><a href="https://i.stack.imgur.com/RCggx.png" rel="nofollow noreferrer"><img src="https://i.stack.imgur.com/RCggx.png" alt="enter image description here" /></a></p>
+</div>
+<div id="pu3" class="pu"><h1>Python, <s>123</s> 118 bytes</h1>
+<pre><code>from turtle import*
+def t(a):
+ m=13609645555;reset()
+ while m:fd([1-a,a][m&gt;&gt;2&amp;1]*150);rt((m%4*5%9-3)*30);m&gt;&gt;=3
+ home()
+</code></pre>
+<p>The magic number stores every combination of turtle forward and turn command in three bits:</p>
+<ul>
+<li>the highest bit says whether to use <code>fd(a)</code> or <code>fd(1-a)</code></li>
+<li>the lower two select a right turn by a computation similar to that of Arnauld</li>
+</ul>
+<p>The double forward motion would break that rhythm. To avoid that, the drawing is started at the point immediately after, and as the final move it is implemented with <code>home()</code>.</p>
+<p><a href="https://i.stack.imgur.com/OQiuB.png" rel="nofollow noreferrer"><img src="https://i.stack.imgur.com/OQiuB.png" alt="enter image description here" /></a></p>
+</div>
+<div id="pu4" class="pu"><h1><a href="https://www.desmos.com/calculator" rel="nofollow noreferrer">Desmos</a>, 168 bytes</h1>
+<pre><code>n=[1...14]
+m=\cos(1.6n)+2
+s(x)=\sum^n_{i=1}x[i]
+a=s(\frac\pi{[.5,2,-2,3,2,3,-2,3,2,-3,2,-3,2,3]})
+f(p)=\operatorname{polygon}(s([1-p,p][m]\cos(a)),s([1-p,p][m]\sin(a)))
+</code></pre>
+<p><a href="https://www.desmos.com/calculator/rkjgqyn9va" rel="nofollow noreferrer">Try it online!</a></p>
+</div>
+<div id="pu5" class="pu"><h1><a href="https://www.wolfram.com/wolframscript/" rel="nofollow noreferrer">Wolfram Language (Mathematica)</a>, 112 bytes</h1>
+<pre><code>(q=1-#;r=Pi/2;t=Pi/3;AnglePath@MapThread[List,{{#,#,q,q,#,#,q,q,#,#,q,2 q,q},{0,-t,r,-t,r,t,-r,t,r,t,-r,t,t}}])&amp;
+</code></pre>
+<p><a href="https://tio.run/##y00syUjNTSzJTE78n65g@1@j0NZQV9m6yDYgU9/IugREGVs75qXnpAYAVTr4JhaEZBSlJqZE@2QWl@hUVyvrKOsUAiEqbaQAZNfqVBvo6JboFEGIEh1dEAFnlNTWxmqq/Q8oyswrcUh3MNCz@A8A" rel="nofollow noreferrer" title="Wolfram Language (Mathematica) – Try It Online">Try it online!</a></p>
+<p>With TIO output is a list of vertices.<br />
+With Mathematica desktop:</p>
+<pre>
+data = {0.0, 0.2, 0.366, 0.444, 0.5, 0.634, 0.8, 1.0};
+Multicolumn[
+ Row@{#, Graphics[{Blue, Polygon@g@#}]} & /@ data, 4]
+</pre>
+<p><a href="https://i.stack.imgur.com/xIFfj.jpg" rel="nofollow noreferrer"><img src="https://i.stack.imgur.com/xIFfj.jpg" alt="enter image description here" /></a></p>
+</div>
+<div id="pu6" class="pu"><h2>Logo, 133 bytes</h2>
+<pre><code>to s:a:n:m
+fw:a*150
+rt:n*60-60
+fw:a*150
+rt:m*90-90
+end
+to t:a
+s 1-:a 2 2
+s:a 0 2
+s 1-:a 0 2
+s:a 2 0
+s 1-:a 2 2
+s:a 2 0
+s 1-:a 2 1
+end
+</code></pre>
+<p>Unfortunately the online logo resource I used to use is no longer available, but you can paste the code into the textbox on <a href="https://rmmh.github.io/papert/static/" rel="noreferrer">https://rmmh.github.io/papert/static/</a> and run it. (Also paste the following code to actually get anything to run.)</p>
+<pre><code>clear
+t 0.5
+</code></pre>
+<p>(Substitute your desired value for <code>0.5</code>.)</p>
+</div>
 
 <table id="st">
 <!-- Popups content will be added here -->
