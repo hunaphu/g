@@ -26,8 +26,8 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>012</td><td>MATL</td><td>240316T181157Z</td><td><a href="https://codegolf.stackexchange.com/questions/271853/argument-of-a-complex-number-cops/271878#271878">Luis Men</a></td></tr>
-<tr d-ix="1"><td>046</td><td>Wolfram Language Mathematica</td><td>240320T081428Z</td><td><a href="https://codegolf.stackexchange.com/questions/271853/argument-of-a-complex-number-cops/271994#271994">Greg Mar</a></td></tr>
+<tr d-ix="0"><td>046</td><td>Wolfram Language Mathematica</td><td>240320T081428Z</td><td><a href="https://codegolf.stackexchange.com/questions/271853/argument-of-a-complex-number-cops/271994#271994">Greg Mar</a></td></tr>
+<tr d-ix="1"><td>012</td><td>MATL</td><td>240316T181157Z</td><td><a href="https://codegolf.stackexchange.com/questions/271853/argument-of-a-complex-number-cops/271878#271878">Luis Men</a></td></tr>
 <tr d-ix="2"><td>050</td><td>Wolfram Language Mathematica</td><td>240324T020522Z</td><td><a href="https://codegolf.stackexchange.com/questions/271853/argument-of-a-complex-number-cops/272054#272054">att</a></td></tr>
 <tr d-ix="3"><td>046</td><td>Wolfram Language Mathematica</td><td>240317T082347Z</td><td><a href="https://codegolf.stackexchange.com/questions/271853/argument-of-a-complex-number-cops/271889#271889">att</a></td></tr>
 <tr d-ix="4"><td>053</td><td>Wolfram Language Mathematica</td><td>240316T172007Z</td><td><a href="https://codegolf.stackexchange.com/questions/271853/argument-of-a-complex-number-cops/271877#271877">Greg Mar</a></td></tr>
@@ -45,7 +45,40 @@
 <tr d-ix="16"><td>013</td><td>Wolfram Language Mathematica</td><td>240316T080801Z</td><td><a href="https://codegolf.stackexchange.com/questions/271853/argument-of-a-complex-number-cops/271869#271869">Greg Mar</a></td></tr>
 <tr d-ix="17"><td>051</td><td>JavaScript Node.js</td><td>240315T221405Z</td><td><a href="https://codegolf.stackexchange.com/questions/271853/argument-of-a-complex-number-cops/271860#271860">l4m2</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/lmendo/MATL" rel="nofollow noreferrer">MATL</a>, 12 bytes. Safe</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.wolfram.com/wolframscript/" rel="nofollow noreferrer">Wolfram Language (Mathematica)</a>, 46 bytes, safe</h1>
+<pre><code>@@####^^&amp;&amp;--+{[[(())]]}.,,//122255AIISbmmmmmsu
+</code></pre>
+<p>As with my other submissions, this is an unnamed function of two variables. The output is printed to the default number of decimal places, and is correct to at least 11 decimal places. Solution:</p>
+<blockquote class="spoiler">
+<p> <code>Im@Sum[-5(1-(#/Abs@#)^.2)^m/m,{m,52}]&amp;[#+I#2]&amp;</code></p>
+</blockquote>
+<p><a href="https://tio.run/##NYu9CsIwFEZ3n@JCoLR4r22iGYU4dhMcQwpRLO1wHTROIc8e01Kn8/1w2IfpyT7MD5/Hc@7Z3L5sSdeSatFe7h8jmuGgmoFbxsioVXKVFfteKFfl63t@BTuCMQbiDiBqBJ0QokQ4LewQ1MZuIckt/EkKoYgg13JEoNUrK@lUjuTyDw" rel="nofollow noreferrer">Try it online!</a> Explanation:</p>
+<blockquote class="spoiler">
+<p> At its heart this code is simply one of the standard ways of calculating the argument of the complex number <span class="math-container">\$x+iy\$</span> as the imaginary part of its logarithm: <code>Im@Log[#+I#2]&amp;</code> or, more verbosely, <code>Im@Log@#&amp;[#+I#2]&amp;</code>. The new approach is to replace <span class="math-container">\$\log (1-w)\$</span> by its power series <span class="math-container">\$-\sum_{m=1}^\infty w^m/m\$</span>. Applying this formula with <span class="math-container">\$w=1-(x+iy)\$</span> gives</p>
+</blockquote>
+<blockquote class="spoiler">
+<p> <code>Im@Sum[-(1-#)^m/m,{m,52}]&amp;[#+I#2]&amp;</code></p>
+</blockquote>
+<blockquote class="spoiler">
+<p> (The <code>52</code> ensures we're summing enough terms of the power series to get the required accuracy; the number itself is pretty arbitrary.) Unfortunately, the power series only converges when <span class="math-container">\$w\$</span> is close to <span class="math-container">\$1\$</span>. So we exploit two mathematical tricks: first, we use the fact that <span class="math-container">\$\log z = 5\log(z^{1/5})\$</span> (this is dangerous in the complex numbers generally, but it's safe if we're declaring ahead of time that <span class="math-container">\$-\pi&lt;\arg z\le\pi\$</span> as this challenge does) to limit the argument of <span class="math-container">\$w\$</span> in this application:</p>
+</blockquote>
+<blockquote class="spoiler">
+<p> <code>Im@Sum[-5(1-#^.2)^m/m,{m,52}]&amp;[#+I#2]&amp;</code></p>
+</blockquote>
+<blockquote class="spoiler">
+<p> Second, we limit the modulus of <span class="math-container">\$w\$</span> by just replacing the input divided by its own modulus, resulting in the final code:</p>
+</blockquote>
+<blockquote class="spoiler">
+<p> <code>Im@Sum[-5(1-(#/Abs@#)^.2)^m/m,{m,52}]&amp;[#+I#2]&amp;</code></p>
+</blockquote>
+<blockquote class="spoiler">
+<p> After these two tricks, the only numbers we input into the power series are those along a circular arc through the origin, which is well inside the radius of convergence of the power series and thus allows its truncation to 52 terms to be a good enough approximation to the true value.</p>
+</blockquote>
+<blockquote class="spoiler">
+<p> <a href="https://i.stack.imgur.com/8ckKbm.png" rel="nofollow noreferrer"><img src="https://i.stack.imgur.com/8ckKbm.png" alt="graph of inputs to final function" /></a></p>
+</blockquote>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/lmendo/MATL" rel="nofollow noreferrer">MATL</a>, 12 bytes. Safe</h1>
 <pre><code>*LUYYZjlssty
 </code></pre>
 <p>Non-required information provided as a courtesy for the robbers:</p>
@@ -72,11 +105,6 @@
  <code>Yl  % Logarithm</code> <p>
  <code>Yj  % Imaginary part. Implicit display</code> <p></p>
 </blockquote>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://www.wolfram.com/wolframscript/" rel="nofollow noreferrer">Wolfram Language (Mathematica)</a>, 46 bytes</h1>
-<pre><code>@@####^^&amp;&amp;--+{[[(())]]}.,,//122255AIISbmmmmmsu
-</code></pre>
-<p>As with my other submissions, this is an unnamed function of two variables. The output is printed to the default number of decimal places, and is correct to at least 11 decimal places.</p>
 </div>
 <div id="pu2" class="pu"><h1><a href="https://www.wolfram.com/wolframscript/" rel="nofollow noreferrer">Wolfram Language (Mathematica)</a>, 50 bytes</h1>
 <pre><code>##&amp;(())**+,,.////0012@@DHIMN[[[[[]]]]]^^adeinrsttu
