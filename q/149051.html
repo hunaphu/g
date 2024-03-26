@@ -84,6 +84,520 @@
            # Implicit output
 </code></pre>
 </div>
+<div id="pu2" class="pu"><h3><b>x86 machine code - 11 bytes</b></h3>
+<pre>
+     6 00000000 66C1C008                rol ax, 8
+     7 00000004 C1C010                  rol eax, 16
+     8 00000007 66C1C008                rol ax, 8
+</pre>
+<p>Debug it to see value of <code>0x00C0FFEE</code> has been swapped to <code>0xeeffc000</code> in register <code>eax</code>.</p>
+<pre><code>% gdb -q swap
+Reading symbols from swap...(no debugging symbols found)...done.
+(gdb) disassemble _start
+Dump of assembler code for function _start:
+   0x08048060 &lt;+0&gt;:     mov    eax,0xc0ffee
+   0x08048065 &lt;+5&gt;:     rol    ax,0x8
+   0x08048069 &lt;+9&gt;:     rol    eax,0x10
+   0x0804806c &lt;+12&gt;:    rol    ax,0x8
+End of assembler dump.
+(gdb) r
+Starting program: /home/user/swap 
+
+Program received signal SIGSEGV, Segmentation fault.
+0x08048070 in ?? ()
+(gdb) i r $eax
+eax            0xeeffc000   -285229056
+(gdb)
+</code></pre>
+</div>
+<div id="pu3" class="pu"><h1>C, 50 bytes</h1>
+<pre><code>#define f(i) (i&gt;&gt;24|i&gt;&gt;8&amp;65280|(i&amp;65280)&lt;&lt;8|i&lt;&lt;24)
+</code></pre>
+<p><a href="https://tio.run/##VYxBi4MwFITv/oqH0iVPbFFxF6HBX1D2Vnro7iEbE/sgTUtMvNT9602VPe1lmPlmGLkdpIwZWWlCr4CPvjf0s7t0yT9GtwXFrFearALNCIFR19XNvGj79vFet@XM6M8g5@1MnNcNRrIeroIsW41wgyxAXoSDPF/ChPBIAIA0WyvooEK4u2WqWboJXzYtNGPBjjRY1ePonb8Fs26nc/VdfB4Ph6IqEXG/vjjlg7NQ7pPfGJv6KbURwxi3J2HMCw" rel="nofollow noreferrer" title="C (gcc) – Try It Online">Try it online!</a></p>
+<p>To be more portable, I didn't want to use any functions that aren't in ANSI C. :-)</p>
+<p>Like @hvd, I also cribbed Polynomial's answer. Due to C's operator precedence, I had to add parentheses around the third term.</p>
+</div>
+<div id="pu4" class="pu"><h1>SmileBASIC, 34 bytes</h1>
+<pre><code>INPUT N
+RGBREAD N OUT A,B,C,D?RGB(D,C,A,B)
+</code></pre>
+<p><code>RGBREAD</code>/<code>RGB</code> are functions that convert between a 32-bit integer and four 8-bit values. They're designed for use with (A)RGB color data but you can use them for other things too.</p>
+</div>
+<div id="pu5" class="pu"><h1><a href="http://kx.com/download/" rel="nofollow noreferrer">K4</a>, 18 bytes</h1>
+
+<p><strong>Solution:</strong></p>
+
+<pre><code>0b/:,/8#|12 8#0b\:
+</code></pre>
+
+<p><strong>Examples:</strong></p>
+
+<pre><code>q)\
+  0b/:,/8#|12 8#0b\:0
+0
+  0b/:,/8#|12 8#0b\:1
+16777216
+  0b/:,/8#|12 8#0b\:42
+704643072
+  0b/:,/8#|12 8#0b\:4294967295
+4294967295
+  0b/:,/8#|12 8#0b\:4026531839
+4294967279
+</code></pre>
+
+<p><strong>Explanation:</strong></p>
+
+<p>There are no unsigned ints, so takes input as a long.</p>
+
+<p>Convert into boolean array (64bits), reshape, reverse, take first 8 bytes, convert back to long.</p>
+
+<pre><code>0b/:,/8#|12 8#0b\: / the solution
+              0b\: / convert to bits
+         12 8#     / reshape into 12x8 grid (wraps)
+        |          / reverse
+      8#           / take first 8
+    ,/             / flatten
+0b/:               / convert to long
+</code></pre>
+
+<p><strong>Bonus:</strong></p>
+
+<p><strong>19 byte</strong> version in <a href="https://github.com/JohnEarnest/ok" rel="nofollow noreferrer">oK</a> which you can <a href="https://tio.run/##y9bNz/7/30hfR99CucbQSMFCWcPMRNlIM8bE6P9/AA" rel="nofollow noreferrer" title="K (oK) – Try It Online">Try online!</a></p>
+
+<pre><code>2/,/8#|12 8#(64#2)\
+</code></pre>
+</div>
+<div id="pu6" class="pu"><h1><a href="https://www.perl.org/" rel="nofollow noreferrer">Perl 5</a> <code>-p</code>, 21 bytes</h1>
+
+
+
+<pre class="lang-perl prettyprint-override"><code>$_=unpack V,pack N,$_
+</code></pre>
+
+<p><a href="https://tio.run/##K0gtyjH9/18l3rY0ryAxOVshTAdM@emoxP//b2hmbm5uZGj2L7@gJDM/r/i/bgEA" rel="nofollow noreferrer" title="Perl 5 – Try It Online">Try it online!</a></p>
+</div>
+<div id="pu7" class="pu"><h1><a href="https://www.perl.org/" rel="nofollow noreferrer">Perl 5</a>, 27 bytes</h1>
+
+
+
+<pre class="lang-perl prettyprint-override"><code>say hex unpack H8,pack I,&lt;&gt;
+</code></pre>
+
+<p><a href="https://tio.run/##K0gtyjH9/784sVIhI7VCoTSvIDE5W8HDQgdMe@rY2P3/b2JkaWJpZm5kafovv6AkMz@v@L@ur6megaEBAA" rel="nofollow noreferrer" title="Perl 5 – Try It Online">Try it online!</a></p>
+</div>
+<div id="pu8" class="pu"><h1>ARM machine language Linux, 8 bytes</h1>
+
+<pre><code>0:       e6bf0f30       rev     r0, r0
+4:       e12fff1e       bx      lr
+</code></pre>
+
+<p>To try this yourself, compile and run the following on a Raspberry Pi or Android device running GNUroot</p>
+
+<pre><code>#include&lt;stdio.h&gt;
+#define f(x) ((unsigned int(*)(unsigned int))"0\xf\xbf\xe6\x1e\xff/\xe1")(x)
+int main(){
+  printf( "%u %u\n", 0, f(0) );
+  printf( "%u %u\n", 1, f(1) );
+  printf( "%u %u\n", 42, f(42) );
+  printf( "%u %u\n", 128, f(128) );
+  printf( "%u %u\n", 16885952, f(16885952) );
+  printf( "%u %u\n", 704643072, f(704643072) );
+  printf( "%u %u\n", 3735928559U, f(3735928559U) );
+  printf( "%u %u\n", 4009738240U, f(4009738240U) );
+  printf( "%u %u\n", 4026531839U, f(4026531839U) );
+  printf( "%u %u\n", 4294967295U, f(4294967295U) );
+}
+</code></pre>
+</div>
+<div id="pu9" class="pu"><h1><a href="https://www.r-project.org/" rel="nofollow noreferrer">R</a>, 41 bytes</h1>
+
+
+
+<pre class="lang-r prettyprint-override"><code>function(n)n%/%256^(0:3)%%256%*%256^(3:0)
+</code></pre>
+
+<p><a href="https://tio.run/##K/qfpmCj@z@tNC@5JDM/TyNPM09VX9XI1CxOw8DKWFMVxFTVgggYWxlo/k/TMDSy0PwPAA" rel="nofollow noreferrer" title="R – Try It Online">Try it online!</a></p>
+
+<p><a href="https://tio.run/##JchJCgIxEEDRq7gJJFJipYakqvEsgjQEBImNw8LTx4iLD5/3GG13Ooz27uvreu@xpx6OgbScIy6cwm/D/g@8YBrPy7bdPnGNCBmEIJPNipjwlGKmrgQVpUyoBFxZnUzVQRC9spHgXCrK2XgquXip5JqgpfEF" rel="nofollow noreferrer">Verify all test cases!</a></p>
+
+<p>Uses a base-256 conversion as MickyT suggested <a href="https://codegolf.stackexchange.com/a/149297/67312">here</a>. R does not have unsigned 32-bit integers, nor does it have 64-bit integers. This prevents us from using bitwise operations but this approach (and likely MickyT's) is probably still shorter since R's bitwise operators are quite verbose.</p>
+
+<p>Utilizes number 4 of <a href="https://codegolf.stackexchange.com/a/138046/67312">this tip</a>, taking into account that we're never getting a number as large as <code>256^4</code>.</p>
+
+<p><code>n%/%256^(0:3)%%256</code> extracts the bytes, and <code>%*%</code>, the matrix product, is the dot product in this situation, with <code>256^(3:0)</code> effecting the reversed order of bytes. <code>%*%</code> will return a 1x1 <code>matrix</code> containing the endian-reversed value.</p>
+</div>
+<div id="pu10" class="pu"><h1><a href="https://github.com/ETHproductions/japt/" rel="nofollow noreferrer">Japt</a>, <s>10</s> 14 bytes</h1>
+<pre><code>sG ùT8 ò w ¬nG
+</code></pre>
+<p><a href="https://ethproductions.github.io/japt/?v=1.4.5&amp;code=c0cg+VQ4IPIgdyCsbkc=&amp;input=OA==" rel="nofollow noreferrer">Try it</a></p>
+<hr />
+<h2>Explanation</h2>
+<p>Convert input integer to a base-16 string (<code>sG</code>), use <code>0</code> to pad the start to length 8 (<code>ùT8</code>), split to an array of 2 character strings (<code>ò</code>), reverse (<code>w</code>), rejoin to a string (<code>¬</code>) and convert back to base-10 (<code>nG</code>).</p>
+</div>
+<div id="pu11" class="pu"><h1><a href="https://www.r-project.org/" rel="nofollow noreferrer">R</a>, 86 bytes</h1>
+
+<p>
+I thought there was already an answer (or two) in R  for this question, but I must have been mistaken or they had the same issues that I had with R not doing signed ints.  That issue took out any builtins that could have helped. I tried the 256 base conversion, but it ended up being to long, but I think there is still room for someone smarter than me to do that.  Then I ended up with the following which it a base 2 conversion swapping the order in a recursive function.</p>
+
+<pre class="lang-r prettyprint-override"><code>f=function(x,y=0,i=31)'if'(i+1,f(x-(2^i*z),y+(2^((3-i%/%8)*8+i%%8)*(z=2^i&lt;=x)),i-1),y)
+</code></pre>
+
+<p><a href="https://tio.run/##VY9LbsMgEIb3PUU2VpgYKzAPGKRwlW4qIbFJpaqRnFzexTi1EjYDfP8Dfpal5HK7fv3W76uZ7T07WzN5ONZyNHX0tph5MvhZTw@w97HtjKGpDudB4aRjHdZpHrkpLnkGsHXyTQhLMQ4O@8r54D6K8e9XPsQY0YdGGOGVRMeByUVcTajwgtBzZKXA2lmbTQgbY@dSJEXuZUFVkuCTERIiSWtsbM@Hzbf2UCRJqCIJtixElJbH6/P24M7@azvBIOSVni5MnELEmPqntkOSN5Zk@QM" rel="nofollow noreferrer" title="R – Try It Online">Try it online!</a></p>
+
+<pre class="lang-r prettyprint-override"><code>f=function(x,y=0,i=31)       # set up the function and initial values
+  'if'(i+1,                  # test for i &gt;= 0
+    f(                       # recursively call the function
+      x-(2^i*z),             # remove 2^i from x when 2^i &lt;= x
+      y+(2^                  # add to y 2 to the power of
+        ((3-i%/%8)*8+i%%8)   # calc to swap the order of the bytes
+        *(z=2^i&lt;=x)),        # when 2^i &lt;= x
+      i-1),                  # decrement i
+   y)                        # return y
+</code></pre>
+</div>
+<div id="pu12" class="pu"><h1>C#, <del>&nbsp;44&nbsp;</del> 36 bytes</h1>
+
+<pre><code>n=&gt;n&gt;&gt;24|n&gt;&gt;8&amp;65280|n&amp;65280&lt;&lt;8|n&lt;&lt;24
+</code></pre>
+
+<p><a href="https://tio.run/##jY7NCoJAFIXXzlNcXISCyWQWkqMboVWtCmo7jkMM2JWcMQr12c2MoGWb8wOHjyP0XFS1HIZGK7zA4amNvMbkt/k7hbeYEFFyreEotcmm1BJLG26UgG2DgjUKjQdvTUFCApikmKZB2I0azdarIKIdfpyxqEPGgnCkfhn3ShWw5wodl1gj2soq1FUp/VOtjBwvSMdu6eYc9bYH0qEPzvNciKJw3fiPNV3QgC5pOK170g/DCw" rel="nofollow noreferrer">Try it online!</a></p>
+
+<p>This was originally based on <a href="https://codegolf.stackexchange.com/a/149061/16385">Polynomial's C# answer</a>, who suggested I post a new answer with my improvements on it, but the approach taken <a href="https://codegolf.stackexchange.com/a/149058/16385">in Arnauld's JavaScript answer</a> turned out to be even shorter in C#.</p>
+</div>
+<div id="pu13" class="pu"><h2>Swift, 28 bytes</h2>
+
+<pre><code>{(n:UInt32)in n.byteSwapped}
+</code></pre>
+</div>
+<div id="pu14" class="pu"><h1><a href="http://www.rexx.org/" rel="nofollow noreferrer">REXX</a>, 42 bytes</h1>
+
+<pre><code>say c2d(left(reverse(d2c(arg(1))),4,'0'x))
+</code></pre>
+
+<p><a href="https://tio.run/##K0qtqPj/vzixUiHZKEUjJzWtRKMotSy1qDhVI8UoWSOxKF3DUFNTU8dER91AvUJT8////@YGJmYmxgbmRgA" rel="nofollow noreferrer" title="Rexx (Regina) – Try It Online">Try it online!</a></p>
+
+<p>Ungolfed:</p>
+
+<pre><code>n=arg(1) -- take n as argument
+n=d2c(n) -- convert from decimal to character (bytes)
+n=reverse(n) -- reverse characters
+n=left(n,4,'0'x) -- extend to four bytes, padding with zeros
+n=c2d(n) -- convert from bytes to decimal again
+say n -- output result
+</code></pre>
+</div>
+<div id="pu15" class="pu"><h1><a href="https://www.gnu.org/software/octave/" rel="nofollow noreferrer">Octave</a>, 10 bytes</h1>
+
+
+
+<pre class="lang-matlab prettyprint-override"><code>@swapbytes
+</code></pre>
+
+<p><a href="https://tio.run/##y08uSSxL/Z9mq6en99@huDyxIKmyJLX4f6JtaWZeibGRhomRpjVXmkai5n8A" rel="nofollow noreferrer" title="Octave – Try It Online">Try it online!</a></p>
+
+<p>This may be the first time that Octave has the exact same score as its golfing derivative, MATL. Of course, in this case, it's Octave that has the built-in, rather than MATL, making it a lot easier.</p>
+
+<p>Defines a handle to the built-in <code>swapbytes</code>, which takes any data type, swaps the endianness and outputs the result. In this case, the input is a 32-bit unsigned integer.</p>
+</div>
+<div id="pu16" class="pu"><h1><a href="https://www.microsoft.com/net/core/platform" rel="nofollow noreferrer">C# (.NET Core)</a>, 72+31=103 bytes</h1>
+
+
+
+<pre class="lang-cs prettyprint-override"><code>m=&gt;BitConverter.ToUInt32(BitConverter.GetBytes(m).Reverse().ToArray(),0)
+</code></pre>
+
+<p><a href="https://tio.run/##jZFfS8MwFMWfzafIYwuzpDf/qR04UREUxCk@ly5IYEu1ySZj7LPXWDfm3vISuJfzyzknaf1l2/VmWHvrPvB864NZVej/VDxa91Whdtl4j593yIcm2BbfrV17tbYuTPDvOcXz7@bz1i1s45yJyhoPq3o6s@GmcxvTB9MXr93bgwsUsrPtvQmzbTA@W@XFi4lLb7I8aq/7vtlm@YTkQ4WOrpvOLvBTY12Wox26iLf4bmmK994GE3Oa7DxFRnJc15jkVYK2HLWlkFJCKZIQBiMjCROMEglpPqBGCkommaKCqUQsKqPLyDJCtKQKWGI1oRTX/C8tBQpAeayZxJ7KjcZpHamkXIPiXB/iAgCPkVnas57ajV9ybJ7GguC0VPTgDJppIUHqxA/9k2t@RsexQnu0H34A" rel="nofollow noreferrer" title="C# (.NET Core) – Try It Online">Try it online!</a></p>
+
+<p>+31 for <code>using System;using System.Linq;</code></p>
+
+<p>I was hoping to use <code>Array.Reverse</code> inline, but it wasn't to be (see alternative below).</p>
+
+<h1><a href="https://www.microsoft.com/net/core/platform" rel="nofollow noreferrer">C# (.NET Core)</a>, 87+13=100 bytes</h1>
+
+
+
+<pre class="lang-cs prettyprint-override"><code>m=&gt;{var a=BitConverter.GetBytes(m);Array.Reverse(a);return BitConverter.ToUInt32(a,0);}
+</code></pre>
+
+<p><a href="https://tio.run/##jZFRa8MgFIWf56/wMYGuJFeNSpbCOrYx2KCsG3uWVIbQmqGmo5T@9sylLaVvvgji@Tzn3Nv627Zzeui9sd94ufNBb2rUrpX3eLFHPqhgWvzU2/auNzZM8P85w8tf9fNoV0ZZq6OywcOmme23ymHVzE146OxWu6Dd9FmH@S5on23y@t45tZu@6/jkdaby2unQO4uvgI/u88UGApmaFHl9GGp0DrHtzAq/KWOzHO3RTUR8t9bTL2eCfjVWZ9ehsiLHTYPjJwnactSWFeccyioJoTAyvKAVJQWHNB8QIwUl5VSQiopELCqjy8jSopCcCKCJ1SohmGTHtAQIAGGxZhJ7KTcap3UknDAJgjF5igsALEamaWO9tBtXcm6exkLFSCnIyRkklRUHLhMXepRLdkXHa40O6DD8AQ" rel="nofollow noreferrer" title="C# (.NET Core) – Try It Online">Try it online!</a></p>
+
+<p>+13 for <code>using System;</code></p>
+
+<p>This solution care of @JeppeStigNielsen; removing the restriction of having everything inline saved 3 bytes.</p>
+</div>
+<div id="pu17" class="pu"><h1>C (gcc) , <del>20</del>, <del>29</del> 17 bytes</h1>
+<p>@hvd's suggestion.</p>
+<pre><code>__builtin_bswap32
+</code></pre>
+<p><a href="https://tio.run/##ZcxLCsIwFIXheVZRCpWmtDS9yc2DgisRShtRAnotfeBAdOsxjh0cOHyD3zdX72NbxWGY9nDbAg3T@hxnCbFq2X0MVBJ/XR5L2X9WP9KlzItzXh@I93xeAm0/2LPmmBX7ifKa6r9QCvD@HQXrmALWgU3TyiqZRFuLDoEZoXQCA0waiQ4somNKCGekBSXSBY2yszIpOOW0AYdf" rel="nofollow noreferrer">Try it online!</a></p>
+<p>Old answer;</p>
+<pre><code>#include&lt;byteswap.h&gt;
+bswap_32
+</code></pre>
+<p>include should be import.</p>
+</div>
+<div id="pu18" class="pu"><h1><a href="https://www.microsoft.com/net/core/platform" rel="nofollow noreferrer">C#</a>, <strike>70</strike> 68 bytes</h1>
+
+
+
+<p>This is probably not optimal.</p>
+
+<p><strong>68:</strong></p>
+
+<pre class="lang-cs prettyprint-override"><code>Func&lt;uint,uint&gt;f=n=&gt;((n=n&gt;&gt;16|n&lt;&lt;16)&amp;0xFF00FF00)&gt;&gt;8|(n&amp;0xFF00FF)&lt;&lt;8;
+</code></pre>
+
+<p><strong>70:</strong></p>
+
+<pre class="lang-cs prettyprint-override"><code>uint e(uint n){n=n&gt;&gt;16|n&lt;&lt;16;return(n&amp;0xFF00FF00)&gt;&gt;8|(n&amp;0xFF00FF)&lt;&lt;8;}</code></pre>
+
+<p><a href="https://tio.run/##jY5BC4JAEIXP7q9YPIQLJWOFSGteBE91Kqjrui6xYCO5axjqbzfzEB07DPPe8HjfSLOSVa3GsTEab/T0MlbdOfl1/kHjgxMiS2EMPStj01l1xDFWWC1po9FS5c0LWYd7TJIg7DGOg5DXyjY1eriANssAPsOSJOp/LiyOIz6Qb9@z0gU9Co0eI86EcdIKTVUq/1Jrq6Z3lOd2sLtGg7ucuNAKkedSFgVj/I80BLCGDWzn9ECGcXwD" rel="nofollow noreferrer" title="C# (.NET Core) – Try It Online">Try it online!</a></p>
+</div>
+<div id="pu19" class="pu"><h1><a href="https://en.wikipedia.org/wiki/General_Instrument_CP1600" rel="nofollow noreferrer">CP-1610</a> assembly, 6 DECLEs = 8 bytes</h1>
+
+<p>This code is intended to be run on an <a href="https://en.wikipedia.org/wiki/Intellivision" rel="nofollow noreferrer">Intellivision</a>.</p>
+
+<p>A CP-1610 opcode is encoded with a 10-bit value, known as a 'DECLE'. This function is 6 DECLEs long, starting at $480C and ending at $4811.</p>
+
+<p>The CP-1610 has 16-bit registers, so we're using two of them (R0 and R1) to store a 32-bit value.</p>
+
+<pre><code>                               ROMW  10           ; use 10-bit ROM
+
+                               ORG   $4800        ; start program at address $4800
+
+                               ;; example call
+4800  0001                     SDBD               ; load 0xDEAD into R0
+4801  02B8 00AD 00DE           MVII  #$DEAD, R0
+4804  0001                     SDBD               ; load 0xBEEF into R1
+4805  02B9 00EF 00BE           MVII  #$BEEF, R1
+
+4808  0004 0148 000C           CALL  swap32       ; call our function
+
+480B  0017                     DECR  PC           ; loop forever
+
+                               ;; swap32 function
+                       swap32  PROC
+
+480C  0040                     SWAP  R0           ; 16-bit SWAP of R0
+480D  0041                     SWAP  R1           ; 16-bit SWAP of R1
+
+480E  01C1                     XORR  R0, R1       ; exchange R0 and R1
+480F  01C8                     XORR  R1, R0       ; using 3 consecutive eXclusive OR
+4810  01C1                     XORR  R0, R1
+
+4811  00AF                     JR    R5           ; return
+
+                               ENDP
+</code></pre>
+
+<h3>Execution dump</h3>
+
+<pre><code> R0   R1   R2   R3   R4   R5   R6   R7    CPU flags  instruction
+ ------------------------------------------------------------------
+ 0000 4800 0000 0000 01FE 1041 02F1 4800  ------iq   SDBD
+ 0000 4800 0000 0000 01FE 1041 02F1 4801  -----D-q   MVII #$DEAD,R0
+ DEAD 4800 0000 0000 01FE 1041 02F1 4804  ------iq   SDBD
+ DEAD 4800 0000 0000 01FE 1041 02F1 4805  -----D-q   MVII #$BEEF,R1
+[DEAD BEEF]0000 0000 01FE 1041 02F1 4808  ------iq   JSR  R5,$480C
+
+ DEAD BEEF 0000 0000 01FE 480B 02F1 480C  ------iq   SWAP R0
+ ADDE BEEF 0000 0000 01FE 480B 02F1 480D  S------q   SWAP R1
+ ADDE EFBE 0000 0000 01FE 480B 02F1 480E  S------q   XORR R0,R1
+ ADDE 4260 0000 0000 01FE 480B 02F1 480F  ------iq   XORR R1,R0
+ EFBE 4260 0000 0000 01FE 480B 02F1 4810  S-----iq   XORR R0,R1
+[EFBE ADDE]0000 0000 01FE 480B 02F1 4811  S-----iq   MOVR R5,R7
+
+ EFBE ADDE 0000 0000 01FE 480B 02F1 480B  ------iq   DECR R7
+</code></pre>
+</div>
+<div id="pu20" class="pu"><h1><a href="https://github.com/lmendo/MATL" rel="nofollow noreferrer">MATL</a>, <s>12</s> 10 bytes</h1>
+<pre><code>7Y%1Z%P7Z%
+</code></pre>
+<p><a href="https://tio.run/##y00syfn/3zxS1TBKNcA8SvX/f0MzCwtTS1MjAA" rel="nofollow noreferrer">Try it online!</a> Or <a href="https://tio.run/##DcgpEsNADAVRrnsMl752ngMEhMQo5jbz/ScCXdX17vO59m/nd8mx3nms/fpsJiEDCWoKK9ORqPJ2ULLFQII01Rvl3mTMnVownkW4Suko2joS7X8" rel="nofollow noreferrer">verify all test cases</a>.</p>
+<h3>Explanation</h3>
+<pre><code>        % Implicitly input a number, read as a double
+7Y%     % Cast to uint32
+1Z%     % Convert to uint8 without changing underlying data. The result is 
+        % an array of four uint8 numbers, each corresponding to a byte of
+        % the original number's representation 
+P       % Flip array
+7Z%     % Convert back to uint32 without changing underlying data. The array
+        % of four uint8 numbers is interpreted as one uint32 number.
+        % Implicitly display
+</code></pre>
+</div>
+<div id="pu21" class="pu"><h1>Befunge, <s>62</s> 61 or 49 bytes</h1>
+<pre><code>0&amp;0v!p22:/3g22/*:*82\+%*:*82+&lt;
+@.$_:28*:*%00p\28*:**00g28*:*^
+</code></pre>
+<p><a href="http://befunge.tryitonline.net/#code=MCYwdiFwMjI6LzNnMjIvKjoqODJcKyUqOio4Mis8CkAuJF86MjgqOiolMDBwXDI4KjoqKjAwZzI4KjoqXg&amp;input=NDI" rel="nofollow noreferrer">Try it online!</a></p>
+<p>This is using standard Befunge on the reference interpreter, and we thus need to account for the fact that memory cells are 8-bit signed, and correct for possible signed overflow.</p>
+<p>On implementations with unsigned memory cells (e.g. PyFunge), or where the range is greater than 8 bits (e.g. FBBI), we can get away without those checks, saving 12 bytes.</p>
+<pre><code>0&amp;0v!p22:/3g22/*:*82\+g&lt;
+@.$_:28*:*%00p\28*:**00^
+</code></pre>
+<p><a href="http://befunge-93-fbbi.tryitonline.net/#code=MCYwdiFwMjI6LzNnMjIvKjoqODJcK2c8CkAuJF86MjgqOiolMDBwXDI4KjoqKjAwXg&amp;input=NDI" rel="nofollow noreferrer">Try FBBI online!</a><br />
+<a href="http://befunge-93-pyfunge.tryitonline.net/#code=MCYwdiFwMjI6LzNnMjIvKjoqODJcK2c8CkAuJF86MjgqOiolMDBwXDI4KjoqKjAwXg&amp;input=NDIK" rel="nofollow noreferrer">Try PyFunge online!</a></p>
+<p>Although note that PyFunge has a bug processing integer input, so when testing on TIO you need to follow the number in the input field with a space or line break.</p>
+</div>
+<div id="pu22" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E" rel="nofollow noreferrer">05AB1E</a>, <s>12</s> 10 bytes</h1>
+
+<pre><code>3F₁‰R`})₁β
+</code></pre>
+
+<p><a href="https://tio.run/##MzBNTDJM/f/f2O1RU@Ojhg1BCbWaQNa5Tf//GxqZmViYGBsAAA" rel="nofollow noreferrer" title="05AB1E – Try It Online">Try it online!</a> Explanation:</p>
+
+<pre><code>  ₁         Integer constant 256
+   ‰        [Div, Mod]
+    R       Reverse
+     `      Flatten to stack
+3F    }     Repeat 3 times
+       )    Collect results
+        ₁β  Convert from base 256
+</code></pre>
+</div>
+<div id="pu23" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E" rel="nofollow noreferrer">05AB1E</a>, 9 bytes</h1>
+
+<pre><code>žJ+₁в¦R₁β
+</code></pre>
+
+<p><a href="https://tio.run/##MzBNTDJM/f//6D4v7UdNjRc2HVoWBKTPbfr/3xAA" rel="nofollow noreferrer" title="05AB1E – Try It Online">Try it online!</a></p>
+
+<p>-1 thanks to <a href="https://codegolf.stackexchange.com/users/17602/neil">Neil</a>.</p>
+
+<p>Port of my Jelly answer.</p>
+</div>
+<div id="pu24" class="pu"><h1>x86_32 machine language, 3 bytes</h1>
+
+<pre><code>endian_swap:        # to be called with PASCAL REGISTER calling convention
+0f c8    bswap eax
+c3       ret
+</code></pre>
+
+<p>This is a bit of a cheat. The Pascal register calling convention (see <a href="https://en.wikipedia.org/wiki/X86_calling_conventions#List_of_x86_calling_conventions" rel="noreferrer">Wikipedia</a>) is a bit like __fastcall, except it passes the first parameter in eax, and eax also contains the return value. It's also callee-cleanup, but since we don't use the stack for anything other than the return pointer we don't need to do anything. This allows us to avoid a mov or xchg and just use bswap directly.</p>
+</div>
+<div id="pu25" class="pu"><h1><a href="https://www.wolfram.com/wolframscript/" rel="noreferrer">Wolfram Language (Mathematica)</a>, 24 bytes</h1>
+
+<pre><code>IntegerReverse[#,256,4]&amp;
+</code></pre>
+
+<p><a href="https://tio.run/##y00syUjNTSzJTE78n1aaZ/vfM68kNT21KCi1LLWoODVaWcfI1EzHJFbtf0BRZl5JNFCNgr6DQrWhjoKJkY6CoZEFkDAzsTAxNgAxLCxMLU2B4uYGJmZAIXOj2tj/AA" rel="noreferrer" title="Wolfram Language (Mathematica) – Try It Online">Try it online!</a></p>
+
+<p>Reverses the input interpreted as an integer in base 256 with 4 digits.</p>
+</div>
+<div id="pu26" class="pu"><h1>x86_64 machine language Linux, <s>5</s> 4 bytes</h1>
+<pre><code>0:       0f cf                   bswap  %edi
+2:       97                      xchg   %eax,%edi
+3:       c3                      retq 
+</code></pre>
+<p>Thanks to <a href="https://codegolf.stackexchange.com/users/61382/peter-ferrie">@peter ferrie</a> for -1.</p>
+<p><a href="https://tio.run/##fZDbisIwFEXf/YpDRUgGR9Jcmhwc/Avf@iJpqwEnM4wWCjLfXtN4B5uH0Cz2XhtS@7m1tp86b/dtVX8djpX7WexW/bSqG@draEhHgZDWH9zW1xU4fyQf9IUpzcquKTsbDurwFRkNVh8i@N44T@hpAvD7F7ghkM1amLWlz@bA5mGeUaDL93k@5Pl4LvlQkDyxwE3c4CbRKYxRqOLW7T7e1kwWUjAd63cY7wstFHKjFK4H4wkT72IMtTBcsug8YcrhhRK5EXh17pj6fyix0BzVxXlgdP77Mw" rel="noreferrer" title="C (gcc) – Try It Online">Try it online!</a></p>
+</div>
+<div id="pu27" class="pu"><h1>PPC Assembly (32-bit), 8 bytes</h1>
+
+<pre><code>endian_swap:    # WORD endian_swap(WORD)
+7c 60 1c 2c     LWBRX 3,0,3
+4e 80 00 20     BLR
+</code></pre>
+
+<p>How this works:</p>
+
+<ul>
+<li>PPC calling convention puts the first 32-bit word parameter into SP+24, and shadows that address into GPR3.</li>
+<li><a href="https://www.ibm.com/support/knowledgecenter/en/ssw_aix_61/com.ibm.aix.alangref/idalangref_lwbrx_lbx_lwbri_instrs.htm" rel="nofollow noreferrer">LWBRX</a> takes load GPR3 (third operand) and zero-extends it (second operand) into EA, then reads 4 bytes in reverse order and stores it into GPR3 (first operand).</li>
+<li>GPR3 holds the return value.</li>
+<li>BLR returns from the function (branches to the address in the LR register)</li>
+</ul>
+
+<p>Unfortunately there aren't any online PPC assembly emulators that I could find to demonstrate. Sorry!</p>
+</div>
+<div id="pu28" class="pu"><h2>JavaScript (ES6), <s>45</s> 43 bytes</h2>
+
+<pre><code>f=(n,p=0,t=4)=&gt;t?f(n&gt;&gt;&gt;8,p*256+n%256,t-1):p
+</code></pre>
+</div>
+<div id="pu29" class="pu"><h1>Excel VBA, <sub><s>103</s></sub> 92 Bytes</h1>
+
+<p>Anonymous VBE immediate window function that takes input from range <code>[A1]</code> converts to hex, reverses bytes, and outputs to the VBE immediate window</p>
+<pre class="lang-vb prettyprint-override"><code>h=[Right(Rept(0,8)&amp;Dec2Hex(A1),8)]:For i=0To 3:s=s+Mid(h,7-2*i,2):Next:[B1]=s:?[Hex2Dec(B1)]
+</code></pre>
+</div>
+<div id="pu30" class="pu"><h1>J, 16 bytes</h1>
+
+<pre><code>|.&amp;.((4#256)#:])
+</code></pre>
+
+<p><a href="https://tio.run/##VY@xCsMwDET3fIUhUJIl2CfJsgpZ@gGdunYqCaVLh3Tsv7shdgLdfHfSPfmV8@zGwX2H09B13EJi357vfdNcL4O7TctnaabH8@28G93sfBFhEyGqKkIsHmMz1XNk8oo6ibTZCKycKHLa/fW5zm0he29KCbzXx5TEpBQSCCBZUSU8AGW1ckhJDEnEaiMAWVu5HncQyuWVvoeIQiFR3YWxRYXa/rGiTf5ik5x/" rel="nofollow noreferrer">Try it online!</a></p>
+
+<p>Working on shortening the right-hand expression. I think I can shave off a few bytes by making this work with a beta J version. I swear I saw on here that you can end a train with a noun in a new beta version...</p>
+
+<h1>Explanation</h1>
+
+<pre><code>|.&amp;.((4#256)#:])
+    ((4#256)#:])  Convert to 4 two-byte blocks
+            #:      Debase to
+      4#256         4 digits base 256
+  &amp;.              Apply right function, left function, then inverse of right
+|.                Reverse digits
+</code></pre>
+
+<p>Convert to 4 digits base 256, reverse the digits, then convert back to decimal. Basically, perform the algorithm that is provided in the OP. This is perhaps the one time where it's helpful that J's mixed base conversion requires you to specify the number of digits, although it would be 2 fewer bytes if I could end the train in a noun (<code>(#:~4#256)</code> instead).</p>
+</div>
+<div id="pu31" class="pu"><h1>JavaScript (ES6), <s>51</s> 45 bytes</h1>
+
+<p><em>Saved 6 bytes with @Neil's help</em></p>
+
+<pre class="lang-js prettyprint-override"><code>n=&gt;(n&gt;&gt;&gt;24|n&gt;&gt;8&amp;65280|(n&amp;65280)&lt;&lt;8|n&lt;&lt;24)&gt;&gt;&gt;0
+</code></pre>
+
+<h3>Test cases</h3>
+
+<p><div class="snippet" data-lang="js" data-hide="true" data-console="true" data-babel="false">
+<div class="snippet-code snippet-currently-hidden">
+<pre class="snippet-code-js lang-js prettyprint-override"><code>let f=
+
+n=&gt;(n&gt;&gt;&gt;24|n&gt;&gt;8&amp;65280|(n&amp;65280)&lt;&lt;8|n&lt;&lt;24)&gt;&gt;&gt;0
+
+console.log(f(0         )) // -&gt; 0
+console.log(f(1         )) // -&gt; 16777216
+console.log(f(42        )) // -&gt; 704643072
+console.log(f(128       )) // -&gt; 2147483648
+console.log(f(16885952  )) // -&gt; 3232235777
+console.log(f(704643072 )) // -&gt; 42
+console.log(f(3735928559)) // -&gt; 4022250974
+console.log(f(4009738240)) // -&gt; 12648430
+console.log(f(4026531839)) // -&gt; 4294967279
+console.log(f(4294967295)) // -&gt; 4294967295</code></pre>
+</div>
+</div>
+</p>
+</div>
+<div id="pu32" class="pu"><h1>APL+WIN 14 bytes</h1>
+<pre><code>256⊥⌽(4⍴256)⊤⎕
+</code></pre>
+<p>Explanation</p>
+<pre><code>⎕ prompt for screen input
+(4⍴256)⊤ 4 byte representation in base 256
+⌽ reverse bytes
+256⊥ bytes from base 256 to integer
+</code></pre>
+</div>
+<div id="pu33" class="pu"><h1><a href="https://docs.python.org/2/" rel="noreferrer">Python 2</a>, 44 bytes</h1>
+
+
+
+<pre class="lang-python prettyprint-override"><code>f=lambda x,i=3:x and(x%256)&lt;&lt;8*i|f(x&gt;&gt;8,i-1)
+</code></pre>
+
+<p><a href="https://tio.run/##RZDNasMwEITP8VPspWAXFaRdrX5CnBcJobhNTA2tbRIFXOi7uxtbJCftaGY/DRp/09fQ4zy39Xfz83FqYFJdTdsJmv5UTi/Irtrtwmv315bTfh9U92aqOZ2v6f2zuZ6vUMOh2By0An1UMhgFxnnv0bhFW1TgtXWWtMc1gUEBGuttIGdDvpNJIgqs1tFTQJtxLgSOLBBCQiQW9GI8mLKycskTRwzM8U5BRBaSXUs8oNIuP5UNdEwm0H0Ho43Oo4@5@CojP63IYh2Loh0u0PXjLSkYbklOUfD8k22xGS9dn8q2XFIV1HUOVvM/" rel="noreferrer" title="Python 2 – Try It Online">Try it online!</a></p>
+</div>
+<div id="pu34" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="noreferrer">Jelly</a>, 10 bytes</h1>
+
+<pre><code>⁴4*+b⁹ḊṚḅ⁹
+</code></pre>
+
+<p><a href="https://tio.run/##y0rNyan8//9R4xYTLe2kR407H@7oerhz1sMdrUD2////Dc0sLEwtTY0A" rel="noreferrer" title="Jelly – Try It Online">Try it online!</a></p>
+</div>
 
 <table id="st">
 <!-- Popups content will be added here -->
