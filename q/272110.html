@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::272110</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>836</td><td>Python 3</td><td>240327T061553Z</td><td><a href="https://codegolf.stackexchange.com/questions/272110/implement-a-2-player-version-of-1d-chess/272111#272111">Alec</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>Python 3, 836 chars</h1>
+<pre><code>def v(f,s,e):
+    a=(t==&quot;w&quot;and(f[s]not in&quot;KNR&quot;or f[e]in&quot;KNR&quot;))or(t==&quot;b&quot;and(f[s]not in&quot;knr&quot;or f[e]in&quot;knr&quot;))or(f[s]in&quot;Kk&quot;and abs(s-e)!=1)or(f[s]in&quot;Nn&quot;and not abs(s-e)==2)or(f[s]in&quot;Rr&quot;and not r(f,s,e))
+    f=f.copy()
+    f[s],f[e]='.',f[s]
+    return not(a or c(f))
+c=lambda f:(t==&quot;w&quot;and((&quot;n&quot;in f and abs(f.index(&quot;n&quot;)-f.index(&quot;K&quot;))==2)or(&quot;r&quot;in f and r(f,f.index(&quot;r&quot;),f.index(&quot;K&quot;)))))or(t==&quot;b&quot;and((&quot;N&quot; in f and abs(f.index(&quot;N&quot;)-f.index(&quot;k&quot;))==2)or(&quot;R&quot;in f and r(f,f.index(&quot;R&quot;), f.index(&quot;k&quot;)))))
+r=lambda f,s,e:(s&lt;e and f[s+1:e].count(&quot;.&quot;)==e-s-1)or(s&gt;e and f[e+1:s].count(&quot;.&quot;)==s-e-1)
+b=['K','N','R','.','.','r','n','k']
+t='w'
+while any(v(b,s,e)for s in range(8)for e in range(8))and b.count('.')&lt;6:
+    print(t+''.join(b))
+    s,e=map(int,input())
+    if v(b,s,e):b[s],b[e],t='.',b[s],'b'if t=='w'else'w'
+print(((&quot;B&quot;if t=='w'else&quot;W&quot;)if c(b)else&quot;S&quot;)+''.join(b))
+</code></pre>
+<p><a href="https://tio.run/##dVJNj9owED3jX@H6YltrImVZaBWte@gVKQd66AFxiMHuprBOZJul/Ho64w00rNpII2XGb@a9@ejP6aXzs8tlZx19E05FZWVFJo0WSWt2Yo3fCbeOG98l2nq2rFesC9St7WbwpOxCxpqP2L0PIyx6GYsIzN0jnjYmiji18pMuR4@1z49Y6ArQ@nEEWIUbIAyqJZk47Ypt158F/gNQIbfmBVfokUmw6Rg8ZomGgrStcJC21Yfm1ewa6qpR04J51nrq6FWlK1q/s78xLqc3ZwlNDdJY@JuAom4YaFzdJcgPQxOsZvTfZPWYbD8iW/2HDDai6F0GfCTcesRZVSI@25wKc3koK7uBsR19EqxgQGCncZq3Eb9eURZQ8R4FSwEUMXrNl1zxGmwFVgwWwDzYnm9I0vzEyemlPWC9s3gTJq/MwQ4iNh4a/9OKLzlgxwGJ9GbghbryeQHX2YcW3PTAefGra70wuHwoqF@bXsCTan1/TAKjLZ71O1tl8CQMnIRK@Siyzw0HDOwCJNpDtKj0vT6s5Ru7e2M/mITAFgiz@53JsYbLpZyRxROZzcnnBXmE/zmZlWS@IOXTHw" rel="nofollow noreferrer">Try it online!</a></p>
+<p>It's a big one, I'm sure others would be able to think of some optimizations. Not really using any special tricks here, the logic is similar to most chess programs. The core is about checking if a move is valid, i.e.:</p>
+<ul>
+<li>the start and end positions are valid</li>
+<li>the piece movement is legal</li>
+<li>the movement does not put yourself in check</li>
+</ul>
+<p>Un-golfed functions are as follows:</p>
+<pre><code>def v(f, s, e):  # Check if a move is valid
+    # Check valid start and end positions
+    if t==&quot;w&quot; and (b[s] not in &quot;KNR&quot; or b[e] in &quot;KNR&quot;):  return False
+    if t==&quot;b&quot; and (b[s] not in &quot;knr&quot; or b[e] in &quot;knr&quot;):  return False
+
+    # Check correct movement
+    if b[s] in &quot;Kk&quot; and abs(s-e) != 1:  return False
+    if b[s] in &quot;Nn&quot; and not abs(s-e) == 2: return False
+    if b[s] in &quot;Rr&quot; and not r(b, s, e): return False
+    
+    # Check if move puts own king in check
+    f = f.copy()
+    f[s], f[e] = '.', f[s]
+    if c(f): return False
+    
+    return True
+
+def c(f):  # Is in check
+    if t==&quot;w&quot;:
+        K = f.index(&quot;K&quot;)
+        if &quot;n&quot; in f and abs(f.index(&quot;n&quot;)-K) == 2: # black knight can hit king
+            return True
+        if &quot;r&quot; in f and r(f, f.index(&quot;r&quot;), K): # black rook can hit king
+            return True
+    if t==&quot;b&quot;:
+        k = f.index(&quot;k&quot;)
+        if &quot;N&quot; in f and abs(f.index(&quot;N&quot;)-k) == 2: # white knight can hit king
+            return True
+        if &quot;R&quot; in f and r(f, f.index(&quot;R&quot;), k): # white rook can hit king
+            return True
+    return False
+
+def r(f, s, e): # Rook can move from s to e (i.e. there are no pieces in-between)
+    if s &lt; e and f[s+1:e].count(&quot;.&quot;) == e-s-1:
+        return True
+    if s &gt; e and f[e+1:s].count(&quot;.&quot;) == s-e-1:
+        return True
+    return False
+
+</code></pre>
+<p>and the while loop just checks:</p>
+<ul>
+<li>there is any valid move <code>any(v(b, s, e) for s in range(8) for e in range(8))</code></li>
+<li>the board doesn't only have kings on it <code>b.count('.')&lt;6</code></li>
+</ul>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/272110/">272110</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
