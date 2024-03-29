@@ -105,7 +105,7 @@ CC = color -&gt; 01: white, 10: black
 <pre class="lang-javascript prettyprint-override"><code>M = c =&gt; b.map((v, x) =&gt; h(d = -1) | h(d = 1), k = m = [])
 </code></pre>
 <p>The recursive function <code>h</code> is responsible for generating the moves in a direction <code>d = ±1</code>:</p>
-<pre class="lang-javascript prettyprint-override"><code>h = n =&gt;             // n = distance from source square
+<pre class="lang-javascript prettyprint-override"><code>h = n =&gt;             // n = signed distance from the source square
 v % 4 *              // get the color of v
 /[129]/.test(b)      // or force 0 if only kings remain
 ^ c |                // abort if the result is not c
@@ -128,6 +128,40 @@ h(n + d)             //   do a recursive call with n + d
 </code></pre>
 <p>The helper function <code>g</code> tests whether the king of the current side is in check:</p>
 <pre class="lang-javascript prettyprint-override"><code>g = _ =&gt; M(C ^ 3) | k
+</code></pre>
+<h3>Main program</h3>
+<p>The helper functions already described above have been redacted.</p>
+<pre class="lang-javascript prettyprint-override"><code>for(                   // loop:
+  b = [                //   initialize the board b[] and the color C:
+    5, 9, C = 1,       //     white pieces
+    0, 0,              //     empty squares
+    2, 10, 6           //     black pieces
+  ],                   //
+  f = g(B = [...b]),   //   set the flag f if the king is in check
+                       //   and save a copy of b[] in B[]
+  M(C),                //   generate the moves for the current side
+  m = m.filter(a =&gt;    //   keep only the moves for which:
+    !g(P(a)) |         //     the king is not in check after they are played
+    (b = [...B])       //     restore the board after each iteration
+  ),                   //   end of filter()
+  console.log(         //   print the game state:
+    &quot;SwbBW&quot;[           //     the first character is ...
+      m + m ?          //       if there's at least one move to play:
+        C              //         'b' or 'w'
+      :                //       else:
+        f &amp;&amp;           //         'S' if f = 0
+        C + 2          //         'B' or 'W' otherwise
+    ] +                //
+    b.map(v =&gt;         //     the next characters are taken
+      &quot;.Rr__Kk__Nn&quot;[v] //     from this lookup table
+    ).join``           //     and joined together
+  ),                   //
+  m + m;               //   stop when there's no move to play
+)                      //
+  m.includes(          //   if the move q ...
+    q = prompt()       //     ... taken from prompt()
+  ) &amp;&amp;                 //   exists in m[]:
+  P(q, C ^= 3)         //     play the move and change the color
 </code></pre>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, <s>254</s> 244 bytes</h1>
