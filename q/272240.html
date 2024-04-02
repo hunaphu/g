@@ -38,30 +38,33 @@
 <p><strong><a href="https://tio.run/##dZLBasJAEIbvPkUeIJfsZF@ieKtQMAhevJS8gLe2BxcsiNhDPSleRSR6avS4JNDHGF9kTbtunGRH@AlhmG//2fn3dZSmY2PwtHnG8/T3u1SXw37YKRZPWumsryeYv7@MSlV84flTzzF/09nlY4enGf6sq1atunqF@bY8lrte12hVLDBfGpMkMgysYvetBGEQ/SsmqorxIOwEiWzWab@gzVYOqan6R3gWtmiRmHMBdzI4L@AQyR0bEf1RDgGvmToKYgTExV4WnJ305ryN0Rys5SVZX4KI1v6byD07gtD9@FeTnEudoOAoFgGyAcEFxLpEXgp0TiBvzH9dgjSL1ksjiHyQY8QtWXJI7QKt1CpkcAU" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></strong></p>
 <h4>How?</h4>
 <p>Find all possible cactus planting locations, <span class="math-container">\$L\$</span>, given the landscape's heights then repeatedly remove locations from <span class="math-container">\$L\$</span> along with their neighbours in <span class="math-container">\$L\$</span> for a location with minimal neighbours in <span class="math-container">\$L\$</span> until <span class="math-container">\$L\$</span> is empty and return the number of chosen locations.</p>
-<p><em>Not updated, 37 byte version (pretty similar):</em></p>
-<pre><code>ạSỊ - Link 1, inNeighbourhood?: pair of integers, A; pair of integers B
-ạ   - {A} absolute difference {B} -&gt; Deltas = [abs(A1-B1), abs(A2-B2)]
- S  - sum
-  Ị - insignificant? -&gt; 1 if either A=B or A &amp; B are neighbours
+<pre><code>ạSỊɗƇⱮ` - Link 1, getNeighbourhoods: list of pairs of integers, Locations
+     Ɱ` - for Y in Locations:
+    Ƈ   -   filter keep any Location, X, for which:
+   ɗ    -     last three links as a dyad - f(X, Y):    
+ạ       -       X absolute difference Y -&gt; Delta = [abs(X1-Y1), abs(X2-Y2)]
+ S      -       sum
+  Ị     -       insignificant? -&gt; Does X=Y or are X &amp; Y neighbours?
 
-ŒJçƇⱮ`ðZÆṁWeƇœịÐṀð€ẎçÐḟⱮ`LÞṪƊƬL_2 - Main Link: list of lists of positive integers, Landscape
-ŒJ                                - multidimensional indices -&gt; all locations
-  çƇⱮ`                            - self-map keep if Link 1 -&gt; all neighbourhoods
-      ð          ð€               - dyadic link for each - f(Neighbourhood, Landscape):
-       Z                          -   transpose the Neighbourhood
-        Æṁ                        -   median (vectorises) -&gt; the planting location
-          W                       -   wrap that in a list
-             œịÐṀ                 -   maximums of Neighbourhood by indexing into Landscape
-           eƇ                     -   {wrapped planting location} keep if in {maximums}
-                   Ẏ              - tighten -&gt; flat list of all possible planting locations
-                             Ƭ    - collect up while distinct, applying:
-                            Ɗ     -   last three links as a monad - f(AvailableLocations):
-                    çÐḟⱮ`         -     self-map discard if Link 1 -&gt; remaining locations
-                         LÞ       -     sort by length
-                           Ṫ      -     tail
-                              L   - length
-                               _2 - subtract two (one since Ṫ of an empty list yields zero
-                                                  another to count fences, not fenceposts)
+ŒJÇðZÆṁWeƇœịÐṀð€ẎḟⱮÇLÞṪƲƬTL - Main Link: list of lists of positive integers, Landscape
+ŒJ                          - multidimensional indices -&gt; all locations
+  Ç                         - call Link 1 -&gt; all neighbourhoods
+   ð          ð€            - dyadic link for each - f(Neighbourhood, Landscape):
+    Z                       -   transpose the Neighbourhood
+     Æṁ                     -   median (vectorises) -&gt; the planting location
+       W                    -   wrap that in a list
+          œịÐṀ              -   maximums of Neighbourhood by indexing into Landscape
+        eƇ                  -   {wrapped planting location} keep if in {maximums}
+                Ẏ           - tighten -&gt; L = all possible planting locations
+                        Ƭ   - collect up while distinct, applying:
+                       Ʋ    -   last four links as a monad - f(L):
+                   Ç        -     call Link 1 -&gt; neighbourhoods of L
+                 ḟⱮ         -     L without each of these neighbourhoods
+                    LÞ      -     sort by length
+                      Ṫ     -     tail -&gt; new L (with a smallest neighbourhood removed)
+                         T  - truthy indices
+                                (Ṫ of an empty list yields zero, ignore both []
+                                 and 0 to count fences rather than fenceposts)
 </code></pre>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>,<s> 150 </s>147 bytes</h1>
