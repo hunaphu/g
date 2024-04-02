@@ -26,6 +26,202 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
+<tr d-ix="0"><td>nan</td><td></td><td>231124T170447Z</td><td><a href="https://codegolf.stackexchange.com/questions/71617/tips-for-golfing-in-retina/267067#267067">Neil</a></td></tr>
+<tr d-ix="1"><td>nan</td><td></td><td>230723T000629Z</td><td><a href="https://codegolf.stackexchange.com/questions/71617/tips-for-golfing-in-retina/263194#263194">Neil</a></td></tr>
+<tr d-ix="2"><td>nan</td><td></td><td>211218T100740Z</td><td><a href="https://codegolf.stackexchange.com/questions/71617/tips-for-golfing-in-retina/239739#239739">Neil</a></td></tr>
+<tr d-ix="3"><td>001</td><td>Arithmetic in Retina</td><td>210207T222511Z</td><td><a href="https://codegolf.stackexchange.com/questions/71617/tips-for-golfing-in-retina/218739#218739">Neil</a></td></tr>
+<tr d-ix="4"><td>nan</td><td></td><td>160229T193153Z</td><td><a href="https://codegolf.stackexchange.com/questions/71617/tips-for-golfing-in-retina/74470#74470">Martin E</a></td></tr>
+<tr d-ix="5"><td>nan</td><td></td><td>160212T193333Z</td><td><a href="https://codegolf.stackexchange.com/questions/71617/tips-for-golfing-in-retina/71896#71896">Martin E</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h2>Actualising a transliteration pattern in <a href="https://github.com/m-ender/retina/wiki/The-Language/a950ad7d925ec9316e3e2fb2cf5d49fd15d23e3d" rel="nofollow noreferrer">Retina 0.8.2</a></h2>
+<p>In <a href="https://github.com/m-ender/retina/wiki/The-Language" rel="nofollow noreferrer">Retina</a> 1, it's easy to produce the contents of a transliteration pattern, here the 64 characters used by MIME Base-64:</p>
+<pre><code>
+    64*
+    Y`\_`Lld+/
+</code></pre>
+<p><a href="https://tio.run/##K0otycxLNPz/n8vMRIsrMiEmPsEnJ0Vb//9/AA" rel="nofollow noreferrer" title="Retina – Try It Online">Try it online!</a> Explanation: The first stage inserts 64 <code>_</code>s, and the second stage cyclically transliterates <code>_</code>s to the 64 base 64 characters in turn. You can also cyclically extend the string should you want, say, 10 copies of each of the digits; just cyclically translate 100 <code>_</code>s into digits.</p>
+<p>But it turns out not to be that difficult in Retina 0.8.2. Here is the required program:</p>
+<pre><code>T`Lld+/`_o
+}`$
+/
+</code></pre>
+<p><a href="https://tio.run/##K0otycxL/P8/JMEnJ0VbPyE@n6s2QYVL//9/AA" rel="nofollow noreferrer" title="Retina 0.8.2 – Try It Online">Try it online!</a> Explanation: Each pass through the loop, the characters in the string get transliterated through the contents of the pattern, with the first character of the pattern being deleted, and a new copy of the last character is appended.</p>
+<p>The loop becomes idempotent when the buffer equals the contents of the pattern, as then the deletion of the first character and the append of the last character is balanced by the transliteration of the intervening characters.</p>
+<p>You can generate a prefix of a pattern by using the appropriate ending character in the append stage.</p>
+<p>The code as shown is designed to be used to produce input as part of a larger program, which is why it does not begin with a loop block; it would need an extra <code>{</code> if it was embedded within a larger program. If the code actually appears at the end, or it is the desired program, then you can go on to remove the trailing loop block instead, saving a byte.</p>
+<p>Note that when embedded within a larger program the code will normally delete any other copies of the output pattern present within the work buffer while appending a copy of the output pattern. You may be able to avoid the deletion by use of a suitable pattern to restrict the scope of the transliteration. It is also possible to adapt the code to prefix rather than append the desired output.</p>
+</div>
+<div id="pu1" class="pu"><h2>Horizontal or Vertical Mirroring in <a href="https://github.com/m-ender/retina/wiki/The-Language/a950ad7d925ec9316e3e2fb2cf5d49fd15d23e3d" rel="nofollow noreferrer">Retina 0.8.2</a></h2>
+<p>If the amount of mirroring is a constant, then it's easy enough: duplicate the string, then reverse the appropriate half. For instance, suppose the buffer is known to contain 10 characters, and you want to mirror them about the last character:</p>
+<pre><code>saippuakiv
+</code></pre>
+<p>The following program would then achieve that:</p>
+<pre><code>.$
+$&amp;$`
+10&gt;O$^`.
+</code></pre>
+<p><a href="https://tio.run/##K0otycxL/P9fT4VLRU0lgcvQwM5fJS5B7///4sTMgoLSxOzMMgA" rel="nofollow noreferrer" title="Retina 0.8.2 – Try It Online">Try it online!</a> Explanation: The first stage copies the first 9 characters to the end of the line, then the second stage reverses the characters after the first 10. Note that the second stage consists of two lines but the second (empty) line may be omitted if it's the last stage.</p>
+<p>If you want to mirror to the left, then you can prepend the suffix and sort the first 9 characters instead.</p>
+<pre><code>^.
+$'$&amp;
+9O$^`.
+</code></pre>
+<p><a href="https://tio.run/##K0otycxL/P8/To9LRV1FjcvSXyUuQe///7LM7MTSgoLMxGIA" rel="nofollow noreferrer" title="Retina 0.8.2 – Try It Online">Try it online!</a> (Mirrors <code>vikauppias</code> to the left.)</p>
+<p>Similarly, you can mirror a fixed number of lines. Suppose for instance you wanted a mirror copy of all three lines:</p>
+<pre><code>| | | | |
+=~=~=~=~=
+#########
+</code></pre>
+<p>The following program would then achieve that:</p>
+<pre><code>$
+¶$`
+3&gt;O$^`
+</code></pre>
+<p><a href="https://tio.run/##K0otycxL/P9fhevQNpUELmM7f5W4hP//axSgkMu2Dgq5lGEAAA" rel="nofollow noreferrer" title="Retina 0.8.2 – Try It Online">Try it online!</a> Explanation: The first stage duplicates the entire buffer, while the second stage reverses the lines after the first three.</p>
+<p>If you want to mirror up, then remove the <code>&gt;</code>, so the first <code>3</code> lines are reversed instead.</p>
+<p>If the amount of mirroring is a variable, then it might still be possible, but you would need to use .NET balancing groups to ensure that only the characters or lines that need to be reversed are processed by the <code>O</code> command.</p>
+<h2>Horizontal Mirroring in Retina 1</h2>
+<p>Horizontal mirroring is straightforward in <a href="https://github.com/m-ender/retina/wiki/The-Language" rel="nofollow noreferrer">Retina</a> 1: simply use the <code>$^</code> function to reverse a substitution. For instance, to horizontally mirror <code>saippuakiv</code> as above:</p>
+<pre><code>.$
+$&amp;$^$`
+</code></pre>
+<p><a href="https://tio.run/##K0otycxLNPz/X0@FS0VNJU4l4f//4sTMgoLSxOzMMgA" rel="nofollow noreferrer" title="Retina – Try It Online">Try it online!</a> Explanation: The reversed prefix of the input is appended to it, thus mirroring the input. (The code would be even simpler if the last character could be duplicated as well.)</p>
+<h2>Vertical Mirroring of Horizontally Mirrored Text in <a href="https://github.com/m-ender/retina/wiki/The-Language" rel="nofollow noreferrer">Retina</a> 1</h2>
+<p>If you are mirroring horizontally mirrored text, then a very similar approach will allow you to vertically mirror the whole text.</p>
+<pre><code>$
+¶$^$`
+</code></pre>
+<p><a href="https://tio.run/##K0otycxLNPz/X4Xr0DaVOJWE//9rFKCQy7YOCrmUYQAA" rel="nofollow noreferrer" title="Retina – Try It Online">Try it online!</a> Explanation: The whole buffer is duplicated, but the second copy is reversed. This only works because the horizontal mirroring turns the string reversal into a line reversal.</p>
+<p>Both of these examples are readily adapted to mirror to the left or up.</p>
+<p>If the text is not already horizontally mirrored then you will need to adapt the Retina 0.8.2 examples (note that the limits syntax changes so that <code>3&gt;</code> is now <code>3,</code> and <code>3</code> is now <code>,2</code>). You can use the <code>V</code> command instead to avoid the second line of the stage: <code>3,V0^</code> instead of <code>3,O$^</code> (the <code>0</code> is needed to avoid reversing the characters of the lines).</p>
+</div>
+<div id="pu2" class="pu"><h2>Using balancing groups to capture the same count twice.</h2>
+<p>Occasionally you need to capture a balancing group twice, such as to match the substring <code>nice</code> when the letters are equally spaced in the input. The naive approach is to capture the characters between <code>n</code> and <code>i</code> twice, and then use balancing groups to ensure that the same number of character exist between <code>i</code> and <code>c</code> and <code>c</code> and <code>e</code>, like this:</p>
+<pre><code>n((.))*i(?&lt;-1&gt;.)*(?(1)^)c(?&lt;-2&gt;.)*(?(2)^)e
+</code></pre>
+<p>However, you can capture into capture group <code>2</code> while popping from capture group <code>1</code>, allowing you to then pop the same count from capture group <code>2</code> later, saving a byte:</p>
+<pre><code>n(.)*i(?&lt;2-1&gt;.)*(?(1)^)c(?&lt;-2&gt;.)*(?(2)^)e
+</code></pre>
+<p>(Normally you would use <code>(?!)</code> to force the match to fail if the count is too low but obviously in code golf we just use the shortest regex that we know will fail; <code>^</code> usually works.)</p>
+</div>
+<div id="pu3" class="pu"><h2>Arithmetic in Retina 1</h2>
+<p>In Retina you need to do your arithmetic in unary. However, Retina 1 makes things slightly easier for you in certain cases, principally because of two constructs:</p>
+<ul>
+<li>The repetition operator <code>*</code> accepts an expression as its RHS, whereas the <code>$*</code> operator in Retina 0.8.2 only accepted a character as its RHS</li>
+<li>Retina 1 now includes a <code>$(...)</code> grouping construct, which accepts the length modifier <code>$.(...)</code></li>
+</ul>
+<p>It thus becomes possible to perform some arithmetic operations in both unary or decimal, depending on which is convenient. In particular, the group length construct <code>$.(...)</code> calculates the sum of the lengths of its contents, taking any products using arbitrary precision integers, so it's not limited in value.</p>
+<h3>Addition</h3>
+<p>This is straightforward.</p>
+<ul>
+<li>Convert any decimal numbers to unary using <code>*_</code></li>
+<li>Concatenate the numbers to give a unary result</li>
+<li>Group the sum using <code>$(...)</code> if you intend to multiply it or <code>$.(...)</code> to convert it to decimal</li>
+</ul>
+<p>2-argument examples:</p>
+<ul>
+<li>Unary + Unary = Unary: <code>$1$2</code></li>
+<li>Unary + Unary = Decimal: <code>$.($1$2)</code></li>
+<li>Unary + Decimal = Unary: <code>$1$2*_</code></li>
+<li>Unary + Decimal = Decimal: <code>$.($1$2*)</code> (see below)</li>
+<li>Decimal + Decimal = Unary: <code>$1*_$2*_</code></li>
+<li>Decimal + Decimal = Decimal: <code>$.($1*_$2*)</code></li>
+</ul>
+<h3>Multiplication</h3>
+<p>Note that <code>*</code> normally takes one decimal and one unary parameter and returns a unary result.</p>
+<ul>
+<li>If the numbers are all decimal, add an extra unary parameter of 1</li>
+<li>Convert all but one number to decimal using the length modifier</li>
+<li>Take the product to give a unary result</li>
+<li>Convert the product to decimal by enclosing in <code>$.(...)</code> if desired</li>
+</ul>
+<p>2-argument examples:</p>
+<ul>
+<li>Unary * Unary = Unary: <code>$.1*$2</code></li>
+<li>Unary * Unary = Decimal: <code>$.($.1*$2)</code></li>
+<li>Decimal * Unary = Unary: <code>$1*$2</code></li>
+<li>Decimal * Unary = Decimal: <code>$.($1*$2)</code></li>
+<li>Decimal * Decimal = Unary: <code>$1*$2*_</code></li>
+<li>Decimal * Decimal = Decimal: <code>$.($1*$2*)</code> (see below)</li>
+</ul>
+<p>A Retina replacement string to take the cube of a matched decimal number would be <code>$.(***</code> (see below).</p>
+<h3>Further savings</h3>
+<ul>
+<li>Only the first non-negative integer contained in the the LHS of a <code>*</code> operator is significant; there is no limit on junk characters (including <code>-</code>s). In particular this makes it easier to use <code>$&amp;</code>.</li>
+<li>If the LHS of a <code>*</code> is indeed <code>$&amp;</code>, then it is not necessary at the start of a <code>$(</code> construct or replacement string or after another <code>*</code>. Example: <code>$.(*__)</code></li>
+<li>The <code>_</code> after a <code>*</code> is not necessary at the end of a <code>$(</code> construct or replacement string. Example: <code>$.($1*_$2*)</code></li>
+<li>It is not necessary to close your <code>$(</code> constructs if they end at the end of the replacement string. Example: <code>$.($1$2</code></li>
+<li>When adding the constant values 1 or 2 it is shorter to express them in unary.</li>
+</ul>
+</div>
+<div id="pu4" class="pu"><h2>Splitting strings into chunks of equal length <code>n</code></h2>
+
+<p>As in most "normal" languages TMTOWTDI (there's more than one way to do it). I'm assuming here that the input doesn't contain linefeeds, and that "splitting" means splitting it into lines. But there are two quite different goals: if the length of the string isn't a multiple of the chunk length, do you want to keep the incomplete trailing chunk or do you want to discard it?</p>
+
+<h3>Keeping an incomplete trailing chunk</h3>
+
+<p>In general, there are three ways to go about the splitting in Retina. I'm presenting all three approaches here, because they might make a bigger difference when you try to adapt them to a related problem. You can use a replacement and append a linefeed to each match:</p>
+
+<pre><code>.{n}
+$&amp;¶
+</code></pre>
+
+<p>That's 8 bytes (or a bit less if <code>n = 2</code> or <code>n = 3</code> because then you can use <code>..</code> or <code>...</code> respectively). This has one issue though: it appends an additional linefeed if the string length <em>is</em> a multiple of the chunk length.</p>
+
+<p>You can also use a split stage, and make use of the fact that captures are retained in the split:</p>
+
+<pre><code>S_`(.{n})
+</code></pre>
+
+<p>The <code>_</code> option removes the empty lines that would otherwise result from covering the entire string with matches. This is 9 bytes, but it doesn't add a trailing linefeed. For <code>n = 3</code> it's 8 bytes and for <code>n = 2</code> it's 7 bytes. Note that you can save one byte overall if the empty lines don't matter (e.g. because you'll only be processing non-empty lines and getting rid of linefeeds later anyway): then you can remove the <code>_</code>.</p>
+
+<p>The third option is to use a match. With the <code>!</code> option we can print all the matches. However, to include the trailing chunk, we need to allow for a variable match length:</p>
+
+<pre><code>M!`.{1,n}
+</code></pre>
+
+<p>This is also 9 bytes, and also won't include a trailing linefeed. This also becomes 8 bytes for <code>n = 3</code> by doing <code>..?.?</code>. However note that it reduces to <em>6</em> bytes for <code>n = 2</code> because now we only need <code>..?</code>. Also note that the <code>M</code> can be dropped if this is the last stage in your program, saving one byte in any case.</p>
+
+<h3>Discarding an incomplete trailing chunk</h3>
+
+<p>This gets really long if you try to do it with a replacement, because you need to replace the trailing chunk with nothing (if it exists) and also with a split. So we can safely ignore those. Interestingly, for the match approach it's the opposite: it gets shorter:</p>
+
+<pre><code>M!`.{n}
+</code></pre>
+
+<p>That's 7 bytes, or less for <code>n = 2</code>, <code>n = 3</code>. Again, note that you can omit the <code>M</code> if this is the last stage in the code.</p>
+
+<p>If you do want a trailing linefeed here, you can get that by append <code>|$</code> to the regex.</p>
+
+<h3>Bonus: overlapping chunks</h3>
+
+<p>Remember that <code>M</code> has the <code>&amp;</code> option which returns overlapping matches (which is normally not possible with regex). This allows you to get all overlapping chunks (substrings) of a string of a given length:</p>
+
+<pre><code>M!&amp;`.{n}
+</code></pre>
+</div>
+<div id="pu5" class="pu"><h2>Combine loops if possible</h2>
+
+<p>In non-trivial computations you'll often find yourself using several loops to process data:</p>
+
+<pre><code>+`stage1
++`stage2
++`stage3
+</code></pre>
+
+<p>So this runs <code>stage1</code> until the output converges, then <code>stage2</code> until the output converges and then <code>stage3</code> until the output converges.</p>
+
+<p>However, it's always worth examining the stages in detail. Sometimes it's possible to run the loop in an interleaved fashion as <code>stage1, stage2, stage3, stage1, stage2, stage3, ...</code> instead (this depends a lot on what the stages actually do, but sometimes they make completely orthogonal changes or work well as a pipeline). In this case you can save bytes by wrapping them in a single loop:</p>
+
+<pre><code>{`stage1
+stage2
+}`stage3
+</code></pre>
+
+<p>If <code>stage1</code> is the first stage or <code>stage3</code> is the last stage of the program you can then even omit on of those parentheses as well (which means this can already save bytes for a loop of two stages).</p>
+
+<p>A recent use of this technique <a href="https://codegolf.stackexchange.com/a/71890/8478">can be seen in this answer</a>.</p>
+</div>
 
 <table id="st">
 <!-- Popups content will be added here -->
