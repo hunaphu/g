@@ -26,17 +26,51 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>147</td><td>JavaScript Node.js</td><td>240401T233546Z</td><td><a href="https://codegolf.stackexchange.com/questions/272240/how-many-cacti-can-i-plant-here/272242#272242">l4m2</a></td></tr>
-<tr d-ix="1"><td>566</td><td>Python3</td><td>240402T012913Z</td><td><a href="https://codegolf.stackexchange.com/questions/272240/how-many-cacti-can-i-plant-here/272245#272245">Ajax1234</a></td></tr>
+<tr d-ix="0"><td>037</td><td>Jelly</td><td>240402T132024Z</td><td><a href="https://codegolf.stackexchange.com/questions/272240/how-many-cacti-can-i-plant-here/272254#272254">Jonathan</a></td></tr>
+<tr d-ix="1"><td>147</td><td>JavaScript Node.js</td><td>240401T233546Z</td><td><a href="https://codegolf.stackexchange.com/questions/272240/how-many-cacti-can-i-plant-here/272242#272242">l4m2</a></td></tr>
+<tr d-ix="2"><td>566</td><td>Python3</td><td>240402T012913Z</td><td><a href="https://codegolf.stackexchange.com/questions/272240/how-many-cacti-can-i-plant-here/272245#272245">Ajax1234</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>,<s> 150 </s>147 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 37 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
+<pre><code>ạSỊ
+ŒJçƇⱮ`ðZÆṁWeƇœịÐṀð€ẎçÐḟⱮ`LÞṪƊƬL_2
+</code></pre>
+<p>A monadic Link that accepts a list of lists of positive integers, the landscape, and yields a non-negative integer, the maximal cactus count.</p>
+<p><strong><a href="https://tio.run/##dZKxisJAEIZ7nyIPkCYz2ZcQO4sDg2iTRnyB684rLqAghzZWipUgItoZUy7Je2xeZC@6bpxk52AI2WG@/Wfnn0k8nX5qre77vsrmnXzVlYciKa/nsbwM5I9KZx9xkeRrlS3kr0q/5KX8Pqn7Uh6q4233KOzJrUqPxbw49UagZZKvVLrROoqE75kI7bcK9L3gGSGJKhkO/Y4XiWae1gMtNmGRmqp/wJEwSYOEnAram9FqIYcI7tqAxIOyCDrFVBGIEBIV81i0csLp89VGs7GWlmB1CQKt@TeRt3cEofNxnyY4ldpB4CgWQTIB4AxiVQLHBdonkh1ztwtIMbQ2jSDiHx8DbsiCQ2oVbLlWIcM/" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></strong></p>
+<h4>How?</h4>
+<p>Find all possible cactus planting locations, <span class="math-container">\$L\$</span>, given the landscape's heights then repeatedly remove locations from <span class="math-container">\$L\$</span> along with their neighbours in <span class="math-container">\$L\$</span> for a location with minimal neighbours in <span class="math-container">\$L\$</span> until <span class="math-container">\$L\$</span> is empty and return the number of chosen locations.</p>
+<pre><code>ạSỊ - Link 1, inNeighbourhood?: pair of integers, A; pair of integers B
+ạ   - {A} absolute difference {B} -&gt; Deltas = [abs(A1-B1), abs(A2-B2)]
+ S  - sum
+  Ị - insignificant? -&gt; 1 if either A=B or A &amp; B are neighbours
+
+ŒJçƇⱮ`ðZÆṁWeƇœịÐṀð€ẎçÐḟⱮ`LÞṪƊƬL_2 - Main Link: list of lists of positive integers, Landscape
+ŒJ                                - multidimensional indices -&gt; all locations
+  çƇⱮ`                            - self-map keep if Link 1 -&gt; all neighbourhoods
+      ð          ð€               - dyadic link for each - f(Neighbourhood, Landscape):
+       Z                          -   transpose
+        Æṁ                        -   median -&gt; the planting location
+          W                       -   wrap that in a list
+             œịÐṀ                 -   maximums of Neighbourhood by indexing  into Landscape
+           eƇ                     -   {wrapped planting location} keep if in {maximums}
+                   Ẏ              - tighten -&gt; flat list of all possible planting locations
+                             Ƭ    - collect up while distinct, applying:
+                            Ɗ     -   last three links as a monad - f(AvailableLocations):
+                    çÐḟⱮ`         -     self-map discard if Link 1 -&gt; remaining locations
+                         LÞ       -     sort by length
+                           Ṫ      -     tail
+                              L   - length
+                               _2 - subtract two (one since Ṫ of an empty list yields zero
+                                                  another to count fences, not fenceposts)
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>,<s> 150 </s>147 bytes</h1>
 
 <pre class="lang-javascript prettyprint-override"><code>f=(x,j=0,i=0,e=x[i],J)=&gt;e?Math.max(f(x,J=e[j+1]?j+1:0,i+!J),e[v=e[j]++,j-1]&gt;v|e[j+1]&gt;v|(x[i-1]||0)[j]&gt;v|(x[i+1]||0)[j]&gt;v?0:1+f(x,J,i+!J),!e[j]--):0
 </code></pre>
 <p><a href="https://tio.run/##jY3LCoMwEEX3/Yq4M2SUpE@wRPdCvyBkITZtDdaUKuLCf7eTNotCN4Uk3LmcObHVWPX1s3kMSefOZlkuMp7ASg4NXiMn1WgoqcxNcaqGW3qvpviCRCmNskzoAp8MYRaVFIwafa0ZA5sInY/zB8IQowireeYUgVCwr6LgmWBvc5BF3pQkNOPLcVW7rnetSVt3xe@V2gAJRwP5d9KU/ogOQPZAdkC2Hg4xrIYIZO2nEIEIL1pe" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
 <p>Brute-force</p>
 </div>
-<div id="pu1" class="pu"><h1>Python3, 566 bytes</h1>
+<div id="pu2" class="pu"><h1>Python3, 566 bytes</h1>
 <p>Long, but not naive brute-force.</p>
 <pre class="lang-py prettyprint-override"><code>from itertools import*
 E=enumerate
