@@ -26,6 +26,855 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
+<tr d-ix="0"><td>nan</td><td></td><td>230721T194624Z</td><td><a href="https://codegolf.stackexchange.com/questions/59670/the-drunken-bishop/263153#263153">Koutaiba</a></td></tr>
+<tr d-ix="1"><td>288</td><td>C gcc</td><td>200211T094256Z</td><td><a href="https://codegolf.stackexchange.com/questions/59670/the-drunken-bishop/199281#199281">ceilingc</a></td></tr>
+<tr d-ix="2"><td>361</td><td>C</td><td>151018T142114Z</td><td><a href="https://codegolf.stackexchange.com/questions/59670/the-drunken-bishop/61123#61123">Jerry Je</a></td></tr>
+<tr d-ix="3"><td>449</td><td>Java 11</td><td>200213T133424Z</td><td><a href="https://codegolf.stackexchange.com/questions/59670/the-drunken-bishop/199457#199457">Kevin Cr</a></td></tr>
+<tr d-ix="4"><td>nan</td><td>Perl 5</td><td>200216T132505Z</td><td><a href="https://codegolf.stackexchange.com/questions/59670/the-drunken-bishop/199598#199598">andytech</a></td></tr>
+<tr d-ix="5"><td>200</td><td>Burlesque</td><td>200211T151945Z</td><td><a href="https://codegolf.stackexchange.com/questions/59670/the-drunken-bishop/199306#199306">DeathInc</a></td></tr>
+<tr d-ix="6"><td>509</td><td>Rust</td><td>190223T050932Z</td><td><a href="https://codegolf.stackexchange.com/questions/59670/the-drunken-bishop/180275#180275">don brig</a></td></tr>
+<tr d-ix="7"><td>328</td><td>Python</td><td>190221T162907Z</td><td><a href="https://codegolf.stackexchange.com/questions/59670/the-drunken-bishop/180218#180218">senox13</a></td></tr>
+<tr d-ix="8"><td>357</td><td>R</td><td>151005T083013Z</td><td><a href="https://codegolf.stackexchange.com/questions/59670/the-drunken-bishop/59707#59707">plannapu</a></td></tr>
+<tr d-ix="9"><td>125</td><td>Pyth</td><td>151010T093410Z</td><td><a href="https://codegolf.stackexchange.com/questions/59670/the-drunken-bishop/60282#60282">Jakube</a></td></tr>
+<tr d-ix="10"><td>nan</td><td></td><td>151008T184839Z</td><td><a href="https://codegolf.stackexchange.com/questions/59670/the-drunken-bishop/60099#60099">edc65</a></td></tr>
+<tr d-ix="11"><td>277</td><td>Octave</td><td>151008T214523Z</td><td><a href="https://codegolf.stackexchange.com/questions/59670/the-drunken-bishop/60130#60130">beaker</a></td></tr>
+<tr d-ix="12"><td>288</td><td>Ruby</td><td>151007T140611Z</td><td><a href="https://codegolf.stackexchange.com/questions/59670/the-drunken-bishop/59969#59969">Cristian</a></td></tr>
+<tr d-ix="13"><td>140</td><td>Pyth</td><td>151005T112724Z</td><td><a href="https://codegolf.stackexchange.com/questions/59670/the-drunken-bishop/59718#59718">PurkkaKo</a></td></tr>
+<tr d-ix="14"><td>178</td><td>Dyalog APL</td><td>151005T101758Z</td><td><a href="https://codegolf.stackexchange.com/questions/59670/the-drunken-bishop/59713#59713">marinus</a></td></tr>
+<tr d-ix="15"><td>nan</td><td>Perl</td><td>151005T073310Z</td><td><a href="https://codegolf.stackexchange.com/questions/59670/the-drunken-bishop/59700#59700">Eric Was</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>C++ - A non esoteric version</h1>
+<p><div class="snippet" data-lang="js" data-hide="false" data-console="true" data-babel="false">
+<div class="snippet-code">
+<pre class="snippet-code-js lang-js prettyprint-override"><code>vector&lt;int&gt; getBytes(const string&amp; in)
+{
+    vector&lt;int&gt; result;
+    for (int i = 0; i &lt; in.length(); )
+    {
+        string s = in.substr(i, 2);
+        stringstream ss;
+        ss &lt;&lt; std::hex &lt;&lt; s;
+        unsigned n;
+        ss &gt;&gt; n;
+        result.push_back(n);
+        i += 3;
+    }
+    return result;
+}
+
+// each step will be binary 00, 01, 10 or 11: 0, 1, 2 3
+unique_ptr&lt;int[]&gt; getSteps(const vector&lt;int&gt;&amp; bytes, int&amp; size)
+{
+     auto dp = unique_ptr&lt;int[]&gt;(new int[bytes.size() * sizeof(int)]());
+     for (int i = 0; i &lt; bytes.size(); ++i)
+     {
+         int byte = bytes[i];
+         for (int j = 0; j &lt; sizeof(int); j++)
+         {
+             // mask the bits and then shift result into position ( &lt;&lt; s) so it can be inserted to res
+             //int res |= ( ( (byte &gt;&gt; s) &amp; 3) &lt;&lt; s);
+             int pos = j + (4 * i);
+             dp[pos] = ((byte &gt;&gt; (2 * j)) &amp; 3); // shift byte by 0, 2, 4 , 6 and mask - store 2 bits of the byte in j = 0 to j = 3
+         }
+     }
+     size = bytes.size() * sizeof(int);
+     return dp;
+}
+
+vector&lt;vector&lt;int&gt;&gt; populateGridWithMovements(const unique_ptr&lt;int[]&gt;&amp; steps, int size, pair&lt;int, int&gt;&amp; end_pos)
+{
+    vector&lt;vector&lt;int&gt;&gt; field(9, vector&lt;int&gt;(17, 0));
+    pair&lt;int, int&gt; start_position = { 4, 8 };
+    map&lt;int, pair&lt;int, int&gt;&gt; direction_map = {
+                                            {0, {-1, -1}},
+                                            {1, {-1, 1}},
+                                            {2, {1, -1}},
+                                            {3, {1, 1}} };
+
+
+    auto adjust_at_edges = [](int x, int y)
+    {
+        set&lt;pair&lt;int, int&gt;&gt; corners = { {0, 16}, {0, 0}, {8, 16}, {8, 0} };
+        if (corners.find(make_pair(x, y)) != corners.end())
+            return make_pair(x, y);
+        // If on the right edge and the next move is 01, we simply slide one space vertically up
+        // or at the top edge (0, 8) an next move is (up right: -1, -1) this would mean new pos is -1, 7
+        // so we must remain at postion 0 but move only horizontally
+        // we do this by taking std::max(x, 0) which is 0 and then the min between 0 and 8 which is 0
+        // thereby remaining at 0. equally of we are at postion 8 and new postion is 9
+        // std::max will return 9 but the ouer std::min acts as a ceiling so it return 8
+        // inner max acts as a barrier to prevent going below 0 and outer as a barrier going above range 
+        return make_pair&lt;const int&amp;, const int&amp;&gt;(min(std::max(x, 0), 8), min(max(y, 0), 16));  
+    };
+    
+    std::pair&lt;int, int&gt; pos = start_position;
+    for (int i = 0; i &lt; size; ++i)
+    {
+        // get new postions/deltas to move to
+       int dx, dy;
+       std::tie(dx, dy)= direction_map[steps[i]];
+       
+       // pos has the existing position - add the deltas (based on the current step position) and adjust new pos if required 
+       pos = adjust_at_edges(pos.first + dx, pos.second + dy);
+
+       // pos now contains new position to move to (x + dx) adjusted so that if at the edge its slides forward
+       field[pos.first][pos.second] += 1;
+       
+       if (i == size - 1)
+       {
+           // copy last position we moved to
+           end_pos.first = pos.first;
+           end_pos.second = pos.second;
+       }
+    }
+    return field;
+}
+
+string print_randomart(const vector&lt;vector&lt;int&gt;&gt;&amp; grid, const pair&lt;int, int&gt;&amp; end_pos)
+{
+    // Symbols for the number of times a position is visited by the bishop
+    // White space means that the position was never visited
+    // S and E are the start and end positions
+    string symbols = " .o+=*BOX@%&amp;#/^SE";
+    pair&lt;int, int&gt; start_position = { 4, 8 };
+    int start_x, start_y;
+    tie(start_x, start_y) = start_position;
+    string result = "+---[CODINGAME]---+\n";
+    for (int i = 0; i &lt; grid.size(); ++i)
+    {
+        string row_symbols;
+        for (int j = 0; j &lt; grid[0].size(); ++j)
+        {
+            // wrap-around logic if the number of times visited is greater than 14, 
+            // e.g. we use 'o' if a position is visited for 17 times. 17 % 15 = 2
+            if(i == start_x &amp;&amp; j == start_y)
+            {
+                row_symbols += "S";
+            }
+            else if(i == end_pos.first &amp;&amp; j == end_pos.second)
+            {
+                row_symbols += "E";
+            }
+            else
+            {
+                row_symbols += symbols[grid[i][j] % 15];
+            }
+        }
+        result += "|" + row_symbols + "|\n";
+    }
+    result += "+-----------------+";
+    return result;
+}</code></pre>
+</div>
+</div>
+</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C (gcc)</a>, <s>333 326 314 292</s> 288 bytes</h1>
+
+
+
+<pre class="lang-c prettyprint-override"><code>f[17][9],i,x=8,y=4;main(n){for(;i++%4||read(0,&amp;n,3)*sscanf(&amp;n,"%x",&amp;n);n/=4)f[x+=n%2?x&lt;16:-!!x][y+=n&amp;2?y&lt;8:-!!y]+=f[x][y]&lt;14;f[8][4]=15;for(f[x][y]=puts(n="+-----------------+")-4;++i&lt;75;puts("|"))for(x=!printf("|");x&lt;17;)putchar(" .o+=*BOX@%&amp;#/^SE"[y=fmin(f[x++][i-66],16)]);puts(n);}
+</code></pre>
+
+<p><a href="https://tio.run/##XY9Bb8IwDIX/yshU1JB2kDakxWnENInzDrtMijIptIRVgoBaJrUa@@vrUrbTfPPnZ/u9Mt6X5TBYRTOtVjqqo07mUS@ZOJrahQ5/2lMTipqQgF2vzc5U4SKauijFs7YtjbOhb1DQIQ@xcHPJsFUdkS5I1l1BOcSTSadV78k0WfdFPoJeE@lVHuuCMmFVrhXTki7F@OxvIs8flzZ0EpH4fxGEYyYIqYtsKW4ydEUYj8udnJyb2l3sDQlvIRPYS8p304To7uFE5Ozp@fUxmN7P3142SPXSHn3Q0TTRqo451xHlWOPfwz7U1zCkGewYcANJBSyHNAdqYGHAppAlwCuoVkAz4FvYVrDcfZf2YPbtEB@OPw" rel="nofollow noreferrer" title="C (gcc) – Try It Online">Try it online!</a></p>
+
+<p>Golfed from openssh source code <code>key_fingerprint_randomart()</code>. </p>
+
+<p>Edit: Now a complete program.</p>
+
+<p>Less golfed:</p>
+
+<pre class="lang-c prettyprint-override"><code>/* initialize field */
+f[17][9],i,x=8,y=4;
+main(n){
+  /* process raw key */
+  /* each byte conveys four 2-bit move commands */
+  for(;i%4||read(0,&amp;n,3)+sscanf(&amp;n,"%x",&amp;n);n/=4)
+    /* evaluate 2 bit, rest is shifted later */
+    /* assure we are still in bounds; augment the field */
+    f[x+=n%2?x&lt;16:-!!x][y+=n&amp;2?y&lt;8:-!!y]+=f[x][y]&lt;14;
+
+  /* mark starting point and end point; output upper border */
+  f[8][4]=15;
+  f[x][y]=puts(n="+-----------------+")-4
+
+  /* output content */
+  for(;++i&lt;75;puts("|"))
+    for(x=!printf("|");x&lt;17;)
+      /*
+       * Chars to be used after each other every time the worm
+       * intersects with itself.
+       */
+      putchar(" .o+=*BOX@%&amp;#/^SE"[y=fmin(f[x++][i-66],16)]);
+
+  /* output lower border */
+  puts(n);
+}
+</code></pre>
+</div>
+<div id="pu2" class="pu"><h1>C 361</h1>
+<p><strong>Thanks to @ceilingcat for some very nice pieces of golfing - now even shorter</strong></p>
+<pre><code>#define H h[i]|=*++p-48-*p/59*39
+#define L puts(&quot;+-----------------+&quot;)
+#define F(m,s)for(m=0;m&lt;s;m++)
+h[16],m[17][9],i,j,n,x=8,y=4;main(w,v)char**v;{for(char*p=v[1]-1;i&lt;16;p++,i++)H&lt;&lt;4,H;F(j,16)F(n,4)x+=h[j]&gt;&gt;n*2&amp;1?x!=16:-!!x,y+=h[j]&gt;&gt;n*2&amp;2?y!=8:-!!y,m[x][y]++;m[8][4]=15;m[x][y]=L-4;F(i,9){printf(&quot;|&quot;);F(j,17)printf(L&quot; .o+=*BOX@%&amp;#/^SE&quot;+m[j][i]);puts(&quot;|&quot;);}L;}
+</code></pre>
+<p><a href="https://tio.run/##XVDLboJAFN37FYCpYZihOjDymGG0aVLjgqSLbppMpgnyKJiARK2FqN9Osdqm6d3d87jn5sTmexx33TBJs6JKlaWSi0KeuAFhbRLPNOrx1Ddsf/AjCJX6Y7/TNWj@H6iBX9VCL9EOZJutXvIJK4MdKyEEg1xgR6JSYFcKX6ICrVGFGu6hlhNWRkWlf6IDiPNoaxgHdrz4v5eaHwSWJmZFgB1WQ4iK/twyCAhasoW@RtgBC71CBDSQ52ItZ7PKsEZ43qgcO9RU1Qa1fxlr3qrcuxBt/04jRSshZKXwpCCS4ym7gTw0SR9QIB8c621R7TNdO2ngmumCGxRqyv0GcuPx@fXhbjQcv708abDsw/oqAbv2dXGdQ3buus52aUqoE1ErocSjtkdxRCcRzWzqWtRJaOJT7FJnRVcJnaZf" rel="nofollow noreferrer" title="C (gcc) – Try It Online">Try it online!</a></p>
+</div>
+<div id="pu3" class="pu"><h1>Java 11, <s>460</s> <s>453</s> <s>452</s> 449 bytes</h1>
+
+<pre class="lang-java prettyprint-override"><code>interface M{static void main(String[]a){var m=new char[9][17];Integer x=4,y=8,i=0,s;for(var p:a[0].split(&quot;:&quot;))for(p=x.toString(x.parseInt(p,16),2),i=4;i--&gt;0;m[x-=s&lt;2?x&gt;0?1:0:x/8-1][y-=s%2&gt;0?y/16-1:y&gt;0?1:0]++)s=x.decode((&quot;0&quot;.repeat(8-p.length())+p).split(&quot;(?&lt;=\\G..)&quot;)[i]);String t=&quot;+&quot;+&quot;-&quot;.repeat(m[x][y]=16)+&quot;-+\n&quot;,r=t+&quot;|&quot;;for(m[4][8]=15;++i&lt;153;r+=y&gt;15?&quot;|\n&quot;+(x&lt;8?&quot;|&quot;:&quot;&quot;):&quot;&quot;)r+=&quot; .o+=*BOX@%&amp;#/^SE&quot;.charAt(m[x=i/17][y=i%17]);System.out.print(r+t);}}
+</code></pre>
+<p>-11 bytes thanks to <em>@ceilingcat</em>.</p>
+<p><a href="https://tio.run/##PZBfa9swFMW/itHIkCZbsR3Hca@jZBuMsYexh74MFA/UWEnV1X@QtdSm7WfPbho2hJA45@rcn@6DPunoof59PtvWG3fQexN8fx689nYfnDpbB422Lb31zrZHVWn2fNIuaGRrnoL9vXbqplLJqiq/4eujccEos3CSRWhlHA7loXP0Ut@DVnElhv7RekqAMHZxejkK312j6Sh67QaDObQPk5yFKcOQrLRRtInLRo2RHNbpdtzE2wRiGOdFlFRqQnWWojbNkzxKYLraFedswPTa7LvaUEpiIpzpjfa0iHrxaNqjv6eM8Z79g6LbtdztvgrBCFO2YuWVK/CScFzR/wBEwb6VREaU@a4loZOekxfy9t1GZZUq0F6WnNt1slyUjstpkyy35AWLOR3XBV5xCoRdNrokEB2XHz7/@Plx9v7d/NftFyIuw/301k3aOU5YTdLO8ESwafCmEd0fL3pE9NRxz8rX1/P5vFiBySDXkNaQFbAoINEQazgsYJVCXkN9A8kK8ju4q2Fp/gI" rel="nofollow noreferrer">Try it online.</a></p>
+<p><strong>Explanation:</strong></p>
+<pre class="lang-java prettyprint-override"><code>interface M{              // Class
+  static void main(String[]a){
+                          //  Mandatory main method
+    var m=new char[9][17];//   Create a character-matrix of size 9 by 17
+    Integer x=4,y=8,      //   Current position, starting at 4,8
+            i=0,s;        //   Temp integers
+    for(var p:a[0].split(&quot;:&quot;))
+                          //   Loop over the argument-String, split by &quot;:&quot;
+      for(p=x.toString(x.parseInt(p,16),
+                          //    Convert the current part from hexadecimal String to integer
+                       2),//    And then from integer to binary String
+          i=4;i--&gt;0       //    Inner loop `i` in the range (4,0]:
+          ;               //      After every iteration:
+           m[x-=          //       Update the `x` position:
+                s&lt;2?      //        If `s` is 0 or 1:
+                 x&gt;0?     //         If we're not out of bounds yet at the top:
+                  1       //          Go up
+                 :        //         Else:
+                  0       //          Stay at the top border
+                :         //        Else (s is 10 or 11):
+                 x/8      //         If we're not out of bounds yet at the bottom:
+                  -1]     //          Go down
+                          //         Else:
+                          //          Stay at the bottom border
+            [y-=          //       Update the `y` position:
+                s%2&gt;0?    //        If `s` is odd (1 or 11):
+                 y/16     //         If we're not out of bounds yet at the right side:
+                  -1      //          Go right
+                          //         Else:
+                          //          Stay at the right border
+                :         //        Else (s is 0 or 10):
+                 y&gt;0?     //         If we're not out of bounds yet at the left side:
+                  1       //          Go left
+                 :        //         Else:
+                  0]      //          Stay at the left border
+                    ++)   //       And increase the value at x,y cell by 1
+        s=                //     Set `s` to:
+          x.decode((&quot;0&quot;.repeat(8-p.length())+p)
+                          //      Left-pad the binary-String `p` with 0s up to length 8
+                   .split(&quot;(?&lt;=\\G..)&quot;)
+                          //      Split it into parts of size 2
+                   [i]    //      Get the `i`'th part
+                      );  //      And convert it from binary-String to integer
+                          //   After the nested loops are done:
+    String t=&quot;+&quot;+&quot;-&quot;.repeat(m[x][y]=16
+                          //   Set the value at position x,y to 16
+                      )+&quot;-+\n&quot;,
+                          //   Push a temp String for the top/bottom borders
+           r=t+&quot;|&quot;;       //   Result-String, starting with the top border + one &quot;|&quot;
+    for(m[4][8]=15;       //   Set the value at position 4,8 to 15
+        ;++i&lt;153          //   Loop over all cells:
+        ;                 //     After every iteration:
+         r+=              //      Append the following to the result-String:
+            y&gt;15?         //       If we're done with a row:
+             &quot;|\n&quot;        //        Append &quot;|&quot; and a newline
+             +(x&lt;8?       //        And unless it's the last row:
+                &quot;|&quot;       //         Also append a &quot;|&quot;
+               :          //        If it is the last row:
+                &quot;&quot;)       //         Append nothing
+            :             //       And if we're not done with the row yet:
+             &quot;&quot;)          //        Append nothing
+      r+=                 //    Append the following to the result-String:
+         &quot; .o+=*BOX@%&amp;#/^SE&quot;.charAt(m[x=i/17][y=i%17]);
+                          //     The `i`'th character of the String &quot; .o+=*BOX@%&amp;#/^SE&quot;
+                          //     where `i` is the current value of cell x,y
+    System.out.print(r    //   And finally output this result-String,
+      +t);}}              //   including its bottom border
+</code></pre>
+</div>
+<div id="pu4" class="pu"><h1><a href="https://www.perl.org/" rel="nofollow noreferrer">Perl 5</a>, <s>283</s> <s>276</s> <s>266</s> 254 + 1 (-p) = 255 bytes</h1>
+
+
+
+<pre class="lang-perl prettyprint-override"><code>$x=8;$y=4;for$n(map{hex}split(/:/)){$n&amp;2?$y&lt;8&amp;&amp;$y++:$y&amp;&amp;$y--,$n&amp;1?$x&lt;16&amp;&amp;$x++:$x&amp;&amp;$x--,$a[$x][$y]++,$n&gt;&gt;=2 for 1..4}$a[8][4]=15;$a[$x][$y]=16;map{$y=$_;$s.="|";$s.=substr' .o+=*BOX@%&amp;#/^SE',$a[$_][$y],1 for 0..16;$s.="|
+"}0..8;$l='-'x17;$_="+$l+
+$s+$l+
+"
+</code></pre>
+
+<p>Uses <code>-p</code> to take a line of input into <code>$_</code>, and to print the (modified) value of <code>$_</code> at the end.</p>
+
+<p><a href="https://tio.run/##RU/BToNAEL33KwiO0LplcSksZLbbGhPPHryYECQgNDZBIIDJktpfFxc8eHpv5s2bN9OWXRVMEygZCRilL05NB/X6M2svH6W69m11HtYuupvNBWrLO8K4jywLRkIQxpk4zlYL7Ahqz7huqFlRM5mVLAaVxDAmhOixw0F6hg4wGKX@VYtREvuJZIH4H5SMizldHwOpgJ5K89tcsP/K@6GzDdoQeff4/Ppwa924by9P9hKTLu4tW/bfU6rX/JlX5lWX@rtK2o6tWCgglSaBiqygX8CcJsbRCzF7xyzAUPMIvQJ3HPkOWY4BR7/AMsfihJnm0U/TDuem7ien/QU" rel="nofollow noreferrer" title="Perl 5 – Try It Online">Try it online!</a></p>
+
+<p>Ungolfed:</p>
+
+<pre class="lang-perl prettyprint-override"><code># Implicit from running with perl -p:
+# read line from standard input
+#while($_ = &lt;STDIN&gt;) {
+
+# Initialise starting coordinates
+$x=8;
+$y=4;
+
+# Split input line at colons, convert each element (2-digit hex value) to integer,
+iterate over the list of integers
+for $n (map { hex($_) } split(/:/))
+{
+    # for each integer, iterate 4 times, looking at 2 of the 8 bits each time
+    for(1..4) 
+    {
+        # if second-last bit is set
+        if($n &amp; 2) {
+            # move down, unless we are already at the bottom
+            $y++ if($y &lt; 8);
+        }
+        else {
+            # move up, unless we are already at the top
+            $y-- if($y);
+        }
+
+        # if last bit is set
+        if($n &amp; 1) {
+            # move right, unless already at the right edge
+            $x++ if($x&lt;16);
+        }
+        else {
+            # move left, unless already at the left edge
+            $x-- if($x);
+        }
+
+        # Increment the counter for this position
+        $a[$x][$y]++;
+
+        # Shift number right two bits for next iteration
+        $n = $n &gt;&gt; 2
+    }
+}
+
+# Set fixed values (15 and 16) for start and end positions respectively
+$a[8][4] = 15;
+$a[$x][$y] = 16;
+
+
+# Iterate over the rows of the grid, building a string containing the output rows
+for(0..8)
+{
+    # save the y-coordinate for use in inner loop below
+    $y = $_;
+
+    # append the line start
+    $s .= "|";
+
+    # iterate over the columns of the row
+    for(0..16)
+    {
+        # get the value for this position
+        $v = $a[$_][$y];
+
+        # map the value to the appropriate character
+        $s .= substr(' .o+=*BOX@%&amp;#/^SE', $v, 1)
+    }
+
+    # append the line end
+    $s .= "|\n"
+}
+
+# build the hyphen lines for the top and bottom rows
+$l = '-' x 17;
+
+# build the full output string and assign to $_
+$_ = "+$l+\n$s+$l+\n"
+
+# Implicit from running under perl -p
+#print $_;
+#}
+</code></pre>
+</div>
+<div id="pu5" class="pu"><h1><a href="https://github.com/FMNSSun/Burlesque" rel="nofollow noreferrer">Burlesque</a>, 200 bytes</h1>
+
+<pre><code>':;;m{b6b28'0P[2cob2^p}m{{-1 1}Jcpj!!}{4 8}+]qr{?+q0cy{&gt;.}Z]{8 16}cy{&lt;.}Z]}pal_g_jf:u[j" .o+=*BOX@%&amp;#/^"XXbcjq!!Z]z[{(D!)_+p^}m[' 17.*9.*)XXje!j'SD!j'ED!"|\n|"IC'|+]'|[+\['+'-17.*_+&lt;-"+\n".+J&lt;-#rCL\[Q
+</code></pre>
+
+<p><a href="https://tio.run/##FcpbT4MwGIDhv0K7aB0NSAGBfcNDHF64mKjxhqwcQoGZkLEBhgst/e243bzJk7xiHA71Tz/W80xgvW6l8IQdEOuD2@VJ2FmnWikNpjG1LbsGISVdLVA07Qf5SHur/JUPptqlMtCYp84KL1Jdcci/82YPI2@wZp7ovf78Hj9dXS9uMxzHomx6hHbpH5c3EVrmtMtUy4nGfFNfmfoyjpsaNeQrOuclQnhKjhN@3ZCJpmTiNOGEEuMy5zQ0ME2O2KTb0FgMm7eEf86z40PtgleAXYEbgBMAK8AqYO@Ab4NXQbUC5oMnQFRwV/8D" rel="nofollow noreferrer" title="Burlesque – Try It Online">Try it online!</a></p>
+
+<pre><code>':;;                # Split at colons
+m{                  # Map over these
+ b6b2               # Read as hex, then to binary
+ 8'0P[              # Pad to 8 bit
+ 2co                # Chunks of 2
+ b2                 # Read as binary
+ ^p}                # Push each
+m{                  # Map over these
+ {-1 1}Jcp          # Construct direction array {{- -}{- +}{+ -}{+ +}}
+ j!!                # Select the block indexed by binary val
+}
+{4 8}+]             # Push starting pos
+qr{                 # Boxed reduce
+ ?+                 # Add together
+ q0cy{&gt;.}Z]         # If &lt; 0 -&gt; 0
+ {8 16}cy{&lt;.}Z]     # If &gt; box -&gt; boxwidth
+pa                  # Apply on inits
+l_g_j               # Take start and end for later
+f:                  # Calculate frequency of everything but head and tail
+u[j                 # Unzip to {pos} {counts}
+" .o+=*BOX@%&amp;#/^"XXbcj # Magic string
+q!!Z]               # Select element based on count
+z[                  # Rezip to {pos icon}
+{(D!)_+p^}m[        # Add D! (set at pos) to the each
+' 17.*9.*)XX        # Create 17x9 array of spaces
+je!                 # Evaluate block of ({pos icon D!}, ...)
+j'SD!j'ED!          # Set start and end to S &amp; E
+"|\n|"IC            # Intercalate surrounding v-bars 
+'|+]'|[+            # Add first and last
+\[                  # Concatenate
+'+'-17.*_+&lt;-"+\n".+ # Create top-bar
+J&lt;-                 # Duplicate and reverse (putting newline at the front
+#r                  # Rotate stack
+CL                  # Collect stack as list
+\[                  # Concatenate
+Q                   # Pretty print
+</code></pre>
+</div>
+<div id="pu6" class="pu"><h1>Rust - 509 bytes</h1>
+
+<pre><code>fn b(s:&amp;str)-&gt;String{let(mut v,mut b)=([[0;11];20],[9,5]);v[19]=[19;11];for i in 0..16{let mut c=usize::from_str_radix(&amp;s[i*3..i*3+2],16).unwrap();for k in 0..4{for j in 0..2{v[j*18][i%9+1]=18;v[i+k][j*10]=[17,3][(i+k+17)%18/17];b[j]=match(if c&amp;(j+1)==j+1{b[j]+1}else{b[j]-1},j,){(0,_)=&gt;1,(18,0)=&gt;17,(10,1)=&gt;9,x@_=&gt;x.0 as usize,}}v[b[0]][b[1]]+=1;c&gt;&gt;=2;}}v[9][5]=15;v[b[0]][b[1]]=16;(0..220).fold("\n".to_string(),|s,i|{format!("{}{}",s," .o+=*BOX@%&amp;#/^SE-|\n".chars().nth(v[i%20][i/20] as usize).unwrap())})}
+</code></pre>
+
+<p>Large but... almost close to C. As usual there are many bytes used up due to the way Rust does not automagically cast types into each other. But there is also probably room for improvement.... could probably use some ideas from other solutions.</p>
+
+<p><a href="https://play.rust-lang.org/?version=stable&amp;mode=debug&amp;edition=2018&amp;gist=24ecd8e1acef083f22629543508afa3c" rel="nofollow noreferrer">ungolfed version is on the Rust Playground online</a></p>
+</div>
+<div id="pu7" class="pu"><h1>Python, <s>381</s>328</h1>
+
+<p>-51 thanks to @JonathanFrech</p>
+
+<pre><code>def h(f):
+ s=[f'{int(o,16)&gt;&gt;s&amp;3:02b}'for o in f.split(':')for s in(0,2,4,6)];r=[0]*153;p=76;w=17
+ for d in s:r[p]+=1;p+=(-(p%w!=0),p%w!=16)[int(d[1])]+(-w*(p//w!=0),w*(p//w!=8))[int(d[0])]
+ r[76]=15;r[p]=16;b='+'+'-'*w+'+';print(b);i=0
+ while i&lt;153:print(f"|{''.join(' .o+=*BOX@%&amp;#/^SE'[c]for c in r[i:i+w])}|");i+=w
+ print(b)
+</code></pre>
+
+<p>Slightly ungolfed for the sake of explanation:</p>
+
+<pre><code>def h_(f):
+ #Alias 17 because it gets used enough times for this to save bytes
+ w=17
+
+ #Input parsing
+ s=[f'{int(o,16)&gt;&gt;s&amp;3:02b}'for o in f.split(':')for s in(0,2,4,6)]
+
+ #Room setup
+ r=[0]*153
+ p=76
+
+ #Apply movements
+ for d in s:
+  r[p]+=1
+  p+=(-(p%w!=0),p%w!=16)[int(d[1])]+(-w*(p//w!=0),w*(p//w!=8))[int(d[0])]
+ r[76]=15 #Set start position
+ r[p]=16 #Set end position
+
+ #Display result
+ b='+'+'-'*w+'+'
+ print(b)
+ i=0
+ while i&lt;153:
+  print(f"|{''.join(' .o+=*BOX@%&amp;#/^SE'[c]for c in r[i:i+w])}|")
+  i+=w
+ print(b)
+</code></pre>
+
+<p>This mess of a line:</p>
+
+<pre><code>r[p]+=1;p+=(-(p%w!=0),p%w!=16)[int(d[1])]+(-w*(p//w!=0),w*(p//w!=8))[int(d[0])]
+</code></pre>
+
+<p>​
+is functionally equivalent to this:</p>
+
+<pre><code>if int(d[0]): #Down, Y+
+  if p//17!=8:
+    p+=17
+else: #Up, Y-
+  if p//17!=0:
+    p-=17
+​
+if int(d[1]): #Right, X+
+  if p%17!=16:
+    p+=1
+else: #Left, X-
+  if p%17!=0:
+    p-=1
+</code></pre>
+
+<p>but nests all of the conditionals in this style of golf shortcut: <code>(false_value,true_value)[condition]</code>
+Hopefully the rest is fairly self-explanatory</p>
+
+<h1>Tests</h1>
+
+<pre><code>h('16:27:ac:a5:76:28:2d:36:63:1b:56:4d:eb:df:a6:48')
++-----------------+
+|        .        |
+|       + .       |
+|      . B .      |
+|     o * +       |
+|    X * S        |
+|   + O o . .     |
+|    .   E . o    |
+|       . . o     |
+|        . .      |
++-----------------+
+
+h("b6:dd:b7:1f:bc:25:31:d3:12:f4:92:1c:0b:93:5f:4b")
++-----------------+
+|            o.o  |
+|            .= E.|
+|             .B.o|
+|              .= |
+|        S     = .|
+|       . o .  .= |
+|        . . . oo.|
+|             . o+|
+|              .o.|
++-----------------+
+
+h("05:1e:1e:c1:ac:b9:d1:1c:6a:60:ce:0f:77:6c:78:47")
++-----------------+
+|       o=.       |
+|    o  o++E      |
+|   + . Ooo.      |
+|    + O B..      |
+|     = *S.       |
+|      o          |
+|                 |
+|                 |
+|                 |
++-----------------+
+<span class="math-container">```</span>
+</code></pre>
+</div>
+<div id="pu8" class="pu"><h1>R, <s>465</s> <s>459</s> <s>410</s> <s>393</s> <s>382</s> 357 bytes</h1>
+
+<pre><code>f=function(a){s=strsplit;C=matrix(as.integer(sapply(strtoi(el(s(a,":")),16),intToBits)[1:8,]),2);C[!C]=-1;n=c(17,9);R=array(0,n);w=c(9,5);for(i in 1:64){w=w+C[,i];w[w&lt;1]=1;w[w&gt;n]=n[w&gt;n];x=w[1];y=w[2];R[x,y]=R[x,y]+1};R[]=el(s(" .o+=*BOX@%&amp;#/^",""))[R+1];R[9,5]="S";R[x,y]="E";z="+-----------------+\n";cat(z);for(i in 1:9)cat("|",R[,i],"|\n",sep="");cat(z)}
+</code></pre>
+
+<p>With indentations and newlines:</p>
+
+<pre class="lang-r prettyprint-override"><code>f=function(a){
+    s=strsplit
+    C=matrix(as.integer(sapply(strtoi(el(s(a,":")),16),intToBits)[1:8,]),2)
+    C[!C]=-1
+    n=c(17,9)
+    R=array(0,n)
+    w=c(9,5)
+    for(i in 1:64){
+        w=w+C[,i]
+        w[w&lt;1]=1
+        w[w&gt;n]=n[w&gt;n]
+        x=w[1]
+        y=w[2]
+        R[x,y]=R[x,y]+1
+    }
+    R[]=el(s(" .o+=*BOX@%&amp;#/^",""))[R+1]
+    R[9,5]="S"
+    R[x,y]="E"
+    z="+-----------------+\n"
+    cat(z)
+    for(i in 1:9)cat("|",R[,i],"|\n",sep="")
+    cat(z)
+}
+</code></pre>
+
+<p>Usage:</p>
+
+<pre><code>&gt; f("16:27:ac:a5:76:28:2d:36:63:1b:56:4d:eb:df:a6:48")
++-----------------+
+|        .        |
+|       + .       |
+|      . B .      |
+|     o * +       |
+|    X * S        |
+|   + O o . .     |
+|    .   E . o    |
+|       . . o     |
+|        . .      |
++-----------------+
+&gt; f("37:e4:6a:2d:48:38:1a:0a:f3:72:6d:d9:17:6b:bd:5e")
++-----------------+
+|                 |
+|                 |
+|          .      |
+|     .   o       |
+|o . o . S +      |
+|.+ + = . B .     |
+|o + + o B o E    |
+| o .   + . o     |
+|         .o      |
++-----------------+
+</code></pre>
+</div>
+<div id="pu9" class="pu"><h1>Pyth, 125 bytes</h1>
+
+<pre><code>Jj*17\-"++"JVc9XXsm@"^ .o+=*BOX@%&amp;#/"hdrS+*U9U17K.u.e@S[0b*8hk)1.b+tNyYNYsm_c4.[08jxsM^.HM16 2d2cz\:,4 8 8ieK17\E76\SjN"||")J
+</code></pre>
+
+<p>Try it online: <a href="http://pyth.herokuapp.com/?code=Jj*17%5C-%22%2B%2B%22JVc9XXsm%40%22%5E+.o%2B%3D*BOX%40%25%26%23%2F%22hdrS%2B*U9U17K.u.e%40S[0b*8hk%291.b%2BtNyYNYsm_c4.[08jxsM%5E.HM16+2d2cz%5C%3A%2C4+8+8ieK17%5CE76%5CSjN%22||%22%29J&amp;input=37%3Ae4%3A6a%3A2d%3A48%3A38%3A1a%3A0a%3Af3%3A72%3A6d%3Ad9%3A17%3A6b%3Abd%3A5e&amp;test_suite_input=16%3A27%3Aac%3Aa5%3A76%3A28%3A2d%3A36%3A63%3A1b%3A56%3A4d%3Aeb%3Adf%3Aa6%3A48%0Ab6%3Add%3Ab7%3A1f%3Abc%3A25%3A31%3Ad3%3A12%3Af4%3A92%3A1c%3A0b%3A93%3A5f%3A4b%0A05%3A1e%3A1e%3Ac1%3Aac%3Ab9%3Ad1%3A1c%3A6a%3A60%3Ace%3A0f%3A77%3A6c%3A78%3A47&amp;debug=0" rel="nofollow">Demonstration</a> or <a href="http://pyth.herokuapp.com/?code=Jj*17%5C-%22%2B%2B%22JVc9XXsm%40%22%5E%20.o%2B%3D*BOX%40%25%26%23%2F%22hdrS%2B*U9U17K.u.e%40S[0b*8hk%291.b%2BtNyYNYsm_c4.[08jxsM%5E.HM16%202d2cz%5C%3A%2C4%208%208ieK17%5CE76%5CSjN%22%7C%7C%22%29J&amp;input=37%3Ae4%3A6a%3A2d%3A48%3A38%3A1a%3A0a%3Af3%3A72%3A6d%3Ad9%3A17%3A6b%3Abd%3A5e&amp;test_suite=1&amp;test_suite_input=16%3A27%3Aac%3Aa5%3A76%3A28%3A2d%3A36%3A63%3A1b%3A56%3A4d%3Aeb%3Adf%3Aa6%3A48%0Ab6%3Add%3Ab7%3A1f%3Abc%3A25%3A31%3Ad3%3A12%3Af4%3A92%3A1c%3A0b%3A93%3A5f%3A4b%0A05%3A1e%3A1e%3Ac1%3Aac%3Ab9%3Ad1%3A1c%3A6a%3A60%3Ace%3A0f%3A77%3A6c%3A78%3A47&amp;debug=0" rel="nofollow">Test-Suite</a></p>
+
+<p>I wrote a few days ago, but didn't post it, because I wasn't really happy about it.</p>
+
+<h3>Explanation:</h3>
+
+<p>The basic idea is the following. I start with the pair <code>(4, 8)</code>. In each move <code>(m1,m2)</code> I go from the <code>(x, y)</code> to <code>(x-1+2*m1, y-1+2*m2)</code>. To make sure, that these coordinates don't go outside the boarders, I'll make some lists, sort them and return the middle element: <code>(sorted(0,8,newx)[1], sorted(0,16,newy)[1])</code>. </p>
+
+<p>I keep track of all positions. To this list of positions I add a list of all possible positions, sort them and run-length-encode them. Which gives me a number for each position. With this number I can choose the coorect char, and at the end overwrite the chars of the start and end position.</p>
+</div>
+<div id="pu10" class="pu"><h1>JavaScript (ES6) 249 <s>208</s></h1>
+
+<p><strong>Edit</strong> Added missing border</p>
+
+<p>Test running the snippet below in any EcmaScript 6 compliant browser</p>
+
+<p><div class="snippet" data-lang="js" data-hide="false">
+<div class="snippet-code">
+<pre class="snippet-code-js lang-js prettyprint-override"><code>B=f=&gt;f.replace(/\w+/g,b=&gt;{for(b=`0x1${b}`;b-1;b&gt;&gt;=2)++g[p=(q=(p=(q=p+~-(b&amp;2)*18)&gt;0&amp;q&lt;162?q:p)+b%2*2-1)%18?q:p]},p=81,z=`+${'-'.repeat(17)}+`,g=Array(162).fill(0))&amp;&amp;g.map((v,q)=&gt;q?q-81?q-p?q%18?' .o+=*BOX@%&amp;#/^'[v]:`|
+|`:'E':'S':z+`
+|`).join``+`|
+`+z
+
+// TEST
+console.log=x=&gt;O.innerHTML+=x+'\n'
+
+;['37:e4:6a:2d:48:38:1a:0a:f3:72:6d:d9:17:6b:bd:5e'
+,'16:27:ac:a5:76:28:2d:36:63:1b:56:4d:eb:df:a6:48'
+,'b6:dd:b7:1f:bc:25:31:d3:12:f4:92:1c:0b:93:5f:4b'
+,'05:1e:1e:c1:ac:b9:d1:1c:6a:60:ce:0f:77:6c:78:47'  
+].forEach(t=&gt;console.log(t+'\n'+B(t)+'\n'))
+
+
+// Less golfed
+
+BB=f=&gt;(
+  p = 81,
+  g = Array(162).fill(0),
+  f.replace(/\w+/g, b =&gt; {
+    for(b = `0x1${b}`;b != 1; b &gt;&gt;= 2)
+      q = p+~-(b&amp;2)*18,
+      p = q&gt;0&amp;q&lt;162?q:p,
+      p = (q=p+b%2*2-1)%18?q:p,
+      ++g[p]
+  }),
+  g.map((v,q) =&gt; q-81?q-p?q%18?' .o+=*BOX@%&amp;#/^'[v]:'\n':'E':'S')
+  .join``
+)</code></pre>
+<pre class="snippet-code-css lang-css prettyprint-override"><code>pre { font-family: menlo,consolas; font-size:13px }</code></pre>
+<pre class="snippet-code-html lang-html prettyprint-override"><code>&lt;pre id=O&gt;&lt;/pre&gt;</code></pre>
+</div>
+</div>
+</p>
+</div>
+<div id="pu11" class="pu"><h1>Octave, 277</h1>
+
+<pre><code>d=reshape(rot90(dec2bin(hex2dec(strsplit(input('','s'),':'))))&gt;'0',2,[])*2-1;p=[9;5];for m=1:64 p=[max(min(p(:,1)+d(:,m),[17;9]),1) p];end;A=' .o+=*BOX@%&amp;#/^SE';F=A(sparse(p(2,:),p(1,:),1,9,17)+1);F(5,9)='S';F(p(2,1),p(1,1))='E';[a='+-----------------+';b=['|||||||||']' F b;a]
+</code></pre>
+
+<h3>Explanation:</h3>
+
+<pre><code>%// convert the input to binary and rearrange it to be
+%//   an array of vectors: [x_displacement; y_displacement]
+d=reshape(rot90(dec2bin(hex2dec(strsplit(input('','s'),':'))))&gt;'0',2,[])*2-1;
+
+%// start position array with vector for the start position
+p=[9;5];
+%// for each move, add displacement, clamping to valid values
+for m=1:64 p=[max(min(p(:,1)+d(:,m),[17;9]),1) p];end;
+
+%// alphabet for our fingerprint
+A=' .o+=*BOX@%&amp;#/^SE';
+
+%// create a sparse matrix, accumulating values for duplicate
+%// positions, and replace counts with symbols
+F=A(sparse(p(2,:),p(1,:),1,9,17)+1);
+
+%// correct the start and end symbols and construct the final output
+F(5,9)='S';F(p(2,1),p(1,1))='E';
+[a='+-----------------+';b=['|||||||||']' F b;a]
+</code></pre>
+
+<h3>Sample run:</h3>
+
+<pre><code>&gt;&gt; bish
+b6:dd:b7:1f:bc:25:31:d3:12:f4:92:1c:0b:93:5f:4b
+ans =
+
++-----------------+
+|            o.o  |
+|            .= E.|
+|             .B.o|
+|              .= |
+|        S     = .|
+|       . o .  .= |
+|        . . . oo.|
+|             . o+|
+|              .o.|
++-----------------+
+</code></pre>
+</div>
+<div id="pu12" class="pu"><h1>Ruby 288</h1>
+
+<pre class="lang-rb prettyprint-override"><code>-&gt;k{w=17
+r=[z=?++?-*w+?+]
+(0...w*9).each_slice(w).map{|o|r&lt;&lt;?|+o.map{|x|c=76
+q=0
+k.split(?:).flat_map{|b|(0..7).map{|i|b.to_i(16)[i]}}.each_slice(2){|h,v|v&lt;1?(c&gt;w&amp;&amp;c-=w):c&lt;w*8&amp;&amp;c+=w
+c+=h&lt;1?c%w&gt;0?-1:0:c%w&lt;16?1:0
+c==x&amp;&amp;q+=1}
+x==76?'S':c==x ?'E':' .o+=*BOX@%&amp;#/^'[q]}.join+?|}
+(r+[z]).join'
+'}
+</code></pre>
+
+<p>Try it online: <a href="http://ideone.com/QOHAnM" rel="nofollow">http://ideone.com/QOHAnM</a></p>
+
+<p>The readable version (the one I started golfing from) is here: <a href="http://ideone.com/XR64km" rel="nofollow">http://ideone.com/XR64km</a></p>
+</div>
+<div id="pu13" class="pu"><h1>Pyth, <s>145</s> <s>143</s> 140</h1>
+
+<pre><code>Jm*17]09A,4K8FYcz\:V4AmhtS[0^2d+@,HGdtyv@+_.BiY16*7\0+-4dyN),3 4 X@JGHh@@JGH; X@J4K15 X@JGH16
+=Y++\+*17\-\+VJ++\|s@L" .o+=*BOX@%&amp;#/^SE"N\|)Y
+</code></pre>
+
+<p><a href="https://pyth.herokuapp.com/?code=Jm*17]09A%2C4%3Dk8FYcz%5C%3AK%2B_.BiY16*7%5C0V4AmhtS[0%5E2hd%2Bedtyv%40K%2B-4hdyN%29%2C%2C3G%2C4H+X%40JGHh%40%40JGH%3B+X%40J4k15+X%40JGH16%0A%3DY%2B%2B%5C%2B*17%5C-%5C%2BVJ%2B%2B%5C|s%40L%22+.o%2B%3D*BOX%40%25%26%23%2F%5ESE%22N%5C|%29Y&amp;input=37%3Ae4%3A6a%3A2d%3A48%3A38%3A1a%3A0a%3Af3%3A72%3A6d%3Ad9%3A17%3A6b%3Abd%3A5e&amp;debug=0" rel="nofollow">Try it online.</a></p>
+
+<p>Pyth isn't really good at challenges with iteration. I'm expecting CJam to beat it easily.</p>
+</div>
+<div id="pu14" class="pu"><h1>Dyalog APL (178)</h1>
+
+<pre><code>{⎕ML←3⋄F←9 17⍴0⋄5 9{(⍺⌷F)+←1⋄×⍴⍵:(1 1⌈9 17⌊⍺-1 1-2×↑⍵)∇1↓⍵⋄(⍺⌷F)←16⋄F[5;9]←15⋄K⍪(M,' .o+=*BOX@%&amp;#/^SE'[1+F],M←'|')⍪K←'+','+',⍨17⍴'-'}⊃,/{↓⊖4 2⍴⍉(4/2)⊤¯1+⍵⍳⍨⎕D,'abcdef'}¨⍵⊂⍨':'≠⍵}
+</code></pre>
+
+<p>This is a function that takes the string as its right argument, and returns a character matrix containing the ASCII art representation, e.g.:</p>
+
+<pre><code>      F←{⎕ML←3⋄F←9 17⍴0⋄5 9{(⍺⌷F)+←1⋄×⍴⍵:(1 1⌈9 17⌊⍺-1 1-2×↑⍵)∇1↓⍵⋄(⍺⌷F)←16⋄F[5;9]←15⋄K⍪(M,' .o+=*BOX@%&amp;#/^SE'[1+F],M←'|')⍪K←'+','+',⍨17⍴'-'}⊃,/{↓⊖4 2⍴⍉(4/2)⊤¯1+⍵⍳⍨⎕D,'abcdef'}¨⍵⊂⍨':'≠⍵}
+
+
+      F '16:27:ac:a5:76:28:2d:36:63:1b:56:4d:eb:df:a6:48'
++-----------------+
+|        .        |
+|       + .       |
+|      . B .      |
+|     o * +       |
+|    X * S        |
+|   + O o . .     |
+|    .   E . o    |
+|       . . o     |
+|        . .      |
++-----------------+
+      F 'b6:dd:b7:1f:bc:25:31:d3:12:f4:92:1c:0b:93:5f:4b'
++-----------------+
+|            o.o  |
+|            .= E.|
+|             .B.o|
+|              .= |
+|        S     = .|
+|       . o .  .= |
+|        . . . oo.|
+|             . o+|
+|              .o.|
++-----------------+
+</code></pre>
+
+<p>Explanation:</p>
+
+<ul>
+<li><p><code>⎕ML←3</code>: set <code>⎕ML</code> to <code>3</code>. This makes <code>⊂</code> more useful for splitting strings. </p></li>
+<li><p><code>F←9 17⍴0</code>: make a 17-by-9 matrix of zeroes. <code>F</code> represents how many times each position has been visited.</p></li>
+<li><p><code>⍵⊂⍨':'≠⍵</code>: split <code>⍵</code> on <code>:</code> characters.</p></li>
+<li><code>{</code>...<code>}¨</code>: for each group:
+
+<ul>
+<li><code>¯1+⍵⍳⍨⎕D,'abcdef'</code>: find the index of each character in the string <code>'01234567890abcdef'</code>. Subtract 1, because APL is 1-indexed by default.</li>
+<li><code>(4/2)⊤</code>: convert the values to their 4-bit representations (there should now be 2-by-4 matrix).</li>
+<li><code>↓⊖4 2⍴⍉</code>: rotate the matrix, use the elements to fill a 2-by-4 matrix instead, mirror that matrix horizontally, and then get each line separately. This gives us the 4 2-bit values we need. </li>
+</ul></li>
+<li><code>⊃,/</code>: join the resulting lists together, giving a list of 2-bit steps.</li>
+<li><code>5 9{</code>...<code>}</code>: given the list of steps, and starting at position [9,5]:
+
+<ul>
+<li><code>(⍺⌷F)+←1</code>: increment the current position in <code>F</code>.</li>
+<li><code>×⍴⍵:</code>: if the list of steps is not empty:
+
+<ul>
+<li><code>↑⍵</code>: take the first step from the list</li>
+<li><code>⍺-1 1-2×</code>: get the delta for that step, and subtract it from the current position</li>
+<li><code>1 1⌈9 17⌊</code>: restrict movement to within the field</li>
+<li><code>(</code>...<code>)∇1↓⍵</code>: continue with the new position and the rest of the steps</li>
+</ul></li>
+<li>If it <em>is</em> empty:
+
+<ul>
+<li><code>(⍺⌷F)←16</code>: set <code>F</code> to 16 at the final position</li>
+<li><code>F[5;9]←15</code>: set <code>F</code> to 15 at the start position</li>
+<li><code>' .o+=*BOX@%&amp;#/^SE'[1+F]</code>: map each position to the corresponding character</li>
+<li><code>K⍪(M,</code>...<code>,M←'|')⍪K←'+','+',⍨17⍴'-'</code>: wrap the result in lines</li>
+</ul></li>
+</ul></li>
+</ul>
+</div>
+<div id="pu15" class="pu"><h1>Perl, 300 + 1 (-n) = 301 bytes</h1>
+
+<pre><code>perl -ne 'sub b{$b=$_[0]+$_[1];$_[0]=$b&lt;0?0:$b&gt;$_[2]?$_[2]:$b}$v=pack"(H2)*",/\w\w/g;($x,$y)=(8,4);$a[b($y,($_&amp;2)-1,8)*17+b($x,($_&amp;1)*2-1,16)]++for map{vec$v,$_,2}0..63;@a[76,$y*17+$x]=(15,16);$c=" .o+=*BOX@%&amp;#/^SE";print$d="+".("-"x17)."+\n",(map{+"|",(map{substr$c,$_,1}@a[$_*17..($_+1)*17-1]),"|\n"}0..8),$d'
+</code></pre>
+
+<p>This answer is disgusting, but it's also the first one for this puzzle, so it'll do for now.</p>
+
+<p><code>-n</code> to take a line of input on STDIN and fill <code>$_</code>.</p>
+
+<pre><code># b($v, -1 or 1, max) modifies $v within 0..max
+sub b{$b=$_[0]+$_[1];$_[0]=$b&lt;0?0:$b&gt;$_[2]?$_[2]:$b}
+
+# turn $_ into a binary string
+$v=pack"(H2)*",/\w\w/g;
+
+# initialize cursor
+($x,$y)=(8,4);
+
+# find an element of single-dimensional buffer @a
+$a[
+    # y += (bitpair &amp; 2) - 1, within 8
+    b($y,($_&amp;2)-1,8) * 17
+    # x += (bitpair &amp; 1) * 2 - 1, within 17
+  + b($x,($_&amp;1)*2-1,16)
+# and increment it
+]++
+# for each bit pair (in the right order!)
+  for map{vec$v,$_,2}0..63;
+
+# overwrite the starting and ending positions
+@a[76,$y*17+$x]=(15,16);
+
+# ascii art lookup table
+$c=" .o+=*BOX@%&amp;#/^SE";
+
+# output
+print
+  # the top row, saving it for later
+  $d="+".("-"x17)."+\n",
+  # each of the eight middle rows
+  (map{+
+    # converting each character in @a in this row as appropriate
+    "|",(map{substr$c,$_,1}@a[$_*17..($_+1)*17-1]),"|\n"
+  }0..8),
+  # the bottom row
+  $d
+</code></pre>
+</div>
 
 <table id="st">
 <!-- Popups content will be added here -->
