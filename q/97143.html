@@ -59,8 +59,62 @@ L+2Ɗ×Ç©x@0s®+⁸ṙ-1$ṙ-1$€
 Ỵ=”*ç{
 ÇY
 </code></pre>
-<p>So this absurdly long solution is hopefully 50% because Jelly does not have 2D convolutions (I think!) and 50% my own learning curve.  Hoping to start trimming it down, but since I did not find any other Jelly solution, I thought it would be fun to post and then improve on this.</p>
+<p>So this absurdly long solution is hopefully 50% because Jelly does not have 2D convolutions (I think!) and 50% my own learning curve.  Hoping to start trimming it down, but since I did not find any other Jelly solution, I thought it would be fun to post and then improve on this.  Though as I write the explanation I wonder if its too long to even justify....</p>
+<p>Called with a linefeed separated string as the argument:</p>
+<pre><code>'&quot;   *\n  **\n*  *\n   *&quot;'
+</code></pre>
+<p>Explanation:</p>
 <pre><code>495Bs3    # The [[1,1,1],[1,0,1],[1,1,1]] kernel
+          # 495 in binary, split at length 3
+
+ḣ1ẎL+2                   # Gets the length of a row+2 (for left and right border)
+L+2Ɗ×Ç©x@0s®+⁸ṙ-1$ṙ-1$€  # Adds a border of 0's to the input matrix
+L+2Ɗ                     # Height of matrix+2 (for top and bottom border)
+    ×Ç                   # times the width+2 from helper link
+      ©                  # Save that extended width for later
+       x@0               # Make an array of that many zeroes
+          s®             # Split by the saved extended width to create a matrix
+            +⁸           # Add to the original matrix
+              ṙ-1$       # Rotate the rows back one
+                  ṙ-1$€  # Rotate each column back one
+                         # This ends up with the original matrix entirely surrounded by 0's
+
+¹3Ƥz0$€z0$3Ƥ€Ẏ×€⁹F+/$€   # Produces every 3x3 &quot;sub-matrix&quot; that the kernel is multiplied against
+¹3Ƥ                      # Pull out every overlapping 3 rows
+   z0$€                  # Transpose each of them
+       z0$3Ƥ€            # Pull out every overlapping 3 &quot;columns&quot; by transposing back
+             Ẏ           # Tighten, so that each sub-matrix is not organized by original rows
+              ×€⁹        # Multiply each of those by the second argument (the kernel)
+                 F       # Flatten
+                  +/$€   # Sum up each sub-matrix to find the value for the minesweeper grid
+
+3Ŀç                      # Call the convolution with the bordered matrix
+ḣ1ẎLƲs@ç                 # Split the result of all that back to the original width
+ḣ1                       # Get the first row
+  Ẏ                      # Tighten because the above returns an array
+   L                     # Return the length (i.e. column count)
+    Ʋ                    # All of that as a single monad
+     s@ç                 # Split the result of the convolution by this width
+
+”*ḷṛ?&quot;                   # Test to see where the original *'s were
+   ṛ?                    # If the element is true (the 1's in the original minefield)
+”*                       # then return a literal *
+  ḷ                      # else return the left arg (the count from the convolution)
+     &quot;                   # Zipped (i.e. column to column)
+
+6ŀ1£ðç&quot;⁹                 # Call the whole convolution and then puts the original *'s back in
+6ŀ1£                     # Calls the sixth link with the input as the left arg and the nilad of the first link (the kernel) as the right arg
+    ðç                   # Take all of that and call the previous test
+      &quot;⁹                 # Zipped (i.e. row to row) with the right arg which is the original input as a matrix
+
+Ỵ=”*ç{                   # Create matrix from input
+Ỵ                        # Split on linefeeds
+ =”*                     # Test if every element is an *; results in a boolean matrix
+    ç{                   # Call the previous dyad with the boolean matrix as both the left and right arg
+                         # The left arg with be bordered and convoluted :p
+                         # and the right arg will remain to test against the original position of mines
+
+ÇY                       # Call the above and separate by linefeeds for final display
 </code></pre>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://github.com/Vyxal/Vyxal/tree/version-3" rel="nofollow noreferrer">Vyxal 3</a> <code>j</code>, 18 bytes</h1>
