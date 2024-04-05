@@ -369,6 +369,531 @@ _strfind subroutine
         bx      lr
 </code></pre>
 </div>
+<div id="pu11" class="pu"><h1>AWK, <s>76</s> 64 bytes</h1>
+<p>More of the same, but with a pinch of AWK sparkling magic.</p>
+<p>Edit: at first, I didn't looked for the answers, and my result was actually similar to some of them. I'm mesmerized by all these ingenious solutions.</p>
+<pre><code>{i=OFS=e;for(;NF&gt;i++;)$i=index(&quot;othuvsein&quot;,substr($i$i$i,7,1))}1
+</code></pre>
+<p><a href="https://tio.run/##SyzP/v@/OtPW3y3YNtU6Lb9Iw9rPzS5TW9taUyXTNjMvJbVCQym/JKO0rDg1M09Jp7g0qbikSEMlEwR1zHUMNTVrDf//T8svLVIoKc/nqkotyldAEPl5qVwA" rel="nofollow noreferrer" title="AWK – Try It Online">Try it online!</a></p>
+<pre><code>{
+i=OFS=e;     # We start setting the _i_ variable and the
+             # Output Field Separator as the _e_ variable, which is
+             # just empty, for never being assigned anything,
+             # so _e_ is both evaluated as zero for _i_ and null for _OFS_
+             # (thanks Brian Kernighan for that!)
+for(;
+    NF&gt;i++;  # the looping goes on until _i_ reaches the Number of Fields (NF).
+   )         # also, _i_ is incremented by 1 each turn.
+
+     $i=                          # $i is each field text
+        index(&quot;othuvsein&quot;,        # we get this magic Klingon and locate the
+              substr($i$i$i,7,1)  # 7th letter of the input concatenated 3 times
+             )                    # this has the same effect as looking
+                                  # for the second to last letter on the word.
+        
+}
+1            # finally, we print all the $i together
+<span class="math-container">```</span>
+</code></pre>
+</div>
+<div id="pu12" class="pu"><h1><a href="https://github.com/abrudz/dyalog-apl-extended" rel="nofollow noreferrer">APL (Dyalog Extended)</a>, 26 bytes</h1>
+
+<pre class="lang-apl prettyprint-override"><code>10⊥'rothuvsein'⍳7⊢/⍤⍴¨≠⍛⊆⍨
+</code></pre>
+<p><a href="https://tio.run/##SyzI0U2pTMzJT9dNrShJzUtJTfn/qG@qp/@jtgkG/w0NHnUtVS/KL8koLStOzcxTf9S72fxR1yL9R71LHvVuObTiUeeCR72zH3W1Pepd8T8NqOdRb9@jruZHvWtA0uuNH7VNBJoWHOQMJEM8PIP/pymo5@elKpSU5yuUZBSlpkJIdS6geFVqUb4CmICqUAcA" rel="nofollow noreferrer" title="APL (Dyalog Extended) – Try It Online">Try it online!</a></p>
+<p>A simple function which checks the first two letters of each word.</p>
+<p>-30 bytes from Adám using Kevin Cruijssen's idea.</p>
+<h2>Explanation(old)</h2>
+<pre class="lang-apl prettyprint-override"><code>     {⍕2÷⍨1-⍨(2↑⍵)(⍸⍷)'zeontwthfofisiseeinite'} inner fn: 
+             (2↑⍵)                              take first two letters
+                  (⍸⍷)'zeontwthfofisiseeinite'} find index of the letters in hardcoded string
+       2÷⍨1-⍨                                   subtract 1, divide by 2
+      ⍕                                         stringify
+{⍎⊃,/{⍕2÷⍨1-⍨(2↑⍵)(⍸⍷)'zeontwthfofisiseeinite'}¨' '(≠⊆⊢)⍵} ⍵ → input
+                                                ' '(≠⊆⊢)⍵  split input on spaces
+   ,/                                                      join output of inner fn
+ ⍎⊃                                                        execute it
+</code></pre>
+</div>
+<div id="pu13" class="pu"><h1><a href="http://www.scala-lang.org/" rel="nofollow noreferrer">Scala</a>, <s>66</s> <s>64</s> 62 bytes</h1>
+
+<pre class="lang-scala prettyprint-override"><code>_.split(&quot; &quot;).map(&quot;rothuvsein&quot;indexOf _.*(3)(6)).mkString.toInt
+</code></pre>
+<p><a href="https://tio.run/##nVFLS8NAEL77Kz6CYCIl1vouVPDoRQXxXLbJJF1Nd9fdSa2Kv73OJq1Q9OQlS@Z77k4oVKPWeuGsZ4T4kzfK1K2qKXc2cKVX9y7g6AjGMjy9ttpTicp6VK0pWFujGs3vA1jTvHfzUgc1a7SpoVCR4tYT3pQ3Mtmzs2cqGHftYkb@QflAHrRiMmXAjXP43AOWqoneYzyyjy6Ta9waxmQ9zYOTrDRBkuUL5dLEW563y0DaJNqUtLqvMM0P05MsPc@E8tI75GzFYA2UVEV3XSqm1HQdwjZmID2cdKNyHOOyMZ6MltSuUl9KFdzKMYnttvKsQ1WQi3C6JUx@vHrYSQA3Jg3Jwf5Gd4BaLylgf6NJC@u9SLIkSr76Z@iLJtYQ@M2C554oGeB4dJLtED7IW/yDJetqZY9SBEGvEGhJBqTrOUO2tTE5PTu/uLzatYooOj/xEtrVcLRLiBEd/vMR1mg4HP6uJMAf0x2h4F/rbw" rel="nofollow noreferrer" title="Scala – Try It Online">Try it online!</a>
+This is the &quot;rothuvsein&quot; approach in Scala. The 7th character of each (repeated) number string is extracted via <code>(numberString*3)(6)</code>. The position of this character in &quot;rothuvsein&quot; is then used as the correct numerical digit. The <code>toInt</code> conversion does the rest (e.g., dealing with leading zeros).</p>
+<p>2 times 2 bytes saved thanks to @user by</p>
+<ol>
+<li>an even more abused use of syntactic sugar :)</li>
+<li>simply using <code>toInt</code> conversion rather than <code>BigInt</code> constructor</li>
+</ol>
+</div>
+<div id="pu14" class="pu"><h1><a href="https://bitbucket.org/ngn/k" rel="nofollow noreferrer">K (ngn/k)</a>, 27 bytes</h1>
+<pre><code>10/&quot;rothuvsein&quot;?(*|7#)'&quot; &quot;\
+</code></pre>
+<p><a href="https://tio.run/##XYxBCsIwEEWvMoyLtoJUV4IuvIjbn2YQZiBJo4h3j6ahFNwMw@e99zjopKW4y@k4crDk5xwhyrd@/znvho6J78V1PTubA6Wn8ZXfCEbbMcU6/t7KUPIBoEVxkkFRXhSRoQSZfCKVzWlsJar5T7Vky9XS0rS281C@" rel="nofollow noreferrer" title="K (ngn/k) – Try It Online">Try it online!</a></p>
+<p>Another port of <a href="https://codegolf.stackexchange.com/a/193395/98547">Kevin Cruijssen's 05AB1E answer</a>.</p>
+<ul>
+<li><code>&quot; &quot;\</code> split input on spaces</li>
+<li><code>(*|7#)'</code> take the last character of each word (repeated to be of length seven)</li>
+<li><code>&quot;rothuvsein&quot;?</code> find index of character in &quot;rothuvsein&quot; (i.e. the seventh character of &quot;zero&quot; repeated is &quot;r&quot;, which is at index 0)</li>
+<li><code>10/</code> convert from a list of digits to a decimal number</li>
+</ul>
+</div>
+<div id="pu15" class="pu"><h2>Windows Batch, 169 bytes</h2>
+
+<pre><code>@setlocal enabledelayedexpansion
+@set z=zeontwthfofisiseeini
+:a
+@set b=%1
+@for /l %%c in (0,2,18)do @if "!b:~0,2!"=="!z:~%%c,2!" set/aa=a*10+%%c/2&shift&goto a
+@echo %a%</code></pre>
+</div>
+<div id="pu16" class="pu"><h1><strong><a href="http://www.basic-converter.org" rel="nofollow noreferrer">BaCon</a>, <s>83</s> 72 bytes</strong></h1>
+
+<p>Assuming the string is provided in w$, this code looks up the index in "zeontwthfofisiseeini" using a regular expression based on the unique first 2 characters of each word. The index is then divided by 2 providing the correct result.</p>
+
+<pre><code>FOR x$ IN w$:r=r*10+REGEX("zeontwthfofisiseeini",LEFT$(x$,2))/2:NEXT:?r
+</code></pre>
+</div>
+<div id="pu17" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C (gcc)</a>, 89 bytes</h1>
+
+
+
+<pre class="lang-c prettyprint-override"><code>i,n;f(char*w){for(i=n=0;n=*w%32?n^*w:(i+=n-2)&amp;&amp;!printf(L"8 0  72 3  59641"+n%17),*w++;);}
+</code></pre>
+
+<p><a href="https://tio.run/##TYrLCoJAFED3fsVtQJnxAT4qq2HoB/qGQGRG76JrjOZE4rdblIs2h8Ph1ElT18uCMUnD67ayoROT6SxHRSqVpELnF/mZrqE7cYwUJbkIgs3dIg2GX9gBUoAyhwJgd9xvMxaRn5UiDl0USSHn5fPBrUICLibPM5y9tO3gi470Twa3lqG1em1fmO5hweCooccn9HrUBBqbdgBC@huZkJ43L28" rel="nofollow noreferrer" title="C (gcc) – Try It Online">Try it online!</a></p>
+
+<p>Thanks to @Ceilingcat smartest tricks :  </p>
+
+<pre class="lang-c prettyprint-override"><code>- printf instead of putchar.   
+- !printf instead of printf()&amp;0. 
+- And wide char !
+</code></pre>
+</div>
+<div id="pu18" class="pu"><h1>x86 machine code, 46 bytes</h1>
+
+<p>Hexdump:</p>
+
+<pre class="lang-none prettyprint-override"><code>57 53 33 c0 33 ff f6 01 0f 75 15 6a 0a 5b 99 f7
+f3 6b ff 0a 03 fa 33 c0 38 01 75 0f 97 5b 5f c3
+69 c0 26 2b aa 6e 32 01 c1 e8 02 41 eb d8
+</code></pre>
+
+<p>It's a <code>fastcall</code> function - receives a pointer to the string in <code>ecx</code>, and returns the result in <code>eax</code>.</p>
+
+<p>The hashing function multiplies by a magic number <code>1856645926</code>, does a <code>XOR</code> with input byte, and shifts right by 2 bits.</p>
+
+<p>Saving and restoring noclobber registers (<code>edi</code> and <code>ebx</code>) took 4 bytes, but I didn't find a more efficient way to implement this. Storing the constant 10 in <code>ebx</code> was particularly annoying!</p>
+
+<p>Disassembly with corresponding code bytes:</p>
+
+<pre class="lang-none prettyprint-override"><code>57                   push        edi  ; edi = result
+53                   push        ebx  ; we use ebx to store the constant 10
+33 C0                xor         eax,eax  
+33 FF                xor         edi,edi  
+    myloop:
+F6 01 0F             test        byte ptr [ecx],0Fh  ; check for end of word
+75 15                jne         myhash
+6A 0A                push        0Ah  
+5B                   pop         ebx  
+99                   cdq              ; prepare 64-bit dividend in edx:eax
+F7 F3                div         eax,ebx  ; find the remainder of division by 10
+6B FF 0A             imul        edi,edi,0Ah
+03 FA                add         edi,edx  ; update the result
+33 C0                xor         eax,eax  ; reset the hash temporary variable
+38 01                cmp         byte ptr [ecx],al  ; check for end of input (here al=0)
+75 0F                jne         mycontinue
+97                   xchg        eax,edi  ; set the return register
+5B                   pop         ebx  ; restore registers
+5F                   pop         edi  ; restore registers
+C3                   ret  
+    myhash:
+69 C0 26 2B AA 6E    imul        eax,eax,6EAA2B26h  ; hashing...
+32 01                xor         al,byte ptr [ecx]  ; hashing...
+C1 E8 02             shr         eax,2  ; hashing...
+    mycontinue:
+41                   inc         ecx  ; next input byte
+EB D8                jmp         myloop
+</code></pre>
+
+<p>Equivalent C code:</p>
+
+<pre class="lang-c prettyprint-override"><code>int doit(const char* s)
+{
+    int result = 0;
+    unsigned temp = 0;
+    while (true)
+    {
+        int c = *s++;
+        if ((c &amp; 15) == 0)
+        {
+            temp %= 10;
+            result = result * 10 + temp;
+            temp = 0;
+            if (c == 0)
+                break;
+            else
+                continue;
+        }
+        temp *= 1856645926;
+        temp ^= c;
+        temp &gt;&gt;= 2;
+    }
+    return result;
+}
+</code></pre>
+</div>
+<div id="pu19" class="pu"><h1><a href="https://www.gnu.org/software/sed/" rel="nofollow noreferrer">sed -re</a>, 78 bytes</h1>
+<pre><code>s/three/3/g;s/five/5/g;s/\w\w(\w)\w*/\1/g;s/ //g;y/eouxvgnr/12467890/;s/^0*//
+</code></pre>
+</div>
+<div id="pu20" class="pu"><h1>Kotlin, 83 bytes</h1>
+
+<pre><code>fun String.d()=split(' ').fold(""){a,b-&gt;a+"rothuvsein".indexOf((b+b+b)[6])}.toInt()
+</code></pre>
+
+<p>+1 byte if you wanna support longs with <code>toLong()</code></p>
+
+<p>Same rothuvsein trick as the others, saving some precious bytes thanks to kotlin's nice <code>toInt()</code> and <code>fold()</code>. I just can't shake the feeling that some more bytes can be shaved off though...</p>
+</div>
+<div id="pu21" class="pu"><h1>T-SQL, 110 bytes</h1>
+<pre class="lang-sql prettyprint-override"><code>SELECT 0+STRING_AGG(CHARINDEX(LEFT(value,2),'_ontwthfofisiseeini')/2,'')
+FROM STRING_SPLIT((SELECT*FROM i),' ')
+</code></pre>
+<p>Line break is for readability only.</p>
+<p>Input is taken via table <span class="math-container">\$i\$</span>, <a href="https://codegolf.meta.stackexchange.com/questions/2447/default-for-code-golf-input-output-methods/5341#5341">per our IO rules</a>. I could have saved 14 bytes by pre-populating a string variable, but that's only allowed if the language has no other input methods.</p>
+<p>Explanation:</p>
+<ol>
+<li><code>STRING_SPLIT</code> takes the input string and separates it at the spaces</li>
+<li><code>CHARINDEX</code> takes the first 2 characters and returns the (1-based) position in the string <code>'_ontwthfofisiseeini'</code>. <code>'ze'</code> for zero is not in the string and returns 0 for &quot;not found&quot;. The underscore ensures we only get multiples of two.</li>
+<li>Divide by 2 to get the final numeral</li>
+<li><code>STRING_AGG</code> smashes the digits back together with no separator</li>
+<li><code>0+</code> forces an implicit conversion to INT and drops any leading zeros. <code>1*</code> would also work.</li>
+</ol>
+</div>
+<div id="pu22" class="pu"><h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a>, <s>63 bytes</s>, <s>52 bytes</s>, 50 bytes</h1>
+
+<pre><code>p $*.map{|d|'rothuvsein'.index (d*3)[6]}.join.to_i
+</code></pre>
+
+<p>-2 thanks to <a href="https://codegolf.stackexchange.com/users/52194/value-ink">value ink's</a> tip</p>
+</div>
+<div id="pu23" class="pu"><h1><a href="https://github.com/m-ender/retina/wiki/The-Language/a950ad7d925ec9316e3e2fb2cf5d49fd15d23e3d" rel="nofollow noreferrer">Retina 0.8.2</a>, <s>46</s> 45 bytes</h1>
+
+<pre><code>\w+
+¶$&amp;$&amp;$&amp;
+%7=T`r\ot\huvs\ein`d`.
+\D
+
+^0+\B
+
+</code></pre>
+
+<p><a href="https://tio.run/##K0otycxL/K@q4Z7wP6Zcm@vQNhU1EORSNbcNSSiKyS@JySgtK45JzcxLSEnQ44px4eKKM9COceL6/z8tv7RIoaQ8n6sqtShfAUHk56Vy5WXmpSqkZqZnlCgUp5al5ikUZ1YopGWWpSpAdGUUpaaC9IIUg3UBAA" rel="nofollow noreferrer" title="Retina 0.8.2 – Try It Online">Try it online!</a> Link includes test cases. Explanation:</p>
+
+<pre><code>\w+
+¶$&amp;$&amp;$&amp;
+</code></pre>
+
+<p>Put each word on its own line and triplicate it.</p>
+
+<pre><code>%7=T`r\ot\huvs\ein`d`.
+</code></pre>
+
+<p>Transliterate the 7th character of each line using @UnrelatedString's string.</p>
+
+<pre><code>\D
+
+</code></pre>
+
+<p>Delete all remaining non-digit characters.</p>
+
+<pre><code>^0+\B
+
+</code></pre>
+
+<p>Delete leading zeros (but leave at least one digit).</p>
+
+<p>Previous 46-byte more traditional solution:</p>
+
+<pre><code>T`z\wuxg`E
+on
+1
+th
+3
+fi
+5
+se
+7
+ni
+9
+\D
+
+^0+\B
+
+</code></pre>
+
+<p><a href="https://tio.run/##Rcs9CgIxFEXh/q7iNYJgo4iIrShuYMogsbiZvOYFkswPs/noaGFzqvNlVrVX22wfvnV@cdMw9/6OZDigRhwRFCcU4gxTXOBuwHO/c1e0FtKQpU4JC3OSf5LxMxuF2scqhSNNis4SdKT8VMzkatf5q94" rel="nofollow noreferrer" title="Retina 0.8.2 – Try It Online">Try it online!</a> Link includes test cases. Explanation:</p>
+
+<pre><code>T`z\wuxg`E
+</code></pre>
+
+<p>The words <code>zero</code>, <code>two</code>, <code>four</code>, <code>six</code> and <code>eight</code> uniquely contain the letters <code>zwuxg</code>. Transliterate those to the even digits.</p>
+
+<pre><code>on
+1
+th
+3
+fi
+5
+se
+7
+ni
+9
+</code></pre>
+
+<p>For the odd digits, just match the first two letters of each word individually.</p>
+
+<pre><code>\D
+
+</code></pre>
+
+<p>Delete all remaining non-digit characters.</p>
+
+<pre><code>^0+\B
+
+</code></pre>
+
+<p>Delete leading zeros (but leave at least one digit).</p>
+</div>
+<div id="pu24" class="pu"><h1><a href="https://github.com/TryItOnline/TioSetup/wiki/Powershell" rel="nofollow noreferrer">PowerShell</a>, 48 bytes</h1>
+
+
+
+<pre class="lang-powershell prettyprint-override"><code>+-join($args|%{'rothuvsein'.indexof(($_*3)[6])})
+</code></pre>
+
+<p><a href="https://tio.run/##BcFbCoAgEADAyxhqUT9Bl4mIoDUNcWPVjB5n32YOLEDRgvfMTbujC0ostMW3eiRhsvmM4ILsXFjhQqOUmOtej8OkP83MNxByKsgGM/0" rel="nofollow noreferrer" title="PowerShell – Try It Online">Try it online!</a></p>
+
+<p>Uses the same <code>rothuvsein</code> trick as others, thanks to Jonathan Allan. Expects input arguments via splatting, which on TIO manifests as separate command-line arguments.</p>
+</div>
+<div id="pu25" class="pu"><h1><a href="https://github.com/ETHproductions/japt" rel="nofollow noreferrer">Japt</a>, 13 <a href="https://en.wikipedia.org/wiki/ISO/IEC_8859-1" rel="nofollow noreferrer">bytes</a></h1>
+<pre><code>¸mg6 ì`Î¨uv 
+</code></pre>
+<p><a href="https://petershaggynoble.github.io/Japt-Interpreter/?v=1.4.6&amp;code=uG1nNiDsYM6odXagiA&amp;input=Inplcm8gb25lIHR3byB0aHJlZSBmb3VyIGZpdmUgc2l4IHNldmVuIGVpZ2h0IG5pbmUi" rel="nofollow noreferrer">Try it</a></p>
+<p>Looks like everyone else beat me to the same idea - could've saved myself the hassle of writing a script to brute force the optimal string for compression, only to find that, up to index <code>1,000,000</code> (it was early, I hadn't had my caffeine yet!), &quot;rothuvsein&quot; is the <em>only</em> possible string!</p>
+<pre><code>¸mg6 ì`...     :Implicit input of string
+¸              :Split on spaces
+ m             :Map
+  g6           :  Character at index 6 (0-based, with wrapping)
+     ì         :Convert from digit array in base
+      `...     :  Compressed string &quot;rothuvsein&quot;
+</code></pre>
+<p>The compressed string contains the characters at codepoints <code>206</code>, <code>168</code>, <code>117</code>, <code>118</code>, <code>160</code> &amp; <code>136</code>.</p>
+</div>
+<div id="pu26" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 19 bytes</h1>
+
+<pre><code>Ｉ⍘⭆⪪Ｓ §ι⁶rothuvsein
+</code></pre>
+
+<p><a href="https://tio.run/##S85ILErOT8z5/z@gKDOvRMM5sbhEwymxODW4BMhP14BQvokFGsEFOZklGp55BaUlUDlNHQUlBSUg6VjimZeSWqGRqaNgpgkSLcovySgtK07NzFPS1NS0/v8/Lb@0SKGkPJ/rv25ZDgA" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code. Port of @KevinCruijssen's 05AB1E answer. Explanation:</p>
+
+<pre><code>    Ｓ               Input string
+   ⪪                Split on spaces
+  ⭆                 Map over words and join
+       ι            Current word
+      §             Cyclically indexed
+        ⁶           Literal `6`
+ ⍘       rothuvsein Custom base conversion
+Ｉ                   Cast to string for implicit print
+</code></pre>
+</div>
+<div id="pu27" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E" rel="nofollow noreferrer">05AB1E</a>, <s>17</s> 16 bytes</h1>
+
+<pre><code>•D±¾©xWÄ0•I#HèTβ
+</code></pre>
+
+<p><a href="https://tio.run/##yy9OTMpM/f//UcMil0MbD@07tLIi/HCLAZDrqexxeEXIuU3//1elFuUr5OelKpSU5yuUZBSlpiqk5ZcWKaRllqUqFGdWKBSnlqXmKaRmpmeUKORl5qUCAA" rel="nofollow noreferrer" title="05AB1E – Try It Online">Try it online!</a></p>
+
+<p>Perfect tie with <a href="https://codegolf.stackexchange.com/questions/193357/convert-a-string-of-digits-from-words-to-an-integer/193395#193395">the other 05AB1E answer</a>, but using a completely different approach.</p>
+
+<pre><code>•D±¾©xWÄ0•               # compressed integer 960027003010580400
+          I#             # split the input on spaces
+            H            # convert each word from hex (eg "one" =&gt; 6526)
+             è           # index (with wrap-around) into the digits of the large integer
+              Tβ         # convert from base 10 to integer
+</code></pre>
+</div>
+<div id="pu28" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, <s>18</s> 16 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
+<pre><code>#ε6è}.•ƒ/ÿßÇf•Åβ
+</code></pre>
+<p><a href="https://tio.run/##yy9OTMpM/f9f@dxWs8MravUeNSw6Nkn/8P7D8w@3pwE5h1vPbfr/vyq1KF@hJKMoNVWhOLNCoaQ8X6E4tSw1TyE1Mz2jRCEvMy9VIR@IIUrSMsuARH5pEVgMiAE" rel="nofollow noreferrer">Try it online.</a></p>
+<p><strong>Explanation:</strong></p>
+
+<pre class="lang-python prettyprint-override"><code>#                 # Split the (implicit) input-string on spaces
+ ε  }             # Map each string to:
+  6è              #  Get the character at 0-based index 6 (with automatic wraparound)
+     .•ƒ/ÿßÇf•    # Push compressed string &quot;rothuvsein&quot;
+              Åβ  # Convert the characters from custom base-&quot;rothuvsein&quot; to an integer
+                  # (after which the top of the stack is output implicitly as result)
+</code></pre>
+<p><a href="https://codegolf.stackexchange.com/a/166851/52210">See this 05AB1E tip of mine (section <em>How to compress strings not part of the dictionary?</em>)</a> to understand why <code>.•ƒ/ÿßÇf•</code> is <code>&quot;rothuvsein&quot;</code>.</p>
+</div>
+<div id="pu29" class="pu"><h1>VBA, 160 bytes</h1>
+
+<pre><code>Function e(s)
+s = Split(s, " ")
+For i = LBound(s) To UBound(s)
+s(i) = Int((InStr("ontwthfofisiseeini", Left(s(i), 2)) + 1) / 2)
+Next
+e = Val(Join(s, ""))
+End Function
+</code></pre>
+
+<p>Matches the first two characters in a string, zero excluded.</p>
+</div>
+<div id="pu30" class="pu"><h1><a href="https://php.net/" rel="noreferrer">PHP</a>, 74 bytes</h1>
+
+
+
+<pre class="lang-php prettyprint-override"><code>foreach(explode(' ',$argn)as$w)$n.='793251_8640'[crc32($w)%20%11];echo+$n;
+</code></pre>
+
+<p><a href="https://tio.run/##RY1LCsIwFAD3PUUoKUnwQz9@ieLOS6hISJ9GkPdCklLx8Na6cjMMzGK888Pu4EfeKICxTsLLP6kFKZiYchPuqEzkveI434v1tqmX1XWzWpTiZINtajmmoi6LqrposI4mHPXwE5afMddZhxGS5Kj0OOgCSz1lbwjE/iCED/n0IIzD7PgF" rel="noreferrer" title="PHP – Try It Online">Try it online!</a></p>
+
+<p>Tried to get a solution which doesn't copy existing answers. I get cyclic redundancy checksum polynomial of 32-bit lengths (<a href="https://www.php.net/manual/en/function.crc32.php" rel="noreferrer">crc32</a>) for each word and then do a mod 20 and mod 11 on it to get mixed up unique values from 0 to 10 (missing 6) for each digit. Then using that unique value I find the actual digit.</p>
+
+
+
+<pre class="lang-none prettyprint-override"><code>| Word  | CRC32      | %20 | %11 | Equivalent digit |
+|-------|------------|-----|-----|------------------|
+| zero  | 2883514770 | 10  | 10  | 0                |
+| one   | 2053932785 | 5   | 5   | 1                |
+| two   | 298486374  | 14  | 3   | 2                |
+| three | 1187371253 | 13  | 2   | 3                |
+| four  | 2428593789 | 9   | 9   | 4                |
+| five  | 1018350795 | 15  | 4   | 5                |
+| six   | 1125590779 | 19  | 8   | 6                |
+| seven | 2522131820 | 0   | 0   | 7                |
+| eight | 1711947398 | 18  | 7   | 8                |
+| nine  | 2065529981 | 1   | 1   | 9                |
+</code></pre>
+
+<p>Another 74 bytes CRC32 alternative using <code>%493%10</code>: <a href="https://tio.run/##RcxLC4JAFAXgvb/iIiMqPdC0h1i0609UC7GrMxD3DjPjg358pqs2HwfO4Wipp/NVzzZssKplhKN@8wujEMK1qExLcWXFEAvaXsL8dMwO@2KXpOG9NnW2i@YmyIssSJNnibXklaByWgL4D/JLryOLLhIUlxMTghsYnDSI0HBnoFE9glUjWOyRAFUrHZCahx807C3An/ngy9opJjttbj8" rel="noreferrer" title="PHP – Try It Online">Try it online!</a></p>
+
+<p>Another 74 bytes CRC32 alternative using <code>%2326%11</code>: <a href="https://tio.run/##RczdCoJAEAXge59ikBWVfkgtKyy66yUqQmx0F2Jm2V1/6OEzverm48A5HC31eLroyZoNlpWMcNBvfmEUQrgUpWkoLq3oY0Hr8zPJjoftLt9v0ltlqiyNpiJIszQPkuRRYCV5IagY5wD@nfzCa8miiwTFxciE4HoGJw0i1NwaqFWHYNUAFjskQNVIB6Sm4QcNezPwZzr4snaKyY6r6w8" rel="noreferrer" title="PHP – Try It Online">Try it online!</a></p>
+
+<hr>
+
+<h1><a href="https://php.net/" rel="noreferrer">PHP</a>, 74 bytes</h1>
+
+
+
+<pre class="lang-php prettyprint-override"><code>foreach(explode(' ',$argn)as$w)$n.=strpos(d07bfe386c,md5($w)[21]);echo+$n;
+</code></pre>
+
+<p><a href="https://tio.run/##RY1LCsIwFAD3PUUogSZYxQ9VIYo7L6EuYvJqBH0vJCkVD2@MKzfDwCzGO593B1/YUwBtnICXf5AF0bCm5TrcUOrIR8lxto8peIrCzjfXHlbbtWmfthMlnpaLi1RgHE04qvwTVp@xVtWAEZLgKFUZDIGlkao3BGJ/EMKHfLoTxjw9fgE" rel="noreferrer" title="PHP – Try It Online">Try it online!</a></p>
+
+<p>Another alternative with same length, takes 22nd character in the <code>md5</code> of the word (only character which gives a unique value for each word) and then uses that character to map to a digit.</p>
+</div>
+<div id="pu31" class="pu"><h1>JavaScript (ES6), <s> 70 67 66 </s> 62 bytes</h1>
+<p><em>Saved 3 bytes thanks to @ovs</em></p>
+
+<pre class="lang-javascript prettyprint-override"><code>s=&gt;+s.replace(/\w+ ?/g,s=&gt;'2839016547'[parseInt(s,36)%204%13])
+</code></pre>
+<p><a href="https://tio.run/##bY29DoIwFEZ3n@IupG1A/kUd0NlnUIcGb6GGtKStYHz5inEwIS7fcHLynTsfuW2MHNxa6Rt6UXtbH0IbGxx63iBNLlMIx6SNZkzyXbFPs2pTbsl54MbiSTlqo6JiQZ6WQVZcmW@0srrHuNctFZQI/TDgJg1aIbzQaMLYauF8MPxmNv9ISs4HKNvOgcURFVj5BCFHhG@iM4jLkH8D" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+</div>
+<div id="pu32" class="pu"><h1><a href="http://jsoftware.com/" rel="nofollow noreferrer">J</a>, 38 bytes</h1>
+
+<pre><code>('b\e~mjPxw['i.[:u:70+1#.15|3&amp;u:)&amp;&gt;@;:
+</code></pre>
+
+<p><a href="https://tio.run/##Pcu9CsIwFIbhvVfxodBjUUOLFCGiCIKTg7jWSTkxKZhA@ouItx5tB4d3eeEpw0SQwlaCsEAK@WspcLicjmFGtyt/nuW57woyopCNXKfzbCqy/L2KG5nEu/1GhiSK@K4dFOjF3sFZRt051NozQ7nGQ5mWUZkeFbdsweaha1hjmf50ECMf9ggofAE" rel="nofollow noreferrer" title="J – Try It Online">Try it online!</a></p>
+</div>
+<div id="pu33" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C++ (gcc)</a>, <s>478</s> <s>218</s> 142 bytes</h1>
+
+<p>-(a lot) thanks to Jo King</p>
+
+
+
+<pre class="lang-cpp prettyprint-override"><code>int f(string s){char c[]="N02K8&gt;IE;6";int i=0,n=0;while(s[i]){n=n*10-1;while((s[i]^s[i+1])+47!=c[++n%10]);while(s[i++]!=' '&amp;&amp;s[i]);}return n;}
+</code></pre>
+
+<p><a href="https://tio.run/##RZDBaoRADIbvPkV2S3e17sJYSlsY3VsPpdAXEBdkjBrQKDPjbqn47HYUoZeQfEl@/kT1/blSan4gVs1QIMTUGasxby/eYIgr4LxF0@cKwdhCzsQWSt@NLD0TjKrONag0S/bf4vnr/fL5IV/3cpmiRJw4EfJeU4O@SSkLRk74KRLnaIMrvboQRlkQvrztEpWGIT9GIgv@98Iw2yVHOB4Oq4icNNpBM7CcVjttTuwH3ugBbL4aYpSurNAuqa@ITysMpOew6gYLcezuWNmSIhfNsrFJC@lN8y/qDjpGsPcObK0RoewGDSXd3DPoBwzekAGpqi2wU/oD" rel="nofollow noreferrer" title="C++ (gcc) – Try It Online">Try it online!</a></p>
+</div>
+<div id="pu34" class="pu"><h1><a href="https://github.com/nxadm/rakudo-pkg" rel="noreferrer">Perl 6</a>, <s>35</s> 32 bytes</h1>
+
+
+
+<pre class="lang-perl6 prettyprint-override"><code>{+uniparse 'SP'~S:g/&lt;&lt;/,DIGIT /}
+</code></pre>
+
+<p><a href="https://tio.run/##K0gtyjH7n1upoJamYPu/Wrs0L7Mgsag4VUE9OEC9LtgqXd/GRl/HxdPdM0RBv/a/NVdxYqWCHlBxWn6RQk5mXmrx/7T80iKFkvJ8rqrUonwFMJGflwoA" rel="noreferrer" title="Perl 6 – Try It Online">Try it online!</a></p>
+
+<h3>Explanation</h3>
+
+<pre class="lang-perl6 prettyprint-override"><code>{                              }  # Anonymous block
+                S:g/&lt;&lt;/,DIGIT /   # Insert ",DIGIT " at
+                                  # left word boundaries
+           'SP'~  # Prepend 'SP' for space
+  uniparse  # Parse list of Unicode names into string
+ +  # Convert to integer
+</code></pre>
+</div>
+<div id="pu35" class="pu"><h1><a href="https://github.com/Ourous/curated-clean-linux" rel="nofollow noreferrer">Clean</a>, 88 bytes</h1>
+
+<pre><code>import StdEnv,Text
+$s=toInt{#i\\n&lt;-split" "s,c&lt;-:"rothuvsein"&amp;i&lt;-['0'..]|c==(n+n+n).[6]}
+</code></pre>
+
+<p><a href="https://tio.run/##RY07C8IwFEZ3f0WI4gPb4uQgzaaD4CDo1nYIaaqB5N6S3Pr2rxsLDvLBgbOcT1ktITqsO6uZkwaicS16YgeqN3BJjvpGg1EQhFug59CUJeRpaK0hznhIVJ6uuEc6d5egDfCxydNisphkWfVSQkxh3m@WFcvqHQ8k@67oX1o2YgVvsPOMrsgTxh/aI/sDQfMqflRj5SnEdLuL6ztIZ9RP9lZSg959AQ" rel="nofollow noreferrer" title="Clean – Try It Online">Try it online!</a></p>
+
+<p>Heavily based on <a href="https://codegolf.stackexchange.com/a/193364/58563">Jonathan Allan's answer</a>.<br>
+Uses a comprehension for indexing instead of <code>indexOf</code> / <code>elemIndex</code>.</p>
+</div>
+<div id="pu36" class="pu"><h1><a href="https://docs.python.org/2/" rel="noreferrer">Python 2</a>, <s>&nbsp;71&nbsp;</s> 70 bytes</h1>
+
+<p>-1 thanks to <a href="https://codegolf.stackexchange.com/users/64121">ovs</a> (use <code>find</code> in place of <code>index</code>)</p>
+
+
+
+<pre class="lang-python prettyprint-override"><code>lambda s:int(''.join(`'rothuvsein'.find((w*3)[6])`for w in s.split()))
+</code></pre>
+
+<p><strong><a href="https://tio.run/##FYtBDgIhDAC/0hvggYMmHkx8iZrsmi1Ss7YEuqB@HvE2mcykj0bhfQ/na1/n132ZoZyI1Rrjn0JsJ5NF41YLEhsfiBdr2@7gLsebm4JkaEAMxZe0klrnXE95/BAscdr@pptAFUGbQMGKI6Y3aMyIEGTLIIyA9IgKTAO/mMX8AA" rel="noreferrer" title="Python 2 – Try It Online">Try it online!</a></strong></p>
+</div>
+<div id="pu37" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, <s>&nbsp;19&nbsp;</s> 17 bytes</h1>
+
+<pre><code>Ḳµ7ị“*;nÄƲ]³Ṙ»i)Ḍ
+</code></pre>
+
+<p>A monadic Link accepting a list of characters which yields an integer.</p>
+
+<p><strong><a href="https://tio.run/##AVsApP9qZWxsef//4biywrU34buL4oCcKjtuw4TGsl3Cs@G5mMK7aSnhuIz///9maXZlIHR3byBzZXZlbiBzaXggdGhyZWUgZm91ciBvbmUgZWlnaHQgbmluZSB6ZXJv" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></strong></p>
+
+<p>Pretty much a port of my Python 2 answer.</p>
+
+<hr>
+
+<p>Previous</p>
+
+<pre><code>ḲŒ¿€i@€“©¥q£½¤MÆÑ‘Ḍ
+</code></pre>
+
+<p><a href="https://tio.run/##y0rNyan8///hjk1HJx3a/6hpTaYDkHjUMOfQykNLCw8tPrT30BLfw22HJz5qmPFwR8/////TMstSFUrK8xWKU8tS8xSKMysUSjKKUlMV0vJLixTy81IVUjPTM0oU8jKBzKrUonwA" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></p>
+
+<p>There is <s>quite possibly</s> a shorter way, but this is a way that first came to mind.</p>
+</div>
+<div id="pu38" class="pu"><h1><a href="https://github.com/nxadm/rakudo-pkg" rel="nofollow noreferrer">Perl 6</a>, 45 bytes</h1>
+
+
+
+<pre class="lang-perl6 prettyprint-override"><code>+*.words&gt;&gt;.&amp;{+(1...*.uniname.comb(.uc))}.chrs
+</code></pre>
+
+<p><a href="https://tio.run/##HcsxCoQwEAXQ3lNMJRrhwzbbLHqXbJywgsnIZIOoePYoNq97C@v8LmGj2lNfOoNVdEzDgPromhcAgxynaAPDSfg2yK5tT7ifpvKpkt0I9/SiNE@RU/GSlf6rVDur0INEvgA" rel="nofollow noreferrer" title="Perl 6 – Try It Online">Try it online!</a></p>
+</div>
 
 <table id="st">
 <!-- Popups content will be added here -->
