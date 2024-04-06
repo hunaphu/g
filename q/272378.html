@@ -35,6 +35,7 @@
 <p>A dyadic Link that accepts a pair of integers, the normalised numerators, <code>[a, c]</code>, on the left and a positive integer, the normalised denominator, <code>b</code>, on the right and yields a list of four pairs of integers, <code>[[Ax, Ay], [Bx, By], [Cx, Cy], [Dx, Dy]]</code> such that the line segments <code>AB</code> and <code>CD</code> cross at <code>x=a/b, y=c/b</code>. (Degenerate cases may output zero-length line segments.)</p>
 <p><strong><a href="https://tio.run/##AToAxf9qZWxsef//w7fhuJ4sxIrGisW84oKsJcOEWuKCrOG6jl8wwqYl4oG5YcmX////Wy0xNiwgLTE3Xf83" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></strong></p>
 <h4>How?</h4>
+<p>Finds the closest integer lattice point to the south-west of <code>P=[a/b, c/b]</code> (<code>[f1, f2]</code> below) and the closest to the north-east of <code>P</code> (<code>[c1, c2]</code> below) then finds two new integer lattice points by moving from these points in straight lines through <code>P</code>.</p>
 <pre><code>÷Ḟ,ĊƊż€%ÄZ€Ẏ_0¦%⁹aɗ - Link: pair of integers, [a, c]; positive integer, b
 ÷                   - [a, c] divide b -&gt; P = [a/b, c/b]
  Ḟ,ĊƊ               - floor pair ceil
@@ -50,12 +51,12 @@
                   ɗ - last three links as a dyad - f([a,c], b)
                 ⁹   -   right argument -&gt; b
                %    -   [a, c] mod b -&gt; [a%b, c%b]
-                 a  -   logical AND b -&gt; [b if a%b==0 else 0, b if c%b==0 else 0]
+                 a  -   logical AND b -&gt; [0 if a%b==0 else b, 0 if c%b==0 else b]
             _0¦     - subtract from the last pair
                       -&gt; [[f1, f2],
                           [f1+a%b, f2+c%b],
                           [c1, c2],
-                          [c1+a%b-(b if a%b==0 else 0), c2+c%b-(b if c%b==0 else 0)],
+                          [c1+a%b-(0 if a%b==0 else b), c2+c%b-(0 if c%b==0 else b)],
                          ]
 </code></pre>
 </div>
