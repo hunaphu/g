@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::56032</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>026</td><td>Vyxal</td><td>240406T004833Z</td><td><a href="https://codegolf.stackexchange.com/questions/56032/argyle-ascii-art/272372#272372">emanresu</a></td></tr>
+<tr d-ix="1"><td>057</td><td>CJam</td><td>150905T160534Z</td><td><a href="https://codegolf.stackexchange.com/questions/56032/argyle-ascii-art/57100#57100">Dennis</a></td></tr>
+<tr d-ix="2"><td>170</td><td>Rev 1 Ruby</td><td>150905T054556Z</td><td><a href="https://codegolf.stackexchange.com/questions/56032/argyle-ascii-art/57090#57090">Level Ri</a></td></tr>
+<tr d-ix="3"><td>425</td><td>Common Lisp</td><td>150904T093536Z</td><td><a href="https://codegolf.stackexchange.com/questions/56032/argyle-ascii-art/57044#57044">coredump</a></td></tr>
+<tr d-ix="4"><td>049</td><td>Pyth</td><td>150904T103952Z</td><td><a href="https://codegolf.stackexchange.com/questions/56032/argyle-ascii-art/57046#57046">isaacg</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1><a href="https://github.com/Vyxal/Vyxal/tree/version-2" rel="nofollow noreferrer">Vyxal</a>, 26 bytes</h1>
+<pre><code>k₁$‹(:zṠY)ƛɾ\\↲øm↵∩Ṙ;føm↵§
+</code></pre>
+<p><a href="https://vyxal.pythonanywhere.com/?v=2&amp;c=1#WyIiLCIiLCJr4oKBJOKAuSg6euG5oFkpxpvJvlxcXFzihrLDuG3ihrXiiKnhuZg7ZsO4beKGtcKnIiwiIiwiNCJd" rel="nofollow noreferrer">Try it Online!</a> Inspired by Dennis's CJam answer.</p>
+<pre><code>k₁                         # Starting with [1, 1]
+  $‹                       # n-1 times...
+    (----)                 # Do the following
+     :  Y                  # Interleave with
+      zṠ                   # Pairwise sums
+          ƛ         ;      # Over each number
+            \\↲            # Pad &quot;\&quot; to length
+           ɾ               # Each of 1...n
+               øm↵         # Mirror
+                  ∩Ṙ       # Transpose and reverse
+                     føm↵  # Flatten and mirror again
+                         § # Transpose again
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>CJam, <s>59</s> <s>58</s> 57 bytes</h1>
+
+<pre><code>YXbri({{_2$+\}*]}*:,_:|,S*0'\tf{fm&gt;_W%'\f/'/f*}:+zN*_W%N@
+</code></pre>
+
+<p><em>Thanks to @MartinBüttner for golfing off 1 byte.</em></p>
+
+<p>Try it online in the <a href="http://cjam.aditsu.net/#code=YXbri(%7B%7B_2%24%2B%5C%7D*%5D%7D*%3A%2C_%3A%7C%2CS*0&#39;%5Ctffm%3E%7B_W%25&#39;%5Cf%2F&#39;%2Ff*%7D%25%3A%2BzN*_W%25N%40&amp;input=4" rel="nofollow">CJam interpreter</a>.</p>
+
+<h3>Idea</h3>
+
+<p>For input <strong>3</strong>, for example, we generate</p>
+
+<pre><code>\  
+/  
+\  
+ \ 
+  \
+  /
+ / 
+/  
+\  
+ \ 
+ / 
+/  
+\  
+ \ 
+  \
+  /
+ / 
+/  
+\  
+/  
+</code></pre>
+
+<p>by rotating the string <code>  \</code> and replacing some backslashes with slashes.</p>
+
+<p>Then, we zip the resulting array (transpose rows and columns) to obtain the lower half of the desired output.</p>
+
+<p>The upper half is byte per byte equal to the lower half in reverse.</p>
+
+<h3>Code</h3>
+
+<pre><code>YXb     e# Push A := [1 1] and 2 in unary.
+ri(     e# Read an integer fro STDIN and subtract 1.
+{       e# Do the following that many times:
+  {     e#   For each I in A but the first:
+    _2$ e#     Push a copy of I and the preceding array element.
+    +\  e#     Compute the sum of the copies and swap it with I.
+  }*    e#
+  ]     e#   Collect the entire stack in an array.
+}*      e#
+:,      e# Replace each I in A with [0 ... I-1].
+_       e# Push a copy of A.
+:|      e# Perform set union of all the ranges.
+,S*     e# Get the length (highest I in A) and push a string of that many spaces.
+0'\t    e# Replace the first space with a backslash.
+f{      e# For each range in A, push the generated string; then:
+  fm&gt;   e#   Rotate the string by each amount in the array.
+  _W%   e#   Push a reversed copy of the resulting array of strings.
+  '\f/  e#   In each string, split at backslashes.
+  '/f*  e#   Join each string, separating with slashes.
+}       e#
+:+      e# Concatenate the resulting arrays of strings.
+zN*     e# Zip and join, separating by linefeeds.
+_W%     e# Push a reversed copy of the string.
+N@      e# Push a linefeed and rotate the original string on top of it.
+</code></pre>
+</div>
+<div id="pu2" class="pu"><h1>Rev 1: Ruby 170</h1>
+
+<p>New method avoiding creating the big diamond and reducing.</p>
+
+<pre><code>-&gt;n{a=[1]
+m=1&lt;&lt;n-1
+(m-1).times{|i|a&lt;&lt;a[i]&lt;&lt;a[i]+a[i+1]}
+(-b=a.max).upto(b-1){|j|0.upto(m){|i|d=' '*q=a[-i]*2
+(j*2+1).abs&lt;q&amp;&amp;(d[j%q]=?\\;d[-1-j%q]=?/)   
+print d}
+puts""}}
+</code></pre>
+
+<h1>Rev 0: Ruby, 187</h1>
+
+<pre><code>-&gt;n{a=[1]
+m=1&lt;&lt;n-1
+(m-1).times{|i|a&lt;&lt;a[i]&lt;&lt;a[i]+a[i+1]}
+(2*b=a.max).times{|j|
+0.upto(m){|i|d=' '*b*2;d[(b+j)%(b*2)]='\\';d[(b-1-j)%(b*2)]=?/
+r=b-a[-i]
+d.slice!(b-r,r*2)
+print d}
+puts ""}}
+</code></pre>
+
+<p>The sizes of the diamonds are calculated in accordance with the recurrence relation from <a href="https://oeis.org/A002487" rel="nofollow">https://oeis.org/A002487</a> Thus we make the array <code>a</code> containing all the elements for all the rows from 1 to <code>n</code>. We are only interested in the last  <code>1&lt;&lt;n-1</code> elements (Ruby allows us to get them from the array using negative indexes, -1 being the last element in the array), plus an inital <code>1</code> from position 0.</p>
+
+<p>Line by line and diamond by diamond, we draw the row of characters for the biggest diamond, then cut out the middle columns to get the row for the required diamond. Rev 1 is shorter, but I liked this method.</p>
+
+<p>Modular arithmetic is used to wrap around so that the same expression adds all <code>/</code> directly and likewise one expression adds all <code>\</code> directly.</p>
+
+<p><strong>Ungolfed in test program</strong></p>
+
+<pre><code>f=-&gt;n{
+  a=[1]
+  m=1&lt;&lt;n-1
+  (m-1).times{|i|a&lt;&lt;a[i]&lt;&lt;a[i]+a[i+1]}                   #concatenate a[i] and a[i]+a[i+1] to the end of a
+    (2*b=a.max).times{|j|                                #run through lines (twice the largest number in a
+      0.upto(m){|i|                                      #run through an initial '1' plus the last m numbers in a
+      d=' '*b*2;d[(b+j)%(b*2)]='\\';d[(b-1-j)%(b*2)]=?/  #d is the correct string for this line of the largest diamond
+      r=b-a[-i]                                          #calculate number of characters to be deleted from middle of d
+      d.slice!(b-r,r*2)                                  #and delete them
+      print d                                            #print the result
+    }
+    puts ""                                              #at the end of the line, print a newline
+  }
+}
+
+f.call(gets.to_i)
+</code></pre>
+</div>
+<div id="pu3" class="pu"><h1>Common Lisp, 425</h1>
+
+<pre class="lang-lisp prettyprint-override"><code>(labels((a(n)(if(&gt; n 1)(loop for(x y)on(a(1- n))by #'cdr collect x when y collect(+ x y))'(1 1))))(lambda(~ &amp;aux(l(a ~))(h(apply'max l))(w(*(apply'+ l)2))(o(* 2 h))(m(make-array(list o w):initial-element #\ ))(x 0)(y h))(labels((k(^ v)(setf(aref m y x)^(aref m(- o y 1)x)v)(incf x))(d(i)(when(plusp i)(k #\\ #\/)(incf y)(d(1- i))(decf y)(k #\/ #\\))))(mapc #'d l))(dotimes(j o)(fresh-line)(dotimes(i w)(princ(aref m j i))))))
+</code></pre>
+
+<h2>Example</h2>
+
+<pre><code>(funcall *fun* 4)
+
+                    /\            /\                    
+     /\            /  \          /  \            /\     
+    /  \    /\    /    \        /    \    /\    /  \    
+   /    \  /  \  /      \  /\  /      \  /  \  /    \   
+/\/      \/    \/        \/  \/        \/    \/      \/\
+\/\      /\    /\        /\  /\        /\    /\      /\/
+   \    /  \  /  \      /  \/  \      /  \  /  \    /   
+    \  /    \/    \    /        \    /    \/    \  /    
+     \/            \  /          \  /            \/     
+                    \/            \/                    
+</code></pre>
+
+<h2>Ungolfed</h2>
+
+<pre class="lang-lisp prettyprint-override"><code>(labels
+    ((sequence (n)
+       (if (&gt; n 1)
+           (loop for(x y) on (sequence (1- n)) by #'cdr
+                 collect x
+                 when y
+                   collect(+ x y))
+           '(1 1))))
+  (defun argyle (input &amp;aux
+                  (list (sequence input))
+                  (half-height (apply'max list))
+                  (width (* (apply '+ list) 2))
+                  (height (* 2 half-height))
+                  (board (make-array
+                          (list height width)
+                          :initial-element #\ ))
+                  (x 0)
+                  (y half-height))
+    (labels ((engrave (^ v)
+               (setf (aref board y              x) ^ ;; draw UP character
+                     (aref board (- height y 1) x) v ;; draw DOWN character (mirrored)
+                     )
+               (incf x) ;; advance x
+               )
+             (draw (i)
+               (when (plusp i)
+                 (engrave #\\ #\/)  ;; write opening "&lt;" shape of diamond
+                 (incf y)
+                 (draw (1- i))   ;; recursive draw
+                 (decf y)
+                 (engrave #\/ #\\)  ;; write closing "&gt;" shape of diamond
+                 )))
+      ;; draw into board for each entry in the sequence
+      (mapc #'draw list))
+
+    ;; ACTUAL drawing
+    (dotimes(j height)
+      (fresh-line)
+      (dotimes(i width)
+        (princ (aref board j i))))
+    board))
+</code></pre>
+</div>
+<div id="pu4" class="pu"><h1>Pyth, <s>50</s> 49 bytes</h1>
+
+<pre><code>L.rR"\/"_bjbyK.tsm+Jm+*\ k\\dyJu.iGsM.:G2tQjT9djK
+</code></pre>
+
+<p><a href="https://pyth.herokuapp.com/?code=L.rR%22%5C%2F%22_bjbyK.tsm%2BJm%2B%2a%5C+k%5C%5CdyJu.iGsM.%3AG2tQjT9djK&amp;input=3&amp;debug=0">Demonstration</a></p>
+
+<p>Explanation:</p>
+
+<pre><code>L.rR"\/"_bjbyK.tsm+Jm+*\ k\\dyJu.iGsM.:G2tQjT9djK
+                                                     Implicit:
+                                                     Q = eval(input())
+                                                     T = 10
+                                                     d = ' '
+                                                     b = '\n'
+L                                                    def y(b): return
+ .rR"\/"                                             Swap \ and / in
+        _b                                           reversed input.
+                                                     This effectively vertically
+                                                     mirrors the input.
+                               u                     Apply the function repeatedly
+                                           jT9       Starting with [1, 1]
+                                         tQ          and repeating Q - 1 times
+                                .iG                  interlace G (input) with
+                                     .:G2            All 2 element substrings of G
+                                   sM                mapped to their sums.
+                 m                                   map over these values
+                                                     implicitly cast to ranges
+                    m       d                        map over the range values
+                                                     impicitly cast to ranges
+                     +*\ k\\                         to k spaces followed by
+                                                     a backslash.
+                   J                                 Save to J, which is roughly:
+                                                     \
+                                                      \
+                  +          yJ                      And add on y(J), giving
+                                                     \
+                                                      \
+                                                      /
+                                                     /
+                s                                    Combine the half diamonds
+                                                     into one list.
+              .t                              d      Traspose, filling with ' '.
+             K                                       Save to K, giving
+                                                     something like:
+                                                     \  /
+                                                      \/
+            y                                        Vertically mirror.
+          jb                                         Join on newlines and print.
+                                               jK    Join K on (implicitly)
+                                                     newlines and print.
+</code></pre>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/56032/">56032</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
