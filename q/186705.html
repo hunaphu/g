@@ -26,6 +26,85 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
+<tr d-ix="0"><td>402</td><td>Python3</td><td>240214T032556Z</td><td><a href="https://codegolf.stackexchange.com/questions/186705/who-can-escape-the-nonary-game/270063#270063">Ajax1234</a></td></tr>
+<tr d-ix="1"><td>076</td><td>Jelly</td><td>190612T232433Z</td><td><a href="https://codegolf.stackexchange.com/questions/186705/who-can-escape-the-nonary-game/186788#186788">Nick Ken</a></td></tr>
+<tr d-ix="2"><td>219</td><td>JavaScript ES6</td><td>190611T163605Z</td><td><a href="https://codegolf.stackexchange.com/questions/186705/who-can-escape-the-nonary-game/186714#186714">Arnauld</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>Python3, 402 bytes</h1>
+<p>Little long, but very fast:</p>
+<pre class="lang-py prettyprint-override"><code>from itertools import*
+R=range
+O=sorted
+def f(r):
+ q=[({0:{*R(1,10)}},r,0)]
+ l,S=[],[]
+ for D,r,C in q:
+  l+=[len(D.get(-1,[]))]
+  for i in D:
+   for t in R(3,6):
+    for j in combinations(D[i],t):
+     for a,b in enumerate(r):
+      if b[0]%9==sum(j)%9 and b[1]==i:
+       if(str(U:={**D,i:O({*D[i]}-{*j}),b[2]:O({*D.get(b[2],[]),*j})}))not in S:q+=[(U,r[:a]+r[a+1:],C)];S+=[str(U)]
+ return max(l+[0])
+</code></pre>
+<p><a href="https://tio.run/##lZLNbqswEIX3PIU3lWwyqXDSn0DlVdlXStSV5QW5Mb2OwCTGke4V4tlT22kFVaiqsvHM4ZszM4bDf/u30cvVwZzPpWlqpKw0tmmqFqn60BgbR2tmCv0moxfWulzuop0sUYkNySJ0ZBx3SdbFa0yBJqTvwUBCRIQq2DAugLuwbAzKnf6MlEZHV4WqGeOV1Di/fZMWz6nDiC8KqPJY7rGQWp@u8RIeSNCCuPfin6beKl1Y1egW51wJsB9IYArYekrqUy1NYeVl4vCoEm15Im5SxtpTjffkJkWF3jmRCsbUJ@Y43FqDXzPWxXEOKnvBXew79fMu3vcEtnwhLmLYxKd@F/Ave0J0E6bfZEe3MH4Fw7NCzAwvZjQT8EzE08a9CC38@kbak9GoLv7haubmI@eDUdriEnP@ACgBRAUgvhzCO3cCWvjwfghTdwKa0y@xu@FosFsNHmkovCLSQFzJi6GQTnT8Fl7@CNOJkS5dkt90@QxH93E3YfG93dfrHdlNTff4m7UWk85ju9WPdqP/4HHaY/w9z@8" rel="nofollow noreferrer">Try it online!</a></p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 76 bytes</h1>
+
+<pre><code>2ịịœc3r5¤ẎS,%9EʋƇ1ị${ḟ@;ƭⱮ€Ḋị¥ż€Ḋ{ṛṪ}¦ƒ€
+ç@€Ẏ;ḷṢ€€Q
+“”WẋḊ€FṀƊ9RW¤;Wçƒ@⁸ẈṪ$€Ṁ
+</code></pre>
+
+<p><a href="https://tio.run/##y0rNyan8/9/o4e5uIDo6Odm4yPTQkoe7@oJ1VC1dT3UfazcEiqtUP9wx38H62NpHG9c9alrzcEcXUPDQ0qN7IJzqhztnP9y5qvbQsmOTgCJch5c7gCR29Vk/3LH94c5FQA4QBXI9apjzqGFu@MNd3UBNQBG3hzsbjnVZBoUfWmIdfnj5sUkOjxp3PNzVATRLBWTAzob/Ryc93DnDGqhRQddOAajZ@nA71@F2oGTk///RXNHRZjoKhjoKRrE6CtHGCKYJkNZRMAYxTRFMSyCto2CAzIzVAZphgdBoCVYNFbcEi0M5RghFhphGoisxxqHEENMqiIGGhA2EMZF8ZIKpEd0M1FBBMgOLO8wJu9oIq3FIZljgMAMposyxaoQHPVcsAA" rel="nofollow noreferrer">Try it online!</a></p>
+
+<p>A full program taking a single argument, a directed graph using rooms 1, 2, ... and 0 as exit. Returns an integer which is the maximum number that can escape. Full explanation to follow. </p>
+
+<p>Should run without the <code>Ṣ€€Q</code> for a 4-byte saving but slow to rest.</p>
+</div>
+<div id="pu2" class="pu"><h1>JavaScript (ES6), 219 bytes</h1>
+<p>A slower but significantly shorter version using bitmasks instead of strings.</p>
+
+<pre class="lang-javascript prettyprint-override"><code>f=(D,P=[511],e=m=0)=&gt;P.map((X,r)=&gt;[...Array(-~X)].map((_,p)=&gt;D.map(([d,s,t],j)=&gt;(N=(g=(n,k)=&gt;n&amp;&amp;n%2+g(n&gt;&gt;1,++k,x+=n%2*k))(p&amp;=X,x=0))&lt;3|N&gt;5|r-s|x%9^d%9||f(D.filter(_=&gt;j--),A=[...P],e+!~t*N,A[r]^=p,A[t]^=p))),m=m&gt;e?m:e)|m
+</code></pre>
+<p><a href="https://tio.run/##pZFba8JAEIXf@yu2D8qsmcRcmtqUTorgs/goLFGCJuIlFzahWAj@9XQ1gtDYVum@HGYGvnNmdhN@hMVCrvNST7NlVNcxwQgnJFzLCjCihExO/sRIwhxgilIVwjCMoZThJ@iHKQ@a0RxzNRo1hVhigWWAG9WCMcGKIMWtKtJuN@3Y2gpS37dQ07a410h1elvOIe/SFPfKj7851dh3K6kX1b7jzZYdr6piGBnxeldGEubkb3Sd45COUSYqpvZ4KHtjHAoZzChXWh6Vc44JJX70nrxGvErqRZYW2S4ydtkKYhDiBZmJTO3JhKcUmW4FAbvncc76ffb08J3snch341pkt0W2L5mtU2b7HN@@1a8hm7@Rnf@QnRbZunLnJr95o8tPd36@kAfXTf762IY8qL8A" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<p>NB: The reason why it's slower is that we do not compute the powersets of the players. Given a bitmask of players <span class="math-container">\$X\$</span>, we iterate on all <span class="math-container">\$(X \operatorname{AND} p)\$</span> for <span class="math-container">\$0\le p\le X\$</span> without deduplicating.</p>
+<hr />
+<h1>JavaScript (ES7), <s> 293 272 </s> 271 bytes</h1>
+<p>Takes input in the format described in the challenge. This is a brute force search.</p>
+
+<pre class="lang-javascript prettyprint-override"><code>f=(D,P=[17**6+'8'],e=m=0)=&gt;P.map((X,r)=&gt;X&amp;&amp;[...X].reduce((a,x)=&gt;[...a,...a.map(y=&gt;y+x)],['']).map(p=&gt;D.map(([d,s,t],j)=&gt;p&lt;99|p[5]|r-s|eval([...p].join`+`)%9^d%9||f(D.filter(_=&gt;j--),A=[...P],e+!~t*p.length,A[r]=X.replace(eval(`/[${p}]/g`),''),A[t]=[A[t]]+p))),m=m&gt;e?m:e)|m
+</code></pre>
+<p><a href="https://tio.run/##pdLdboIwFAfw@z0FS6a0cqjiF7KsLCY@gJcmTTeJFqcBaZAZzdhe3fHhog50mnFR4KT9nT8nLJy1s5qEcxnpy2AqdjuXogEMKTPMWq2rqT2Vg6A@bWBqD4nvSIRGECYvo2qVEUJGnIRi@j4RCDmwSepp0YF0yXZvqb3VNpgDU1WOs5Kk9iCX2BRWEHFYJOfkk2XFknV4HOqrWKwdD6WU5GQRzJdjbYwr1su0YsWxiwbEnXuRCNErtRe6jqFP073DJKp2/xXVJPHEcha9QZ@FnI6ShNJzkoiZOq6zhw/5yeuzMQZVTQ6ziFOWrlyTGGPwqW@LZ/9R4NjfTYLlKvAE8YIZchFjPVAaoBgcFGYld1B0g3PllgtjpV5X2ne/ZSuTb@YKcqcgNw@ZjSxzcx@/eW2/XG5cklv/kVsF2SiZc56/cWWXc3M@zfzz2DnEb5f0OOmXy72CfMS1T@SyLzHL5pXL5qVpNEubHMu983K3IHcPhlnO/fWb7zPvvgE" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a> (the first test case times out on TIO)</p>
+<h3>How?</h3>
+<p>The array <code>P[]</code> holds a list of strings describing the players in each room.</p>
+<p>We start with <code>P=['241375698']</code> (using <span class="math-container">\$17^6=24137569\$</span>), which means that all players are initially located in room <span class="math-container">\$0\$</span>.</p>
+<p>For each room <code>X</code> at position <code>r</code>, we compute the powerset of <code>X</code>:</p>
+<pre class="lang-javascript prettyprint-override"><code>[...X].reduce((a, x) =&gt; [...a, ...a.map(y =&gt; y + x)], [''])
+</code></pre>
+<p>For each group of players <code>p</code> in there and for each door <code>[d,s,t]</code> at index <code>j</code>, we test if the group is unable to pass through the door:</p>
+<pre class="lang-javascript prettyprint-override"><code>                         // we can't pass if:
+p &lt; 99 |                 // there are less than 3 players
+p[5] |                   // or there are more than 5 players
+r - s |                  // or the source room s is not equal to the current room
+eval([...p].join`+`) % 9 // or the sum of the players modulo 9
+^ d % 9                  // does not match the ID of the door modulo 9
+</code></pre>
+<p>If the group can pass, we do a recursive call:</p>
+<pre class="lang-javascript prettyprint-override"><code>f(                       //
+  D.filter(_ =&gt; j--),    // remove the door that has just been used from D[]
+  A = [...P],            // use a copy A[] of P[]
+  e + !~t * p.length,    // if t = -1, add the length of p to e (number of escaped guys)
+  A[r] = X.replace(      // remove the players from the source room A[r]
+    eval(`/[${p}]/g`),   //
+    ''                   //
+  ),                     //
+  A[t] = [A[t]] + p      // and append them to the target room A[t]
+)                        //
+</code></pre>
+<p>We keep track of the maximum number of escaped players in <code>m</code> and eventually return it.</p>
+</div>
 
 <table id="st">
 <!-- Popups content will be added here -->
