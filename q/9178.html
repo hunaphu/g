@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::9178</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>275</td><td>Score</td><td>131116T073601Z</td><td><a href="https://codegolf.stackexchange.com/questions/9178/bitwise-operators-in-brainfuck/15291#15291">Daniel C</a></td></tr>
+<tr d-ix="1"><td>nan</td><td></td><td>121212T124724Z</td><td><a href="https://codegolf.stackexchange.com/questions/9178/bitwise-operators-in-brainfuck/9190#9190">o_o</a></td></tr>
+<tr d-ix="2"><td>686</td><td>Score</td><td>121211T171720Z</td><td><a href="https://codegolf.stackexchange.com/questions/9178/bitwise-operators-in-brainfuck/9184#9184">copy</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h2>Score: 275</h2>
+<p>It works better to expand these with a binary counter. The less intuitive parts deal with the possibility that A or B is 0. I didn't find a profitable way to use nondestructive flow control in the actual bit manipulation of the first three. Incidentally these should all work fine with 16-bit cells and slowly with 32-bit.</p>
+<p><strong>XOR, 86</strong></p>
+<p>Assumes A and B are in cells 1 and 2, stores A XOR B in cell 2, pointer starts in cell 0 and ends in cell 5.</p>
+<pre><code>-[[&gt;&gt;&gt;&gt;&gt;&gt;[&gt;&gt;&gt;]++[-&lt;&lt;&lt;]&lt;&lt;&lt;-]&gt;]&gt;&gt;&gt;[&lt;]&gt;[[&gt;[&gt;-&lt;-]&gt;[&lt;&lt;&lt;&lt;&lt;&lt;+&gt;&gt;&gt;&gt;&gt;&gt;[-]]&gt;]+[&lt;[&lt;&lt;&lt;++&gt;&gt;&gt;-]&lt;&lt;]&gt;&gt;]
+</code></pre>
+<p><strong>AND, 78</strong></p>
+<p>Assumes A and B are in cells 1 and 2, stores A AND B in cell 4, pointer starts in cell 0 and ends in cell 5.</p>
+<pre><code>-[[&gt;&gt;&gt;&gt;&gt;&gt;[&gt;&gt;&gt;]++[-&lt;&lt;&lt;]&lt;&lt;&lt;-]&gt;]&gt;&gt;&gt;[&lt;]&gt;[[&gt;[&gt;[&lt;&lt;&lt;&lt;+&gt;&gt;&gt;&gt;-]&lt;-]&gt;+&gt;]&lt;[&lt;[&lt;&lt;&lt;++&gt;&gt;&gt;-]&lt;&lt;]]
+</code></pre>
+<p><strong>OR, 86</strong></p>
+<p>Assumes A and B are in cells 1 and 2, stores A OR B in cell 2, pointer starts in cell 0 and ends in cell 5.</p>
+<pre><code>-[[&gt;&gt;&gt;&gt;&gt;&gt;[&gt;&gt;&gt;]++[-&lt;&lt;&lt;]&lt;&lt;&lt;-]&gt;]&gt;&gt;&gt;[&lt;]&gt;[[&gt;[&gt;+&lt;-]&gt;[&lt;&lt;&lt;&lt;&lt;&lt;+&gt;&gt;&gt;&gt;&gt;&gt;[-]]&gt;]+[&lt;[&lt;&lt;&lt;++&gt;&gt;&gt;-]&lt;&lt;]&gt;&gt;]
+</code></pre>
+<p><strong>ROL, 18</strong></p>
+<p>Assumes A is in cell 0, stores A ROL 1 in cell 1, pointer starts and ends in cell 0.</p>
+<pre><code>[&gt;++[&gt;&gt;]&lt;[&gt;+&gt;]&lt;&lt;-]
+</code></pre>
+<p><strong>NOT, 7</strong></p>
+<p>Assumes A is in cell 0, stores NOT A in cell 1, pointer starts and ends in cell 0.</p>
+<pre><code>+[&gt;-&lt;-]
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h2>Score (current): <strike>12038</strike> 837/-</h2>
+
+<p>The programs assume numbers are loaded in whatever cell is specified, by <code>,</code> or similar. It also assumes that all cells are 8-bit unsigned with wrapping as needed. At the start of each snippet, numbers are loaded at cell 0 (and 1 if needed).</p>
+
+<h3>Bit operations - 799</h3>
+
+<p>The bit operations follow the same general structure.</p>
+
+<pre><code>Firstly, we define a divmod 2 (DM2) function.
+CELLS:   A  B   C  D
+INPUT:  *A  0   0  0
+OUTPUT: *0 A/2 A%2 0
+dp@A; while{
+  dec A,2; inc B,1; dp@A; inc A,1
+  while{ #Check if A was 1 at the start
+    dec D,1; pour A,C; dp@A;
+  }
+  dec C,1; pour C,A; inc D,1; dp@D
+  #If A was 1 at the start, D will be 1 here
+  while{ 
+    dec D,1; inc C,1; dec B,1; dp@D
+  }
+  dp@A
+}
+Translated into BF, we have
+    [-&gt;+&lt;[&gt;&gt;&gt;-&lt;&lt;&lt;[-&gt;&gt;+&lt;&lt;]]&gt;&gt;-[&lt;&lt;+&gt;&gt;-]&gt;+[-&lt;+&lt;-&gt;&gt;]&lt;&lt;&lt;]
+I'm not that good at BF, so my algorithm may not be the smallest.
+
+Next, we define the program.
+In this, we assume that the numbers are loaded in $2 (cell 2) and $3.
+
+inc $1,8; dp@1 {
+  dec  $1
+  pour $3,$6
+  DM2  $2        # result in $3,$4
+  DM2  $6        # result in $7,$8
+  pour $7, $2
+  pour $8,$5
+  bop  $4,$5     # result in $6
+  pour $1,$5
+  pour $5,$4,$1
+  down $4,$5     # decrease $4 till 0, decrease $5 by same amount
+  inc  $5,#7
+  shl  $6,$5
+  pour $6,$0     # $0 is result
+  dp@  1
+}
+#Now, the result is in $0
+
+Translated to BF (with linebreaks for readability):
+  &gt;++++++++[
+    -&gt;&gt;[-&gt;&gt;&gt;+&lt;&lt;&lt;]&lt;
+    [-&gt;+&lt;[&gt;&gt;&gt;-&lt;&lt;&lt;[-&gt;&gt;+&lt;&lt;]]&gt;&gt;-[&lt;&lt;+&gt;&gt;-]&gt;+[-&lt;+&lt;-&gt;&gt;]&lt;&lt;&lt;]&gt;&gt;&gt;&gt;  #DM2 $2
+    [-&gt;+&lt;[&gt;&gt;&gt;-&lt;&lt;&lt;[-&gt;&gt;+&lt;&lt;]]&gt;&gt;-[&lt;&lt;+&gt;&gt;-]&gt;+[-&lt;+&lt;-&gt;&gt;]&lt;&lt;&lt;]&gt;     #DM2 $6
+    [-&lt;&lt;&lt;&lt;&lt;+&gt;&gt;&gt;&gt;&gt;]&gt;
+    [-&lt;&lt;&lt;+&gt;&gt;&gt;]&lt;&lt;&lt;&lt;
+    (bop)&lt;&lt;&lt;
+    [-&gt;&gt;&gt;&gt;+&lt;&lt;&lt;&lt;]&gt;&gt;&gt;&gt;
+    [&lt;+&lt;&lt;&lt;+&gt;&gt;&gt;&gt;-]&lt;
+    [-&gt;-&lt;]&gt;
+    +++++++
+    [-&gt;[-&lt;&lt;++&gt;&gt;]&lt;&lt;[-&gt;&gt;+&lt;&lt;]&gt;]
+    [-&lt;&lt;&lt;&lt;&lt;&lt;+&gt;&gt;&gt;&gt;&gt;&gt;]
+    &lt;&lt;&lt;&lt;&lt;
+  ]
+
+Replace (bop) by the appropriate expression.
+
+XOR works like this: (252-5+15=262)
+  [-&gt;-&lt;]&gt;[[-]&gt;+&lt;]
+AND works like this: (252-5+11=258)
+  [&gt;[&gt;+&lt;-]&lt;-]
+OR  works like this: (252-5+32=279)
+  [-&gt;&gt;&gt;+&lt;&lt;&lt;]&gt;[-&gt;&gt;+&lt;&lt;]&gt;&gt;[[-]&lt;+&gt;]&lt;&lt;&lt;
+
+So, combining these, we have a total of 262+258+279=799 D:
+</code></pre>
+
+<h3>Rotate Left A, 1 - 31/-</h3>
+
+<p>The number <code>A</code> is loaded in cell 0.</p>
+
+<pre><code>Pseudocode
+    $0 := A
+    $1 := $0 &lt;&lt; 1    # this has the effect of discarding the top bit of A
+    $2 := $0
+    $3 := $0 &lt;&lt; 1
+    $2 -= $1 &gt;&gt; 1    # $2 now contains the top bit of A
+    if $2 then $3++  # $3 now contains A rotated left 1
+    res:= $3         # the result is in cell 3 now
+
+Real code
+    [-&gt;++&gt;+&gt;++&lt;&lt;&lt;]&gt;[--&gt;-&lt;]&gt;[&gt;+&lt;[-]]
+If you don't always need the pointer in the same position,
+substitute [&gt;+&gt;] for the last loop (3 less chars).
+However, the pointer will then sometimes end up in position 2, sometimes in position 4.
+</code></pre>
+
+<h3>NOT A - 7</h3>
+
+<p>The number <code>A</code> is loaded in cell 0.</p>
+
+<pre><code>Pseudocode
+    $0  := A
+    $0  += 1
+    $1  := 256-$0   #since ~A=255-A
+    res := $1
+
++[-&gt;-&lt;]
+</code></pre>
+</div>
+<div id="pu2" class="pu"><h2>Score: 686</h2>
+
+<p>All snippets assume that the numbers are already loaded in cell 0 and 1 and that the pointer points to cell 0.
+I can add an atoi snippet later if that's required for the challenge. For now, you can try the code like this:</p>
+
+<pre><code>+++++++++&gt;    number 1
+++++&lt;         number 2
+</code></pre>
+
+<p><br></p>
+
+<p><strong>XOR, 221</strong></p>
+
+<p>Result is written to cell 10, pointer ends at cell 5</p>
+
+<pre><code>&gt;&gt;&gt;&gt;&gt;++++++++[-&lt;&lt;&lt;&lt;&lt;[-&gt;&gt;+&lt;&lt;[-&gt;&gt;-&gt;+&lt;]&gt;&gt;[-&gt;&gt;&gt;&gt;+&lt;&lt;]&lt;&lt;&lt;&lt;]&gt;&gt;&gt;[-&lt;&lt;&lt;+&gt;&gt;&gt;]&lt;&lt;[-&gt;+&lt;[-&gt;-&gt;+&gt;
+&gt;&gt;&gt;&gt;]&gt;[-&gt;&gt;&gt;&gt;&gt;+&gt;&gt;]&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;]&gt;&gt;[-&lt;&lt;+&gt;&gt;]&gt;&gt;&gt;[-&gt;&gt;+&lt;&lt;]&gt;[&gt;[-&lt;-&gt;]&lt;[-&gt;+&lt;]]&gt;[[-]&lt;&lt;&lt;[-&gt;+&gt;-&lt;&lt;
+]&gt;[-&lt;+&gt;]+&gt;+++++++[-&lt;[-&gt;&gt;++&lt;&lt;]&gt;&gt;[-&lt;&lt;+&gt;&gt;]&lt;]&lt;[-&gt;&gt;&gt;&gt;+&lt;&lt;&lt;&lt;]&gt;&gt;]&lt;&lt;&lt;]
+</code></pre>
+
+<p><strong>AND, 209</strong></p>
+
+<p>Result is written to cell 10, pointer ends at cell 5</p>
+
+<pre><code>&gt;&gt;&gt;&gt;&gt;++++++++[-&lt;&lt;&lt;&lt;&lt;[-&gt;&gt;+&lt;&lt;[-&gt;&gt;-&gt;+&lt;]&gt;&gt;[-&gt;&gt;&gt;&gt;+&lt;&lt;]&lt;&lt;&lt;&lt;]&gt;&gt;&gt;[-&lt;&lt;&lt;+&gt;&gt;&gt;]&lt;&lt;[-&gt;+&lt;[-&gt;-&gt;+&gt;
+&gt;&gt;&gt;&gt;]&gt;[-&gt;&gt;&gt;&gt;&gt;+&gt;&gt;]&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;]&gt;&gt;[-&lt;&lt;+&gt;&gt;]&gt;&gt;&gt;[-&gt;[-&gt;+&lt;]&lt;]&gt;[-]&gt;[-&lt;&lt;&lt;[-&gt;+&gt;-&lt;&lt;]&gt;[-&lt;+&gt;]+&gt;++
++++++[-&lt;[-&gt;&gt;++&lt;&lt;]&gt;&gt;[-&lt;&lt;+&gt;&gt;]&lt;]&lt;[-&gt;&gt;&gt;&gt;+&lt;&lt;&lt;&lt;]&gt;&gt;]&lt;&lt;&lt;]
+</code></pre>
+
+<p><strong>OR, 211</strong></p>
+
+<p>Result is written to cell 10, pointer ends at cell 5</p>
+
+<pre><code>&gt;&gt;&gt;&gt;&gt;++++++++[-&lt;&lt;&lt;&lt;&lt;[-&gt;&gt;+&lt;&lt;[-&gt;&gt;-&gt;+&lt;]&gt;&gt;[-&gt;&gt;&gt;&gt;+&lt;&lt;]&lt;&lt;&lt;&lt;]&gt;&gt;&gt;[-&lt;&lt;&lt;+&gt;&gt;&gt;]&lt;&lt;[-&gt;+&lt;[-&gt;-&gt;+&gt;
+&gt;&gt;&gt;&gt;]&gt;[-&gt;&gt;&gt;&gt;&gt;+&gt;&gt;]&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;]&gt;&gt;[-&lt;&lt;+&gt;&gt;]&gt;&gt;&gt;[-&gt;&gt;+&lt;&lt;]&gt;[-&gt;+&lt;]&gt;[[-]&lt;&lt;&lt;[-&gt;+&gt;-&lt;&lt;]&gt;[-&lt;+&gt;]+&gt;
++++++++[-&lt;[-&gt;&gt;++&lt;&lt;]&gt;&gt;[-&lt;&lt;+&gt;&gt;]&lt;]&lt;[-&gt;&gt;&gt;&gt;+&lt;&lt;&lt;&lt;]&gt;&gt;]&lt;&lt;&lt;]
+</code></pre>
+
+<p><strong>Rotate Left, 38</strong></p>
+
+<p>Result is written to cell 1, pointer ends at cell 4</p>
+
+<pre><code>[-&gt;++&gt;+&lt;[&gt;-]&gt;[-&gt;&gt;+&lt;]&lt;&lt;&lt;]&gt;&gt;&gt;&gt;[-&lt;&lt;&lt;+&gt;&gt;&gt;]
+</code></pre>
+
+<p><strong>NOT, 7</strong></p>
+
+<p>Result is written to cell 1, pointer ends at cell 0</p>
+
+<pre><code>+[+&gt;+&lt;]
+</code></pre>
+
+<p><br></p>
+
+<h2>Explanation:</h2>
+
+<p>XOR, AND and OR all work in a similiar fashion: Calculate n/2 for each number
+and remember n mod 2. Calculate the logical XOR/AND/OR for the single bits. If
+the resulting bit is set, add 2^n to the result. Repeat that 8 times.</p>
+
+<p>This is the memory layout I used: </p>
+
+<pre><code> 0      1        2        3      4        5         6        7
+n1  |  n2  |  marker  |  n/2  |  0  |  counter  |  bit1  |  bit2  |
+
+  8        9        10
+temp  |  temp  |  result
+</code></pre>
+
+<p>Here's the source for XOR (numbers indicate where the pointer is at that time):</p>
+
+<pre><code>&gt;&gt;&gt;&gt;&gt;
+++++ ++++ counter
+[
+    -
+    &lt;&lt;&lt;&lt;&lt;
+
+    divide n1 by two
+    [ 0 
+        -
+        &gt;&gt;+ set marker 2
+        &lt;&lt; 0
+        [-&gt;&gt;-&gt;+&lt;] dec marker inc n/2
+        &gt;&gt; 2 or 4
+        [-&gt;&gt;&gt;&gt;+&lt;&lt;] 
+        &lt;&lt;&lt;&lt;
+    ]
+    &gt;&gt;&gt;
+    [-&lt;&lt;&lt;+&gt;&gt;&gt;]
+    &lt;&lt;
+
+    divide n2 by two
+    [ 1
+        -
+        &gt;+ set marker 2
+        &lt; 1
+        [-&gt;-&gt;+&gt;&gt;&gt;&gt;&gt;] dec marker inc n/2
+        &gt; 2 or 9
+        [-&gt;&gt;&gt;&gt;&gt;+&gt;&gt;]
+        &lt;&lt;&lt;&lt; &lt;&lt;&lt;&lt; 
+    ]
+    &gt;&gt;[-&lt;&lt;+&gt;&gt;] 3
+
+    &gt;&gt;&gt; 6
+
+    [-&gt;&gt;+&lt;&lt;]&gt;[&gt;[-&lt;-&gt;]&lt;[-&gt;+&lt;]]&gt;  one bit xor 8
+
+    [
+        [-]&lt;&lt;&lt; 5
+        [-&gt;+&gt;-&lt;&lt;] copy counter negative
+        &gt; 6
+        [-&lt;+&gt;]
+        +&gt; 7
+        ++++ +++  cell 6 contains a one and cell 7 how many bits to shift
+        [-&lt;[-&gt;&gt;++&lt;&lt;]&gt;&gt;[-&lt;&lt;+&gt;&gt;]&lt;]  2^n
+        &lt; 6
+        [-&gt;&gt;&gt;&gt;+&lt;&lt;&lt;&lt;]
+        &gt;&gt; 8
+    ]
+
+    &lt;&lt;&lt;
+]
+</code></pre>
+
+<p><br></p>
+
+<p>For left rotate, once again there is a marker in cell 2 to determine if 2n
+is zero, since you can only determine if a cell is non-zero directly. If
+so, a carry bit is written to cell 4 and later added to 2n. This is the memory
+layout:</p>
+
+<pre><code>0      1        2       3       4   
+n  |  2n  |  marker  |  0  |  carry 
+</code></pre>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/9178/">9178</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
