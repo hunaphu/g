@@ -26,7 +26,7 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>nan</td><td>I know there are lots of decimal to unary and back solutions on here</td><td>240409T123151Z</td><td><a href="https://codegolf.stackexchange.com/questions/51323/tips-for-golfing-in-sed/272424#272424">guest430</a></td></tr>
+<tr d-ix="0"><td>nan</td><td></td><td>240409T123151Z</td><td><a href="https://codegolf.stackexchange.com/questions/51323/tips-for-golfing-in-sed/272424#272424">guest430</a></td></tr>
 <tr d-ix="1"><td>nan</td><td>Okay</td><td>210914T140407Z</td><td><a href="https://codegolf.stackexchange.com/questions/51323/tips-for-golfing-in-sed/235308#235308">user4180</a></td></tr>
 <tr d-ix="2"><td>nan</td><td></td><td>231122T185825Z</td><td><a href="https://codegolf.stackexchange.com/questions/51323/tips-for-golfing-in-sed/266986#266986">Philippo</a></td></tr>
 <tr d-ix="3"><td>nan</td><td>i</td><td>210915T104630Z</td><td><a href="https://codegolf.stackexchange.com/questions/51323/tips-for-golfing-in-sed/235336#235336">user4180</a></td></tr>
@@ -52,7 +52,8 @@
 <tr d-ix="23"><td>nan</td><td>The GNU sed documentation describes the s command as "sed's Swiss Army Knife".  But if all you want to do is replace all instances of one character with another</td><td>150605T173901Z</td><td><a href="https://codegolf.stackexchange.com/questions/51323/tips-for-golfing-in-sed/51351#51351">Digital </a></td></tr>
 <tr d-ix="24"><td>nan</td><td>Consider using extended regex syntax in GNU sed.  The r option costs one byte in scoring</td><td>150605T112301Z</td><td><a href="https://codegolf.stackexchange.com/questions/51323/tips-for-golfing-in-sed/51327#51327">Toby Spe</a></td></tr>
 </table>
-<div id="pu0" class="pu"><p>I know there are lots of decimal to unary and back solutions on here, but they are all unreasonably long. here's some that are much shorter:</p>
+<div id="pu0" class="pu"><h1>use the e flag on s for simplifying things</h1>
+<p>I know there are lots of decimal to unary and back solutions on here, but they are all unreasonably long. here's some that are much shorter:</p>
 <h3>decimal to unary:</h3>
 <pre><code>s/.*/echo {0..&amp;}/e
 s/[0-9]//g
@@ -64,6 +65,10 @@ s/.*/wc -L&lt;&lt;&lt;&amp;/e           #works on TIO, default shell must be bas
 s/.*/wc -L&lt;&lt;&lt;'&amp;'/e         #the above if you're using spaces as your unary char
 </code></pre>
 <p>these send all the chars to <code>wc</code> which returns the longest line with <code>-L</code> (the <code>&lt;&lt;&lt;</code> redirect and <code>echo</code> add a newline to the end). the unary must consist of the entire line; swapping less than the full line seems to give unexpected results</p>
+<h3>addition</h3>
+<pre><code>s/([^ ]*) (.*)/echo $((\1+\2))/e
+</code></pre>
+<p><a href="https://tio.run/##K05N0U3PK/3/v1hfIzpOIVZLU0FDT0tTPzU5I19BRUMjxlA7xkgTyP//31jBhMvEQMGIy8jI2MJAwdzSwtjkX35BSWZ@XvF/XVcA" rel="nofollow noreferrer" title="sed – Try It Online">Try it online!</a></p>
 </div>
 <div id="pu1" class="pu"><p>Okay, here's a weird functioning of (GNU) sed's regex. For example, if the pattern space is only <code>qqq</code>, then the extended regex <code>s/^|q|$/&lt;&amp;&gt;/g</code> gives <code>&lt;q&gt;&lt;q&gt;&lt;q&gt;</code>. <a href="https://tio.run/##K05N@f@/WD@uprBGRd9GzU4//f//wsLCf/kFJZn5ecX/dYsA" rel="nofollow noreferrer" title="sed 4.2.2 – Try It Online">Try it online!</a></p>
 <p>I'm not sure, but I think it is because if a character matches, then do the empty strings surrounding it. So because the terminal <code>q</code> matches, the match also includes the end of the pattern space, so <code>$</code> by itself doesn't get matched because otherwise it would overlap with the previous match (and likewise for <code>^</code> and even I think for word boundaries and the like).</p>
