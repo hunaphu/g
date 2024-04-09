@@ -58,16 +58,12 @@
 s/[0-9]//g
 </code></pre>
 <p>this sends <code>echo {0..#}</code> to bash which expands it into a list from 0 to #, with spaces inbetween each number. remove the numbers and you have the right number of spaces. works for any positive integer</p>
-<h3>unary to decimal:</h3>
-<pre><code>s/.*/echo -n &amp;|wc -c/e
+<h3>unary to decimal (choose one of these three):</h3>
+<pre><code>s/.*/echo &amp;|wc -L/e
+s/.*/wc -L&lt;&lt;&lt;&amp;/e           #works on TIO, default shell must be bash not sh
+s/.*/wc -L&lt;&lt;&lt;'&amp;'/e         #the above if you're using spaces as your unary char
 </code></pre>
-<h3>unary to decimal if default shell is <code>bash</code> not <code>sh</code> (works in <a href="https://tio.run/##K05N0U3PK/3/v1hfT0u/PFlBN9fGxkZNP/X//0QgAAA" rel="nofollow noreferrer">TIO</a> but not ubuntu):</h3>
-<pre><code>s/.*/wc -L&lt;&lt;&lt;&amp;/e
-</code></pre>
-<h3>the above if you're using spaces:</h3>
-<pre><code>s/.*/wc -L&lt;&lt;&lt;'&amp;'/e
-</code></pre>
-<p>these send all the chars to <code>wc</code> which returns the number of chars with <code>-c</code> or the longest line with <code>-L</code> (the <code>&lt;&lt;&lt;</code> redirect adds a newline to the end). the unary must consist of the entire line; swapping less than the full line seems to give unexpected results</p>
+<p>these send all the chars to <code>wc</code> which returns the longest line with <code>-L</code> (the <code>&lt;&lt;&lt;</code> redirect and <code>echo</code> add a newline to the end). the unary must consist of the entire line; swapping less than the full line seems to give unexpected results</p>
 </div>
 <div id="pu1" class="pu"><p>Okay, here's a weird functioning of (GNU) sed's regex. For example, if the pattern space is only <code>qqq</code>, then the extended regex <code>s/^|q|$/&lt;&amp;&gt;/g</code> gives <code>&lt;q&gt;&lt;q&gt;&lt;q&gt;</code>. <a href="https://tio.run/##K05N@f@/WD@uprBGRd9GzU4//f//wsLCf/kFJZn5ecX/dYsA" rel="nofollow noreferrer" title="sed 4.2.2 – Try It Online">Try it online!</a></p>
 <p>I'm not sure, but I think it is because if a character matches, then do the empty strings surrounding it. So because the terminal <code>q</code> matches, the match also includes the end of the pattern space, so <code>$</code> by itself doesn't get matched because otherwise it would overlap with the previous match (and likewise for <code>^</code> and even I think for word boundaries and the like).</p>
