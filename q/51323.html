@@ -53,22 +53,24 @@
 <tr d-ix="24"><td>nan</td><td>Consider using extended regex syntax in GNU sed.  The r option costs one byte in scoring</td><td>150605T112301Z</td><td><a href="https://codegolf.stackexchange.com/questions/51323/tips-for-golfing-in-sed/51327#51327">Toby Spe</a></td></tr>
 </table>
 <div id="pu0" class="pu"><h1>use the e flag on s for simplifying things</h1>
+<p>your output may depend on which shell sed is using. I'll only include things that work on TIO at time of writing.</p>
 <p>I know there are lots of decimal to unary and back solutions on here, but they are all unreasonably long. here's some that are much shorter:</p>
 <h3>decimal to unary:</h3>
 <pre><code>s/.*/echo {0..&amp;}/e
 s/[0-9]//g
 </code></pre>
-<p>this sends <code>echo {0..#}</code> to bash which expands it into a list from 0 to #, with spaces inbetween each number. remove the numbers and you have the right number of spaces. works for any positive integer</p>
-<h3>unary to decimal (choose one of these three):</h3>
-<pre><code>s/.*/echo &amp;|wc -L/e
-s/.*/wc -L&lt;&lt;&lt;&amp;/e           #works on TIO, default shell must be bash not sh
+<p>this sends <code>echo {0..#}</code> to the shell which usually expands it into a list from 0 to #, with spaces inbetween each number. remove the numbers and you have the right number of spaces. works for any positive integer</p>
+<h3>unary to decimal:</h3>
+<pre><code>s/.*/wc -L&lt;&lt;&lt;&amp;/e
 s/.*/wc -L&lt;&lt;&lt;'&amp;'/e         #the above if you're using spaces as your unary char
+s/.*/echo &amp;|wc -L/e        #shells that don't support &lt;&lt;&lt; redirects
+s/.*/echo '&amp;'|wc -L/e      # + using spaces
 </code></pre>
 <p>these send all the chars to <code>wc</code> which returns the longest line with <code>-L</code> (the <code>&lt;&lt;&lt;</code> redirect and <code>echo</code> add a newline to the end). the unary must consist of the entire line; swapping less than the full line seems to give unexpected results</p>
-<h3>addition</h3>
-<pre><code>s/([^ ]*) (.*)/echo $((\1+\2))/e
+<h3>addition (-E)</h3>
+<pre><code>s/(.*) (.*)/echo $((\1+\2))/e   #two numbers seperated by a space
 </code></pre>
-<p><a href="https://tio.run/##K05N0U3PK/3/v1hfIzpOIVZLU0FDT0tTPzU5I19BRUMjxlA7xkgTyP//31jBhMvEQMGIy8jI2MJAwdzSwtjkX35BSWZ@XvF/XVcA" rel="nofollow noreferrer" title="sed – Try It Online">Try it online!</a></p>
+<p><a href="https://tio.run/##K05N0U3PK/3/v1hfQ09LUwFE6KcmZ@QrqGhoxBhqxxhpAvn//xsrmHCZGCgYcRkZGVsYKJhbWhib/MsvKMnMzyv@r@sKAA" rel="nofollow noreferrer" title="sed – Try It Online">Try it online!</a></p>
 </div>
 <div id="pu1" class="pu"><p>Okay, here's a weird functioning of (GNU) sed's regex. For example, if the pattern space is only <code>qqq</code>, then the extended regex <code>s/^|q|$/&lt;&amp;&gt;/g</code> gives <code>&lt;q&gt;&lt;q&gt;&lt;q&gt;</code>. <a href="https://tio.run/##K05N@f@/WD@uprBGRd9GzU4//f//wsLCf/kFJZn5ecX/dYsA" rel="nofollow noreferrer" title="sed 4.2.2 – Try It Online">Try it online!</a></p>
 <p>I'm not sure, but I think it is because if a character matches, then do the empty strings surrounding it. So because the terminal <code>q</code> matches, the match also includes the end of the pattern space, so <code>$</code> by itself doesn't get matched because otherwise it would overlap with the previous match (and likewise for <code>^</code> and even I think for word boundaries and the like).</p>
