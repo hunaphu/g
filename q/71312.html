@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::71312</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>617</td><td>TI‑BASIC</td><td>240410T000001Z</td><td><a href="https://codegolf.stackexchange.com/questions/71312/approximate-%e2%88%abex-xxdx/272454#272454">Kai Burg</a></td></tr>
+<tr d-ix="1"><td>038</td><td>Julia</td><td>160206T230935Z</td><td><a href="https://codegolf.stackexchange.com/questions/71312/approximate-%e2%88%abex-xxdx/71314#71314">Alex A.</a></td></tr>
+<tr d-ix="2"><td>039</td><td>Vitsy</td><td>160220T185505Z</td><td><a href="https://codegolf.stackexchange.com/questions/71312/approximate-%e2%88%abex-xxdx/73696#73696">Addison </a></td></tr>
+<tr d-ix="3"><td>026</td><td>MATL</td><td>160207T045059Z</td><td><a href="https://codegolf.stackexchange.com/questions/71312/approximate-%e2%88%abex-xxdx/71331#71331">Luis Men</a></td></tr>
+<tr d-ix="4"><td>029</td><td>Pyth</td><td>160207T115900Z</td><td><a href="https://codegolf.stackexchange.com/questions/71312/approximate-%e2%88%abex-xxdx/71350#71350">Denker</a></td></tr>
+<tr d-ix="5"><td>017</td><td>Jelly</td><td>160206T233444Z</td><td><a href="https://codegolf.stackexchange.com/questions/71312/approximate-%e2%88%abex-xxdx/71315#71315">Dennis</a></td></tr>
+<tr d-ix="6"><td>9055</td><td>Perl 6</td><td>160207T102918Z</td><td><a href="https://codegolf.stackexchange.com/questions/71312/approximate-%e2%88%abex-xxdx/71341#71341">Hotkeys</a></td></tr>
+<tr d-ix="7"><td>076</td><td>Python 2</td><td>160207T113831Z</td><td><a href="https://codegolf.stackexchange.com/questions/71312/approximate-%e2%88%abex-xxdx/71346#71346">Denker</a></td></tr>
+<tr d-ix="8"><td>083</td><td>golflua</td><td>160207T032404Z</td><td><a href="https://codegolf.stackexchange.com/questions/71312/approximate-%e2%88%abex-xxdx/71327#71327">Kyle Kan</a></td></tr>
+<tr d-ix="9"><td>078</td><td>ES7</td><td>160207T005444Z</td><td><a href="https://codegolf.stackexchange.com/questions/71312/approximate-%e2%88%abex-xxdx/71318#71318">Neil</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h2>TI‑BASIC, 617 B</h2>
+<p>Picking up <a href="/q/71312/#comment174645_71312">Lirtosiast’s informal bounty</a> let’s kick things off with an implementation setting an upper limit with respect to byte count.
+TI‑BASIC as a primarily interpreted language is terribly slow.
+The built‑in <code>fnInt(𝑒^X/X^X,X,0,I,ᴇ−4)</code> uses <a href="https://MaThWoRlD.WolFraM.cOm/Gauss-KronrodQuadrature.html" rel="nofollow noreferrer">Gauß–Kronrod integration</a>.
+Using it on a TI‑82, <span class="math-container">\$f(1)\$</span> can be calculated within two seconds, <span class="math-container">\$f(50)\$</span> already takes about 17 seconds, and <span class="math-container">\$f(10k)\$</span> fails.
+Achieving similar results takes effort.
+This <em>low‑effort implementation</em> simply augments numerical integration using the chained <a href="https://en.wikipedia.org/wiki/Trapezoidal_rule" rel="nofollow noreferrer">trapezoidal rule</a> in conjunction with an <a href="https://en.WikiPedia.org/wiki/Lookup_table" rel="nofollow noreferrer">LUT</a>; recall that you can split the integral:
+<span class="math-container">$$
+    \int_{0}^{I} \frac{e^x}{x^x}\text{ d}x =
+    \int_{0}^{I} \left(\frac{e^1}{x}\right)^x\text{ d}x =
+    \int_{0}^{z} \left(\frac{e^1}{x}\right)^x\text{ d}x +
+    \int_{z}^{I} \left(\frac{e^1}{x}\right)^x\text{ d}x
+$$</span>
+The values of the LUT are rounded up until 18⁄9 where the trapezoidal method underestimates the integral, and rounded down otherwise.
+Note, I have not <em>mathematically verified</em> that the error does not exceed ±10<sup>−4</sup> at any point though.</p>
+<pre><code>PROGRAM:F
+:&quot;(𝑒^1/X)^X→Y₁
+:ᴇ−4{0,1371,3138,5230,7595,10183,12947,15839,18814,21828,24842,27822,30736,33558
+,36268,38848,41286,43574,45705,47678,49494,51156,52669,54039,55274,56381,57369,5
+8248,59025,59711,60313,60840,61299,61697,62042,62340,62596,62816,63003,63163,632
+99,63414,63511,63593,63662,63720,63768,63809,63842,63870,63893,63912,63928,63941
+,63951,63960,63967,63973,63978,63982,63985,63987,63989,63991,63992,63993,63994,6
+3995,63995,63996,63996,63997,63997,63997,63997,63997,63997,63997,63997,63997,639
+97,63998→L₆
+:Promᴘt I
+:min(I,9→I
+:round(9I,0→L
+:L₆(L+1→A
+:L∕9→L
+:I−L→W
+:.5sum Y₁({L,I→S
+:400⁻¹(−1)^(W&lt;0→D
+:1→N
+:For(X,L+D,I−D,D
+:S+Y₁→S
+:N+1→N
+:End
+:A+SW∕N
+</code></pre>
+<p>Programming in BASIC is, let’s say not particularly pleasant.
+The program has actually been developed in and then translated from Extended Pascal.
+Consult the original source code for understanding the above translation.</p>
+<pre class="lang-pascal prettyprint-override"><code>program approximateSeXxXdx(input, output);
+    { ┄┄┄ The function to integrate. ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄ }
+    function 𝘧(protected x: real): complex;
+        begin
+            { Singularity at x = 0.0 }
+            if x = 0.0 then
+            begin
+                { Just to showcase the possibilities of Extended Pascal;
+                  a `real` is actually automatically promoted to `complex`. }
+                𝘧 ≔ polar(1.0, 0.0)
+            end
+            else
+            begin
+                { The result type of the ** operation depends on the base.
+                  However, ** is not defined for negative `real` bases.
+                  Therefore promote the left‑hand value to ℂ. }
+                𝘧 ≔ cmplx(exp(1) ∕ x, 0.0) ** x
+            end
+        end;
+    type
+        { Custom structured value _literals_ require a named data type. }
+        list = array[0‥81] of real;
+    const
+        { To speed things up a table of precalculated values. }
+        integralZeroTo𝘯ninths = list[
+                 0: 0.000000000000000000000000000000000000000000000000000000;
+                 1: 0.137093540351248157681321364593009825984439231156593372;
+                 2: 0.313779473903122342613611914988562035892512836808226494;
+                 3: 0.522942384031038232272615890288148606787622702542623698;
+                 4: 0.759418158056565028981907660152950165079950424010265210;
+                 5: 1.018287237410062777320749682163299799714053356215557490;
+                 6: 1.294696497200998099899511139386619256743267066261319778;
+                 7: 1.583897623658750153236420110145821630188397172353419026;
+                 8: 1.881333432749578483355868352769319707092022524133530079;
+                 9: 2.182726432634799127591300456324504628626998599625457392;
+                10: 2.484153901534858775316716593689998828869761431794103220;
+                11: 2.782104040134096236184401874778291447503243868859777866;
+                12: 3.073512146504480378317900583337526398242528630480010775;
+                13: 3.355777897859644959321122991280487758028704644869558674;
+                14: 3.626765911833529125350794729324957147527500019334564529;
+                15: 3.884792277581836443702349499346355404856941332344093294;
+                16: 4.128599918238340180850182774630287219015759861345277410;
+                17: 4.357325595399480825788098605080859111809150602673772816;
+                18: 4.570461172298098667721059949262194852156733357778112620;
+                19: 4.767811470238678859863534933220646097226735540414593218;
+                20: 4.949450723081550471518211595041878918982972892856200206;
+                21: 5.115679287100540164265544299739878357981241827929685738;
+                22: 5.266981920430319553617994140934142359314557590845359332;
+                23: 5.403988623164443083471759783299680962989982231794954594;
+                24: 5.527438736313930953610246090645488288414110648721347260;
+                25: 5.638148741396313709290424095739470689158291524072307946;
+                26: 5.736983985143927748128046324216532084381788619247057756;
+                27: 5.824834375870453656614796600924472347963012624346670650;
+                28: 5.902593957700483863866591623843247457998642812373591094;
+                29: 5.971144163132577716977413570028967831816921547578731338;
+                30: 6.031340469446466497148274575159300944274564678558327640;
+                31: 6.084002136040931633318223039562594965058642415627328942;
+                32: 6.129904673556497717891951073531348315069384116497248642;
+                33: 6.169774687377389157575148452641510993846377126976841456;
+                34: 6.204286743887466638807587353174026820145615592311919128;
+                35: 6.234061924132739024690664015358599739357180153723146980;
+                36: 6.259667753223888379427635233482553950072721847227730396;
+                37: 6.281619222269802692512315499013415822532129703427518540;
+                38: 6.300380650702750613594847404740223801833187582254329756;
+                39: 6.316368168808211288234177969652134192913170131406707004;
+                40: 6.329952631774253024678034925735094305527166492297026810;
+                41: 6.341462806643013109304554713870263511367432954355322160;
+                42: 6.351188701496322201250805951794734298244531296189492288;
+                43: 6.359384931605013004542455578278129697536741158129491734;
+                44: 6.366274039885958914345443460747513313312159829758811792;
+                45: 6.372049708770860213534872913189293939130841085272455372;
+                46: 6.376879817545573742220577528832721484541138700386812012;
+                47: 6.380909313505256472551880502954011904810636789749940326;
+                48: 6.384262877085149870112885195335626517755190188656100964;
+                49: 6.387047370702368087330260263871294399586153024503255142;
+                50: 6.389354068631673498302361605371992496806270163375306652;
+                51: 6.391260671093116559066750210092692526668259996423622838;
+                52: 6.392833110100368399971405998370405914248758331640573386;
+                53: 6.394127157740554197801268342058358689315114520301250150;
+                54: 6.395189849645686676285470267698351596219806514216652212;
+                55: 6.396060737667166284942951816298588591638814988040627860;
+                56: 6.396772986350262552262951574322261011856118207267049224;
+                57: 6.397354327874226877621500939846573904729695963769425024;
+                58: 6.397827889802951665578092048679692717469243587910647568;
+                59: 6.398212909387586142818226458052145146872537586056967812;
+                60: 6.398525347364208124355371947085045139679687820906353496;
+                61: 6.398778413267754958099568330421088750632753614490542160;
+                62: 6.398983013294479203932669016205175128034789336636021944;
+                63: 6.399148130733110081753112138948424443798580951136005050;
+                64: 6.399281147982844240933403287787913795766605792274901598;
+                65: 6.399388118208492549816355775971243738947882310296947744;
+                66: 6.399473993766473999569253152025642634587504602272382136;
+                67: 6.399542817680863399876272195090763163303376673400479898;
+                68: 6.399597883662681752572514928758745991358108770698073928;
+                69: 6.399641869450764639210505639852881696555254358414141322;
+                70: 6.399676947608823351436901049701810664759198566930695326;
+                71: 6.399704877338701645950323534926867253876122818630201942;
+                72: 6.399727080360910514574987591463265221715169505016703784;
+                73: 6.399744703465963885641847238408221824188892073334034606;
+                74: 6.399758669948973988800089965441765672592923303334686588;
+                75: 6.399769721800285638431748465928301963849897547460200686;
+                76: 6.399778454231496446252902967363857949294929409672020314;
+                77: 6.399785343864018972851447558301451149548064545294519502;
+                78: 6.399790771691626789415885333565817550742777287505465522;
+                79: 6.399795041744738726264230868673629765363452205145508554;
+                80: 6.399798396228439391077297057444936636521631168565156266;
+                81: 6.399801027774689610920250049916304567957572234632012324
+            ];
+    { ┄┄┄ Returns minimum of two values. Already built‑in in TI‑BASIC. ┄┄┄┄┄ }
+    function minimum(protected x, y: real): real;
+        type
+            tuple = array[0‥1] of real;
+        begin
+            minimum ≔ tuple[0: x; 1: y][ord(x &gt; y)]
+        end;
+    { ┄┄┄ approximation procedure ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄ }
+    function approximation(lowerLimit, upperLimit: real) = result: complex;
+        { A sub‑routine to limit the duration we need an extra variable. ┈┈┈ }
+        procedure adjustLimitsAndLoadPrecalculatedValue;
+            var
+                numerator: integer value round(upperLimit * 9);
+            begin
+                lowerLimit ≔ numerator ∕ 9;
+                result     ≔ integralZeroTo𝘯ninths[numerator]
+            end;
+        { Primitive chained trapezoidal rule numerical integration. ┈┈┈┈┈┈┈┈ }
+        function trapezoidalSum = sum: complex;
+            var
+                i, maxIndex: integer;
+                width: real value upperLimit − lowerLimit;
+            begin
+                sum ≔ (𝘧(lowerLimit) + 𝘧(upperLimit)) ∕ 2;
+                
+                { `+1` to ensure maxIndex is never zero (mind division). }
+                maxIndex ≔ round(abs(width) ∕ 0.0025) + 1;
+                
+                for i ≔ 1 to maxIndex − 1 do
+                begin
+                    sum ≔ sum + 𝘧(lowerLimit + i ∕ maxIndex * width)
+                end;
+                { Calculate area. }
+                sum ≔ sum * (width ∕ maxIndex)
+            end;
+        begin
+            result ≔ cmplx(0.0, 0.0);
+            
+            { Empty area check: a product is zero if any factor is zero. }
+            if lowerLimit ≠ upperLimit then
+            begin
+                { Cap 𝘐 to 9 because it does not matter that much and
+                  also because x ** x becomes too large to calculate. }
+                upperLimit ≔ minimum(upperLimit, 9.0);
+                
+                if (lowerLimit = 0.0) and (upperLimit &gt; 0) then
+                begin
+                    adjustLimitsAndLoadPrecalculatedValue
+                end;
+                result ≔ result + trapezoidalSum
+            end
+        end;
+    { ─── main ───────────────────────────────────────────────────────────── }
+    const
+        totalWidth     =  6; { This width includes a sign and radix point. }
+        fractionDigits =  4; { NB: The final digit is rounded. }
+    var
+        upperLimit: real value 0.0;
+        result: complex;
+    begin
+        { Read 𝘐. }
+        if not EOF(input) then
+        begin
+            readLn(input, upperLimit)
+        end;
+        
+        result ≔ approximation(0.0, upperLimit);
+        { Unfortunately `write`/`writeLn` cannot write `complex` directly. }
+        writeLn(re(result):totalWidth:fractionDigits, ' + ',
+                im(result):totalWidth:fractionDigits, ' i')
+    end.
+</code></pre>
+<p><a href="https://RosettaCode.org/wiki/Numerical_integration#Pascal" rel="nofollow noreferrer">RosettaCode numerical integration</a></p>
+</div>
+<div id="pu1" class="pu"><h1>Julia, <s>79</s> <s>77</s> 38 bytes</h1>
+
+<pre class="lang-default prettyprint-override"><code>I-&gt;sum(x-&gt;(e/x)^x,0:1e-5:min(I,9))/1e5
+</code></pre>
+<p>This is an anonymous function that accepts a numeric value and returns a float. To call it, assign it to a variable.</p>
+<p>The approach here is to use a right Riemann sum to approximate the integral, which is given by the following formula:</p>
+<p><span class="math-container">$$\int_a^b f(x) dx \approx \sum f(x) \Delta x$$</span></p>
+<p>In our case, <span class="math-container">\$a = 0\$</span> and <span class="math-container">\$b = I\$</span>, the input. We divide the region of integration into <span class="math-container">\$n = 10^5\$</span> discrete portions, so <span class="math-container">\$∆x = \frac 1 n = 10^{-5}\$</span>. Since this is a constant relative to the sum, we can pull this outside of the sum and simply sum the function evaluations at each point and divide by <span class="math-container">\$n\$</span>.</p>
+<p>The function is surprisingly well-behaved (plot from Mathematica):</p>
+<p><a href="https://i.stack.imgur.com/RLKPH.png" rel="nofollow noreferrer"><img src="https://i.stack.imgur.com/RLKPH.png" alt="mathematicaplot" /></a></p>
+<p>Since the function evaluates nearly to 0 for inputs greater than about 9, we truncate the input to be <span class="math-container">\$I\$</span> if <span class="math-container">\$I\$</span> is less than 9, or 9 otherwise. This simplifies the calculations we have to do significantly.</p>
+<p>Ungolfed code:</p>
+<pre class="lang-default prettyprint-override"><code>function g(I)
+    # Define the range over which to sum. We truncate the input
+    # at 9 and subdivide the region into 1e5 pieces.
+    range = 0:1e-5:min(I,9)
+
+    # Evaluate the function at each of the 1e5 points, sum the
+    # results, and divide by the number of points.
+    return sum(x -&gt; (e / x)^x, range) / 1e5
+end
+</code></pre>
+<p>Saved 39 bytes thanks to Dennis!</p>
+</div>
+<div id="pu2" class="pu"><h1>Vitsy, 39 bytes</h1>
+
+<p>Thought I might as well give my own contribution. ¯\_(ツ)_/¯ This uses the Left-Hand Riemann Sum estimation of integrals.</p>
+
+<pre><code>D9/([X9]1a5^D{/V}*0v1{\[EvV+DDv{/}^+]V*
+
+D9/([X9]               Truncation trick from Alex A.'s answer.
+D                      Duplicate input.
+ 9/                    Divide it by 9.
+   ([  ]               If the result is greater than 0
+     X9                Remove the top item of the stack, and push 9.
+
+1a5^D{/V}*0v0{         Setting up for the summation.
+1                      Push 1.
+ a5^                   Push 100000.
+    D                  Duplicate the top item of the stack.
+     {                 Push the top item of the stack to the back.
+      /                Divide the top two items of the stack. (1/100000)
+       V               Save it as a global variable.
+                       Our global variable is ∆x.
+        }              Push the bottom item of the stack to the top.
+         *             Multiply the top two items.
+                       input*100000 is now on the stack.
+          0v           Save 0 as a temporary variable.
+            0          Push 1.
+             {         Push the bottom item of the stack to the top.
+                       input*100000 is now the top of the stack.
+
+\[EvV+DDv{/}^+]        Summation.
+\[            ]        Loop over this top item of the stack times.
+                       input*100000 times, to be exact.
+  E                    Push Math.E to the stack.
+   v                   Push the temporary variable to the stack.
+                       This is the current value of x.
+    V+                 Add ∆x.
+      DD               Duplicate twice.
+        v              Save the temporary variable again.
+         {             Push the top item of the stack to the back.
+          /            Divide the top two items.
+                       e/x
+           }           Push the top item back to the top of the stack.
+            ^          Put the second to top item of the stack to the power of the top item.
+                       (e/x)^x
+             +         Add that to the current sum.
+
+V*                     Multiply by ∆x</code></pre>
+
+<p>This leaves the sum on the top of the stack. The try it online link below has <code>N</code> on the end to show you the result.</p>
+
+<p><a href="http://vitsy.tryitonline.net/#code=RDkvKFtYOV0xYTVeRHsvVn0qMHYwe1xbRXZWK0REdnsvfV4rXVYqTg&amp;input=&amp;args=OQ" rel="nofollow">Try it Online!</a></p>
+</div>
+<div id="pu3" class="pu"><h1><a href="https://esolangs.org/wiki/MATL" rel="nofollow">MATL</a>, 26 bytes</h1>
+
+<pre><code>9hX&lt;t1e6XK:K/*ttZebb^/sK/*
+</code></pre>
+
+<p>This approximates the integral as a Riemann sum. As argued by Alex, we can truncate the integration interval at approximately 9 because the function values are very small beyond that.</p>
+
+<p>The maximum value of the function is less than 3, so a step of about 1e-5 should be enough to obtain the desired accuracy. So for the maximum input 9 we need about 1e6 points.</p>
+
+<p>This takes about 1.5 seconds in the online compiler, for any input value.</p>
+
+<p><a href="http://matl.tryitonline.net/#code=OWhYPHQxZTZYSzpLLyp0dFplYmJeL3NLLyo&amp;input=My4xNDE1OQ" rel="nofollow"><strong>Try it online</strong>!</a></p>
+
+<pre><code>9hX&lt;         % input number, and limit to 9
+t            % duplicate
+1e6XK:       % generate vector [1,2,...,1e6]. Copy 1e6 to clipboard K
+K/*          % divide by 1e6 and multiply by truncated input. This gives 
+             % a vector with 1e6 values of x from 0 to truncated input
+ttZe         % duplicate twice. Compute exp(x)
+bb^          % rotate top three elements of stack twice. Compute x^x
+/            % divide to compute exp(x)/x^x
+s            % sum function values
+K/*          % multiply by the step, which is the truncated input divided
+             % by 1e6
+</code></pre>
+</div>
+<div id="pu4" class="pu"><h1>Pyth, <s>34</s> 29 bytes</h1>
+<p>Saved 5 Bytes with some help from @Dennis!</p>
+<pre><code>J^T5smcc^.n1d^ddJmcdJU*hS,Q9J
+</code></pre>
+<p><a href="http://pyth.herokuapp.com/?code=J%5ET5smcc%5E.n1d%5EddJmcdJU*hS%2CQ9J&amp;input=1&amp;test_suite_input=1%0A50%0A10000%0A2.71828%0A3.14159&amp;debug=0" rel="nofollow noreferrer">Try it online!</a></p>
+<h3>Explanation</h3>
+<p>Same algorithm as in <a href="https://codegolf.stackexchange.com/a/71346/49110">my Python answer</a>.</p>
+<pre>
+J^T5smcc^.n1d^ddJmcdJU*hS,Q9J        # Q=input
+J^T5                                 # set J so rectangle width *10^5
+                       hS,Q9         # truncate inputs greater 9
+                 mcdJU/     J        # range from zero to Input in J steps
+     mcc^.n1d^ddJ                    # calculate area for each element in the list
+    s                                # Sum all areas and output result
+                    
+</pre>
+</div>
+<div id="pu5" class="pu"><h1>Jelly, <s>20</s> <s>19</s> 17 bytes</h1>
+
+<pre><code>ð«9×R÷øȷ5µØe÷*×ḢS
+</code></pre>
+
+<p>This borrows the clever <em>truncate at 9</em> trick from <a href="https://codegolf.stackexchange.com/a/71314">@AlexA.'s answer</a>, and uses a <a href="https://en.wikipedia.org/wiki/Riemann_sum#Right_Riemann_Sum" rel="nofollow noreferrer">right Riemann sum</a> to estimate the corresponding integral.</p>
+
+<p>Truncated test cases take a while, but are fast enough on <a href="http://jelly.tryitonline.net/#code=w7DCqznDl1LDt8O4yLc1wrXDmGXDtyrDl-G4olM&amp;input=&amp;args=MTA&amp;debug=on" rel="nofollow noreferrer">Try it online!</a></p>
+
+<h3>How it works</h3>
+
+<pre><code>ð«9×R÷øȷ5µØe÷*×ḢS  Main link. Input: I
+
+      øȷ5          Niladic chain. Yields 1e5 = 100,000.
+
+ð                  Dyadic chain. Left argument: I. Right argument: 1e5.
+ «9                Compute min(I, 9).
+   ×               Multiply the minimum with 1e5.
+    R              Range; yield [1, 2, ..., min(I, 9) * 1e5] or [0] if I &lt; 1e-5.
+     ÷             Divide the range's items by 1e5.
+                   This yields r := [1e-5, 2e-5, ... min(I, 9)] or [0] if I &lt; 1e-5.
+
+         µ         Monadic chain. Argument: r
+          Øe÷      Divide e by each element of r.
+             *     Elevate the resulting quotients to the corresponding elements,
+                   mapping t -&gt; (e/t) ** t over r.
+                   For the special case of r = [0], this yields [1], since
+                   (e/0) ** 0 = inf ** 0 = 1 in Jelly.
+              ×Ḣ   Multiply each power by the first element of r, i.e., 1e-5 or 0.
+                S  Add the resulting products.
+</code></pre>
+</div>
+<div id="pu6" class="pu"><h1>Perl 6, <s>90</S> 55 bytes</h1>
+
+
+
+<pre class="lang-perl6 prettyprint-override"><code>{my \x=1e5;sum ((e/$_*x)**($_/x)/x for 1..min($_,9)*x)}
+</code></pre>
+
+<p><strong>usage</strong></p>
+
+<pre class="lang-perl6 prettyprint-override"><code>my &amp;f = {my \x=1e5;sum ((e/$_*x)**($_/x)/x for 1..min($_,9)*x)}
+
+f(1).say;       # 2.1827350239231
+f(50).say;      # 6.39979602775846
+f(10000).say;   # 6.39979602775846
+f(2.71828).say; # 5.58039854392816
+f(3.14159).say; # 5.92227602782184
+</code></pre>
+
+<p>It's late and I need to sleep, I'll see if I can get this any shorter tomorrow.</p>
+
+<p>EDIT: Managed to get it quite a bit shorter after seeing @DenkerAffe 's method.</p>
+</div>
+<div id="pu7" class="pu"><h1>Python 2, <s>94</s> 76 bytes</h1>
+<p>Thanks to @Dennis for saving me 18 bytes!</p>
+
+<pre class="lang-python prettyprint-override"><code>lambda I,x=1e5:sum((2.71828/i*x)**(i/x)/x for i in range(1,int(min(I,9)*x)))
+</code></pre>
+<p><a href="https://repl.it/Bk6w/2" rel="nofollow noreferrer">Try it online with testcases!</a></p>
+<p>Using the rectangle method for the approximation. Using a rectangle width of 0.0001 which gives me the demanded precision. Also truncating inputs greater 9 to prevent memory errors with very big inputs.</p>
+</div>
+<div id="pu8" class="pu"><h1><a href="http://mniip.com/misc/conv/golflua/" rel="nofollow noreferrer">golflua</a>, 83 chars</h1>
+<p>I'll admit it: it took my a while to figure out the <code>min(I,9)</code> trick Alex presented allowed computing arbitrarily high numbers because the integral converged by then.</p>
+<pre><code>\f(x)~M.e(x)/x^x$b=M.mn(I.r(),9)n=1e6t=b/n g=0.5+f(b/2)~@k=1,n-1g=g+f(k*t)$I.w(t*g)
+</code></pre>
+<p>An ungolfed Lua equivalent would be</p>
+<pre class="lang-lua prettyprint-override"><code>function f(x)
+   return math.exp(x)/x^x
+end
+
+b=math.min(io.read(&quot;*n&quot;),9)
+n=1e6
+t=b/n
+g=0.5+f(b/2)
+
+for k=1,n-1 do
+   g=g+f(k*t)
+end
+io.write(t*g)
+</code></pre>
+</div>
+<div id="pu9" class="pu"><h2>ES7, 78 bytes</h2>
+
+<pre><code>i=&gt;[...Array(n=2e3)].reduce(r=&gt;r+Math.exp(j+=i)/j**j,0,i&gt;9?i=9:0,i/=n,j=-i/2)*i
+</code></pre>
+
+<p>This uses the rectangle rule with 2000 rectangles, which (at least for the examples) seem to produce a sufficiently accurate answer, but the accuracy could easily be increased if necessary. It has to use the 9 trick otherwise the accuracy drops off for large values.</p>
+
+<p>73 byte version that uses rectangles of width ~0.001 so it doesn't work above ~700 because Math.exp hits Infinity:</p>
+
+<pre><code>i=&gt;[...Array(n=i*1e3|0)].reduce(r=&gt;r+Math.exp(j+=i)/j**j,0,i/=n,j=-i/2)*i
+</code></pre>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/71312/">71312</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
