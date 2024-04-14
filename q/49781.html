@@ -26,9 +26,9 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>126</td><td>sed r</td><td>240414T090500Z</td><td><a href="https://codegolf.stackexchange.com/questions/49781/extendify-the-ascii-sun/272564#272564">guest430</a></td></tr>
-<tr d-ix="1"><td>095</td><td>C GCC</td><td>240414T101058Z</td><td><a href="https://codegolf.stackexchange.com/questions/49781/extendify-the-ascii-sun/272565#272565">matteo_c</a></td></tr>
-<tr d-ix="2"><td>048</td><td>Jelly</td><td>240414T021711Z</td><td><a href="https://codegolf.stackexchange.com/questions/49781/extendify-the-ascii-sun/272555#272555">Aaron</a></td></tr>
+<tr d-ix="0"><td>043</td><td>Jelly</td><td>240414T021711Z</td><td><a href="https://codegolf.stackexchange.com/questions/49781/extendify-the-ascii-sun/272555#272555">Aaron</a></td></tr>
+<tr d-ix="1"><td>126</td><td>sed r</td><td>240414T090500Z</td><td><a href="https://codegolf.stackexchange.com/questions/49781/extendify-the-ascii-sun/272564#272564">guest430</a></td></tr>
+<tr d-ix="2"><td>095</td><td>C GCC</td><td>240414T101058Z</td><td><a href="https://codegolf.stackexchange.com/questions/49781/extendify-the-ascii-sun/272565#272565">matteo_c</a></td></tr>
 <tr d-ix="3"><td>025</td><td>05AB1E</td><td>240411T090627Z</td><td><a href="https://codegolf.stackexchange.com/questions/49781/extendify-the-ascii-sun/272493#272493">Kevin Cr</a></td></tr>
 <tr d-ix="4"><td>034</td><td>Uiua</td><td>240408T143910Z</td><td><a href="https://codegolf.stackexchange.com/questions/49781/extendify-the-ascii-sun/272414#272414">noodle m</a></td></tr>
 <tr d-ix="5"><td>020</td><td>Vyxal</td><td>240406T003524Z</td><td><a href="https://codegolf.stackexchange.com/questions/49781/extendify-the-ascii-sun/272371#272371">emanresu</a></td></tr>
@@ -72,7 +72,41 @@
 <tr d-ix="43"><td>038</td><td>CJam</td><td>150507T212327Z</td><td><a href="https://codegolf.stackexchange.com/questions/49781/extendify-the-ascii-sun/49784#49784">Optimize</a></td></tr>
 <tr d-ix="44"><td>052</td><td>Pyth</td><td>150507T211009Z</td><td><a href="https://codegolf.stackexchange.com/questions/49781/extendify-the-ascii-sun/49782#49782">Maltysen</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.gnu.org/software/sed/" rel="nofollow noreferrer">sed</a> <code>-r</code>, <s>132</s> 126 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://github.com/DennisMitchell/jellylanguage/wiki/Tutorial" rel="nofollow noreferrer">Jelly</a>, <s>48</s> 43 bytes</h1>
+<pre><code>AS$_/SḢṪ5ƭ
+Wẋ5Ç=0Ɗ€
+ŒRµ,þµÇi1Ɗ€€ị“O\/|- ”Y
+</code></pre>
+<p>Through multiple modifications this basically reduced to be ports of similar answers: exploding the matrix and running a couple of checks through it.  Figured I'd post anyway because 1) there was no other Jelly answer and 2) I finally figured out the 'tie' quick.</p>
+<pre><code>AS$_/SḢṪ5ƭ    # The collection of checks to run against each element
+AS$           # Sum of absolute values -&gt; [0,0], &quot;O&quot;
+   _/         # Difference -&gt; [-x,-x] or [x,x], &quot;\&quot;
+     S        # Sum -&gt; [-x,x] or [x,-x], &quot;/&quot;
+      Ḣ       # First element -&gt; [0,x], &quot;-&quot;
+       Ṫ      # Last element -&gt; [x,0], &quot;|&quot;
+        5ƭ    # Tie all five of those together
+
+Wẋ5Ç=0Ɗ€      # Helper makes 5 copies of each element,
+              # one to run each of the previous checks through
+Wẋ5           # Make five copies of the given array
+   Ç=0        # Run the above helper and compare each result to 0
+      Ɗ€      # Run the zero check against each element passed in
+          
+ŒRµ,þµÇi1Ɗ€€ị“O\/|- ”Y
+ŒRµ                          # Explode the arg, 1 -&gt; [-1, 0, 1]
+   ,þµ                       # Make a table/matrix of all combos
+         Ɗ€€                 # For each row, for each column
+      Ç                      # Call above helper link
+       i1                    # and find the first 1
+
+            
+Now all the values are [0..5] so they can be indexed:
+            ị“O\/|- ”   # Index each element into this string
+                        # with zero wrapping to the last element
+                     Y  # Join with linefeeds for final display
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.gnu.org/software/sed/" rel="nofollow noreferrer">sed</a> <code>-r</code>, <s>132</s> 126 bytes</h1>
 <pre><code>s/^0/O/                # if input is 0, swap to O
 /O/q                   # if PATTERN is O, quit (implicitly prints)
 s/.*/echo {1..&amp;}/e     # swap N to 'echo {1..N}' and execute
@@ -93,57 +127,12 @@ ba                     # branch to label a              (end of main loop)
 <p>it has no trailing spaces or newlines except with <code>0</code>, which has a trailing newline that could be removed at the cost of one byte by changing lines 1-2 to <code>s/^0/O/p;/O/Q</code> (newline and <code>;</code> are basically equivalent)</p>
 <p>a few sed commands have <code>s///</code> flag versions that execute upon a sucessful swap, and now I really want a flag version of <code>t</code> and <code>q</code>. the current <code>t</code> command on its own is just too expensive to use, but a flag version could have potential; and a <code>q</code> flag would save me 4 bytes on line 2</p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://gcc.gnu.org" rel="nofollow noreferrer">C (GCC)</a>, 95 bytes</h1>
+<div id="pu2" class="pu"><h1><a href="https://gcc.gnu.org" rel="nofollow noreferrer">C (GCC)</a>, 95 bytes</h1>
 <pre class="lang-c prettyprint-override"><code>i;j;main(n){for(i=-++n;++i&lt;n;puts())for(j=-n;++j&lt;n;)putchar(i?j?i-j?i+j?32:47:92:124:j?45:79);}
 </code></pre>
 <p><a href="https://ato.pxeger.com/run?1=m700OT49OXnBgqWlJWm6FjfjM62zrHMTM_M08jSr0_KLNDJtdbW186y1tTNt8qwLSkuKNTQ1QeJZtrog0SygqCZQODkjEajWPss-UxeItbPsjY2sTMytLI2sDI1MrLLsTUytzC01rWsh1kBtWxWtZKSko6BkrBQLFQEA" rel="nofollow noreferrer">Attempt This Online!</a></p>
 <p>Takes input as <code>argc</code>. Note that <a href="https://stackoverflow.com/questions/49817316/can-argc-be-zero-on-a-posix-system">argc can be zero on a POSIX system</a>.</p>
 <p>Two bytes can be saved (<code>s/++n/n/</code>) if the input is incremented by one, i.e. <code>N+1</code> is given instead of <code>N</code>.</p>
-</div>
-<div id="pu2" class="pu"><h1><a href="https://github.com/DennisMitchell/jellylanguage/wiki/Tutorial" rel="nofollow noreferrer">Jelly</a>, 48 bytes</h1>
-<pre><code>AS$_/SḢṪ5ƭ
-Wẋ5Ç=0Ɗ€
-ŒRµ,þµÇḄ$€€Ḥæḟ2l2ị“-|/\O ”Y
-</code></pre>
-<p>Through multiple modifications this basically reduced to be ports of similar answers: exploding the matrix and running a couple of checks through it.  Figured I'd post anyway because 1) there was no other Jelly answer and 2) I finally figured out the 'tie' quick.</p>
-<pre><code>AS$_/SḢṪ5ƭ    # The collection of checks to run against each element
-AS$           # Sum of absolute values -&gt; [0,0], &quot;O&quot;
-   _/         # Difference -&gt; [-x,-x] or [x,x], &quot;\&quot;
-     S        # Sum -&gt; [-x,x] or [x,-x], &quot;/&quot;
-      Ḣ       # First element -&gt; [0,x], &quot;-&quot;
-       Ṫ      # Last element -&gt; [x,0], &quot;|&quot;
-        5ƭ    # Tie all five of those together
-
-Wẋ5Ç=0Ɗ€      # Helper makes 5 copies of each element,
-              # one to run each of the previous checks through
-Wẋ5           # Make five copies of the given array
-   Ç=0        # Run the above helper and compare each result to 0
-      Ɗ€      # Run the zero check against each element passed in
-          
-ŒRµ,þµÇḄ$€€Ḥæḟ2l2ị“-|/\O ”Y
-ŒRµ                          # Explode the arg, 1 -&gt; [-1, 0, 1]
-   ,þµ                       # Make a table/matrix of all combos
-        $€€                  # For each row, for each column
-      Ç                      # Call above helper link
-       Ḅ                     # and convert from binary
-
-The result at this point is power-of-two index except the &quot;O&quot; slot
-which, annoyingly, is 31 (as all checks pass on it)
-To turn all the values into nice powers of two, this little trick
-came in handy:
-           Ḥæḟ2l2
-           Ḥ                 # Double of the values, 31 is the only
-                             # one to not also be a power of two
-                             # when doubled
-            æḟ2              # Round all values down to nearest
-                             # power of two
-               l2            # Find log2x
-            
-Now all the values are [0..5] so they can be indexed:
-                 ị“-|/\O ”   # Index each element into this string
-                             # with zero wrapping to the last element
-                          Y  # Join with linefeeds for final display
-</code></pre>
 </div>
 <div id="pu3" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, 25 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
 <pre><code>&gt;I…-\|×{1ú68780.Λ¨'O«.º.∊
