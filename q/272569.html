@@ -26,11 +26,106 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>139</td><td>Charcoal</td><td>240414T161820Z</td><td><a href="https://codegolf.stackexchange.com/questions/272569/print-all-legal-chess-moves/272575#272575">Neil</a></td></tr>
-<tr d-ix="1"><td>263</td><td>JavaScript V8</td><td>240414T161721Z</td><td><a href="https://codegolf.stackexchange.com/questions/272569/print-all-legal-chess-moves/272573#272573">Arnauld</a></td></tr>
+<tr d-ix="0"><td>261</td><td>JavaScript V8</td><td>240414T161721Z</td><td><a href="https://codegolf.stackexchange.com/questions/272569/print-all-legal-chess-moves/272573#272573">Arnauld</a></td></tr>
+<tr d-ix="1"><td>139</td><td>Charcoal</td><td>240414T161820Z</td><td><a href="https://codegolf.stackexchange.com/questions/272569/print-all-legal-chess-moves/272575#272575">Neil</a></td></tr>
 <tr d-ix="2"><td>140</td><td>Jelly</td><td>240415T021538Z</td><td><a href="https://codegolf.stackexchange.com/questions/272569/print-all-legal-chess-moves/272590#272590">Jonathan</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, <s>166</s> <s>144</s> 139 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://v8.dev/" rel="nofollow noreferrer">JavaScript (V8)</a>, 261 bytes</h1>
+<p>A full program that prints all possible white moves.</p>
+<pre class="lang-javascript prettyprint-override"><code>s=&quot;NBRQK&quot;
+g=X=&gt;&quot;abcdefgh&quot;[X]+-~Y
+for(n=4**8;n--;k=h=(X-x)**2,V=Y-y,k+=v=V*V,!k|[k-5,b=h-v,h*v,b*h*v,k&gt;2,y-1|V-2|h][i]||i&gt;5&amp;&amp;!y|h^i&amp;1|V-1|Y&gt;6^i&gt;7||print(m))m=[s[i=n&gt;&gt;12]]+g(x=n&gt;&gt;6&amp;7,y=Y=n&gt;&gt;9&amp;7)+&quot;-x&quot;[i&amp;i&gt;6]+g(X=n&amp;7,Y=n/8&amp;7)+(i&gt;7?&quot;=&quot;+s[i/2&amp;3]:n-10?&quot;&quot;:`
+O-O
+O-O-O`)
+</code></pre>
+<p><a href="https://tio.run/##ZZBPa4NAEMXvfortHsRV1zS2@dPIbKDQU6GhPQSDNcRYoxvNKlkrEZZ@9dRNjz3M8IbfzIN5x6RLZHrmTUu7@bXKWlRx2SJAURyg5syF1hIBQ9KTTcVbC38KTLxDfX5J0sK6IX3iNd9yGAkJrhLw2/PH@ys2cgiB4WSffmWHvMBRGDv0Z2MMx5aAR9ueB4LSoIQCrJBeiG377ho2tHdLBzpY22v3rlRRSSfuHgrauYXduXtb95L5bk/Hak19VcQRj5XibGKad70qttzUYKw2bLrlbKbU7RHrRMgJIhlxEIyN/Th2cuui9dScuT1stHwyZ8TB9IIjbnI21SshiIEPdDTX0BoclxiwMxiNfPMhXgg6vl9ivNgZK7rSRVc7ck1rIesq86o6t24BVZnI2wI5CKNT3WUSk8D4t3SsufiLeAjyFw" rel="nofollow noreferrer" title="JavaScript (V8) – Try It Online">Try it online!</a></p>
+<p>(the test code redefines the <code>print</code> method in order to count the moves)</p>
+<h2>Explanation</h2>
+<h3>Encoding</h3>
+<p>Each move candidate is encoded as a single 16-bit value:</p>
+<pre><code>iiiiyyyxxxYYYXXX
+\__/\____/\____/
+  |    |     |
+  |    |     +--&gt; coordinates of target square
+  |    +--------&gt; coordinates of source square
+  +-------------&gt; index of move type
+</code></pre>
+<h3>Move conditions</h3>
+<p>For each source square at <span class="math-container">\$(x,y)\$</span> and each target square at <span class="math-container">\$(X,Y)\$</span>, we define:</p>
+<p><span class="math-container">$$h=(X-x)^2\\
+\:V=Y-y\\
+v=V^2\\
+k=h+v$$</span></p>
+<p>For all moves, we must have <span class="math-container">\$k\neq0\$</span>. For pawn moves, we must have <span class="math-container">\$y\neq0\$</span>.</p>
+<p>The other conditions depend on the pieces and move types:</p>
+<div class="s-table-container"><table class="s-table">
+<thead>
+<tr>
+<th style="text-align: center;">Index</th>
+<th style="text-align: center;">Piece</th>
+<th style="text-align: center;">Condition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">knight</td>
+<td style="text-align: center;"><span class="math-container">\$k=5\$</span></td>
+</tr>
+<tr>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">bishop</td>
+<td style="text-align: center;"><span class="math-container">\$h=v\$</span></td>
+</tr>
+<tr>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">rook</td>
+<td style="text-align: center;"><span class="math-container">\$h=0\$</span> or <span class="math-container">\$v=0\$</span></td>
+</tr>
+<tr>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">queen</td>
+<td style="text-align: center;"><span class="math-container">\$h=v\$</span> or <span class="math-container">\$h=0\$</span> or <span class="math-container">\$v=0\$</span></td>
+</tr>
+<tr>
+<td style="text-align: center;">4</td>
+<td style="text-align: center;">king</td>
+<td style="text-align: center;"><span class="math-container">\$k\le2\$</span></td>
+</tr>
+<tr>
+<td style="text-align: center;">5</td>
+<td style="text-align: center;">pawn / 2-square move</td>
+<td style="text-align: center;"><span class="math-container">\$y=1\$</span> and <span class="math-container">\$V=2\$</span> and <span class="math-container">\$h=0\$</span></td>
+</tr>
+<tr>
+<td style="text-align: center;">6</td>
+<td style="text-align: center;">pawn / 1-square move</td>
+<td style="text-align: center;"><span class="math-container">\$V=1\$</span> and <span class="math-container">\$h=0\$</span> and <span class="math-container">\$Y&lt;7\$</span></td>
+</tr>
+<tr>
+<td style="text-align: center;">7</td>
+<td style="text-align: center;">pawn / capture</td>
+<td style="text-align: center;"><span class="math-container">\$V=1\$</span> and <span class="math-container">\$h=1\$</span> and <span class="math-container">\$Y&lt;7\$</span></td>
+</tr>
+<tr>
+<td style="text-align: center;">8,10,12,14</td>
+<td style="text-align: center;">pawn / promotion</td>
+<td style="text-align: center;"><span class="math-container">\$V=1\$</span> and <span class="math-container">\$h=0\$</span> and <span class="math-container">\$Y=7\$</span></td>
+</tr>
+<tr>
+<td style="text-align: center;">9,11,13,15</td>
+<td style="text-align: center;">pawn / promotion + capture</td>
+<td style="text-align: center;"><span class="math-container">\$V=1\$</span> and <span class="math-container">\$h=1\$</span> and <span class="math-container">\$Y=7\$</span></td>
+</tr>
+</tbody>
+</table></div>
+<p>Notes:</p>
+<ul>
+<li>In the JS implementation, we test if the moves are <em>invalid</em> by using the opposite conditions.</li>
+<li>Castling moves are hardcoded separately.</li>
+</ul>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, <s>166</s> <s>144</s> 139 bytes</h1>
 <pre><code>Ｅ35…O-ＩιＦ…β⁸Ｆ⁸Ｆ…β⁸Ｆ⁸«≔Ｘ⁻℅λ℅ι²θ≔Ｘ⁻μκ²η¿∨θη«Ｅ⎇⁼⁵⁺θηN⁺…K‹⁺θη³⭆⁺…B⁼θη…R¬∧θη⁺νQ⪫⟦νι⊕κ-λ⊕μ⟧ω¿∧⁼μ⊕κ‹θ²¿κＥ⎇⁼μ⁷⁺=⪪NBRQ¹⟦ω⟧⪫⟦ι⊕κ§-xθλ⊕μν⟧ω¿¬θ⟦Σ⟦ι2-λ4
 </code></pre>
 <p><a href="https://tio.run/##dVFNb8IwDD3Dr4hycqRwGAwNadoB0A5s43s31ENHA0SkKU3KAE389s4p6WAIKlWt7efn9@z5KjTzJFR5PjJSZ9APN0AbTcpJ9zBXortKMB7WXBzaDCTD57m6SAyBM@CLkxZjpMi2/Pdu9adaaVsrlxpGyU4Y6Eu9tTA0kdShAsU4Kf9xGCd1fFMceasp5mTtISsHkQuCRJC6sBhUOZv6FEaH5gCv6TZUFpqcjBRSnLCc0AH1mQvf75j7ENbCGcpJw8GnGRIvHe91Twd7/IyS@6I6weogyaCtI192gIJDo4gxPSXeEqlhhhnJSU/PjYiFzkQEzi11x1D/8zELONkVp6kUW3D8XkV8TcG8qdRtDvfk8GtG7q4KCZ5KkfQFh083SmZAB53JGKMHRzjbBX@yb2huZz0diT3Q2p66c94wwIkuPRChrChkuVWlrNQ2m27jgp7W/Q7oIw1Y4Fwfq8c8z2vf6hc" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code. Explanation:</p>
@@ -55,95 +150,6 @@
 <pre><code>¿¬θ⟦Σ⟦ι2-λ4
 </code></pre>
 <p>Otherwise if this is a plain move then output a doubled pawn move for this file.</p>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://v8.dev/" rel="nofollow noreferrer">JavaScript (V8)</a>, 263 bytes</h1>
-<p>A full program that prints all possible white moves.</p>
-<pre class="lang-javascript prettyprint-override"><code>s=&quot;NBRQK&quot;
-g=(x,y)=&gt;&quot;abcdefgh&quot;[x]+-~y
-for(n=4**8;n--;k=h=(X-x)**2,V=Y-y,k+=v=V*V,!k|[k-5,b=h-v,h*v,b*h*v,k&gt;2,y-1|V-2|h][i]||i&gt;5&amp;&amp;!y|h^i&amp;1|V-1|Y&gt;6^i&gt;7||print(m))m=[s[i=n&gt;&gt;12]]+g(x=n&gt;&gt;6&amp;7,y=n&gt;&gt;9&amp;7)+&quot;-x&quot;[i&amp;i&gt;6]+g(X=n&amp;7,Y=n/8&amp;7)+(i&gt;7?&quot;=&quot;+s[i/2&amp;3]:n-10?&quot;&quot;:`
-O-O
-O-O-O`)
-</code></pre>
-<p><a href="https://tio.run/##ZZDLasMwEEX3@QpVCyPZUtK4zaMxo0Chq0JDuzAJrkMedWzFjhwi19gg@uuplS67mOEOZ@bC3OO23ur9RZ4rXk@vRVKhQuoKAYriAJ0vUlmtEQik@/pcyIrgT4Vp/1BeXrb7jNyQPemfv3U3UhpcNeC354/3V9xLgTSspSDwdrf/Sg5phqMm9vhP2@sMiIJH150GivMghwzIkjfUdX0Wwoq3LPeghtAN2V1uopyP2A4yXrPMrdnOtT0XPmv50ITcN1kcydgYKUaOc9eabC0dC4ZmJcZrKSbG3J4hJ0pPEOlIghJi6Mexl5LG6rEzYa0VT86Eepg3OJKOFGO7sATV0RWowdRC0vnNMWCvsxn4zkM8U3x4P8d4tukt@MIWX2zodV8qXRZJvyhTcouoSFRaZchDGJ3KOtGYBr1/S8dSqr@Quyh/AQ" rel="nofollow noreferrer" title="JavaScript (V8) – Try It Online">Try it online!</a></p>
-<p>(the test code redefines the <code>print</code> method in order to count the moves)</p>
-<h2>Explanation</h2>
-<h3>Encoding</h3>
-<p>Each move candidate is encoded as a single 16-bit value:</p>
-<pre><code>iiiiyyyxxxYYYXXX
-\__/\____/\____/
-  |    |     |
-  |    |     +--&gt; coordinates of target square
-  |    +--------&gt; coordinates of source square
-  +-------------&gt; index of move type
-</code></pre>
-<h3>Move conditions</h3>
-<p>For each source square at <span class="math-container">\$(x,y)\$</span> and each target square at <span class="math-container">\$(X,Y)\$</span>, we define:</p>
-<p><span class="math-container">$$h=(X-x)^2$$</span>
-<span class="math-container">$$\:V=Y-y$$</span>
-<span class="math-container">$$v=V^2$$</span></p>
-<p>For all moves, we must have <span class="math-container">\$h\neq0\$</span> or <span class="math-container">\$v\neq0\$</span>. For pawn moves, we must also have <span class="math-container">\$y\neq0\$</span>.</p>
-<p>The other conditions depend on the pieces and move types:</p>
-<div class="s-table-container"><table class="s-table">
-<thead>
-<tr>
-<th style="text-align: center;">Index</th>
-<th style="text-align: center;">Piece</th>
-<th style="text-align: center;">Condition</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">knight</td>
-<td style="text-align: center;"><span class="math-container">\$h+v=5\$</span></td>
-</tr>
-<tr>
-<td style="text-align: center;">1</td>
-<td style="text-align: center;">bishop</td>
-<td style="text-align: center;"><span class="math-container">\$h=v\$</span></td>
-</tr>
-<tr>
-<td style="text-align: center;">2</td>
-<td style="text-align: center;">rook</td>
-<td style="text-align: center;"><span class="math-container">\$h=0\$</span> or <span class="math-container">\$v=0\$</span></td>
-</tr>
-<tr>
-<td style="text-align: center;">3</td>
-<td style="text-align: center;">queen</td>
-<td style="text-align: center;"><span class="math-container">\$h=v\$</span> or <span class="math-container">\$h=0\$</span> or <span class="math-container">\$v=0\$</span></td>
-</tr>
-<tr>
-<td style="text-align: center;">4</td>
-<td style="text-align: center;">king</td>
-<td style="text-align: center;"><span class="math-container">\$h+v\le2\$</span></td>
-</tr>
-<tr>
-<td style="text-align: center;">5</td>
-<td style="text-align: center;">pawn / move 2 squares</td>
-<td style="text-align: center;"><span class="math-container">\$y=1\$</span> and <span class="math-container">\$V=2\$</span> and <span class="math-container">\$h=0\$</span></td>
-</tr>
-<tr>
-<td style="text-align: center;">6</td>
-<td style="text-align: center;">pawn / move 1 square</td>
-<td style="text-align: center;"><span class="math-container">\$V=1\$</span> and <span class="math-container">\$h=0\$</span> and <span class="math-container">\$Y&lt;7\$</span></td>
-</tr>
-<tr>
-<td style="text-align: center;">7</td>
-<td style="text-align: center;">pawn / capture</td>
-<td style="text-align: center;"><span class="math-container">\$V=1\$</span> and <span class="math-container">\$h=1\$</span> and <span class="math-container">\$Y&lt;7\$</span></td>
-</tr>
-<tr>
-<td style="text-align: center;">8,10,12,14</td>
-<td style="text-align: center;">pawn / promotion</td>
-<td style="text-align: center;"><span class="math-container">\$V=1\$</span> and <span class="math-container">\$h=0\$</span> and <span class="math-container">\$Y=7\$</span></td>
-</tr>
-<tr>
-<td style="text-align: center;">9,11,13,15</td>
-<td style="text-align: center;">pawn / promotion + capture</td>
-<td style="text-align: center;"><span class="math-container">\$V=1\$</span> and <span class="math-container">\$h=1\$</span> and <span class="math-container">\$Y=7\$</span></td>
-</tr>
-</tbody>
-</table></div>
 </div>
 <div id="pu2" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 140 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
 <pre><code>_/µ¬S1⁼;AE$;Ẹ$;AṢJƑƊ;ỊẠ$
