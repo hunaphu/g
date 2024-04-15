@@ -26,18 +26,95 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>141</td><td>Jelly</td><td>240415T021538Z</td><td><a href="https://codegolf.stackexchange.com/questions/272569/print-all-legal-chess-moves/272590#272590">Jonathan</a></td></tr>
+<tr d-ix="0"><td>140</td><td>Jelly</td><td>240415T021538Z</td><td><a href="https://codegolf.stackexchange.com/questions/272569/print-all-legal-chess-moves/272590#272590">Jonathan</a></td></tr>
 <tr d-ix="1"><td>264</td><td>JavaScript V8</td><td>240414T161721Z</td><td><a href="https://codegolf.stackexchange.com/questions/272569/print-all-legal-chess-moves/272573#272573">Arnauld</a></td></tr>
 <tr d-ix="2"><td>166</td><td>Charcoal</td><td>240414T161820Z</td><td><a href="https://codegolf.stackexchange.com/questions/272569/print-all-legal-chess-moves/272575#272575">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 141 bytes</h1>
-<pre><code>_/µ¬S1⁼;AE$;Ẹ$;AṢJƑƊ;AỊẠƊ
+<div id="pu0" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 140 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
+<pre><code>_/µ¬S1⁼;AE$;Ẹ$;AṢJƑƊ;ỊẠ$
 “ RBQNK”p⁾x-;€”=;þṖḊ$ZḢW;mʋ2
 7Ḋ;€-µjþØ+Ẏ,j€0ṠḤḢṭƲ$
 8p`⁺EÐḟµ_\FḊeⱮ¢+a¥FṪ⁼8Ʋ;ÑḤḣ€@&quot;2£ẎQ¹Ƈż€ị€1¦€Øa$)ẎF€t€⁶⁾O-ṁⱮ3,5¤;K
 </code></pre>
-<p>A full program that prints all of white's possible moves.</p>
-<p><strong><a href="https://tio.run/##y0rNyan8/z9e/9DWQ2uCDR817rF2dFWxfrhrh4q148Odi7yOTTzWBWTt7nq4a8GxLq5HDXMUgpwC/bwfNcwteNS4r0LX@lHTGiDH1vrwvoc7pz3c0aUS9XDHonDr3FPdRlzmQD5Ige6hrVmH9x2eof1wV59OFlDA4OHOBQ93LAGqfLhz7bFNKlwWBQmPGne5Hp7wcMf8Q1vjY9yAOlMfbVx3aJF24qGlbg93rgK6zeLYJuvDE8H6FgMNcVAyOrQYaGLgoZ3H2o/uAYo83N0NJA0PLQOSh2ckqmgCZd2A7BKQIxu3AR3sr/twZyPQXGMd00NLrL3//wcA" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></strong></p>
+<p>A full program that prints all of white's possible moves separated by space characters.</p>
+<p><strong><a href="https://tio.run/##y0rNyan8/z9e/9DWQ2uCDR817rF2dFWxfrhrh4q148Odi7yOTTzWZf1wd9fDXQtUuB41zFEIcgr0837UMLfgUeO@Cl3rR01rgBxb68P7Hu6c9nBHl0rUwx2Lwq1zT3UbcZkD@SAFuoe2Zh3ed3iG9sNdfTpZQAGDhzsXPNyxBKjy4c61xzapcFkUJDxq3OV6eMLDHfMPbY2PcQPqTH20cd2hRdqJh5a6Pdy5Cugyi2ObrA9PBOtbDDTEQcno0GKgiYGHdh5rP7oHKPJwdzeQNDy0DEgenpGoogmUdQOyS0CObNwGdLC/7sOdjUBzjXVMDy2x9v7/HwA" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></strong></p>
+<h4>How?</h4>
+<p>Note: execution starts at the Main Link, at the bottom.</p>
+<pre><code>_/µ¬S1⁼;AE$;Ẹ$;AṢJƑƊ;ỊẠ$ - Link 1: [[StartFile, StartRank], [EndFile, EndRank]]
+_/                       - reduce by subtraction -&gt; [FileDelta, RankDelta]
+  µ                      - start a new monadic chain - f(that)
+   ¬S1⁼                  - logical NOT, sum == 1? -&gt; R = 1 * isRookMove
+        AE$              - absolute values all equal? -&gt; B = 1 * isBishMove
+       ;                 - concatenate -&gt; [isR, isB]
+           ;Ẹ$           - concatenate any {[isR, isB]} -&gt; [isR, isB, isQ]
+               AṢJƑƊ     - absolute values sorted invariant under get indices?
+                             -&gt; isHorseyMove?
+              ;          - concatenate -&gt; [isR, isB, isQ, isN]
+                     ỊẠ$ - all insignificant (abs(x)&lt;=1)? -&gt; isKingMove
+                    ;    - concatenate -&gt; [isR, isB, isQ, isN, isK]
+
+“ RBQNK”p⁾x-;€”=;þṖḊ$ZḢW;mʋ2 - Link 2: no arguments
+“ RBQNK”                     - set left argument to &quot; RBQNK&quot;
+        p⁾x-                 - Cartesian product &quot;x-&quot;
+            ;€”=             - concatenate '=' to each
+                  ṖḊ$        - pop &amp; dequeue {&quot; RBQNK&quot;} -&gt; &quot;RBQN&quot;
+                ;þ           - concatenation table
+                     Z       - transpose
+                      ḢW;mʋ2 - head, wrap, concatenate with every other
+                                 -&gt;  [[&quot; x=R&quot;,&quot; x=B&quot;,&quot; x=Q&quot;,&quot; x=N&quot;],
+                                      [&quot; -=R&quot;,&quot; -=B&quot;,&quot; -=Q&quot;,&quot; -=N&quot;],
+                                      [&quot;R-=R&quot;,&quot;R-=B&quot;,&quot;R-=Q&quot;,&quot;R-=N&quot;],
+                                      [&quot;B-=R&quot;,&quot;B-=B&quot;,&quot;B-=Q&quot;,&quot;B-=N&quot;],
+                                      [&quot;Q-=R&quot;,&quot;Q-=B&quot;,&quot;Q-=Q&quot;,&quot;Q-=N&quot;],
+                                      [&quot;N-=R&quot;,&quot;N-=B&quot;,&quot;N-=Q&quot;,&quot;N-=N&quot;],
+                                      [&quot;K-=R&quot;,&quot;K-=B&quot;,&quot;K-=Q&quot;,&quot;K-=N&quot;]] 
+
+7Ḋ;€-µjþØ+Ẏ,j€0ṠḤḢṭƲ$ - Link 3: no arguments
+7Ḋ                    - seven dequeued -&gt; [2,3,4,5,6,7]
+  ;€-                 - concatenate -1 to each -&gt; PawnData = [[2,-1],...,[7,-1]]
+     µ                - start a new monadic chain - f(that)
+      jþØ+            - table of join with [1, -1]
+          Ẏ           - tighten
+                    $ - last two links as a monad - f(PawnData):
+            j€0       -   join each with zero -&gt; [[2,0,-1],...,[7,0,-1]]
+                   Ʋ  -   last four links as a monad - f(that):
+               Ṡ      -     signs
+                Ḥ     -     double
+                 Ḣ    -     head
+                  ṭ   -     tack
+           ,          - pair
+                          -&gt; [PawnCaptures, PawnPushes] each as
+                               [StartRank, StartFile-EndFile, StartRank-EndRank]
+                           = [[[2,1,-1],...,[7,1,-1],[2,-1,-1],...,[7,-1,-1]],
+                             [[2,0,-1],...,[7,0,-1],[2,0,-2]]]
+
+_\FḊeⱮ¢+a¥FṪ⁼8Ʋ;ÑḤḣ€@&quot;2£ẎQ¹Ƈż€ị€1¦€Øa$ - chain: [[StartFile, StartRank], [EndFile, EndRank]]:
+_\                                     - cumulative reduce by subtraction -&gt; [[StartFile, StartRank], [StartFile-EndFile, StartRank-EndRank]]
+  FḊ                                   - flatten, dequeue -&gt; [StartRank, StartFile-EndFile, StartRank-EndRank]
+    eⱮ¢                                - exists in? map across: call Link 3
+          FṪ⁼8Ʋ                        - EndRank = 8?
+       +a¥                             - add AND -&gt; make 1 a 2 if so 
+               ;Ñ                      - concatenate: call Link 1
+                 Ḥ                     - double
+                  ḣ€@&quot;2£               - call Link 2 and zip with head to {those} indices
+                        ẎQ¹Ƈż€ị€1¦€Øa$
+                        ẎQ¹Ƈ           - tighten, deduplicate, remove empties
+                              ị€1¦€Øa$ - replace 1-8 with a-h for Files
+                            ż€         - zip with each
+         ^ 
+8p`⁺EÐḟµ...)ẎF€t€⁶⁾O-ṁⱮ3,5¤;K - Main Link: no arguments
+8p`                           - [1..8] Cartesian product [1..8]
+   ⁺                          - repeat -&gt; all [[StartFile, StartRank], [EndFile, EndRank]]
+    EÐḟ                       - remove if all equal
+       µ...)                  - monadic chain (see above) for each
+                                  -&gt; non-castling moves with ' ' as pawn
+            ẎF€               - tighten; flatten each
+               t€⁶            - trim spaces (pawns)
+                  ⁾O-ṁⱮ3,5¤   - &quot;O-&quot; mould like [3,5] = [&quot;O-O&quot;, &quot;O-O-O&quot;]
+                           ;  - concatenate
+                            K - join with space characters
+                              - implicit, smashing print
+</code></pre>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://v8.dev/" rel="nofollow noreferrer">JavaScript (V8)</a>, 264 bytes</h1>
 <p>A full program that prints all possible white moves.</p>
