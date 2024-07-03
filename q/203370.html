@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::203370</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>nan</td><td>Python 3</td><td>240419T113703Z</td><td><a href="https://codegolf.stackexchange.com/questions/203370/produce-an-image-based-on-an-elementary-cellular-automata-ruleset/272677#272677">None1</a></td></tr>
+<tr d-ix="1"><td>036</td><td>MATL</td><td>200412T182032Z</td><td><a href="https://codegolf.stackexchange.com/questions/203370/produce-an-image-based-on-an-elementary-cellular-automata-ruleset/203413#203413">Luis Men</a></td></tr>
+<tr d-ix="2"><td>154</td><td>Haskell</td><td>200504T145157Z</td><td><a href="https://codegolf.stackexchange.com/questions/203370/produce-an-image-based-on-an-elementary-cellular-automata-ruleset/204321#204321">Wheat Wi</a></td></tr>
+<tr d-ix="3"><td>247</td><td>Java</td><td>200501T142449Z</td><td><a href="https://codegolf.stackexchange.com/questions/203370/produce-an-image-based-on-an-elementary-cellular-automata-ruleset/204203#204203">Mark Jer</a></td></tr>
+<tr d-ix="4"><td>042</td><td>Wolfram Language Mathematica</td><td>200412T083432Z</td><td><a href="https://codegolf.stackexchange.com/questions/203370/produce-an-image-based-on-an-elementary-cellular-automata-ruleset/203371#203371">ZaMoC</a></td></tr>
+<tr d-ix="5"><td>128</td><td>Python 2</td><td>200412T092522Z</td><td><a href="https://codegolf.stackexchange.com/questions/203370/produce-an-image-based-on-an-elementary-cellular-automata-ruleset/203376#203376">newbie</a></td></tr>
+<tr d-ix="6"><td>057</td><td>05AB1E</td><td>200412T124759Z</td><td><a href="https://codegolf.stackexchange.com/questions/203370/produce-an-image-based-on-an-elementary-cellular-automata-ruleset/203386#203386">Command </a></td></tr>
+<tr d-ix="7"><td>019</td><td>Sledgehammer</td><td>200412T112816Z</td><td><a href="https://codegolf.stackexchange.com/questions/203370/produce-an-image-based-on-an-elementary-cellular-automata-ruleset/203385#203385">the defa</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>Python 3, <del>335</del> 334 bytes</h1>
+<pre class="lang-python prettyprint-override"><code>from PIL import Image
+from numpy import*
+a=zeros((16,31),dtype=uint8)
+x,a[0][15]=list(map(int,input())),1
+for i in range(1,16):
+ a[i][15-i],a[i][15+i]=x[a[i-1][15-i]*2+a[i-1][16-i]],x[a[i-1][14+i]*4+a[i-1][15+i]*2]
+ for j in range(16-i,15+i):
+  a[i][j]=x[a[i-1][j-1]*4+a[i-1][j]*2+a[i-1][j+1]]
+Image.fromarray(a*255,&quot;L&quot;).save('1.png')
+</code></pre>
+<p>This is not very golfed, so no need to explain it.</p>
+<p>Outputs to <code>1.png</code> and black for 0, white for 1.</p>
+<p>Since Python can't do image processing by itself, the packages <code>pillow</code> and <code>numpy</code> are required.</p>
+<p>Input is reversed bits.</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/lmendo/MATL" rel="nofollow noreferrer">MATL</a>, 36 bytes</h1>
+<p><em>Thanks to <a href="https://codegolf.stackexchange.com/users/56656/ad-hoc-garf-hunter">@AdHocGarfHunter</a> for pointing out a mistake, now corrected</em></p>
+<pre><code>l30Ya!15:&quot;GyFTYa3YC!XBQ)]v16:46Z)0YG
+</code></pre>
+<p>Input is binary in reverse order. Output is white for active cell, black for inactive.</p>
+<p>Try it at <a href="https://matl.io/?code=l30Ya%2115%3A%22GyFTYa3YC%21XBQ%29%5Dv16%3A46Z%290YG&amp;inputs=%5B0+1+1+1+1+0+0+0%5D&amp;version=22.2.1" rel="nofollow noreferrer"><strong>MATL Online!</strong></a></p>
+<h3>Explanation</h3>
+<pre><code>l       % Push 1
+30Ya    % Padarray: pads 1 with 30 zeros on each side. Gives a column vector.
+        % This large amount of padding is necessary to avoid edge effects in
+        % the output
+!       % Transpose into a row vector
+15:&quot;    % Do the following 15 times
+  G     %   Push input
+  y     %   Duplicate from below: pushes a copy of the latest row vector
+  FTYa  %   Pad with one zero to the left and one to the right
+  3YC   %   Matrix of length-3 sliding blocks arranged as columns
+  !     %   Transpose. Each block is now a row
+  XB    %   Convert each row from binary to a number
+  Q     %   Add 1 (this is needed because indexing is 1-based)
+  )     %   Index the input with these numbers. This applies the automaton
+        %   rule to each length-3 block, producing a new generation
+]       % End
+v       % Concatenate all row vectors into a matrix
+16:46   % Push [16 17 ... 46]: indices of the columns to be kept
+Z)      % Use as column indices
+0YG     % Write to image file. This is implicitly displayed by MATL Online
+</code></pre>
+</div>
+<div id="pu2" class="pu"><h1><a href="https://www.haskell.org/" rel="nofollow noreferrer">Haskell</a>, <s>175</s> <s>158</s> 154 bytes</h1>
+
+
+
+<pre class="lang-hs prettyprint-override"><code>t=take 16
+f=t$0:f
+(a:b)!s=s&lt;$&gt;p(a:a:b)
+p(a:b:c:d)=(4*a+2*b+c):p(b:c:d)
+p[a,b]=[4*a+3*b]
+m s=putStr"P1 33 16 "&gt;&gt;mapM_ print`mapM_`t(iterate(!(s!!))$f++1:f)
+</code></pre>
+
+<p><a href="https://tio.run/##LY1LCsMgGIT3nsKELDRmEZvShdTcoFDoMoRGU6UhD0T/nN/GtszmmxmYeaswm2WJESSo2WB@QVZCUQuLiBKaZkGGa9G6wySLEmgxiheV5Fwqdio1G6lw5Bci16lK97JLXVPqHq04SLfDA3x@57hpjgect@2q3O2JnZ82GL48AJnAeAWGZCRkGaWFZYwLS6PfFyO7uuJ/1UnHspo2ueLUxg8" rel="nofollow noreferrer" title="Haskell – Try It Online">Try it online!</a></p>
+
+<p>Outputs to a pbm file with white being off and black being on.  You can switch the on and off colors at no cost to bytes.</p>
+
+<h2>Sample outputs</h2>
+
+<h3>Rule 30</h3>
+
+<ul>
+<li><p>Raw</p>
+
+<p><a href="https://i.stack.imgur.com/ykMUd.png" rel="nofollow noreferrer"><img src="https://i.stack.imgur.com/ykMUd.png" alt="enter image description here"></a></p></li>
+<li><p>Increased size</p>
+
+<p><a href="https://i.stack.imgur.com/PCMR3.png" rel="nofollow noreferrer"><img src="https://i.stack.imgur.com/PCMR3.png" alt="enter image description here"></a></p></li>
+</ul>
+
+<h3>Rule 121</h3>
+
+<ul>
+<li><p>Raw</p>
+
+<p><a href="https://i.stack.imgur.com/m9Gwn.png" rel="nofollow noreferrer"><img src="https://i.stack.imgur.com/m9Gwn.png" alt="enter image description here"></a></p></li>
+<li><p>Increased Size</p>
+
+<p><a href="https://i.stack.imgur.com/SErvU.png" rel="nofollow noreferrer"><img src="https://i.stack.imgur.com/SErvU.png" alt="enter image description here"></a></p></li>
+</ul>
+</div>
+<div id="pu3" class="pu"><h1>Java, 247 bytes</h1>
+
+
+
+<pre class="lang-java prettyprint-override"><code>import java.awt.image.*;r-&gt;{BufferedImage i=new BufferedImage(31,16,1);int[]p=((DataBufferInt)i.getRaster().getDataBuffer()).getData();p[15]=-1;for(int a=31;a&lt;496;a++)p[a]=r&lt;&lt;31-(p[a==31?0:a-32]&lt;&lt;2&amp;4|p[a-31]&lt;&lt;1&amp;2|p[a==495?0:a-30]&amp;1)&gt;&gt;31;return i;}
+</code></pre>
+
+<p><a href="https://repl.it/repls/PolishedMadeupMonad" rel="nofollow noreferrer">repl.it</a></p>
+
+<p>Before minimizing:</p>
+
+<pre class="lang-java prettyprint-override"><code>rule -&gt; {
+    BufferedImage image  = new BufferedImage(31, 16, BufferedImage.TYPE_INT_RGB);
+    int[]         pixels = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
+    pixels[15]           = -1;
+    for (int i = 31; i &lt; 496; i++)
+        pixels[i] = rule &lt;&lt; 31 - (pixels[Math.max(0, a - 32)] &lt;&lt; 2 &amp; 4 | 
+                                  pixels[i - 31] &lt;&lt; 1 &amp; 2 | 
+                                  pixels[i == 495 ? 0 : i - 30] &amp; 1) &gt;&gt; 31;
+    return image;
+};
+</code></pre>
+
+<p>Inner magic ungolfed:</p>
+
+<pre class="lang-java prettyprint-override"><code>BOTTOM_LEFT_PIXEL_WHICH_IS_WRITTEN = 465;
+int upLeft  = pixels[Math.max(0, i - 32)];
+int up      = pixels[i - 31];
+int upRight = pixels[i - 30 == BOTTOM_LEFT_PIXEL_WHICH_IS_WRITTEN ? 0 : i - 30];
+int code    = ((upLeft &lt;&lt; 2) &amp; 4) | ((up &lt;&lt; 1) &amp; 2) | (upRight &amp; 1);
+int newBit  = (rule &gt;&gt; code) &amp; 1;
+pixels[i] = newBit == 0 ? 0x00000000 : 0xFFFFFFFF;
+</code></pre>
+
+<p>Notes: The code could be even shorter if the output image was allowed to be 32 pixels wide instead of 31. It could be even shorter if 'active' pixels may be  impossibly invisible dark blue (#000001)</p>
+
+<p>It could surely be shorter with pbm output, but I like to see my stuff directly.</p>
+</div>
+<div id="pu4" class="pu"><h1><a href="https://www.wolfram.com/wolframscript/" rel="nofollow noreferrer">Wolfram Language (Mathematica)</a>, 42 bytes</h1>
+
+<p>¯\_(ツ)_/¯</p>
+
+<pre><code>Image@CellularAutomaton[#,{{1},0},15]&amp;    
+</code></pre>
+
+<blockquote>
+  <blockquote>
+    <p><strong>n=30</strong>   </p>
+  </blockquote>
+</blockquote>
+
+<p><a href="https://i.stack.imgur.com/V9j8M.png" rel="nofollow noreferrer"><img src="https://i.stack.imgur.com/V9j8M.png" alt="enter image description here"></a>      </p>
+
+<blockquote>
+  <blockquote>
+    <p><strong>n=26</strong>      </p>
+  </blockquote>
+</blockquote>
+
+<p><a href="https://i.stack.imgur.com/psb5r.png" rel="nofollow noreferrer"><img src="https://i.stack.imgur.com/psb5r.png" alt="enter image description here"></a></p>
+
+<p>Since this challenged changed to gode-golf I applied the changes that @Dan the Man proposed and saved some bytes.<br>
+The images now should have inverted colors</p>
+</div>
+<div id="pu5" class="pu"><h1><a href="https://docs.python.org/2/" rel="noreferrer">Python 2</a>, <s>178 167 ...</s> 128 bytes</h1>
+
+<p><em>-13 bytes thanks to @Surculose Sputum!</em></p>
+
+<p><em>-2 bytes thanks to @dingledooper!</em></p>
+
+<p><em>thanks @Surculose Sputum again for saving some bytes and fixing the boundary bug!!!!</em></p>
+
+
+
+<pre class="lang-python prettyprint-override"><code>n=input()
+print'P1 31 16'
+c='%061d'%10**30
+exec"print' '.join(c[15:46]);c='0'+''.join(n[int(c[u:u+3],2)]for u in range(60));"*16
+</code></pre>
+
+<p><a href="https://tio.run/##VY7BbsMgEETvfMVqowjjVBVrJxwc@R96j3ywHBoTuYAoVtKvd4H00rnN29nd8T9xdrbZdnB1EGfzDdFB0F6PMVkNPrhbGL/g0wUYlwWM9Wtkj9ksGqjTTz0BIm62L4NKMB@MjfyDoCUgxdnU871UdOV7knXdSpZ38JUC/n53xlbThU7dUQ3inNKSH/gft5eUStO1Ww/t8NaIIddYUwkIo73pSkkhzliT2spB7P8JWa6GkpKklAg7SP@RCqDiqTllkJRIBk0BVPwLHNtf" rel="noreferrer" title="Python 2 – Try It Online">Try it online!</a></p>
+
+<p>Output a 31x16 pbm image in stdout. You might need a magnifying glass to see those tinnie images though.</p>
+
+<blockquote>
+  <p>'01111000' => <a href="https://i.stack.imgur.com/uZ6Py.png" rel="noreferrer"><img src="https://i.stack.imgur.com/uZ6Py.png" alt="30"></a> (30 in reverse)<br>
+  '01011000' => <a href="https://i.stack.imgur.com/LabYe.png" rel="noreferrer"><img src="https://i.stack.imgur.com/LabYe.png" alt="26"></a> (26 in reverse)</p>
+</blockquote>
+</div>
+<div id="pu6" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E" rel="nofollow noreferrer">05AB1E</a>, 57 bytes</h1>
+
+<pre><code>"P1 31 16",¾16иJD"ÿ1ÿ"16E©D¦¨Sðý,31Lε&lt;®s.$3£C7αIsè}J"0ÿ0"
+</code></pre>
+
+<p>a (bad) port of <a href="https://codegolf.stackexchange.com/a/203376/92727">this python answer</a></p>
+
+<p><a href="https://tio.run/##AVoApf9vc2FiaWX//yJQMSAzMSAxNiIswr4xNtC4SkQiw78xw78iMTZFwqlEwqbCqFPDsMO9LDMxTM61PMKucy4kM8KjQzfOsUlzw6h9SiIww78wIv//MDAwMTEwMTA" rel="nofollow noreferrer" title="05AB1E – Try It Online">Try it online!</a></p>
+</div>
+<div id="pu7" class="pu"><h1>Sledgehammer, <s>24</s> 19 bytes</h1>
+<p><sup>(alternatively, 18.625)</sup><br />
+Obtained from the Wolfram code <code>ExportString[ArrayPlot[CellularAutomaton[Input[], {{1}, 0}, {15, All}]], &quot;SVG&quot;]</code>.</p>
+<p>Outputs via (as you could easily tell) SVG. The ExportString part can be dropped, but then it will output a Graphics object - it's basically an image, but it's hard to view without loading it into Mathematica or exporting it via Export/ExportString.</p>
+<pre><code>⣕⢼⡔⡼⣂⡏⢂⠌⢤⡾⣧⣾⢴⠮⣯⠴⢒⣈⣱
+</code></pre>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/203370/">203370</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+

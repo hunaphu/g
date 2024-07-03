@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::65546</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>085</td><td>Pip r</td><td>240523T202339Z</td><td><a href="https://codegolf.stackexchange.com/questions/65546/does-the-fishy-road-have-an-end/273272#273272">DLosc</a></td></tr>
+<tr d-ix="1"><td>282</td><td>Python3</td><td>240520T210231Z</td><td><a href="https://codegolf.stackexchange.com/questions/65546/does-the-fishy-road-have-an-end/273202#273202">Ajax1234</a></td></tr>
+<tr d-ix="2"><td>nan</td><td></td><td>151202T181420Z</td><td><a href="https://codegolf.stackexchange.com/questions/65546/does-the-fishy-road-have-an-end/65571#65571">Aaron</a></td></tr>
+<tr d-ix="3"><td>145</td><td>JavaScript</td><td>151203T174657Z</td><td><a href="https://codegolf.stackexchange.com/questions/65546/does-the-fishy-road-have-an-end/65658#65658">apsiller</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1><a href="https://github.com/dloscutoff/pip" rel="nofollow noreferrer">Pip</a> <code>-r</code>, 85 bytes</h1>
+<pre><code>L#Jg{xPB Y(gDo+:1210@sDp+:2101@s)I#(a:&quot;&gt;v&lt;^&quot;@?y)s:aI#(b:&quot;\/&quot;@?y)s:(s+bBX1)-b}x~`[-|]`
+</code></pre>
+<p>Reads the grid from stdin. Prints the first wall character encountered (<code>|</code> or <code>-</code>) if the road has an end; prints nothing (nil) if the road does not have an end.</p>
+<p>This can probably be golfed by stealing some of the techniques from <a href="https://codegolf.stackexchange.com/a/65658/16766">apsillers's JavaScript answer</a>; I haven't had a chance to go through it carefully yet.</p>
+<p><a href="https://ato.pxeger.com/run?1=m724ILNgWbSSbpFS7IKlpSVpuhY3Q32UvdKrKwKcFCI10l3yta0MjQwNHIpdCrStgAxDh2JNT2WNRCsluzKbOCUH-0rNYqtEoEiSlVKMPpSvUayd5BRhqKmbVFtRlxCtWxObADEcaseCm47aulCgzVVjZxejEJKRWVzDVRMTo6CgkFmsAGQqKAA5iQpgZoyCfklRYkENF0IbxCQA" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<h3>Ungolfed</h3>
+<pre class="lang-lisp prettyprint-override"><code>; Directions
+$east : 0
+$south : 1
+$west : 2
+$north : 3
+; Control characters
+$arrows : &quot;&gt;v&lt;^&quot;
+$mirrors : &quot;\/&quot;
+; Grid is list of lines read from stdin by -r flag
+$grid : g
+; Initial position is just off-grid, about to move onto the top left square
+$x : 0
+$y : 1
+; Initial direction is east
+$dir : $east
+; String for tracking which squares are visited
+$visited : &quot;&quot;
+
+; Loop a number of times equal to the size of the grid
+L # J $grid {
+ ; Step in current direction
+ $dir %: 4
+ $x +: ($dir = $east ? 1 $dir = $west ? -1 0)
+ $y +: ($dir = $south ? 1 $dir = $north ? -1 0)
+ ; Store character at new grid location
+ $char : ($grid $y $x)
+ ; Append it to visited string
+ $visited PB $char
+ ; Change direction based on grid character
+ I $char N $arrows {
+  ; New direction is index of arrow character in arrow list
+  $dir : $arrows @? y
+ }
+ I $char N $mirrors {
+  ; \ turns 0 &lt;-&gt; 1 and 2 &lt;-&gt; 3
+  ; / turns 0 &lt;-&gt; 3 and 1 &lt;-&gt; 2
+  ; Calculate by bitwise XORing with 1, offset by 1 if the character is /
+  $dir : ($dir + ($mirrors @? y) BX 1) - ($mirrors @? y)
+ }
+ ; Other characters don't affect the direction
+ ; In particular, the IP will pass through - or | and wrap around to the
+ ; other side of the grid, but we don't care what it does after the first
+ ; - or |
+}
+
+; Output first - or | character visited, or nil if none were visited
+$visited ~ `[-|]`
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>Python3, 282 bytes</h1>
+<pre class="lang-py prettyprint-override"><code>M={'&gt;':(0,1),'&lt;':(0,-1),'^':(-1,0),'v':(1,0)}
+def f(b):
+ q=[(1,1,*M[b[1][1]],[])]
+ for x,y,X,Y,p in q:
+  T=b[x][y]
+  if T in'+|-':return 1
+  if T in M:X,Y=M[T]
+  J,K=x+X,y+Y;U=(x,y,J,K)
+  if U in p:continue
+  if'\\'==b[J][K]:X,Y=Y,X
+  if'/'==b[J][K]:X,Y=-Y,-X
+  q+=[(J,K,X,Y,p+[U])]
+</code></pre>
+<p><a href="https://tio.run/##jVRNb5tAED2XXzHyBQiLN8T5cFzDuUrknmzJ1gKV3UCN4gAGQoxKf7s7u2BsJ9uoKw6zb968fTOwpFWxTuLBMM32@4n9W3XUkXZJLJ2oYxGZPPQxNC1yiWGJIY/@KE9BCKG20kcKbG2GoEUuJmzFLA8fjzBP9xQIkwx2pCJzsiApRDFskQ5Te8V2HquQAFEIU0yoRm2qoywoXrMYrCMOkxHW2hM25eQH8mjvjDmpjMXXma1xZYT0hj7j9HT0M4mLKH4NBKi6rmrjaQ8ee/SE0oLMmwx9lzAXxOSprYHdoGrj2WAzbGSfW2BDr9dTDFOyDKV2XApQrKMc3pYV4M4BqJUaSh9OFicdYb9/muSwS91u75QdTEVds/xxC//DCTeZX713yx06LkzRIAq6uFADzXJ1ENtl68AFWmTLtIbTYiE6OIqi3LhEuj@um60gXJ8RnI@Em49DRGIJ34LNJgEXWmtNu/QwkcasyCJOKU638Qo@dR1RICqBz4mX1ucHiKNvz45uXhgv5aIioFxCRAeQthDtBFutu1Mt0QBAN9Wm9rAv2yYOEq3C8P8VfLnC/WffY9fj2AHpQsk8eQnwe41/Qf6C488hjPJ11e/36081@Zn85hfJj1WyzJ60Z/wBfGnvLWMXkSfufMTvYhhtiiDTvidxQOC5n6ebqNBUN1Z1/DUoaRbFhRZqnVJu6bouga/k8EAOX8vhGzl8K4fv5PBQDt8jvP8L" rel="nofollow noreferrer">Try it online!</a></p>
+</div>
+<div id="pu2" class="pu"><h1>Non-compliant >&lt;> answer</h1>
+
+<p>You wanted >&lt;>, I give you >&lt;> !</p>
+
+<p>I believe the only sane way to do this in >&lt;> is by copying the input in the codespace and letting the interpreter decide by itself if the input leads somewhere. Since >&lt;> doesn't implement threading anymore, that leaves us with a big problem : if the input has a loop, we'll get stuck into it.</p>
+
+<p>These considerations taken into account, I decided to make a solution compatible with <a href="http://fishlanguage.com/playground" rel="nofollow noreferrer">>&lt;> online interpreter</a> so that it would be possible to assert if the interpreter is stuck in the input or just taking ages to do everything. I also had to add trailing lines to the code so the online interpreter shows the added code and doesn't crash when trying to write to it.</p>
+
+<p>Oh and since I'm clearly disqualified by now, I didn't bother with golfing the code.</p>
+
+<p>Without further ado, the code in all its glory :</p>
+
+<pre><code>50i:0(?v   :"^"=?v:"v"=?v:"&gt;"=?v:"&lt;"=?v:"/"=?v:"\"=?v:"|"=?v:"-"=?va=?v1+10.
+&gt;.!603f&lt;         v"."~                                     &lt;      &lt;   &gt;~1+010.
+&gt;.!01+1p}:$}:}v! &lt;      &lt;      &lt;      &lt;      &lt;      &lt;
+  ;oooo"true" &lt;&lt;
+              ^
+</code></pre>
+
+<p>To use it, copy it in the online interpreter, add enough trailing lines to handle your input, submit the code, give it the input <strike>as <code>;</code>-separated lines</strike> and enjoy the ride.</p>
+
+<p>A few tests :</p>
+
+<blockquote>
+  <p>With</p>
+
+<pre><code>+--------------------+
+|&gt;\/  this way &gt;\/&gt;  | this one ends here
+| v^            \/   |
+| v^   ^.^           |
+| \/\         &gt;v     |
+| /\/         ^&lt;     |
++--------------------+` 
+</code></pre>
+  
+  <p>Final codespace :</p>
+
+<pre><code>50i:0(?v   :"^"=?v:"v"=?v:"&gt;"=?v:"&lt;"=?v:"/"=?v:"\"=?v:"|"=?v:"-"=?va=?v1+10.
+&gt;.!603f&lt;         v"."~                                     &lt;      &lt;   &gt;~1+010.
+&gt;.!01+1p}:$}:}v! &lt;      &lt;      &lt;      &lt;      &lt;      &lt;
+  ;oooo"true" &lt;&lt;
+            ^
+ ....................
+.&gt;\/           &gt;\/&gt;  .                   
+. v^            \/   .
+. v^   ^ ^           .
+. \/\         &gt;v     .
+. /\/         ^&lt;     .
+ ....................
+</code></pre>
+  
+  <p>Outputs "true" and stops.</p>
+</blockquote>
+
+<hr>
+
+<blockquote>
+  <p>With</p>
+
+<pre><code>+--------+
+|&gt;&gt;\ This|
+|\\   is |
+|  \\ a  |
+| \ /trap| 
++--------+
+</code></pre>
+  
+  <p>Final codespace :</p>
+
+<pre><code>50i:0(?v   :"^"=?v:"v"=?v:"&gt;"=?v:"&lt;"=?v:"/"=?v:"\"=?v:"|"=?v:"-"=?va=?v1+10.
+&gt;.!603f&lt;         v"."~                                     &lt;      &lt;   &gt;~1+010.
+&gt;.!01+1p}:$}:}v! &lt;      &lt;      &lt;      &lt;      &lt;      &lt;
+  ;oooo"true" &lt;&lt;
+            ^
+ ........ 
+.&gt;&gt;\     .
+.\\      .
+.  \\    .
+. \ /    .
+ ........
+</code></pre>
+  
+  <p>Loops forever.</p>
+</blockquote>
+</div>
+<div id="pu3" class="pu"><h1>JavaScript, ES6, <s>177</s> <s>161</s> 145 bytes</h1>
+
+<pre><code>f=(s,i=1,M=[],D)=&gt;D==5||!~M[O="indexOf"](D+i)&amp;&amp;f(s,i-[M.push(D+i),L=s[O]('|'),-L,1,-1][D=`431255${5-D+'X3412'[D]}`['&gt;&lt;^v-|/\\'[O](s[i+L])]||D],M,D)
+</code></pre>
+
+<p>We can detect a cycle by traversing the path and detecting a repeat of the tuple</p>
+
+<ul>
+<li>location</li>
+<li>coming-from direction</li>
+</ul>
+
+<p>That is, if we are entering some position <code>(x,y)</code> coming from some direction <code>D</code> for the second time, we know that this cycle will repeat forever. Therefore, the code keeps track of all locations that were visited, and from what direction, and checks against that record each time a new space is visited.</p>
+
+<p>The directions up, down, left, and right are assigned the numbers <code>1</code>, <code>2</code>, <code>3</code>, and <code>4</code>. The code considers the current symbol being visited (<code>s[i+L]</code>) and changes the current direction (<code>D</code>), then the new direction is used to recursively call the function and evaluate the next space. <code>5</code> as a direction indicates a wall, and a <code>true</code> termination of the program.</p>
+
+<p>Here is an explanation of less-golfed code:</p>
+
+<pre><code>f=
+(s,     // input string
+ i=1,   // current location as offset string index
+ M=[],  // record of previously visited spaces
+ D      // current direction
+  )=&gt;(
+    L=s[O="indexOf"]('|'), // find arena width `L` by index of first `|`
+
+    // if D is 5, return true, or...
+    D==5 ||
+
+    // if direction + position is not new, return false
+    !~M[O](D+i) &amp;&amp;
+
+    // otherwise, save this direction + position
+    M.push(D+i) &amp;&amp;
+
+    // recursively call `f` with new direction and position
+    f(s,
+      i-[,L,-L,1,-1][D=            // modify position based on active direction
+        `431255${5-D+'X3412'[D]}`  // from these possible directions...
+          [                        // chose the one at the index...
+            '&gt;&lt;^v-|/\\'[O](        // based on the index of the symbol 
+                           s[i+L]  // of the current character
+                                 )
+          ]
+        ||D     // or preserve old D if symbol is not directional
+      ],
+      M,D)
+</code></pre>
+
+<p>The template string <code>`431255${5-D+'X3412'[D]}`</code> has a nested expression that handles the mirrors: because the directions are numbers, they can also be used as indexes. The expression <code>'X3412'[D]</code>, evaluates to the 8th character in the possible-direction string, and so corresponds to <code>\</code>, the 8th character in the symbol string <code>'&gt;&lt;^v-|/\\'</code>). The expression says,</p>
+
+<ul>
+<li>If current direction <code>D</code> is <code>1</code> (up), then the new direction on hitting a <code>\</code> mirror will be <code>3</code> (left)</li>
+<li>If current direction <code>D</code> is <code>2</code> (down), then the new direction on hitting a <code>\</code> mirror will be <code>4</code> (right)</li>
+<li>etc.</li>
+</ul>
+
+<p>The other mirror <code>/</code> would use the expression <code>'X4321'[D]</code>, but since that's simply an ordered count-down from <code>4</code>, we can express it more simply as <code>5-D</code>.</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/65546/">65546</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+

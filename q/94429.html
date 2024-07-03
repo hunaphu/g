@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::94429</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>032</td><td>Vim</td><td>160928T161202Z</td><td><a href="https://codegolf.stackexchange.com/questions/94429/shortest-way-to-strip-the-commas-from-column-n-given-a-csv-file-input/94787#94787">Christia</a></td></tr>
+<tr d-ix="1"><td>081</td><td>PHP</td><td>160926T123018Z</td><td><a href="https://codegolf.stackexchange.com/questions/94429/shortest-way-to-strip-the-commas-from-column-n-given-a-csv-file-input/94601#94601">Titus</a></td></tr>
+<tr d-ix="2"><td>059</td><td>R</td><td>160926T115956Z</td><td><a href="https://codegolf.stackexchange.com/questions/94429/shortest-way-to-strip-the-commas-from-column-n-given-a-csv-file-input/94596#94596">rturnbul</a></td></tr>
+<tr d-ix="3"><td>056</td><td>Haskell</td><td>160926T114759Z</td><td><a href="https://codegolf.stackexchange.com/questions/94429/shortest-way-to-strip-the-commas-from-column-n-given-a-csv-file-input/94593#94593">BlackCap</a></td></tr>
+<tr d-ix="4"><td>nan</td><td>Sh + GNU Sed</td><td>160925T152203Z</td><td><a href="https://codegolf.stackexchange.com/questions/94429/shortest-way-to-strip-the-commas-from-column-n-given-a-csv-file-input/94465#94465">someonew</a></td></tr>
+<tr d-ix="5"><td>080</td><td>Ruby</td><td>160925T144233Z</td><td><a href="https://codegolf.stackexchange.com/questions/94429/shortest-way-to-strip-the-commas-from-column-n-given-a-csv-file-input/94462#94462">lynn</a></td></tr>
+<tr d-ix="6"><td>027</td><td>05AB1E</td><td>160925T145908Z</td><td><a href="https://codegolf.stackexchange.com/questions/94429/shortest-way-to-strip-the-commas-from-column-n-given-a-csv-file-input/94463#94463">Emigna</a></td></tr>
+<tr d-ix="7"><td>090</td><td>JavaScript ES6</td><td>160924T222314Z</td><td><a href="https://codegolf.stackexchange.com/questions/94429/shortest-way-to-strip-the-commas-from-column-n-given-a-csv-file-input/94433#94433">Arnauld</a></td></tr>
+<tr d-ix="8"><td>092</td><td>Python 2</td><td>160924T215658Z</td><td><a href="https://codegolf.stackexchange.com/questions/94429/shortest-way-to-strip-the-commas-from-column-n-given-a-csv-file-input/94431#94431">Copper</a></td></tr>
+<tr d-ix="9"><td>129</td><td>NodeJS</td><td>160924T225605Z</td><td><a href="https://codegolf.stackexchange.com/questions/94429/shortest-way-to-strip-the-commas-from-column-n-given-a-csv-file-input/94434#94434">DanTheMa</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h2>Vim, 32 keystrokes (excluding column index)</h2>
+
+<p>This uses 1-based column indices (which might make this answer invalid). </p>
+
+<p>The problem here is that Vim does not start from the current character but rather from the following one... So it's not "easy" to match the 1st set of quotes. Instead, it finds the <em>closing</em> quotes and selects backwards. </p>
+
+<h3>Solution</h3>
+
+<p><code>qq</code> + the column index + <code>/\v"(,"|$)&lt;cr&gt;vF":s/\%V,//&lt;cr&gt;&lt;cr&gt;@qq@q</code></p>
+
+<h3>Explanation</h3>
+
+<ul>
+<li><code>qq</code> starts recording macro <code>q</code></li>
+<li><code>/\v"(,"|$)&lt;cr&gt;</code> searches for the next ending quote or end if line. Preceded by the input column number, it finds the nth occurrence </li>
+<li><code>vF"</code> visually selects the previous quote </li>
+<li><code>":s/\%V,//&lt;cr&gt;</code> substitutes in the visual selection (<code>\%V</code>) every comma by nothing </li>
+<li><code>&lt;cr&gt;</code> goes to the next line </li>
+<li><code>@qq@q</code> makes the macro recursive, stops it and then play it until the end of the file. </li>
+</ul>
+
+<h3>Gotchas</h3>
+
+<ul>
+<li>If a column only contains commas, it will be detected as a column end and will break. This is a gray zone, I will adapt the answer is the question adds this to the test cases. </li>
+</ul>
+</div>
+<div id="pu1" class="pu"><h1>PHP, 81 bytes</h1>
+<pre><code>while($r=fgetcsv(STDIN)){$r[$n=argv[1]]=strtr($r[$n],&quot;,&quot;,&quot;&quot;);fputcsv(STDOUT,$r);}
+</code></pre>
+<p>Run with <code>php -r '&lt;code&gt;' &lt;n&gt; &lt; &lt;csvsource&gt; &gt; &lt;csvtarget&gt;</code>.</p>
+</div>
+<div id="pu2" class="pu"><h1>R, 59 bytes</h1>
+
+<pre><code> function(f,n){x=read.csv(f,h=0);x[,n]=gsub(",","",x[,n]);x}
+</code></pre>
+
+<p>A simple function that takes <code>f</code>, the location of the csv file, and <code>n</code>, the column number to replace. Reads in the file, removes all commas from the <code>n</code>th column, returns the resulting data frame. R indexes from <code>1</code>, not from <code>0</code>.</p>
+</div>
+<div id="pu3" class="pu"><h1>Haskell, 56 bytes</h1>
+
+<pre><code>n!x=Math.FFT.Base.adjust(filter(/=','))n.read$'[':x++"]"
+</code></pre>
+
+<p>Without <code>adjust</code> you'd have to do something crazy like this:</p>
+
+<pre><code>n#(a,b)|a==n|filter(/=',')b|1&lt;2=b; .. (n#)=&lt;&lt;zip ..
+</code></pre>
+</div>
+<div id="pu4" class="pu"><h1>Sh + GNU Sed <s>GNU Sed</s>, 36 <s>28 + 1</s> bytes</h1>
+<p>Run with <code>-r</code> flag.</p>
+<pre><code>sed -r 's/(,?&quot;\w*),?(\w*&quot;)/\1\2/'$1
+</code></pre>
+<p>One argument to select proper column (1-indexed). This uses a GNU-specific sed extension.</p>
+<hr />
+<p>Old version: <code>s/(,?\&quot;\w*),?(\w*\&quot;)/\1\2/3</code></p>
+<p>This required replacing the last 3 to select the proper column (1-indexed), which I'm not sure is allowed.</p>
+</div>
+<div id="pu5" class="pu"><h1>Ruby, 80 bytes</h1>
+
+<pre><code>require'csv'
+-&gt;n,x{CSV.read(x).map{|a|a[n].delete!',';a.to_csv(force_quotes:1)}}
+</code></pre>
+
+<p>A lambda that takes <code>n</code> and a file path argument, and returns a list of CSV rows.</p>
+</div>
+<div id="pu6" class="pu"><h1><a href="http://github.com/Adriandmen/05AB1E" rel="nofollow">05AB1E</a>, 27 bytes</h1>
+
+<pre><code>U|vy“","“©¡vyNXQi","-}})®ý,
+</code></pre>
+
+<p><strong>Explanation</strong></p>
+
+<pre><code>U                           # store index in X
+ |v                         # for each line
+   y“","“©¡                 # split on ","
+           v          }     # for each in the split list
+            yNXQi","-}      # if it's index equals X, remove any commas
+                       )    # wrap in list
+                        ®ý, # merge on "," and print
+</code></pre>
+
+<p><a href="http://05ab1e.tryitonline.net/#code=VXx2eeKAnCIsIuKAnMKpwqF2eU5YUWkiLCItfX0pwq7DvSw&amp;input=MgoiYXBwbGUiLCJiYW5hbmEiLCJhcHBsZSxiYW5hbmEiLCJvcmFuZ2UiCiJncmFwZSIsIm9yYW5nZSIsImdyYXBlLG9yYW5nZSIsInNwcm91dCI" rel="nofollow">Try it online!</a></p>
+</div>
+<div id="pu7" class="pu"><h2>JavaScript (ES6), <s>95</s> <s>93</s> 90 bytes</h2>
+<p>Takes the content of the CSV file as its first parameter and the column index as its second parameter, with currying syntax.</p>
+<p><div class="snippet" data-lang="js" data-hide="false" data-console="true" data-babel="false">
+<div class="snippet-code">
+<pre class="snippet-code-js lang-js prettyprint-override"><code>let f =
+
+s=&gt;n=&gt;s.split(/("[^"]*")/).map(c=&gt;(c&lt;' '?(k=0,c):k++-n*2?c:c.split`,`.join``),k=-1).join``
+
+console.log(f(
+`"apple","banana","apple,banana","orange"
+"grape","orange","grape,orange","sprout"
+`)(2));</code></pre>
+</div>
+</div>
+</p>
+</div>
+<div id="pu8" class="pu"><h1>Python 2, <s>129</s> <s>126</s> <s>125</s> <s>98</s> <s>96</s> <s>94</s> 92 bytes</h1>
+
+<pre class="lang-py prettyprint-override"><code>lambda n,f:''.join(c*((r[:i].count('"')-n*2)*','!=c)for r in open(f)for i,c in enumerate(r))
+</code></pre>
+
+<p>This is a lambda expression; to use it, prefix <code>lambda</code> with <code>s=</code>.</p>
+
+<p>Iterates through each character of each line, filtering characters based on whether it's a comma and it's in a double-quoted string.</p>
+
+<p>Now doesn't use the <code>csv</code> module at all!</p>
+
+<p>Example run:</p>
+
+<pre><code>&gt;&gt;&gt; s=lambda n,f:''.join(c*((r[:i].count('"')-n*2)*','!=c)for r in open(f)for i,c in enumerate(r))
+&gt;&gt;&gt; print s(2, 'test.csv')
+"apple","banana","applebanana","orange"
+"grape","orange","grapeorange","sprout"
+</code></pre>
+</div>
+<div id="pu9" class="pu"><h1>NodeJS, 129 bytes</h1>
+
+<pre><code>(f,n)=&gt;(require("fs").readFileSync(f)+"").split`
+`.map(a=&gt;a.match(/".*?"/g).map((b,i)=&gt;i-n?b:b.replace(/,/g,"")).join`,`).join`
+`
+</code></pre>
+
+<p>Defines an anonymous function that takes a file path and a number as input. It is no longer required to take input as a file, but I will leave this here for comparison.</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/94429/">94429</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+

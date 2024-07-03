@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::196216</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>725</td><td>Scala 3</td><td>240603T034849Z</td><td><a href="https://codegolf.stackexchange.com/questions/196216/calculate-coefficient-of-inbreeding/273413#273413">138 Aspe</a></td></tr>
+<tr d-ix="1"><td>278</td><td>Python 2</td><td>191125T113728Z</td><td><a href="https://codegolf.stackexchange.com/questions/196216/calculate-coefficient-of-inbreeding/196358#196358">Dead Pos</a></td></tr>
+<tr d-ix="2"><td>033</td><td>Jelly</td><td>191122T095024Z</td><td><a href="https://codegolf.stackexchange.com/questions/196216/calculate-coefficient-of-inbreeding/196268#196268">Nick Ken</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1><a href="https://www.scala-lang.org/" rel="nofollow noreferrer">Scala 3</a>, 725 bytes</h1>
+<p>A port of <a href="https://codegolf.stackexchange.com/a/196358/110802">@Dead Possum's Python 2 answer</a> in Scala.</p>
+<p>725 bytes, it can be golfed much more.</p>
+<hr />
+<p>Golfed version. <a href="https://ato.pxeger.com/run?1=hVXJbtswEAWKnvwVEx8CCrEVJ0GBwq0PqYMCKmLUiLsACXKgZCpmTVECRWcr8iW9pIf20u_pJV_TIUVZG4JeRHGWN28exdGP33lEBT36c9EfyvSGKtm_fHrJeZKlSoP1-VEqBIs0T6WfbDQNBev9x--f8ly_28QxU71eGn5DL8wol_C9B7BkMSS4IVRd5WM4VoreXSy04vLq0hvDZ8k1TGwkwP4-nLCYS_SBXjHgMttoEIgOaWzX3MZdUwEBZpm6xFqgeO_PV1zwDIL-APofUiolNW_TFVWC5fDFbN4zteSSymURFeQ0ZEJQOOx7gwbW1nPQwZhRxS1yWS9oJ7eqHCOTAmdGb3nCheBUmrQachDQbejzZA6LFIXWOoTdY7ettC3Rbllb56id4KobvwgZHnrVL1RNfLVICTpb6RURo7SiMuJ5ocAZk1R3-FX6VYzqsnZ0bYnVJob7K6qYbh10B6ZqoKLWhOucQI1Tq1DpaUvVEbfBqF2uxbhDuQHcCS7Rup9Al13zUgRB2Pdshtfb3q5zvF2NCHM3P2HPTAMTLGFSV8GK5RthbvH0Y0CCAZwXcBnecS0kKdzG9vBro-Ph66cXf81UsNFjy_LCPtxUuESEMRQbnBAn6QZnjJsRptwc38vJM6OZSxtANYW2SMRUjVMF5AzeDiF4A8qsZ76ma0YOPc8NHh4D2ZnjaJMaR1VOFHrm-HQzpolKivasf29vgmhLlWaIZjp0Ey-ek6jsYQCZ69IBDECN67iN5r3nXds5aehGMJmg0tgQUsismYmcWV-tkwg7sQLcm8bnxX5O7pEUjPcAV1W0oxz7a6pALbDUyB-V4q1trr9md3mpmDmIjOpVjpGIty7kJ179GIjnVbFTDLQJyC0J8cM1f5C8UM2ViUyZbFqWKBIp5kVk5NVMoTUd1E3RKdoIxfOA0PNzfs-c00p1CkM4MHptI3S6YNrG7e4C9fGXo31B8T-zM4Gw2npGCtQ3QeJ-lt6Qkf9qABbPEX9wsqlFz33dP936-Fis_wA" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<pre class="lang-scala prettyprint-override"><code>def COI(I: List[List[String]], Z: String): Double = {
+  val P = mutable.Map[String, ListBuffer[String]]()
+  for (R &lt;- I; r &lt;- R.take(2)) {
+    if (!P.contains(r)) P(r) = ListBuffer[String]()
+    P(r) ++= R.drop(2)
+  }
+  def fP(c: String, p: List[String], r: ListBuffer[List[String]]): ListBuffer[List[String]] = {
+    if (c == Z) r += p
+    else if (P.contains(c)) for (z &lt;- P(c)) fP(z, p :+ z, r)
+    r
+  }
+  var rS = 0.0
+  for (k &lt;- P.keys) {
+    val paths = fP(k, List(), ListBuffer())
+    val pC = paths.combinations(2)
+    for (c &lt;- pC) {
+      val a = c(0)
+      val b = c(1)
+      val cL = (a ++ b).size
+      if (cL - 1 == (a ++ b).toSet.size&amp;&amp; a.init.last != b.init.last) rS += math.pow(0.5, cL - 2)
+    }
+  }
+  rS
+}
+</code></pre>
+<p>Ungolfed version. <a href="https://ato.pxeger.com/run?1=hVbNbttGEL7rKSY6BCQsM7aDAoVQHVynKVjEqGD3B3CQw5IaWlsvl-zu0o5d-El6ySV5g75Mn6azP_yPUB0k7s7MN9_8in9_0TkT7PWnT58bUxx_--_iH17WlTLg7pO8EgJzwyuZlI1hmcDF_8iTd1yb75uiQLVYVNkfJIVLxiX8tQDYYQElHSKmbvUazpVij--vjeLy9kO8hl8lN7BxmgCvXsEbLLgkGZg9Apd1Y0AQOlSF-9VO754JSMnK-o3cDfjn5XbPBa8hXa5g-VPFpGT26WLPlEANv9nDW1Q7Lpncea1UswyFYHC2jFcjrE5yOsO4ZIo75NZfOjWeeDknJh7nkn3kJReCM2nNBshpyjrVw2TOvImi2yGEO1O0E7OO6Nyt8_N6ahC8W7nIkIrexwt9EL87pJKEE_OeiM20YjLn2mfgCiUzM359_npGw7TO8jpJ1pQYnW-ZQjMp9AymD6CnNoabVWDAaeKolUxTNUvuiNHU3YTxjPIIeKbcos1bYM5uPBRpmi1jZxEvuum6oekaadjZ_IViRgMosERpemWFuhF2ii8qLAqec5L-XKQyU4hE8TZKV3DjXdQ090bIyJvYu-dFWBIHjdcukPfuKyyODwS4Bn-gJfKmamgNjdYIdxuKqUcwFWhTKXQbRaFgVqD3vO53yZZM2112yergZQX9XuscRyFJ5GNb1Y1FC8tq17vcwgM3-7EzKFRV-l2WOoSiUhBdwXfHkMaBeLhU9vIqMewOo7OYhNZbalAxg1Ddo3L-Cq4IyzxUbUG0XZLI8j1oSod1RCs4DcAAvIDoxZbWtzS0jnWk4t6t_WzpJuzUccxR3Gk9L0baR0cb4rlTVU08Lcnz3S6k2a9s-9yxIzb23JJj-ivVaF08d1l-20iXV1tHhXmjNL9H8UjhU-fXzOxDZnOrcOOsbDdZ8dZKo45y3nbMqruy9qG9QrC9zLfoepiQUQv6kTks79rRpz6HzYamYJDyMDaUQ0ujDZ_ypdFZDGqVj2rlmuTJNsl2IoFB3E8rhwvrI6DHfuDGlWx_vXyaewKz7c2EgLwqM1o3rly2tD71dv3QW0E-GgTUXOGOCl2GCVMB_ropKSsnyUk_AHcujOQOH3UfiJ1Jj78ZBHTnBzKKVwdzHsVhPB39H2lZHaQ-cXUx1PEV0cnQkDp8OKNWZKlPbYfVsNiMwKxudBKP7rP2_rRj7AXeJ-7eobyl6m0gYjRnkMWJcDcj5UbyPxv8IUzY3MRU12gSzZ9wtAYG_TJxdwyntk-_ivvyJbCEXs5MIhjN74sNZP2xgxy3Y193avOScpXU1UN0knyzmns-O9SdoSE7LPev8ezfXsNLbPsy-x8" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<pre class="lang-scala prettyprint-override"><code>import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
+
+object Main {
+  def main(args: Array[String]): Unit = {
+    // Defining the input list of lists
+    val I = List(
+      List(&quot;Philip I&quot;, &quot;Joanna&quot;, &quot;Charles V&quot;, &quot;Ferdinand I&quot;, &quot;Isabella 2&quot;),
+      List(&quot;Isabella 1&quot;, &quot;Charles V&quot;, &quot;Maria&quot;, &quot;Philip II&quot;),
+      List(&quot;Ferdinand I&quot;, &quot;Anna 1&quot;, &quot;Maximillian II&quot;, &quot;Charles IIa&quot;, &quot;Anna 2&quot;),
+      List(&quot;Isabella 2&quot;, &quot;Christian II&quot;, &quot;Christina&quot;),
+      List(&quot;Maria&quot;, &quot;Maximillian II&quot;, &quot;Anna 3&quot;),
+      List(&quot;Anna 2&quot;, &quot;Albert V&quot;, &quot;Maria Anna 1&quot;, &quot;William V&quot;),
+      List(&quot;Christina&quot;, &quot;Francis I&quot;, &quot;Renata&quot;),
+      List(&quot;Philip II&quot;, &quot;Anna 3&quot;, &quot;Philip III&quot;),
+      List(&quot;Charles IIa&quot;, &quot;Maria Anna 1&quot;, &quot;Margaret&quot;, &quot;Ferdinand II&quot;),
+      List(&quot;William V&quot;, &quot;Renata&quot;, &quot;Maria Anna 2&quot;),
+      List(&quot;Philip III&quot;, &quot;Margaret&quot;, &quot;Philip IV&quot;, &quot;Maria Anna 3&quot;),
+      List(&quot;Ferdinand II&quot;, &quot;Maria Anna 2&quot;, &quot;Ferdinand III&quot;),
+      List(&quot;Maria Anna 3&quot;, &quot;Ferdinand III&quot;, &quot;Mariana&quot;),
+      List(&quot;Philip IV&quot;, &quot;Mariana&quot;, &quot;Charles IIb&quot;)
+    )
+
+    val Z = &quot;Charles IIb&quot; // Target element
+
+    val result = CoefficientOfInbreeding(I, Z)
+    println(result)
+  }
+
+  def CoefficientOfInbreeding(I: List[List[String]], Z: String): Double = {
+    // Dictionary to store the relationships
+    val P = mutable.Map[String, ListBuffer[String]]()
+
+    // Populating the dictionary P with relationships from list I
+    for (R &lt;- I) {
+      for (r &lt;- R.take(2)) { // Iterate over the first two elements of each sublist in I
+        if (!P.contains(r)) {
+          P(r) = ListBuffer[String]()
+        }
+        P(r) ++= R.drop(2) // Add the rest of the elements in the sublist as relationships
+      }
+    }
+
+    // Function to recursively find paths from c to Z
+    def findPaths(
+        c: String,
+        path: List[String],
+        result: ListBuffer[List[String]]
+    ): ListBuffer[List[String]] = {
+      if (c == Z) {
+        result += path
+      } else if (P.contains(c)) {
+        for (z &lt;- P(c)) {
+          findPaths(z, path :+ z, result)
+        }
+      }
+      result
+    }
+
+    // Finding all combinations of paths and calculating the desired sum
+    var resultSum = 0.0
+    for (k &lt;- P.keys) {
+      val paths = findPaths(k, List(), ListBuffer[List[String]]())
+
+      // Get all combinations of paths
+      val pathCombinations = paths.combinations(2)
+      for (comb &lt;- pathCombinations) {
+        val a = comb(0)
+        val b = comb(1)
+
+        val combinedLength = (a ++ b).length
+        val uniqueElementsLength = (a ++ b).toSet.size
+        if (
+          combinedLength - 1 == uniqueElementsLength &amp;&amp; a.init.last != b.init.last
+        ) {
+          resultSum += math.pow(0.5, combinedLength - 2)
+        }
+      }
+    }
+
+    resultSum
+  }
+}
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://docs.python.org/2/" rel="nofollow noreferrer">Python 2</a>, <s>304</s> <s>294</s> <s>293</s> 278 bytes</h1>
+
+
+
+<p>Takes as input: list of lists of relatives; name of person to calculate coefficient.</p>
+
+<pre class="lang-python prettyprint-override"><code>P={}
+I,Z=input()
+for R in I:
+ for r in R[:2]:P[r]=P.get(r,[])+R[2:]
+l=lambda c,p,X:c==Z and X.append(p)or c in P and[l(z,p*1+[z],X)for z in P[c]]and X
+print sum(pow(.5,len(a+b)-2)for k in P for a in l(k,[],[])for b in l(k,[],[])if~-len(a+b)==len(set(a+b))if a&gt;b if a[-2]!=b[-2])
+</code></pre>
+
+<p><a href="https://tio.run/##ZVLLauMwFN37KzQr240SqMtsDF4MAwMaKJgs2lChxbWjNKKyJGSVmcnQ/noqyU39yCo6vudxHzH/3FGr4nw@WN0h4bh1Wsseic5o626Suvr/lhD8VAllXl2WJwdt0RYJhUiZoABsAFtaFqysqWVVvXnmLrOYsny1pUXJEllJ6Jo9oBYbvCvbqnpCoPZotwFjuNpnJvc@bfCpQ4HK7ITNze2Knhje5SHkFIu0ZSwKE2OFcqh/7TKj/2Sb71hylcGqyddF5L8MZuEJuAmg1V0jFDihVZ/J7MX3F1rERS4O7@uLvKrCq/cDBORLCOi6YN@qJvzk5zOlaX0UUhhEUozS3xqUgvD6eQQreY8eAvjF7d6H@VYji/TQcCkBFakPHeHtlfAerIh2lxASFQu/Hz5zEN/DX9EJKQWowJ3YEQJf1EVsMfCs6N1UF7EfJnC/@rgOiI53kfVpHj7Kxv9zJjOgscfHKO98MWjGnLAnC6oV/TDVlvvzDPHj9GPgdCnk02o26jLX42ew3C0OMmjHpsbkuUcx74QsLS@V5cx3y4uRK@NFQ2RcORqHnTMuFmq@oIdpYXb9JmUMz/AH" rel="nofollow noreferrer" title="Python 2 – Try It Online">Try it online!</a></p>
+
+<hr>
+
+<h1><a href="https://docs.python.org/2/" rel="nofollow noreferrer">Python 2</a>, 274 bytes</h1>
+
+<p>If input is allowed as single list of lists, where last list contains name of person to calculate coefficient, some bytes can be saves, using leaked variable from for loop.</p>
+
+
+
+<pre class="lang-python prettyprint-override"><code>P={}
+for Z in input():
+ for r in Z[:2]:P[r]=P.get(r,[])+Z[2:]
+l=lambda c,p,X:c==Z[0]and X.append(p)or c in P and[l(z,p*1+[z],X)for z in P[c]]and X
+print sum(pow(.5,len(a+b)-2)for k in P for a in l(k,[],[])for b in l(k,[],[])if~-len(a+b)==len(set(a+b))if a&gt;b if a[-2]!=b[-2])
+</code></pre>
+
+<p><a href="https://tio.run/##ZVHdS@swFH/fXxGf1rpuXCv3pdALIggRhOKDjoU8nHbRBbMspJWrE/3XZ07qTJtBoefj93HOiXnvNjudHw5V@fE5edpZsiJSu8@8dklaTAiWLJZWrMh5UTHLy2rxLLrEZoynsxXLCz5RpYJtvQbSZCZbFk1ZrtgfDnpNlgswRuh1YlKn1KBSRVyDqWSfmfOLGdvzbJmizd43WcN74sRYqTvSvm4Ts/ufLP5mSugEZnU6zz3@pRfDEDBUyYsbCafCUj0uyaev@ZFflhi1bgfMXIvAPwd3PzbP@VlZ4y89HBibVhuppCF0mpHp7Q60BoyuN2CVaMkDJjfCrqXGkT2KtlALpYDkU2cc0osT4h1Y6eWOJtQzIr0r59mT7@BNbqVSEjRiB3KUwi80ss17nJVtN@T53C2D2N85Tg284qVH/YhjUdXCdoMdSJjx0dO3romc4IN3sqAb2fZb3QsNXW8ftg@Gw6PQH6nRqrGvy5/Bii56kJ4bhgrOY418PAmNJY@deOfL@MXoiXA0EA0nJ2HZMeIooccHehg2Rq9fRydyOf8G" rel="nofollow noreferrer" title="Python 2 – Try It Online">Try it online!</a></p>
+
+<hr>
+
+<p>Some explanation</p>
+
+<pre class="lang-python prettyprint-override"><code># Converts input lists into dictionary, where keys - each parent
+# and values - list of its children
+# In this task we don't care about direct relations between any parents
+P={}
+for R in I:
+ # for parents in cells [0] and [1] add cells [2:]
+ for r in R[:2]:
+  P[r] = P.get(r, []) + R[2:]
+
+# Lambda collects all paths from node c to the person of interest
+# It's recursive function, which stores all paths in argument X and then returns it
+# Each paths is guarantied to have person of interest as last element
+# and one of its parents as previous to last element
+l=lambda c,p,X: c==Z and X.append(p) or c in P and [l(z, p*1+[z], X) for z in P[c]] and X
+
+# For each node with children:
+# calculate all paths to person of interest
+# get all pairs of this paths
+for k in P
+ for a in l(k,[],[])for b in l(k,[],[]) 
+# filters out dublicates
+  if a&gt;b 
+
+# if paths from pair have unique items 
+# (except only 1 same item, that each path have - person of interest)
+# and if previous to last elements are different
+# (i.e. paths through different parents)
+  if ~-len(a+b)==len(set(a+b)) and a[-2]!=b[-2]
+
+# This pair of paths forms simple inbreed path, so add up to result
+   sum(pow(.5,len(a+b)-2) .. )
+</code></pre>
+
+<p>Note, that algorithm also covers cases when one of parents is ancestor to other one, as node of elder parent will produce similar paths, that will add up to result sum.</p>
+</div>
+<div id="pu2" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, <s>43</s> 33 bytes</h1>
+
+<pre><code>ịW€;Ɱ0ịịɗ¥€Ẏ¥ƬẎ¥€ŒpṪ€E$ƇF€QƑƇẈ.*S
+</code></pre>
+
+<p><a href="https://tio.run/##dVLBattAEL3PV@iQU2lLJR2XliZyBdviEFfgOMd1stRb5LWRdWhuaS8uCRSaQNNDezIhUEqhpYTYgR5sLEj/QvoRdSxZ8ii4sJbmvZn3Znas19L3D9M0vjnZTd59Z8nPH48wxnN7Pr1AJp58mF5E@Qvh/LQfj79h8GwjGrr4bkQfo2E8ef/wnpfen5/G489IvmDJ0RfjwRMjOfrKZpcQ3/yOxyNMLDBaNRT2wRMd2/OzePwJQ3TNz8bs0m08XsST69vzaPjUja9H1t8TVEfH0S9YCEbJ2z/Tq@nVbIjsXpq6rM48VgP8MQdcfHJwANbR3nqaZ7TJPDzWIrRYzWQ1C5DAwDHBQ8ZijgUOQquUsBw6NgIMt01AtI0BFtr4zAt3wp4vu4dGkzm@7PVFGAiDs5LllKY85/C/Igpo1d0URc3SmrcI70lfalnmWrC2iqhbpOM6py0ZSK32ZWW0VoUmoiYQX8rTGI2qCHY6yld9XOPzntBaMKcjAl8OUObK4EBpoQ8wyQeijZ@4MCwoQ5PU1kWgBCu8OFDtJtpicV28UV3l@0robPFLLeciryDO@CF0AjUIy9IMaAF5mztOmdqG3IRt@m0ZhMVIxrL5blbexSWVZswNhN5XOAF7KbUIRbmKwnJ1H9waGbfijOCVCGRI18Wh7Lf0phpr1Yiv5AVXGdymi@QVk0o/DlRUTeUqvbpes2DIf9AmF2z/Aw" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></p>
+
+<p>A dyadic link taking the individual as the left argument and the pedigree as the right. The pedigree is a list of lists where each (possibly empty) list represents the parents of the person at that index. Returns a floating point number.</p>
+
+<h2>Explanation</h2>
+
+<pre><code>ị                                 | Index into pedigree to find parents of desired individual
+ W€                               | Wrap each in a list
+               ¥€                 | For each parent:
+            ¥Ƭ                    | - Do the following as a dyad, keeping intermediate results:
+         ¥€                       |   - Do the following as a dyad for each member of the list
+   ;Ɱ   ɗ                         |     - Concatenate the following (as a dyad) to the end of the list:
+     0ị                           |       - Last member of the list
+       ị                          |       - Indexed into pedigree to find parents
+           Ẏ                      |   - Remove one level of lists (concatenating outer sublists together)
+              Ẏ                   | - Remove one level of lists (concatenating outer sublists together)
+                 Œp               | Cartesian product of the two lists of possible chains of ancestors for each parent
+                      $Ƈ          | Keep those where:
+                   Ṫ€             | - The tail of each chain (removing from the chain in the process)
+                     E            | - Is equal
+                        F€        | Flatten each
+                            Ƈ     | Keep those where:
+                           Ƒ      | - The list is invariant when:
+                          Q       |   - Uniquified
+                             Ẉ    | Lengths of each list
+                              .*  | 0.5 to the power of the lengths
+                                S | Sum
+</code></pre>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/196216/">196216</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+

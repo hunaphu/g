@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::20324</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>272</td><td>C#</td><td>140210T222159Z</td><td><a href="https://codegolf.stackexchange.com/questions/20324/output-in-the-correct-order/20541#20541">Hand-E-F</a></td></tr>
+<tr d-ix="1"><td>108</td><td>Ruby</td><td>140208T033529Z</td><td><a href="https://codegolf.stackexchange.com/questions/20324/output-in-the-correct-order/20355#20355">daniero</a></td></tr>
+<tr d-ix="2"><td>nan</td><td></td><td>140208T002944Z</td><td><a href="https://codegolf.stackexchange.com/questions/20324/output-in-the-correct-order/20347#20347">Adam Spe</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h2>C#, 272 bytes</h2>
+
+<p>Not a great answer, but it works.  If I understand Linq correctly, this opens the input file repeatedly, once for each line it writes to the output.</p>
+
+<pre><code>namespace System.Linq{
+    class P{
+        static void Main(string[]a)
+        {
+            var v=IO.File.ReadAllLines(a[0]).Select(y=&gt;y.Split(',').ToList());
+            var l=v.First();
+            var s="\"\"";
+            for(;;){
+                IO.File.AppendAllText(a[1],string.Join(",",l)+"\n");
+                l=v.FirstOrDefault(x=&gt;x[2]==s);
+                if(l==null)break;
+                s=l[0];
+            }
+        }
+    }
+}
+</code></pre>
+
+<p>Input file:</p>
+
+<pre><code>"ID","Before","After","Value"
+"1","3","5","Cat"
+"2","5","","Apple"
+"3","4","1","Dog"
+"4","","3","Elephant"
+"5","1","2","Banana"
+</code></pre>
+
+<p>Output file:</p>
+
+<pre><code>"ID","Before","After","Value"
+"2","5","","Apple"
+"5","1","2","Banana"
+"1","3","5","Cat"
+"3","4","1","Dog"
+"4","","3","Elephant"
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>Ruby <s>109</s> 108</h1>
+
+<p>Saved one whole character by using randomization instead of searching!</p>
+
+<pre><code>h,*t=[*$&lt;]
+t.shuffle!until t.each_cons(2).all?{|c|a,b=c.map{|y|y.lstrip.split /[,\s]+/}
+a[1]==b[0]}
+puts h,t
+</code></pre>
+
+<p>This only prints to stdout, so to save to a file use <code>ruby csv.rb in.csv &gt; out.csv</code>.</p>
+
+<pre><code>$ cat test.csv 
+ID,    Before,   After,   Value 
+ 1,         3,       5,    Cat
+ 2,         5,        ,    Apple
+ 3,         4,       1,    Dog
+ 4,          ,       3,    Elephant
+ 5,         1,       2,    Banana
+$ ruby csv.rb test.csv 
+ID,    Before,   After,   Value 
+ 2,         5,        ,    Apple
+ 5,         1,       2,    Banana
+ 1,         3,       5,    Cat
+ 3,         4,       1,    Dog
+ 4,          ,       3,    Elephant
+</code></pre>
+
+<h3>Old version</h3>
+
+<pre><code>puts gets,[*$&lt;].permutation.find{|x|x.each_cons(2).all?{|c|a,b=c.map{|y|y.lstrip.split /[,\s]+/}
+a[1]==b[0]}}
+</code></pre>
+
+<p>It simply finds the permutation of the lines where, for each line, the second column (<em>Before</em>) equals the first column (<em>ID</em>) of the next line. </p>
+</div>
+<div id="pu2" class="pu"><h2>VB.net (Non-Golfed)</h2>
+
+<pre><code>Module Module3
+  Public Sub Main(ParamArray args() As String)
+    Dim items = CSVFileReader(args(0)).ToDictionary(Function(x) x(0))
+    Dim Current = items.First(Function(kvp) kvp.Value(2) = "").Value
+    Using out As New IO.StreamWriter(args(1), False) With {.AutoFlush=True }
+      Do
+        out.WriteLine("""{0}"",""{1}"",""{2}"",""{3}""", Current(0), Current(1), Current(2), Current(3))
+        If Current(1) &lt;&gt; "" Then Current = items(Current(1))
+      Loop Until Current(1) = ""
+      out.WriteLine("""{0}"",""{1}"",""{2}"",""{3}""", Current(0), Current(1), Current(2), Current(3))
+    End Using
+  End Sub
+
+  Public Iterator Function CSVFileReader(fn As String) As IEnumerable(Of String())
+    Using t As New FileIO.TextFieldParser(fn) With {.Delimiters ={","},.HasFieldsEnclosedInQuotes = True, .TextFieldType=FileIO.FieldType.Delimited }
+      While Not t.EndOfData
+        Yield t.ReadFields
+      End While
+    End Using
+  End Function
+End Module
+</code></pre>
+
+<p>Probably a lot of room to golf that code.</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/20324/">20324</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::42168</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>224</td><td>Python3</td><td>240620T033421Z</td><td><a href="https://codegolf.stackexchange.com/questions/42168/algorithm-costliest-possible-route-in-grid-puzzle/273710#273710">Ajax1234</a></td></tr>
+<tr d-ix="1"><td>068</td><td>CJam</td><td>141204T144958Z</td><td><a href="https://codegolf.stackexchange.com/questions/42168/algorithm-costliest-possible-route-in-grid-puzzle/42175#42175">Martin E</a></td></tr>
+<tr d-ix="2"><td>191</td><td>VBScript</td><td>141205T001003Z</td><td><a href="https://codegolf.stackexchange.com/questions/42168/algorithm-costliest-possible-route-in-grid-puzzle/42182#42182">Jerry Je</a></td></tr>
+<tr d-ix="3"><td>071</td><td>CJam</td><td>141204T070300Z</td><td><a href="https://codegolf.stackexchange.com/questions/42168/algorithm-costliest-possible-route-in-grid-puzzle/42169#42169">Optimize</a></td></tr>
+<tr d-ix="4"><td>053</td><td>GolfScript</td><td>141204T155257Z</td><td><a href="https://codegolf.stackexchange.com/questions/42168/algorithm-costliest-possible-route-in-grid-puzzle/42176#42176">Peter Ta</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>Python3, 224 bytes</h1>
+<pre class="lang-py prettyprint-override"><code>def f(b,m):
+ q,t=[(0,0,0)],[]
+ for x,y,c in q:
+  if(x,y)==(A:=len(b)-1,B:=len(b[0])-1):t+=[c]*(c&lt;=m);continue
+  for X,Y in[(1,0),(0,1)]:
+   if x+X&lt;A+1 and y+Y&lt;B+1:q+=[(x+X,y+Y,c+b[x+X][y+Y])]
+ return -1 if[]==t else m-max(t)
+</code></pre>
+<p><a href="https://tio.run/##fZDBasMwDIbPy1OIXio17qgTOrasPrQPsHOLZ0aSOsyQOGniQvv0mTICu5RhEJI@6Zes7h6@W5@@dv04nm0FFRaioSyCiwhK40bwIyO0iaBqe7iJuyjBebhwCbgKOUFK4T5TtfVY0FqKw@zrjeGQshArXZoVljvV0HvZ@uD81XL7JHgUJ5bTKHmM4HGSzKTM0nCLj7t9LCH3Z7jHp90hltmFtZCB4IQo40KzbzQHhnjD3oZr72EtuV0bpQLYerDQrJv8hoHGQYKCxWIRbUDCNkoghWS2U3ZI/sfpv3i6Xmi/ijbvzzjwCZ/mdbReNXmHzgcB7nnoaheQyPx@3023rFwdbI8frbcChrli@emXXBVFXc@dWOGftiQBb0QPSMJEbh@ilNEL0fgD" rel="nofollow noreferrer">Try it online!</a></p>
+</div>
+<div id="pu1" class="pu"><h1>CJam, <s>71</s> <s>69</s> 68 bytes</h1>
+
+<p>I didn't look at anything from Optimizer's answer, except its size and input format... so the size is complete coincidence. But I think this can be golfed a fair bit.</p>
+
+<pre><code>l~:L,mqi(:X2*2\#:Y[{IY+2b(;_:+X={0_@{X*)+_L=@+\}/}*;}fI]f-{W&gt;},$W+0=
+</code></pre>
+
+<p><a href="http://cjam.aditsu.net/" rel="nofollow">Test it here.</a></p>
+
+<p>The input on STDIN is in the form of the maximum steps and the <em>unrolled</em> grid as a CJam array:</p>
+
+<pre><code>9 [0 1 5 2 3 2 2 3 2]
+</code></pre>
+
+<p>Explanation:</p>
+
+<pre><code>"Prepare input:";
+l~:L,mqi(:X2*2\#:Y
+l~                    "Read and eval input.";
+  :L                  "Store grid in L.";
+    ,mqi(:X           "Get length, square root, cast to int, decrement, store in X.";
+           2*2\#:Y    "Multiply by 2, raise 2 to this power, store in Y.";
+
+[{...}fI]             "For I in 0 to Y-1. Collect in array.";
+
+"Determine path:";
+IY+2b(;_:+X=
+IY+                   "I + Y.";
+   2b                 "Convert to base 2.";
+     (;               "Drop leading 1.";
+       _:+            "Duplicate and sum.";
+          X=          "Check for equality with X.";
+
+{...}*                "If equals, execute this (otherwise, don't).":
+
+"Determine remaining weight:";    
+0_@{X*)+_L=@+\}/
+0                     "Push 0. This is the sum.";
+ _                    "Push another 0. This is the current position in the grid.";
+  @                   "Pull up path description. 1 -&gt; down, 0 -&gt; right.";
+   {          }/      "For each step...";
+    X*)               "Multiply by X, increment.";
+       +              "Add to current position.";
+        _L=           "Duplicate and extract grid element.";
+           @+         "Pull up sum and add.";
+             \        "Swap with position.";
+
+;                     "Pop... either the invalid path or the last position.";
+
+f-                    "Subtract each sum from the maximum step number.";
+  {W&gt;},               "Filter out negative results.";
+       $              "Sort.";
+        W+            "Append a -1.";
+          0=          "Take the first element.";
+</code></pre>
+</div>
+<div id="pu2" class="pu"><h1>VBScript 191</h1>
+
+<p>This assumes that the array is in a variable called A and the cost is in a variable called c.</p>
+
+<pre><code>Dim M
+Sub f(s,i,j,v)
+If i&gt;s And j=s And v&lt;=c And M&lt;v Then M=v
+If i&gt;s Or j&gt;s Then Exit Sub
+f s,i+1,j,v+A(i)(j)
+f s,i,j+1,v+A(i)(j)
+End Sub
+f UBound(A),0,0,0
+If M=0Then MsgBox-1 Else MsgBox c-M
+</code></pre>
+
+<p>To run it put the following lines at the top of a file called x.vbs then paste in the code above and just double click or execute <code>cscript x.vbs</code></p>
+
+<pre><code>A=Array(Array(0,1,5),Array(2,3,2),Array(2,3,2))
+c=6
+</code></pre>
+</div>
+<div id="pu3" class="pu"><h1>CJam, <s>72</s> 71 bytes</h1>
+<pre><code>q~:Q,mqi:L(2*0aa\{{_[~__)L%1L?+]\[~__L/)L=1L?+]}%}*{Qf=:+}%f-{W&gt;},$W+0=
+</code></pre>
+<p>This is really long and I think a different approach to the question is the only way to get it shorter.</p>
+<p><a href="http://cjam.aditsu.net/" rel="nofollow noreferrer">Try it online here</a></p>
+<p>Input is in the following format : <code>&lt;Steps&gt; [&lt;Flat Grid&gt;]</code> . For ex:</p>
+<pre><code>9 [0 1 5 2 3 2 2 3 2]
+</code></pre>
+<p>And output is the cost remaining, so <code>1</code> in above example.</p>
+<p>*Note that <code>[0 1 5 2 3 2 2 3 2]</code> is just a flat representation of the grid</p>
+<pre><code>0 1 5
+2 3 2
+2 3 2
+</code></pre>
+<p><strong>How it works</strong> (slightly outdated):</p>
+<pre><code>q~                                     &quot;Read the input and evaluate it&quot;;
+  :Q                                   &quot;Store the array in Q&quot;;
+    ,mqi:L                             &quot;Do floor of square root of its length&quot;;
+          LL+((                        &quot;Double length and decrease 2 from the double&quot;;
+               0aa                     &quot;Put [[0]] on stack. This is the starting index&quot;
+                                       &quot;for any path in the grid&quot;;
+                  \{ ... }*            &quot;Swap to but L + L - 1 on top and run the code&quot;
+                                       &quot;block that many times&quot;;
+ {{_[~__)L%1L?+]\[~__L/)L=1L?+]}%}*    &quot;This block calculates indexes of all possible&quot;;
+                                       &quot;paths from top left to bottom right of the grid&quot;;
+ {                            }%       &quot;Map each array based on this code block&quot;;
+  _[~                                  &quot;Copy the array and start a new array with the&quot;
+                                       &quot;contents of the copied one&quot;;
+     __                                &quot;Make two copies of the last element of the array&quot;;
+       )L%                             &quot;Increment the element and calculate module L&quot;;
+          1L?                          &quot;Choose L if module is 0, 1 otherwise&quot;;
+             +]                        &quot;Add it to the copy of last array element. With&quot;
+                                       &quot;this, we have created one of the two possible&quot;
+                                       &quot;next step, that is going right. Except if we are&quot;
+                                       &quot;on the last column, then go down&quot;;
+               \[~                     &quot;Swap and start a new array with contents of&quot;
+                                       &quot;the original array&quot;;
+                  __                   &quot;Make two copies of the last element&quot;;
+                    L/)                &quot;Divide the 2nd copy by L and add 1 to the result&quot;;
+                       L=1L?           &quot;If index belongs to last row, choose 1, else L&quot;;
+                            +]         &quot;Add to the first copy of last element and close&quot;
+                                       &quot;the array. Now we have the second possible next&quot;
+                                       &quot;step, i.e. going down. But if we are on last row&quot;
+                                       &quot;then go right&quot;;
+{Qf=:+}%                               &quot;Map this block on the array containing all&quot;
+                                       &quot;possible path indexes&quot;;
+ Qf=                                   &quot;Get the corresponding cell amount array&quot;;
+    :+                                 &quot;Sum the array elements to get total path cost&quot;;
+        {1$)&lt;},                        &quot;Filter out paths which are not possible. i.e.&quot;
+                                       &quot;paths having total cost more than first input&quot;;
+               $W=                     &quot;Sort and get the last (highest) path cost&quot;;
+                  -                    &quot;decrement from input to get remaining steps&quot;;
+</code></pre>
+</div>
+<div id="pu4" class="pu"><h2>GolfScript (53 bytes)</h2>
+
+<pre><code>~.,[1]*\{[[\]0\zip{~2$|2@?*}/](;}/-1=2.$)?|2base\~&gt;1?
+</code></pre>
+
+<p>Expects input in the format</p>
+
+<pre><code>15 [[0 1 5][2 3 2][2 3 2]]
+</code></pre>
+
+<p><a href="http://golfscript.apphb.com/?c=O1s2IDkgMTVdeycgW1swIDEgNV1bMiAzIDJdWzIgMyAyXV0nKwojIwp%2BLixbMV0qXHtbW1xdMFx6aXB7fjIkfDJAPyp9L10oO30vLTE9Mi4kKT98MmJhc2Vcfj4xPwoKIyMKcH0v" rel="nofollow">Online demo</a> which covers three test cases.</p>
+
+<p>The approach is to build up a list of possible running totals to each cell as a bitmask, extract the relevant lower bits, base-convert to a list of <code>0</code> and <code>1</code>, and look for the index of the first <code>1</code>.</p>
+
+<h3>Dissection</h3>
+
+<pre><code>~              # Eval input: puts N and grid on the stack
+.,[1]*         # Set up initial row cost bitmask: 2^0 for each column
+\{             # For each row in grid:
+  [            #   Stack: N prev-row-bitmask this-row-cost
+    [\]0\zip   #   Pair up prev-row-bitmask and this-row-cost and push 0 under them
+    {          #   For each pair:
+      ~        #     Stack: N left-cell-bitmask cost up-cell-bitmask
+      2$|2@?*  #     this-cell-bitmask = (left-cell-bitmask | up-cell-bitmask) &lt;&lt; cost
+    }/
+  ](;          #   Gather row into an array and drop the 0 we inserted for the -1th cell
+}/
+-1=            # Take the bitmask of the bottom-right cell. Stack: N bottom-right-bitmask
+2.$)?|         # Or 2^N to ensure that we get enough bits from the base conversion
+2base          # Base conversion
+\~&gt;            # Take the last (least significant) N+1 bits
+1?             # Find the first index (hence smallest cost surplus) of the value 1
+</code></pre>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/42168/">42168</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+

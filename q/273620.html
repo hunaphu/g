@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::273620</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>nan</td><td></td><td>240612T182909Z</td><td><a href="https://codegolf.stackexchange.com/questions/273620/9-16-25-2d-matrix/273625#273625">Tobias G</a></td></tr>
+<tr d-ix="1"><td>043</td><td>Brachylog</td><td>240613T115529Z</td><td><a href="https://codegolf.stackexchange.com/questions/273620/9-16-25-2d-matrix/273645#273645">Fatalize</a></td></tr>
+<tr d-ix="2"><td>021</td><td>Nekomata + 1</td><td>240613T060507Z</td><td><a href="https://codegolf.stackexchange.com/questions/273620/9-16-25-2d-matrix/273638#273638">alephalp</a></td></tr>
+<tr d-ix="3"><td>nan</td><td></td><td>240612T231107Z</td><td><a href="https://codegolf.stackexchange.com/questions/273620/9-16-25-2d-matrix/273630#273630">Bubbler</a></td></tr>
+<tr d-ix="4"><td>nan</td><td></td><td>240612T221913Z</td><td><a href="https://codegolf.stackexchange.com/questions/273620/9-16-25-2d-matrix/273629#273629">dingledo</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1><a href="https://www.oracle.com/de/java/technologies/java-se-glance.html" rel="nofollow noreferrer">Java</a></h1>
+<p>(Simple) backtracking approach with random candidates:</p>
+<pre class="lang-java prettyprint-override"><code>import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
+
+public class Main {
+    public static void main(String[] args) {
+        long start = System.currentTimeMillis();
+        System.out.println(Arrays.deepToString(calcSolution(new int[][]{{12, 18, 15}, {9, 18, 18}})));
+        System.out.println(Arrays.deepToString(calcSolution(new int[][]{{33, 21, 43, 39}, {24, 36, 41, 35}})));
+        System.out.println(Arrays.deepToString(calcSolution(new int[][]{{43, 79, 58, 60, 85}, {76, 66, 44, 70, 69}})));
+        long end = System.currentTimeMillis();
+        System.out.println(&quot;Time: &quot; + (end - start) + &quot;ms&quot;);
+
+        int n = 20;
+        long time1 = 0;
+        for (int i = 0; i &lt; n; i++) {
+            start = System.currentTimeMillis();
+            System.out.println(Arrays.deepToString(calcSolution(new int[][]{{43, 79, 58, 60, 85}, {76, 66, 44, 70, 69}})));
+            end = System.currentTimeMillis();
+            time1 += end - start;
+        }
+        time1 /= n;
+        System.out.println(&quot;Time (average): &quot; + time1 + &quot;ms for &quot; + n + &quot; times&quot;);
+    }
+
+    public static int[][] calcSolution(int[][] grid) {
+        final int n1 = grid[0].length;
+        final int n2 = n1 * n1;
+        final ArrayList&lt;ArrayList&lt;Integer&gt;&gt; randoms = new ArrayList&lt;&gt;();
+        for (int i = 0; i &lt; n2; i++) {
+            ArrayList&lt;Integer&gt; list = new ArrayList&lt;&gt;();
+            for (int j = 0; j &lt; n2; j++) {
+                list.add(j + 1);
+            }
+            Collections.shuffle(list);
+            randoms.add(list);
+        }
+
+        int[][] solution = new int[n1][n1];
+        while (calcSolution2(grid, n1, n2, solution, 0, new int[2][n1], new HashSet&lt;&gt;(), randoms, new AtomicLong()) == 2) {
+            //System.out.println(&quot;new round&quot;);
+            for (int i = 0; i &lt; n2; i++) {
+                Collections.shuffle(randoms.get(i));
+            }
+            solution = new int[n1][n1];
+        }
+
+        // (Only for testing/checking for me)
+        test(grid, n1, solution);
+
+        return solution;
+    }
+
+    private static int calcSolution2(int[][] grid, int n1, int n2, int[][] solution, int idx, int[][] sums, HashSet&lt;Integer&gt; seen, ArrayList&lt;ArrayList&lt;Integer&gt;&gt; randoms, AtomicLong callsCounter) {
+        if (idx == n2) {
+            return 1;
+        }
+        if (callsCounter.incrementAndGet() == 1_000_000) {
+            return 2;
+        }
+        int r = idx / n1;
+        int c = idx % n1;
+        for (int i : randoms.get(idx)) {
+            if (seen.contains(i)) {
+                continue;
+            }
+            solution[r][c] = i;
+            sums[0][r] += i;
+            sums[1][c] += i;
+            if (sums[0][r] &gt; grid[0][r] || sums[1][c] &gt; grid[1][c]) {
+                sums[0][r] -= i;
+                sums[1][c] -= i;
+                continue;
+            }
+            if ((idx + 1) % n1 == 0 &amp;&amp; sums[0][r] != grid[0][r]) {
+                sums[0][r] -= i;
+                sums[1][c] -= i;
+                continue;
+            }
+            if (idx / n1 == n1 - 1 &amp;&amp; sums[1][c] != grid[1][c]) {
+                sums[0][r] -= i;
+                sums[1][c] -= i;
+                continue;
+            }
+            seen.add(i);
+            int retVal = calcSolution2(grid, n1, n2, solution, idx + 1, sums, seen, randoms, callsCounter);
+            if (retVal &gt; 0) {
+                return retVal;
+            }
+            seen.remove(i);
+            sums[0][r] -= i;
+            sums[1][c] -= i;
+        }
+        return 0;
+    }
+
+    // (Only for testing/checking for me)
+    private static void test(int[][] grid, int n1, int[][] solution) {
+        int[][] sums = new int[2][n1];
+        for (int i = 0; i &lt; n1; i++) {
+            for (int j = 0; j &lt; n1; j++) {
+                sums[0][i] += solution[i][j];
+                sums[1][i] += solution[j][i];
+            }
+        }
+        for (int i = 0; i &lt; n1; i++) {
+            if (sums[0][i] != grid[0][i] || sums[1][i] != grid[1][i]) {
+                System.out.println(false);
+                return;
+            }
+        }
+        System.out.println(true);
+    }
+}
+</code></pre>
+<p><a href="https://tio.run/##xVfbbts4EH33V3ANbCE1imwpza2uDQR96C7QYh9S7IshLLQSbVOVqYCi3ASpvj07Q1E2dUu8RYEIUGRxhjPkOTOHShLuwtMk/vb0xLZ3mZAkgQG3kCx1385GnbEo41EhBOXSDWW2ZZF7ox6fM76ejUZ3xb8pi0iUhnlOvoSMk8cRgUuP5zKU8NhlLCZbsFq3UjC@XgYkFOvc1s54pRAP3SH5nNw@5JJuXZ34K9vSLyxNWW7Zs/0E7ZMV0r2DmDLl1o0Q4UPuxpTefc2qTFYUptFtlsJeMm5x@p2A6zJYBo@Pnu8Q7wru89Ihj9f65aosbftXpjk7c4jvOeQdPM@uMZX/Dn5dwAiMnp3/6nyY5xJ2cw67uZg65Ept7xLyXWBOyH0JoxfXrbwKf8rjn0d/jJ7vyZicEAsDnVZ02vA@3uZjmLyfDRMIh0z@tLUACSE8MBjjq0wQCycwNQ6PD4TD4@TELB@8/k/1vCbUeB2PNF4VLCdzYuB68ChHTb/JHAB6kSlihTsqwjW1K850DuRKYY5jHN@VRfFXJevpb40IaUBVD64Fi02qVoyHaVUCSDWal9PATSlfy82sz80HN/B9C3/adkXYZ5bLD4dff3JJ11QsFkSEPM5gPzAdeDt4LEyAewvM762wbg4CbMnn4zdyJFWOROdIujlUL0AQN4xjKwECvFassvH2MUtTGiHguZtvitUqpRZOb03SSKigLXPZ6EtFWa451BvDYe4FeB@mfd@wFIrIpNy3kEwHaIIb1LUO4xBogzqQr@JU73@E@eaWKryceomV5XDIWLZN5iAVbZwmk77KxrkiK3g8HmLgZZaHYK0xXFNpMftZVo4B0MB9MiHWXzx9UKuUNJegO5NoQ6Nv8EMNbql96HJwMJCuc5kCK6gsBN@bmq0r2C6U1Ohd0iTRbFxHN6p@@k6nRioLi@8NU4E01uTuWyWnFLyP6ljHKABcXZp/BFIlFSZXbAWMxvdYHbxTHhoBr08mcaIZ1GU8EnQLEnzD40/Arqo475/pdIr3QGi/NzRgIYB1XNekoVcKZ235valkh9J8TxpFFt/b7eS4dgQSP8wkfFHlWIo9BYxmxgt6TJUuRbCMAlxb0xt5BGkGM549fUZPTewa1SoPsxe1yuPLjx/mXG1SL337MKKcdtK01tHvcAwSuF5VSyi3ih6sgCl588ZcwG9zYx@vu9i6vlTxe/BN4O3XWoWv1/rKwKpSxUOHtfRSNQqVf8MZPifHHSKaH0frSyUne8FoqES3GnWuBZn2gaFbunJ6cT@gFdmOdrb0LKKDaJZt0Z421Pr4o6Gl6@p/LnVUDOp5Q8cbymoIuXGE@a0TrPdM9XrP1N4PIG/wA6iGkilx2esUC5ZJMFypLe8ER4bILH9mF6assYYesIausUb/sd7@6/l6WYVpTu3ZQHW@vJOekFIUdP/lXj49/Qc" rel="nofollow noreferrer" title="Java (JDK) – Try It Online">Try it online!</a></p>
+<p><strong>Average time on my CPU:</strong></p>
+<p>&lt; 200ms</p>
+<p><strong>Log:</strong></p>
+<ul>
+<li>2024-06-14: I use random candidates to fill now.</li>
+<li>2024-06-17: Improved exit condition. Runs in under 200ms now!</li>
+</ul>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/JCumin/Brachylog" rel="noreferrer">Brachylog</a>, 43 bytes</h1>
+<pre><code>{hlL;Mṁ₍+ᵐ~h?∧M\+ᵐ~t?∧Mc≠{&gt;0∧.^₂≥?∧}ᵛL∧M≜}ᵐ
+</code></pre>
+<p><a href="https://tio.run/##JYw9CsJAFISvsr0Pyf5mF0EvkFzAdQVNYYqAIDYSFEzlFkJ6LWzEE6TwONmLrC@xGPhmPpjtYVOUp2q/YzHWZZXN8v57Dc190nftpVyE2ydfjXwcuQj@Vc8TxOk6NE3w72E@990jG3TwT@Q2RmstZUA1UOnAmpG0c0Cs5RwYBcGBG1RMAFcgKHD51yhIaoBIDUQlQPRwkCosGCFQ4qiMcy4ufw" rel="noreferrer" title="Brachylog – Try It Online">Try it online!</a></p>
+<p>Takes about 5 seconds for all 3 cases on TIO.</p>
+<h3>Explanation</h3>
+<p>Since Brachylog uses constraint logic arithmetic by default for all integer operations, we don’t even need to do anything special to be able to solve this kind of problem relatively efficiently. The performance of the solve will depend on the performance of the clp(fd) library of SWI-Prolog which is used by Brachylog.</p>
+<p>Note that this code is not golfed.</p>
+<pre><code>{                                           }ᵐ  Map for each input list:
+ hlL                                            L is the number of sums
+   L;Mṁ₍                                        M is a square matrix of size L
+     M  +ᵐ~h?                                   Sums of rows of M is the first element of the input
+             ∧
+               M\+ᵐ~t?                          Sums of columns of M is the last element of the input
+                      ∧
+                        Mc≠                     All elements of M are different
+                           {          }ᵛL       For each element:
+                            &gt;0                  It is strictly greater than 0
+                              ∧
+                                .^₂≥?∧          It is greater or equal to L²
+                                         ∧
+                                          M≜    Find values for elements of M that match all these
+                                                constraints, M is the output
+</code></pre>
+</div>
+<div id="pu2" class="pu"><h1><a href="https://github.com/AlephAlpha/Nekomata" rel="nofollow noreferrer">Nekomata</a> + <code>-1</code>, 21 bytes</h1>
+<pre><code>ᵃ#*R↕v#Š:ᵐ∑ᵈv=¿:∑ᵈ§=¿
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=m70iLzU7PzexJHFNtJJurpKOgpKuoVLsgqWlJWm6FjfVH25tVtYKetQ2tUz56AKrh1snPOqY-HBrR5ntof1WEOah5UD2kuKk5GKopgU3DaINjXQMLXQMTWMVoi3BLItYrmhjYx0jQx0TYx1jS6C4kYmOsZmOiaGOsWksRCMA" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<p>I just wanted to see how fast my golfing language can go. The language uses a simple backtracking algorithm, and it's not optimized for speed.</p>
+<p>The 3x3 and 4x4 grids can be solved in around 4 seconds on ATO. Better than I expected.</p>
+<p>Do not try the 5x5 grid. It will eat up all your memory and will never finish.</p>
+<pre><code>ᵃ#*R↕v#Š:ᵐ∑ᵈv=¿:∑ᵈ§=¿
+ᵃ#*                     Multiply the lengths of both inputs
+   R                    Range from 1 to the product
+    ↕                   Find a permutation of the range
+     v#Š                Split into slices of the lengths of the inputs
+        :ᵐ∑ᵈv=¿         Check if the sums of each slice are equal to the first input
+               :∑ᵈ§=¿   Check if the (vectorized) sum of all slices is equal to the second input
+</code></pre>
+<p><code>-1</code> finds only the first solution.</p>
+<p>If you want to run it on your machine, you need to install <a href="https://www.haskell.org/cabal/" rel="nofollow noreferrer"><code>cabal</code></a> and <a href="https://www.haskell.org/ghc/" rel="nofollow noreferrer"><code>ghc</code></a>, then run the following commands:</p>
+<pre class="lang-bash prettyprint-override"><code>git clone https://github.com/AlephAlpha/Nekomata.git
+cd Nekomata
+cabal build
+cabal run Nekomata -- -c 'ᵃ#*R↕v#Š:ᵐ∑ᵈv=¿:∑ᵈ§=¿' -1 -i '[12,18,15] [9,18,18]'
+cabal run Nekomata -- -c 'ᵃ#*R↕v#Š:ᵐ∑ᵈv=¿:∑ᵈ§=¿' -1 -i '[33,21,43,39] [24,36,41,35]'
+</code></pre>
+</div>
+<div id="pu3" class="pu"><h1><a href="http://picat-lang.org" rel="noreferrer">Picat</a></h1>
+<pre><code>import cp.
+
+puzzle(Rows, Cols, N) = A =&gt;
+&#9;A = new_array(N,N),
+&#9;A :: 1..N*N,
+&#9;all_distinct([A[R,C]: R in 1..N, C in 1..N]),
+&#9;foreach(R in 1..N) sum(A[R]) #= Rows[R] end,
+&#9;foreach(C in 1..N) sum([A[R,C]: R in 1..N]) #= Cols[C] end,
+&#9;solve(A).
+
+main =&gt;
+&#9;println(puzzle([12, 18, 15], [9, 18, 18], 3)),
+&#9;println(puzzle([33, 21, 43, 39], [24, 36, 41, 35], 4)),
+&#9;println(puzzle([43, 79, 58, 60, 85], [76, 66, 44, 70, 69], 5)).
+</code></pre>
+<p>Output:</p>
+<pre><code>{{1,4,7},{3,6,9},{5,8,2}}
+{{1,2,14,16},{3,6,8,4},{11,15,7,10},{9,13,12,5}}
+{{1,2,3,12,25},{6,15,17,21,20},{22,14,4,10,8},{23,16,7,9,5},{24,19,13,18,11}}
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=bZHNaoQwEMfpsT7FQC9JSaV-u4IF8e7Bq8gSXJcGYhSNXbqv0stC2Zfq03Syq6VfhyQzw__3zwzzdh5Ew_XpdJ71_iH-uHkX3dCPGprBtqxhPh5lS8r-MDHIe4l3QSGFDNIn6xZvUO1hy8eRv5KCFZSZYpKAY9vFfYEZl3K7E5MWqtGkyqqS5XUCJQh10aDpGtYG3vdjy5tn8iWgMM0dQa6mcJeCaQRjaNXumzr_qf77zRU2_Vf5Ck-9fGlJRnHKjqPODDSMQmmpyDJ25bgMnBhPUDOoNksSY-JR0-5vvecxcB0GPr7exjCuj1GIFax6xsX_FzRAhP4B-oePDOLLhxGCoYHRJMJqaCwDSu3rrpaVrav7BA" rel="noreferrer">Attempt This Online!</a></p>
+<p>Solves all three puzzles in 0.1 second on ATO.</p>
+</div>
+<div id="pu4" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python</a></h1>
+<p>To run the code, install the <a href="https://pypi.org/project/z3-solver/" rel="nofollow noreferrer">z3-solver</a>
+package. It can usually solve all three cases in ~1s.</p>
+
+<pre class="lang-python prettyprint-override"><code>from z3 import *
+
+def solve(rows, cols, n):
+    grid = [Int(f'a{i}') for i in range(n * n)]
+
+    s = Solver()
+
+    s.add(Distinct(grid))
+    for i in range(n * n):
+        s.add(Or([grid[i] == j + 1 for j in range(n * n)]))
+    
+    for i in range(n):
+        s.add(sum(grid[i*n:i*n+n]) == rows[i])
+        s.add(sum(grid[i::n]) == cols[i])
+    
+    assert s.check() == sat
+    model = s.model()
+
+    sol = [model[g].as_long() for g in grid]
+    return [sol[i*n:i*n+n] for i in range(n)]
+
+
+print(solve([12, 18, 15], [9, 18, 18], 3))
+print(solve([33, 21, 43, 39], [24, 36, 41, 35], 4))
+print(solve([43, 79, 58, 60, 85], [76, 66, 44, 70, 69], 5))
+</code></pre>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/273620/">273620</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+

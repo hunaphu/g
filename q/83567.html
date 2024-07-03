@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::83567</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>730</td><td>Go</td><td>240701T043624Z</td><td><a href="https://codegolf.stackexchange.com/questions/83567/write-a-chicken-interpreter/273852#273852">bigyihsu</a></td></tr>
+<tr d-ix="1"><td>335</td><td>Ruby</td><td>160625T070343Z</td><td><a href="https://codegolf.stackexchange.com/questions/83567/write-a-chicken-interpreter/83788#83788">Value In</a></td></tr>
+<tr d-ix="2"><td>398</td><td>Javascript ES6</td><td>160623T153744Z</td><td><a href="https://codegolf.stackexchange.com/questions/83567/write-a-chicken-interpreter/83692#83692">Bassdrop</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1><a href="https://go.dev" rel="nofollow noreferrer">Go</a>, 730 bytes</h1>
+<pre class="lang-go prettyprint-override"><code>import(.&quot;fmt&quot;;.&quot;strings&quot;)
+type U=uint
+var S=[]any{}
+func A(e...any){S=append(S,e...)}
+func C()(o any){o,S=S[len(S)-1],S[:len(S)-1];return}
+func f(p,i string){c:=&quot;chicken&quot;
+if TrimSpace(ReplaceAll(p,c,&quot;&quot;))!=&quot;&quot;{return}
+A(&amp;S,i)
+for _,l:=range Split(p,`
+`){A(Count(l,c))}
+A(0)
+for I:=U(2);I&lt;U(len(S));{switch a:=S[I];a{case 0:Print(S[len(S)-1]);return
+case 1:A(c)
+case 2:o,p:=C(),C();A(o.(U)+p.(U))
+case 3:o,p:=C(),C();A(o.(U)-p.(U))
+case 4:o,p:=C(),C();A(o.(U)*p.(U))
+case 5:o,p:=C(),C();k:=0;if o==p{k++};A(k)
+case 6:o:=C().(U);if S[int(I+1)].(int)&lt;1{A(S[o])}else{A(S[S[int(I+1)].(int)].(string)[o])};I++
+case 7:o,p:=C(),C();S[o.(U)]=p
+case 8:o,p:=C(),C();if p.(U)!=0{I+=o.(U)}
+case 9:A(rune(C().(U)))
+default:A(U(a.(int)-10))
+I++}}}
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=rZNLbtswEIaBLnkKRouCrGTBTl8pFS4Er7QrynhlCDWhUA5hmSRkqkUg6CTdGAW66zV6iOY0GT1S2Gg2BbqQhuR8Q_4_Nfr2fWuPP50sdnKr8F5q86Px5ezq4cWD3jtbexIH5d4HSRwcfK3N9hBQ5O-dwiveaOPRF1ljwde5NPdth8rGFDglKo5jWKCt4NI5ZW6JiPo1OhFLQonFA2EjwcW6UoYIOlvkkVizP5OkVr6pzVRUEhdpPKqgbcF4UNzpYqdMgHSJb2q9F-BDkU_KVRDTqoKCIgoCSi94ELRPm6XkpYg0RaWt8eeoYryWBrwLV2kPFRu0oW1KlrYxnlRRQWlfMh_5jPEVuaRJdr0io0yatIev2hd3WDIwkuWJbAt5UHjOPoJST07M0ckQGoAFS0lBx_Els5FjHO4lgidJiY3Jioauf0_I62eR2Sny5lnk1Sny9hzZMT5P4PYs567dhWEHRbsJfcfsAPbVPSPWvZ0sXNA8JjCk1wu4J7G2Oe1UdVDD5C8IwvTJBjDJwnDc_v25EtinPyjnbkxfnafh_MHGBZ-3WcgHthvJD3CPdWMUmbSC1VtVyqbykFgROeqYLeaQgNO7rhtb_Pevoa36nicUt8jVdlvLPWYcb6bOwv85on_lN0gb1ysKlk-9Dr_BKDSCFEWTmeNxjI8" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<p>This was a bit of a pain: a plain, no-frills implementation of the specification. I have not tested this extensively; the program will probably crash if you even as much drip a non-<code>uint</code> in the wrong place. Can probably be golfed down a bit.</p>
+<p>Expects program code to only consist of lowercase <code>chicken</code> and whitespace.</p>
+<h3>Explanation</h3>
+<pre class="lang-go prettyprint-override"><code>import(.&quot;fmt&quot;;.&quot;strings&quot;)
+type U=uint
+var S=[]any{}
+func A(e...any){S=append(S,e...)}                    // push function
+func C()(o any){o,S=S[len(S)-1],S[:len(S)-1];return} // pop function
+
+func f(p,i string){c:=&quot;chicken&quot;
+if TrimSpace(ReplaceAll(p,c,&quot;&quot;))!=&quot;&quot;{return}         // exit when there are non-chickens
+
+// === STACK SETUP ====
+A(&amp;S,i)                                     // append the stack reference, and the user input
+for _,l:=range Split(p,&quot;\n&quot;){A(Count(l,c))} // append opcodes
+A(0)                                        // opcode terminator
+
+// === INTERPRETATION ===
+for I:=U(2);I&lt;U(len(S));{          // loop until the instruction pointer hits the end of the stack
+switch a:=S[I];a{                  // based on the current instruction...
+case 0:Print(S[len(S)-1]);return   // print and exit on 0
+case 1:A(c)                        // push chicken on 1
+case 2:o,p:=C(),C();A(o.(U)+p.(U)) // add on 2
+case 3:o,p:=C(),C();A(o.(U)-p.(U)) // sub on 3
+case 4:o,p:=C(),C();A(o.(U)*p.(U)) // mul on 4
+case 5:o,p:=C(),C();k:=0;if o==p{k++};A(k) // eq on 5
+case 6:o:=C().(U);if S[int(I+1)].(int)&lt;1{A(S[o])} // on 6, take from the stack if 0
+                  else{A(S[S[int(I+1)].(int)].(string)[o])} // otherwise take a char from the input
+                  I++                             // skip the load location
+case 7:o,p:=C(),C();S[o.(U)]=p     // set stack on 7
+case 8:o,p:=C(),C();if p.(U)!=0{I+=o.(U)} // jump on 8
+case 9:A(rune(C().(U)))            // reinterpret as a char on 9
+default:A(U(a.(int)-10))           // push n-10 on everything else
+I++}}}                             // bump instruction pointer
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>Ruby, 335 bytes</h1>
+
+<p>Takes the input file name as a command line argument and takes user input (for instruction #6) from STDIN.</p>
+
+<p>Because of Ruby "truthy" (everything except <code>false</code> and <code>nil</code>) being different from the Javascript "truthy" (Ruby truthy plus <code>0</code>, empty strings, etc.), there might be some edge cases where programs that work fine on a JS interpreter fail on this one because of instruction #8, such as if <code>""</code> is on the stack. I've fixed the biggest case, though, which is falsy <code>0</code>.</p>
+
+<p>Works with the test program and the Hello World program on the Chicken website.</p>
+
+<pre><code>+(/^(#{c='chicken'}|\s)*$/m=~f=$&lt;.read+"
+
+")
+s=[0,STDIN.read]+f.lines.map{|l|l.split.size};s[0]=s;i=1
+s&lt;&lt;(s[i]&lt;10?[-&gt;{c},-&gt;{x,y=s.pop 2;x+y},-&gt;{x,y=s.pop 2;x-y},-&gt;{s.pop*s.pop},-&gt;{s.pop==s.pop},-&gt;{s[s[i+=1]][s.pop]},-&gt;{s[s.pop]=s.pop;s.pop},-&gt;{l,k,j=s.pop 3;i+=j if k&amp;&amp;k!=0;l},-&gt;{s.pop.chr}][s[i]-1][]:s[i]-10)while s[i+=1]&gt;0
+$&gt;&lt;&lt;s.pop
+</code></pre>
+
+<h2>Explanation</h2>
+
+<p>The interpreter immediately starts off by running a regex match <code>/^(chicken|\s)*$/m</code> against the entire file (<code>$&lt;.read</code>), which makes sure the file contains nothing but <code>chicken</code> and whitespace. In Ruby, this operator returns the index for the match, or <code>nil</code> if it wasn't found.</p>
+
+<p>Two byte-saving tricks are used here: instead of directly matching <code>chicken</code>, the string substitution operator <code>#{}</code> is used instead to also assign that string to a variable for later (saves 1 byte), and when storing the contents of the file to a variable for processing, it appends two newlines to allow the <code>lines</code> function later to naturally append an extra <code>0</code> to the end of the instruction set. (Two are needed because of ignored trailing newline, which is necessary for the Chicken program.) </p>
+
+<p>The error used is <code>NoMethodError: undefined method '+@' for nil:NilClass</code>, which is done by wrapping the regex match in parens and putting a <code>+</code> in front. If the file matches the pattern, you get <code>+0</code>, which evaluates to <code>0</code> and proceeds normally.</p>
+
+<p>Next, the stack is assembled. The initial list must be created before the self-reference to the stack can be assigned, so a placeholder is used and then replaced. The instruction pointer is set to <code>1</code> instead of <code>2</code> because post-increment operators don't exist in Ruby.</p>
+
+<p>Finally, it uses the lambda trick from @BassdropCumberwubwubwub to determine what to push on the stack next. If an operation doesn't push anything onto the stack, the interpreter simply pops an extra value so the stack stays the same. (This saves bytes over adding a push operation into every single lambda.)</p>
+
+<p><strong>Ungolfed code:</strong></p>
+
+<pre><code>f = $&lt;.read + "\n\n"
++(/^(chicken|\s)*$/m =~ f)
+s = [0, STDIN.read] + f.lines.map{|l|l.split.size}
+s[0] = s
+i = 1
+
+while s[i += 1] &gt; 0
+    if s[i] &lt; 10
+        s.push [
+            -&gt;{'chicken'},
+            -&gt;{
+                x,y = s.pop 2
+                x+y
+                },
+            -&gt;{
+                x,y = s.pop 2
+                x-y
+                },
+            -&gt;{s.pop*s.pop},
+            -&gt;{s.pop==s.pop},
+            -&gt;{s[s[i+=1]][s.pop]},
+            -&gt;{s[s.pop]=s.pop;s.pop},
+            -&gt;{
+                l,k,j=s.pop 3
+                i+=j if k&amp;&amp;k!=0
+                l
+                },
+            -&gt;{s.pop.chr}
+        ][s[i] - 1][]
+    else
+        s.push(s[i] - 10)
+    end
+end
+
+print s.pop
+</code></pre>
+</div>
+<div id="pu2" class="pu"><h1>Javascript ES6, 398 bytes</h1>
+<p>By far the longest golf I have ever done, I'm sure this can be improved but my brain doesn't recognize anything other than <code>chicken</code> at this point.</p>
+<pre><code>(a,b)=&gt;{for(c='chicken',s=[j=0,b,...A=a.split`
+`.map(m=&gt;m.split(c).length-1)],i=A.length+2;j&lt;A.length;([_=&gt;s[++i]=c,_=&gt;s[--i]=s[i]+s[i+1],_=&gt;s[--i]=s[i]-s[i+1],_=&gt;s[--i]=s[i]*s[i+1],_=&gt;s[--i]=s[i]==s[i+1],_=&gt;s[i]=s[2+j++]?b[s[i]]:s[s[i]],_=&gt;s[s[i--]]=s[i--],_=&gt;j+=s[--i]?s[--i+2]:0,_=&gt;s[i]=String.fromCharCode(s[i])][s[j+2]-1]||(_=&gt;s[++i]=s[j+1]-10))(j++));return /[^chicken \n]\w/g.test(a)?0:s[i]}
+</code></pre>
+<p>I will edit the explanation in when my brain starts functioning again. Here's a slightly ungolfed version for now.<br />
+Outputs a falsey value (0) for everything which isn't <code>chicken</code></p>
+<pre><code>(a,b)=&gt;{
+    for(c='chicken',s=[j=0,b,...A=a.split`
+    `.map(m=&gt;m.split(c).length-1)],i=A.length+2; // loop init
+    j&lt;A.length; // loop condition
+    ( // everything else
+        [
+            _=&gt;s[++i]=c,
+            _=&gt;s[--i]=s[i]+s[i+1],
+            _=&gt;s[--i]=s[i]-s[i+1],
+            _=&gt;s[--i]=s[i]*s[i+1],
+            _=&gt;s[--i]=s[i]==s[i+1],
+            _=&gt;s[i]=s[2+j++]?b[s[i]]:s[s[i]],
+            _=&gt;s[s[i--]]=s[i--],
+            _=&gt;j+=s[--i]?s[--i+2]:0,
+            _=&gt;s[i]=String.fromCharCode(s[i])
+        ][s[j+2]-1]
+        ||(_=&gt;s[++i]=s[j+1]-10)
+    )(j++)
+);
+return /[^chicken \n]\w/g.test(a)?0:s[i]}
+</code></pre>
+<p>Try it here</p>
+<p><div class="snippet" data-lang="js" data-hide="false" data-console="true" data-babel="false">
+<div class="snippet-code">
+<pre class="snippet-code-js lang-js prettyprint-override"><code>f=
+  (a,b)=&gt;{for(c='chicken',s=[j=0,b,...A=a.split`
+`.map(m=&gt;m.split(c).length-1)],i=A.length+2;j&lt;A.length;([_=&gt;s[++i]=c,_=&gt;s[--i]=s[i]+s[i+1],_=&gt;s[--i]=s[i]-s[i+1],_=&gt;s[--i]=s[i]*s[i+1],_=&gt;s[--i]=s[i]==s[i+1],_=&gt;s[i]=s[2+j++]?b[s[i]]:s[s[i]],_=&gt;s[s[i--]]=s[i--],_=&gt;j+=s[--i]?s[--i+2]:0,_=&gt;s[i]=String.fromCharCode(s[i])][s[j+2]-1]||(_=&gt;s[++i]=s[j+1]-10))(j++));return /[^chicken \n]\w/g.test(a)?0:s[i]}
+
+i.innerHTML = f(`chicken chicken chicken chicken chicken chicken chicken chicken chicken chicken chicken
+chicken chicken chicken chicken chicken chicken
+`, 'Hello world!')</code></pre>
+<pre class="snippet-code-html lang-html prettyprint-override"><code>&lt;pre id=i&gt;</code></pre>
+</div>
+</div>
+</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/83567/">83567</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+

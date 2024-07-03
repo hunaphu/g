@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::273583</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>070</td><td>Haskell + hgl</td><td>240615T235626Z</td><td><a href="https://codegolf.stackexchange.com/questions/273583/generate-a-subgroup-of-a-free-group/273678#273678">corvus_1</a></td></tr>
+<tr d-ix="1"><td>017</td><td>Jelly</td><td>240613T163953Z</td><td><a href="https://codegolf.stackexchange.com/questions/273583/generate-a-subgroup-of-a-free-group/273649#273649">Unrelate</a></td></tr>
+<tr d-ix="2"><td>023</td><td>Jelly</td><td>240610T171343Z</td><td><a href="https://codegolf.stackexchange.com/questions/273583/generate-a-subgroup-of-a-free-group/273601#273601">Jonathan</a></td></tr>
+<tr d-ix="3"><td>054</td><td>Charcoal</td><td>240612T161100Z</td><td><a href="https://codegolf.stackexchange.com/questions/273583/generate-a-subgroup-of-a-free-group/273624#273624">Neil</a></td></tr>
+<tr d-ix="4"><td>025</td><td>Pyth</td><td>240611T202955Z</td><td><a href="https://codegolf.stackexchange.com/questions/273583/generate-a-subgroup-of-a-free-group/273611#273611">CursorCo</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1><a href="https://www.haskell.org" rel="nofollow noreferrer">Haskell</a> + hgl, <s>79</s> 70 bytes</h1>
+<p>-9 bytes thanks to Wheat Wizard</p>
+<pre class="lang-haskell prettyprint-override"><code>f w=nn&gt;~rF(#)[]&lt;&lt;fo&lt;&lt;mM(p$ap[id,rv&lt;m Ng]w)&lt;e0
+a#(h:t)| -h==a=t
+a#b=a:b
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=LUw9DoIwGN05xWdkgKQkwGRI62jioLI3HUpopaFArUUW40VcWIxn4jYi-pb3m_d8V_xaC63HaaUa01kHl55rJZUoIbdC96Xw_kX-6p2MNtNOwkDadvuwu2AdUoax7DBuDoHxuaGqRPaGGzie2RBiEXt8HVSZC-8QVYRw4uagIDwr_m95w1ULWQb7EwShtzgCZefBDC0cqNbMAaUJSlHKENAoRVHK2DIwFnxwNSRxPAv5Hf9-x_HHHw" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<p>Takes positive and negative numbers as input.</p>
+<p>Semi-Ungolfed:</p>
+<pre class="lang-haskell prettyprint-override"><code>invertWord = reverse . map negate
+mkInvertedWords w = w ++ map invertWord w
+cartesianPower l n = mapM (\_ -&gt; mkInvertedWords l) [0..n]
+
+reduceWords :: [[Int]] -&gt; [Int]
+reduceWords = foldr (#) [] 
+
+-- This function implements the cancellation of inverses
+a#(h:t)| -h==a=t
+a#b=a:b
+
+f w = do
+ n &lt;- [0..]
+ return map reduceWords $ cartesianPower w n
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, <s>18</s> 17 bytes</h1>
+<pre><code>UN;ƊL⁹ḃịƲF;Ṗ+Ṫ¥?/
+</code></pre>
+<p><a href="https://tio.run/##y0rNyan8/z/Uz/pYl8@jxp0PdzQ/3N19bJOb9cOd07Qf7lx1aKm9/v@Hu7c83LHpUdOaQ1sPz3i4a0Hmo4aZSUZmjxpm@NXqP9yxSBMoBUQnJwcdXu5weB/QhMMzHK0Pz0g8ujv00JJDS7yBkpH//ydyJSokcSUCCSArOVnB2ZkrMSk5KTFZIcXZyVHB2dHpv5GhAQA" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></p>
+<p><i>-1 thanks to Jonathan Allan</i></p>
+<p>Takes the words as positive and negative integers on the left, and a 1-index on the right, outputting with a fair number of duplicates. Not shortest-first--it takes up to index 210 to generate the single <code>d</code> on the last test case.</p>
+<pre><code>UN                   Reverse and negate the words
+  ;Ɗ                 and concatenate the list of inverses to the original words.
+     ⁹ḃ              Convert the index to bijective base
+    L                [# of words and inverse words],
+       ịƲ            index the digits into the list of words and inverse words,
+         F           and flatten the words together.
+                /    Reduce left to right by:
+               ?     If
+            +Ṫ¥      the new symbol's sum with the last symbol of the accumulator
+          ;    ?     is nonzero, then concatenate it to the end,
+           Ṗ   ?     else remove the last symbol.
+</code></pre>
+</div>
+<div id="pu2" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, <s> 24 </s> 23 bytes</h1>
+<pre><code>FµŻSƝaSƝTị
+UN;ƊṗⱮẎÇÐL€ḣ
+</code></pre>
+<p>A dyadic Link that accepts the list of words on the left, and a non-negative integer, <span class="math-container">\$n\$</span>, on the right and yields a list of the first <span class="math-container">\$n\$</span> elements.</p>
+<p>The words use an alphabet of positive integers and their negation to represent an inverse.</p>
+<p>The sequence includes many repeats as well as the empty word (also repeatedly).</p>
+<p><a href="https://tio.run/##y0rNyan8/9/t0Naju4OPzU0E4pCHu7u5Qv2sj3U93Dn90cZ1D3f1HW4/PMHnUdOahzsW////PzraUEfBSEfBGEwC2caxOgrRJjoKukARXaCQriFIAMwzBInExv43AQA" rel="nofollow noreferrer" title="Jelly – Try It Online">Don't Try it online!</a> as it's crazy slow.</p>
+<p>For the sequence using up to <span class="math-container">\$n\$</span> words <strong><a href="https://tio.run/##y0rNyan8/9/t0Naju4OPzU0E4pCHu7u5Qv2sj3U93Dn90cZ1D3f1HW4/PMHnUdOa/4eXH530cOcMIDPy///oaEMdBSMdBWMwCWQbx@ooRJvoKOgCRXSBQrqGIAEwzxAkEhv73xgA" rel="nofollow noreferrer" title="Jelly – Try It Online">try this instead</a></strong>.</p>
+<h4>How?</h4>
+<pre><code>FµŻSƝaSƝTị - Link 1, &quot;Simplify Once&quot;: list of Words OR Word
+F          - flatten the list of Words (no-op when passed Word)
+ µ         - start a new monadic Link - f(S=that):
+  Ż        -   prefix with a zero
+   SƝ      -   sum of each neighbouring pair of that
+      SƝ   -   sum of each neighbouring pair of S
+     a     -   logical AND these together
+                 (vectorises and takes the left when the right expires)
+        T  -   truthy indices
+         ị -   index into S -&gt; S with offsetting neighbours removed
+
+UN;ƊṗⱮẎÇÐL€ḣ - Main Link: StartingWords, Index
+   Ɗ         - last three links as a monad - f(StartingWords):
+U            -   reverse each {StartingWords}
+ N           -   negate -&gt; InverseWords
+  ;          -   concatenate {StartingWords}
+     Ɱ       - map across {C in [1..Index]} with:
+    ṗ        -   Cartian power -&gt; all wordlists of length C
+      Ẏ      - tighten -&gt; list of the wordlists
+          €  - for each:
+        ÐL   -   apply until no change:
+       Ç     -     call Link 1 as a monad
+           ḣ - head to {Index}
+</code></pre>
+</div>
+<div id="pu3" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 54 bytes</h1>
+<pre><code>⊞υωＷＳ«⊞υι⊞υ⭆⮌ι⎇№ακ↧κ↥κ»≔⍘ＮυθＷΦＥ⪫υω⁺κ⎇№ακ↧κ↥κ№θκ≔⁻θ⌊ιθθ
+</code></pre>
+<p><a href="https://tio.run/##nY/BasMwEETP0VfouALl0FMOPqWFQktTTJp8wMYIe4ksOZIVU0K@XVnXrnuvQKAZPWlnqgZD5dHmXKbYQNJyUIUYGrJGwpvrUv/VB3I1KCVvYvULEUOLmIgddrA3VxOiAVJaHkxwGL7hxSfXA2p5ZvPDDyZUyMiojl23KF6FuIttjFQ7eGZzHvwT4jO1JxOA3yTel7@Ir2R7vhiHv3tyUwEtS5sinP8TQsuJvYwsl54D7cjxj2zygdrUcsU5SMkpGVdFzojihEI8bfL6ah8" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code. Takes a newline-terminated list of newline-terminated words followed by <code>n</code> as input and outputs the <code>n</code>th term (<code>1</code>-indexed excluding the empty term, but if you run this on ATO instead then it will be <code>0</code>-indexed including the empty term) including many, many duplicates. Explanation:</p>
+<pre><code>⊞υω
+</code></pre>
+<p>Start with just an empty string.</p>
+<pre><code>ＷＳ«
+</code></pre>
+<p>Loop through the words.</p>
+<pre><code>⊞υι
+</code></pre>
+<p>Add the word to the list.</p>
+<pre><code>⊞υ⭆⮌ι⎇№ακ↧κ↥κ
+</code></pre>
+<p>Add the inverse of the word to the list.</p>
+<pre><code>»≔⍘Ｎυθ
+</code></pre>
+<p>Input <code>n</code> and convert it to base <code>2m+1</code>, where <code>m</code> is the number of words.</p>
+<pre><code>ＷΦＥ⪫υω⁺κ⎇№ακ↧κ↥κ№θκ≔
+</code></pre>
+<p>For each symbol in the words and their inverses, concatenate the symbol with its inverse. While at least one of those pairs exists in the result...</p>
+<pre><code>⁻θ⌊ιθ
+</code></pre>
+<p>... remove one of them from the result.</p>
+<pre><code>θ
+</code></pre>
+<p>Output the final result.</p>
+<p>Bonus 58-byte version that outputs the first <code>n</code> terms: <a href="https://ato.pxeger.com/run?1=bZDNSgMxEIDxaJ4i9DQLKdSb0FNbECxW1r9T6SG7pN3QbLKbny4iPomXHhS9-EI-jZNuLBTMKTPzZeabvH2VFbel4Wq__wh-Pbz8ObvLg6sgMNplY9JVUgkK17oJ_sFbqTeQZfSFnP9BEqFj0BML3sC92AnrBMiM0UdhNbfPMDNBe-CMbjF5YzphS45IjJ6a5hjhGZNXsjY2zb0NdSEsHMZOnJMbDVNEk45kNGCHNnok2yupPD6IHnMjdb8Lo7kKDtQ_PurER534qOjDaM-2kcX9k8VCauyISbzIOtRRPpnk6OZh2a7iLu-uKF3638_lYLhTg9U3n5JiRsoJIRejUV_7BQ" rel="nofollow noreferrer" title="Charcoal - Attempt This Online">Attempt This Online!</a> Link is to verbose version of code.</p>
+</div>
+<div id="pu4" class="pu"><h1><a href="https://github.com/isaacg1/pyth" rel="nofollow noreferrer">Pyth</a>, 25 bytes</h1>
+<pre><code>#jmu?s&gt;2K+GHKPGsdYy=+m__M
+</code></pre>
+<p><a href="https://tio.run/##K6gsyfj/Xzkrt9S@2M7IW9vdwzvAvTglstJWOzc@3vf//@hoQx0Fw1gdhWgjEB0LAA" rel="nofollow noreferrer" title="Pyth – Try It Online">Try it online!</a></p>
+<p>Words are lists of non-zero integers where inversing is done by negation.</p>
+<p>Generates output infinitely with many repeated terms, including the empty list.</p>
+<h3>Explanation</h3>
+<pre><code>#jmu?s&gt;2K+GHKPGsdYy=+m__MdQQ    # implicitly add dQQ
+                                # implicitly assign Q = eval(input())
+                   =      Q     # assign to Q
+                     m    Q     #   map lambda d over Q
+                       _Md      #     negate each element of d
+                      _         #     and reverse
+                    +      Q    #   concatenated with Q
+  m               y             # map powerset of Q over lambda d
+   u           sdY              #   reduce sum(d) over lambda G,H with [] as starting value
+        K+GH                    #     assign K to the concatenation of G and H
+    ?                           #     ternary operator, return the following
+     s&gt;2K                       #     if sum(K[-2:]) != 0:
+            K                   #       K
+                                #     else:
+             PG                 #       G[:-1]
+ j                              # print, sperated by newlines
+#                               # repeat infinitely
+</code></pre>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/273583/">273583</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+

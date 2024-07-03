@@ -26,11 +26,64 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>002</td><td>Without the \$k\$ constraint</td><td>240204T203216Z</td><td><a href="https://codegolf.stackexchange.com/questions/269725/find-the-best-staircase-to-maximize-the-sum/269778#269778">qwr</a></td></tr>
-<tr d-ix="1"><td>nan</td><td></td><td>240210T094718Z</td><td><a href="https://codegolf.stackexchange.com/questions/269725/find-the-best-staircase-to-maximize-the-sum/269974#269974">doubleun</a></td></tr>
-<tr d-ix="2"><td>nan</td><td></td><td>240203T124649Z</td><td><a href="https://codegolf.stackexchange.com/questions/269725/find-the-best-staircase-to-maximize-the-sum/269747#269747">odomojul</a></td></tr>
+<tr d-ix="0"><td>nan</td><td></td><td>240502T133450Z</td><td><a href="https://codegolf.stackexchange.com/questions/269725/how-to-optimize-rectilinear-borders/272921#272921">138 Aspe</a></td></tr>
+<tr d-ix="1"><td>002</td><td>Without the \$k\$ constraint</td><td>240204T203216Z</td><td><a href="https://codegolf.stackexchange.com/questions/269725/how-to-optimize-rectilinear-borders/269778#269778">qwr</a></td></tr>
+<tr d-ix="2"><td>nan</td><td></td><td>240210T094718Z</td><td><a href="https://codegolf.stackexchange.com/questions/269725/how-to-optimize-rectilinear-borders/269974#269974">doubleun</a></td></tr>
+<tr d-ix="3"><td>nan</td><td></td><td>240203T124649Z</td><td><a href="https://codegolf.stackexchange.com/questions/269725/how-to-optimize-rectilinear-borders/269747#269747">odomojul</a></td></tr>
 </table>
-<div id="pu0" class="pu"><p>Without the <span class="math-container">\$k\$</span> constraint, <span class="math-container">\$O(n^2)\$</span> is possible using a columnwise DP.</p>
+<div id="pu0" class="pu"><h1>Rust</h1>
+<p>A port of <a href="https://codegolf.stackexchange.com/a/269778/110802">@qwr's Python answer</a> in Rust.</p>
+<pre class="lang-rust prettyprint-override"><code>// Cargo.toml
+// [dependencies]
+// ndarray = &quot;0.15.3&quot;
+
+// src/main.rs
+use ndarray::{Array2, Axis, arr2};
+
+fn main() {
+    let a = arr2(&amp;[
+        [-3, -2,  3,  2, -2],
+        [ 3, -2, -2, -5, -3],
+        [ 0,  3,  1,  1, -3],
+        [ 1,  1,  2,  1, -1],
+        [ 1,  1,  1, -3,  3]
+    ]);
+
+    let n = a.nrows();
+    let mut d = Array2::&lt;i32&gt;::zeros((n + 1, n));
+    let mut c = Array2::&lt;i32&gt;::zeros((n + 1, n));
+    let mut m = Array2::&lt;i32&gt;::zeros((n + 1, n));
+
+    for j in 0..n {
+        for i in 0..=n {
+            c[[i, j]] = if i &gt; 0 { c[[i - 1, j]] + a[[i - 1, j]] } else { 0 };
+            d[[i, j]] = c[[i, j]] + if j &gt; 0 { m[[i, j - 1]] } else { 0 };
+        }
+
+        for i in (0..=n).rev() {
+            m[[i, j]] = if i == n { d[[i, j]] } else { d[[i, j]].max(m[[i + 1, j]]) };
+        }
+    }
+
+    let last_column = d.index_axis(Axis(1), n - 1);
+    let max_value = last_column.iter().max().unwrap(); // This is how you find the max value correctly
+
+    println!(&quot;{:?}&quot;, d);
+    println!(&quot;Max value of the last column: {:?}&quot;, max_value);
+}
+</code></pre>
+<pre><code>$ cargo build --release
+$ cargo run --release
+[[0, 2, 3, 8, 10],
+ [-3, 0, 6, 10, 8],
+ [0, -2, 4, 5, 2],
+ [0, 1, 5, 6, -1],
+ [1, 2, 7, 7, -2],
+ [2, 3, 8, 4, -2]], shape=[6, 5], strides=[5, 1], layout=Cc (0x5), const ndim=2
+Max value of the last column: 10
+</code></pre>
+</div>
+<div id="pu1" class="pu"><p>Without the <span class="math-container">\$k\$</span> constraint, <span class="math-container">\$O(n^2)\$</span> is possible using a columnwise DP.</p>
 <p>Define <span class="math-container">\$d[i,j]\$</span> as the maximum sum of columns <span class="math-container">\$0\$</span> to <span class="math-container">\$j\$</span>, given some boundary line with a horizontal boundary above cell <span class="math-container">\$(i,j)\$</span>, and <span class="math-container">\$c[i,j]\$</span> to be the column prefix sum up to row <span class="math-container">\$i\$</span>.  Then
 <span class="math-container">$$d[i,j] = \max_{i \le i' \le n}  d[i',j-1] + c[i,j]$$</span></p>
 <p>This would take linear time, but since max is associative,  we can do it with prefix sums too:
@@ -100,7 +153,7 @@ print(max(d[0,-1,K], max(d[1:n,-1,K-1])))
 </code></pre>
 <p>The final time complexity is  <span class="math-container">\$O(n^2 k)\$</span>.</p>
 </div>
-<div id="pu1" class="pu"><p>Pure JavaScript:</p>
+<div id="pu2" class="pu"><p>Pure JavaScript:</p>
 <pre class="lang-js prettyprint-override"><code>const _staircase = (rowIndex, colIndex, prevRowIndex, maxRowIndex, k, sum, rowIndices) =&gt; {
   result.numIterations += 1;
   if (maxRowIndex === 0 || k === kMax) {
@@ -123,7 +176,7 @@ print(max(d[0,-1,K], max(d[1:n,-1,K-1])))
 <p>The function keeps track of how deep to go in each column by observing <code>maxRowIndex</code>. The first <code>if()</code> is a simple optimization that skips iteration of further columns when we're on the first row (that only contains zeros in <code>c</code>) and when we're out of horizontal lines to insert.</p>
 <p>The harness is at the TIO link above. It constructs <code>c</code>, calls the recursive function, and shows the result.</p>
 </div>
-<div id="pu2" class="pu">
+<div id="pu3" class="pu">
 <p>Given the constraint that the partition line may only move up or right, this corresponds to the number of combination words defined by north-east lattice-paths: <a href="https://en.wikipedia.org/wiki/Lattice_path" rel="nofollow noreferrer">https://en.wikipedia.org/wiki/Lattice_path</a></p>
 <p>For example, for n=3, we would write:</p>
 <pre class="lang-python prettyprint-override"><code>NNN

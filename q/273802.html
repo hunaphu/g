@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::273802</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>389</td><td>ELisp</td><td>240701T142624Z</td><td><a href="https://codegolf.stackexchange.com/questions/273802/parity-of-a-number-with-missing-digits/273857#273857">Samuel J</a></td></tr>
+<tr d-ix="1"><td>048</td><td>Python 2</td><td>240626T184012Z</td><td><a href="https://codegolf.stackexchange.com/questions/273802/parity-of-a-number-with-missing-digits/273818#273818">Jonathan</a></td></tr>
+<tr d-ix="2"><td>028</td><td>05AB1E</td><td>240627T074303Z</td><td><a href="https://codegolf.stackexchange.com/questions/273802/parity-of-a-number-with-missing-digits/273823#273823">Kevin Cr</a></td></tr>
+<tr d-ix="3"><td>031</td><td>Charcoal</td><td>240626T074507Z</td><td><a href="https://codegolf.stackexchange.com/questions/273802/parity-of-a-number-with-missing-digits/273815#273815">Neil</a></td></tr>
+<tr d-ix="4"><td>061</td><td>Python 3.8 prerelease</td><td>240626T043438Z</td><td><a href="https://codegolf.stackexchange.com/questions/273802/parity-of-a-number-with-missing-digits/273813#273813">att</a></td></tr>
+<tr d-ix="5"><td>076</td><td>JavaScript ES6</td><td>240625T211539Z</td><td><a href="https://codegolf.stackexchange.com/questions/273802/parity-of-a-number-with-missing-digits/273809#273809">Arnauld</a></td></tr>
+<tr d-ix="6"><td>109</td><td>Python 3.8 prerelease</td><td>240625T202104Z</td><td><a href="https://codegolf.stackexchange.com/questions/273802/parity-of-a-number-with-missing-digits/273805#273805">squarero</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>ELisp, <s>497</s> 389 chars</h1>
+<p>I don't know how people did this in so few bytes. I don't know the math behind checking for ambiguous results besides brute force. I actually calculate all the possibilities and make sure the output is all the same or different. Here is my code. Caveat, ELisp only allows bases 2-16.</p>
+<pre><code>(let((o)(base(string-to-number(pop argv))))(dolist(a argv nil)(let((pos(string-match &quot;\\?&quot; a)))(if pos(progn(aset a pos ?0)(push a(cdr(last argv)))(let((i 1))(while(&lt; i base)(aset a pos(aref(format &quot;%x&quot; i)0))(push(concat a)(cdr(last argv)))(setq i(1+ i)))))(let((p(if(cl-oddp(string-to-number a base))&quot;O&quot;&quot;E&quot;)))(if(not(member p o))(setq o(cons p o)))))))(princ(if(=(length o)2)&quot;A&quot;(car o))))
+</code></pre>
+<p><a href="https://tio.run/##ZVLLTsMwELz3K1aWEGtBpKalHBCo4sCZA1cuxtmklhLb2C7w92VttymPRo28M7Mz69g0KR2b0UR/QB/cYAE76vcWekAVhg95wJESopP4piJhTMHYoUmusfvpjQJ656EI@YedY6eEqiBgzShrt3fx1DmppHcgXl@3AlTuMT1kuoQjRyRQGYDtUqLfxx0o1F3AUcV0CqqmBlpefu7MSHgPBvJ88ocDz0899i5wJIiLLwFGLmU1Re2sZljJ/@Zs8A4G2yvWyznN86Cox8Z1nf/3FTiwpEvxLMSTqNtC6xJOVHgP7uTscnasSPX3bKZzwwNH2SHtmFpJ8ShQq1BlB7mo3YliinCJCxTtUoBoV2t@PwuZgQ0vifj1VOpV5pftzK/n@ge//cOX@rHy2W@7Wt9sZmh9y0vv9TCblCmOyEtBsnpzrCQD5YTq4AuA8zagbK/gLGPGDNYFaigEF4p0ohjVQHx4ES7iHf@vgb486UQdF@LsIOF0ogx1R4xBvsX5Rv4WngW1mkvOlL9GjJCvxzwjP4dv" rel="nofollow noreferrer">Try it Online</a></p>
+<p>ungolfed</p>
+<pre><code>(require 'cl-lib)
+(let ((o)(base (string-to-number (pop argv))))
+  (dolist (a argv nil)
+(let ((pos (string-match &quot;\\?&quot; a)))
+  (if pos
+      (progn
+    ;; push possibilies of number to arguments array
+    (aset a pos ?0)
+    ;; add original to end of arguments array in case there are more '?'
+    (push a (cdr (last argv)))
+    (let ((i 1))
+      (while (&lt; i base)
+        (aset a pos (aref (format &quot;%x&quot; i) 0))
+        (push (concat a) (cdr (last argv))) ; deep copy string with concat
+        (setq i (1+ i))
+        )
+      )
+    )
+    (let ((p (if (cl-oddp (string-to-number a base))&quot;O&quot;&quot;E&quot;)))
+      (if (not (member p o)) (setq o (cons p o))))
+    )
+  )
+)
+  (princ (if (= (length o) 2) &quot;A&quot; (car o)))
+  )
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://docs.python.org/2/" rel="nofollow noreferrer">Python 2</a>, 48 bytes</h1>
+<p>Exactly as below, just with <code>/</code> rather than <code>//</code> (we need an integer as the second argument to <code>int</code>)</p>
+<p><a href="https://tio.run/##dZLNjpswFIX3PMUt0sgmImmAyUilyqBIpduMFLWLyWRhwElRiUG2mRIhnj21DSVolHoD9/g75/qvushfJfOvx/XbtSDnJCPA3CTMmcRsnzz4cy88uMlnnDxr6UwazBw3eHIc58G/bmENaJtlyIr1X/xOGbI2@ndzTvJTXdYCWTtd7y5MkgZizkuOLEtSIYXS9xbsvaULyPMD5ML24GphpQRKVR2bGnwNLL0RgGAUpkT0kTDCxgi@zoz84HE1SqZvZMY9bbX0b/lfPsg9HTwpuarS0wga/6DseqtuvLqVj2PSbcMTcULqLURNNAgHyzqWHBJXXQ/QpqKppBnkDMxRhhaowdSJsgWnVUFSipG2ohlyzJzklx7Sg1NRF1LRR6zSkp6gTUorCT9JUVNzT3f4zZR8pbz8lr/nIi/Z/wy7qSE2H0UDEUDv0EJyTIfVFOIe0S5DiF3wQth2ixOVuJ9xwf7BfrPyDwNWsjnVqxlMn@w@UNRpSoV@dPYLEYJmNuTHMXh9O1PdGezvJC8UY6wVV28fUJt0LrSsA9z@gzsH5s/Q9indV2iHLh1aqNs6E4lns6JMSSGw41z/Ag" rel="nofollow noreferrer" title="Python 2 – Try It Online">Try it online!</a></p>
+<hr />
+<h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a>, <s> 56 55 50 </s> 49 bytes</h1>
+<p>-5 bytes thanks to <a href="https://codegolf.stackexchange.com/users/101374/albert-lang">Albert.lang</a> (use <code>max</code> to convert the greatest character from base 36 and compare to the base rather than replacing wildcards and converting from base <code>b</code>).</p>
+<p>-1 byte thanks to <a href="https://codegolf.stackexchange.com/users/81203/att">att</a> (splat args of <code>replace</code> and revert to using <code>?</code> as the wildcard).</p>
+
+<pre class="lang-python prettyprint-override"><code>lambda n,b:int(n[b%2-1:],b//(b&gt;int(max(n),36)))%2
+</code></pre>
+<p>An unnamed function that accepts a non-empty string, <code>n</code>, of <code>0-9a-z</code> plus <code>*</code> (the wildcard) and an integer, <code>b</code>, from <span class="math-container">\$[2,36]\$</span> and:</p>
+<ul>
+<li>returns the integer <span class="math-container">\$0\$</span> if <code>n</code> is unambiguously even in base <code>b</code></li>
+<li>returns the integer <span class="math-container">\$1\$</span> if <code>n</code> is unambiguously odd in base <code>b</code></li>
+<li>raises a <code>ValueError</code> if <code>n</code> is of ambiguous parity in base <code>b</code></li>
+<li>raises a <code>ZeroDivisionError</code> if <code>n</code> is unparseable in base <code>b</code></li>
+</ul>
+<p><strong><a href="https://tio.run/##dZLBjpswEEDv/opRpJWh9e4G2KxapCyKVHLNIVIPTXPAyZAiEYOMWREhjr31E7o/tz@S2maXoFXqC57nN2PNmPKkfhUi@FLKczr/ec6TI98nIBgPM6EcseE3/q0Xbhm/v3f4k2HHpHGEy4JH13Vv/PMK5kBX@z0lsdnFzygoWZjt4sizQ13UFSVrE69PQiUNxFIWkpKlQcsky2uJlBCFlao02hDYeFMG1PMDymC1ZQbMNEDUcWxj8I0w9QYBggGMjeijYcHCAt/UjPzgYTYge29k1zU2m/qX@l8/4N4OHjUuy91hEG3@G1n3qebi2SV8GCpdGh7BkWlaiJroDWwJSQsJnOnXAmxK3CncQybAjjIkoJfQExV3Ess82aFDTSr9RF17puSpl8ySWNW50nbq6Gq8N7DZYange5LXaF/tir8Ymz9QFt@y56zKCvG/hPU4IbYfbUNSAV6xl/AZ0gk4Mskq3V2rTiU66HbupC@TV9ey2mkIMQMvhFV3d0Dl9CcMln1jpTQ/ckpb3jFoRQdO@z7AzoXbJ2j7hA7ayevLn9e/vyeb9@LzYdbbjrrnfw" rel="nofollow noreferrer" title="Python 3.8 (pre-release) – Try It Online">Try it online!</a></strong></p>
+<p><sup>(The wildcards may actually be any character less than <code>0</code>)</sup></p>
+<h4>How?</h4>
+<pre class="lang-python prettyprint-override"><code>lambda n,b:int(n[b%2-1:],b//(b&gt;int(max(n),36)))%2
+lambda n,b:                                       # Accept string n and integer b
+                 b%2-1                            # b mod 2 minus one
+                                                  #  -&gt; if b is odd: 0
+                                                  #     else: -1
+               n[     :]                          # slice n from that index
+                                                  # -&gt; if b is odd: n
+                                                  #    else: last character of n
+                                                  # (let's call that X)
+                                   max(n)         # maximum character in n
+                               int(      ,36)     # convert from base 36
+                                                  #  -&gt; if n is only wildcards
+                                                  #        (one case of Ambiguous)
+                                                  #     then: raise ValueError
+                                                  #     else: base 36 value of max character of n
+                            (b&gt;              )    # is b greater than that?
+                         b//                      # b integer divided by that
+                                                  #  -&gt; if any digit of n is too big
+                                                  #        (i.e. Unparsable)
+                                                  #     then: b//False -&gt; raise ZeroDivisionError
+                                                  #     else: b//True -&gt; b
+         int(           ,                     )   # convert X from base b
+                                                  #   -&gt; if wildcards present in X
+                                                  #         (i.e. Ambiguous)
+                                                  #      then: raise ValueError
+                                               %2 # that modulo two 
+                                                  #   -&gt; if even:
+                                                  #      then: 0
+                                                  #      else: 1
+</code></pre>
+</div>
+<div id="pu2" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, <s>31</s> 28 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
+<pre><code>L&lt;Ið¢ãεðs.;Aā9+‡D¹‹Pi¹βÉë2]ê
+</code></pre>
+<p>Inputs in the order <span class="math-container">\$base,input\$</span>, where <span class="math-container">\$input\$</span> is a list of characters with spaces as fillers.<br />
+Outputs <code>[0]</code>/<code>[1]</code>/<code>[0,1]</code>/<code>[2]</code> for <code>E</code>/<code>O</code>/<code>A</code>/<code>S</code> respectively.</p>
+<p><a href="https://tio.run/##AUIAvf9vc2FiaWX//0w8ScOwwqLDo861w7BzLjtBxIE5K@KAoUTCueKAuVBpwrnOssOJw6syXcOq//8xNQpbMSwiICIsMV0" rel="nofollow noreferrer">Try it online</a> or <a href="https://tio.run/##yy9OTMpM/V9Waa@k8KhtkoKSfWVCcKhLmNJ/H5uIwxsOLTq8@NzWwxsiivSsHY80Wmo/aljoEvmoYWdAZuS5TYc7D682ij286r@SXpiLfZDxuU3Gh@cquZal5un4p6ToBFfmlWQkViikFhXlF@k45iZlppfmlxYrqescWgg0R0lB4/B@TSWd/9HRhgY60YY6RjrGOkoKSrGxQI6pTjSQqQPDRmBBmCq4ilSgbCpYgxFIykDHEMQ2RmKDxUEmIGTgPCOoJSB7TXRMYVYg2YtFSMcUaDTYOZYIcbiYsRlQsAAoCMLJQJyOMANTGGg/2FYThEnGaHxTFL9CXB4LAA" rel="nofollow noreferrer">verify all test cases</a>.</p>
+<p><strong>Explanation:</strong></p>
+
+<pre class="lang-python prettyprint-override"><code>L         # Push a list in the range [1, first (implicit) input-integer] 
+ &lt;        # Decrease each by 1 to the range [0,input-integer)
+  I       # Push the second input-list
+   ð¢     # Pop and count how many spaces are in it
+     ã    # Get the cartesian power of the earlier list and this count
+          # (if the count was 0, the list will be `[[]]`, so it'll still
+          # continue inside the map)
+ε         # Map over this list of values:
+ ð        #  Push a space character
+  s       #  Swap so the current map-list is at the top of the stack
+   .;     #  In the second (implicit) input-list, replace every space one-by-one
+          #  with the values in the current map-list
+ A        #  Push the lowercase alphabet
+  ā       #  Push a list in the range [1,length] (without popping): [1,26]
+   9+     #  Add 9 to each: [10,35]
+     ‡    #  Transliterate all letters to these values
+ D        #  Duplicate the resulting list
+  ¹‹      #  Check for each value whether it's smaller than the first input
+    Pi    #  If this is truthy for all of them:
+      ¹β  #   Convert the list from base-firstInput to a base-10 integer
+        É #   Pop and check whether it's odd
+     ë    #  Else:
+      2   #   Push a 2 as Synthax Error value instead
+]         # Close the if-else statement and map
+ ê        # Sort and uniquify the resulting values
+          # (after which the result is output implicitly)
+</code></pre>
+</div>
+<div id="pu3" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, <s>43</s> 31 bytes</h1>
+<pre><code>Ｎθ≔⍘⁻η?⭆θ⍘ιθζ¿⊙⌕Ａ⮌η?∨¬ι﹪θ²A§EOζ
+</code></pre>
+<p><a href="https://tio.run/##Tc1NCsIwEAXgvacIWU2gQi246qJEUOiiregJYhvbQEza/BT18jFWBWf1eDy@aQdmWs1kCKUavav97cINTCRfUWtFr2DHLD87I1QPlVDewpAgXGCSoE9bsRGmBP3NRIImQuLgGRVxRUDVAw5CdVRKOPGZG8thID@mMVBrByLGSnde6jeXRYCgY/QcYIpJjri0/FtQV6qO3wHvG7x8CWGTrorltmkW1rN8AQ" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code. Outputs <code>O</code>/<code>E</code>/<code>A</code> but throws for invalid input. Explanation:</p>
+<pre><code>Ｎθ
+</code></pre>
+<p>Input the base.</p>
+<pre><code>≔⍘⁻η?⭆θ⍘ιθζ
+</code></pre>
+<p>Tries to convert the number, with <code>?</code>s removed, from the given base, but throws if there are any disallowed digits (Charcoal's base conversion normally allows overlarge digits but explicitly specifying the digit characters overrides this).</p>
+<pre><code>¿⊙⌕Ａ⮌η?∨¬ι﹪θ²A
+</code></pre>
+<p>If the reverse of the string contains any <code>?</code>s and either the base is odd or one is at the beginning of the reversed string then the parity is ambiguous.</p>
+<pre><code>§EOζ
+</code></pre>
+<p>Otherwise use the base conversion result to determine the parity.</p>
+</div>
+<div id="pu4" class="pu"><h1><a href="https://docs.python.org/3.8/" rel="nofollow noreferrer">Python 3.8 (pre-release)</a>, 61 bytes</h1>
+
+<pre class="lang-python prettyprint-override"><code>lambda b,s,a=0:[a:=c&lt;'0'or b%2*a^int(c,b)%-2for c in s][-1]%3
+</code></pre>
+<p><a href="https://tio.run/##XY7Bb4IwGMXP9q/4LqTUVANFltkMiYedd9jRuaRgmSQMmlLjDOFvZ62dZrGn93793stTF3Ps2uRZ6anKPqZGfBcHAQXtqcgivhM8K19whDsNRcDm4rNuTVjSggQLVllYQt1Cv98t4n2QTAdZgZG9CeeCcDQz@sJBS3PSLVSOoZn8KaUyd4rNUXdnjND5WDcSYhuqaQeZbVUnE5KllqoRpQxxjimeY7LsVVObEMNiA9j22aHu@obpFSrtVlZ46PlmPcJQ8A0bXWLoRg7DdaG7KAjtyYjJFEcUYpa4kzcUpxSkdPoVMcuj2PPkrj3P/3Gvt4jZbM6SVeqt682v79GnEfNN6weyRckTBaXKL//vIjf3jmx96tXqlvtbfff@/xc" rel="nofollow noreferrer" title="Python 3.8 (pre-release) – Try It Online">Try it online!</a></p>
+<p>Use <code>*</code> (or any character with code point &lt;48) for unknown digits. Outputs <code>2/0/1</code> for odd/even/ambiguous. Throws on syntax error.</p>
+<pre class="lang-python prettyprint-override"><code>a=0                                                 starting from empty (0),
+    [a:=                         for c in s]        compute running parities a:
+        c&lt;'0'                                         missing digit: ambiguous
+             or       int(c,b)                        else validate,
+                              %-2                     parity,
+                    a^                                base odd : xor a
+                b%2*                                  base even: discard a
+                                            [-1]    final parity
+                                                %3  collapse ambiguous outputs
+</code></pre>
+</div>
+<div id="pu5" class="pu"><h1>JavaScript (ES6), 76 bytes</h1>
+<p>Expects <code>(base)(string)</code>, with <code>.</code> for missing digits.</p>
+<p>Returns <strong>0</strong> for <em>syntax error</em>, <strong>1</strong> for <em>even</em>, <strong>2</strong> for <em>odd</em> or <strong>3</strong> for <em>ambiguous</em>.</p>
+
+<pre class="lang-javascript prettyprint-override"><code>b=&gt;s=&gt;eval(&quot;for(m=i=0;!(q=i.toString(b))[s.length];)m|=!!q.match(s)&lt;&lt;i++%2&quot;)
+</code></pre>
+<p><a href="https://tio.run/##hdCxDoIwFAXQ3a8oTUzaGCu04iI1cXB2YDQOiAVrgAJtnPx3BDQa0eqbT27ufefoEum4lqWZFuoomoQ3B77SfCUuUYZgomqUc8ndpYMqLolRoallkaIDxjtNMlGk5rRf4vzKHacieWTiE9I4CORkMqYQN7EqtMoEyVSKEuS5GEGPMgjawxjMZmA7GhC/JUL04kE2AwJol@J6P1IA@yDfU8j/lDeyHhDa1SWUzX1oI/1o0h@0ELZoSVnGKbTW7VPeSTis23Xx75@zkfmzC4OW0S/iP0jY3AA" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<hr />
+<h1>Recursive version, 67 bytes</h1>
+<p>Same I/O format.</p>
+
+<pre class="lang-javascript prettyprint-override"><code>(b,i=0)=&gt;g=s=&gt;(q=i.toString(b))[s.length]||!!q.match(s)&lt;&lt;i++%2|g(s)
+</code></pre>
+<p><a href="https://tio.run/##fc5PC4IwHMbxe69iDoLfsOY/vDmhQ@cOHqOD2pwL29KNTr73pRRBUt0e@PCF51LeS1MP8ma3Sp@5a5iDaiNZSFgumGE59ExSqws7SCWgIuRoaMeVsO1pHD2vp9fS1i0YkmXS99fxKKbtaq2M7jjttIAGopAAjuIEE4KCAB1WC04n5hyjJ@8XjOK5DqMfNUo@@HtN/9dv3i15vpZi9LpWuAc" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<h3>Commented</h3>
+<pre class="lang-javascript prettyprint-override"><code>( b,            // b = base
+  i = 0         // i = counter
+) =&gt;            //
+g = s =&gt;        // s = input string
+( q =           // set q to the representation of ...
+  i.toString(b) // ... i in base b
+)[s.length]     // stop if the n-th (0-indexed) character of q exists,
+                // where n is the length of s
+                // if it does, it must be &quot;0&quot; (truthy but zero'ish)
+                // and will have no incidence on the final result
+||              // otherwise,
+!!q.match(s)    // if q matches s (interpreted as a regular expression),
+&lt;&lt; i++ % 2      // set either bit #0 or bit #1 depending on the parity
+|               // of i; increment i afterwards
+g(s)            // do a bitwise OR with the result of a recursive call
+</code></pre>
+</div>
+<div id="pu6" class="pu"><h1><a href="https://docs.python.org/3.8/" rel="nofollow noreferrer">Python 3.8 (pre-release)</a>, <s> 119 </s> 109 bytes</h1>
+<p><em>-10 bytes:</em> <code>if'0'&gt;n[-1]or(b%2 and'/'in n)else</code> → <code>if'/'in n[-(~b%2):]else</code>.</p>
+
+<pre class="lang-python prettyprint-override"><code>lambda b,n:''if max(i&lt;'0'or int(i,36)for i in n)&gt;=b else[]if'/'in n[-(~b%2):]else int(n.replace('/','0'),b)%2
+</code></pre>
+<p>Takes input like <code>print(f(10, '//////502'))</code>, where <code>/</code> is the unknown character.<br />
+Returns <code>''</code> if the string is invalid, <code>[]</code> if the parity is ambiguous, <code>0</code> for even, and <code>1</code> for odd.</p>
+<p><a href="https://tio.run/##dY7BDoIwEETvfkUvpG1SBVogatQfUQ4UW20CpUEPevHXscuBgMje9s3s7Lj3895YsXVtp4@XripqeS2QZHaPsdGoLl7EHHCEmxYZ@ySGiYxqWPyKLD0dJVLVQ51zo3GIgZ3X5CMDTvc5CP2V3bTKVUWpiPcwn0aZpAHvXAuqJnHEEI65wJSuBpZ6ptQYcXBF8RiJOepd4dw1RRziQy6SdPIUioT9LOA04mNltySIzCvOlbdZzi@EIpMSyZAp/mNwd18" rel="nofollow noreferrer" title="Python 3.8 (pre-release) – Try It Online">Try it online!</a></p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/273802/">273802</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+

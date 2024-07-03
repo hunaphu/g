@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::47035</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>nan</td><td>Use i as a shorthand for 1 for programs that take no input</td><td>230113T144650Z</td><td><a href="https://codegolf.stackexchange.com/questions/47035/tips-for-golfing-in-fish/256677#256677">mousetai</a></td></tr>
+<tr d-ix="1"><td>nan</td><td></td><td>221222T091642Z</td><td><a href="https://codegolf.stackexchange.com/questions/47035/tips-for-golfing-in-fish/255899#255899">mousetai</a></td></tr>
+<tr d-ix="2"><td>nan</td><td>Use char codes to store big numbers and use g to use them more than once</td><td>221222T075704Z</td><td><a href="https://codegolf.stackexchange.com/questions/47035/tips-for-golfing-in-fish/255894#255894">mousetai</a></td></tr>
+<tr d-ix="3"><td>nan</td><td></td><td>151024T175233Z</td><td><a href="https://codegolf.stackexchange.com/questions/47035/tips-for-golfing-in-fish/61664#61664">cole</a></td></tr>
+<tr d-ix="4"><td>nan</td><td></td><td>151004T175632Z</td><td><a href="https://codegolf.stackexchange.com/questions/47035/tips-for-golfing-in-fish/59655#59655">cole</a></td></tr>
+<tr d-ix="5"><td>nan</td><td></td><td>151004T181709Z</td><td><a href="https://codegolf.stackexchange.com/questions/47035/tips-for-golfing-in-fish/59657#59657">cole</a></td></tr>
+<tr d-ix="6"><td>nan</td><td></td><td>150224T163348Z</td><td><a href="https://codegolf.stackexchange.com/questions/47035/tips-for-golfing-in-fish/47039#47039">Sp3000</a></td></tr>
+<tr d-ix="7"><td>000</td><td>Checking against</td><td>150224T153323Z</td><td><a href="https://codegolf.stackexchange.com/questions/47035/tips-for-golfing-in-fish/47036#47036">Sp3000</a></td></tr>
+<tr d-ix="8"><td>nan</td><td></td><td>150224T153902Z</td><td><a href="https://codegolf.stackexchange.com/questions/47035/tips-for-golfing-in-fish/47037#47037">Sp3000</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>Use <code>i</code> as a shorthand for <code>-1</code> for programs that take no input, or after the input is exhausted</h1>
+<p>Pushing <code>-1</code> is always a bit tricky, requiring <code>01-</code> (3 bytes). However, the <code>i</code> command pushes <code>-1</code> if there is no input. This can save 2 bytes.</p>
+<p>For example to invert a number normally requites <code>0$-</code> (3 bytes) but if you don't take input you can do <code>i*</code> (2 bytes)</p>
+</div>
+<div id="pu1" class="pu"><h1>Use the code as infinite length array</h1>
+<p>You can store values in the source code area with the <code>g</code> and <code>p</code> commands. For example, you could use the 7th row as a array and access it like this:</p>
+<p><code>i3g</code></p>
+<p>This is significantly shorter than if you used the stack:</p>
+<p><code>i[{:}]</code></p>
+<p>The stack has a additional disadvantage is you need to compensate for any other data you want on the stack. The code box is always accessible regardless of the state of your stack. You can also easily create multiple arrays, or even a 2-dimentional array this way.</p>
+<p>You don't even need to keep the row free, &gt;&lt;&gt; will automatically add rows or columns when you write to them. You can read and write any number, even those not normally valid in source code, like line breaks and floating point numbers. This is a valid program that prints <code>0.5</code>:</p>
+<pre><code>12,00p00gn;
+</code></pre>
+<p>Even if there is no character &quot;0.5&quot;. This does not seem to work the same for strings.</p>
+</div>
+<div id="pu2" class="pu"><h2>Use char codes to store big numbers and use <code>g</code> to use them more than once</h2>
+<p>Typically, you'd encode a large number as a char code, for example if you need <code>1001</code> you might write <code>'ϩ'</code> In utf-8 this character is encoded as 2 bytes. If you need this number again you can use <code>[coordinates]g</code> to get the char code at that position. This saves 1 byte as long as the character is in the 16 by 16 top left square.</p>
+<p>For example</p>
+<pre><code>'ϩ'o'ϩ'o;
+</code></pre>
+<p>vs</p>
+<pre><code>'ϩ'o10go;
+</code></pre>
+<p>Same number of characters but 1 byte shorter</p>
+</div>
+<div id="pu3" class="pu"><h1>Writing code that can run two ways</h1>
+<p>Trampolines (<code>!</code>) are very handy when you want your code to be run forwards and backwards (or up and down). These scenarios are somewhat unlikely, but for palindrome or similar challenges this tip could be useful.</p>
+<p>Here's an example: I want to run some code once, then loop through the stack discarding values until I reach 0, and then go down. The pointer enters this loop from the <code>&gt;</code>. You could use a jump to accomplish this, e.g.</p>
+<p><code>?!v80.&gt;ao</code> (let's say I want to print a newline first)</p>
+<p>but if the code we want to run once (the code past the <code>&gt;</code>) makes the line longer than 16 characters, we no longer can use the jump in three characters. However, this is an example where it is trivial to run forwards and backwards...</p>
+<p><code>?!v!?&lt;&gt;ao&gt;</code></p>
+<p>Going forwards, we print a newline and then hit <code>?!v</code> which discards the value if it it isn't 0, then because of the trampoline we skip the next <code>?</code> and go backwards. The same thing happens and the loop continues until we hit a 0.</p>
+<p>This is an oddly specific example, but there are some (perhaps not many) applications.</p>
+</div>
+<div id="pu4" class="pu"><h2>Using jumps as a conditional</h2>
+
+<p>Some times you'll wind up writing programs in >&lt;> that require you to do different things upon receiving different inputs. Usually, you'd use conditionals (<code>?</code>) and direction changers to parse this. In some cases, that works fine (especially when there are fewer types of input to handle), but sometimes you end up with something looking like this. (Ignore the fact that this code can be reduced using some other tricks, it's just for demonstration)</p>
+
+<pre><code>i:"a"=?v:"b"=?v"c"=?v&gt;
+  .00n1&lt; .00n2&lt;.00n3&lt;
+</code></pre>
+
+<p>While this is fine, it does have some whitespace (which I personally never like seeing) and it has a lot of repetition (<code>=?v</code> and <code>.00n</code>). Instead of that, you could use a jump and different lines as your conditionals. Here's an example:</p>
+
+<pre><code>i:"a")$"b")+1+0$.&gt;
+v1
+v2
+v3
+&lt;.00n
+</code></pre>
+
+<p>This shaves 10 bytes off. Here's what's happening:</p>
+
+<p><code>i:</code> We duplicate the input once so we can evaluate it twice</p>
+
+<p><code>"a")$"b")+</code> This could be its own sort of tip, but what I'm doing here is checking to see if the input is greater than the character "a" and then if it's greater than the character "b" and adding the result. For "a," this will yield 0, for "b," 1, and for "c," 2.</p>
+
+<p><code>1+0$.</code> This is where the magic happens; we take the result of this previous simplification and add 1 (giving 1 for "a", 2 for "b", 3 for "c"), then push 0 and swap the values. When we reach the jump, this will move to the line corresponding to the value we've assigned to those characters (e.g. line 1 for "a"). N.B. Line 0 is the top of the program.</p>
+</div>
+<div id="pu5" class="pu"><h2>Using modulus to simplify input</h2>
+
+<p>This might be too simple of a tip, so if it is I'll just replace it or delete it.</p>
+
+<p>Let's say you want to take input of two characters, "a" and "b" and return 1, and 2 for each, respectively. You'd probably use conditionals for this, since it makes the most sense, and I'll be using a more condensed form for this specific example.</p>
+
+<pre><code>i:"a")+1+n
+</code></pre>
+
+<p>This checks to see if the input is greater than "a" and adds 1. Since "a" will return 0 and "b" 1, this will give 1 and 2. This does the job pretty well, but in the case of our inputs, we could go even further.</p>
+
+<pre><code>i:3%n
+</code></pre>
+
+<p>In mod 3, 97, which is "a"s numerical equivalent, becomes 1, and 98, which is "b"s, becomes 2. For two different numbers, there is guaranteed a mod which gives unique results for both. For more than two, there is a mod that gives unique results, but I don't have the mathematical prowess to find the smallest one in a simple way (e.g. if you have the set {100,101,102,103}, mod 104 would give unique results for each value in it but not in a very helpful fashion). However, in most cases, with input being restricted to a couple alphabetical characters, you can often find a mod that works.</p>
+
+<p>To find the smallest modulus that yields unique results for two numbers, a, and, b, you do as follows. Take the absolute value of the difference of a and b (<code>|a - b|</code>) and find the smallest number, n, which does not divide it. e.g. for 97 and 98, <code>|98 - 97| = 1</code>, and so 2 would be the smallest mod (but for our test program, this gives 1 for 97 and 0 for 98, so mod 3 is better).</p>
+</div>
+<div id="pu6" class="pu"><h1>Jump to circumvent starting new lines</h1>
+
+<p>Starting a new line sometimes means wasting a lot of leading whitespace on the next line. In such a situation, jumping can be useful.</p>
+
+<p>For instance,</p>
+
+<pre><code>[lots of code here]&gt;[loop body]v
+                   ^ ......... &lt;
+</code></pre>
+
+<p>can be made to fit on one line like so:</p>
+
+<pre><code>[lots of code here][loop body][jump]
+</code></pre>
+
+<p>For a practical example, here's the Hello World program on one line:</p>
+
+<pre><code>"!dlroW ,olleH"l?!;oe0.
+</code></pre>
+</div>
+<div id="pu7" class="pu"><h1>Checking against 0</h1>
+
+<p>Using <code>?!</code> instead of <code>0=?</code> typically saves a byte.</p>
+
+<p>However, just a standard <code>?</code> may sometimes be better if you can afford a bit of restructuring</p>
+
+<pre><code>?!vA
+  B
+</code></pre>
+
+<p>versus</p>
+
+<pre><code>?vB
+ A
+</code></pre>
+</div>
+<div id="pu8" class="pu"><h1>Checking for EOF</h1>
+
+<p>When EOF is reached, >&lt;> pushes a -1 onto the stack, which can be checked in one of two ways:</p>
+
+<pre><code>:0(?
+:1+?
+</code></pre>
+
+<p>For the purposes of checking for EOF, these two are negations, so which one is more beneficial depends on the structure of your program.</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/47035/">47035</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+

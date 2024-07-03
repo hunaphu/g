@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::61865</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>361</td><td>Python3</td><td>240523T224428Z</td><td><a href="https://codegolf.stackexchange.com/questions/61865/the-obstacle-course/273274#273274">Ajax1234</a></td></tr>
+<tr d-ix="1"><td>199</td><td>Matlab</td><td>151026T210014Z</td><td><a href="https://codegolf.stackexchange.com/questions/61865/the-obstacle-course/61871#61871">flawr</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>Python3, 361 bytes</h1>
+<p>Optimized to work on larger obstacle courses. See TIO link for more test cases.</p>
+<pre class="lang-py prettyprint-override"><code>def f(b):
+ q,s=[(0,0,b[0][0],[(0,0)])],[sum(b[0])+sum(i[-1]for i in b[1:]),sum(b[-1])+sum(i[0]for i in b[:-1])]
+ for x,y,t,p in q:
+  if(x,y)==(J:=len(b)-1,K:=len(b[0])-1):s+=[t];continue
+  for X,Y in[(1,0),(-1,0),(0,1),(0,-1)]:
+   n,m=x+X,y+Y
+   if 0&lt;=n&lt;=J and 0&lt;=m&lt;=K and(n,m)not in p and(s==[]or t+b[n][m]&lt;min(s)):q+=[(n,m,t+b[n][m],p+[(n,m)])]
+ return min(s)
+</code></pre>
+<p><a href="https://tio.run/##bVLJbtswED2XXzHwJWRFF6IWL6r5AwnQcwJWKOxGQgVYlCzJQPz16QyHWQ4BDPPxLbPQHm/Lv8Hnu3F6fX1uWmjlSVUCLnq2TqY61SeX1vjR4aZqhWi@9pJolRDq3NrU7TBBB52HkzNVrTRbUHjzpJ8tFQm1AKJe9E0veiThgo2hayVSylp5X9lz43GetdEPEVPXtVHVnFi31D//Dn7p/LXBHNV61E9Yx0mDk2q55iPVJnxjrKYG4HVvX5JHfUue6Nq1kB6sP9h7OPpnwv3BPhCW6FR@WGi2MRCzta7GRktycr52fX3oOy9npaoLDkR@/S7pMQmMCqtOzXKdPLA9vPQy/DkNxwmL4oN/i7pz3/vjKDu/aOh@zOO5W6RSH2/XduelmeSvwTca5mi4@@3v0CTEbMDCarUSGcAGwIgUIAco6TQAmSBtzqIphwI1dKKMri16GSFdIDIpqYZDeQztgHiqZkqIZhOACZ2isOP7Hg8TExmnNoJ0Eg1GMz7IkEWWvKkIkMWSS74xfBSi4K4ld4kbp8xkZIhSwTOUjIowW3gcykRsQoSDW15IbOPs@XuK96RumNkK@o47bLn4hu0bvmVizxPt4pImwD2PWIY16UnFOOHvLVv58Y8wSqkv6OxrOkf69T8" rel="nofollow noreferrer">Try it online!</a></p>
+</div>
+<div id="pu1" class="pu"><h1>Matlab, <s>207</s> 199 bytes</h1>
+<p>Given the matrix with all the times <code>A</code>, the idea is using a new <code>B</code> matrix that has every entry set to <code>Inf</code> except the initial entry. Then we generate a new matrix <code>C</code> where we apply following formula to each pair of coordinates <code>(i,j)</code></p>
+<pre><code> C(i,j) = min( B(i,j), B(i-1,j)+A(i,j), B(i+1,j)+A(i,j), B(i,j-1)+A(i,j), B(i,j+1)+A(i,j) );
+</code></pre>
+<p>This means: either B(i,j) already represents the minimum time to get to <code>(i,j)</code> or we can get to <code>B(i,j)</code> quicker via one of the neighbours.</p>
+<p>Then we replace B with C and repeat this step enough times (until nothing changes anymore), and <code>#rows + #columns</code> is an upper bound for this.</p>
+<p>After that, we just need to print the top right element (or in <em>matrix-speak</em>: bottom right) element.</p>
+<p>This idea is basically stolen from the Floyd-Warshall algorithm.</p>
+<p>Note that for doing this, I need also to consider some technical details, namely that I should not access elements outside the matrix, that is why I need the zero padding and shift of coordinates.</p>
+<pre><code>a=input('');
+[r,c]=size(a);
+A=padarray(a,[1,1]);
+C=A+Inf;C(2,2)=A(2,2);
+for i=1:r+c
+    B=C;
+    for i=2:r+1;
+        for j=2:c+1;
+            v=[-1,1];
+            C(i,j)=min([B(i,j)-A(i,j),B(i+v,j)',B(i,j+v)]+A(i,j));
+        end;
+    end;
+end;
+disp(A(r+1,c+1))
+</code></pre>
+<p>Input: We need to reverse the order of the rows due to indexing, so the example given would be</p>
+<pre><code>[[2,6,1];[0,3,5];[0,1,2]]
+</code></pre>
+<p>or alternatively</p>
+<pre><code>[2,6,1;0,3,5;0,1,2]
+</code></pre>
+<p>So for this example we get following intermediate steps that will show the progression quite nicely (I removed the padding):</p>
+<pre><code> 2     Inf   Inf
+ Inf   Inf   Inf
+ Inf   Inf   Inf
+
+ 2     8     Inf
+ 2     Inf   Inf
+ Inf   Inf   Inf
+
+ 2     8     9
+ 2     5     Inf
+ 2     Inf   Inf
+
+ 2     8     9
+ 2     5    10
+ 2     3    Inf
+
+ 2     8     9
+ 2     5    10
+ 2     3     5
+</code></pre>
+<p>PS: I love challenges like this one=)</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/61865/">61865</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+

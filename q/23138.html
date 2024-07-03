@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::23138</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>560</td><td>LÖVE2D</td><td>170130T002300Z</td><td><a href="https://codegolf.stackexchange.com/questions/23138/recognize-ascii-art-numbers/108584#108584">ATaco</a></td></tr>
+<tr d-ix="1"><td>316</td><td>Bash+ImageMagick+tesseract</td><td>140307T014126Z</td><td><a href="https://codegolf.stackexchange.com/questions/23138/recognize-ascii-art-numbers/23281#23281">Digital </a></td></tr>
+<tr d-ix="2"><td>nan</td><td></td><td>140306T081257Z</td><td><a href="https://codegolf.stackexchange.com/questions/23138/recognize-ascii-art-numbers/23144#23144">grovesNL</a></td></tr>
+<tr d-ix="3"><td>085</td><td>APL</td><td>140306T081156Z</td><td><a href="https://codegolf.stackexchange.com/questions/23138/recognize-ascii-art-numbers/23143#23143">marinus</a></td></tr>
+<tr d-ix="4"><td>089</td><td>JavaScript ES6</td><td>140306T113147Z</td><td><a href="https://codegolf.stackexchange.com/questions/23138/recognize-ascii-art-numbers/23173#23173">Florent</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h2>LÖVE2D, 560 Bytes</h2>
+
+<pre><code>t=...;g=love.graphics g.setNewFont(124)g.setBackgroundColor(255,255,255)A=g.newCanvas()B=g.newCanvas()x=1 y=1 g.setColor(255,255,255)g.setCanvas(B)g.clear(0,0,0)for i=1,#t do x=x+1 if t:sub(i,i)=="\n"then x=1 y=y+1 end if t:sub(i,i)=="*"then g.rectangle("fill",x*16,y*16,16,16)end end u=B:newImageData()g.setCanvas(A)S={}for i=0,9 do g.clear(0,0,0,0)g.print(i,48,0)r=A:newImageData()s={i=i,s=0}for x=0,16*8 do for y=0,16*8 do a=u:getPixel(x,y)b=r:getPixel(x,y)s.s=s.s+math.abs(a-b)end end S[i+1]=s end table.sort(S,function(a,b)return a.s&lt;b.s end)print(S[1].i)
+</code></pre>
+
+<p>First, draws a blocky representation of the input text, then, for each number 0 - 9, overlays a number, checks how many similar pixels there are, and prints the number which got the closest. Very basic OCR. It matches all the Test Cases, and performs reasonably well with mutations.</p>
+
+<p>Call with:</p>
+
+<pre><code>love.exe "" "INPUT"
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>Bash+ImageMagick+tesseract, 316 chars</h1>
+<p>Here's a stab at an OCR solution.  Its not very accurate though, even when telling tesseract that we have just one char and it is a digit.  Moderately golfed, but still somewhat readable:</p>
+<pre><code>w=0
+c()((w=${#2}&gt;w?${#2}:w))
+mapfile -c1 -Cc -t l
+h=${#l[@]}
+{
+echo &quot;# ImageMagick pixel enumeration: $w,$h,1,gray&quot;
+for y in ${!l[@]};{
+for((x=0;x&lt;w;x++));{
+[ &quot;${l[$y]:$x:1}&quot; != &quot; &quot; ]
+echo &quot;$x,$y: ($?,$?,$?)&quot;
+}
+}
+}|convert txt:- i.png
+tesseract i.png o -psm 10 &lt;(echo &quot;tessedit_char_whitelist 0123456789&quot;)
+cat o.txt
+</code></pre>
+<p>The script takes input from stdin, so we can pipe from the test script.</p>
+<p>Note I have put <code>tee &gt;( cat 1&gt;&amp;2 )</code> in the pipeline just so we can see what the test script actually generated.</p>
+<h3>Example output (This was a pretty good run with only 1 incorrect char out of 6):</h3>
+<pre>
+$ python ./asciitest.py | tee >(cat 1>&2 ) | ./scanascii.sh
+  ***  
+ ** ** 
+*    **
+ **  * 
+  **** 
+    ***
+ ****  
+Tesseract Open Source OCR Engine v3.02 with Leptonica
+9
+
+$ python ./asciitest.py | tee >(cat 1>&2 ) | ./scanascii.sh
+   *   
+ ***  *
+   *   
+   *   
+   *   
+   *   
+ ***** 
+Tesseract Open Source OCR Engine v3.02 with Leptonica
+1
+
+$ python ./asciitest.py | tee >(cat 1>&2 ) | ./scanascii.sh
+  ***  
+ ** ** 
+**   **
+**   **
+**   **
+  * ** 
+  ***  
+Tesseract Open Source OCR Engine v3.02 with Leptonica
+0
+
+$ python ./asciitest.py | tee >(cat 1>&2 ) | ./scanascii.sh
+ ***** 
+ **    
+ ****  
+     * 
+     * 
+ **  * 
+  ***  
+Tesseract Open Source OCR Engine v3.02 with Leptonica
+5
+
+$ python ./asciitest.py | tee >(cat 1>&2 ) | ./scanascii.sh
+  **** 
+ **    
+ ***** 
+ *   * 
+*** ***
+ **  **
+  **** 
+Tesseract Open Source OCR Engine v3.02 with Leptonica
+5
+
+$ python ./asciitest.py | tee >(cat 1>&2 ) | ./scanascii.sh
+  ***  
+ *  ** 
+     * 
+    ** 
+   *** 
+  **   
+ ******
+Tesseract Open Source OCR Engine v3.02 with Leptonica
+2
+
+$ 
+</pre>
+</div>
+<div id="pu2" class="pu"><h2>Python</h2>
+
+<p>I'm sure there will be OCR solutions, but the probability of mine being accurate is much higher.</p>
+
+<pre><code>import difflib as x;r=range;s='2***3**1**1**3****3****3**1**1**3***23*4***6*6*6*6*4*****12***3*2**6*5**4**4**4******2***3*2**6*3***7*2*2**3***23**4***3*1**2*2**2******4**5**21*****2**5****7*6*2*3*3***22****2**5*****2*3*2**2**1**2*3****11*****5**5**4**5**4**4**42****2**2**1**2**2****2**2**1**2**2****12***3**1**1**3**1**2*3****5**2****2'
+for c in r(8):s=s.replace(str(c),' '*c)
+s=map(''.join,zip(*[iter(s)]*7));a=[raw_input("") for i in r(7)];l=[[x.SequenceMatcher('','|'.join(a),'|'.join(s[i*7:(i+1)*7])).ratio()] for i in r(10)];print l.index(max(l))
+</code></pre>
+
+<p>Input one line of text at a time.</p>
+
+<p>Not sure of a better way to deal with the asterisks without increasing the character count.</p>
+</div>
+<div id="pu3" class="pu"><h2>APL (<s>87</s> 85)</h2>
+
+<pre><code>1-⍨⊃⍒(,↑{7↑'*'=⍞}¨⍳7)∘(+.=)¨{49↑,(16/2)⊤⎕UCS⍵}¨↓10 3⍴'嵝䍝뫂傁ဣ␋䠁䊫낫䢝䊅넂垵僡ᑨ嘙쐅嘹䜝䪀슪퀪岹亝尵䌧뮢'
+</code></pre>
+
+<p>Explanation:</p>
+
+<p>Each possible ASCII number is encoded in 48 bits. (The 49th bit is always zero anyway). The string <code>嵝䍝뫂傁ဣ␋䠁䊫낫䢝䊅넂垵僡ᑨ嘙쐅嘹䜝䪀슪퀪岹亝尵䌧뮢</code> has three characters per ASCII number, each of which encodes 16 bits.</p>
+
+<ul>
+<li><code>↓10 3⍴</code>: split the data string into 10 3-char groups, each of which encodes a number.</li>
+<li><code>{</code>...<code>}¨</code>: for each of the groups:
+<ul>
+<li><code>(16/2)⊤⎕UCS⍵</code>: get the first 16 bits of each of the three characters</li>
+<li><code>,</code>: concatenate the bit arrays into one array</li>
+<li><code>49↑</code>: take the first 49 elements. There are only 48, so this is equivalent to adding a <code>0</code> at the end.</li>
+</ul></li>
+<li><code>,↑{7↑'*'=⍞}¨⍳7</code>: read 7 lines of 7 characters from the keyboard, make a bit array for each line where <code>1</code> means the character was a <code>*</code>, and join them together.</li>
+<li><code>(+.=)¨</code>: for each possible digit, calculate how much bits the input had in common with the digit.</li>
+<li><code>⍒</code>: get the indices for a downwards sort of that list, so that the first item in the result is the index of the largest number in the previous list.</li>
+<li><code>⊃</code>: take the first item, which is the index of the digit</li>
+<li><code>1-⍨</code>: subtract one, because APL indices are 1-based.</li>
+</ul>
+</div>
+<div id="pu4" class="pu"><h1>JavaScript (ES6), 89</h1>
+
+<pre class="lang-js prettyprint-override"><code>f=n=&gt;(a=1,[a=(a+a^c.charCodeAt())%35 for(c of n)],[4,25,5,16,0,11,32,13,10,1].indexOf(a))
+</code></pre>
+
+<p><strong>Usage:</strong></p>
+
+<pre class="lang-js prettyprint-override"><code>&gt; f("  ***  \n *  ** \n     * \n    ** \n   **  \n  **   \n ******")
+2
+</code></pre>
+
+<p><strong>Un-golfed version:</strong></p>
+
+<pre class="lang-js prettyprint-override"><code>f = (n) =&gt; (
+  // Initialize the digit's hash.
+  a=1,
+  // Hash the digit.
+  // 35 is used because the resulting hash is unique for the first ten digits.
+  // Moreover, it generates 4 1-digit hashes.
+  [a = (a + a ^ c.charCodeAt()) % 35 for(c of n)],
+  // Compare the hash to pre-computed digit hash.
+  // The matching hash index is the digit.
+  [4,25,5,16,0,11,32,13,10,1].indexOf(a)
+)
+</code></pre>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/23138/">23138</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+

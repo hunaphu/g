@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::83502</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>nan</td><td>Mathematica</td><td>160622T152910Z</td><td><a href="https://codegolf.stackexchange.com/questions/83502/prove-that-a-number-is-algebraic/83579#83579">LLlAMnYP</a></td></tr>
+<tr d-ix="1"><td>108</td><td>SageMath</td><td>160621T214230Z</td><td><a href="https://codegolf.stackexchange.com/questions/83502/prove-that-a-number-is-algebraic/83512#83512">Anders K</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h2>Mathematica, <del>194</del> <del>224</del> 192 bytes</h2>
+
+<pre><code>""&lt;&gt;Cases[HornerForm@MinimalPolynomial[ToExpression@#,x]//.{Times-&gt;t,x^a_:&gt;Fold[#2~t~#&amp;,x~Table~a],a_~t~b_~t~c_:&gt;a~t~t[b,c]},a_~b_~_:&gt;{b/.t:&gt;"*"/.Plus:&gt;If[a&gt;0,"+",""],ToString@a," "},{0,∞}]&amp;
+</code></pre>
+
+<p>Here <code>∞</code> is the three byte unicode character representing infinity in Mathematica.</p>
+
+<p>Since input is a string, 13 bytes are lost on <code>ToExpression@</code> which interprets the string input as an algebraic expression.</p>
+
+<pre><code>HornerForm@MinimalPolynomial[2^(1/2)+3^(1/2), x]
+</code></pre>
+
+<p>Would return something like</p>
+
+<pre><code>1 + x^2 (-10 + x^2)
+</code></pre>
+
+<p>The next replacement rule massages this into something that is structurally like</p>
+
+<pre><code>1 + (x * (x * (-10 + (x * (x)))))
+</code></pre>
+
+<p>This Horner form can be visualized like a tree:</p>
+
+<p><a href="https://i.sstatic.net/zoVGk.png" rel="nofollow noreferrer"><img src="https://i.sstatic.net/zoVGk.png" alt="TreeForm"></a></p>
+
+<p>We, by the rules of OP start out with the deepest leaf on the right.</p>
+
+<p><code>Cases</code> goes through the expression, starting at the deepest level, taking each parent node and its left leaf and assembling this into a table such as</p>
+
+<pre><code>"*" "x"   " "
+""  "-10" " "
+"*" "x"   " "
+"*" "x"   " "
+"+" "1"   " "
+</code></pre>
+
+<p><code>""&lt;&gt;</code> concatenates everything with the empty string.</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="http://www.sagemath.org/" rel="nofollow">SageMath</a>, 108 bytes</h1>
+
+<pre class="lang-sage prettyprint-override"><code>def f(s):p=map('{:+} '.format,numerator(minpoly(sage_eval(s)/1)));return'*'+p[-1][1:]+'*x '.join(p[-2::-1])
+</code></pre>
+
+<p><a href="http://sagecell.sagemath.org/?z=eJxljcsKwjAQRfeC_5DdZBK1Jq0IEb-kVAmYSqR5kKaiiP9uwI3F1WXOnJl7MT3p6YgqHp2OFF6Kvwls-pCczis_OZN0Dok662MYnnTUV3M2dz2Um0og4iGZPCUPDHhs16Jrheo4sEd5cgvW0wKlUmWBy0VM1udSB1v4nXbVnnDSyBmUJyqqGuciozVjhTeI_7JEXn8T8ANcXjsl&amp;lang=sage" rel="nofollow">Try it on SageMathCell</a>.</p>
+
+<p>Explanation:</p>
+
+<p>Evaluate the string symbolically as an algebraic number (<code>sage_eval()</code>).  Every algebraic number is a zero of some polynomial <em>a</em>[0] + <em>a</em>[1] <em>x</em>^1 + <em>a</em>[2] <em>x</em>^2 + ⋯ + <em>a</em>[n] <em>x</em>^<em>n</em> with rational coefficients <em>a</em>[0], …, <em>a</em>[<em>n</em>] (<code>minpoly()</code>). Multiply all the coefficients by their common denominator to turn them into integers (<code>numerator()</code>), then write this polynomial in the desired output format,</p>
+
+<pre><code>*a[n] +a[n-1] *x +a[n-2] *x … *x +a[1] *x +a[0]
+</code></pre>
+
+<h3>SageMath, 102 bytes, almost</h3>
+
+<pre class="lang-sage prettyprint-override"><code>lambda s:(lambda a,*p:'*%d'%a+'*x'.join(map(' {:+} '.format,p)))(*numerator(minpoly(1/sage_eval(s))))
+</code></pre>
+
+<p>This works for all inputs <em>except</em> 0, because a polynomial for 1/<em>α</em> is a polynomial for <em>α</em> with the coefficients reversed.  :-(</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/83502/">83502</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+

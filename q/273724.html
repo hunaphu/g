@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::273724</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>754</td><td>The error in a floating point number is at most half the value of the last bit of the result</td><td>240621T165215Z</td><td><a href="https://codegolf.stackexchange.com/questions/273724/find-10-float64s-that-give-the-least-accurate-sum/273737#273737">gnasher7</a></td></tr>
+<tr d-ix="1"><td>nan</td><td>Python</td><td>240620T221346Z</td><td><a href="https://codegolf.stackexchange.com/questions/273724/find-10-float64s-that-give-the-least-accurate-sum/273727#273727">CursorCo</a></td></tr>
+<tr d-ix="2"><td>nan</td><td>Python 3</td><td>240621T093740Z</td><td><a href="https://codegolf.stackexchange.com/questions/273724/find-10-float64s-that-give-the-least-accurate-sum/273733#273733">Neil</a></td></tr>
+<tr d-ix="3"><td>nan</td><td>Rust</td><td>240621T022747Z</td><td><a href="https://codegolf.stackexchange.com/questions/273724/find-10-float64s-that-give-the-least-accurate-sum/273729#273729">att</a></td></tr>
+</table>
+<div id="pu0" class="pu"><p>The error in a floating point number is at most half the value of the last bit of the result, and if it is exactly half the last bit then the result is rounded so that the last bit becomes 0, according to the IEEE 754 floating point rules.</p>
+<p>The first sum is exact because we add 0+x with the result x and no error. The exact sum of the first k elements is at most k*n.</p>
+<p>So the error is maximal if we take the k-th number as n, and subtract half the value of the last bit of k<em>n if k &gt;= 1. If k</em>n is a power of two, then the rounding error is half of that, because rounding to a power of two must round up, and the rounding error is half as large.</p>
+<p>Every sum we calculate is rounded exactly to k*n. So this is mathematically quite a trivial problem.</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python</a>, Score: <s>1.9099388737231493e-11</s> 2.1827872842550278e-11</h1>
+<p><em>Credit to @att and @Neil who got the correct optimal solution before me, and who's code looks much nicer than mine</em></p>
+
+<pre class="lang-python prettyprint-override"><code>import struct
+
+def float_to_bitstring(f):
+    s = struct.pack('&gt;d', f)
+    i = struct.unpack('&gt;q', s)[0]
+    return bin(i)[2:].zfill(64)
+
+def greedy(max_n, arr):
+    n_bitstr = float_to_bitstring(max_n)
+    sum_bitstr = float_to_bitstring(sum(arr)+max_n)
+    n_exp = int(n_bitstr[1:12],2)
+    sum_exp = int(sum_bitstr[1:12],2)
+    dif = sum_exp - n_exp
+    exp = n_exp
+    mant = int(n_bitstr[12:], 2)
+    desired_end = int('1'+(dif-1)*'0', 2)
+    if mant &gt;= desired_end:
+        exp = bin(exp)[2:].zfill(11)
+        mant -= desired_end
+        mant -= mant % (2 * desired_end)
+        mant += desired_end
+        mant = bin(mant)[2:].zfill(52)
+    else:
+        exp = bin(exp-1)[2:].zfill(11)
+        mant = bin(desired_end)[2:].rjust(52, '1')
+    return struct.unpack('&gt;d', struct.pack('&gt;q', int(exp + mant, 2)))[0]
+
+def func(n):
+    arr = [n]
+    for i in range(9):
+        arr.append(greedy(n, arr))
+    return arr
+</code></pre>
+<p><a href="https://tio.run/##fVPdboIwGL33KXqz0AoaYHPJTPRFiCEoxXWDD1ZKont59vVHAZ1yA/Q7Pef05LQ5q88aXvteVE0tFWmV7A5qNst5QYqyzlSq6nQvFK4LONKCrWcEn5ZsHHTZZIdv6m1zLyAFM0MxDDtw4x8ctywJdwYhueokkL0AKlgSr3fL30KUJX1/Y1b6KDnPz7TKTikEJJPS6YLzggr/uDNw66HtqqdQnFNN64/2QMpPDcIFKHoRSqJ1FO@CeGAdMIPGFJWLQifgsAvLayZ27/BfZaDuBDGOgFyoeCskz1MOucN5kedTVFhEbO6F3hWJmoZtuxlvsqkN0jpx/BpnHkXsCjIMiwnD3cy8XwiNyXyMuyHxn5BYG/pz7GPlDsLLlj@wjWd@Ztzixp4MWn51rUL6gGB2bNy/25LqDk9brWurU9c2fKOiA2emyPaOdHCg4NqJhUITCdiSF7XEqyCAyAyOnH6w4VQIXGZNgxapa7pr@cQeLvSN1PJGZRWGIWP9Hw" rel="nofollow noreferrer" title="Python 3 – Try It Online">Try it online!</a></p>
+<p>Defines a function <code>func</code> which takes input <code>n</code> and outputs the desired list of floats. Note that floats are natively 64 bit in python.</p>
+<p>Output for <code>n=5000</code> is <code>[5000, 4999.999999999999, 4999.999999999999, 4999.999999999998, 4999.999999999998, 4999.999999999998, 4999.999999999996, 4999.999999999996, 4999.999999999996, 4999.999999999996]</code></p>
+<h3>Explanation</h3>
+<p>Floating point addition accumulates error through rounding. The most this rounding can ever be off by is one power of 2 less than the least significant bit of the resulting sum. It's not too complicated to construct a number which will accumulate that maximum error, in fact there are many such numbers, so specifically we want to construct the largest such number. This is because as our sum gets larger we can round off larger numbers. In this way this is a sort of greedy algorithm.</p>
+<p>Additional notes:</p>
+<ul>
+<li>I don't think adding a negative number is ever optimal in this challenge since we always want our error to accumulate in the same direction, and a bigger overall number leads to bigger errors.</li>
+<li>Please pay no mind to this very dirty python code.</li>
+<li>Edit: In my haste I neglected to account for the fact that the sum gets bigger when you add to it. A simple fix which brings my answer into a tie with the others.</li>
+</ul>
+</div>
+<div id="pu2" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a>, score 2.1827872842550278e-11</h1>
+
+<pre class="lang-python prettyprint-override"><code>from fractions import Fraction
+
+def error(i):
+    return float(Fraction(sum(i)) - sum(map(Fraction, i)))
+
+def inaccurate(n):
+    e = .5 ** 55
+    while n - e == n: e *= 2
+    i = [n]
+    for _ in range(9):
+        j = i + [n - e * 2]
+        i = i + [n - e]
+        if error(j) &gt; error(i): e *= 2; i = j
+    return i
+</code></pre>
+<p><a href="https://tio.run/##dVDBboMwDL3nK3xMGKtQJw5rxY79iQlNEUtWI3CQGzTt65lJU9od5ktsv5dn@00/8RzoZVk8hxE82y5ioAvgOAWOcMoNpT6dB8ccWKM5KJBgF2cm8EOwUd@I@jKPwjDwDGs22mmDSpC@uSoh2a6b2UanKcs5aGBXQ1FAXafG9xkHByRKAjVAB3mLBvYJRGG/U5tyHxg@RBLY0pfTr1lwjV5oCE9CTTIF7NsNwz/YQ/92aG/g7X5znn5M//pHB3BRSet@U11VlVF23XEzhkxalNZFsVUTI0VdoMnZ4EimlHD1r8y2rpU1W/mPy8Iwyy8" rel="nofollow noreferrer" title="Python 3 – Try It Online">Try it online!</a></p>
+</div>
+<div id="pu3" class="pu"><h1>Rust, score <span class="math-container">\$\frac{24}{2^{40}}\$</span>≈2.1827872842550278e-11</h1>
+<pre class="lang-rust prettyprint-override"><code>fn f(n: u32) -&gt; [f64; 10] {
+    let a = n as f64;
+    let b = f64::to_bits(a);
+    let mut s: f64 = 0.;
+    std::array::from_fn(|_| {
+        let v = (0..).map(|i|f64::from_bits(b-i)).take_while(|j|s+j==s+a).last().unwrap();
+        s+=a;
+        v
+    })
+}
+</code></pre>
+<p><a href="https://play.rust-lang.org/?version=nightly&amp;mode=debug&amp;edition=2021&amp;gist=e27dad49477d9b90853bd447fb205e18" rel="noreferrer">Try it on the Rust Playground</a></p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/273724/">273724</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
