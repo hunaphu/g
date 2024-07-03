@@ -26,8 +26,8 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>079</td><td>R</td><td>240703T092458Z</td><td><a href="https://codegolf.stackexchange.com/questions/273872/sort-number-array/273903#273903">Dominic </a></td></tr>
-<tr d-ix="1"><td>015</td><td>Jelly</td><td>240703T131347Z</td><td><a href="https://codegolf.stackexchange.com/questions/273872/sort-number-array/273915#273915">Jonathan</a></td></tr>
+<tr d-ix="0"><td>015</td><td>Jelly</td><td>240703T131347Z</td><td><a href="https://codegolf.stackexchange.com/questions/273872/sort-number-array/273915#273915">Jonathan</a></td></tr>
+<tr d-ix="1"><td>079</td><td>R</td><td>240703T092458Z</td><td><a href="https://codegolf.stackexchange.com/questions/273872/sort-number-array/273903#273903">Dominic </a></td></tr>
 <tr d-ix="2"><td>059</td><td>JavaScript V8</td><td>240703T010537Z</td><td><a href="https://codegolf.stackexchange.com/questions/273872/sort-number-array/273887#273887">l4m2</a></td></tr>
 <tr d-ix="3"><td>111</td><td>Python 3.8 prerelease</td><td>240703T094940Z</td><td><a href="https://codegolf.stackexchange.com/questions/273872/sort-number-array/273906#273906">Jitse</a></td></tr>
 <tr d-ix="4"><td>019</td><td>05AB1E</td><td>240703T071310Z</td><td><a href="https://codegolf.stackexchange.com/questions/273872/sort-number-array/273895#273895">Kevin Cr</a></td></tr>
@@ -35,7 +35,28 @@
 <tr d-ix="6"><td>055</td><td>Wolfram Language Mathematica</td><td>240702T230231Z</td><td><a href="https://codegolf.stackexchange.com/questions/273872/sort-number-array/273879#273879">att</a></td></tr>
 <tr d-ix="7"><td>144</td><td>Python 3.8 prerelease</td><td>240702T221752Z</td><td><a href="https://codegolf.stackexchange.com/questions/273872/sort-number-array/273874#273874">squarero</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.r-project.org" rel="nofollow noreferrer">R</a>, <s>94</s> <s>91</s> <s>80</s> 79 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 15 bytes</h1>
+<pre><code>nJ,i€1ṄḊ¡€ṚƬyµƬ
+</code></pre>
+<p>A monadic Link that accepts a list of 1-based values and prints each value to be swapped with <code>1</code> to stdout. Note, this also yields a list of lists which may be ignored by the caller (this is the states plus one extra, bogus state).</p>
+<p><strong><a href="https://tio.run/##y0rNyan8/z/PSyfzUdMaw4c7Wx7u6Dq0EMh@uHPWsTWVh7YeW/P///9oYx0FEx0FQx0FIx0FMx0F01gA" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></strong> (footer discards the yielded list of lists).</p>
+<h4>How?</h4>
+<pre><code>nJ,i€1ṄḊ¡€ṚƬyµƬ - Link: list, P, of values [1..len(P)]
+             µƬ - collect up while distinct, applying:
+ J              -   indices -&gt; [1..len(Current)] (==[1..len(P)])
+n               -   {Current) not equal {that} (vectorises)
+  ,             -   pair {that} with {Current}
+   i€1          -   index of 1 in each of those -&gt; ValuesToSwap
+         €      -   for each:
+        ¡       -     if...
+       Ḋ        -     ...condition: dequeue -&gt; truthy if ValueToSwap &gt; 1
+      Ṅ         -     ...then: print it
+           Ƭ    -   collect up while distinct, applying:
+          Ṛ     -     reverse
+            y   -   translate {Current} using {that} -&gt; swap the Values
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.r-project.org" rel="nofollow noreferrer">R</a>, <s>94</s> <s>91</s> <s>80</s> 79 bytes</h1>
 <pre class="lang-r prettyprint-override"><code>f=\(a){i=max(j&lt;-which(!a)-1,a[a&gt;seq(a)-1]*!j)
 a[a==i]=0
 if(a[j+1]&lt;-i)c(i,f(a))}
@@ -62,29 +83,6 @@ a[j]=i
 if(i)                   # and if the array wasn't already sorted
      c(i                # return the swapped value
         ,f(a))}         # and recursively sort the swapped array
-</code></pre>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 15 bytes</h1>
-<p>* Awaiting confirmation that this is acceptable (posting as two others have assumed it's OK already).</p>
-<pre><code>nJ,i€1ṄḊ¡€ṚƬyµƬ
-</code></pre>
-<p>A monadic Link that accepts a list of 1-based* values and prints each value to be swapped with <code>1</code> to stdout. Note, this also yields a list of lists which may be ignored by the caller (this is the states plus one extra, bogus state).</p>
-<p><sup>* A different approach is probably more terse than adjusting this one if we must use 0-based as the question currently stands.</sup></p>
-<p><strong><a href="https://tio.run/##y0rNyan8/z/PSyfzUdMaw4c7Wx7u6Dq0EMh@uHPWsTWVh7YeW/P///9oYx0FEx0FQx0FIx0FMx0F01gA" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></strong> (footer discards the yielded list of lists).</p>
-<h4>How?</h4>
-<pre><code>nJ,i€1ṄḊ¡€ṚƬyµƬ - Link: list, P, of values [1..len(P)]
-             µƬ - collect up while distinct, applying:
- J              -   indices -&gt; [1..len(Current)] (==[1..len(P)])
-n               -   {Current) not equal {that} (vectorises)
-  ,             -   pair {that} with {Current}
-   i€1          -   index of 1 in each of those -&gt; ValuesToSwap
-         €      -   for each:
-        ¡       -     if...
-       Ḋ        -     ...condition: dequeue -&gt; truthy if ValueToSwap &gt; 1
-      Ṅ         -     ...then: print it
-           Ƭ    -   collect up while distinct, applying:
-          Ṛ     -     reverse
-            y   -   translate {Current} using {that} -&gt; swap the Values
 </code></pre>
 </div>
 <div id="pu2" class="pu"><h1><a href="https://v8.dev/" rel="nofollow noreferrer">JavaScript (V8)</a>, 59 bytes</h1>
