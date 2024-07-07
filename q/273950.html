@@ -26,10 +26,54 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>015</td><td>Node.js 20.10.0</td><td>240707T110138Z</td><td><a href="https://codegolf.stackexchange.com/questions/273950/non-decreasing-fibonacci-sequence-modulo-m/273978#273978">Arnauld</a></td></tr>
-<tr d-ix="1"><td>200</td><td>JavaScript Node.js</td><td>240707T113941Z</td><td><a href="https://codegolf.stackexchange.com/questions/273950/non-decreasing-fibonacci-sequence-modulo-m/273979#273979">emanresu</a></td></tr>
+<tr d-ix="0"><td>043</td><td>JavaScript Node.js</td><td>240707T113941Z</td><td><a href="https://codegolf.stackexchange.com/questions/273950/non-decreasing-fibonacci-sequence-modulo-m/273979#273979">emanresu</a></td></tr>
+<tr d-ix="1"><td>015</td><td>Node.js 20.10.0</td><td>240707T110138Z</td><td><a href="https://codegolf.stackexchange.com/questions/273950/non-decreasing-fibonacci-sequence-modulo-m/273978#273978">Arnauld</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://nodejs.org/fr/blog/release/v20.10.0" rel="nofollow noreferrer">Node.js 20.10.0</a>, ~1.5 sec.</h1>
+<div id="pu0" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, ~43ms</h1>
+
+<pre class="lang-javascript prettyprint-override"><code>function f(a, b, m, k, n) {
+  let v1 = a, v2 = b;
+
+  let cache = Array(m).fill(0);
+  cache[a]++; cache[b]++;
+
+  for(let i = 2; i &lt; n; i++) {
+    //console.log(i, v1)
+    tmp = v2;
+    cache[v2 = (v2 + v1) % m]++;
+    v1 = tmp;
+    if (v1 == a &amp;&amp; v2 == b) { // we're in a loop
+
+      let llen = i - 1; // - 2 + 1 because post-increment
+      let mul = n / llen | 0;
+      let rem = n % llen;
+
+      cache[v1]--;
+      cache[v2]--;
+      for (let i = 0; i &lt; m; i++) cache[i] *= mul;
+
+      // rerun the first rem terms of the loop to catch excess
+      for (let i = 0; i &lt; rem; i++) {
+        tmp = v2;
+        cache[v2 = (v2 + v1) % m]++;
+        v1 = tmp;
+      }
+      break;
+    }
+  }
+
+  i = 0;
+
+  while (k &gt;= 0) k -= cache[i++];
+
+  return i - 1;
+}
+</code></pre>
+<p><a href="https://tio.run/##jVJtk5owEP7ur9gvd4UCJwkgMNTO9Hd0/IA01FQITkCvnfZ@u32S4I1605uKY8LuPi@764/6VI@NlocpUsM3cT63R9VMclDUenVI25D6kPYhKZ9@L4g6MdGJ0ZqQO3Gc22oxh5u62QlEvmhd//J6/6mVXefFfoW8zX2tN0FQzfetuRtoO2jPwCWgvMLxiRSOIHCCRMtlM6hx6MRTN3z3JHSZbxNTfwDmxCv75mitJw@/gSmjB@qtjimwtoFxb7JFGSLohB4fbS9oBprQo2fxQQuSCrluGA4Li3Bddp1Q4JEUEatMbURGjNFWNPVxFHQYximSqtGiF2q6QvbHDkBFS8fxh@LqKotym32w2eoiOXfFNlFU3Yb4VQgzpNchxm6I/TxEVy439HFtLLwyw7oW@qhowtZaqUfnYRK6H2lobdg0T9MAjqnZkfjZiHF8RxL4m829XdJ/Lertsohe5nOrRb13QRN6Md04B@b2vJOdIG9PnxHxaU/R@tJ/EGxsiRbTUat5f4uX8/V/q/VYSOYbh1SYg/7x8X0zvmxxCwaEA5WFlIe0St4H8zswZ2VqNHnKQJJyXGAi4wxcpQleg5Mii4s7AhbztDT6vMADbA4SODJUeE1AkeYXghXL8nsHKUqhma/wQDNPCxxJXqQ8T80wrKf04iBL8vyOIIsZNxDolSAoi8LyXAjyG4JsFcf3DhizBGXiCNKCJ2ggjsGwsjfH4AhQlRfnvw" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<p>Based on Arnauld's answer, but tracks the number of times each value has occured to speed things up substantially and avoid a costly <code>sort</code> call.</p>
+<p>Note: Arnauld's answer takes about 270-280ms on my machine.</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://nodejs.org/fr/blog/release/v20.10.0" rel="nofollow noreferrer">Node.js 20.10.0</a>, ~1.5 sec.</h1>
 
 <pre class="lang-javascript prettyprint-override"><code>function f(a, b, m, k, n) {
   let A = [ a, b ];
@@ -57,30 +101,6 @@
 }
 </code></pre>
 <p><a href="https://tio.run/##fZDRjpswEEXf@Yp56coIJ7GNwUbZrJQP6BdEPJAsbEgIbAm7fajy7em1CVUXqQ1BY2bmnrnjU/FZXA99/T4s2u61vN@rj/Yw1F1LFSs47TldOJ05tSH9CoiacqAtbWhHrkj5OkCy6nrmCjUKao3wTC1CFI0aou2uzlFjiLQglVNE41HmIX2ji6cQ1RUbOzdAPz396XGJYmKRn79dXpv6UDLBaaHC9aOy78viPH7cAvcGU/eleGfsk1Md0uaFdu6Uh8tr1w/Mr@nTxU7kGLhHCL0lt9QP6L8Xw3FZNR32bGkFXFO2b8Mx5I@5PXpaLDIVpvwJeeFJr93D/pkWGzAjdxmnKMp3WO@Zer/CjX4e66ZkZ3qBbrTQl8NH3@IqTv4qYG0d3O6Hrr12TblsujdWMcnJ/XEX1gX6xy8MabWiJPgqhkRBlXAynNL4/2I1EyuZaTdTaQmIVjjARKIkWJlL/i2ObSLsDCCF0pmbryweaA0gcORQ@IyB0GYCpDIxcwcarZhpUjyYabRFiI3Vymh3Gd6TnhwksTEzQCKkchLMywDIrPWcCWC@AJJUiLkDKT0gi0eAtirGAkKAkPrTSBgB6DL2/hs" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, ~200ms on my machine</h1>
-
-<pre class="lang-javascript prettyprint-override"><code>function f(a, b, m, k, n) {
-
-  let cache = Array(m).fill(0);
-  cache[a]++; cache[b]++;
-
-  for(let i = 2; i &lt; n; i++) {
-    tmp = b;
-    cache[b = (b + a) % m]++;
-    a = tmp;
-  }
-
-  i = 0;
-
-  while (k &gt;= 0) k -= cache[i++];
-
-  return i - 1;
-}
-</code></pre>
-<p><a href="https://tio.run/##fZHbTsMwDIbv9xS@QaRqB0maNqkKSFzwFIiLrrRQ1sPUlZMQzz5@Z5uASpBUsmP7/@wmT8VLsS3HZjMt@@G@2u3q576cmqGnWhQRrSLqIlpH1Af0sVgQtdVEZVE@VnRJ1@NYvIsuOKubthUyyJH3udviLgzzg79in6X1MAqWN5DqHOaCepgwZDRhTd0GqVXuDwcxAmJFIRUBnVDnUZwtEEc5Hz6ZzUzpu7w@Nm1FYk1XiAS0puXlgYVOd75krKbnsYdmSSpffO7Kod8ObXU2NV0lTt9Og8Ux0g4PohYqIv5kRI4N/bGCgM7PKZmJIdFQJRHZiNL4f7GeibXKDPfURgFiNBwMkWgFVsbBn@LYJdLNR5faZNxfO2xoLSCYiFE4xkAYewSkKrHzCQxK0dOm2OhpjYOJrTPaGr4MP5M5TpDE1s4AiVSaJeiXAZA55zlHgP0FSFIp5xMo5QFZvAcYp2P8gJQgpN7bE/YAVNnvO@AHvenv/ZvuvgA" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
-<p>Based on Arnauld's answer, but tracks the number of times each value has occured to speed things up substantially and avoid a costly <code>sort</code> call.</p>
-<p>Note: Arnauld's answer takes about 290-300ms on my machine.</p>
 </div>
 
 <table id="st">
