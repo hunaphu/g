@@ -1,0 +1,3763 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::190727</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>nan</td><td>I took Mirage's submission and made some speed and other improvements</td><td>240708T144114Z</td><td><a href="https://codegolf.stackexchange.com/questions/190727/the-fastest-sudoku-solver/274015#274015">Martin F</a></td></tr>
+<tr d-ix="1"><td>nan</td><td></td><td>210922T202315Z</td><td><a href="https://codegolf.stackexchange.com/questions/190727/the-fastest-sudoku-solver/235609#235609">Mirage</a></td></tr>
+<tr d-ix="2"><td>nan</td><td></td><td>220228T125934Z</td><td><a href="https://codegolf.stackexchange.com/questions/190727/the-fastest-sudoku-solver/243492#243492">Mustafa </a></td></tr>
+<tr d-ix="3"><td>nan</td><td></td><td>210406T120347Z</td><td><a href="https://codegolf.stackexchange.com/questions/190727/the-fastest-sudoku-solver/222960#222960">Ruben Ar</a></td></tr>
+<tr d-ix="4"><td>nan</td><td></td><td>200611T062937Z</td><td><a href="https://codegolf.stackexchange.com/questions/190727/the-fastest-sudoku-solver/205941#205941">Hugh Wil</a></td></tr>
+<tr d-ix="5"><td>nan</td><td></td><td>190829T191243Z</td><td><a href="https://codegolf.stackexchange.com/questions/190727/the-fastest-sudoku-solver/191041#191041">53x15</a></td></tr>
+<tr d-ix="6"><td>nan</td><td></td><td>190830T041128Z</td><td><a href="https://codegolf.stackexchange.com/questions/190727/the-fastest-sudoku-solver/191054#191054">53x15</a></td></tr>
+<tr d-ix="7"><td>nan</td><td></td><td>190829T120330Z</td><td><a href="https://codegolf.stackexchange.com/questions/190727/the-fastest-sudoku-solver/191028#191028">maxb</a></td></tr>
+<tr d-ix="8"><td>6735</td><td>Node.js</td><td>190824T201611Z</td><td><a href="https://codegolf.stackexchange.com/questions/190727/the-fastest-sudoku-solver/190814#190814">Arnauld</a></td></tr>
+<tr d-ix="9"><td>nan</td><td></td><td>190826T102453Z</td><td><a href="https://codegolf.stackexchange.com/questions/190727/the-fastest-sudoku-solver/190883#190883">ngn</a></td></tr>
+<tr d-ix="10"><td>nan</td><td></td><td>190826T053300Z</td><td><a href="https://codegolf.stackexchange.com/questions/190727/the-fastest-sudoku-solver/190874#190874">tsh</a></td></tr>
+<tr d-ix="11"><td>nan</td><td></td><td>190823T213137Z</td><td><a href="https://codegolf.stackexchange.com/questions/190727/the-fastest-sudoku-solver/190765#190765">ngn</a></td></tr>
+<tr d-ix="12"><td>nan</td><td></td><td>190823T233507Z</td><td><a href="https://codegolf.stackexchange.com/questions/190727/the-fastest-sudoku-solver/190770#190770">Jonathan</a></td></tr>
+</table>
+<div id="pu0" class="pu"><p>I took Mirage's submission and made some speed and other improvements, fwiw.
+Runs at 0,076s on my Ryzen 7 4k laptop (nearly twice as fast).
+Highlights:</p>
+<ul>
+<li><p>C++ (inlining)</p>
+</li>
+<li><p>reuse GridState stacks (using omp firstprivate)</p>
+</li>
+<li><p>static omp scheduling</p>
+</li>
+<li><p>memory mapped files for I/O</p>
+</li>
+<li><p>also replaced the _BitScanForward/Reverse with tzcnt/bsr intrinsics.</p>
+<p>`/// This code uses AVX2 instructions...
+#include &lt;stdio.h&gt;
+#include &lt;string.h&gt;
+#include &lt;ctype.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;assert.h&gt;
+#include &lt;fcntl.h&gt;
+#include &lt;omp.h&gt;
+#include &lt;stdbool.h&gt;
+#include &lt;intrin.h&gt;
+#include &lt;sys/stat.h&gt;
+#include &lt;sys/mman.h&gt;</p>
+</li>
+</ul>
+<p>// lookup tables that may or may not speed things up by avoiding division
+const unsigned char box_index[81] = {
+0, 0, 0, 1, 1, 1, 2, 2, 2,
+0, 0, 0, 1, 1, 1, 2, 2, 2,
+0, 0, 0, 1, 1, 1, 2, 2, 2,
+3, 3, 3, 4, 4, 4, 5, 5, 5,
+3, 3, 3, 4, 4, 4, 5, 5, 5,
+3, 3, 3, 4, 4, 4, 5, 5, 5,
+6, 6, 6, 7, 7, 7, 8, 8, 8,
+6, 6, 6, 7, 7, 7, 8, 8, 8,
+6, 6, 6, 7, 7, 7, 8, 8, 8
+};</p>
+<p>const unsigned char column_index[81] = {
+0, 1, 2, 3, 4, 5, 6, 7, 8,
+0, 1, 2, 3, 4, 5, 6, 7, 8,
+0, 1, 2, 3, 4, 5, 6, 7, 8,
+0, 1, 2, 3, 4, 5, 6, 7, 8,
+0, 1, 2, 3, 4, 5, 6, 7, 8,
+0, 1, 2, 3, 4, 5, 6, 7, 8,
+0, 1, 2, 3, 4, 5, 6, 7, 8,
+0, 1, 2, 3, 4, 5, 6, 7, 8,
+0, 1, 2, 3, 4, 5, 6, 7, 8,
+};</p>
+<p>const unsigned char row_index[81] = {
+0, 0, 0, 0, 0, 0, 0, 0, 0,
+1, 1, 1, 1, 1, 1, 1, 1, 1,
+2, 2, 2, 2, 2, 2, 2, 2, 2,
+3, 3, 3, 3, 3, 3, 3, 3, 3,
+4, 4, 4, 4, 4, 4, 4, 4, 4,
+5, 5, 5, 5, 5, 5, 5, 5, 5,
+6, 6, 6, 6, 6, 6, 6, 6, 6,
+7, 7, 7, 7, 7, 7, 7, 7, 7,
+8, 8, 8, 8, 8, 8, 8, 8, 8,
+};</p>
+<p>const unsigned char box_start[81] = {
+0, 0, 0, 3, 3, 3, 6, 6, 6,
+0, 0, 0, 3, 3, 3, 6, 6, 6,
+0, 0, 0, 3, 3, 3, 6, 6, 6,
+27, 27, 27, 30, 30, 30, 33, 33, 33,
+27, 27, 27, 30, 30, 30, 33, 33, 33,
+27, 27, 27, 30, 30, 30, 33, 33, 33,
+54, 54, 54, 57, 57, 57, 60, 60, 60,
+54, 54, 54, 57, 57, 57, 60, 60, 60,
+54, 54, 54, 57, 57, 57, 60, 60, 60
+};</p>
+<p>signed char *output;</p>
+<p>inline void add_column_indices(unsigned long long indices[2], unsigned char i) {
+indices[0] |= 0x8040201008040201ULL &lt;&lt; column_index[i];
+indices[1] |= 0x8040201008040201ULL &gt;&gt; (10-column_index[i]);
+}</p>
+<p>inline void add_row_indices(unsigned long long indices[2], unsigned char i) {
+switch (row_index[i]) {
+case 7:
+indices[0] |= 0x8000000000000000ULL;
+indices[1] |= 0xffULL;
+break;
+case 8:
+indices[1] |= 0x01ff00ULL;
+break;
+default:
+indices[0] |= 0x01ffULL &lt;&lt; 9*row_index[i];
+}
+}</p>
+<p>inline void add_box_indices(unsigned long long indices[2], unsigned char i) {
+indices[0] |= 0x1c0e07ULL &lt;&lt; box_start[i];
+indices[1] |= 0x0381c0e0ULL &gt;&gt; (60-box_start[i]);
+}</p>
+<p>typedef struct {
+unsigned long long unlocked[2];       // for keeping track of which cells don't need to be looked at anymore. Set bits correspond to cells that still have multiple possibilities
+unsigned long long updated[2];        // for keeping track of which cell's candidates may have been changed since last time we looked for naked sets. Set bits correspond to changed candidates in these cells
+unsigned short candidates[81];        // which digits can go in this cell? Set bits correspond to possible digits
+unsigned short filler[5];
+int stackpointer;                     // [0,31] we cannot push if 31 and cannot track_back if 0
+// this-1 == last grid state before a guess was made, used for backtracking
+} GridState;</p>
+<p>inline void enter_digit(GridState* grid_state, signed char digit, unsigned char i) {
+// lock this cell and and remove this digit from the candidates in this row, column and box</p>
+<pre><code>unsigned short* candidates = grid_state-&gt;candidates;
+unsigned long long* unlocked = grid_state-&gt;unlocked;
+unsigned long long to_update[2] = {0};
+
+if (i &lt; 64) {
+    unlocked[0] &amp;= ~(1ULL &lt;&lt; i);
+} else {
+    unlocked[1] &amp;= ~(1ULL &lt;&lt; (i-64));
+}
+
+candidates[i] = 1 &lt;&lt; digit;
+
+add_box_indices(to_update, i);
+add_column_indices(to_update, i);
+add_row_indices(to_update, i);
+
+to_update[0] &amp;= unlocked[0];
+to_update[1] &amp;= unlocked[1];
+
+grid_state-&gt;updated[0] |= to_update[0];
+grid_state-&gt;updated[1] |= to_update[1];
+
+const __m256i bit_mask = _mm256_setr_epi16(1&lt;&lt;0, 1&lt;&lt;1, 1&lt;&lt;2, 1&lt;&lt;3, 1&lt;&lt;4, 1&lt;&lt;5, 1&lt;&lt;6, 1&lt;&lt;7, 1&lt;&lt;8, 1&lt;&lt;9, 1&lt;&lt;10, 1&lt;&lt;11, 1&lt;&lt;12, 1&lt;&lt;13, 1&lt;&lt;14, 1&lt;&lt;15);
+const __m256i mask = _mm256_set1_epi16(~candidates[i]);
+for (unsigned char j = 0; j &lt; 80; j += 16) {
+    unsigned short m;
+    if (j &lt; 64) {
+        m = (unsigned short) ((to_update[0] &gt;&gt; j) &amp; 0xffff);
+    } else {
+        m = (unsigned short) (to_update[1] &amp; 0xffff);
+    }    
+    __m256i c = _mm256_loadu_si256((__m256i*) &amp;candidates[j]);
+    __m256i u = _mm256_cmpeq_epi16(_mm256_and_si256(bit_mask, _mm256_set1_epi16(m)), _mm256_setzero_si256());
+    c = _mm256_and_si256(c, _mm256_or_si256(mask, u));
+    _mm256_storeu_si256((__m256i*) &amp;candidates[j], c);
+}
+if ((to_update[1] &amp; (1ULL &lt;&lt; (80-64))) != 0) {
+    candidates[80] &amp;= ~candidates[i];
+}
+</code></pre>
+<p>}</p>
+<p>static long long guesses = 0;</p>
+<p>static GridState* make_guess(GridState* grid_state) {
+// Make a guess for the cell with the least candidates. The guess will be the lowest
+// possible digit for that cell. If multiple cells have the same number of candidates, the
+// cell with lowest index will be chosen. Also save the current grid state for tracking back
+// in case the guess is wrong. No cell has less than two candidates.</p>
+<pre><code>unsigned long long* unlocked = grid_state-&gt;unlocked;
+unsigned short* candidates = grid_state-&gt;candidates;
+
+// Find the cell with fewest possible candidates
+unsigned long long to_visit;
+unsigned long guess_index = 0;
+int i_rel;
+unsigned short cnt;
+unsigned short best_cnt = 16;
+
+to_visit = unlocked[0];
+while (to_visit != 0 &amp;&amp; best_cnt &gt; 2) {
+    i_rel = _tzcnt_u64(to_visit);
+    to_visit &amp;= ~(1ULL &lt;&lt; i_rel);
+    cnt = __popcnt16(candidates[i_rel]);
+    if (cnt &lt; best_cnt) {
+        best_cnt = cnt;
+        guess_index = i_rel;
+    }
+}
+while (to_visit != 0 &amp;&amp; best_cnt &gt; 2) {
+    i_rel = _tzcnt_u64(to_visit);
+    to_visit &amp;= ~(1ULL &lt;&lt; i_rel);
+    cnt = __popcnt16(candidates[i_rel + 64]);
+    if (cnt &lt; best_cnt) {
+        best_cnt = cnt;
+        guess_index = i_rel + 64;
+    }
+}
+
+// Find the first candidate in this cell
+int digit = __bsrd(candidates[guess_index]);
+
+// Create a copy of the state of the grid to make back tracking possible
+GridState* new_grid_state = grid_state+1;
+if ( grid_state-&gt;stackpointer &gt;= 31 ) {
+    fprintf(stderr, &quot;Error: no GridState struct availabe\n&quot;);
+    exit(0);
+}
+memcpy(new_grid_state, grid_state, sizeof(GridState));
+new_grid_state-&gt;stackpointer++;
+
+// Remove the guessed candidate from the old grid because if we need to get back to the old grid
+// we know the guess was wrong
+grid_state-&gt;candidates[guess_index] &amp;= ~(1 &lt;&lt; digit);
+if (guess_index &lt; 64) {
+    grid_state-&gt;updated[0] |= 1ULL &lt;&lt; guess_index;
+} else {
+    grid_state-&gt;updated[1] |= 1ULL &lt;&lt; (guess_index-64);
+}
+
+// Update candidates
+enter_digit(new_grid_state, (signed char) digit, (unsigned char) guess_index);
+
+guesses++;
+
+return new_grid_state;
+</code></pre>
+<p>}</p>
+<p>inline GridState * track_back(GridState* grid_state, int line) {
+// Go back to the state when the last guess was made
+// This state had the guess removed as candidate from it's cell</p>
+<pre><code>if (grid_state-&gt;stackpointer) {
+    return grid_state-1;
+} else {
+    // This only happens when the puzzle is not valid
+    fprintf(stderr, &quot;Line %d: No solution found!\n&quot;, line);
+    exit(0);
+}
+</code></pre>
+<p>}</p>
+<p>bool solve(signed char grid[81], GridState *grid_state) {</p>
+<pre><code>unsigned long long* unlocked = grid_state-&gt;unlocked;
+unsigned long long* updated = grid_state-&gt;updated;
+unsigned short* candidates = grid_state-&gt;candidates;
+unlocked[0] = 0xffffffffffffffffULL;
+unlocked[1] = 0x1ffffULL;
+updated[0] = unlocked[0];
+updated[1] = unlocked[1];
+
+int line = (grid +82 - output) /164;  
+
+{
+    signed char digit;
+    unsigned short columns[9] = {0};
+    unsigned short rows[9] = {0};
+    unsigned short boxes[9] = {0};
+    
+    for (unsigned char i = 0; i &lt; 64; ++i) {
+        digit = grid[i];
+        if (digit &gt;= 49) {
+            columns[column_index[i]] |= 1 &lt;&lt; (digit-49);
+            rows[row_index[i]] |= 1 &lt;&lt; (digit-49);
+            boxes[box_index[i]] |= 1 &lt;&lt; (digit-49);
+            unlocked[0] &amp;= ~(1ULL &lt;&lt; i);
+        }
+    }
+    for (unsigned char i = 64; i &lt; 81; ++i) {
+        digit = grid[i];
+        if (digit &gt;= 49) {
+            columns[column_index[i]] |= 1 &lt;&lt; (digit-49);
+            rows[row_index[i]] |= 1 &lt;&lt; (digit-49);
+            boxes[box_index[i]] |= 1 &lt;&lt; (digit-49);
+            unlocked[1] &amp;= ~(1ULL &lt;&lt; (i-64));
+        }
+    }
+    
+    for (unsigned char i = 0; i &lt; 81; ++i) {
+        if (grid[i] &lt; 49) {
+            candidates[i] = 0x01ff ^ (rows[row_index[i]] | columns[column_index[i]] | boxes[box_index[i]]);
+        } else {
+            candidates[i] = 1 &lt;&lt; (grid[i]-49);
+        }
+    }
+}
+
+start:
+
+unlocked = grid_state-&gt;unlocked;
+candidates = grid_state-&gt;candidates;
+        
+// Find naked singles
+{    
+    bool found;
+    const __m256i ones = _mm256_set1_epi16(1);
+    const __m256i bit_mask = _mm256_setr_epi16(1&lt;&lt;0, 1&lt;&lt;1, 1&lt;&lt;2, 1&lt;&lt;3, 1&lt;&lt;4, 1&lt;&lt;5, 1&lt;&lt;6, 1&lt;&lt;7, 1&lt;&lt;8, 1&lt;&lt;9, 1&lt;&lt;10, 1&lt;&lt;11, 1&lt;&lt;12, 1&lt;&lt;13, 1&lt;&lt;14, 1&lt;&lt;15);
+    do {
+        found = false;
+        for (unsigned char i = 0; i &lt; 80; i += 16) {
+            __m256i c = _mm256_loadu_si256((__m256i*) &amp;candidates[i]);
+            // Check if any cell has zero candidates
+            if (_mm256_movemask_epi8(_mm256_cmpeq_epi16(c, _mm256_setzero_si256()))) {
+                // Back track, no solutions along this path
+                grid_state = track_back(grid_state, line);
+                goto start;
+            } else {
+                unsigned short m;
+                if (i &lt; 64) {
+                    m = (unsigned short) ((unlocked[0] &gt;&gt; i) &amp; 0xffff);
+                } else {
+                    m = (unsigned short) (unlocked[1] &amp; 0xffff);
+                }                        
+                
+                __m256i a = _mm256_cmpeq_epi16(_mm256_and_si256(c, _mm256_sub_epi16(c, ones)), _mm256_setzero_si256());
+                __m256i u = _mm256_cmpeq_epi16(_mm256_and_si256(bit_mask, _mm256_set1_epi16(m)), bit_mask);
+                int mask = _mm256_movemask_epi8(_mm256_and_si256(a, u));
+                
+                if (mask) {
+                    int index = (_tzcnt_u32(mask)&gt;&gt;1) + i;
+                    enter_digit(grid_state, __bsrd(candidates[index]), index);
+                    found = true;
+                }
+            }
+        }
+        if (unlocked[1] &amp; (1ULL &lt;&lt; (80-64))) {
+            if (candidates[80] == 0) {
+                // no solutions go back
+                grid_state = track_back(grid_state, line);
+                goto start;
+            } else if (__popcnt16(candidates[80]) == 1) {
+                // Enter the digit and update candidates
+                enter_digit(grid_state, __bsrd(candidates[80]), 80);
+                found = true;
+            }
+        }
+    } while (found);
+}
+
+// Check if it's solved, if it ever gets solved it will be solved after looking for naked singles
+if ((unlocked[0] | unlocked[1]) == 0) {
+    // Solved it
+    // Enter found digits into grid
+    for (unsigned char j = 0; j &lt; 81; ++j) {
+        grid[j] = 49+__bsrd(candidates[j]);
+    }
+
+    return true;
+}
+
+// for an explanation why vzeroupper _may_ be _crucially_ important see:
+// https://stackoverflow.com/questions/41303780/why-is-this-sse-code-6-times-slower-without-vzeroupper-on-skylake/41349852#41349852
+_mm256_zeroupper();
+
+// Find hidden singles
+// Don't check the last column because it doesn't fit in the SSE register so it's not really worth checking
+{
+    const __m128i ones = _mm_set1_epi16(1);
+    const __m128i bit_mask = _mm_setr_epi16(1&lt;&lt;0, 1&lt;&lt;1, 1&lt;&lt;2, 1&lt;&lt;3, 1&lt;&lt;4, 1&lt;&lt;5, 1&lt;&lt;6, 1&lt;&lt;7);
+    const __m128i shuffle_mask = _mm_setr_epi8(2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0, 1);
+    for (unsigned char i = 0; i &lt; 81; i += 9) {
+        
+        // rows
+        __m128i row_mask = _mm_set1_epi16(0x01ff ^ candidates[i+8]);
+        __m128i c = _mm_loadu_si128((__m128i*) &amp;candidates[i]);
+        for (unsigned char j = 0; j &lt; 7; ++j) {
+            // rotate shift (1 2 3 4) -&gt; (4 1 2 3)
+            c = _mm_shuffle_epi8(c, shuffle_mask);
+            row_mask = _mm_andnot_si128(c, row_mask);
+        }
+        
+        // columns
+        __m128i column_mask = _mm_set1_epi16(0x01ff);
+        for (unsigned char j = 0; j &lt; 81; j += 9) {
+            if (j != i) {
+                column_mask = _mm_andnot_si128(_mm_loadu_si128((__m128i*) &amp;candidates[j]), column_mask);
+            }
+        }
+        
+        // boxes aren't worth it
+        
+        __m128i or_mask = _mm_or_si128(row_mask, column_mask);
+        
+        if (_mm_test_all_zeros(or_mask, _mm_sub_epi16(or_mask, ones))) {
+
+            unsigned short m;
+            if (i &lt; 64) {
+                m = (unsigned short) ((unlocked[0] &gt;&gt; i) &amp; 0xff);
+            } else {
+                m = (unsigned short) ((unlocked[1] &gt;&gt; (i-64)) &amp; 0xff);
+            }
+
+            c = _mm_loadu_si128((__m128i*) &amp;candidates[i]);
+
+            __m128i a = _mm_cmpgt_epi16(_mm_and_si128(c, or_mask), _mm_setzero_si128());
+            __m128i u = _mm_cmpeq_epi16(_mm_and_si128(bit_mask, _mm_set1_epi16(m)), bit_mask);
+            int mask = _mm_movemask_epi8(_mm_and_si128(a, u));
+
+            if (mask) {
+                int index = __tzcnt_u32(mask);
+                
+                index &gt;&gt;= 1;
+
+                int digit = __tzcnt_u16(((unsigned short*) &amp;or_mask)[index]);
+                
+                index = index + i;
+                
+                enter_digit(grid_state, (signed char) digit, index);
+                goto start;
+            }
+            
+        } else {
+            // no solutions go back
+            grid_state = track_back(grid_state, line);
+            goto start;
+        }
+    }
+}
+
+// Find naked sets, up to 5
+{
+    bool found = false;
+    // because this is kind of an expensive task, we are not going to visit all cells but only those that were changed
+    unsigned long long *to_visit_n = grid_state-&gt;updated;
+    to_visit_n[0] &amp;= unlocked[0];
+    to_visit_n[1] &amp;= unlocked[1];
+    
+    for (unsigned char n = 0; n &lt; 2; ++n) {
+        while (to_visit_n[n]) {
+            int i_rel = _tzcnt_u64(to_visit_n[n]);
+            
+            to_visit_n[n] ^= 1ULL &lt;&lt; i_rel;
+            unsigned char i = (unsigned char) i_rel + 64*n;
+            
+            unsigned short cnt = __popcnt16(candidates[i]);
+            
+            if (cnt &lt;= 5) {
+                // check column
+                unsigned long long to_change[2] = {0};
+                unsigned char s;
+                __m128i a_i = _mm_set1_epi16(candidates[i]);
+                __m128i a_j = _mm_set_epi16(candidates[column_index[i]+63], candidates[column_index[i]+54], candidates[column_index[i]+45], candidates[column_index[i]+36], candidates[column_index[i]+27], candidates[column_index[i]+18], candidates[column_index[i]+9], candidates[column_index[i]]);
+                __m128i res = _mm_cmpeq_epi16(a_i, _mm_or_si128(a_i, a_j));
+                s = __popcnt16(_mm_movemask_epi8(res)) &gt;&gt; 1;
+                s += candidates[i] == (candidates[i] | candidates[column_index[i]+72]);
+                if (s &gt; cnt) {
+                    grid_state = track_back(grid_state, line);
+                    goto start;
+                } else if (s == cnt) {
+                    add_column_indices(to_change, i);
+                }
+
+                // check row
+                a_j = _mm_load_si128((__m128i*) &amp;candidates[9*row_index[i]]);
+                res = _mm_cmpeq_epi16(a_i, _mm_or_si128(a_i, a_j));
+                s = __popcnt16(_mm_movemask_epi8(res)) &gt;&gt; 1;
+                s += candidates[i] == (candidates[i] | candidates[9*row_index[i]+8]);
+                if (s &gt; cnt) {
+                    grid_state = track_back(grid_state, line);
+                    goto start;
+                } else if (s == cnt) {
+                    add_row_indices(to_change, i);
+                }
+                
+                // check box
+                unsigned short b = box_start[i];
+                a_j = _mm_set_epi16(candidates[b], candidates[b+1], candidates[b+2], candidates[b+9], candidates[b+10], candidates[b+11], candidates[b+18], candidates[b+19]);
+                res = _mm_cmpeq_epi16(a_i, _mm_or_si128(a_i, a_j));
+                s = __popcnt16(_mm_movemask_epi8(res)) &gt;&gt; 1;
+                s += candidates[i] == (candidates[i] | candidates[b+20]);
+                if (s &gt; cnt) {
+                    grid_state = track_back(grid_state, line);
+                    goto start;
+                } else if (s == cnt) {
+                    add_box_indices(to_change, i);
+                }
+                                
+                to_change[0] &amp;= unlocked[0];
+                to_change[1] &amp;= unlocked[1];
+                
+                // update candidates
+                for (unsigned char n = 0; n &lt; 2; ++n) {
+                    while (to_change[n]) {
+                        int j_rel = _tzcnt_u64(to_change[n]);
+                        to_change[n] &amp;= ~(1ULL &lt;&lt; j_rel);
+                        unsigned char j = (unsigned char) j_rel + 64*n;
+                        
+                        if ((candidates[j] | candidates[i]) != candidates[i]) {
+                            if (candidates[j] &amp; candidates[i]) {
+                                candidates[j] &amp;= ~candidates[i];
+                                to_visit_n[n] |= 1ULL &lt;&lt; j_rel;
+                                found = true;
+                            }
+                        }
+                    }
+                }
+                
+                // If any cell's candidates got updated, go back and try all that other stuff again
+                if (found) {
+                    goto start;
+                }
+                
+            }
+        }
+    }
+}
+
+// More techniques could be added here but they're not really worth checking for on the 17 clue sudoku set
+
+// Make a guess if all that didn't work
+grid_state = make_guess(grid_state);
+goto start;
+</code></pre>
+<p>}</p>
+<p>int main(int argc, char *argv[]) {</p>
+<pre><code>if ( argc &gt; 0 ) {
+    argc--;
+    argv++;
+}    
+
+const char *ifn = argc &gt; 0? argv[0] : &quot;puzzles.txt&quot;;
+int fdin = open(ifn, O_RDONLY);
+if ( fdin == -1 ) {
+    if (errno ) {
+        fprintf(stderr, &quot;Error: Failed to open file %s: %s\n&quot;, ifn, strerror(errno));
+        exit(0);
+    }
+}
+
+// get size of file
+struct stat sb;
+fstat(fdin, &amp;sb);
+size_t fsize = sb.st_size;
+
+// map the input file
+char *string = (char *)mmap((void*)0, fsize, PROT_READ, MAP_PRIVATE, fdin, 0);
+if ( string == MAP_FAILED ) {
+    if (errno ) {
+        printf(&quot;Error mmap of input file %s: %s\n&quot;, ifn, strerror(errno));
+        exit(0);
+    }
+}
+close(fdin);
+
+// deal with the part that says how many sudokus there are
+// skip first line, unless it's a puzzle.
+size_t pre = 0;
+if ( !isdigit((int)string[0]) || string[81] != 10 ) {
+    while (string[pre] != 10) {
+        ++pre;
+    }
+    ++pre;
+}
+
+size_t post = 1;
+if ( string[fsize-1] != 10 )
+    post = 0;
+
+
+// get and check the number of puzzles
+size_t npuzzles = (fsize - pre + (1-post))/82;
+
+if ( (fsize -pre -post + 1) % 82 ) {
+    fprintf(stderr, &quot;found %ld puzzles with %ld(start)+%ld(end) extra characters\n&quot;, (fsize - pre - post + 1)/82, pre, post);
+}
+
+
+const char *ofn = argc &gt; 1? argv[1] : &quot;solutions.txt&quot;;
+int fdout = open(ofn, O_RDWR|O_CREAT, 0775);
+if ( fdout == -1 ) {
+    if (errno ) {
+        printf(&quot;Error opening output file %s: %s\n&quot;, ofn, strerror(errno));
+        exit(0);
+    }
+}
+if ( ftruncate(fdout, (size_t)npuzzles*164) == -1 ) {
+    if (errno ) {
+        printf(&quot;Error setting size (ftruncate) on output file %s: %s\n&quot;, ofn, strerror(errno));
+    }
+    exit(0);
+}
+
+// map the output file
+output = (signed char *)mmap((void*)0, npuzzles*164, PROT_WRITE, MAP_SHARED, fdout, 0);
+if ( output == MAP_FAILED ) {
+    if (errno ) {
+        printf(&quot;Error mmap of output file %s: %s\n&quot;, ofn, strerror(errno));
+        exit(0);
+    }
+}
+close(fdout);
+
+// solve all sudokus and prepare output file
+size_t i;
+char *string_pre = string+pre;
+GridState *stack = 0;
+</code></pre>
+<p>#pragma omp parallel for firstprivate(stack) shared(string_pre, npuzzles, output, fsize, i) schedule(static,32)
+for (i = 0; i &lt; npuzzles<em>82; i+=82) {
+// copy unsolved grid
+memcpy(&amp;output[i</em>2], &amp;string_pre[i], 81);
+memcpy(&amp;output[i<em>2+82], &amp;string_pre[i], 81);
+// add comma and newline in right place
+output[i</em>2 + 81] = ',';
+output[i<em>2 + 163] = 10;
+// solve the grid in place
+if ( stack == 0 ) {
+stack = (GridState</em>)malloc(sizeof(GridState)<em>32);
+}
+solve(&amp;output[i</em>2+82], stack);
+}</p>
+<pre><code>int err = munmap(string, fsize);
+if ( err == -1 ) {
+    if (errno ) {
+        printf(&quot;Error munmap file %s: %s\n&quot;, ifn, strerror(errno));
+    }
+}
+err = munmap(output, (size_t)npuzzles*164);
+if ( err == -1 ) {
+    if (errno ) {
+        printf(&quot;Error munmap file %s: %s\n&quot;, ofn, strerror(errno));
+    }
+}
+
+return 0;
+</code></pre>
+<p>}`</p>
+</div>
+<div id="pu1" class="pu"><h1>C - 0.045s unofficial score</h1>
+<p>I got this time on my i7-9750H with 6 cores 12 threads @ 4Ghz. I'm aware that my cpu is faster than the i7-7700HQ so I think (hope) it would be closer to 0.080s if it were officially scored.</p>
+<p>Compile with: <code>gcc file.c -O3 -march=native -fopenmp</code></p>
+<p>The program takes the input file name as argument. It generates an output.txt file containing all sudokus with their solution. It can be significantly slower when the output file already exists.</p>
+<p>This won't run on CPUs that don't support the SSE4.1 and AVX2 instructions set extensions.</p>
+<pre class="lang-c prettyprint-override"><code>#include &lt;stdio.h&gt;
+#include &lt;omp.h&gt;
+#include &lt;stdbool.h&gt;
+#include &lt;intrin.h&gt;
+
+// lookup tables that may or may not speed things up by avoiding division
+static const unsigned char box_index[81] = {
+    0, 0, 0, 1, 1, 1, 2, 2, 2,
+    0, 0, 0, 1, 1, 1, 2, 2, 2,
+    0, 0, 0, 1, 1, 1, 2, 2, 2,
+    3, 3, 3, 4, 4, 4, 5, 5, 5,
+    3, 3, 3, 4, 4, 4, 5, 5, 5,
+    3, 3, 3, 4, 4, 4, 5, 5, 5,
+    6, 6, 6, 7, 7, 7, 8, 8, 8,
+    6, 6, 6, 7, 7, 7, 8, 8, 8,
+    6, 6, 6, 7, 7, 7, 8, 8, 8
+};
+
+static const unsigned char column_index[81] = {
+    0, 1, 2, 3, 4, 5, 6, 7, 8,
+    0, 1, 2, 3, 4, 5, 6, 7, 8,
+    0, 1, 2, 3, 4, 5, 6, 7, 8,
+    0, 1, 2, 3, 4, 5, 6, 7, 8,
+    0, 1, 2, 3, 4, 5, 6, 7, 8,
+    0, 1, 2, 3, 4, 5, 6, 7, 8,
+    0, 1, 2, 3, 4, 5, 6, 7, 8,
+    0, 1, 2, 3, 4, 5, 6, 7, 8,
+    0, 1, 2, 3, 4, 5, 6, 7, 8,
+};
+
+static const unsigned char row_index[81] = {
+    0, 0, 0, 0, 0, 0, 0, 0, 0,
+    1, 1, 1, 1, 1, 1, 1, 1, 1,
+    2, 2, 2, 2, 2, 2, 2, 2, 2,
+    3, 3, 3, 3, 3, 3, 3, 3, 3,
+    4, 4, 4, 4, 4, 4, 4, 4, 4,
+    5, 5, 5, 5, 5, 5, 5, 5, 5,
+    6, 6, 6, 6, 6, 6, 6, 6, 6,
+    7, 7, 7, 7, 7, 7, 7, 7, 7,
+    8, 8, 8, 8, 8, 8, 8, 8, 8,
+};
+
+static const unsigned char box_start[81] = {
+    0, 0, 0, 3, 3, 3, 6, 6, 6,
+    0, 0, 0, 3, 3, 3, 6, 6, 6,
+    0, 0, 0, 3, 3, 3, 6, 6, 6,
+    27, 27, 27, 30, 30, 30, 33, 33, 33,
+    27, 27, 27, 30, 30, 30, 33, 33, 33,
+    27, 27, 27, 30, 30, 30, 33, 33, 33,
+    54, 54, 54, 57, 57, 57, 60, 60, 60,
+    54, 54, 54, 57, 57, 57, 60, 60, 60,
+    54, 54, 54, 57, 57, 57, 60, 60, 60
+};
+
+static void add_column_indices(unsigned long long indices[2], unsigned char i) {
+    indices[0] |= 0x8040201008040201ULL &lt;&lt; column_index[i];
+    indices[1] |= 0x8040201008040201ULL &gt;&gt; (10-column_index[i]);
+}
+
+static void add_row_indices(unsigned long long indices[2], unsigned char i) {
+    switch (row_index[i]) {
+        case 7:
+            indices[0] |= 0x8000000000000000ULL;
+            indices[1] |= 0xffULL;
+            break;
+        case 8:
+            indices[1] |= 0x01ff00ULL;
+            break;
+        default:
+            indices[0] |= 0x01ffULL &lt;&lt; 9*row_index[i];
+    }
+}
+
+static void add_box_indices(unsigned long long indices[2], unsigned char i) {
+    indices[0] |= 0x1c0e07ULL &lt;&lt; box_start[i];
+    indices[1] |= 0x0381c0e0ULL &gt;&gt; (60-box_start[i]);
+}
+
+struct GridState {
+    struct GridState* prev;                // last grid state before a guess was made, used for backtracking
+    unsigned long long unlocked[2];        // for keeping track of which cells don't need to be looked at anymore. Set bits correspond to cells that still have multiple possibilities
+    unsigned long long updated[2];        // for keeping track of which cell's candidates may have been changed since last time we looked for naked sets. Set bits correspond to changed candidates in these cells
+    unsigned short candidates[81];        // which digits can go in this cell? Set bits correspond to possible digits
+};
+
+static void enter_digit(struct GridState* grid_state, signed char digit, unsigned char i) {
+    // lock this cell and and remove this digit from the candidates in this row, column and box
+    
+    unsigned short* candidates = grid_state-&gt;candidates;
+    unsigned long long* unlocked = grid_state-&gt;unlocked;
+    unsigned long long to_update[2] = {0};
+    
+    if (i &lt; 64) {
+        unlocked[0] &amp;= ~(1ULL &lt;&lt; i);
+    } else {
+        unlocked[1] &amp;= ~(1ULL &lt;&lt; (i-64));
+    }
+    
+    candidates[i] = 1 &lt;&lt; digit;
+    
+    add_box_indices(to_update, i);
+    add_column_indices(to_update, i);
+    add_row_indices(to_update, i);
+    
+    to_update[0] &amp;= unlocked[0];
+    to_update[1] &amp;= unlocked[1];
+    
+    grid_state-&gt;updated[0] |= to_update[0];
+    grid_state-&gt;updated[1] |= to_update[1];
+    
+    const __m256i bit_mask = _mm256_setr_epi16(1&lt;&lt;0, 1&lt;&lt;1, 1&lt;&lt;2, 1&lt;&lt;3, 1&lt;&lt;4, 1&lt;&lt;5, 1&lt;&lt;6, 1&lt;&lt;7, 1&lt;&lt;8, 1&lt;&lt;9, 1&lt;&lt;10, 1&lt;&lt;11, 1&lt;&lt;12, 1&lt;&lt;13, 1&lt;&lt;14, 1&lt;&lt;15);
+    const __m256i mask = _mm256_set1_epi16(~candidates[i]);
+    for (unsigned char j = 0; j &lt; 80; j += 16) {
+        unsigned short m;
+        if (j &lt; 64) {
+            m = (unsigned short) ((to_update[0] &gt;&gt; j) &amp; 0xffff);
+        } else {
+            m = (unsigned short) (to_update[1] &amp; 0xffff);
+        }    
+        __m256i c = _mm256_loadu_si256((__m256i*) &amp;candidates[j]);
+        __m256i u = _mm256_cmpeq_epi16(_mm256_and_si256(bit_mask, _mm256_set1_epi16(m)), _mm256_setzero_si256());
+        c = _mm256_and_si256(c, _mm256_or_si256(mask, u));
+        _mm256_storeu_si256((__m256i*) &amp;candidates[j], c);
+    }
+    if ((to_update[1] &amp; (1ULL &lt;&lt; (80-64))) != 0) {
+        candidates[80] &amp;= ~candidates[i];
+    }
+}
+
+static long long guesses = 0;
+
+static struct GridState* make_guess(struct GridState* grid_state) {
+    // Make a guess for the cell with the least candidates. The guess will be the lowest
+    // possible digit for that cell. If multiple cells have the same number of candidates, the 
+    // cell with lowest index will be chosen. Also save the current grid state for tracking back
+    // in case the guess is wrong. No cell has less than two candidates.
+    
+    unsigned long long* unlocked = grid_state-&gt;unlocked;
+    unsigned short* candidates = grid_state-&gt;candidates;
+    
+    // Find the cell with fewest possible candidates
+    unsigned long long to_visit;
+    unsigned long guess_index = 0;
+    unsigned long i_rel;
+    unsigned short cnt;
+    unsigned short best_cnt = 16;
+    
+    to_visit = unlocked[0];
+    while (_BitScanForward64(&amp;i_rel, to_visit) != 0) {
+        to_visit &amp;= ~(1ULL &lt;&lt; i_rel);
+        cnt = __popcnt16(candidates[i_rel]);
+        if (cnt &lt; best_cnt) {
+            best_cnt = cnt;
+            guess_index = i_rel;
+        }
+    }
+    to_visit = unlocked[1];
+    while (_BitScanForward64(&amp;i_rel, to_visit) != 0) {
+        to_visit &amp;= ~(1ULL &lt;&lt; i_rel);
+        cnt = __popcnt16(candidates[i_rel + 64]);
+        if (cnt &lt; best_cnt) {
+            best_cnt = cnt;
+            guess_index = i_rel + 64;
+        }
+    }
+    
+    // Find the first candidate in this cell
+    unsigned long digit;
+    _BitScanReverse(&amp;digit, candidates[guess_index]);
+    
+    // Create a copy of the state of the grid to make back tracking possible
+    struct GridState* new_grid_state = (struct GridState*) malloc(sizeof(struct GridState));
+    memcpy(new_grid_state, grid_state, sizeof(struct GridState));
+    new_grid_state-&gt;prev = grid_state;
+    
+    // Remove the guessed candidate from the old grid because if we need to get back to the old grid
+    // we know the guess was wrong
+    grid_state-&gt;candidates[guess_index] &amp;= ~(1 &lt;&lt; digit);
+    if (guess_index &lt; 64) {
+        grid_state-&gt;updated[0] |= 1ULL &lt;&lt; guess_index;
+    } else {
+        grid_state-&gt;updated[1] |= 1ULL &lt;&lt; (guess_index-64);
+    }
+    
+    // Update candidates
+    enter_digit(new_grid_state, (signed char) digit, (unsigned char) guess_index);
+    
+    guesses++;
+    
+    return new_grid_state;
+}
+
+
+static struct GridState* track_back(struct GridState* grid_state) {
+    // Go back to the state when the last guess was made
+    // This state had the guess removed as candidate from it's cell
+    
+    struct GridState* old_grid_state = grid_state-&gt;prev;
+    free(grid_state);
+    
+    return old_grid_state;
+}
+
+
+static bool solve(signed char grid[81]) {
+
+    struct GridState* grid_state = (struct GridState*) malloc(sizeof(struct GridState));
+    grid_state-&gt;prev = 0;
+    unsigned long long* unlocked = grid_state-&gt;unlocked;
+    unsigned long long* updated = grid_state-&gt;updated;
+    unsigned short* candidates = grid_state-&gt;candidates;
+    unlocked[0] = 0xffffffffffffffffULL;
+    unlocked[1] = 0x1ffffULL;
+    updated[0] = unlocked[0];
+    updated[1] = unlocked[1];
+    
+    {
+        signed char digit;
+        unsigned short columns[9] = {0};
+        unsigned short rows[9] = {0};
+        unsigned short boxes[9] = {0};
+        
+        for (unsigned char i = 0; i &lt; 64; ++i) {
+            digit = grid[i];
+            if (digit &gt;= 49) {
+                columns[column_index[i]] |= 1 &lt;&lt; (digit-49);
+                rows[row_index[i]] |= 1 &lt;&lt; (digit-49);
+                boxes[box_index[i]] |= 1 &lt;&lt; (digit-49);
+                unlocked[0] &amp;= ~(1ULL &lt;&lt; i);
+            }
+        }
+        for (unsigned char i = 64; i &lt; 81; ++i) {
+            digit = grid[i];
+            if (digit &gt;= 49) {
+                columns[column_index[i]] |= 1 &lt;&lt; (digit-49);
+                rows[row_index[i]] |= 1 &lt;&lt; (digit-49);
+                boxes[box_index[i]] |= 1 &lt;&lt; (digit-49);
+                unlocked[1] &amp;= ~(1ULL &lt;&lt; (i-64));
+            }
+        }
+        
+        for (unsigned char i = 0; i &lt; 81; ++i) {
+            if (grid[i] &lt; 49) {
+                candidates[i] = 0x01ff ^ (rows[row_index[i]] | columns[column_index[i]] | boxes[box_index[i]]);
+            } else {
+                candidates[i] = 1 &lt;&lt; (grid[i]-49);
+            }
+        }
+    }
+    
+    start:
+    
+    unlocked = grid_state-&gt;unlocked;
+    candidates = grid_state-&gt;candidates;
+            
+    // Find naked singles
+    {    
+        bool found;
+        const __m256i ones = _mm256_set1_epi16(1);
+        const __m256i bit_mask = _mm256_setr_epi16(1&lt;&lt;0, 1&lt;&lt;1, 1&lt;&lt;2, 1&lt;&lt;3, 1&lt;&lt;4, 1&lt;&lt;5, 1&lt;&lt;6, 1&lt;&lt;7, 1&lt;&lt;8, 1&lt;&lt;9, 1&lt;&lt;10, 1&lt;&lt;11, 1&lt;&lt;12, 1&lt;&lt;13, 1&lt;&lt;14, 1&lt;&lt;15);
+        do {
+            found = false;
+            for (unsigned char i = 0; i &lt; 80; i += 16) {
+                __m256i c = _mm256_loadu_si256((__m256i*) &amp;candidates[i]);
+                // Check if any cell has zero candidates
+                if (_mm256_movemask_epi8(_mm256_cmpeq_epi16(c, _mm256_setzero_si256()))) {
+                    // Back track, no solutions along this path
+                    grid_state = track_back(grid_state);
+                    goto start;
+                } else {
+                    unsigned short m;
+                    if (i &lt; 64) {
+                        m = (unsigned short) ((unlocked[0] &gt;&gt; i) &amp; 0xffff);
+                    } else {
+                        m = (unsigned short) (unlocked[1] &amp; 0xffff);
+                    }                        
+                    
+                    __m256i a = _mm256_cmpeq_epi16(_mm256_and_si256(c, _mm256_sub_epi16(c, ones)), _mm256_setzero_si256());
+                    __m256i u = _mm256_cmpeq_epi16(_mm256_and_si256(bit_mask, _mm256_set1_epi16(m)), bit_mask);
+                    int mask = _mm256_movemask_epi8(_mm256_and_si256(a, u));
+                    
+                    if (mask) {
+                        unsigned long index, digit;
+                        _BitScanForward(&amp;index, mask);
+                        index = (index &gt;&gt; 1) + i;                            
+                        _BitScanReverse(&amp;digit, candidates[index]);
+                        enter_digit(grid_state, (signed char) digit, index);
+                        found = true;
+                    }
+                }
+            }
+            if (unlocked[1] &amp; (1ULL &lt;&lt; (80-64))) {
+                if (candidates[80] == 0) {
+                    // no solutions go back
+                    grid_state = track_back(grid_state);
+                    goto start;
+                } else if (__popcnt16(candidates[80]) == 1) {
+                    // Enter the digit and update candidates
+                    unsigned long digit;
+                    _BitScanReverse(&amp;digit, candidates[80]);
+                    enter_digit(grid_state, (signed char) digit, 80);
+                    found = true;
+                }
+            }
+        } while (found);
+    }
+    
+    // Check if it's solved, if it ever gets solved it will be solved after looking for naked singles
+    if ((unlocked[0] | unlocked[1]) == 0) {
+        // Solved it
+        // Free memory
+        while (grid_state) {
+            struct GridState* prev_grid_state = grid_state-&gt;prev;
+            free(grid_state);
+            grid_state = prev_grid_state;
+        }
+        
+        // Enter found digits into grid
+        for (unsigned char j = 0; j &lt; 81; ++j) {
+            unsigned long index;
+            _BitScanReverse(&amp;index, candidates[j]);
+            grid[j] = (signed char) index + 49;
+        }
+        
+        return true;
+    }
+    
+    // Find hidden singles
+    // Don't check the last column because it doesn't fit in the SSE register so it's not really worth checking
+    {
+        const __m128i ones = _mm_set1_epi16(1);
+        const __m128i bit_mask = _mm_setr_epi16(1&lt;&lt;0, 1&lt;&lt;1, 1&lt;&lt;2, 1&lt;&lt;3, 1&lt;&lt;4, 1&lt;&lt;5, 1&lt;&lt;6, 1&lt;&lt;7);
+        const __m128i shuffle_mask = _mm_setr_epi8(2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0, 1);
+        for (unsigned char i = 0; i &lt; 81; i += 9) {
+            
+            // rows
+            __m128i row_mask = _mm_set1_epi16(0x01ff ^ candidates[i+8]);
+            __m128i c = _mm_loadu_si128((__m128i*) &amp;candidates[i]);
+            for (unsigned char j = 0; j &lt; 7; ++j) {
+                // rotate shift (1 2 3 4) -&gt; (4 1 2 3)
+                c = _mm_shuffle_epi8(c, shuffle_mask);
+                row_mask = _mm_andnot_si128(c, row_mask);
+            }
+            
+            // columns
+            __m128i column_mask = _mm_set1_epi16(0x01ff);
+            for (unsigned char j = 0; j &lt; 81; j += 9) {
+                if (j != i) {
+                    column_mask = _mm_andnot_si128(_mm_loadu_si128((__m128i*) &amp;candidates[j]), column_mask);
+                }
+            }
+            
+            // boxes aren't worth it
+            
+            __m128i or_mask = _mm_or_si128(row_mask, column_mask);                
+            
+            if (_mm_test_all_zeros(or_mask, _mm_sub_epi16(or_mask, ones))) {
+                
+                unsigned short m;
+                if (i &lt; 64) {
+                    m = (unsigned short) ((unlocked[0] &gt;&gt; i) &amp; 0xff);
+                } else {
+                    m = (unsigned short) ((unlocked[1] &gt;&gt; (i-64)) &amp; 0xff);
+                }
+                
+                c = _mm_loadu_si128((__m128i*) &amp;candidates[i]);
+                
+                __m128i a = _mm_cmpgt_epi16(_mm_and_si128(c, or_mask), _mm_setzero_si128());
+                __m128i u = _mm_cmpeq_epi16(_mm_and_si128(bit_mask, _mm_set1_epi16(m)), bit_mask);
+                int mask = _mm_movemask_epi8(_mm_and_si128(a, u));
+                
+                if (mask) {
+                    unsigned long index, digit;
+                    _BitScanForward(&amp;index, mask);
+                    
+                    index = index/2;
+                    
+                    int can = ((unsigned short*) &amp;or_mask)[index];
+                    _BitScanForward(&amp;digit, can);
+                    
+                    index = index + i;
+                    
+                    enter_digit(grid_state, (signed char) digit, index);
+                    goto start;
+                }
+                
+            } else {
+                // no solutions go back
+                grid_state = track_back(grid_state);
+                goto start;
+            }
+        }
+    }
+    
+    // Find naked sets, up to 5
+    {
+        bool found = false;
+        // because this is kind of an expensive task, we are not going to visit all cells but only those that were changed
+        unsigned long long *to_visit_n = grid_state-&gt;updated;
+        to_visit_n[0] &amp;= unlocked[0];
+        to_visit_n[1] &amp;= unlocked[1];
+        
+        for (unsigned char n = 0; n &lt; 2; ++n) {
+            while (to_visit_n[n]) {
+                unsigned long i_rel;
+                _BitScanForward64(&amp;i_rel, to_visit_n[n]);
+                
+                to_visit_n[n] ^= 1ULL &lt;&lt; i_rel;
+                unsigned char i = (unsigned char) i_rel + 64*n;
+                
+                unsigned short cnt = __popcnt16(candidates[i]);
+                
+                if (cnt &lt;= 5) {
+                    // check column
+                    unsigned long long to_change[2] = {0};
+                    unsigned char s;
+                    __m128i a_i = _mm_set1_epi16(candidates[i]);
+                    __m128i a_j = _mm_set_epi16(candidates[column_index[i]+63], candidates[column_index[i]+54], candidates[column_index[i]+45], candidates[column_index[i]+36], candidates[column_index[i]+27], candidates[column_index[i]+18], candidates[column_index[i]+9], candidates[column_index[i]]);
+                    __m128i res = _mm_cmpeq_epi16(a_i, _mm_or_si128(a_i, a_j));
+                    s = __popcnt16(_mm_movemask_epi8(res)) &gt;&gt; 1;
+                    s += candidates[i] == (candidates[i] | candidates[column_index[i]+72]);
+                    if (s &gt; cnt) {
+                        grid_state = track_back(grid_state);
+                        goto start;
+                    } else if (s == cnt) {
+                        add_column_indices(to_change, i);
+                    }
+
+                    // check row
+                    a_j = _mm_load_si128((__m128i*) &amp;candidates[9*row_index[i]]);
+                    res = _mm_cmpeq_epi16(a_i, _mm_or_si128(a_i, a_j));
+                    s = __popcnt16(_mm_movemask_epi8(res)) &gt;&gt; 1;
+                    s += candidates[i] == (candidates[i] | candidates[9*row_index[i]+8]);
+                    if (s &gt; cnt) {
+                        grid_state = track_back(grid_state);
+                        goto start;
+                    } else if (s == cnt) {
+                        add_row_indices(to_change, i);
+                    }
+                    
+                    // check box
+                    unsigned short b = box_start[i];
+                    a_j = _mm_set_epi16(candidates[b], candidates[b+1], candidates[b+2], candidates[b+9], candidates[b+10], candidates[b+11], candidates[b+18], candidates[b+19]);
+                    res = _mm_cmpeq_epi16(a_i, _mm_or_si128(a_i, a_j));
+                    s = __popcnt16(_mm_movemask_epi8(res)) &gt;&gt; 1;
+                    s += candidates[i] == (candidates[i] | candidates[b+20]);
+                    if (s &gt; cnt) {
+                        grid_state = track_back(grid_state);
+                        goto start;
+                    } else if (s == cnt) {
+                        add_box_indices(to_change, i);
+                    }
+                                    
+                    to_change[0] &amp;= unlocked[0];
+                    to_change[1] &amp;= unlocked[1];
+                    
+                    // update candidates
+                    for (unsigned char n = 0; n &lt; 2; ++n) {
+                        while (to_change[n]) {
+                            unsigned long j_rel;
+                            _BitScanForward64(&amp;j_rel, to_change[n]);
+                            to_change[n] &amp;= ~(1ULL &lt;&lt; j_rel);
+                            unsigned char j = (unsigned char) j_rel + 64*n;
+                            
+                            if ((candidates[j] | candidates[i]) != candidates[i]) {
+                                if (candidates[j] &amp; candidates[i]) {
+                                    candidates[j] &amp;= ~candidates[i];
+                                    to_visit_n[n] |= 1ULL &lt;&lt; j_rel;
+                                    found = true;
+                                }
+                            }
+                        }
+                    }
+                    
+                    // If any cell's candidates got updated, go back and try all that other stuff again
+                    if (found) {
+                        goto start;
+                    }
+                    
+                }
+            }
+        }
+    }
+    
+    // More techniques could be added here but they're not really worth checking for on the 17 clue sudoku set
+    
+    // Make a guess if all that didn't work
+    grid_state = make_guess(grid_state);
+    goto start;
+    
+}
+
+
+int main(int argc, char *argv[]) {
+    
+    if (argc != 2) {
+        printf(&quot;Error! Pass the file name as argument\n&quot;);
+        return -1;
+    }
+    
+    FILE *f = fopen(argv[1], &quot;rb&quot;);
+    
+    // test for files not existing
+    if (f == 0) {
+        printf(&quot;Error! Could not open file %s\n&quot;, argv[1]);
+        return -1;
+    }
+    
+    // find length of file
+    fseek(f, 0, SEEK_END);
+    long fsize = ftell(f);
+    fseek(f, 0, SEEK_SET);
+    
+    // deal with the part that says how many sudokus there are
+    signed char *string = malloc(fsize + 1);
+    fread(string, 1, fsize, f);
+    fclose(f);
+
+    size_t p = 0;
+    while (string[p] != 10) {
+        ++p;
+    }
+    ++p;
+    
+    signed char *output = malloc(fsize*2 - p + 2);
+    memcpy(output, string, p);
+    
+    // solve all sudokus and prepare output file
+    int i;
+    #pragma omp parallel for shared(string, output, fsize, p) schedule(dynamic)
+    for (i = fsize - p - 81; i &gt;= 0; i-=82) {
+        // copy unsolved grid
+        memcpy(&amp;output[p+i*2], &amp;string[p+i], 81);
+        memcpy(&amp;output[p+i*2+82], &amp;string[p+i], 81);
+        // add comma and newline in right place
+        output[p+i*2 + 81] = ',';
+        output[p+i*2 + 163] = 10;
+        // solve the grid in place
+        solve(&amp;output[p+i*2+82]);
+    }
+    
+    // create output file
+    f = fopen(&quot;output.txt&quot;, &quot;wb&quot;);
+    fwrite(output, 1, fsize*2 - p + 2, f);
+    fclose(f);    
+
+    free(string);
+    free(output);
+
+    return 0;
+}
+</code></pre>
+<p>The algorithm uses normal techniques humans use. Specifically looking for naked singles, hidden singles and naked subsets. If that doesn't work it uses the infamous Nishio technique (just backtracking). I added more techniques initially like looking for locked candidates, but they turned out to not really be worth it for these 17-clue sudokus.</p>
+</div>
+<div id="pu2" class="pu"><h1>Rust - 0.150s unofficial score</h1>
+<p><a href="https://github.com/mstdokumaci/sudokumaci/tree/main/rust" rel="nofollow noreferrer">https://github.com/mstdokumaci/sudokumaci/tree/main/rust</a></p>
+<p>Here is my attempt in Rust. For the list of sudoku puzzles above (<code>all_17_clue</code>), I get ~150ms on a MacBook Pro (16-inch, 2019, 2.3 GHz i9-9880H).</p>
+<p>I build the binary by this command:
+<code>cargo rustc --release -- -C target-cpu=native</code></p>
+<p>I am not an expert on writing optimized code and I am coding in Rust for the first time. I believe the algorithm is at the sweet spot of human solutions and brute force, and it can be further optimized. I would appreciate it if anybody would like to suggest any improvements.</p>
+</div>
+<div id="pu3" class="pu"><h1>Typescript(<a href="https://deno.land/" rel="nofollow noreferrer">Deno</a>) - 22min 12s unofficial score</h1>
+<p>on an Lenovo G50-45 Laptop with 4cores and 4threads @1.5GHz</p>
+<p>reads from <code>all_17_clue_sudokus.txt</code> or first argument</p>
+<p>outputs to <code>output.txt</code> or second argument</p>
+<p>download and run with <code>deno run --allow-all https://raw.githubusercontent.com/RubenArtmann/sudoku-solver/master/mod.ts</code> with <a href="https://deno.land/" rel="nofollow noreferrer">Deno</a> installed</p>
+<p><a href="https://github.com/RubenArtmann/sudoku-solver" rel="nofollow noreferrer">github page</a></p>
+<p>solver.ts</p>
+<pre class="lang-TS prettyprint-override"><code>const parse = (string: string)=&gt;{
+    let sudoku = new Uint16Array(9*9);
+    for(let i=0; i&lt;string.length; i++) {
+        let n = string.charCodeAt(i)-&quot;1&quot;.charCodeAt(0);
+        sudoku[i] = n&gt;=0&amp;&amp;n&lt;9?1&lt;&lt;n:511;
+    }
+    return sudoku;
+};
+const bitCount = (n:number)=&gt;{
+  n = n - ((n &gt;&gt; 1) &amp; 0x55555555)
+  n = (n &amp; 0x33333333) + ((n &gt;&gt; 2) &amp; 0x33333333)
+  return ((n + (n &gt;&gt; 4) &amp; 0xF0F0F0F) * 0x1010101) &gt;&gt; 24
+};
+
+const forced = (sudoku:Uint16Array)=&gt;{
+    for(let i=0; i&lt;sudoku.length; i++) {
+        let row = i%9;
+        let column = Math.floor(i/9);
+
+        // skip if already spread
+        if(sudoku[i]&amp;(1&lt;&lt;9)) continue;
+
+        if(bitCount(sudoku[i]&amp;511)===1) {
+            for(let j=0; j&lt;9; j++) {
+                if(j!==column) sudoku[row+j*9] &amp;= ~(sudoku[i]&amp;511);
+                if(j!==row) sudoku[j+column*9] &amp;= ~(sudoku[i]&amp;511);
+
+                let xoff = row-row%3;
+                let yoff = column-column%3;
+                let x = xoff+j%3;
+                let y = yoff+Math.floor(j/3);
+                if(x!==row &amp;&amp; y!==column) sudoku[x+y*9] &amp;= ~(sudoku[i]&amp;511);
+
+                // set already spread bit
+                sudoku[i] |= 1&lt;&lt;9;
+            }
+        }
+    }
+};
+const dump = (sudoku:Uint16Array)=&gt;{
+    return [...sudoku].map(e=&gt;{
+        let char = &quot;&quot;;
+        for(let j=0; j&lt;9; j++) {
+            if(e&amp;(1&lt;&lt;j)) char += j+1;
+        }
+        if(char.length!==1) {
+            log(sudoku)
+            throw new Error(&quot;&quot;);
+        }
+        return char;
+    }).join(&quot;&quot;);
+};
+const log = (sudoku:Uint16Array)=&gt;{
+    for(let column=0; column&lt;9; column++) {
+        console.log([...sudoku.slice(column*9,column*9+9)].map((n,row)=&gt;{
+            let string = &quot;&quot;;
+            for(let j=0; j&lt;9; j++) {
+                string += sudoku[column*9+row]&amp;(1&lt;&lt;j)?j+1:&quot;.&quot;;
+            }
+            return string;
+        }).join(&quot; &quot;));
+    }
+    console.log(&quot;&quot;)
+};
+
+let count = 0;
+
+const solve = (sudoku:Uint16Array)=&gt;{
+    let sudokuBuf = new Uint16Array(9*9);
+    let stack: Uint16Array[] = [sudoku];
+    let stack_length = 1;
+    while(stack_length&gt;0) {
+        count++;
+        // console.log(stack.length)
+        stack_length--;
+        let sudoku: Uint16Array = stack[stack_length] as Uint16Array;
+        stack[stack_length] = sudokuBuf;
+        sudokuBuf = sudoku;
+
+        // do forced moves
+        forced(sudoku);
+
+        let solved = true;
+        let invalid = false;
+        for(let i=0; i&lt;sudoku.length; i++) {
+            let c = bitCount(sudoku[i]&amp;511);
+            if(c!==1) solved = false;
+            if(c===0) {
+                invalid = true;
+                break;
+            }
+        }
+        if(invalid) continue;
+        if(solved) {
+            // need to apply forced one more time and check for changes / empty cells
+            forced(sudoku);
+            let solved = true;
+            for(let i=0; i&lt;sudoku.length; i++) {
+                let c = bitCount(sudoku[i]&amp;511);
+                if(c===0) solved = false;
+            }
+            if(solved) return sudoku;
+            continue;
+        }
+
+        // choose cell to split on
+        let splitIndex = -1;
+        for(let i=2; i&lt;=9; i++) {
+            for(let j=0; j&lt;sudoku.length; j++) {
+                if(bitCount(sudoku[j]&amp;511)===i) {
+                    splitIndex = j;
+                    i = 1000;
+                    break;
+                }
+            }
+        }
+        if(splitIndex&lt;0) throw new Error(&quot;&quot;);
+
+        // branch/split
+        for(let i=0; i&lt;9; i++) {
+            if(sudoku[splitIndex]&amp;(1&lt;&lt;i)) {
+                if(stack[stack_length]===undefined) stack[stack_length] = new Uint16Array(9*9);
+                let newsudoku = stack[stack_length];
+                newsudoku.set(sudoku,0);
+                newsudoku[splitIndex] = 1&lt;&lt;i;
+                stack_length++;
+            }
+        }
+        // log(sudoku);
+    }
+    throw new Error(&quot;Out of Options!&quot;)
+    return new Uint16Array(9*9);
+};
+
+
+
+const context: Worker = self as any;
+
+context.onmessage = (event)=&gt;{
+    let result = dump(solve(parse(event.data.data)));
+    // console.log(count)
+    context.postMessage({
+        data: result,
+        callback: event.data.callback
+    })
+};
+</code></pre>
+<p>mod.ts</p>
+<pre class="lang-TS prettyprint-override"><code>let callbacks = new Map();
+let workers: any[] = [];
+let tasks: {data:any,callback:number}[] = [];
+
+for(let i=0; i&lt;4; i++) {
+    let worker = new Worker(new URL(&quot;solver.ts&quot;, import.meta.url).toString(),{ type: &quot;module&quot; }) as any;
+    worker.tasks = 0;
+    worker.onmessage = (event:{data:any})=&gt;{
+        worker.tasks--;
+        callbacks.get(event.data.callback)(event.data.data);
+        callbacks.delete(event.data.callback);
+    };
+    workers.push(worker);
+}
+
+const sleep = (time:number)=&gt;{
+    return new Promise((resolve)=&gt;{
+        setTimeout(resolve,time);
+    });
+};
+
+const loadBalancer = async()=&gt;{
+    while(true) {
+        // console.log(workers.map(w=&gt;w.tasks),tasks.length);
+        let dispatches = 0;
+        for(let i=0; i&lt;workers.length; i++) {
+            let worker = workers[i];
+            if(worker.tasks&gt;=5||tasks.length&lt;=0) continue;
+            if(worker.taks&lt;=0) console.log(&quot;running low!&quot;)
+
+            let task = tasks.shift();
+            if(task === undefined) continue;
+            worker.postMessage(task);
+            worker.tasks++;
+            dispatches++;
+        }
+        if(dispatches&lt;=0) await sleep(100);
+    }
+};
+loadBalancer();
+
+const dispatch = async(data:any)=&gt;{
+    let random = Math.random();
+
+    tasks.push({
+        data: data,
+        callback: random
+    });
+    return new Promise((resolve)=&gt;{
+        callbacks.set(random,resolve);
+    });
+};
+
+// dispatch(&quot;030000000000001008700580000000024050040873900003600000900000002005002091200000704&quot;).then(console.log)
+// console.log(workers)
+
+let count = 0;
+
+let file = Deno.readTextFileSync(Deno.args[0]||&quot;./all_17_clue_sudokus.txt&quot;);
+// let file = Deno.readTextFileSync(&quot;./hard_sudokus.txt&quot;);
+let sudokus = file.split(&quot;\n&quot;).slice(1);
+let promises = sudokus.map(async(e,i)=&gt;{
+    let result = await dispatch(e);
+    count++;
+    console.log(count,&quot;/&quot;,sudokus.length);
+    console.log(e);
+    console.log(result);
+    return result;
+});
+
+let solutions = await Promise.all(promises);
+console.log(&quot;done!&quot;);
+workers.map(w=&gt;w.terminate());
+
+let output = &quot;&quot;;
+output += `${sudokus.length}\n`;
+for(let i=0; i&lt;sudokus.length; i++) {
+    output += `${sudokus[i]},${solutions[i]}\n`;
+}
+
+Deno.writeTextFileSync(Deno.args[1]||&quot;./output.txt&quot;,output);
+
+Deno.exit(0)
+</code></pre>
+</div>
+<div id="pu4" class="pu"><h1>Python3 - 2min 1.007s official score</h1>
+
+<p>It takes around 100 seconds on my i5-9400F</p>
+
+<pre><code>import copy
+
+SUDOKU_VALUES = [1, 2, 4, 8, 16, 32, 64, 128, 256]
+SUDOKU_MAX = 511
+OPTION_COUNT_CACHE = [
+    0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4, 1, 2, 2, 3, 2, 3, 3, 4, 2,
+    3, 3, 4, 3, 4, 4, 5, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 2, 3,
+    3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3,
+    4, 3, 4, 4, 5, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 2, 3, 3, 4,
+    3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5,
+    6, 6, 7, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 2, 3, 3, 4, 3, 4,
+    4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5,
+    6, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7, 2, 3, 3, 4, 3, 4, 4, 5,
+    3, 4, 4, 5, 4, 5, 5, 6, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7, 3,
+    4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7, 4, 5, 5, 6, 5, 6, 6, 7, 5, 6,
+    6, 7, 6, 7, 7, 8, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 2, 3, 3,
+    4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5,
+    4, 5, 5, 6, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7, 2, 3, 3, 4, 3,
+    4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6,
+    6, 7, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7, 4, 5, 5, 6, 5, 6, 6,
+    7, 5, 6, 6, 7, 6, 7, 7, 8, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+    3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7, 3, 4, 4, 5, 4, 5, 5, 6, 4,
+    5, 5, 6, 5, 6, 6, 7, 4, 5, 5, 6, 5, 6, 6, 7, 5, 6, 6, 7, 6, 7, 7, 8, 3, 4,
+    4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7, 4, 5, 5, 6, 5, 6, 6, 7, 5, 6, 6,
+    7, 6, 7, 7, 8, 4, 5, 5, 6, 5, 6, 6, 7, 5, 6, 6, 7, 6, 7, 7, 8, 5, 6, 6, 7,
+    6, 7, 7, 8, 6, 7, 7, 8, 7, 8, 8, 9
+    ] # Basically just .count_ones()
+
+
+class SudokuEmpty:
+    def __init__(self):
+        self.data = list(range(81))
+        self.pos = 81
+
+    def remove(self, index):
+        self.pos -= 1
+        data = self.data
+        data[index], data[self.pos] = data[self.pos], data[index]
+
+
+class Solver:
+    def __init__(self, sudoku):
+        self.to_explore = SudokuEmpty()
+        self.options = [SUDOKU_MAX for _ in range(81)]
+        for (i, item) in enumerate(sudoku):
+            if item != 0:
+                self.options[i] = SUDOKU_VALUES[item - 1]
+                self.apply_number(i)
+
+    def hidden_singles(self, square):
+        options = self.options
+        value = options[square]
+        options[square] = 0
+        row_start = square // 9 * 9
+        column_start = square % 9
+        box_start = square // 3 % 3 * 3 + square // 27 * 27
+        needed = (SUDOKU_MAX
+                  - ((options[row_start + 8]
+                      | options[row_start + 7]
+                      | options[row_start + 6]
+                      | options[row_start + 5]
+                      | options[row_start + 4]
+                      | options[row_start + 3]
+                      | options[row_start + 2]
+                      | options[row_start + 1]
+                      | options[row_start])
+                     &amp; (options[column_start + 72]
+                        | options[column_start + 63]
+                        | options[column_start + 54]
+                        | options[column_start + 45]
+                        | options[column_start + 36]
+                        | options[column_start + 27]
+                        | options[column_start + 18]
+                        | options[column_start + 9]
+                        | options[column_start])
+                     &amp; (options[box_start + 20]
+                        | options[box_start + 19]
+                        | options[box_start + 18]
+                        | options[box_start + 11]
+                        | options[box_start + 10]
+                        | options[box_start + 9]
+                        | options[box_start + 2]
+                        | options[box_start + 1]
+                        | options[box_start])))
+        option_count = OPTION_COUNT_CACHE[needed]
+        if option_count == 0:
+            self.options[square] = value
+            return True
+        elif option_count == 1:
+            if value &amp; needed != 0:
+                self.options[square] = value &amp; needed
+                return True
+            else:
+                return False
+        else:
+            return False
+
+    def apply_number(self, square):
+        options = self.options
+        value = options[square]
+        not_value = SUDOKU_MAX - value
+        column_start = square % 9
+        row_start = square - column_start
+        box_start = square // 3 % 3 * 3 + square // 27 * 27
+        options[row_start + 8] &amp;= not_value
+        options[row_start + 7] &amp;= not_value
+        options[row_start + 6] &amp;= not_value
+        options[row_start + 5] &amp;= not_value
+        options[row_start + 4] &amp;= not_value
+        options[row_start + 3] &amp;= not_value
+        options[row_start + 2] &amp;= not_value
+        options[row_start + 1] &amp;= not_value
+        options[row_start] &amp;= not_value
+
+        options[column_start + 72] &amp;= not_value
+        options[column_start + 63] &amp;= not_value
+        options[column_start + 54] &amp;= not_value
+        options[column_start + 45] &amp;= not_value
+        options[column_start + 36] &amp;= not_value
+        options[column_start + 27] &amp;= not_value
+        options[column_start + 18] &amp;= not_value
+        options[column_start + 9] &amp;= not_value
+        options[column_start] &amp;= not_value
+
+        options[box_start + 20] &amp;= not_value
+        options[box_start + 19] &amp;= not_value
+        options[box_start + 18] &amp;= not_value
+        options[box_start + 11] &amp;= not_value
+        options[box_start + 10] &amp;= not_value
+        options[box_start + 9] &amp;= not_value
+        options[box_start + 2] &amp;= not_value
+        options[box_start + 1] &amp;= not_value
+        options[box_start] &amp;= not_value
+        options[square] = value
+
+    def process(self, routes):
+        values = []
+        while 1:
+            min_length = 20
+            min_pos = 0
+            min_pos_x = 0
+            x = 0
+            while x &lt; self.to_explore.pos:
+                pos = self.to_explore.data[x]
+                if not self.hidden_singles(pos):
+                    return False
+                option = self.options[pos]
+                length = OPTION_COUNT_CACHE[option]
+                if length &lt; min_length:
+                    if length == 0:
+                        return False
+                    elif length == 1:
+                        for (i, item) in enumerate(SUDOKU_VALUES):
+                            if option == item:
+                                self.apply_number(pos)
+                                self.to_explore.remove(x)
+                                break
+                    else:
+                        min_length = length
+                        min_pos = pos
+                        min_pos_x = x
+                        x += 1
+
+                else:
+                    x += 1
+
+            if min_length != 20:
+                values.clear()
+                options = self.options[min_pos]
+                for (i, item) in enumerate(SUDOKU_VALUES):
+                    if options &amp; item != 0:
+                        values.append(i + 1)
+                if not values:
+                    return False
+
+                self.to_explore.remove(min_pos_x)
+                item = values.pop()
+                for value in values:
+                    clone = copy.deepcopy(self)
+                    clone.options[min_pos] = SUDOKU_VALUES[value - 1]
+                    clone.apply_number(min_pos)
+                    routes.append(clone)
+                self.options[min_pos] = SUDOKU_VALUES[item - 1]
+                self.apply_number(min_pos)
+            else:
+                return True
+
+    def get_result(self):
+        solution = [0 for _ in range(81)]
+        for (i, option) in enumerate(self.options):
+            for (x, value) in enumerate(SUDOKU_VALUES):
+                if option == value:
+                    solution[i] = x + 1
+                    break
+        return solution
+
+
+def solve(sudoku):
+    routes = [Solver(sudoku)]
+    while routes:
+        route = routes.pop()
+        result = route.process(routes)
+        if result:
+            return route.get_result()
+    raise Exception("Empty routes, but still unsolved")
+
+if __name__ == '__main__':
+    with open('all_17_clue_sudokus.txt') as file:
+        sudokus = file.read().splitlines()
+        print(sudokus[0])
+    for sudoku in sudokus[1:]:
+        solution = ''.join(map(str, solve(list(map(int, sudoku)))))
+        print('%s,%s' % (sudoku, solution))
+</code></pre>
+
+<p>The path to the sudokus is hardcoded, it has to be <code>all_17_clue_sudokus.txt</code></p>
+
+<p>To run</p>
+
+<pre><code>time python3 lib.py &gt; output
+sha256sum output
+</code></pre>
+</div>
+<div id="pu5" class="pu"><h1>C++ - 0.201s official score</h1>
+
+<p>Using <a href="https://github.com/t-dillon/tdoku" rel="noreferrer">Tdoku</a> (<a href="https://github.com/t-dillon/tdoku/blob/master/src/solver_dpll_triad_simd.cc" rel="noreferrer">code</a>; <a href="https://t-dillon.github.io/tdoku" rel="noreferrer">design</a>; <a href="https://github.com/t-dillon/tdoku/tree/master/benchmarks" rel="noreferrer">benchmarks</a>) gives these results:</p>
+
+<pre>
+~/tdoku$ lscpu | grep Model.name
+Model name:            Intel(R) Core(TM) i7-4930K CPU @ 3.40GHz
+
+~/tdoku$ # build:
+~/tdoku$ CC=clang-8 CXX=clang++-8 ./BUILD.sh
+~/tdoku$ clang -o solve example/solve.c build/libtdoku.a 
+
+~/tdoku$ # adjust input format:
+~/tdoku$ sed -e "s/0/./g" all_17_clue_sudokus.txt &gt; all_17_clue_sudokus.txt.in
+
+~/tdoku$ # solve:
+~/tdoku$ time ./solve 1 &lt; all_17_clue_sudokus.txt.in &gt; out.txt
+real    0m0.241s
+user    0m0.229s
+sys     0m0.012s
+
+~/tdoku$ # adjust output format and sha256sum:
+~/tdoku$ grep -v "^:0:$" out.txt | sed -e "s/:1:/,/" | tr . 0 | sha256sum
+0bc8dda364db7b99f389b42383e37b411d9fa022204d124cb3c8959eba252f05  -
+</pre>
+
+<p>Tdoku has been optimized for hard Sudoku instances. But note, contrary to the problem statement, that 17 clue puzzles are far from the hardest Sudoku. Actually they're among the easiest, with the majority requiring no backtracking at all. See some of the other benchmark datasets in the Tdoku project for puzzles that are actually hard.</p>
+
+<p>Also note that while Tdoku is the fastest solver I'm aware of for hard puzzles, it's not the fastest for 17 clue puzzles. For these I think the fastest is <a href="https://github.com/Emerentius/sudoku" rel="noreferrer">this rust project</a>, a derivative of JCZSolve, which was optimized for 17 clue puzzles during development. Depending on the platform it might be 5-25% faster than Tdoku for these puzzles.</p>
+</div>
+<div id="pu6" class="pu"><h1>C++ with Minisat(2.2.1-5) - 11.735s official score</h1>
+
+<p>This is nowhere near as fast as a specialized algorithm, but it's a different approach, an interesting point of reference, and easy to understand.</p>
+
+<p>$ clang++ -o solve -lminisat solver_minisat.cc</p>
+
+<pre><code>#include &lt;minisat/core/Solver.h&gt;
+
+namespace {
+
+using Minisat::Lit;
+using Minisat::mkLit;
+using namespace std;
+
+struct SolverMiniSat {
+    Minisat::Solver solver;
+
+    SolverMiniSat() {
+        InitializeVariables();
+        InitializeTriadDefinitions();
+        InitializeTriadOnnes();
+        InitializeCellOnnes();
+    }
+
+    // normal cell literals, of which we have 9*9*9
+    static Lit Literal(int row, int column, int value) {
+        return mkLit(value + 9 * (column + 9 * row), true);
+    }
+
+    // horizontal triad literals, of which we have 9*3*9, starting after the cell literals
+    static Lit HTriadLiteral(int row, int column, int value) {
+        int base = 81 * 9;
+        return mkLit(base + value + 9 * (column + 3 * row));
+    }
+
+    // vertical triad literals, of which we have 3*9*9, starting after the h_triad literals
+    static Lit VTriadLiteral(int row, int column, int value) {
+        int base = (81 + 27) * 9;
+        return mkLit(base + value + 9 * (row + 3 * column));
+    }
+
+    void InitializeVariables() {
+        for (int i = 0; i &lt; 15 * 9 * 9; i++) {
+            solver.newVar();
+        }
+    }
+
+    // create an exactly-one constraint over a set of literals
+    void CreateOnne(const Minisat::vec&lt;Minisat::Lit&gt; &amp;literals) {
+        solver.addClause(literals);
+        for (int i = 0; i &lt; literals.size() - 1; i++) {
+            for (int j = i + 1; j &lt; literals.size(); j++) {
+                solver.addClause(~literals[i], ~literals[j]);
+            }
+        }
+    }
+
+    void InitializeTriadDefinitions() {
+        for (int i = 0; i &lt; 9; i++) {
+            for (int j = 0; j &lt; 3; j++) {
+                for (int value = 0; value &lt; 9; value++) {
+                    Lit h_triad = HTriadLiteral(i, j, value);
+                    Lit v_triad = VTriadLiteral(j, i, value);
+                    int j0 = j * 3 + 0, j1 = j * 3 + 1, j2 = j * 3 + 2;
+
+                    Minisat::vec&lt;Minisat::Lit&gt; h_triad_def;
+                    h_triad_def.push(Literal(i, j0, value));
+                    h_triad_def.push(Literal(i, j1, value));
+                    h_triad_def.push(Literal(i, j2, value));
+                    h_triad_def.push(~h_triad);
+                    CreateOnne(h_triad_def);
+
+                    Minisat::vec&lt;Minisat::Lit&gt; v_triad_def;
+                    v_triad_def.push(Literal(j0, i, value));
+                    v_triad_def.push(Literal(j1, i, value));
+                    v_triad_def.push(Literal(j2, i, value));
+                    v_triad_def.push(~v_triad);
+                    CreateOnne(v_triad_def);
+                }
+            }
+        }
+    }
+
+    void InitializeTriadOnnes() {
+        for (int i = 0; i &lt; 9; i++) {
+            for (int value = 0; value &lt; 9; value++) {
+                Minisat::vec&lt;Minisat::Lit&gt; row;
+                row.push(HTriadLiteral(i, 0, value));
+                row.push(HTriadLiteral(i, 1, value));
+                row.push(HTriadLiteral(i, 2, value));
+                CreateOnne(row);
+
+                Minisat::vec&lt;Minisat::Lit&gt; column;
+                column.push(VTriadLiteral(0, i, value));
+                column.push(VTriadLiteral(1, i, value));
+                column.push(VTriadLiteral(2, i, value));
+                CreateOnne(column);
+
+                Minisat::vec&lt;Minisat::Lit&gt; hbox;
+                hbox.push(HTriadLiteral(3 * (i / 3) + 0, i % 3, value));
+                hbox.push(HTriadLiteral(3 * (i / 3) + 1, i % 3, value));
+                hbox.push(HTriadLiteral(3 * (i / 3) + 2, i % 3, value));
+                CreateOnne(hbox);
+
+                Minisat::vec&lt;Minisat::Lit&gt; vbox;
+                vbox.push(VTriadLiteral(i % 3, 3 * (i / 3) + 0, value));
+                vbox.push(VTriadLiteral(i % 3, 3 * (i / 3) + 1, value));
+                vbox.push(VTriadLiteral(i % 3, 3 * (i / 3) + 2, value));
+                CreateOnne(vbox);
+            }
+        }
+    }
+
+    void InitializeCellOnnes() {
+        for (int row = 0; row &lt; 9; row++) {
+            for (int column = 0; column &lt; 9; column++) {
+                Minisat::vec&lt;Minisat::Lit&gt; literals;
+                for (int value = 0; value &lt; 9; value++) {
+                    literals.push(Literal(row, column, value));
+                }
+                CreateOnne(literals);
+            }
+        }
+    }
+
+    bool SolveSudoku(const char *input, char *solution, size_t *num_guesses) {
+        Minisat::vec&lt;Minisat::Lit&gt; assumptions;
+        for (int row = 0; row &lt; 9; row++) {
+            for (int column = 0; column &lt; 9; column++) {
+                char digit = input[row * 9 + column];
+                if (digit != '.') {
+                    assumptions.push(Literal(row, column, digit - '1'));
+                }
+            }
+        }
+        solver.decisions = 0;
+        bool satisfied = solver.solve(assumptions);
+        if (satisfied) {
+            for (int row = 0; row &lt; 9; row++) {
+                for (int column = 0; column &lt; 9; column++) {
+                    for (int value = 0; value &lt; 9; value++) {
+                        if (solver.model[value + 9 * (column + 9 * row)] ==
+                            Minisat::lbool((uint8_t) 1)) {
+                            solution[row * 9 + column] = value + '1';
+                        }
+                    }
+                }
+            }
+        }
+        *num_guesses = solver.decisions - 1;
+        return satisfied;
+    }
+};
+
+} //end anonymous namespace
+
+int main(int argc, const char **argv) {
+    char *puzzle = NULL;
+    char solution[81];
+    size_t size, guesses;
+
+    SolverMiniSat solver;
+
+    while (getline(&amp;puzzle, &amp;size, stdin) != -1) {
+        int count = solver.SolveSudoku(puzzle, solution, &amp;guesses);
+        printf("%.81s:%d:%.81s\n", puzzle, count, solution);
+    }
+}
+</code></pre>
+</div>
+<div id="pu7" class="pu"><h1>Java - 4.056s official score</h1>
+
+<p>The main idea of this is to never allocate memory when it is not needed. The only exception are primitives, which should be optimized by the compiler anyway. Everything else is stored as masks and arrays of operations done in each step, which can be undone when the recursion step is completed. </p>
+
+<p>About half of all sudokus are solved completely without backtracking, but if I push that number higher the overall time seems to be slower. I'm planning om rewriting this in C++ and optimize even further, but this solver is becoming a behemoth. </p>
+
+<p>I wanted to implement as much caching as possible, which lead to some issues. For example, if there are two cells on the same row which can only have the number 6, then we have reached an impossible case, and should return to the backtracking. But since I calculated all options in one sweep, and then placed numbers in cells with only one possibility, I didn't double check that I had placed a number in the same row just before. This lead to impossible solutions.</p>
+
+<p>With everything being contained in the arrays defined at the top, the memory usage of the actual solver is about 216kB. The main part of the memory usage comes from the array containing all the puzzles, and the I/O handlers in Java.</p>
+
+<p><strong>EDIT</strong>: I have a version which is translated to C++ now, but it isn't vastly faster. The official time is around 3.5 seconds, which isn't a huge improvement. I think the main issue with my implementation is that I keep my masks as arrays rather than bitmasks. I'll try to analyze Arnauld's solution to see what can be done to improve it. </p>
+
+<pre class="lang-java prettyprint-override"><code>import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
+import java.io.File;
+import java.io.PrintWriter;
+
+public class Sudoku {   
+
+    final private int[] unsolvedBoard;
+    final private int[] solvedBoard; 
+    final private int[][] neighbors;
+    final private int[][] cells;
+
+    private static int[] clues;
+    final private int[][] mask;
+    final private int[] formattedMask;
+    final private int[][] placedMask;
+    final private boolean[][][] lineMask;
+    final private int[] lineCounters;
+    final private int[][] sectionCounters;
+    final private int[][] sectionMask;
+
+    private int easySolved;
+    private boolean isEasy;
+    private int totEasy;
+    private int placedNumbers;
+    public long totTime = 0;
+    private boolean solutionFound;
+    public long lastPrint;
+    private boolean shouldPrint;
+    private boolean isImpossible = false;
+
+    public Sudoku() {
+        mask = new int[81][9];
+        formattedMask = new int[81];
+        placedMask = new int[64][64];
+        lineMask = new boolean[64][81][9];
+        sectionCounters = new int[9][27];
+        sectionMask = new int[9][27];
+        lineCounters = new int[64];
+        neighbors = new int[81][20];
+        unsolvedBoard = new int[81];
+        solvedBoard = new int[81];
+        cells = new int[][] {{0 ,1 ,2 ,9 ,10,11,18,19,20},
+                             {3 ,4 ,5 ,12,13,14,21,22,23},
+                             {6 ,7 ,8 ,15,16,17,24,25,26},
+                             {27,28,29,36,37,38,45,46,47},
+                             {30,31,32,39,40,41,48,49,50},
+                             {33,34,35,42,43,44,51,52,53},
+                             {54,55,56,63,64,65,72,73,74},
+                             {57,58,59,66,67,68,75,76,77},
+                             {60,61,62,69,70,71,78,79,80}};
+    }
+
+    final public long solveSudoku(int[] board, int clue) {
+
+        long t1 = 0,t2 = 0;
+        t1 = System.nanoTime();
+        System.arraycopy(board, 0, unsolvedBoard, 0, 81);
+        System.arraycopy(board, 0, solvedBoard, 0, 81);
+
+        placedNumbers = 0;
+        solutionFound = false;
+        isEasy = true;
+        isImpossible = false;
+
+        for (int[] i : mask) {
+            Arrays.fill(i, 0);
+        }
+
+        for (boolean[][] i : lineMask) {
+            for (boolean[] j : i) {
+                Arrays.fill(j, false);
+            }
+        }
+
+        for (int i = 0; i &lt; 81; i++) {
+            if (solvedBoard[i] != -1) {
+                put(i, solvedBoard[i]);
+                placedNumbers++;
+            }
+        }
+
+        solve(0, 0);
+        t2 = System.nanoTime();
+        easySolved += isEasy ? 1 : 0;
+
+        if (solutionFound &amp;&amp; placedNumbers == 81) {
+            totTime += t2-t1;
+            if (shouldPrint || t2-t1 &gt; 5*1_000_000_000L) {
+                System.out.print(String.format(
+                    "Solution from %2d clues found in %7s", 
+                    clue, 
+                    printTime(t1, t2)
+                ));
+                shouldPrint = false;
+                if (t2-t1 &gt; 1*1000_000_000L) {
+                    System.out.println();
+                    display2(board, solvedBoard);
+                }
+            }
+        } else {
+            System.out.println("No solution");
+            display2(unsolvedBoard, solvedBoard);
+            return -1;
+        }
+        return t2 - t1;
+    }
+
+    final private void solve(int v, int vIndex) {
+
+        lineCounters[vIndex] = 0;
+        int easyIndex = placeEasy(vIndex);
+
+        if (isImpossible) {
+            resetEasy(vIndex, easyIndex);
+            resetLineMask(vIndex);
+            return;
+        }
+
+        if (placedNumbers == 81) {
+            solutionFound = true;
+            return;
+        }
+        // if (true) {
+            // return;
+        // }
+
+        // either get the next empty cell
+        // while (v &lt; 81 &amp;&amp; solvedBoard[v] &gt;= 0) {
+            // v++;
+        // }
+        // or get the cell with the fewest options
+        generateFormattedMasks();
+        int minOptions = 9;
+        for (int i = 0; i &lt; 81; i++) {
+            int options = formattedMask[i] &amp; 0xffff;
+            if (options &gt; 0 &amp;&amp; options &lt; minOptions) {
+                minOptions = options;
+                v = i;
+            }
+            if (options == 0 &amp;&amp; solvedBoard[i] == -1) {
+                isImpossible = true;
+            }
+        }
+        if (!isImpossible) {
+            for (int c = 0; c &lt; 9; c++) {
+                if (isPossible(v, c)) {
+                    isEasy = false;
+                    put(v, c);
+                    placedNumbers++;
+                    solve(v + 1, vIndex + 1); 
+                    if (solutionFound) {
+                        return;
+                    }
+                    unput(v, c);
+                    placedNumbers--;
+                }
+            }
+        }
+        resetEasy(vIndex, easyIndex);
+        resetLineMask(vIndex);
+    }
+
+    final private void resetEasy(int vIndex, int easyIndex) {
+        for (int i = 0; i &lt; easyIndex; i++) {
+            int tempv2 = placedMask[vIndex][i];
+            int c2 = solvedBoard[tempv2];
+            unput(tempv2, c2);
+            placedNumbers--;
+        }
+    }
+
+    final private void resetLineMask(int vIndex) {
+        if (lineCounters[vIndex] &gt; 0) {
+            for (int i = 0; i &lt; 81; i++) {
+                for (int c = 0; c &lt; 9; c++) {
+                    if (lineMask[vIndex][i][c]) {
+                        enable(i, c);
+                        lineMask[vIndex][i][c] = false;
+                    }
+                }
+            }
+        }       
+        isImpossible = false;
+    }
+
+    final private int placeEasy(int vIndex) {
+        int easyIndex = 0;
+        int lastPlaced = 0, tempPlaced = 0, easyplaced = 0;
+        int iter = 0;
+        while (placedNumbers &gt; lastPlaced+1) {
+            lastPlaced = placedNumbers;
+            tempPlaced = 0;
+            while (placedNumbers &gt; tempPlaced + 5) {
+                tempPlaced = placedNumbers;
+                easyIndex = placeNakedSingles(vIndex, easyIndex);
+                if (isImpossible) {
+                    return easyIndex;
+                }
+            }
+
+            tempPlaced = 0;
+            while (placedNumbers &lt; 55*1 &amp;&amp; placedNumbers &gt; tempPlaced + 2) {
+                tempPlaced = placedNumbers;
+                easyIndex = placeHiddenSingles(vIndex, easyIndex);
+                if (isImpossible) {
+                    return easyIndex;
+                }
+            }
+
+            tempPlaced = 0;
+            while (placedNumbers &lt; 65*1 &amp;&amp; placedNumbers &gt; tempPlaced + 1) {
+                tempPlaced = placedNumbers;
+                easyIndex = placeNakedSingles(vIndex, easyIndex);
+                if (isImpossible) {
+                    return easyIndex;
+                }
+            }
+
+            if (iter &lt; 2 &amp;&amp; placedNumbers &lt; 55*1) {
+                checkNakedTriples(vIndex);
+            }
+            if (placedNumbers &lt; 45*1) {
+                checkNakedDoubles(vIndex);
+                identifyLines(vIndex);
+            }
+            iter++;
+        }
+        return easyIndex;
+    }
+
+    final private int placeNakedSingles(int vIndex, int easyIndex) {
+        generateFormattedMasks();
+        for (int tempv = 0; tempv &lt; 81; tempv++) {
+            int possibilities = formattedMask[tempv];
+            if ((possibilities &amp; 0xffff) == 1) {
+                possibilities &gt;&gt;= 16;
+                int c = 0;
+                while ((possibilities &amp; 1) == 0) {
+                    possibilities &gt;&gt;= 1;
+                    c++;
+                }
+                if (isPossible(tempv, c)) {
+                    put(tempv, c);
+                    placedMask[vIndex][easyIndex++] = tempv;
+                    placedNumbers++;
+                } else {
+                    isImpossible = true;
+                    return easyIndex;
+                }
+            } else if (possibilities == 0 &amp;&amp; solvedBoard[tempv] == -1) {
+                isImpossible = true;
+                return easyIndex;
+            }
+        }
+        return easyIndex;
+    }
+
+
+    final private int placeHiddenSingles(int vIndex, int easyIndex) {
+        for (int[] i : sectionCounters) {
+            Arrays.fill(i, 0);
+        }
+
+        for (int c = 0; c &lt; 9; c++) {
+            for (int v = 0; v &lt; 81; v++) {
+                if (isPossible(v, c)) {
+                    int cell = 3 * (v / 27) + ((v / 3) % 3);
+                    sectionCounters[c][v / 9]++;
+                    sectionCounters[c][9 + (v % 9)]++;
+                    sectionCounters[c][18 + cell]++;
+                    sectionMask[c][v / 9] = v;
+                    sectionMask[c][9 + (v % 9)] = v;
+                    sectionMask[c][18 + cell] = v;
+                }
+            }
+
+            int v;
+
+            for (int i = 0; i &lt; 9; i++) {
+                if (sectionCounters[c][i] == 1) {
+                    v = sectionMask[c][i];
+                    if (isPossible(v, c)) {
+                        put(v, c);
+                        placedMask[vIndex][easyIndex++] = v;
+                        placedNumbers++;
+                        int cell = 3 * (v / 27) + ((v / 3) % 3);
+                        sectionCounters[c][9 + (v%9)] = 9;
+                        sectionCounters[c][18 + cell] = 9;
+                    } else {
+                        isImpossible = true;
+                        return easyIndex;
+                    }
+                }
+            }
+
+            for (int i = 9; i &lt; 18; i++) {
+                if (sectionCounters[c][i] == 1) {
+                    v = sectionMask[c][i];
+                    if (isPossible(v, c)) {
+                        put(v, c);
+                        placedMask[vIndex][easyIndex++] = v;
+                        int cell = 3 * (v / 27) + ((v / 3) % 3);
+                        placedNumbers++;
+                        sectionCounters[c][18 + cell]++;
+                    } else {
+                        isImpossible = true;
+                        return easyIndex;
+                    }
+                }
+            }
+
+
+            for (int i = 18; i &lt; 27; i++) {
+                if (sectionCounters[c][i] == 1) {
+                    v = sectionMask[c][i];
+                    if (isPossible(v, c)) {
+                        put(v, c);
+                        placedMask[vIndex][easyIndex++] = v;
+                        placedNumbers++;
+                    } else {
+                        isImpossible = true;
+                        return easyIndex;
+                    }
+                }
+            }
+
+        }
+        return easyIndex;
+    }
+
+    final private int getFormattedMask(int v) {
+        if (solvedBoard[v] &gt;= 0) {
+            return 0;
+        }
+        int x = 0;
+        int y = 0;
+        for (int c = 8; c &gt;= 0; c--) {
+            x &lt;&lt;= 1;
+            x += mask[v][c] == 0 ? 1 : 0;
+            y += mask[v][c] == 0 ? 1 : 0;
+        }
+        x &lt;&lt;= 16;
+        return x + y;
+    }
+
+    final private int getCachedMask(int v) {
+        return formattedMask[v];
+    }
+
+    final private void generateFormattedMasks() {
+        for (int i = 0; i &lt; 81; i++) {
+            formattedMask[i] = getFormattedMask(i);
+        }
+    }
+
+    final private void generateFormattedMasks(int[] idxs) {
+        for (int i : idxs) {
+            formattedMask[i] = getFormattedMask(i);
+        }
+    }
+
+
+    final private void checkNakedDoubles(int vIndex) {
+        generateFormattedMasks();
+        for (int i = 0; i &lt; 81; i++) {
+            int bitmask = formattedMask[i];
+            if ((bitmask &amp; 0xffff) == 2) {
+                for (int j = i+1; j &lt; (i/9+1)*9; j++) {
+                    int bitmask_j = formattedMask[j];
+                    if (bitmask == bitmask_j) {
+                        bitmask &gt;&gt;= 16;
+                        int c0, c1, k = 0;
+                        while ((bitmask &amp; 1) == 0) {
+                            k++;
+                            bitmask &gt;&gt;= 1;
+                        }
+                        c0 = k;
+                        bitmask &gt;&gt;= 1;
+                        k++;
+                        while ((bitmask &amp; 1) == 0) {
+                            k++;
+                            bitmask &gt;&gt;= 1;
+                        }
+                        c1 = k;
+                        for (int cell = (i/9)*9; cell &lt; (i/9+1)*9; cell++) {
+                            if (cell != i &amp;&amp; cell != j) {
+                                if (!lineMask[vIndex][cell][c0]) {
+                                    disable(cell, c0);
+                                    lineMask[vIndex][cell][c0] = true;
+                                    lineCounters[vIndex]++;
+                                }
+                                if (!lineMask[vIndex][cell][c1]) {
+                                    disable(cell, c1);
+                                    lineMask[vIndex][cell][c1] = true;
+                                    lineCounters[vIndex]++;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        for (int idx = 0; idx &lt; 81; idx++) {
+            int i = (idx%9)*9 + idx/9;
+            int bitmask = formattedMask[i];
+            if ((bitmask &amp; 0xffff) == 2) {
+                for (int j = i+9; j &lt; 81; j += 9) {
+                    int bitmask_j = formattedMask[j];
+                    if (bitmask == bitmask_j) {
+                        bitmask &gt;&gt;= 16;
+                        int c0, c1, k = 0;
+                        while ((bitmask &amp; 1) == 0) {
+                            k++;
+                            bitmask &gt;&gt;= 1;
+                        }
+                        c0 = k;
+                        bitmask &gt;&gt;= 1;
+                        k++;
+                        while ((bitmask &amp; 1) == 0) {
+                            k++;
+                            bitmask &gt;&gt;= 1;
+                        }
+                        c1 = k;
+                        for (int cell = i % 9; cell &lt; 81; cell += 9) {
+                            if (cell != i &amp;&amp; cell != j) {
+                                if (!lineMask[vIndex][cell][c0]) {
+                                    disable(cell, c0);
+                                    lineMask[vIndex][cell][c0] = true;
+                                    lineCounters[vIndex]++;
+                                }
+                                if (!lineMask[vIndex][cell][c1]) {
+                                    disable(cell, c1);
+                                    lineMask[vIndex][cell][c1] = true;
+                                    lineCounters[vIndex]++;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        for (int idx = 0; idx &lt; 9; idx++) {
+            for (int i = 0; i &lt; 9; i++) {
+                int bitmask = formattedMask[cells[idx][i]];
+                if ((bitmask &amp; 0xffff) == 2) {
+                    for (int j = i+1; j &lt; 9; j++) {
+                        int bitmask_j = formattedMask[cells[idx][j]];
+                        if (bitmask == bitmask_j) {
+                            bitmask &gt;&gt;= 16;
+                            int c0, c1, k = 0;
+                            while ((bitmask &amp; 1) == 0) {
+                                k++;
+                                bitmask &gt;&gt;= 1;
+                            }
+                            c0 = k;
+                            bitmask &gt;&gt;= 1;
+                            k++;
+                            while ((bitmask &amp; 1) == 0) {
+                                k++;
+                                bitmask &gt;&gt;= 1;
+                            }
+                            c1 = k;
+                            for (int cellIdx = 0; cellIdx &lt; 9; cellIdx++) {
+                                if (cellIdx != i &amp;&amp; cellIdx != j) {
+                                    int cell = cells[idx][cellIdx];
+                                    if (!lineMask[vIndex][cell][c0]) {
+                                        disable(cell, c0);
+                                        lineMask[vIndex][cell][c0] = true;
+                                        lineCounters[vIndex]++;
+                                    }
+                                    if (!lineMask[vIndex][cell][c1]) {
+                                        disable(cell, c1);
+                                        lineMask[vIndex][cell][c1] = true;
+                                        lineCounters[vIndex]++;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    final private void checkNakedTriples(int vIndex) {
+
+        generateFormattedMasks();
+
+        for (int i = 0; i &lt; 81; i++) {
+            int bitmask = formattedMask[i];
+            if ((bitmask &amp; 0xffff) == 3) {
+                for (int j = i+1; j &lt; (i/9+1)*9; j++) {
+                    int bitmask_j = formattedMask[j];
+                    if (bitmask_j &gt; 0 &amp;&amp; bitmask == (bitmask | bitmask_j)) {
+                        for (int k = j+1; k &lt; (i/9+1)*9; k++) {
+                            int bitmask_k = formattedMask[k];
+                            if (bitmask_k &gt; 0 &amp;&amp; bitmask == (bitmask | bitmask_k)) {
+
+                                int bitmask_shifted = bitmask &gt;&gt; 16;
+                                int c0, c1, c2, l = 0;
+                                while ((bitmask_shifted &amp; 1) == 0) {
+                                    l++;
+                                    bitmask_shifted &gt;&gt;= 1;
+                                }
+                                c0 = l;
+                                bitmask_shifted &gt;&gt;= 1;
+                                l++;
+                                while ((bitmask_shifted &amp; 1) == 0) {
+                                    l++;
+                                    bitmask_shifted &gt;&gt;= 1;
+                                }
+                                c1 = l;
+                                bitmask_shifted &gt;&gt;= 1;
+                                l++;
+                                while ((bitmask_shifted &amp; 1) == 0) {
+                                    l++;
+                                    bitmask_shifted &gt;&gt;= 1;
+                                }
+                                c2 = l;
+                                for (int cell = (i/9)*9; cell &lt; (i/9+1)*9; cell++) {
+                                    if (cell != i &amp;&amp; cell != j &amp;&amp; cell != k) {
+                                        if (!lineMask[vIndex][cell][c0]) {
+                                            disable(cell, c0);
+                                            lineMask[vIndex][cell][c0] = true;
+                                            lineCounters[vIndex]++;
+                                        }
+                                        if (!lineMask[vIndex][cell][c1]) {
+                                            disable(cell, c1);
+                                            lineMask[vIndex][cell][c1] = true;
+                                            lineCounters[vIndex]++;
+                                        }
+                                        if (!lineMask[vIndex][cell][c2]) {
+                                            disable(cell, c2);
+                                            lineMask[vIndex][cell][c2] = true;
+                                            lineCounters[vIndex]++;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        for (int idx = 0; idx &lt; 81; idx++) {
+            int i = (idx%9)*9 + idx/9;
+            int bitmask = formattedMask[i];
+            if ((bitmask &amp; 0xffff) == 3) {
+                for (int j = i+9; j &lt; 81; j += 9) {
+                    int bitmask_j = formattedMask[j];
+                    if (bitmask_j &gt; 0 &amp;&amp; bitmask == (bitmask | bitmask_j)) {
+                        for (int k = j+9; k &lt; 81; k += 9) {
+                            int bitmask_k = formattedMask[k];
+                            if (bitmask_k &gt; 0 &amp;&amp; bitmask == (bitmask | bitmask_k)) {
+
+                                int bitmask_shifted = bitmask &gt;&gt; 16;
+                                int c0, c1, c2, l = 0;
+                                while ((bitmask_shifted &amp; 1) == 0) {
+                                    l++;
+                                    bitmask_shifted &gt;&gt;= 1;
+                                }
+                                c0 = l;
+                                bitmask_shifted &gt;&gt;= 1;
+                                l++;
+                                while ((bitmask_shifted &amp; 1) == 0) {
+                                    l++;
+                                    bitmask_shifted &gt;&gt;= 1;
+                                }
+                                c1 = l;
+                                bitmask_shifted &gt;&gt;= 1;
+                                l++;
+                                while ((bitmask_shifted &amp; 1) == 0) {
+                                    l++;
+                                    bitmask_shifted &gt;&gt;= 1;
+                                }
+                                c2 = l;
+                                for (int cell = i%9; cell &lt; 81; cell += 9) {
+                                    if (cell != i &amp;&amp; cell != j &amp;&amp; cell != k) {
+                                        if (!lineMask[vIndex][cell][c0]) {
+                                            disable(cell, c0);
+                                            lineMask[vIndex][cell][c0] = true;
+                                            lineCounters[vIndex]++;
+                                        }
+                                        if (!lineMask[vIndex][cell][c1]) {
+                                            disable(cell, c1);
+                                            lineMask[vIndex][cell][c1] = true;
+                                            lineCounters[vIndex]++;
+                                        }
+                                        if (!lineMask[vIndex][cell][c2]) {
+                                            disable(cell, c2);
+                                            lineMask[vIndex][cell][c2] = true;
+                                            lineCounters[vIndex]++;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        for (int idx = 0; idx &lt; 9; idx++) {
+            for (int i = 0; i &lt; 9; i++) {
+                int bitmask = formattedMask[cells[idx][i]];
+                if ((bitmask &amp; 0xffff) == 3) {
+                    for (int j = i+1; j &lt; 9; j++) {
+                        int bitmask_j = formattedMask[cells[idx][j]];
+                        if (bitmask_j &gt; 0 &amp;&amp; bitmask == (bitmask | bitmask_j)) {
+                            for (int k = j+1; k &lt; 9; k++) {
+                                int bitmask_k = formattedMask[cells[idx][k]];
+                                if (bitmask_k &gt; 0 &amp;&amp; bitmask == (bitmask | bitmask_k)) {
+
+                                    int bitmask_shifted = bitmask &gt;&gt; 16;
+                                    int c0, c1, c2, l = 0;
+                                    while ((bitmask_shifted &amp; 1) == 0) {
+                                        l++;
+                                        bitmask_shifted &gt;&gt;= 1;
+                                    }
+                                    c0 = l;
+                                    bitmask_shifted &gt;&gt;= 1;
+                                    l++;
+                                    while ((bitmask_shifted &amp; 1) == 0) {
+                                        l++;
+                                        bitmask_shifted &gt;&gt;= 1;
+                                    }
+                                    c1 = l;
+                                    bitmask_shifted &gt;&gt;= 1;
+                                    l++;
+                                    while ((bitmask_shifted &amp; 1) == 0) {
+                                        l++;
+                                        bitmask_shifted &gt;&gt;= 1;
+                                    }
+                                    c2 = l;
+                                    for (int cellIdx = 0; cellIdx &lt; 9; cellIdx++) {
+                                        if (cellIdx != i &amp;&amp; cellIdx != j &amp;&amp; cellIdx != k) {
+                                            int cell = cells[idx][cellIdx];
+                                            if (!lineMask[vIndex][cell][c0]) {
+                                                disable(cell, c0);
+                                                lineMask[vIndex][cell][c0] = true;
+                                                lineCounters[vIndex]++;
+                                            }
+                                            if (!lineMask[vIndex][cell][c1]) {
+                                                disable(cell, c1);
+                                                lineMask[vIndex][cell][c1] = true;
+                                                lineCounters[vIndex]++;
+                                            }
+                                            if (!lineMask[vIndex][cell][c2]) {
+                                                disable(cell, c2);
+                                                lineMask[vIndex][cell][c2] = true;
+                                                lineCounters[vIndex]++;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+    }
+
+    final private void identifyLines(int vIndex) {
+
+        int disabledLines = 0;
+        int[][] tempRowMask = new int[3][9];
+        int[][] tempColMask = new int[3][9];
+        for (int i = 0; i &lt; 9; i++) {
+            for (int c = 0; c &lt; 9; c++) {
+                for (int j = 0; j &lt; 3; j++) {
+                    tempRowMask[j][c] = 0;
+                    tempColMask[j][c] = 0;
+                }
+                for (int j = 0; j &lt; 9; j++) {
+                    if (mask[cells[i][j]][c] == 0) {
+                        tempRowMask[j/3][c]++;
+                        tempColMask[j%3][c]++;
+                    }
+                }
+
+                int rowCount = 0;
+                int colCount = 0;
+                int rowIdx = -1, colIdx = -1;
+                for (int j = 0; j &lt; 3; j++) {
+                    if (tempRowMask[j][c] &gt; 0) {
+                        rowCount++;
+                        rowIdx = j;
+                    }
+                    if (tempColMask[j][c] &gt; 0) {
+                        colCount++;
+                        colIdx = j;
+                    }
+                }
+                if (rowCount == 1) {
+                    for (int j = (i/3)*3; j &lt; (i/3 + 1)*3; j++) {
+                        if (j != i) {
+                            for (int k = rowIdx*3; k &lt; (rowIdx+1)*3; k++) {
+                                int cell = cells[j][k];
+                                if (!lineMask[vIndex][cell][c]) {
+                                    disable(cell, c);
+                                    lineMask[vIndex][cell][c] = true;
+                                    lineCounters[vIndex]++;
+                                }
+                            }
+                        }
+                    }
+
+                }
+                if (colCount == 1) {
+                    for (int j = i % 3; j &lt; 9; j += 3) {
+                        if (j != i) {
+                            for (int k = colIdx; k &lt; 9; k += 3) {
+                                int cell = cells[j][k];
+                                if (!lineMask[vIndex][cell][c]) {
+                                    disable(cell, c);
+                                    lineMask[vIndex][cell][c] = true;
+                                    lineCounters[vIndex]++;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    final private boolean isPossible(int v, int c) {
+        return mask[v][c] == 0;
+    }
+
+    final private int checkMask(int[][] neighbors, int v, int c) {
+        int tempValue = 0;
+        for (int n : neighbors[v]) {
+            if (mask[n][c] &gt; 0) {
+                tempValue++;
+            }
+        }
+        return tempValue;
+    }
+
+    final private void put(int v, int c) {
+        solvedBoard[v] = c;
+        for (int i : neighbors[v]) {
+            mask[i][c]++;
+        }
+        for (int i = 0; i &lt; 9; i++) {
+            mask[v][i]++;
+        }
+    }
+
+    final private void disable(int v, int c) {
+        mask[v][c]++;
+    }
+
+    final private void unput(int v, int c) {
+        solvedBoard[v] = -1;
+        for (int i : neighbors[v]) {
+            mask[i][c]--;
+        }
+        for (int i = 0; i &lt; 9; i++) {
+            mask[v][i]--;
+        }       
+    }
+
+    final private void enable(int v, int c) {
+        // enables++;
+        mask[v][c]--;
+    }
+
+    public String getString(int[] board) {
+        StringBuilder s = new StringBuilder();
+        for (int i : board) {
+            s.append(i+1);
+        }
+        return s.toString();
+    }
+
+    public long getTime() {
+        return totTime;
+    }
+
+    public static String printTime(long t1, long t2) {
+        String unit = " ns";
+        if (t2-t1 &gt; 10000) {
+            unit = " us";
+            t1 /= 1000; t2 /= 1000;
+        }
+        if (t2-t1 &gt; 10000) {
+            unit = " ms";
+            t1 /= 1000; t2 /= 1000;
+        }
+        if (t2-t1 &gt; 10000) {
+            unit = " seconds";
+            t1 /= 1000; t2 /= 1000;
+        }
+        return (t2-t1) + unit;
+    }
+
+    public void display(int[] board) {
+
+        for (int i = 0; i &lt; 9; i++) {
+            if (i % 3 == 0) {
+                System.out.println("+-----+-----+-----+");
+            }
+            for (int j = 0; j &lt; 9; j++) {
+                if (j % 3 == 0) {
+                    System.out.print("|");
+                } else {
+                    System.out.print(" ");
+                }
+                if (board[i*9+j] != -1) {
+                    System.out.print(board[i*9+j]+1);
+                } else {
+                    System.out.print(" ");
+                }
+            }
+            System.out.println("|");
+        }
+        System.out.println("+-----+-----+-----+");
+    }
+
+    public void display2(int[] board, int[] solved) {
+
+        for (int i = 0; i &lt; 9; i++) {
+            if (i % 3 == 0) {
+                System.out.println("+-----+-----+-----+  +-----+-----+-----+");
+            }
+            for (int j = 0; j &lt; 9; j++) {
+                if (j % 3 == 0) {
+                    System.out.print("|");
+                } else {
+                    System.out.print(" ");
+                }
+                if (board[i*9+j] != -1) {
+                    System.out.print(board[i*9+j]+1);
+                } else {
+                    System.out.print(" ");
+                }
+            }
+
+            System.out.print("|  ");
+
+            for (int j = 0; j &lt; 9; j++) {
+                if (j % 3 == 0) {
+                    System.out.print("|");
+                } else {
+                    System.out.print(" ");
+                }
+                if (solved[i*9+j] != -1) {
+                    System.out.print(solved[i*9+j]+1);
+                } else {
+                    System.out.print(" ");
+                }
+            }
+
+            System.out.println("|");
+        }
+        System.out.println("+-----+-----+-----+  +-----+-----+-----+");
+    }
+
+    private boolean contains(int[] a, int v) {
+        for (int i : a) {
+            if (i == v) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void connect() {
+        for (int i = 0; i &lt; 81; i++) {
+            for (int j = 0; j &lt; 20; j++) {
+                neighbors[i][j] = -1;
+            }
+        }
+        int[] n_count = new int[81];
+
+        HashMap&lt;Integer,ArrayList&lt;Integer&gt;&gt; map 
+            = new HashMap&lt;Integer,ArrayList&lt;Integer&gt;&gt;();
+
+        for (int[] c: cells) {
+            ArrayList&lt;Integer&gt; temp = new ArrayList&lt;Integer&gt;();
+            for (int v : c) {
+                temp.add(v);
+            }
+            for (int v : c) {
+                map.put(v,temp);
+            }
+        }
+
+        for (int i = 0; i &lt; 81; i++) {
+            for (int j = (i/9)*9; j &lt; (i/9)*9 + 9; j++) {
+                if (i != j) {
+                    neighbors[i][n_count[i]++] = j;
+                }
+            }
+            for (int j = i%9; j &lt; 81; j += 9) {
+                if (i != j) {
+                    neighbors[i][n_count[i]++] = j;
+                }
+            }
+            for (int j : map.get(i)) {
+                if (i != j) {
+                    if (!contains(neighbors[i], j)) {
+                        neighbors[i][n_count[i]++] = j;
+                    }
+                }
+            }
+        }
+    }
+
+    public static int[][] getInput(String filename) {
+        int[][] boards;
+        try (BufferedInputStream in = new BufferedInputStream(
+            new FileInputStream(filename))) {
+
+            BufferedReader r = new BufferedReader(
+                new InputStreamReader(in, StandardCharsets.UTF_8));
+            int n = Integer.valueOf(r.readLine());
+            boards = new int[n][81];
+            clues = new int[n];
+            for (int i = 0; i &lt; n; i++) {
+                for (int j = 0; j &lt; 81; j++) {
+                    int x = r.read();
+                    boards[i][j] = x - 49;
+                    clues[i] += x &gt; 48 ? 1 : 0;
+                }
+                r.read();
+            }
+            r.close();
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+        return boards;
+    }
+
+    private int getTotEasy() {
+        return totEasy;
+    }
+
+    public String getSolution() {
+        StringBuilder s = new StringBuilder(256);
+        for (int i : unsolvedBoard) {
+            s.append(i+1);
+        }
+        s.append(",");
+        for (int i : solvedBoard) {
+            s.append(i+1);
+        }
+        return s.toString();
+    }
+
+    public static void main (String[] args) {
+        long t0 = System.nanoTime();
+        Sudoku gc = new Sudoku();
+        File f;
+        PrintWriter p;
+        try {
+            f = new File("sudoku_output.txt");
+            p = new PrintWriter(f);
+        } catch (Exception e) {
+            return;
+        }
+        if (args.length != 1) {
+            System.out.println("Usage: java Sudoku &lt;input_file&gt;");
+            return;
+        }
+        int[][] boards = gc.getInput(args[0]);
+        long tinp = System.nanoTime();
+        gc.connect();
+        long t1 = System.nanoTime();
+        p.println(boards.length);
+
+        long maxSolveTime = 0;
+        int maxSolveIndex = 0;
+        long[] solveTimes = new long[boards.length];
+        for (int i = 0; i &lt; boards.length; i++) {
+            long tempTime = System.nanoTime();
+            if (tempTime - gc.lastPrint &gt; 200_000_000 
+                || i == boards.length - 1) {
+
+                gc.shouldPrint = true;
+                gc.lastPrint = tempTime;
+                System.out.print(String.format(
+                    "\r(%7d/%7d) ", i+1, boards.length));
+            }
+            long elapsed = gc.solveSudoku(boards[i], gc.clues[i]);
+            if (elapsed == -1) {
+                System.out.println("Impossible: " + i);
+            }
+            if (elapsed &gt; maxSolveTime) {
+                maxSolveTime = elapsed;
+                maxSolveIndex = i;
+            }
+            solveTimes[i] = elapsed;
+            p.println(gc.getSolution());
+            // break;
+        }
+
+        p.close();
+        long t2 = System.nanoTime();
+        Arrays.sort(solveTimes);
+        System.out.println();
+        System.out.println("Median solve time: " 
+            + gc.printTime(0, solveTimes[boards.length/2]));
+        System.out.println("Longest solve time: " 
+            + gc.printTime(0, maxSolveTime) + " for board " + maxSolveIndex);
+        gc.display(boards[maxSolveIndex]);
+        System.out.println();
+
+        System.out.println("Total time (including prints): " 
+            + gc.printTime(t0,t2));
+        System.out.println("Sudoku solving time: " 
+            + gc.printTime(0,gc.getTime()));
+        System.out.println("Average time per board: " 
+            + gc.printTime(0,gc.getTime()/boards.length));
+        System.out.println("Number of one-choice digits per board: " 
+            + String.format("%.2f", gc.getTotEasy()/(double)boards.length));  
+        System.out.println("Easily solvable boards: " + gc.easySolved);
+        System.out.println("\nInput time: " + gc.printTime(t0,tinp));
+        System.out.println("Connect time: " + gc.printTime(tinp,t1));
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException e) {
+
+        }
+    }
+}
+</code></pre>
+</div>
+<div id="pu8" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">Node.js</a>, <s>8.231s</s> 6.735s official score</h1>
+
+<p>Takes the file name as argument. The input file may already contain the solutions in the format described in the challenge, in which case the program will compare them with its own solutions.</p>
+
+<p>The results are saved in <em>'sudoku.log'</em>.</p>
+
+<h3>Code</h3>
+
+
+
+<pre class="lang-javascript prettyprint-override"><code>'use strict';
+
+const fs = require('fs');
+
+const BLOCK     = [];
+const BLOCK_NDX = [];
+const N_BIT     = [];
+const ZERO      = [];
+const BIT       = [];
+
+console.time('Processing time');
+
+init();
+
+let filename = process.argv[2],
+    puzzle = fs.readFileSync(filename).toString().split('\n'),
+    len = puzzle.shift(),
+    output = len + '\n';
+
+console.log("File '" + filename + "': " + len + " puzzles");
+
+// solve all puzzles
+puzzle.forEach((p, i) =&gt; {
+  let sol, res;
+
+  [ p, sol ] = p.split(',');
+
+  if(p.length == 81) {
+    if(!(++i % 2000)) {
+      console.log((i * 100 / len).toFixed(1) + '%');
+    }
+    if(!(res = solve(p))) {
+      throw "Failed on puzzle " + i;
+    }
+    if(sol &amp;&amp; res != sol) {
+      throw "Invalid solution for puzzle " + i;
+    }
+    output += p + ',' + res + '\n';
+  }
+});
+
+// results
+console.timeEnd('Processing time');
+fs.writeFileSync('sudoku.log', output);
+console.log("MD5 = " + require('crypto').createHash('md5').update(output).digest("hex"));
+
+// initialization of lookup tables
+function init() {
+  let ptr, x, y;
+
+  for(x = 0; x &lt; 0x200; x++) {
+    N_BIT[x] = [0, 1, 2, 3, 4, 5, 6, 7, 8].reduce((s, n) =&gt; s + (x &gt;&gt; n &amp; 1), 0);
+    ZERO[x] = ~x &amp; -~x;
+  }
+
+  for(x = 0; x &lt; 9; x++) {
+    BIT[1 &lt;&lt; x] = x;
+  }
+
+  for(ptr = y = 0; y &lt; 9; y++) {
+    for(x = 0; x &lt; 9; x++, ptr++) {
+      BLOCK[ptr] = (y / 3 | 0) * 3 + (x / 3 | 0);
+      BLOCK_NDX[ptr] = (y % 3) * 3 + x % 3;
+    }
+  }
+}
+
+// solver
+function solve(p) {
+  let ptr, x, y, v,
+      count = 81,
+      m = Array(81).fill(-1),
+      row = Array(9).fill(0),
+      col = Array(9).fill(0),
+      blk = Array(9).fill(0);
+
+  // helper function to check and play a move
+  function play(stack, x, y, n) {
+    let p = y * 9 + x;
+
+    if(~m[p]) {
+      if(m[p] == n) {
+        return true;
+      }
+      undo(stack);
+      return false;
+    }
+
+    let msk, b;
+
+    msk = 1 &lt;&lt; n;
+    b = BLOCK[p];
+
+    if((col[x] | row[y] | blk[b]) &amp; msk) {
+      undo(stack);
+      return false;
+    }
+    count--;
+    col[x] ^= msk;
+    row[y] ^= msk;
+    blk[b] ^= msk;
+    m[p] = n;
+    stack.push(x &lt;&lt; 8 | y &lt;&lt; 4 | n);
+
+    return true;
+  }
+
+  // helper function to undo all moves on the stack
+  function undo(stack) {
+    stack.forEach(v =&gt; {
+      let x = v &gt;&gt; 8,
+          y = v &gt;&gt; 4 &amp; 15,
+          p = y * 9 + x,
+          b = BLOCK[p];
+
+      v = 1 &lt;&lt; (v &amp; 15);
+
+      count++;
+      col[x] ^= v;
+      row[y] ^= v;
+      blk[b] ^= v;
+      m[p] = -1;
+    });
+  }
+
+  // convert the puzzle into our own format
+  for(ptr = y = 0; y &lt; 9; y++) {
+    for(x = 0; x &lt; 9; x++, ptr++) {
+      if(~(v = p[ptr] - 1)) {
+        col[x] |= 1 &lt;&lt; v;
+        row[y] |= 1 &lt;&lt; v;
+        blk[BLOCK[ptr]] |= 1 &lt;&lt; v;
+        count--;
+        m[ptr] = v;
+      }
+    }
+  }
+
+  // main recursive search function
+  let res = (function search() {
+    // success?
+    if(!count) {
+      return true;
+    }
+
+    let ptr, x, y, v, n, max, best,
+        k, i, stack = [],
+        dCol = Array(81).fill(0),
+        dRow = Array(81).fill(0),
+        dBlk = Array(81).fill(0),
+        b, v0;
+
+    // scan the grid:
+    // - keeping track of where each digit can go on a given column, row or block
+    // - looking for a cell with the fewest number of legal moves
+    for(max = ptr = y = 0; y &lt; 9; y++) {
+      for(x = 0; x &lt; 9; x++, ptr++) {
+        if(m[ptr] == -1) {
+          v = col[x] | row[y] | blk[BLOCK[ptr]];
+          n = N_BIT[v];
+
+          // abort if there's no legal move on this cell
+          if(n == 9) {
+            return false;
+          }
+
+          // update dCol[], dRow[] and dBlk[]
+          for(v0 = v ^ 0x1FF; v0;) {
+            b = v0 &amp; -v0;
+            dCol[x * 9 + BIT[b]] |= 1 &lt;&lt; y;
+            dRow[y * 9 + BIT[b]] |= 1 &lt;&lt; x;
+            dBlk[BLOCK[ptr] * 9 + BIT[b]] |= 1 &lt;&lt; BLOCK_NDX[ptr];
+            v0 ^= b;
+          }
+
+          // update the cell with the fewest number of moves
+          if(n &gt; max) {
+            best = {
+              x  : x,
+              y  : y,
+              ptr: ptr,
+              msk: v
+            };
+            max = n;
+          }
+        }
+      }
+    }
+
+    // play all forced moves (unique candidates on a given column, row or block)
+    // and make sure that it doesn't lead to any inconsistency
+    for(k = 0; k &lt; 9; k++) {
+      for(n = 0; n &lt; 9; n++) {
+        if(N_BIT[dCol[k * 9 + n]] == 1) {
+          i = BIT[dCol[k * 9 + n]];
+
+          if(!play(stack, k, i, n)) {
+            return false;
+          }
+        }
+
+        if(N_BIT[dRow[k * 9 + n]] == 1) {
+          i = BIT[dRow[k * 9 + n]];
+
+          if(!play(stack, i, k, n)) {
+            return false;
+          }
+        }
+
+        if(N_BIT[dBlk[k * 9 + n]] == 1) {
+          i = BIT[dBlk[k * 9 + n]];
+
+          if(!play(stack, (k % 3) * 3 + i % 3, (k / 3 | 0) * 3 + (i / 3 | 0), n)) {
+            return false;
+          }
+        }
+      }
+    }
+
+    // if we've played at least one forced move, do a recursive call right away
+    if(stack.length) {
+      if(search()) {
+        return true;
+      }
+      undo(stack);
+      return false;
+    }
+
+    // otherwise, try all moves on the cell with the fewest number of moves
+    while((v = ZERO[best.msk]) &lt; 0x200) {
+      col[best.x] ^= v;
+      row[best.y] ^= v;
+      blk[BLOCK[best.ptr]] ^= v;
+      m[best.ptr] = BIT[v];
+      count--;
+
+      if(search()) {
+        return true;
+      }
+
+      count++;
+      m[best.ptr] = -1;
+      col[best.x] ^= v;
+      row[best.y] ^= v;
+      blk[BLOCK[best.ptr]] ^= v;
+
+      best.msk ^= v;
+    }
+
+    return false;
+  })();
+
+  return res ? m.map(n =&gt; n + 1).join('') : false;
+}
+
+// debugging
+function dump(m) {
+  let x, y, c = 81, s = '';
+
+  for(y = 0; y &lt; 9; y++) {
+    for(x = 0; x &lt; 9; x++) {
+      s += (~m[y * 9 + x] ? (c--, m[y * 9 + x] + 1) : '-') + (x % 3 &lt; 2 || x == 8 ? ' ' : ' | ');
+    }
+    s += y % 3 &lt; 2 || y == 8 ? '\n' : '\n------+-------+------\n';
+  }
+  console.log(c);
+  console.log(s);
+}
+</code></pre>
+
+<h3>Example output</h3>
+
+<p>Tested on an Intel Core i7 7500U @ 2.70 GHz.</p>
+
+<p><a href="https://i.sstatic.net/aYHGA.png" rel="nofollow noreferrer"><img src="https://i.sstatic.net/aYHGA.png" alt="output"></a></p>
+</div>
+<div id="pu9" class="pu"><h1>C - <s>2.228s</s> 1.690s official score</h1>
+
+<p>based on <a href="https://codegolf.stackexchange.com/a/190814/24908">@Arnauld's</a></p>
+
+<pre><code>#include&lt;fcntl.h&gt;
+#define O const
+#define R return
+#define S static
+#define  $(x,y...)if(x){y;}
+#define  W(x,y...)while(x){y;}
+#define fi(x,y...)for(I i=0,_n=(x);i&lt;_n;i++){y;}
+#define fj(x,y...)for(I j=0,_n=(x);j&lt;_n;j++){y;}
+#define fp81(x...)for(I p=0;p&lt;81;p++){x;}
+#define  fq3(x...)for(I q=0;q&lt;3;q++){x;}
+#define fij9(x...){fi(9,fj(9,x))}
+#define m0(x)m0_((V*)(x),sizeof(x));
+#define popc(x)__builtin_popcount(x)
+#define ctz(x)__builtin_ctz(x)
+#include&lt;sys/syscall.h&gt;
+#define sc(f,x...)({L u;asm volatile("syscall":"=a"(u):"0"(SYS_##f)x:"cc","rcx","r11","memory");u;})
+#define sc1(f,x)    sc(f,,"D"(x))
+#define sc2(f,x,y)  sc(f,,"D"(x),"S"(y))
+#define sc3(f,x,y,z)sc(f,,"D"(x),"S"(y),"d"(z))
+#define wr(a...)sc3(write,a)
+#define op(a...)sc3( open,a)
+#define cl(a...)sc1(close,a)
+#define fs(a...)sc2(fstat,a)
+#define ex(a...)sc1( exit,a)
+#define mm(x,y,z,t,u,v)({register L r10 asm("r10")=t,r8 asm("r8")=u,r9 asm("r9")=v;\
+                         (V*)sc(mmap,,"D"(x),"S"(y),"d"(z),"r"(r10),"r"(r8),"r"(r9));})
+typedef void V;typedef char C;typedef short H;typedef int I;typedef long long L;
+S C BL[81],KL[81],IJK[81][3],m[81],t_[81-17],*t;S H rcb[3][9],cnt;
+S V*mc(V*x,O V*y,L n){C*p=x;O C*q=y;fi(n,*p++=*q++)R x;}S V m0_(C*p,L n){fi(n,*p++=0);}
+S I undo(C*t0){cnt+=t-t0;W(t&gt;t0,C p=*--t;H v=1&lt;&lt;m[p];fq3(rcb[q][IJK[p][q]]^=v)m[p]=-1)R 0;}
+S I play(C p,H v){$(m[p]&gt;=0,R 1&lt;&lt;m[p]==v)I w=0;fq3(w|=rcb[q][IJK[p][q]])$(w&amp;v,R 0)cnt--;
+                  fq3(rcb[q][IJK[p][q]]^=v);m[p]=ctz(v);*t++=p;R 1;}
+S I f(){$(!cnt,R 1)C*t0=t;H max=0,bp,bv,d[9][9][4];m0(d);
+ fij9(I p=i*9+j;$(m[p]&lt;0,
+  I v=0;fq3(v|=rcb[q][IJK[p][q]])I w=v^511;$(!w,R 0)H g[]={1&lt;&lt;j,1&lt;&lt;i,1&lt;&lt;BL[p]};
+  do{I z=ctz(w);w&amp;=w-1;fq3(d[IJK[p][q]][z][q]|=g[q]);}while(w);
+  I n=popc(v);$(max&lt;n,max=n;bp=p;bv=v)))
+ fij9(I u=d[i][j][0];$(popc(u)==1,I l=ctz(u);$(!play(   i*9+l ,1&lt;&lt;j),R undo(t0)))
+        u=d[i][j][1];$(popc(u)==1,I l=ctz(u);$(!play(   l*9+i ,1&lt;&lt;j),R undo(t0)))
+        u=d[i][j][2];$(popc(u)==1,I l=ctz(u);$(!play(KL[i*9+l],1&lt;&lt;j),R undo(t0))))
+ $(t-t0,R f()||undo(t0))
+ W(1,I v=1&lt;&lt;ctz(~bv);$(v&gt;511,R 0)fq3(rcb[q][IJK[bp][q]]^=v)m[bp]=ctz(v);cnt--;$(f(),R 1)
+     cnt++;m[bp]=-1;fq3(rcb[q][IJK[bp][q]]^=v)bv^=v)
+ R 0;}
+asm(".globl _start\n_start:pop %rdi\nmov %rsp,%rsi\njmp main");
+V main(I ac,C**av){$(ac!=2,ex(2))
+ fij9(I p=i*9+j;BL[p]=i%3*3+j%3;KL[p]=(i/3*3+j/3)*9+BL[p];IJK[p][0]=i;IJK[p][1]=j;IJK[p][2]=i/3*3+j/3)
+ I d=op(av[1],0,0);struct stat h;fs(d,&amp;h);C*s0=mm(0,h.st_size,1,0x8002,d,0),*s=s0;cl(d); //in
+ C*r0=mm(0,2*h.st_size,3,0x22,-1,0),*r=r0; //out
+ I n=0;W(*s!='\n',n*=10;n+=*s++-'0')s++;mc(r,s0,s-s0);r+=s-s0;
+ fi(n,m0(rcb);cnt=81;t=t_;$(s[81]&amp;&amp;s[81]!='\n',ex(3))mc(r,s,81);r+=81;*r++=',';
+      fp81(I v=m[p]=*s++-'1';$(v&gt;=0,v=1&lt;&lt;v;fq3(rcb[q][IJK[p][q]]|=v)cnt--))
+      s++;$(!f(),ex(4))fp81(r[p]=m[p]+'1')r+=81;*r++='\n')
+ wr(1,r0,r-r0);ex(0);}
+</code></pre>
+
+<p>compile and run:</p>
+
+<pre><code>gcc -O3 -march=native -nostdlib -ffreestanding
+time ./a.out all_17_clue_sudokus.txt | md5sum
+</code></pre>
+</div>
+<div id="pu10" class="pu"><h1>Python 3 + <a href="https://pypi.org/project/z3-solver/" rel="nofollow noreferrer">Z3</a> - 10min 45.657s official score</h1>
+
+<p>about 1000s on my laptop.</p>
+
+
+
+<pre class="lang-python prettyprint-override"><code>import time
+start = time.time()
+
+import z3.z3 as z3
+import itertools
+import datetime
+import sys
+
+solver = z3.Solver()
+ceils = [[None] * 9 for i in range(9)]
+
+for row in range(9):
+    for col in range(9):
+        name = 'c' + str(row * 9 + col)
+        ceil = z3.BitVec(name, 9)
+        solver.add(z3.Or(
+            ceil == 0b000000001,
+            ceil == 0b000000010,
+            ceil == 0b000000100,
+            ceil == 0b000001000,
+            ceil == 0b000010000,
+            ceil == 0b000100000,
+            ceil == 0b001000000,
+            ceil == 0b010000000,
+            ceil == 0b100000000
+        ))
+        solver.add(ceil != 0)
+        ceils[row][col] = ceil
+for i in range(9):
+    for j in range(9):
+        for k in range(9):
+            if j == k: continue
+            solver.add(ceils[i][j] &amp; ceils[i][k] == 0)
+            solver.add(ceils[j][i] &amp; ceils[k][i] == 0)
+            row, col = i // 3 * 3, i % 3 * 3
+            solver.add(ceils[row + j // 3][col + j % 3] &amp; ceils[row + k // 3][col + k % 3] == 0)
+
+row_col = list(itertools.product(range(9), range(9)))
+lookup = { 1 &lt;&lt; i: str(i + 1) for i in range(9) }
+
+def solve(line):
+    global solver, output, row_col, ceils, lookup
+    solver.push()
+    for value, (row, col) in zip(line, row_col):
+        val = ord(value) - 48
+        if val == 0: continue
+        solver.add(ceils[row][col] == 1 &lt;&lt; (val - 1))
+
+    output = []
+    if solver.check() == z3.sat:
+        model = solver.model()
+        for row in range(9):
+            for col in range(9):
+                val = model[ceils[row][col]].as_long()
+                output.append(lookup[val])
+    solver.pop()
+
+    return ''.join(output)
+
+count = int(input())
+print(count)
+for i in range(count):
+    if i % 1000 == 0:
+        sys.stderr.write(str(i) + '\n')
+    line = input()
+    print(line + "," + solve(line))
+end = time.time()
+
+sys.stderr.write(str(end - start))
+</code></pre>
+
+<p>Install dependency</p>
+
+<blockquote>
+  <p>pip install z3-solver</p>
+</blockquote>
+
+<p>Run</p>
+
+<blockquote>
+  <p>python3 solve.py &lt; in.txt > out.txt</p>
+</blockquote>
+
+<p>I'm not sure how to improve its performance, since it just solved magically...</p>
+</div>
+<div id="pu11" class="pu"><h1>C - 12min 28.374s official score</h1>
+
+<p>runs for about <s>30m</s> 15m on my i5-7200U and produces the correct md5 hash</p>
+
+<pre><code>#include&lt;stdio.h&gt;
+#include&lt;stdlib.h&gt;
+#include&lt;string.h&gt;
+#include&lt;sys/time.h&gt;
+#define B break
+#define O const
+#define P printf
+#define R return
+#define S static
+#define $(x,y...)  if(x){y;}
+#define E(x...)    else{x;}
+#define W(x,y...)  while(x){y;}
+#define fi(x,y...) for(I i=0,_n=(x);i&lt;_n;i++){y;}
+#define fj(x,y...) for(I j=0,_n=(x);j&lt;_n;j++){y;}
+typedef void V;typedef char C;typedef short H;typedef int I;typedef long long L;
+S C h[81][20]; //h[i][0],h[i][1],..,h[i][19] are the squares that clash with square i
+S H a[81]      //a[i]: bitmask of possible choices; initially one of 1&lt;&lt;0, 1&lt;&lt;1 .. 1&lt;&lt;8, or 511 (i.e. nine bits set)
+   ,b[81];     //b[i]: negated bitmask of impossible chioces; once we know square i has value v, b[i] becomes ~(1&lt;&lt;v)
+S I f(){ //f:recursive solver
+ I p=-1; //keep track of the popcount (number of 1 bits) in a
+ W(1,I q=0;                                         //simple non-recursive deductions:
+     fi(81,fj(20,a[i]&amp;=b[h[i][j]])                  // a[i] must not share bits with its clashing squares
+           $(!(a[i]&amp;a[i]-1),$(!a[i],R 0)b[i]=~a[i]) // if a[i] has one bit left, update b[i].  if a[i]=0, we have a contradiction
+           q+=__builtin_popcount(a[i]))             // compute new popcount
+     $(p==q,B)p=q;)                                 // if the popcount of a[] changed, try to do more deductions
+ I k=-1,mc=10;fi(81,$(b[i]==-1,I c=__builtin_popcount(a[i]);$(c&lt;mc,k=i;mc=c;$(c==2,B)))) //find square with fewest options left
+ $(k==-1,R 1) //if there isn't any such, we're done - success! otherwise k is that square
+ fi(9,$(a[k]&amp;1&lt;&lt;i,H a0[81],b0[81];                                        //try different values for square k
+                  memcpy(a0,a,81*sizeof(*a));memcpy(b0,b,81*sizeof(*b));  // save a and b
+                  a[k]=1&lt;&lt;i;b[k]=~a[k];$(f(),R 1)                         // set square k and make a recursive call
+                  memcpy(a,a0,81*sizeof(*a));memcpy(b,b0,81*sizeof(*b)))) // restore a and b
+ R 0;}
+S L tm(){struct timeval t;gettimeofday(&amp;t,0);R t.tv_sec*1000000+t.tv_usec;} //current time in microseconds
+I main(){L t=0;I n;scanf("%d",&amp;n);P("%d\n",n);
+ fi(81,L l=0;fj(81,$(i!=j&amp;&amp;(i%9==j%9||i/9==j/9||(i/27==j/27&amp;&amp;i%9/3==j%9/3)),h[i][l++]=j))) //precompute h
+ fi(n,S C s[82];scanf("%s",s);printf("%s,",s);                        //i/o and loop over puzzles
+      fj(81,a[j]=s[j]=='0'?511:1&lt;&lt;(s[j]-'1');b[j]=s[j]=='0'?-1:~a[j]) //represent '1' .. '9' as 1&lt;&lt;0 .. 1&lt;&lt;8, and 0 as 511
+      t-=tm();I r=f();t+=tm();                                        //measure time only for the solving function
+      $(!r,P("can't solve\n");exit(1))                                //shouldn't happen
+      fj(81,s[j]=a[j]&amp;a[j]-1?'0':'1'+__builtin_ctz(a[j]))             //1&lt;&lt;0 .. 1&lt;&lt;8 to '1' .. '9'
+      P("%s\n",s))                                                    //output
+ fflush(stdout);dprintf(2,"time:%lld microseconds\n",t);R 0;}         //print self-measured time to stderr so it doesn't affect stdout's md5
+</code></pre>
+
+<p>compile (preferably with clang v6) and run:</p>
+
+<pre><code>clang -O3 -march=native a.c
+time ./a.out &lt;all_17_clue_sudokus.txt | tee o.txt | nl
+md5sum o.txt
+</code></pre>
+</div>
+<div id="pu12" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer" title="Python docs">Python 3</a> (with <a href="https://pypi.org/project/dlx/" rel="nofollow noreferrer" title="PyPI">dlx</a>) 4min 46.870s official score</h1>
+
+<p>(single core i7-3610QM here)</p>
+
+<p>Obviously beatable with a compiled language like C, and making use of threading, but it's a start...</p>
+
+<p><a href="https://github.com/jjallan/sudoku" rel="nofollow noreferrer" title="Git Hub"><code>sudoku</code></a> is a module I've placed on github (copied at the footer of this post) which uses <a href="https://pypi.org/project/dlx/" rel="nofollow noreferrer" title="PyPI"><code>dlx</code></a> under the hood.</p>
+
+<pre class="lang-python prettyprint-override"><code>#!/usr/bin/python
+import argparse
+import gc
+import sys
+from timeit import timeit
+
+from sudoku import Solver
+
+def getSolvers(filePath):
+    solvers = []
+    with open(filePath, 'r') as inFile:
+        for line in inFile:
+            content = line.rstrip()
+            if len(content) == 81 and content.isdigit():
+                solvers.append(Solver(content))
+    return solvers
+
+def solve(solvers):
+    for solver in solvers:
+        yield next(solver.genSolutions())
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Time or print solving of some sudoku.')
+    parser.add_argument('filePath',
+                        help='Path to the file containing proper sudoku on their own lines as 81 digits in row-major order with 0s as blanks')
+    parser.add_argument('-p', '--print', dest='printEm', action='store_true',
+                        default=False,
+                        help='print solutions in the same fashion as the input')
+    parser.add_argument('-P', '--pretty', dest='prettyPrintEm', action='store_true',
+                        default=False,
+                        help='print inputs and solutions formatted for human consumption')
+    args = parser.parse_args()
+
+    if args.printEm or args.prettyPrintEm:
+        solvers = getSolvers(args.filePath)
+        print(len(solvers))
+        for solver, solution in zip(solvers, solve(solvers)):
+            if args.prettyPrintEm:
+                print(solver)
+                print(solution)
+            else:
+                print('{},{}'.format(solver.representation(noneCharacter='0'), solution.representation()))
+    else:
+        setup = '''\
+from __main__ import getSolvers, solve, args, gc
+gc.disable()
+solvers = getSolvers(args.filePath)'''
+        print(timeit("for solution in solve(solvers): pass", setup=setup, number=1))
+</code></pre>
+
+<h3>Usage</h3>
+
+<ul>
+<li>Install Python 3</li>
+<li>Save <code>sudoku.py</code> somewhere on your path (from the git hub link or copy it from below)</li>
+<li>Save the above code as <code>testSolver.py</code> somewhere on your path</li>
+<li>Install dlx:</li>
+</ul>
+
+<pre>python -m pip install dlx</pre>
+
+<ul>
+<li>Run it (by the way it consumes memory like it's going out of fashion)</li>
+</ul>
+
+<pre>usage: testSolver.py [-h] [-p] [-P] filePath
+
+Time or print solving of some sudoku.
+
+positional arguments:
+  filePath      Path to the file containing proper sudoku on their own lines
+                as 81 digits in row-major order with 0s as blanks
+
+optional arguments:
+  -h, --help    show this help message and exit
+  -p, --print   print solutions in the same fashion as the input
+  -P, --pretty  print inputs and solutions formatted for human consumption</pre>
+
+<p>Pipe output as required in the challenge spec to a file if need be:</p>
+
+<pre>python testSolver.py -p input_file_path > output_file_path</pre>
+
+<hr>
+
+<p>sudoku.py  (yes there are extra features here other than solving)</p>
+
+<pre><code>import dlx
+from itertools import permutations, takewhile
+from random import choice, shuffle
+
+'''
+A 9 by 9 sudoku solver.
+'''
+_N = 3
+_NSQ = _N**2
+_NQU = _N**4
+_VALID_VALUE_INTS = list(range(1, _NSQ + 1))
+_VALID_VALUE_STRS = [str(v) for v in _VALID_VALUE_INTS]
+_EMPTY_CELL_CHAR = '·'
+
+# The following are mutually related by their ordering, and define ordering throughout the rest of the code. Here be dragons.
+#
+_CANDIDATES = [(r, c, v) for r in range(_NSQ) for c in range(_NSQ) for v in range(1, _NSQ + 1)]
+_CONSTRAINT_INDEXES_FROM_CANDIDATE = lambda r, c, v: [ _NSQ * r + c, _NQU + _NSQ * r + v - 1, _NQU * 2 + _NSQ * c + v - 1, _NQU * 3 + _NSQ * (_N * (r // _N) + c // _N) + v - 1]
+_CONSTRAINT_FORMATTERS =                             [ "R{0}C{1}"  , "R{0}#{1}"                , "C{0}#{1}"                   , "B{0}#{1}"]
+_CONSTRAINT_NAMES = [(s.format(a, b + (e and 1)), dlx.DLX.PRIMARY) for e, s in enumerate(_CONSTRAINT_FORMATTERS) for a in range(_NSQ) for b in range(_NSQ)]
+_EMPTY_GRID_CONSTRAINT_INDEXES = [_CONSTRAINT_INDEXES_FROM_CANDIDATE(r, c, v) for (r, c, v) in _CANDIDATES]
+#
+# The above are mutually related by their ordering, and define ordering throughout the rest of the code. Here be dragons.
+
+
+class Solver:
+    def __init__(self, representation=''):
+        if not representation or len(representation) != _NQU:
+            self._complete = False
+            self._NClues = 0
+            self._repr = [None]*_NQU # blank grid, no clues - maybe to extend to a generator by overriding the DLX column selection to be stochastic.
+        else:
+            nClues = 0
+            repr = []
+            for value in representation:
+                if not value:
+                    repr.append(None)
+                elif isinstance(value, int) and 1 &lt;= value &lt;= _NSQ:
+                    nClues += 1
+                    repr.append(value)
+                elif value in _VALID_VALUE_STRS:
+                    nClues += 1
+                    repr.append(int(value))
+                else:
+                    repr.append(None)
+            self._complete = nClues == _NQU
+            self._NClues = nClues
+            self._repr = repr
+
+    def genSolutions(self, genSudoku=True, genNone=False, dlxColumnSelctor=None):
+        '''
+        if genSudoku=False, generates each solution as a list of cell values (left-right, top-bottom)
+        '''
+        if self._complete:
+            yield self
+        else:
+            self._initDlx()
+            dlxColumnSelctor = dlxColumnSelctor or dlx.DLX.smallestColumnSelector
+            if genSudoku:
+                for solution in self._dlx.solve(dlxColumnSelctor):
+                    yield Solver([v for (r, c, v) in sorted([self._dlx.N[i] for i in solution])])
+            elif genNone:
+                for solution in self._dlx.solve(dlxColumnSelctor):
+                    yield
+            else:
+                for solution in self._dlx.solve(dlxColumnSelctor):
+                    yield [v for (r, c, v) in sorted([self._dlx.N[i] for i in solution])]
+
+    def uniqueness(self, returnSolutionIfProper=False):
+        '''
+        Returns: 0 if unsolvable;
+                 1 (or the unique solution if returnSolutionIfProper=True) if uniquely solvable; or
+                 2 if multiple possible solutions exist
+        - a 'proper' sudoku is uniquely solvable.
+        '''
+        slns = list(takewhile(lambda t: t[0] &lt; 2, ((i, sln) for i, sln in enumerate(self.genSolutions(genSudoku=returnSolutionIfProper, genNone=not returnSolutionIfProper)))))
+        uniqueness = len(slns)
+        if returnSolutionIfProper and uniqueness == 1:
+            return slns[0][1]
+        else:
+            return uniqueness
+
+    def representation(self, asString=True, noneCharacter='.'):
+        if asString:
+            return ''.join([v and str(_VALID_VALUE_STRS[v - 1]) or noneCharacter for v in self._repr])
+        return self._repr[:]
+
+    def __repr__(self):
+        return display(self._repr)
+
+    def _initDlx(self):
+        self._dlx = dlx.DLX(_CONSTRAINT_NAMES)
+        rowIndexes = self._dlx.appendRows(_EMPTY_GRID_CONSTRAINT_INDEXES, _CANDIDATES)
+        for r in range(_NSQ):
+            for c in range(_NSQ):
+                v = self._repr[_NSQ * r + c]
+                if v is not None:
+                    self._dlx.useRow(rowIndexes[_NQU * r + _NSQ * c + v - 1])
+
+
+_ROW_SEPARATOR_COMPACT = '+'.join(['-' * (2 * _N + 1) for b in range(_N)])[1:-1] + '\n'
+_ROW_SEPARATOR = ' ·-' + _ROW_SEPARATOR_COMPACT[:-1] + '-·\n'
+_TOP_AND_BOTTOM = _ROW_SEPARATOR.replace('+', '·')
+
+_ROW_LABELS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J']
+_COL_LABELS = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
+_COLS_LABEL = ' ' + ' '.join([i % _N == 0 and '  ' + l or l for i, l in enumerate(_COL_LABELS)]) + '\n'
+
+
+def display(representation, conversion=None, labelled=True):
+    result = ''
+    raw = [conversion[n or 0] for n in representation] if conversion else representation
+    if labelled:
+        result += _COLS_LABEL + _TOP_AND_BOTTOM
+        rSep = _ROW_SEPARATOR
+    else:
+        rSep = _ROW_SEPARATOR_COMPACT
+    for r in range(_NSQ):
+        if r &gt; 0 and r % _N == 0:
+            result += rSep
+        for c in range(_NSQ):
+            if c % _N == 0:
+                if c == 0:
+                    if labelled:
+                        result += _ROW_LABELS[r] + '| '
+                else:
+                    result += '| '
+            result += str(raw[_NSQ * r + c] or _EMPTY_CELL_CHAR) + ' '
+        if labelled:
+            result += '|'
+        result += '\n'
+    if labelled:
+        result += _TOP_AND_BOTTOM
+    else:
+        result = result[:-1]
+    return result
+
+def permute(representation):
+    '''
+    returns a random representation from the given representation's equivalence class
+    '''
+    rows = [list(representation[i:i+_NSQ]) for i in range(0, _NQU, _NSQ)]
+    rows = permuteRowsAndBands(rows)
+    rows = [[r[i] for r in rows] for i in range(_NSQ)]
+    rows = permuteRowsAndBands(rows)
+    pNumbers = [str(i) for i in range(1, _NSQ + 1)]
+    shuffle(pNumbers)
+    return ''.join(''.join([pNumbers[int(v) - 1] if v.isdigit() and v != '0' else v for v in r]) for r in rows)
+
+def permuteRowsAndBands(rows):
+    bandP = choice([x for x in permutations(range(_N))])
+    rows = [rows[_N * b + r] for b in bandP for r in range(_N)]
+    for band in range(0, _NSQ, _N):
+        rowP = choice([x for x in permutations([band + i for i in range(_N)])])
+        rows = [rows[rowP[i % _N]] if i // _N == band else rows[i] for i in range(_NSQ)]
+    return rows
+
+
+def getRandomSolvedStateRepresentation():
+    return permute('126459783453786129789123456897231564231564897564897231312645978645978312978312645')
+
+
+def getRandomSudoku():
+    r = getRandomSolvedStateRepresentation()
+    s = Solver(r)
+    indices = list(range(len(r)))
+    shuffle(indices)
+    for i in indices:
+        ns = Solver(s._repr[:i] + [None] + s._repr[i+1:])
+        if ns.uniqueness() == 1:
+            s = ns
+    return s
+
+
+if __name__ == '__main__':
+    print('Some example useage:')
+    inputRepresentation = '..3......4......2..8.12...6.........2...6...7...8.7.31.1.64.9..6.5..8...9.83...4.'
+    print('&gt;&gt;&gt; s = Solver({})'.format(inputRepresentation))
+    s = Solver(inputRepresentation)
+    print('&gt;&gt;&gt; s')
+    print(s)
+    print('&gt;&gt;&gt; print(s.representation())')
+    print(s.representation())
+    print('&gt;&gt;&gt; print(display(s.representation(), labelled=False))')
+    print(display(s.representation(), labelled=False))
+    print('&gt;&gt;&gt; for solution in s.genSolutions(): solution')
+    for solution in s.genSolutions(): print(solution)
+    inputRepresentation2 = inputRepresentation[:2] + '.' + inputRepresentation[3:]
+    print('&gt;&gt;&gt; s.uniqueness()')
+    print(s.uniqueness())
+    print('&gt;&gt;&gt; s2 = Solver({})  # removed a clue; this has six solutions rather than one'.format(inputRepresentation2))
+    s2 = Solver(inputRepresentation2)
+    print('&gt;&gt;&gt; s2.uniqueness()')
+    print(s2.uniqueness())
+    print('&gt;&gt;&gt; for solution in s2.genSolutions(): solution')
+    for solution in s2.genSolutions(): print(solution)
+    print('&gt;&gt;&gt; s3 = getRandomSudoku()')
+    s3 = getRandomSudoku()
+    print('&gt;&gt;&gt; s3')
+    print(s3)
+    print('&gt;&gt;&gt; for solution in s3.genSolutions(): solution')
+    for solution in s3.genSolutions(): print(solution)
+</code></pre>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/190727/">190727</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
