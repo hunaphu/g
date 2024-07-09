@@ -26,10 +26,106 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>nan</td><td></td><td>240709T012122Z</td><td><a href="https://codegolf.stackexchange.com/questions/274030/largest-possible-relative-error/274034#274034">l4m2</a></td></tr>
-<tr d-ix="1"><td>370</td><td>Rust</td><td>240709T012032Z</td><td><a href="https://codegolf.stackexchange.com/questions/274030/largest-possible-relative-error/274033#274033">Bubbler</a></td></tr>
+<tr d-ix="0"><td>660</td><td>Rust</td><td>240709T012032Z</td><td><a href="https://codegolf.stackexchange.com/questions/274030/largest-possible-relative-error/274033#274033">Bubbler</a></td></tr>
+<tr d-ix="1"><td>nan</td><td></td><td>240709T012122Z</td><td><a href="https://codegolf.stackexchange.com/questions/274030/largest-possible-relative-error/274034#274034">l4m2</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>63x</h1>
+<div id="pu0" class="pu"><h1>Rust, Relative error 66.0</h1>
+<pre class="lang-rust prettyprint-override"><code>#![feature(float_next_up_down)]
+fn main() {
+    let e = 2.0f64.powi(-52);
+    let x1 = 1.0f64;
+    let x2 = 2.0f64 - e;
+    let x3 = 2.0f64 - e * 2.0;
+    let x4 = 2.0f64 - e * 4.0;
+    let x5 = 2.0f64 - e * 8.0;
+    let y1 = -1.875f64 - e * 8.0;
+    let y2 = -1.875f64 - e * 4.0;
+    let y3 = -1.875f64 - e * 2.0;
+    let y4 = -1.875f64 - e * 1.0;
+    let y5 = -2.0f64;
+    let y6 = -2.0f64 + e * 65.0;
+    let v = vec![
+        x1, x2, x3, x3, x4, x4, x4, x4, x5, x5,
+        y1, y2, y2, y2, y2, y3, y3, y4, y5, y6
+    ];
+    let errors = vec![
+        x1 - 1.0, x2 - 2.0, x3 - 2.0, x3 - 2.0, x4 - 2.0,
+        x4 - 2.0, x4 - 2.0, x4 - 2.0, x5 - 2.0, x5 - 2.0,
+        y1 + 1.875, y2 + 1.875, y2 + 1.875, y2 + 1.875, y2 + 1.875,
+        y3 + 1.875, y3 + 1.875, y4 + 1.875, y5 + 2.0, y6 + 2.0
+    ];
+    let mut sum = 0.0;
+    let mut true_sum = 0.0;
+    for i in 0..v.len() {
+        sum += v[i];
+        true_sum += errors[i];
+    }
+    println!(&quot;{:?}&quot;, v);
+    println!(&quot;True: {:.60}&quot;, true_sum);
+    println!(&quot;Got:   {:.60}&quot;, sum);
+    println!(&quot;Rel.Error: {:.10}&quot;, (sum - true_sum).abs() / true_sum.abs());
+}
+</code></pre>
+<p>Output:</p>
+<pre><code>[1.0, 1.9999999999999998, 1.9999999999999996, 1.9999999999999996,
+ 1.9999999999999991, 1.9999999999999991, 1.9999999999999991,
+ 1.9999999999999991, 1.9999999999999982, 1.9999999999999982,
+ -1.8750000000000018, -1.8750000000000009, -1.8750000000000009,
+ -1.8750000000000009, -1.8750000000000009, -1.8750000000000004,
+ -1.8750000000000004, -1.8750000000000002, -2.0, -1.9999999999999856]
+True: -0.000000000000000222044604925031308084726333618164062500000000
+Got:   0.000000000000014432899320127035025507211685180664062500000000
+Rel.Error: 66.0000000000
+</code></pre>
+<p>Got a hint from l4m2's solution that I can keep increasing the error while coming back to <code>e</code>.</p>
+<hr />
+<h1>Rust, Relative error 37.0</h1>
+<pre class="lang-rust prettyprint-override"><code>#![feature(float_next_up_down)]
+fn main() {
+    let x1 = 2.0f64;
+    let x2 = x1.next_down(); // -1e
+    let x3 = x2.next_down(); // -2e
+    let x4 = x3.next_down().next_down(); // -4e
+    let x5 = x4.next_down().next_down().next_down().next_down(); // -8e
+    let y1 = -2.0f64;
+    let y2 = -2.0f64 + 2.0f64.powi(-52) * 36.0;
+    let v = vec![
+        x1, x2, x3, x3, x4, x4, x4, x4, x5, x5, // -37e
+        y1, y1, y1, y1, y1, y1, y1, y1, y1, y2
+    ];
+    let errors = vec![
+        x1 - 2.0, x2 - 2.0, x3 - 2.0, x3 - 2.0, x4 - 2.0,
+        x4 - 2.0, x4 - 2.0, x4 - 2.0, x5 - 2.0, x5 - 2.0,
+        y1 + 2.0, y1 + 2.0, y1 + 2.0, y1 + 2.0, y1 + 2.0,
+        y1 + 2.0, y1 + 2.0, y1 + 2.0, y1 + 2.0, y2 + 2.0
+    ];
+    let mut sum = 0.0;
+    let mut true_sum = 0.0;
+    for i in 0..20 {
+        sum += v[i];
+        true_sum += errors[i];
+    }
+    println!(&quot;{:?}&quot;, v);
+    println!(&quot;True: {:.60}&quot;, true_sum);
+    println!(&quot;Got:   {:.60}&quot;, sum);
+    println!(&quot;Rel.Error: {:.10}&quot;, (sum - true_sum).abs() / true_sum.abs());
+}
+</code></pre>
+<p>Output:</p>
+<pre><code>[2.0, 1.9999999999999998, 1.9999999999999996, 1.9999999999999996, 1.9999999999999991,
+ 1.9999999999999991, 1.9999999999999991, 1.9999999999999991, 1.9999999999999982,
+ 1.9999999999999982, -2.0, -2.0, -2.0, -2.0, -2.0, -2.0, -2.0, -2.0, -2.0,
+ -1.999999999999992]
+True: -0.000000000000000222044604925031308084726333618164062500000000
+Got:   0.000000000000007993605777301127091050148010253906250000000000
+Rel.Error: 37.0000000000
+</code></pre>
+<p><a href="https://play.rust-lang.org/?version=nightly&amp;mode=debug&amp;edition=2021&amp;gist=c0ad81bdae0190fa9babf73eab589d80" rel="nofollow noreferrer">Try it on Rust Playground!</a></p>
+<p><code>x.next_down()</code> (nightly feature) finds the closest f64 that is lower than <code>x</code>.</p>
+<p>The construction is similar to the absolute error version: accumulate large integer values with increasing amount of error. However, it is necessary to make the sum as small in magnitude as possible to amplify the relative error, so only the first 10 numbers are used to accumulate the error and the other 10 are used to cancel the integer part.</p>
+<p>All f64 numbers between 1 and 2 inclusive are uniformly spaced at the units of <code>2^-52</code>, and rounding errors at larger ranges occur as its multiples, so it is impossible to make the true sum smaller than that in magnitude. It is thus the &quot;unit of error&quot; (<code>e</code> in the comments in code). The true sum is <code>-1e</code> while the calculated sum is <code>+36e</code>, making the relative error exactly 37. (not percent; in percentage it would be 3700%!)</p>
+</div>
+<div id="pu1" class="pu"><h1>63x</h1>
 <pre><code>#include &lt;stdio.h&gt;
 #include &lt;initializer_list&gt;
 
@@ -77,52 +173,6 @@ int main() {
 <blockquote>
 <p>1.0000000000000000 1.9999999999999998 1.9999999999999996 1.9999999999999996 1.9999999999999993 1.9999999999999991 1.9999999999999991 1.9999999999999991 1.9999999999999989 1.9999999999999987 -1.0000000000000160 -1.9999999999999973 -1.9999999999999973 -1.9999999999999973 -1.9999999999999973 -1.9999999999999973 -1.9999999999999976 -1.9999999999999978 -1.9999999999999976 -1.9999999999999978 =&gt; 63.0000000000000000</p>
 </blockquote>
-</div>
-<div id="pu1" class="pu"><h1>Rust, Relative error 37.0</h1>
-<pre class="lang-rust prettyprint-override"><code>#![feature(float_next_up_down)]
-fn main() {
-    let x1 = 2.0f64;
-    let x2 = x1.next_down(); // -1e
-    let x3 = x2.next_down(); // -2e
-    let x4 = x3.next_down().next_down(); // -4e
-    let x5 = x4.next_down().next_down().next_down().next_down(); // -8e
-    let y1 = -2.0f64;
-    let y2 = -2.0f64 + 2.0f64.powi(-52) * 36.0;
-    let v = vec![
-        x1, x2, x3, x3, x4, x4, x4, x4, x5, x5, // -37e
-        y1, y1, y1, y1, y1, y1, y1, y1, y1, y2
-    ];
-    let errors = vec![
-        x1 - 2.0, x2 - 2.0, x3 - 2.0, x3 - 2.0, x4 - 2.0,
-        x4 - 2.0, x4 - 2.0, x4 - 2.0, x5 - 2.0, x5 - 2.0,
-        y1 + 2.0, y1 + 2.0, y1 + 2.0, y1 + 2.0, y1 + 2.0,
-        y1 + 2.0, y1 + 2.0, y1 + 2.0, y1 + 2.0, y2 + 2.0
-    ];
-    let mut sum = 0.0;
-    let mut true_sum = 0.0;
-    for i in 0..20 {
-        sum += v[i];
-        true_sum += errors[i];
-    }
-    println!(&quot;{:?}&quot;, v);
-    println!(&quot;True: {:.60}&quot;, true_sum);
-    println!(&quot;Got:   {:.60}&quot;, sum);
-    println!(&quot;Rel.Error: {:.10}&quot;, (sum - true_sum).abs() / true_sum.abs());
-}
-</code></pre>
-<p>Output:</p>
-<pre><code>[2.0, 1.9999999999999998, 1.9999999999999996, 1.9999999999999996, 1.9999999999999991,
- 1.9999999999999991, 1.9999999999999991, 1.9999999999999991, 1.9999999999999982,
- 1.9999999999999982, -2.0, -2.0, -2.0, -2.0, -2.0, -2.0, -2.0, -2.0, -2.0,
- -1.999999999999992]
-True: -0.000000000000000222044604925031308084726333618164062500000000
-Got:   0.000000000000007993605777301127091050148010253906250000000000
-Rel.Error: 37.0000000000
-</code></pre>
-<p><a href="https://play.rust-lang.org/?version=nightly&amp;mode=debug&amp;edition=2021&amp;gist=c0ad81bdae0190fa9babf73eab589d80" rel="nofollow noreferrer">Try it on Rust Playground!</a></p>
-<p><code>x.next_down()</code> (nightly feature) finds the closest f64 that is lower than <code>x</code>.</p>
-<p>The construction is similar to the absolute error version: accumulate large integer values with increasing amount of error. However, it is necessary to make the sum as small in magnitude as possible to amplify the relative error, so only the first 10 numbers are used to accumulate the error and the other 10 are used to cancel the integer part.</p>
-<p>All f64 numbers between 1 and 2 inclusive are uniformly spaced at the units of <code>2^-52</code>, and rounding errors at larger ranges occur as its multiples, so it is impossible to make the true sum smaller than that in magnitude. It is thus the &quot;unit of error&quot; (<code>e</code> in the comments in code). The true sum is <code>-1e</code> while the calculated sum is <code>+36e</code>, making the relative error exactly 37. (not percent; in percentage it would be 3700%!)</p>
 </div>
 
 <table id="st">
