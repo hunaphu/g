@@ -26,8 +26,8 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>061</td><td>Arturo</td><td>240708T150511Z</td><td><a href="https://codegolf.stackexchange.com/questions/102496/interleave-strings/274017#274017">chunes</a></td></tr>
-<tr d-ix="1"><td>208</td><td>sed 4.2.2 rz</td><td>240708T120658Z</td><td><a href="https://codegolf.stackexchange.com/questions/102496/interleave-strings/274013#274013">guest430</a></td></tr>
+<tr d-ix="0"><td>167</td><td>sed 4.2.2 rz</td><td>240708T120658Z</td><td><a href="https://codegolf.stackexchange.com/questions/102496/interleave-strings/274013#274013">guest430</a></td></tr>
+<tr d-ix="1"><td>061</td><td>Arturo</td><td>240708T150511Z</td><td><a href="https://codegolf.stackexchange.com/questions/102496/interleave-strings/274017#274017">chunes</a></td></tr>
 <tr d-ix="2"><td>079</td><td>Julia</td><td>240628T100136Z</td><td><a href="https://codegolf.stackexchange.com/questions/102496/interleave-strings/273832#273832">int 21h </a></td></tr>
 <tr d-ix="3"><td>071</td><td>Ruby</td><td>240628T092739Z</td><td><a href="https://codegolf.stackexchange.com/questions/102496/interleave-strings/273831#273831">int 21h </a></td></tr>
 <tr d-ix="4"><td>140</td><td>Go</td><td>240629T144017Z</td><td><a href="https://codegolf.stackexchange.com/questions/102496/interleave-strings/273837#273837">bigyihsu</a></td></tr>
@@ -73,30 +73,27 @@
 <tr d-ix="44"><td>013</td><td>Retina</td><td>161208T121444Z</td><td><a href="https://codegolf.stackexchange.com/questions/102496/interleave-strings/102498#102498">Martin E</a></td></tr>
 <tr d-ix="45"><td>004</td><td>CJam</td><td>161208T121216Z</td><td><a href="https://codegolf.stackexchange.com/questions/102496/interleave-strings/102497#102497">Martin E</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://arturo-lang.io" rel="nofollow noreferrer">Arturo</a>, 61 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.gnu.org/software/sed/" rel="nofollow noreferrer">sed 4.2.2</a> <code>-rz</code>, <s>208</s> <s>187</s> 167 bytes</h1>
+<pre><code>s/^|\n/\n&quot;/g                               # prefix strings with &quot;
+:o                                         # reset loop:
+s/\n\.&quot;/\n&quot;/                               #     remove marker
+s/\n&quot;/\n.&quot;/                                #     mark first string
+:h                                         # main loop:
+s/([^\n]*)(.*\n\.&quot;)([^\n])(.*)/\1\3\2\4/   #     move char from marked string to output
+t;:                                        #     try:
+s/(.*)\n\.&quot;([^\n]*)\n&quot;(.*)/\1\n&quot;\2\n.&quot;\3/  #         move marker down 1 string
+/^[^\n]*(\n\.?&quot;)*$/!{To;Th}                #     if (chars still present): {catch: {jump to reset loop}; jump to main loop}
+s/\n.*//                                   # clean up output
+</code></pre>
+<p><a href="https://tio.run/##NY7JDsIwDETv/gsiDkkkYnVhaw/8RG@YSpWoKJcEkZxYfp3gpKpPM@Pnkf14jdFj/yGLZAXeoHHgWZIROcgmSfbQTGzluSd70UoanTE1B8krpIIqKqlGCG2TYA4ztVxx2QJawST3UoWA/byXCT4Jpde4eneu7aZv/sBoxBjDaIQPA4iBx@QRxgAUZVVvd/vD8ece4e6sj5vn6w8" rel="nofollow noreferrer" title="sed 4.2.2 – Try It Online">Try it online!</a></p>
+<p>takes input as newline-separated strings (ie you can't have newlines in your strings). this version fixes bugs related to having strings which match my string-separator markers too closely, and vastly improves the
+control flow.</p>
+<p>I know that's not how try-catch statements work, but that's how sed's logic flow works. let me know if there's a better way to pseudocode it.</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://arturo-lang.io" rel="nofollow noreferrer">Arturo</a>, 61 bytes</h1>
 <pre class="lang-arturo prettyprint-override"><code>$-&gt;a[r:&quot;&quot;a|map=&gt;size|max|loop'i-&gt;loop a's-&gt;try-&gt;'r++s\[i-1]r]
 </code></pre>
 <p><a href="http://arturo-lang.io/playground?lqRXPx" rel="nofollow noreferrer">Try it!</a></p>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://www.gnu.org/software/sed/" rel="nofollow noreferrer">sed 4.2.2</a> -rz, 208 bytes</h1>
-<pre><code>s/\n/\n&quot;/g                                    #add a prefix to each string
-s/^/\n\n.&quot;/                                   #add a marker to the string we're grabbing a char from
-:h                                            #main loop
-s/([^\n]*)\n(.*\n\.&quot;)([^\n])(.*)/\1\3\n\2\4/  #move a char from the marked string to the output string
-tj;:j                                         #clear the conditional checker
-s/(.*)\n\.&quot;([^\n]*)\n&quot;(.*)/\1\n&quot;\2\n.&quot;\3/     #move the marker down one string
-To                                            #if the move failed, jump to the reset script
-/^[^\n]*\n[.&quot;\n]*$/!Th                        #if there are still chars left, jump back to the start of the main loop
-b
-:o                                            #restart script
-s/\n\.&quot;/\n&quot;/                                  #remove marker
-s/\n&quot;/\n.&quot;/                                   #put marker on first string
-/^[^\n]*\n[.&quot;\n]*$/!th                        #if there are still chars left, jump back to the start of the main loop
-:
-s/\n.*//                                      #clean up the output
-</code></pre>
-<p><a href="https://tio.run/##bY7NCsIwEITv@xYGD03BXfrjX3yN3roWKhZrD4mYnHx446ZFvAg5zEy@WcYP1xg9sZWn6AaeOlFsURGYUWzWdmzPuWabYS4/qPQSafGauOBK0pJrgjCdzJQqmHAhf131ha0SVq5zRdA4oG5B2LaSiVjTqhnhAsZBWiVH5mGzSTLt@lcKI5gZwpwoxjCg8qEHVH0PUJRVvd3tD8e3e4S7sz5unq8P" rel="nofollow noreferrer" title="sed 4.2.2 – Try It Online">Try it online!</a></p>
-<p>takes input as newline-separated strings (ie you can't have newlines in your strings). this was surprisingly hard to do, but if I come back to this later I can prob get this under 200 bytes.</p>
 </div>
 <div id="pu2" class="pu"><h1><a href="https://julialang.org" rel="nofollow noreferrer">Julia</a>, <a href="https://ato.pxeger.com/run?1=m700qzQnM3HBgqWlJWm6FjcT0mw1EnXqbLPyM_N0dBVsc1Lz0ksyNHXtdBNtjBTsFeoSFawUNHJtcxMLNLR0EvX09DSt66JzrdM00jJzSlKLFDUUM4tTcwtKKnWCS5OCS4oy89L1gCbq5mobampqxmpC7SkvAMqU5ORppGlEKwV7-gb4uCrFampyIQsH-Pv4BCvpKLkGuLoGY8j6RLqCJB0Dgvz9MCQdnZxdXIGyiQrJQNLQyFjB1MwcpApiPcy7AA" rel="nofollow noreferrer"><s>96</s></a>, 79 bytes</h1>
 <ul>
