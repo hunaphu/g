@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::88783</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>nan</td><td></td><td>240711T062335Z</td><td><a href="https://codegolf.stackexchange.com/questions/88783/build-a-digital-clock-in-conways-game-of-life/274073#274073">lqlem do</a></td></tr>
+<tr d-ix="1"><td>596</td><td>11</td><td>170302T214154Z</td><td><a href="https://codegolf.stackexchange.com/questions/88783/build-a-digital-clock-in-conways-game-of-life/111932#111932">dim</a></td></tr>
+</table>
+<div id="pu0" class="pu"><p>hello is it possible to write a word like test for exemple ?</p>
+</div>
+<div id="pu1" class="pu"><h1>11,520 generations per clock count / 10,016 x 6,796 box / 244,596 pop count</h1>
+
+<p>There you go... Was fun.</p>
+
+<p>Well, the design is certainly not optimal. Neither from the bounding box standpoint (those 7-segment digits are <em>huge</em>), nor from the initial population count (there are some useless stuff, and some stuff that could certainly be made simpler), and the execution speed - well... I'm not sure.</p>
+
+<p>But, hey, it's beautiful. Look:</p>
+
+<p><a href="https://i.sstatic.net/mz0iM.gif" rel="noreferrer"><img src="https://i.sstatic.net/mz0iM.gif" alt="enter image description here"></a></p>
+
+<p><strong>Run it!</strong></p>
+
+<p>Get the design from <a href="https://gist.githubusercontent.com/anonymous/f3413564b1fa9c69f2bad4b0400b8090/raw/f5c77c999a8e11f0ec6ba504d383774eb3b88e5c/Conway%2520life%2520clock%2520PM%2520only" rel="noreferrer">this gist</a>. Copy the whole file text to the clipboard.</p>
+
+<p><strong>New</strong>: here is a <a href="https://gist.githubusercontent.com/anonymous/9d7468755dd76a35d93beeb5c0a5bdcf/raw/3295717faf24e8911048bcb69d4b6c8505d24330/gistfile1.txt" rel="noreferrer">version</a> with both AM and PM indicators for the demanding.</p>
+
+<p>Go to <a href="https://copy.sh/life" rel="noreferrer">the online JavaScript Conway life simulator</a>. Click <em>import</em>, paste the design text. You should see the design. Then, go to <em>settings</em> and set the <em>generation step</em> to 512, or something around those lines, or you'll have to wait forever to see the clock display updating.</p>
+
+<p>Click <em>run</em>, wait a bit and be amazed!</p>
+
+<p><a href="https://copy.sh/life/?gist=f3413564b1fa9c69f2bad4b0400b8090&amp;step=512" rel="noreferrer">Direct link</a> to in-browser version.</p>
+
+<p>Note that the only algorithm that makes this huge design useable is hashlife. But with this, you can achieve the whole clock wraparound in seconds. With other algorithms, it is impractical to even see the hour changing.</p>
+
+<p><strong>How it works</strong></p>
+
+<p>It uses p30 technology. Just basic things, gliders and lightweight spaceships. Basically, the design goes top-down:</p>
+
+<ul>
+<li>At the very top, there's the clock. It is a 11520 period clock. Note that you need about 10.000 generations to ensure the display is updated appropriately, but the design should still be stable with a clock of smaller period (about 5.000 or so - the clock needs to be multiple of 60).</li>
+<li>Then, there is the clock distribution stage. The clock glider is copied in a balanced tree, so at the end, there are 32 gliders arriving at the exact same moment to the counters stage.</li>
+<li>The counter stage is made using a RS latch for each state, and for each digit (we're counting in decimal). So there is 10 states for the right digit of the minutes, 6 states for the left digit of the minuts, and 12 states for the hours (both digits of the hours are merged here). For each of these groups, the counter behaves like a shift register.</li>
+<li>After the counting stage, there are the lookup tables. They convert the state pulses to display segments ON/OFF actions.</li>
+<li>Then, the display itself. The segments are simply made with multiple strings of LWSS. Each segment has it own latch to maintain its state. I could have made a simple logical-OR of the digit states to know wether a segment must be ON or OFF, and get rid of these latches, but there would be glitches for non-changing segments, when the digits are changing (because of signal delays). And there would be long streams of gliders coming from the lookup table to the digit segments. So it wouldn't be as nice-looking. And it needed to be. Yes.</li>
+</ul>
+
+<p>Anyway, there is actually nothing extraordinary in this design. There are no amazing reactions that have been discovered in this process, and no really clever combinations that nobody thought of before. Just bits taken here and there and put together (and I'm not even sure I did it the "right" way - I was actually completely new to this). It required a lot of patience, however. Making all those gliders coming up at the right time in the right position was head-scratching.</p>
+
+<p><strong>Possible optimizations:</strong></p>
+
+<ul>
+<li>Instead of copying and distributing the same root clock to the <em>n</em> counter cells, I could have just put the same clock block <em>n</em> times (once for each counter cell). This would actually be much simpler. But then I wouldn't be able to adjust it as easily by changing the clock at a single point... And I have an electronics background, and in a real circuit, that would be horribly wrong.</li>
+<li>Each segment has it own RS latch. This requires the lookup tables to output both R and S pulses. If we had a latch that would just toggle its state from a common input pulse, we could make the lookup tables half as big. There is such a latch for the PM dot, but it is huge, and I'm unable to come up with something more practical.</li>
+<li>Make the display smaller. But that wouldn't be as nice-looking. And it needed to be. Yes. </li>
+</ul>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/88783/">88783</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
