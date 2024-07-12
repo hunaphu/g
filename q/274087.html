@@ -39,22 +39,23 @@
 <p>Try at <a href="https://matl.io/?code=t%3A%21%3DZFt9W%3A8W%2Fqt%21J%2a%2Ble-%7Cwq%7CX%3E%3Ea%5B%5De0YG&amp;inputs=5&amp;version=22.8.0" rel="nofollow noreferrer"><strong>MATL Online</strong></a>!</p>
 <p>For input <em>n</em>, this plots <em>n</em> circles with centers at the n-th roots of unity, and colours each pixel depending if it is less than a distance D from all centers, where D is the maximum distance between the circle centers.</p>
 <p>The code uses <a href="https://codegolf.stackexchange.com/a/145404/36398">this trick</a> (adapted to MATL) to compute the roots of unity.</p>
-<pre><code>t     % Implicitly take input: n. Duplicate
-:!    % Range, transpose. Gives the column vector [1; 2; ...; n]
-=     % Equal? element-wise. Gives [0; 0; ...; 1]
-ZF    % FFT. Gives roots of unity (*)
-t     % Duplicate
+<pre><code>t      % Implicitly take input: n. Duplicate
+:!     % Range, transpose. Gives the column vector [1; 2; ...; n]
+=      % Equal? element-wise. Gives [0; 0; ...; 1]
+ZF     % FFT. Gives roots of unity (*)
+t      % Duplicate
 9W:    % 2^9, range. Gives the row vector [0 1 ... 512]
 8W/    % Divide each ech entry by 2^8
-q      % Subtract 1. Gives [-0.99609375  -0.9921875 ... 1]
-t!J*   % Duplicate, transpose, multiply element-wise by sqrt(-1)
+q      % Subtract 1. Gives [-0.99609375, -0.9921875, ..., 1]
+t!J*   % Duplicate, transpose, multiply element-wise by imaginart unit
 +      % Add element-wise with broadcast. Gives 512×512 complex grid from
        % -0.99609375 to 1 on each axis
 le     % Linearize (in column-major order) to a row vector of length 512^2 (**)
--|     % Absolute difference between (*) and (**), element-wise
+-|     % Absolute difference between (*) and (**), element-wise with broadcast.
+       % Gives an n×512^2 distance matrix
 w      % Swap. Moves original copy of (*) to the top
 q|X&gt;   % Subtract 1, absolute value, maximum. Gives distance D
-&gt;      % Greater than? element-wise. Gives n×512^2 logical matrix
+&gt;      % Greater than? element-wise. Gives an n×512^2 logical matrix
 a      % Any. Gives a row vector of length 512^2, containing 1 if the pixel
        % is at a distance greater than D from at least one circle center, and
        % 0 otherwise
