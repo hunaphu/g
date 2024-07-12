@@ -37,6 +37,30 @@
 <pre><code>t:!=ZFt9W:8W/qt!J*+le-|wq|X&gt;&gt;a[]e0YG
 </code></pre>
 <p>Try at <a href="https://matl.io/?code=t%3A%21%3DZFt9W%3A8W%2Fqt%21J%2a%2Ble-%7Cwq%7CX%3E%3Ea%5B%5De0YG&amp;inputs=5&amp;version=22.8.0" rel="nofollow noreferrer"><strong>MATL Online</strong></a>!</p>
+<p>For input <em>n</em>, this plots <em>n</em> circles with centers at the n-th roots of unity, and colours each pixel depending if it is less than a distance D from all centers, where D is the maximum distance between the circle centers.</p>
+<p>The code uses <a href="https://codegolf.stackexchange.com/a/145404/36398">this trick</a> (adapted to MATL) to compute the roots of unity.</p>
+<pre><code>t     % Implicitly take input: n. Duplicate
+:!    % Range, transpose. Gives the column vector [1; 2; ...; n]
+=     % Equal? element-wise. Gives [0; 0; ...; 1]
+ZF    % FFT. Gives roots of unity (*)
+t     % Duplicate
+9W:    % 2^9, range. Gives the row vector [0 1 ... 512]
+8W/    % Divide each ech entry by 2^8
+q      % Subtract 1. Gives [-0.99609375  -0.9921875 ... 1]
+t!J*   % Duplicate, transpose, multiply element-wise by sqrt(-1)
++      % Add element-wise with broadcast. Gives 512×512 complex grid from
+       % -0.99609375 to 1 on each axis
+le     % Linearize (in column-major order) to a row vector of length 512^2 (**)
+-|     % Absolute difference between (*) and (**), element-wise
+w      % Swap. Moves original copy of (*) to the top
+q|X&gt;   % Subtract 1, absolute value, maximum. Gives distance D
+&gt;      % Greater than? element-wise. Gives n×512^2 logical matrix
+a      % Any. Gives a row vector of length 512^2, containing 1 if the pixel
+       % is at a distance greater than D from at least one circle center, and
+       % 0 otherwise
+[]e    % Reshape as a square (512×512) matrix
+0YG    % Write as image file. Implicitly display
+</code></pre>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://dyalog.com" rel="nofollow noreferrer">APL(Dyalog Unicode)</a>, <sup><s></s></sup> <strike>58</strike> 56 bytes <sup><a href="https://github.com/abrudz/SBCS" rel="nofollow noreferrer">SBCS</a></sup></h1>
 <p>-2 bytes due to unused variable assignment <code>B←</code>.</p>
