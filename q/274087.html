@@ -26,17 +26,47 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>143</td><td>Javascript</td><td>240713T005151Z</td><td><a href="https://codegolf.stackexchange.com/questions/274087/draw-a-regular-reuleaux-polygon/274138#274138">ccprog</a></td></tr>
-<tr d-ix="1"><td>145</td><td>Scratch 3.23.1</td><td>240713T115641Z</td><td><a href="https://codegolf.stackexchange.com/questions/274087/draw-a-regular-reuleaux-polygon/274141#274141">int 21h </a></td></tr>
-<tr d-ix="2"><td>060</td><td>Logo</td><td>240712T152602Z</td><td><a href="https://codegolf.stackexchange.com/questions/274087/draw-a-regular-reuleaux-polygon/274132#274132">Neil</a></td></tr>
-<tr d-ix="3"><td>138</td><td>Ruby</td><td>240711T210954Z</td><td><a href="https://codegolf.stackexchange.com/questions/274087/draw-a-regular-reuleaux-polygon/274100#274100">Level Ri</a></td></tr>
-<tr d-ix="4"><td>036</td><td>MATL</td><td>240712T143914Z</td><td><a href="https://codegolf.stackexchange.com/questions/274087/draw-a-regular-reuleaux-polygon/274130#274130">Luis Men</a></td></tr>
+<tr d-ix="0"><td>036</td><td>MATL</td><td>240712T143914Z</td><td><a href="https://codegolf.stackexchange.com/questions/274087/draw-a-regular-reuleaux-polygon/274130#274130">Luis Men</a></td></tr>
+<tr d-ix="1"><td>143</td><td>Javascript</td><td>240713T005151Z</td><td><a href="https://codegolf.stackexchange.com/questions/274087/draw-a-regular-reuleaux-polygon/274138#274138">ccprog</a></td></tr>
+<tr d-ix="2"><td>145</td><td>Scratch 3.23.1</td><td>240713T115641Z</td><td><a href="https://codegolf.stackexchange.com/questions/274087/draw-a-regular-reuleaux-polygon/274141#274141">int 21h </a></td></tr>
+<tr d-ix="3"><td>060</td><td>Logo</td><td>240712T152602Z</td><td><a href="https://codegolf.stackexchange.com/questions/274087/draw-a-regular-reuleaux-polygon/274132#274132">Neil</a></td></tr>
+<tr d-ix="4"><td>138</td><td>Ruby</td><td>240711T210954Z</td><td><a href="https://codegolf.stackexchange.com/questions/274087/draw-a-regular-reuleaux-polygon/274100#274100">Level Ri</a></td></tr>
 <tr d-ix="5"><td>098</td><td>R</td><td>240712T092046Z</td><td><a href="https://codegolf.stackexchange.com/questions/274087/draw-a-regular-reuleaux-polygon/274124#274124">Dominic </a></td></tr>
 <tr d-ix="6"><td>056</td><td>APLDyalog Unicode</td><td>240712T053759Z</td><td><a href="https://codegolf.stackexchange.com/questions/274087/draw-a-regular-reuleaux-polygon/274116#274116">akamayu</a></td></tr>
 <tr d-ix="7"><td>064</td><td>Python</td><td>240711T190654Z</td><td><a href="https://codegolf.stackexchange.com/questions/274087/draw-a-regular-reuleaux-polygon/274093#274093">Albert.L</a></td></tr>
 <tr d-ix="8"><td>062</td><td>Wolfram Language Mathematica</td><td>240711T192306Z</td><td><a href="https://codegolf.stackexchange.com/questions/274087/draw-a-regular-reuleaux-polygon/274094#274094">Sanguine</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h2>Javascript, <s>154</s> <s>147</s> 143 bytes</h2>
+<div id="pu0" class="pu"><h1><a href="https://github.com/lmendo/MATL" rel="nofollow noreferrer">MATL</a>, 36 bytes</h1>
+<pre><code>t:!=ZFt9W:8W/qt!J*+le-|wq|X&gt;&gt;a[]e0YG
+</code></pre>
+<p>Try at <a href="https://matl.io/?code=t%3A%21%3DZFt9W%3A8W%2Fqt%21J%2a%2Ble-%7Cwq%7CX%3E%3Ea%5B%5De0YG&amp;inputs=5&amp;version=22.8.0" rel="nofollow noreferrer"><strong>MATL Online</strong></a>!</p>
+<p>For input <em>n</em>, this computes the <em>n</em>-th roots of unity, and colours each pixel if it is at a distance <em>D</em> or less from all roots, where <em>D</em> is the maximum distance between pairs of roots.</p>
+<p>The code uses <a href="https://codegolf.stackexchange.com/a/145404/36398">this trick</a> (adapted to MATL) to compute the roots of unity.</p>
+<pre><code>t      % Implicitly take input: n. Duplicate
+:!     % Range, transpose. Gives the column vector [1; 2; ...; n]
+=      % Equal? element-wise. Gives [0; 0; ...; 1]
+ZF     % FFT. Gives roots of unity (*)
+t      % Duplicate
+9W:    % 2^9, range. Gives the row vector [0, 1, ..., 512]
+8W/    % Divide each ech entry by 2^8
+q      % Subtract 1. Gives [-0.99609375, -0.9921875, ..., 1]
+t!J*   % Duplicate, transpose, multiply element-wise by imaginart unit
++      % Add element-wise with broadcast. Gives a 512×512 complex grid ranging
+       % from -0.99609375 to 1 on each axis
+le     % Linearize (in column-major order) to a row vector of length 512^2 (**)
+-|     % Absolute difference between (*) and (**), element-wise with broadcast.
+       % Gives an n×512^2 distance matrix
+w      % Swap. Moves original copy of (*) to the top
+q|X&gt;   % Subtract 1, absolute value, maximum. Gives distance D
+&gt;      % Greater than? element-wise. Gives an n×512^2 logical matrix
+a      % Any. Gives a row vector of length 512^2, containing 1 if the pixel
+       % is at a distance greater than D from at least one circle center, and
+       % 0 otherwise
+[]e    % Reshape as a square (512×512) matrix
+0YG    % Write as image file. Implicitly display
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h2>Javascript, <s>154</s> <s>147</s> 143 bytes</h2>
 <p>A function returning a string containing an SVG for inline insertion into a HTML page.</p>
 <p>2 bytes less due to changed count.<br />
 5 byte saved thx to hints by @noodle person and @Neil.<br />
@@ -62,7 +92,7 @@ n=&gt;`&lt;svg viewBox=-4,-1,9,2&gt;&lt;path d=M${eval("with(Math)for(i=s=0;i&lt
 }
 </code></pre>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://scratch.mit.edu/" rel="nofollow noreferrer">Scratch 3.23.1</a>, <s>160</s> 145 bytes</h1>
+<div id="pu2" class="pu"><h1><a href="https://scratch.mit.edu/" rel="nofollow noreferrer">Scratch 3.23.1</a>, <s>160</s> 145 bytes</h1>
 <ul>
 <li>thanks to noodle person for syntax correction &amp; golfing</li>
 </ul>
@@ -79,7 +109,7 @@ turn cw(1)degrees
 <p>A program that inputs <span class="math-container">\$n\$</span> - a number of sides and plots a Reuleux polygon of <span class="math-container">\$n\$</span> sides. Radius length is fixed.</p>
 <p><a href="https://i.sstatic.net/Lmswtgdr.gif" rel="nofollow noreferrer"><img src="https://i.sstatic.net/Lmswtgdr.gif" alt="enter image description here" /></a></p>
 </div>
-<div id="pu2" class="pu"><h2>Logo, <s>61</s> 60 bytes</h2>
+<div id="pu3" class="pu"><h2>Logo, <s>61</s> 60 bytes</h2>
 <pre><code>to r:n
 repeat:n[pd arc 90 180/:n pu fd 90 rt 180-180/:n]
 end
@@ -98,7 +128,7 @@ clear
 r 5 100 25
 </code></pre>
 </div>
-<div id="pu3" class="pu"><h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a>, <s>152 142</s> 138 bytes</h1>
+<div id="pu4" class="pu"><h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a>, <s>152 142</s> 138 bytes</h1>
 
 <pre class="lang-ruby prettyprint-override"><code>-&gt;n{s='&lt;svg viewBox=&quot;-50-9 99 18&quot;&gt;&lt;path d=&quot;M9 0'
 n.times{|j|s&lt;&lt;&quot;A#{r=9/(k=1i**(1.0/n)).imag} #{r} 0 0,0 %f %f&quot;%(9*k**(4*~j)).rect}
@@ -116,36 +146,6 @@ s+'&quot;&gt;'}
 <p>The SVG has been tested in Chrome and Edge. A concern has been raised about the lack of space between the two <code>-50</code>s defining coordinates of the corner of the viewbox, but that makes no difference to the output in either of these browsers.</p>
 <p>There is an issue with the browsers sizing the viewbox based on the width only and ignoring the height, requiring the user to scroll vertically. It is recommended to hit <code>Run code snippet</code> before expanding, to avoid getting a horizontally wide but vertically very short window requiring  excessive scrolling. Narrowing the browser window helps with this.</p>
 <p>I have reduced the radius of the output from 40 units to 9 units to make it easier to get the whole Reuleaux polygon into view (this also saves 3 bytes.) I have also reduced the height of the viewbox to help eliminate vertical scrolling (this saves another byte.)</p>
-</div>
-<div id="pu4" class="pu"><h1><a href="https://github.com/lmendo/MATL" rel="nofollow noreferrer">MATL</a>, 36 bytes</h1>
-<pre><code>t:!=ZFt9W:8W/qt!J*+le-|wq|X&gt;&gt;a[]e0YG
-</code></pre>
-<p>Try at <a href="https://matl.io/?code=t%3A%21%3DZFt9W%3A8W%2Fqt%21J%2a%2Ble-%7Cwq%7CX%3E%3Ea%5B%5De0YG&amp;inputs=5&amp;version=22.8.0" rel="nofollow noreferrer"><strong>MATL Online</strong></a>!</p>
-<p>For input <em>n</em>, this compues the <em>n</em>-th roots of unity, and colours each pixel if it is at a distance <em>D</em> or less from all roots, where <em>D</em> is the maximum distance between pairs of roots.</p>
-<p>The code uses <a href="https://codegolf.stackexchange.com/a/145404/36398">this trick</a> (adapted to MATL) to compute the roots of unity.</p>
-<pre><code>t      % Implicitly take input: n. Duplicate
-:!     % Range, transpose. Gives the column vector [1; 2; ...; n]
-=      % Equal? element-wise. Gives [0; 0; ...; 1]
-ZF     % FFT. Gives roots of unity (*)
-t      % Duplicate
-9W:    % 2^9, range. Gives the row vector [0, 1, ..., 512]
-8W/    % Divide each ech entry by 2^8
-q      % Subtract 1. Gives [-0.99609375, -0.9921875, ..., 1]
-t!J*   % Duplicate, transpose, multiply element-wise by imaginart unit
-+      % Add element-wise with broadcast. Gives a 512×512 complex grid ranging
-       % from -0.99609375 to 1 on each axis
-le     % Linearize (in column-major order) to a row vector of length 512^2 (**)
--|     % Absolute difference between (*) and (**), element-wise with broadcast.
-       % Gives an n×512^2 distance matrix
-w      % Swap. Moves original copy of (*) to the top
-q|X&gt;   % Subtract 1, absolute value, maximum. Gives distance D
-&gt;      % Greater than? element-wise. Gives an n×512^2 logical matrix
-a      % Any. Gives a row vector of length 512^2, containing 1 if the pixel
-       % is at a distance greater than D from at least one circle center, and
-       % 0 otherwise
-[]e    % Reshape as a square (512×512) matrix
-0YG    % Write as image file. Implicitly display
-</code></pre>
 </div>
 <div id="pu5" class="pu"><h1><a href="https://www.r-project.org/" rel="nofollow noreferrer">R</a>, <s>116</s> <s>111</s> 98 bytes</h1>
 <p><em>Edit: no longer requiring <code>r</code>adius to be given as an input saves 13 bytes.</em></p>
