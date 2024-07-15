@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::44946</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>229</td><td>Python3</td><td>240715T223722Z</td><td><a href="https://codegolf.stackexchange.com/questions/44946/trucks-in-a-parking-lot/274186#274186">Ajax1234</a></td></tr>
+<tr d-ix="1"><td>154</td><td>Python 2</td><td>150126T063449Z</td><td><a href="https://codegolf.stackexchange.com/questions/44946/trucks-in-a-parking-lot/44952#44952">Sp3000</a></td></tr>
+<tr d-ix="2"><td>196</td><td>Haskell</td><td>150126T045305Z</td><td><a href="https://codegolf.stackexchange.com/questions/44946/trucks-in-a-parking-lot/44948#44948">MtnViewM</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>Python3, 229 bytes</h1>
+<pre class="lang-py prettyprint-override"><code>from itertools import*
+def f(b,t,l):
+ q,s=[(b,0)],[]
+ for b,c in q:
+  for i,a in enumerate(b):
+   if a and(B:=b[:i]+[0]+b[i+1:])not in s:
+    if sum(len([*k])//l for j,k in groupby(B)if 0==j)&gt;=t:return c+1
+    q+=[(B,c+1)];s+=[B]
+</code></pre>
+<p><a href="https://tio.run/##bU5BbsMgELz7FXuEeKVA01aVK/fgbyAOJoGWxAYb40Ne74KrtklraXa1o53ZneEaP7w7vAxhWUzwPdioQ/S@m8D2gw9xV5y0AUMURuxoVcCIUy0SZVSikAUYH0DhEayDMa1XbrHNXLu516GNmqjsBLAGWmjdiTRVrURlZSmYLJWwJa8kdT5m17RKs3aae9JpR8TuIul@3623z3jJqvfg50FdSUOTkNX1mb7VsQo6zsHBseTrjbFMURtMlMrXKZFGLkOwLhJDBEeGX8VlagdKi58dQ@Ar2IrfQeLDlpLdg3/3W7DsffrjvX3E/9nZVobNj3eBJT7iM6XLJw" rel="nofollow noreferrer">Try it online!</a></p>
+</div>
+<div id="pu1" class="pu"><h1>Python 2, 154 bytes</h1>
+<pre class="lang-py prettyprint-override"><code>I,R=raw_input,range
+P,T,L=map(int,I().split())
+S=I()
+D=R(P+1)
+for r in R(P):D[1:r+2]=[min([D[c],D[c-1]+(S[r]&lt;&quot;.&quot;)][c%L&gt;0:])for c in R(1,r+2)]
+print D[T*L]
+</code></pre>
+<p>A straightforward DP approach. A fair chunk of the program is just reading input.</p>
+<p><strong>Explanation</strong></p>
+<p>We calculate a 2D dynamic programming table where each row corresponds to the first <code>n</code> parking spots, and each column corresponds to the number of trucks (or parts of a truck) placed so far. In particular, column <code>k</code> means that we've placed <code>k//L</code> full trucks so far, and we're <code>k%L</code> along the way for a new truck. Each cell is then the minimal number of cars to clear to reach the state <code>(n,k)</code>, and our target state is <code>(P, L*T)</code>.</p>
+<p>The idea behind the DP recurrence is the following:</p>
+<ul>
+<li>If we're <code>k%L &gt; 0</code> spaces along for a new truck, then our only option is to have come from being <code>k%L-1</code> spaces along for a new truck</li>
+<li>Otherwise if <code>k%L == 0</code> then we have either just finished a new truck, or we'd already finished the last truck and have since skipped a few parking spots. We take the minimum of the two options.</li>
+</ul>
+<p>If <code>k &gt; n</code>, i.e. we've placed more truck squares than there are parking spots, then we put <code>∞</code> for state <code>(n,k)</code>. But for the purposes of golfing, we put <code>k</code> since this is the worst case of removing every car, and also serves as an upper bound.</p>
+<p>This was quite a mouthful, so let's have an example, say:</p>
+<pre><code>5 1 3
+..##.
+</code></pre>
+<p>The last two rows of the table are</p>
+<pre><code>[0, 1, 2, 1, 2, ∞]
+[0, 0, 1, 1, 1, 2]
+</code></pre>
+<p>The entry at index 2 of the second last row is 2, because to reach a state of <code>2//3 = 0</code> full trucks placed and being <code>2%3 = 2</code> spaces along for a new truck, this is the only option:</p>
+<pre><code>  TT
+..XX
+</code></pre>
+<p>But the entry at index 3 of the second last row is 1, because to reach a state of <code>3//3 = 1</code> full trucks placed and being <code>3%3 = 0</code> spaces along for a new truck, the optimal is</p>
+<pre><code>TTT
+..X#
+</code></pre>
+<p>The entry at index 3 of the last row looks at the above two cells as options — do we take the case where we are 2 spaces along for a new truck and finish it off, or do we take the case where we have a full truck already finished?</p>
+<pre><code>  TTT            TTT
+..XX.     vs     ..X#.
+</code></pre>
+<p>Clearly the latter is better, so we put down a 1.</p>
+<h2>Pyth, 70 bytes</h2>
+<pre><code>JmvdczdKw=GUhhJVhJ=HGFTUhN XHhThS&gt;,@GhT+@GTq@KN\#&gt;%hT@J2Z)=GH)@G*@J1eJ
+</code></pre>
+<p>Basically a port of the above code. Not very well golfed yet. <a href="https://pyth.herokuapp.com/" rel="nofollow noreferrer">Try it online</a></p>
+<p><strong>Expanded</strong></p>
+<pre><code>Jmvdczd              J = map(eval, input().split(&quot; &quot;))
+Kw                   K = input()
+=GUhhJ               G = range(J[0]+1)
+VhJ                  for N in range(J[0]):
+=HG                    H = G[:]
+FTUhN                  for T in range(N+1):
+ XHhT                    H[T+1] =
+hS                                sorted(                                        )[0]
+&gt;                                                                 [            :]
+,                                        (      ,                )
+@GhT                                      G[T+1]
++@GTq@KN\#                                       G[T]+(K[N]==&quot;#&quot;)
+&gt;%hT@J2Z                                                           (T+1)%J[2]&gt;0
+)=GH                   G = H[:]
+)@G*@J1eJ            print(G[J[1]*J[-1]])
+</code></pre>
+<p>Now, if only Pyth had multiple assignment to &gt;2 variables...</p>
+</div>
+<div id="pu2" class="pu"><h2>Haskell, 196 characters</h2>
+
+<pre><code>import Data.List
+f=filter
+m=map
+q[_,t,l]=f((&gt;=t).sum.m((`div`l).length).f(&gt;"-").group).sequence.m(:".")
+k[a,p]=minimum.m(sum.m fromEnum.zipWith(/=)p)$q(m read$words a)p
+main=interact$show.k.lines
+</code></pre>
+
+<p>Runs all examples</p>
+
+<pre><code>&amp; (echo 6 1 3 ; echo "#.#.##" )  | runhaskell 44946-Trucks.hs 
+1
+
+&amp; (echo 9 2 3 ; echo ".##..#..#" )  | runhaskell 44946-Trucks.hs 
+2
+
+&amp; (echo 15 2 5 ; echo ".#.....#.#####." )  | runhaskell 44946-Trucks.hs 
+3
+</code></pre>
+
+<p>Somewhat slow: <strong>O(2^P)</strong> were P is the size of the lot.</p>
+
+<p>Probably plenty left to golf here.</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/44946/">44946</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
