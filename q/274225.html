@@ -44,6 +44,13 @@
 <pre class="lang-r prettyprint-override"><code>\(x,n=sum(x|1),m=t(expand.grid(rep(list(1:n),n))))x[m[,order(apply(m,2,\(v)max(abs(cumsum(x[v])))/(sum(2^v)==2*2^n-2)))[1]]]
 </code></pre>
 <p><a href="https://ato.pxeger.com/run?1=TU9daoQwEH7vKQJ9mZRJS6IuWkih53CzYFftCiZKjNaFvUlfbKHH6EF6m8afsp2HGeabb75v5v3DTp-l_OpdyeKfyx5GNLLrNYwXTlFLB8XYZia_f7VVDrZooa46B_zRUDTUx5jqFBubFxaytq3PoFHgHgaqsxGylw6OvV700kF5-gPMjTgMVEpxJw6GCY-mXCm13fBdwhG4FwkwxIjSWyKfCDybM1lc6M08ZxGyEBfWxkjnxmMBskgRaCxp3KmwpGvq3lWN6chb5U5kyOq-IMGmEmP4tx4ii9WKJkhCJD6z3b9pggnuVgZHJmY3fvXegO2JaVrrLw" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<p><strong>How?</strong></p>
+<ul>
+<li>Get all combinations <code>v</code> of all indices of input <code>x</code> (including re-use of each index, since there isn't an easy base-R command to get permutations).</li>
+<li>Calculate <code>max(abs(cumsum(x[v])))</code> for each.</li>
+<li>Divide by <code>(sum(2^v)==2*2^n-2)</code>: this is zero for combinations with re-used indices, giving <code>Inf</code> after division.</li>
+<li>Get the minimum, and select the elements of the input using the corresponding indices.</li>
+</ul>
 </div>
 <div id="pu1" class="pu"><h1>Elisp, 341 Bytes</h1>
 <pre><code>(defun x (bag)(if (null bag)'(())(mapcan #'(lambda (e)(mapcar #'(lambda (p) (cons e p))(x(cl-remove e bag :count 1))))bag)))(defun s (a)(let ((l))(cl-loop for e in (x a) do(let ((i (cons e (apply 'max(cl-loop for o = (reverse e) then (cdr o) while o collect(abs (apply '+ o)))))))(if l(if (&lt; (cdr i) (cdr l))(setq l i))(setq l i))))(car l)))
