@@ -26,9 +26,9 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>330</td><td>Elisp</td><td>240718T150721Z</td><td><a href="https://codegolf.stackexchange.com/questions/274225/reorder-for-smallest-largest-prefix-sum/274246#274246">Samuel J</a></td></tr>
-<tr d-ix="1"><td>099</td><td>JavaScript ES6</td><td>240718T064538Z</td><td><a href="https://codegolf.stackexchange.com/questions/274225/reorder-for-smallest-largest-prefix-sum/274234#274234">Arnauld</a></td></tr>
-<tr d-ix="2"><td>108</td><td>R</td><td>240718T151236Z</td><td><a href="https://codegolf.stackexchange.com/questions/274225/reorder-for-smallest-largest-prefix-sum/274247#274247">Dominic </a></td></tr>
+<tr d-ix="0"><td>104</td><td>R</td><td>240718T151236Z</td><td><a href="https://codegolf.stackexchange.com/questions/274225/reorder-for-smallest-largest-prefix-sum/274247#274247">Dominic </a></td></tr>
+<tr d-ix="1"><td>330</td><td>Elisp</td><td>240718T150721Z</td><td><a href="https://codegolf.stackexchange.com/questions/274225/reorder-for-smallest-largest-prefix-sum/274246#274246">Samuel J</a></td></tr>
+<tr d-ix="2"><td>099</td><td>JavaScript ES6</td><td>240718T064538Z</td><td><a href="https://codegolf.stackexchange.com/questions/274225/reorder-for-smallest-largest-prefix-sum/274234#274234">Arnauld</a></td></tr>
 <tr d-ix="3"><td>096</td><td>Python 3.8 prerelease</td><td>240718T071207Z</td><td><a href="https://codegolf.stackexchange.com/questions/274225/reorder-for-smallest-largest-prefix-sum/274237#274237">Jitse</a></td></tr>
 <tr d-ix="4"><td>041</td><td>Raku</td><td>240718T132936Z</td><td><a href="https://codegolf.stackexchange.com/questions/274225/reorder-for-smallest-largest-prefix-sum/274243#274243">Ven</a></td></tr>
 <tr d-ix="5"><td>136</td><td>R</td><td>240718T061307Z</td><td><a href="https://codegolf.stackexchange.com/questions/274225/reorder-for-smallest-largest-prefix-sum/274232#274232">pajonk</a></td></tr>
@@ -40,7 +40,21 @@
 <tr d-ix="11"><td>055</td><td>Factor + math.combinatorics</td><td>240718T020251Z</td><td><a href="https://codegolf.stackexchange.com/questions/274225/reorder-for-smallest-largest-prefix-sum/274227#274227">chunes</a></td></tr>
 <tr d-ix="12"><td>006</td><td>Vyxal</td><td>240718T013914Z</td><td><a href="https://codegolf.stackexchange.com/questions/274225/reorder-for-smallest-largest-prefix-sum/274226#274226">emanresu</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Elisp, <s>341</s> 330 Bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.r-project.org" rel="nofollow noreferrer">R</a>, <s>124</s> <s>108</s> 104 bytes</h1>
+<p><em>Edit: -13 bytes thanks to Giuseppe.<br />
+Edit2: -4 bytes thanks to pajonk</em></p>
+<pre class="lang-r prettyprint-override"><code>\(x,n=sum(x|1),m=combn(rep(1:n,n),n))x[m[,order(apply(m,2,\(v)max(cumsum(x[v])^2)/all(table(v)&lt;2)))[1]]]
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=TU9ZSsRAEP33FA3-VEE10lmGZDCC58i0kIkJGegldBYz4E38iYLH8CDexiwtCkUV9ZZ61Nu7mz_q7HPoa558NyeYyGTdoGF6FUg6K60-G3BVC-JoyOBSOOU6J-ueKwdF26oraAroBCPqYoJy0Js9HyU-BXhXKAV9cVbVwt8HiJgLKaXP-6qhBLG4Q4ooRrxl2QODR3Nl23m8WXkeE49oU3lFvi4LFhKPJQPrmO2byrHOqqG_WNOxl0vfsLFQQ8VCfyWh6NceEU_kjqbEImJL54d_bEopHXaFIB6saeIv2wP-iXne5w8" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<p><strong>How?</strong></p>
+<ul>
+<li>Get all combinations <code>v</code> of all indices of input <code>x</code> (including re-use of each index, since there isn't an easy base-R command to get permutations).</li>
+<li>Calculate <code>max(abs(cumsum(x[v])))</code> for each.</li>
+<li>Divide by <code>all(table(v)&lt;2)))</code>: this is zero for combinations with re-used indices, giving <code>Inf</code> after division.</li>
+<li>Get the minimum, and select the elements of the input using the corresponding indices.</li>
+</ul>
+</div>
+<div id="pu1" class="pu"><h1>Elisp, <s>341</s> 330 Bytes</h1>
 <p>Edit: learned the sort function</p>
 <pre><code>(defun x (bag)(if (null bag)'(())(mapcan #'(lambda (e)(mapcar #'(lambda (p) (cons e p))(x(cl-remove e bag :count 1))))bag)))(defun z (a)(car (car (sort(cl-loop for e in (x a) collect(let ((i (cons e (apply 'max(cl-loop for o = (reverse e) then (cdr o) while o collect(abs (apply '+ o)))))))i))'(lambda (j k)(&lt; (cdr j) (cdr k))))))
 </code></pre>
@@ -67,7 +81,7 @@
     )))
 </code></pre>
 </div>
-<div id="pu1" class="pu"><h1>JavaScript (ES6), 99 bytes</h1>
+<div id="pu2" class="pu"><h1>JavaScript (ES6), 99 bytes</h1>
 <p>Naive method trying all possible permutations.</p>
 
 <pre class="lang-javascript prettyprint-override"><code>f=(a,s=M=f,m,...p)=&gt;m&gt;M||a.map((v,i)=&gt;f(a.filter(_=&gt;i--),q=~~s+v,q*q&lt;m?m:q*q,...p,v))+a?o:(M=m,o=p)
@@ -101,19 +115,6 @@ a.map((v, i) =&gt;   // otherwise, for each value v at index i in a[]:
 :                 // else:
   (M = m, o = p)  //   update M to m and o[] to p[]
 </code></pre>
-</div>
-<div id="pu2" class="pu"><h1><a href="https://www.r-project.org" rel="nofollow noreferrer">R</a>, <s>124</s> 108 bytes</h1>
-<p><em>Edit: -13 bytes thanks to Giuseppe</em></p>
-<pre class="lang-r prettyprint-override"><code>\(x,n=sum(x|1),m=combn(rep(1:n,n),n))x[m[,order(apply(m,2,\(v)max(cumsum(x[v])^2)/(sum(2^v)==2*2^n-2)))[1]]]
-</code></pre>
-<p><a href="https://ato.pxeger.com/run?1=TU9rSsQwEP7vKQL-mZEJkrRd2oUInqObQq0tu9AkJX3YBW_inyp4DA_ibexLFIYZ5pvvwby9--mjUp99V_H4uz7BSFa1vYHxVSAZVTjzZMGXDYijJYtz4ZialJx_Lj3kTVNfwZCkEwxo8hGK3qzydNCYSbyHZZPZgErJO5lZLhExFVrrPfOrggLE7BBQSBHiLVMPDB7tla0ReLPceUQ8pJW1M9JlmbGAeKQZOM9cdy49a13ddxdnW_Zy6c5syOu-ZMHuElP4Kw-Jx3pDE2Ihsbnzw79rQgkdNoYgLpc08Ze9A_sT07TNHw" rel="nofollow noreferrer">Attempt This Online!</a></p>
-<p><strong>How?</strong></p>
-<ul>
-<li>Get all combinations <code>v</code> of all indices of input <code>x</code> (including re-use of each index, since there isn't an easy base-R command to get permutations).</li>
-<li>Calculate <code>max(abs(cumsum(x[v])))</code> for each.</li>
-<li>Divide by <code>(sum(2^v)==2*2^n-2)</code>: this is zero for combinations with re-used indices, giving <code>Inf</code> after division.</li>
-<li>Get the minimum, and select the elements of the input using the corresponding indices.</li>
-</ul>
 </div>
 <div id="pu3" class="pu"><h1><a href="https://docs.python.org/3.8/" rel="nofollow noreferrer">Python 3.8 (pre-release)</a>, 96 bytes</h1>
 
