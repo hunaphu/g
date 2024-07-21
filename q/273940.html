@@ -54,8 +54,66 @@ s}
 <p>Per the test cases in the question, there are no specific physical units for <code>a</code> and <code>u</code>, but the orbital period arising from them is such that it is consistent with the units of time used for <code>l</code> and <code>t</code>.</p>
 <p>Function returns an SVG image with coordinate <code>0,0</code> at the centre. Tan background is used delimit the edge of the plot (Tan is one of only two SVG colours with only 3 letters, the other being red.) Calculations are done in radians but the output is crudely scaled by a factor of 57 (180/PI=57.2958 rounded down.) The width of the plot is therefore only 358 plot units. Calculated longitude values must be reduced MOD <code>2*pi</code> to ensure they stay in the plot. This means the plot goes from 0 to <code>2*pi</code>, but negative signs in <code>-x-q*1i</code> impart a 180 degree phase shift so that the calculated 0 longitude is in the centre of the plot. Latitude is <code>+/-90</code> (limited to <code>+/-89.5</code> plot units by the scale factor.) The aspect ratio is such that 1 degree is equal length in both longitude and latitude directions (not stretched horizontally like the plots in the question.)</p>
 <p>The image is missing some whitespace required by the SVG spec for golfing reasons, but works fine on Chrome and Edge.</p>
-<p><strong>Explanation</strong></p>
-<p>Explanation and golfing to follow.</p>
+<p><strong>EXPLANATION</strong></p>
+<p>The code uses formulas from en.wikipedia.org/wiki/Kepler_orbit. They use <code>α</code> instead of <code>μ</code> for the gravitational parameter and introduce a symbol <code>p=a(1-e**2)</code> for a parameter known as the the semi-latus rectum. For golfing reasons, this is expressed as <code>(a-a*e*e)</code> in the code.</p>
+<p>The wikipedia article gives radial &amp; tangential velocity components in terms of angular momentum <code>H=sqrt(αp)</code>=constant=magnitude of cross product of displacement <code>r</code> and velocity <code>r dot</code> equations (26 and 3.) This reduces to scalar radius * tangential velocity, with the latter being simply <code>H/r</code> (equation 19) giving the result <code>dTheta/dt=H/r**2</code> (equation 3)</p>
+<p>This is consistent with an observation made by Kepler (who first described the orbit of the planets) that the orbit sweeps out equal area in equal time. He attempted to explain the reason for this (but his reasoning was incorrect since he knew only Aristotlean mechanics.) Newton later explained the reason correctly. There were however anomalies in the orbit of Mercury which were later shown to be due to relativistic effects (and not a postulated additional planet, given the provisional name Vulcan.)</p>
+<p><strong>variable names</strong></p>
+<p>variable names follow convention where possible, with Greek symbols replaced by the most visually similar Latin equivalent.</p>
+<pre>
+     s = string containing SVG image
+     v = true anomaly (angle of satellite from periapsis)
+     d = step size of true anomaly (delta v)
+     z = z coordinate in earth centred coordinates
+     y = y coordinate in earth centred coordinates
+     x = x coordinate (in both coordinate systems, since orbital &
+ equatorial planes cross at the x axis)
+     q = y coordinate in orbital plane
+     n = PI/2 or 2*PI (changed in the code for golfing reasons)
+     j = longitude of current point
+     k = longitude of 1st point plotted
+</pre>    
+<p><strong>Step 1: Initialise</strong></p>
+<p>Initialise <code>s</code> with an SVG header, and set <code>d</code> and <code>v</code> to the step size. Step size is 0.01 radians. The Ruby preprocessor likes to be sure that a variable will be initialised before it is used and does not like the fact that <code>k</code> is only assigned in a conditional. Therefore we conveniently initialise <code>k</code> to the same value as <code>d</code> to avoid an error. We open a bracket to start looping.</p>
+<pre class="lang-ruby prettyprint-override"><code>s=&quot;&lt;svg viewBox='0-90 358 180'style='background:tan'&gt;&quot;
+k=v=d=0.01
+(
+</code></pre>
+<p><strong>Step 2: calculate true anomaly and time</strong></p>
+<ul>
+<li>Increment angle <code>v</code> by the step size <code>d</code></li>
+<li>Calculate <code>r</code> according to the formula in the question</li>
+<li>Calculate the time taken for this step and add it to <code>t</code></li>
+</ul>
+<p>To do this we use the formula from wikpedia <code>dTheta/dt=H/r**2</code> except that we invert it to give <code>dt/dTheta=r**2/H</code>, where <code>H=sqrt(αp)</code> according to wikipedia notation, or <code>H=sqrt(u*(a-a*e*e))</code> according to the nomenclature used here.</p>
+<p>Note that the wedge-shaped area swept out in this step is <code>r * r*d /2</code> . The time taken for the step is proportional to the area swept out, as observed by Kepler.</p>
+<pre class="lang-ruby prettyprint-override"><code>  r=(a-a*e*e)/(1+e*Math.cos(v+=d))
+  t+=r*r/(u*(a-a*e*e))**0.5*d
+</code></pre>
+<p><strong>Step 3: adjust the angle by the argument of periapsis, and convert to cartesian coordinates</strong></p>
+<p>The argument of periapsis <code>w</code> defines the angle of the lowest point of the orbit in the orbital plane. We add this to the true anomaly <code>v</code> to find the angle of the satellite in the orbital plane in radians. We convert this into a number of quarter-turns, and raise <code>sqrt(-1)=1i</code> to this power to give the cartesian coordinates <code>x+qi</code>, which we then extract into rectangular coordinates as 2 reals with the <code>rect</code> function. The conversion factor from radians to quarter-turns is <code>pi/2</code> which is conveniently and accurately represented as <code>n=1i.arg</code>.</p>
+<pre class="lang-ruby prettyprint-override"><code>  x,q=(1i**((v+w)/n=1i.arg)).rect
+</code></pre>
+<p>In a similar way, we take <code>q</code> (the y coordinate in the orbital plane) and raise <code>1i</code> to the power <code>i/n</code> (where <code>i</code> is inclination) to give the <code>y and z</code> coordinates in the earth centred system. Note that <code>x,y,z</code> form normalised coordinates: the magnitude of the vector <code>x,y,z</code> given by <code>sqrt(x**2 + y**2 + z**2)</code> is 1.</p>
+<pre class="lang-ruby prettyprint-override"><code>y,z=(q*1i**(i/n)).rect
+</code></pre>
+<p><strong>Step 4: plot the point</strong></p>
+<p>Append instructions to plot a circle to <code>s</code> using the <code>&lt;&lt;</code> operator. Plotting a circle for each point uses less characters than composing a path, since SVG would require the path fill to be switched off and path stroke to be switched on. Plotting separate circles also avoids issues that would occur where the path goes off one side of the plot and comes back on the other.</p>
+<p>The angle of the satellite in the equatorial plane is given by <code>(-x-y*1i).arg</code>. To get the longitude we must subtract the effect of the planet's rotation <code>-t/l*n*=4</code> where <code>n</code> is now increased to <code>2*PI</code>. We take the output modulo <code>n=2*PI</code> to ensure the result is in the plottable range <code>0..2*PI</code> and multiply by 57 to get a number in the range <code>0..358</code>. The negative signs in <code>-x-y*1i</code> impart a phase shift of <code>PI</code> so that the longitude 0 appears in the centre of the plot. We keep track of the current longitude in <code>j</code> to decide when to stop iterating.</p>
+<p>The latitude is obtained from the <code>z</code> coordinate in a similar way <code>Math.asin(z)*-57</code>. A negative sign is required because SVG considers high numbers to be at the bottom of the plot.</p>
+<pre class="lang-ruby prettyprint-override"><code>  s&lt;&lt;&quot;&lt;circle r='1'cx='#{(j=((-x-y*1i).arg-t/l*n*=4)%n*57).round(1)}'cy='#{(Math.asin(z)*-57).round(1)}'/&gt;&quot;
+</code></pre>
+<p><strong>Step 5: decide when to stop iterating and return</strong></p>
+<p>Assuming the orbital period and day length are both integers (or have a rational ratio), the track of the satellite will repeat after the lowest common multiple of the orbital period and day length. In practice this ratio may not be perfect. The code keeps track of the longitude of the satellite at the start of the first and current orbit, and if it falls within a margin, it stops iterating and returns. The margin is set to 20 degrees (corresponding to a maximum of 18 orbits) but can be altered if desired.</p>
+<ul>
+<li>Record the longitude at the start of the 1st orbit: <code>v&gt;2*d||k=j</code></li>
+<li>Keep iterating until the start of an orbit where the longitude is within 20 degrees fo the 1st orbit: <code>)until v%6.29&lt;d&amp;&amp;(j-k).abs&lt;20</code></li>
+<li>Return from function with SVG image in string <code>s}</code></li>
+</ul>
+<p>On the 1st iteration,</p>
+<pre class="lang-ruby prettyprint-override"><code>  v&gt;2*d||k=j)until v%6.29&lt;d&amp;&amp;(j-k).abs&lt;20
+  s}
+</code></pre>
 <p><strong>Sample output</strong></p>
 <p>Below is output for test case 5. It is recommended to hit <code>run code snippet</code> before expanding, to avoid getting a horizontally wide but vertically very short window requiring excessive vertical scrolling. It seems the plot is autosized based on the width only, so narrowing the browser window can help eliminate vertical scrolling.</p>
 <p><div class="snippet" data-lang="js" data-hide="false" data-console="true" data-babel="false">
