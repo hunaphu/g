@@ -26,9 +26,51 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>026</td><td>Charcoal</td><td>240720T070451Z</td><td><a href="https://codegolf.stackexchange.com/questions/274288/compute-dickman/274293#274293">Neil</a></td></tr>
+<tr d-ix="0"><td>254</td><td>Python</td><td>240722T035101Z</td><td><a href="https://codegolf.stackexchange.com/questions/274288/compute-dickman/274316#274316">Bubbler</a></td></tr>
+<tr d-ix="1"><td>026</td><td>Charcoal</td><td>240720T070451Z</td><td><a href="https://codegolf.stackexchange.com/questions/274288/compute-dickman/274293#274293">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 26 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 254 bytes</h1>
+<pre class="lang-python prettyprint-override"><code>def N(p,I):
+&#9;A=p[:];l=len(A)
+&#9;for i in range(1,l):A[i]-=A[i-1]/I
+&#9;for i in range(l):A[i]/=I*~i
+&#9;return[E(p,.5)+E(A,-.5)/2]+A
+E=lambda f,x:sum(a*x**i for i,a in enumerate(f))
+def g(x):
+&#9;f=[1]+[0]*20
+&#9;for i in range(int(x)):f=N(f,i+1.5)
+&#9;return E(f,x%1-.5)
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=ZVKxjpwwFKyXr3hNJJs1rJ-NbUxEQbHFNvcDiILTmY2lXUAsSJsU-ZE01yT_lB9JGcUsd1Kka57t0Whm3sg_fo1f5y9D__r6c5m7JP_998V18ERGdqJFtKvKsS6az5fy4npS0WjXDRN48D1MbX92BNmFFlXtm6QMM8HmcPrAeWMcylP83Ue7yc3L1NfHYJEquj-SiiXhchDNvoqO5aW9Pr-00LF7cVuupI3vcezhIcnaVdT1y9VN7exIR2m0pj2T-5q1K2ts9jVvYsE_hPD9HFi06Mon0jG_x2D5ngWOAbp_wjXGWwt_fD8u8w1KqJEBppKBSC2DLBUMVKoYGAZ5Ew3L_B-Pp0YaLZWRSkmhuF0hrmxucsRwaGm4eWBcWKMyk5ncqhyV2EDOc80x14gouELUwSM1mdLa2iBopRUuCQIyFVJwbSXPhNDIXRKibBXBsO78zY9k2yAAW8S1oXFaazgTTwPMoH2-PR6QwEDhEMa2_ftf-Ac" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<p><code>g(x)</code> computes the Dickman function <span class="math-container">\$ \rho(x) \$</span> with relative error under <code>5e-7</code> for up to <code>x &lt;= 8</code>.</p>
+<p>Instead of a continuous function <span class="math-container">\$ \rho(x) \$</span>, let's define a sequence of functions <span class="math-container">\$f_0(x), f_1(x), f_2(x), \cdots\$</span> which are defined on the interval <span class="math-container">\$-\frac{1}{2} \le x \le \frac{1}{2}\$</span>:</p>
+<ul>
+<li><span class="math-container">\$f_0(x) = 1\$</span>.</li>
+<li><span class="math-container">\$(x + \frac{3}{2}) f_1'(x) + f_0(x) = 0\$</span>.</li>
+<li><span class="math-container">\$(x + i + \frac{1}{2}) f_i'(x) + f_{i-1}(x) = 0\$</span> in general.</li>
+</ul>
+<p>Now we will approximate these functions using truncated Maclaurin series. Let's write <code>f(x) = [a0, a1, a2, ...]</code> as a convenient notation for <span class="math-container">\$f(x) = a_0 x^0 + a_1 x^1 + a_2 x^2 + \cdots\$</span>.</p>
+<p>Solving <span class="math-container">\$(x + i + \frac{1}{2}) f_i'(x) + f_{i-1}(x) = 0\$</span> for <span class="math-container">\$f_i\$</span> gives</p>
+<p><span class="math-container">$$f_i(x) = C + \int \frac{f_{i-1}(x)}{x + i + \frac{1}{2}}  dx$$</span></p>
+<p>so we will multiply the Maclaurin series of <span class="math-container">\$f_{i-1}(x)\$</span> with that of <span class="math-container">\$\frac{1}{x + i + \frac{1}{2}}\$</span>, integrate it, and find the constant term using the boundary condition <span class="math-container">\$f_{i-1}(\frac{1}{2}) = f_{i}(-\frac{1}{2})\$</span>.</p>
+<p>The Maclaurin series expansion of <span class="math-container">\$\frac{1}{x + k}\$</span> is <code>[k^-1, -(k^-2), k^-3, -(k^-4), ...]</code>. Factor out <code>k^-1</code> (we will multiply it back later), and multiplying with <code>[a0, a1, a2, a3, ...]</code> gives</p>
+<pre><code>[
+  a0,
+  -k^-1 * a0 + a1,
+  k^-2 * a0 - k^-1 * a1 + a2,
+  -k^-3 * a0 + k^-2 * a1 - k^-1 * a2 + a3,
+  ...
+]
+</code></pre>
+<p>which can be converted to a simple scan &quot;multiply the previous cumulative result with <code>-1/k</code> and add current term&quot;, i.e. if the resulting series is <code>[b0, b1, b2, b3, ...]</code> then it is equal to</p>
+<pre><code>[b0, -1/k * b0 + a1, -1/k * b1 + a2, -1/k * b2 + a3, ...]
+</code></pre>
+<p>Integration is also easy: since integration of <code>x^n</code> is <code>x^(n+1)/(n+1)</code>, we can divide each term with its 1-based index and prepend a constant term.</p>
+<p>The constant term is simply <span class="math-container">\$f_{i-1}(\frac{1}{2}) - f_{i}(-\frac{1}{2})\$</span> where <span class="math-container">\$f_i\$</span> is evaluated without the constant term.</p>
+<p><code>E(f,x)</code> evaluates the polynomial <code>f</code> at <code>x</code>. <code>N(p,i)</code> takes the series for <span class="math-container">\$f_i\$</span> and the value of <span class="math-container">\$i+1.5\$</span> to compute the series for <span class="math-container">\$f_{i+1}\$</span>. <code>g(x)</code> finds the appropriate function for the interval that <code>x</code> belongs to, and then evaluates the function at <code>x</code> offset by an appropriate amount.</p>
+<p>I had to read a few papers cited on the Wikipedia page to get the idea, but computing with the idea turned to be not that complex, yet surprisingly efficient and accurate. I intentionally didn't golf the program hard to keep the intents relatively clear, in the hopes that others can port this without too much problem.</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 26 bytes</h1>
 <pre><code>≧×⁸φＦ×Ｎφ⊞υ∨‹ιφ⁻⌊υ∕§υ±φιＩ⊟υ
 </code></pre>
 <p><a href="https://tio.run/##JYzNCoMwEITvPkWOG0ivpeBJ2otQfyh9gVRXXTBRslnp26eRzmEO3/DNsNgwbHZNqbF7xUyzf9G8RHiTQzbqZtSky2LagvojqP0usRX3wQD6XLXqhRcQo7oAT2QGOrFRDXlhyE1OHEgmDzpoRKhi7Uf8nkqLs40I@cUo0jll0QfyEe6WI/Tbnr0MU7qmy7H@AA" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code. Note that the version shown is only within 0.1% for <code>x</code> up to about <code>6</code>; for more accuracy the <code>⁸</code> could be changed to <code>χ</code> or even <code>φ</code> but it would make the resulting program inordinately slow. Explanation:</p>
