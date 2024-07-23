@@ -26,7 +26,7 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>054</td><td>x86 realmode COM file</td><td>240722T150955Z</td><td><a href="https://codegolf.stackexchange.com/questions/85141/draw-the-national-flag-of-iceland/274328#274328">Paolo Bo</a></td></tr>
+<tr d-ix="0"><td>053</td><td>x86 realmode COM file</td><td>240722T150955Z</td><td><a href="https://codegolf.stackexchange.com/questions/85141/draw-the-national-flag-of-iceland/274328#274328">Paolo Bo</a></td></tr>
 <tr d-ix="1"><td>212</td><td>Chipmunk BASIC</td><td>230906T065315Z</td><td><a href="https://codegolf.stackexchange.com/questions/85141/draw-the-national-flag-of-iceland/264967#264967">roblogic</a></td></tr>
 <tr d-ix="2"><td>051</td><td>Uiua</td><td>240528T165953Z</td><td><a href="https://codegolf.stackexchange.com/questions/85141/draw-the-national-flag-of-iceland/273335#273335">noodle p</a></td></tr>
 <tr d-ix="3"><td>140</td><td>C GCC</td><td>230907T170303Z</td><td><a href="https://codegolf.stackexchange.com/questions/85141/draw-the-national-flag-of-iceland/265018#265018">matteo_c</a></td></tr>
@@ -116,52 +116,53 @@
 <tr d-ix="87"><td>136</td><td>Processing</td><td>160711T180446Z</td><td><a href="https://codegolf.stackexchange.com/questions/85141/draw-the-national-flag-of-iceland/85183#85183">Cody</a></td></tr>
 <tr d-ix="88"><td>164</td><td>SVG+Javascript</td><td>160711T154406Z</td><td><a href="https://codegolf.stackexchange.com/questions/85141/draw-the-national-flag-of-iceland/85171#85171">nicael</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>x86 real-mode COM file, text mode, <strike>57</strike> <strike>56</strike> <strike>55</strike> 54 bytes</h1>
+<div id="pu0" class="pu"><h1>x86 real-mode COM file, text mode, <strike>57</strike> <strike>56</strike> <strike>55</strike> <strike>54</strike> 53 bytes</h1>
 <p>Because text mode is 80x25, one column of the flag corresponds to two on screen. One could actually save one byte by producing the flag with the wrong aspect ratio.</p>
 <p>Another byte could be saved by using the CMOVA instruction instead of JBE+MOV at 11f/121, but I'm sticking to x86 lowest common denominator.</p>
 <p><a href="https://i.sstatic.net/jtMiyeTF.png" rel="nofollow noreferrer"><img src="https://i.sstatic.net/jtMiyeTF.png" alt="Output from FreeDOS session running in DOSBOX" /></a></p>
 <p>Use DEBUG to assemble (remove everything after the semicolon on each line; I suggest using an <code>ICELAND.SCR</code> file and running <code>DEBUG&lt;ICELAND.SCR</code>).</p>
-<pre><code>mov ah,b8                      ;100  point to text vram
-mov es,ax                      ;102
-stosw                          ;104  bx=di=0
-mov ch,11                      ;105  cx=11ff
-mov ax,bx                      ;107  get row and column in ah/al
-cmp al,28                      ;109  column &gt;=40? draw nothing until bh is incremented
-jae 132                        ;10b
-cmp al,19                      ;10d  column&gt;=25? draw black
-jae 12f                        ;10f
-sub al,9                       ;111  compute x&lt;9 ? 8-x : x-9
-xor al,ff                      ;113
-js 113                         ;115
-xchg ah,al                     ;117  swap row and column
-xor bx,sp                      ;119  execute twice (bx positive, sp=0fffe)
-js 111                         ;11b
-cmp al, ah                     ;11d  compute minimum of al and ah
-jbe 123                        ;11f
-mov al, ah                     ;121
-cmp al,1                       ;123
-mov ah,4f                      ;125 we want red bg if al=0, white fg if al=1
-db d6                          ;127 SALC: al=0 -&gt; ff, else 00
-jbe 12c                        ;128
-mov ah,1                       ;12a otherwise blue block (character 219)
-or al,db                       ;12c al=255 if it was 0, else 219
-db a8                          ;12e test al,... to skip 1 byte
-cbw                            ;12f ah=0
-stosw                          ;130 draw two characters
-stosw                          ;131
-inc bx                         ;132 increment (row, column)
-loop 107                       ;133 loop until 18 rows have been drawn
-ret                            ;135 
+<pre><code>a100                          
+mov ah,b8                        ;100  point to text vram
+mov es,ax                        ;102
+stosw                            ;104  bx=di=0
+mov ch,11                        ;105  cx=11ff
+mov ax,bx                        ;107  get row and column in ah/al
+cmp al,28                        ;109  column &gt;=40? draw nothing until bh is incremented
+jae 131                          ;10b
+cmp al,19                        ;10d  column&gt;=25? draw black
+jae 12e                          ;10f
+sub al,9                         ;111  compute x&lt;9 ? 8-x : x-9
+xor al,ff                        ;113    
+js 113                           ;115
+xchg ah,al                       ;117  swap row and column
+xor bx,sp                        ;119  execute twice (bx positive, sp=0fffe)
+js 111                           ;11b
+cmp al, ah                       ;11d  compute minimum of al and ah
+jbe 123                          ;11f
+mov al, ah                       ;121    
+sub al,1                         ;123 al=ff if red, al=0 if white, else positive
+mov ah,4f                        ;125 we want red bg if al=0, white fg if al=1
+jbe 12b                          ;127 
+mov ax,si                        ;129 otherwise blue block (si=100)
+or al,db                         ;12b al=255 if it was 0, else 219
+db a8                            ;12d test al,... to skip 1 byte
+cbw                              ;12e ah=0
+stosw                            ;12f draw two characters
+stosw                            ;130
+inc bx                           ;131 increment (row, column)
+loop 107                         ;132 loop until 18 rows have been drawn 
+ret                              ;134    
 
 niceland.com
 rcx
-36
+35
 w
 q
 </code></pre>
 <p>57-&gt;56: use CX + LOOP for iteration instead</p>
 <p>56-&gt;55: use space character instead of block when AL=0</p>
 <p>55-&gt;54: use SALC instruction followed by OR to pick AL=ff or AL=db</p>
+<p>54-&gt;53: replace CMP AL,1 with SUB to avoid SALC</p>
 </div>
 <div id="pu1" class="pu"><h1><a href="http://www.nicholson.com/rhn/basic/" rel="nofollow noreferrer">Chipmunk BASIC</a>, <s>238</s> <s>235</s> 212 bytes</h1>
 <p>Chipmunk Basic v368b2.02 on MacOS. The RGB range is <code>[0,100]</code>.</p>
