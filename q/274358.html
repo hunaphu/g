@@ -26,37 +26,38 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>226</td><td>Elisp</td><td>240723T150252Z</td><td><a href="https://codegolf.stackexchange.com/questions/274358/double-dequer-sort/274359#274359">Samuel J</a></td></tr>
+<tr d-ix="0"><td>211</td><td>Elisp</td><td>240723T150252Z</td><td><a href="https://codegolf.stackexchange.com/questions/274358/double-dequer-sort/274359#274359">Samuel J</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Elisp 226 bytes</h1>
-<pre><code>(defun d(i r)(let((o(list(pop i))))(while(and i o)(let((n(pop i)))(if(&lt;= n(car o))(setq o(cons n o))(if(&gt;= n(car(last o)))(setq o(append o(list n)))(if r(progn(setq o(cons n o))(if(not i)(setq o(d o nil))))(setq o nil))))))o))
+<div id="pu0" class="pu"><h1>Elisp <s>226</s> 211 bytes</h1>
+<p>Edit, learned push and add-to-ordered-list functions</p>
+<pre><code>(defun d(i r)(let((o(list(pop i))))(while(and i o)(let((n(pop i)))(if(&lt;= n(car o))(push n o)(if(&gt;= n(car(last o)))(add-to-ordered-list 'o 'n)(if r(progn(push n o)(if(not i)(setq o(d o nil))))(setq o nil))))))o))
 </code></pre>
 <p><a href="https://tio.run/##hVLLboMwELzzFaNIVdeHSCUB0kptv6QXC0xqybFd7KifTxcIKVVNYuEDO48d26tOsg5bo4PvyXfuaNFTo9qzRUManSCjIpEjZkTyzkMLXvT9qY0iaRtouAvJXnHSLb2@wVItO4YFBRW/4Kh2NsCOFWa8XxhkZIhD8cqT3iu2nrrCTo7opoBpM@sit54x1sJqI349518hWJD1UzV2Z7WtZVABj5Th36JcJKvYYY8iiRWM7LCie8L8JXH2ZG2JHNWqd8mMasW/ZH3BjP24q4G5kp8zriYY@vP5UvhcE1k2XWArTbh5g2OqwTVPd2T8wB2ru5xnvOBOur/5GjcOD8nFKwvQSYUgjwqbh/BhN@BJYQJPxVKwONUtheh/AA" rel="nofollow noreferrer">Try it online!</a></p>
 <p>ungolfed:</p>
 <pre><code>(defun double-dequer-sort (input recursive)
   (let ((output (list (pop input))))
-(while (and input output)
-  (let ((next (pop input)))
-    (if (&lt;= next (car output))
-    (setq output (cons next output))
-      (if (&gt;= next (car (last output)))
-      (setq output (append output (list next)))
-    (if recursive
-        (progn
-          ;; no idea whether to add to end or beginning here
-          (setq output (cons next output))
-          (if (not input)
-          (setq output (double-dequer-sort output nil))
-        )
+    (while (and input output)
+      (let ((next (pop input)))
+        (if (&lt;= next (car output))
+            (push next output)
+          (if (&gt;= next (car (last output)))
+              (add-to-ordered-list 'output 'next)
+            (if recursive
+                (progn
+                  ;; no idea whether to add to end or beginning here
+                  (push next output)
+                  (if (not input)
+                      (setq output (double-dequer-sort output nil))
+                    )
+                  )
+              (setq output nil)
+              )
+            )
           )
-      (setq output nil)
+        )
       )
+    output
     )
-      )
-    )
-  )
-output
-)
   )
 </code></pre>
 </div>
