@@ -82,6 +82,76 @@ $ cargo run --release
  [2, 3, 8, 4, -2]], shape=[6, 5], strides=[5, 1], layout=Cc (0x5), const ndim=2
 Max value of the last column: 10
 </code></pre>
+<p><strong>Edit:</strong></p>
+<p>Also considering the added condition <span class="math-container">\$K\$</span>, the code is:</p>
+<pre class="lang-rust prettyprint-override"><code>// src/main.rs
+
+fn main() {
+    let n = 5;
+    let a: [[i32; 5]; 5] = [
+        [-3, -2, 3, 2, -2],
+        [3, -2, -2, -5, -3],
+        [0, 3, 1, 1, -3],
+        [1, 1, 2, 1, -1],
+        [1, 1, 1, -3, 3],
+    ];
+    let k = 1;
+    let mut d = vec![vec![vec![0; k + 1]; n]; n + 1];
+    let mut c = vec![vec![0; n]; n + 1];
+    let mut m = vec![vec![vec![0; k + 1]; n]; n];
+
+    for j in 0..n {
+        for i in 0..=n {
+            c[i][j] = if i &gt; 0 {
+                c[i - 1][j] + a[i - 1][j]
+            } else {
+                0
+            };
+
+            for k in 0..=k {
+                d[i][j][k] = c[i][j];
+                if j &gt; 0 {
+                    d[i][j][k] += std::cmp::max(
+                        d[i][j - 1][k],
+                        std::cmp::max(
+                            d[n][j - 1][k],
+                            if i + 1 &lt; n &amp;&amp; k &gt; 0 {
+                                m[i + 1][j - 1][k - 1]
+                            } else {
+                                i32::MIN
+                            },
+                        ),
+                    );
+                }
+            }
+        }
+
+        for i in (0..n).rev() {
+            for k in 0..=k {
+                m[i][j][k] = std::cmp::max(d[i][j][k], if i + 1 &lt; n { m[i + 1][j][k] } else { i32::MIN });
+            }
+        }
+    }
+
+    for k in 0..=k {
+        for i in 0..=n {
+            for j in 0..n {
+                print!(&quot;{} &quot;, d[i][j][k]);
+            }
+            println!();
+        }
+        println!();
+    }
+
+    let mut max_val = i32::MIN;
+    for i in 1..n {
+        max_val = std::cmp::max(max_val, d[i][n - 1][k - 1]);
+    }
+    max_val = std::cmp::max(max_val, d[0][n - 1][k]);
+
+    println!(&quot;{}&quot;, max_val);
+}
+</code></pre>
 </div>
 <div id="pu1" class="pu"><p>Without the <span class="math-container">\$k\$</span> constraint, <span class="math-container">\$O(n^2)\$</span> is possible using a columnwise DP.</p>
 <p>Define <span class="math-container">\$d[i,j]\$</span> as the maximum sum of columns <span class="math-container">\$0\$</span> to <span class="math-container">\$j\$</span>, given some boundary line with a horizontal boundary above cell <span class="math-container">\$(i,j)\$</span>, and <span class="math-container">\$c[i,j]\$</span> to be the column prefix sum up to row <span class="math-container">\$i\$</span>.  Then
