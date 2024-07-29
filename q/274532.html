@@ -26,28 +26,34 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>060</td><td>Python</td><td>240729T004501Z</td><td><a href="https://codegolf.stackexchange.com/questions/274532/rabinowitz-wagon-pi-formula/274535#274535">shape wa</a></td></tr>
+<tr d-ix="0"><td>057</td><td>Python</td><td>240729T004501Z</td><td><a href="https://codegolf.stackexchange.com/questions/274532/rabinowitz-wagon-pi-formula/274535#274535">shape wa</a></td></tr>
 <tr d-ix="1"><td>043</td><td>Raku Perl 6 rakudo</td><td>240729T001816Z</td><td><a href="https://codegolf.stackexchange.com/questions/274532/rabinowitz-wagon-pi-formula/274533#274533">bb94</a></td></tr>
 <tr d-ix="2"><td>6375</td><td>Vyxal s</td><td>240729T003234Z</td><td><a href="https://codegolf.stackexchange.com/questions/274532/rabinowitz-wagon-pi-formula/274534#274534">lyxal</a></td></tr>
 <tr d-ix="3"><td>043</td><td>JavaScript Node.js</td><td>240729T010514Z</td><td><a href="https://codegolf.stackexchange.com/questions/274532/rabinowitz-wagon-pi-formula/274539#274539">l4m2</a></td></tr>
 <tr d-ix="4"><td>014</td><td>J</td><td>240729T005525Z</td><td><a href="https://codegolf.stackexchange.com/questions/274532/rabinowitz-wagon-pi-formula/274538#274538">Bubbler</a></td></tr>
 <tr d-ix="5"><td>024</td><td>K ngn/k</td><td>240729T004954Z</td><td><a href="https://codegolf.stackexchange.com/questions/274532/rabinowitz-wagon-pi-formula/274537#274537">att</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, <s>71</s> <s>70</s> 60 bytes</h1>
-<pre class="lang-python prettyprint-override"><code>def f(n):
- p=q=1
- while n:q*=n-~n;p=p*n+q;n-=1
- return 2*p,q
+<div id="pu0" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, <s>71</s> <s>70</s> <s>60</s> 57 bytes</h1>
+<pre class="lang-python prettyprint-override"><code>f=lambda n,q=1,p=1:n and f(n-1,q:=q*2*n+q,p*n+q)or(2*p,q)
 </code></pre>
-<p><a href="https://ato.pxeger.com/run?1=NY4xDoJAEEV7TvHLBSFRKgNu6ylsiO7KJjI7Oy4xNl7Ehkbv5G0UgelmXv68_3zzPbaehuHVR1tsP7uTsbCK0ioB66A3CW6tuxhQFTJNxYNq1pzRKtRUjFRM7IVQZpyH-cfBiu9gpTlG5-kK17GXiP18SKwXEBxBGjobVa5H2W84R4D-26ddHEW1xNSI03RyLH2_" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<p><a href="https://ato.pxeger.com/run?1=NU4xDgIhEOzvFVsCcolQKQmtr7BBT5REFlix8C021-if_I0SuS0mmZnMzD7f-VEvCef5da9-3Hy23l5dPEwOUBarZLbKIDicwDMclSzGFqEFrorMDXkipkWWhfeCvacUwZM71pDwBiHmRBV2XRh8IkAICOTwfGJ6zc0Av8sSCti2wv-cAla2xFized9Ynv0C" rel="nofollow noreferrer">Attempt This Online!</a></p>
 <p>Outputs the (0-indexed) nth term of the sequence as a (numerator, denominator) tuple.</p>
-<p>Numerator and denominator are stored separately, with <code>p</code> being the numerator and <code>q</code> being the denominator.</p>
+<p>Ungolfed algorithm:</p>
+<pre class="lang-python prettyprint-override"><code>def f(n):
+    numerator, denominator = 1, 1
+    # i/(2i + 1) = n/(2n + 1), ..., 3/7, 2/5, 1/3
+    for i in range(n, 0, -1):
+        # multiply by i/(2i + 1)
+        numerator *= i
+        denominator *= 2 * i + 1
+        # add 1 (p/q -&gt; (p + q)/q = p/q + q/q = p/q + 1)
+        numerator += denominator
+    return 2 * numerator, denominator
+</code></pre>
 <p>For n=3:</p>
 <pre><code>  * 3/7     + 1      * 2/5       + 1       * 1/3        + 1         * 2
 1 ----&gt; 3/7 --&gt; 10/7 ----&gt; 20/35 --&gt; 55/35 ----&gt; 55/105 --&gt; 160/105 --&gt; 320/105
 </code></pre>
-<p>Byte reduction edit: for loop -&gt; while loop, with the <code>n</code> variable being reused as the loop counter. For clarity, the original function argument will be notated as <code>x</code> and the loop counter will be notated as <code>i</code>.</p>
-<p>The fraction being multiplied on each iteration (i = x, ..., 3, 2, 1) is <code>i/(2 * i + 1)</code> , with <code>2 * i + 1</code> written as <code>i - ~i</code> (thanks @l4m2 for that byte reduction). Adding 1 is the same as adding the denominator to the numerator. The multiplying-adding steps are combined for the numerator. The denominator is modified first, since the numerator depends on its new value when adding 1.</p>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://raku.org" rel="nofollow noreferrer">Raku (Perl 6) (rakudo)</a>, <s>49</s> 43 bytes</h1>
 <pre class="lang-perl prettyprint-override"><code>{2+2*[+] [\*] map {.FatRat/(2*$_+1)},1..$_}
@@ -81,21 +87,21 @@
 <p><a href="https://ato.pxeger.com/run?1=m70kLz8ldcGCpaUlaboWN7XTbDXydApsC20NNW3t8uzTNPJ0DXUKtPK0NQq1bPN06_I0Na2iC7SMdApjoVqU0vKLNDJtDawzbYwMrLW1MzWT8_OK83NS9XLy0zXSNDI1NSEqYZYAAA" rel="nofollow noreferrer">Attempt This Online!</a></p>
 <p>Port of shape warrior t's answer</p>
 </div>
-<div id="pu4" class="pu"><h1><a href="https://www.jsoftware.com" rel="nofollow noreferrer">J</a>, 14 bytes</h1>
+<div id="pu4" class="pu"><h1><a href="https://www.jsoftware.com" rel="noreferrer">J</a>, 14 bytes</h1>
 <pre><code>2#.~1%2+1%]-i.
 </code></pre>
-<p><a href="https://ato.pxeger.com/run?1=m70wa8FuJT0FdYU0BVsrIKWjYKBgBcS6egrOQT5uS0tL0nQt1hkp69UZqhppG6rG6mbqQQS3aXKlJmfkq9kppAGxobZCpp6CkUEFRHLBAggNAA" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<p><a href="https://ato.pxeger.com/run?1=m70wa8FuJT0FdYU0BVsrIKWjYKBgBcS6egrOQT5uS0tL0nQt1hkp69UZqhppG6rG6mbqQQS3aXKlJmfkq9kppAGxobZCpp6CkUEFRHLBAggNAA" rel="noreferrer">Attempt This Online!</a></p>
 <p>If we expand the formula entirely, we get <code>2 + 2*1/3 + 2*1/3*2/5 + 2*1/3*2/5*3/7 + ...</code>, which can be interpreted as a mixed base conversion of <code>[..., 2, 2, 2, 2]</code> in base <code>[..., 3/7, 2/5, 1/3]</code>.</p>
 <hr />
-<h1><a href="https://www.jsoftware.com" rel="nofollow noreferrer">J</a>, 19 bytes</h1>
+<h1><a href="https://www.jsoftware.com" rel="noreferrer">J</a>, 19 bytes</h1>
 <pre><code>2(*&gt;:)/@,1%2+1%1+i.
 </code></pre>
-<p><a href="https://ato.pxeger.com/run?1=m70wa8FuJT0FdYU0BVsrIKWjYKBgBcS6egrOQT5uS0tL0nQtNhtpaNlZaeo76BiqGmkbqhpqZ-pBZDZqcqUmZ-Q7pKnZKWTqKRgZVEDEFyyA0AA" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<p><a href="https://ato.pxeger.com/run?1=m70wa8FuJT0FdYU0BVsrIKWjYKBgBcS6egrOQT5uS0tL0nQtNhtpaNlZaeo76BiqGmkbqhpqZ-pBZDZqcqUmZ-Q7pKnZKWTqKRgZVEDEFyyA0AA" rel="noreferrer">Attempt This Online!</a></p>
 <p>A straightforward implementation of the formula. Takes an arbitrary-precision integer, constructs the array that looks like <code>2 1/3 2/5 3/7</code>, and reduces from the right by <code>x * (1 + y)</code>.</p>
-<h1><a href="https://www.jsoftware.com" rel="nofollow noreferrer">J</a>, 20 bytes</h1>
+<h1><a href="https://www.jsoftware.com" rel="noreferrer">J</a>, 20 bytes</h1>
 <pre><code>(&gt;:@+:#.0&amp;=,:2*!)@i.
 </code></pre>
-<p><a href="https://ato.pxeger.com/run?1=m70wa8FuJT0FdYU0BVsrIKWjYKBgBcS6egrOQT5uS0tL0nQttmjYWTloWynrGajZ6lgZaSlqOmTqQaT2aHKlJmfkq9kpqNbpKxkqpAFZhtoKmXoKRgYVECULFkBoAA" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<p><a href="https://ato.pxeger.com/run?1=m70wa8FuJT0FdYU0BVsrIKWjYKBgBcS6egrOQT5uS0tL0nQttmjYWTloWynrGajZ6lgZaSlqOmTqQaT2aHKlJmfkq9kpqNbpKxkqpAFZhtoKmXoKRgYVECULFkBoAA" rel="noreferrer">Attempt This Online!</a></p>
 <p>Tried to be clever with some mixed-base magic:</p>
 <pre><code>(1 + 1/3(1 + 2/5)) * 3*5 = 3*5 + 1*5 + 1*2
 (1 + 1/3(1 + 2/5(1 + 3/7))) * 3*5*7 = 3*5*7 + 1*5*7 + 1*2*7 + 1*2*3
