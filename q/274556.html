@@ -26,10 +26,52 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>079</td><td>Charcoal</td><td>240729T230836Z</td><td><a href="https://codegolf.stackexchange.com/questions/274556/automatic-pikmin-count/274566#274566">Neil</a></td></tr>
-<tr d-ix="1"><td>184</td><td>JavaScript Node.js</td><td>240729T163719Z</td><td><a href="https://codegolf.stackexchange.com/questions/274556/automatic-pikmin-count/274558#274558">l4m2</a></td></tr>
+<tr d-ix="0"><td>033</td><td>Jelly</td><td>240730T211150Z</td><td><a href="https://codegolf.stackexchange.com/questions/274556/automatic-pikmin-count/274582#274582">Jonathan</a></td></tr>
+<tr d-ix="1"><td>079</td><td>Charcoal</td><td>240729T230836Z</td><td><a href="https://codegolf.stackexchange.com/questions/274556/automatic-pikmin-count/274566#274566">Neil</a></td></tr>
+<tr d-ix="2"><td>184</td><td>JavaScript Node.js</td><td>240729T163719Z</td><td><a href="https://codegolf.stackexchange.com/questions/274556/automatic-pikmin-count/274558#274558">l4m2</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, <s>87</s> 79 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 33 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
+<pre><code>r0ŒpḋṭSạ⁵ƊƊÐṂĠfLɗÐṀĠạ²SɗÞ
+Ṭ¬a⁹ạÇḢ
+</code></pre>
+<p>A full program that accepts the (1-indexed) types, the numbers of available pikmin, and the request number and prints the resulting selection.</p>
+<p><strong><a href="https://tio.run/##y0rNyan8/7/I4Oikgoc7uh/uXBv8cNfCR41bj3Ud6zo84eHOpiML0nxOTgcxG44sAMod2hQM5M7jerhzzaE1iY8adwLFDrc/3LHo////0YY6CkY6Ciax/6ONDXQUQNgQiI3ANJAwBdJgZux/Y3MA" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></strong> (Too slow for the first test case.)</p>
+<p>Or see the <a href="https://tio.run/##y0rNyan8/7/I4Oikgoc7uh/uXBv8cNfCQ@uOdR3rOjzh4c6mIwvSfE5OBzEbjiwASW0KBnLncT3cuebQmsRHjTuBYofbH@5Y9N8NSBxa@XDn7Ic7uh41zDi8/NBSB/1HjTt0jk56uHPGo6Y1WY8a5ijY2ik8apirGfn/f3S0oYGBjkK0sZmOgrE5EJvqKBiZAkXAwsZADGbHApWAGEDJ2FgdLgWoLhMQaWIKVgkizCAGoGgzBqrQUTCFaANZEW0MNdkQiI1gVpmCTQcyEVYZQ/VY0FgP1EvGlsTqMULYY0mGPcSFAdASYHCaQ/RgCWwcsWSKrM2ITH2Q2DWEug87BmkyRA4LI0tK9ADFDA2J0BMLAA" rel="nofollow noreferrer" title="Jelly – Try It Online">test-suite</a>. (I have augmented the first two test cases to allow completion. I have also replaced the <code>⁵</code>, which accesses the third program argument, in the code with <code>®</code>, which accesses the register instead, to allow multiple test cases to run.)</p>
+<h4>How?</h4>
+<pre><code>Ṭ¬a⁹ạÇḢ - Main Link: typeIndices, availableCounts
+Ṭ       - untruth {typeIndices}
+ ¬      - logical NOT {that} -&gt; ZeroMask
+  a⁹    - {ZeroMask} logical AND {availableCounts} (vectorises, implicit masks of 1)
+    ạ   - {that} absolute difference {availableCounts} -&gt; ZeroedCounts
+     Ç  - call Link 1 as a monad
+      Ḣ - head
+
+r0ŒpḋṭSạ⁵ƊƊÐṂĠfLɗÐṀĠạ²SɗÞ - Link 1: ZeroedCounts
+r0                        - {ZeroedCounts} inclusive range to zero (vectorises)
+  Œp                      - Cartisian product -&gt; AllPossibleSelections
+           ÐṂ             - keep those minimal under:
+          Ɗ               -   last three links as a monad:
+    ḋ                     -     dot-product with itself -&gt; SumOfSquares
+         Ɗ                -     last three links as a monad:
+      S                   -       sum
+        ⁵                 -       program's third argument -&gt; RequestNumber
+       ạ                  -       {sum} absolute difference {RequestNumber} -&gt; Difference
+     ṭ                    -     tack -&gt; [Difference, SumOfSquares]
+                            -&gt; AllPossibleSelections filtered to SumValidAndEqualish
+                   Ġ      - group indices of {ZeroedCounts} by respective values -&gt; OriginalGroups
+                 ÐṀ       - keep those of {SumValidAndEqualish} maximal under:
+                ɗ         -   last three links as a dyad - f(Potential, OriginalGroups):
+             Ġ            -     group indices of {Potential} by respective values
+              f           -     filter keep {OriginalGroups}
+               L          -     length
+                        Þ - sort by:
+                       ɗ  -   last three links as a dyad - f(Potential, ZeroedCounts}
+                    ạ     -     {Potential} absolute difference {ZeroedCounts} (vectorises)
+                     ²    -     squared
+                      S   -     sum
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, <s>87</s> 79 bytes</h1>
 <pre><code>Ｗ∧θΦζ⁻§ηκ№υκ«≔Ｅι§ηκεＦ›Ｌιθ≔⊟Φ⟦…ιθΦι⁻§ηλ⌊εΦι⁼§ηλ⌊εΦι⁼§ηλ⌈ε⟧⁼ＬλθιＦι⊞υκ≧⁻Ｌιθ»ＩＥη№υκ
 </code></pre>
 <p><a href="https://tio.run/##pZBNS8QwEIbP218xxwlEqBbxsKdSVAQXitfSQ2hjEzZNtl@6Kv72Os3WspW9GUgmH8@8k3cKJdrCCTOOcdfpyuJOHFBxCBkHybbBu9JGAsa2xIbDgza9bPGTQ9w/2VIeJ3TPaMBXsDlT0H8JDiWpbV5dC/jYSjHJPEtb9Qo1PTakMKen7oBznSz5KIxMlPOCDVs@QKedtkOHZ0UM85e6HmosGVvB980gzH9pcVzofIFmD@bkgVY92aQWJK6uBXVNckgN/XTPIXGD7acChsg1pX4NXcZOrXnRlerRcxxWzdsG30HaakpLRNejpLxxzKI7DlkUcpjmNc0bH2m5pei3ZCQL/SHK8/HqzfwA" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code. Explanation:</p>
@@ -52,7 +94,7 @@
 </code></pre>
 <p>Count how many of each type of Pikmin were selected.</p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 184 bytes</h1>
+<div id="pu2" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 184 bytes</h1>
 
 <pre class="lang-javascript prettyprint-override"><code>A=&gt;m=&gt;P=g=(n,i=8,...x)=&gt;i--?[0,...Array(A[i]*m.includes(i))].map((_,j)=&gt;g(n--,i,j,...x))&amp;&amp;R:x.map((e,j)=&gt;i+=e*e*9+n*n*99+x.some((f,k)=&gt;y=e&lt;f?(Q=A[j]-A[k])?Q&gt;0:9:0)*y)&amp;&amp;i&gt;=P?R:(P=i,R=x)
 </code></pre>
