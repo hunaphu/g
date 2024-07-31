@@ -72,10 +72,142 @@ b&quot;hello world&quot;[n]as char // char
 </code></pre>
 <h2>Modifying the nth element of a <code>String</code></h2>
 <p>If you need to make multiple modifications:</p>
-<pre><code>unsafe{s.as_mut_vec()}
+<pre class="lang-rs prettyprint-override"><code>unsafe{s.as_mut_vec()}
 </code></pre>
 <p>Gives you an array that allows very compact manipulation of the string. The original string can still be accessed after the last use of the mutable slice eg. for printing.</p>
 <p>This would obviously be a terrible idea outside of golfing.</p>
+<p>If you <em>don't</em> need to convert it back afterwards you can just do</p>
+<pre class="lang-rs prettyprint-override"><code>s.into_bytes()
+</code></pre>
+<h2>A comparison of techniques</h2>
+<p>Consumes mean methods that take <code>self</code> so you won't be able to use the string again afterwards.</p>
+<h3>Single Use</h3>
+<div class="s-table-container"><table class="s-table">
+<thead>
+<tr>
+<th>Code</th>
+<th>Bytes</th>
+<th><code>String</code></th>
+<th><code>&amp;str</code></th>
+<th>Consumes</th>
+<th>Return Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>s.chars().nth(n).unwrap()</code></td>
+<td>25</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>No</td>
+<td><code>char</code></td>
+</tr>
+<tr>
+<td><code>s.bytes().nth(n).unwrap()</code></td>
+<td>25</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>No</td>
+<td><code>u8</code></td>
+</tr>
+<tr>
+<td><code>s.as_bytes()[n]</code></td>
+<td>15</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>No</td>
+<td><code>u8</code></td>
+</tr>
+<tr>
+<td><code>&amp;s[n..][..1]</code></td>
+<td>12</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>No</td>
+<td><code>&amp;str</code></td>
+</tr>
+<tr>
+<td><code>&amp;s[n..m]</code></td>
+<td>8</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>No</td>
+<td><code>&amp;str</code></td>
+</tr>
+<tr>
+<td><code>unsafe{&amp;s.as_bytes_mut()[n]}</code></td>
+<td>28</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>No</td>
+<td><code>&amp;mut u8</code></td>
+</tr>
+<tr>
+<td><code>unsafe{&amp;s.as_mut_vec()[n]}</code></td>
+<td>26</td>
+<td>No</td>
+<td>Yes</td>
+<td>No</td>
+<td><code>&amp;mut u8</code></td>
+</tr>
+<tr>
+<td><code>s.into_bytes()[n]</code></td>
+<td>17</td>
+<td>No</td>
+<td>Yes</td>
+<td>Yes</td>
+<td><code>u8</code></td>
+</tr>
+</tbody>
+</table></div>
+<h3>Multi Use</h3>
+<p>For assignment to a variable if you need to take multiple slices and/or modifications. All of these return a format compatible with standard <code>x[n]</code> indexing.</p>
+<div class="s-table-container"><table class="s-table">
+<thead>
+<tr>
+<th>Code</th>
+<th>Bytes</th>
+<th><code>String</code></th>
+<th><code>&amp;str</code></th>
+<th>Consumes</th>
+<th>Return Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>s.as_bytes()</code></td>
+<td>12</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>No</td>
+<td><code>&amp;[u8]</code></td>
+</tr>
+<tr>
+<td><code>unsafe{s.as_mut_bytes()}</code></td>
+<td>24</td>
+<td>Yes</td>
+<td>No</td>
+<td>No</td>
+<td><code>&amp;mut[u8]</code></td>
+</tr>
+<tr>
+<td><code>unsafe{s.as_mut_vec()}</code></td>
+<td>22</td>
+<td>No</td>
+<td>Yes</td>
+<td>No</td>
+<td><code>&amp;mut Vec&lt;u8&gt;</code></td>
+</tr>
+<tr>
+<td><code>s.into_bytes()</code></td>
+<td>14</td>
+<td>No</td>
+<td>Yes</td>
+<td>Yes</td>
+<td><code>Vec&lt;u8&gt;</code></td>
+</tr>
+</tbody>
+</table></div>
 </div>
 <div id="pu1" class="pu"><h2>Abuse <code>reduce</code> to do something special with the first element of an iterator</h2>
 <p>It's very inconvenient when the first element of an iterator is a special case, since all ways to deal with it are quite long.</p>
