@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::26739</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>000</td><td>C 15</td><td>240731T044900Z</td><td><a href="https://codegolf.stackexchange.com/questions/26739/super-speedy-totient-function/274588#274588">qwr</a></td></tr>
+<tr d-ix="1"><td>nan</td><td></td><td>160402T002944Z</td><td><a href="https://codegolf.stackexchange.com/questions/26739/super-speedy-totient-function/76859#76859">will.fis</a></td></tr>
+<tr d-ix="2"><td>nan</td><td></td><td>160611T135516Z</td><td><a href="https://codegolf.stackexchange.com/questions/26739/super-speedy-totient-function/82680#82680">P_P</a></td></tr>
+<tr d-ix="3"><td>nan</td><td></td><td>150116T133549Z</td><td><a href="https://codegolf.stackexchange.com/questions/26739/super-speedy-totient-function/44614#44614">AlexPnt</a></td></tr>
+<tr d-ix="4"><td>000</td><td>Nimrod ~38</td><td>140507T052351Z</td><td><a href="https://codegolf.stackexchange.com/questions/26739/super-speedy-totient-function/26747#26747">Reimer B</a></td></tr>
+<tr d-ix="5"><td>000</td><td>Nimrod ~2</td><td>140509T165503Z</td><td><a href="https://codegolf.stackexchange.com/questions/26739/super-speedy-totient-function/26866#26866">Reimer B</a></td></tr>
+<tr d-ix="6"><td>nan</td><td></td><td>140507T105421Z</td><td><a href="https://codegolf.stackexchange.com/questions/26739/super-speedy-totient-function/26753#26753">Anna Jok</a></td></tr>
+<tr d-ix="7"><td>000</td><td>Java</td><td>140508T094941Z</td><td><a href="https://codegolf.stackexchange.com/questions/26739/super-speedy-totient-function/26800#26800">Howard</a></td></tr>
+<tr d-ix="8"><td>nan</td><td>Matlab 1464  = 26355867/</td><td>140507T125113Z</td><td><a href="https://codegolf.stackexchange.com/questions/26739/super-speedy-totient-function/26757#26757">Dennis J</a></td></tr>
+<tr d-ix="9"><td>001</td><td>φ2n = 2n −</td><td>140507T150121Z</td><td><a href="https://codegolf.stackexchange.com/questions/26739/super-speedy-totient-function/26761#26761">Ry-</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>C: 15,000 = 30,0000,000 / 20,000 (basic sieve)</h1>
+<p>This is a decade-old question of mine I forgot I wrote until I found it on google again. Nevertheless, I wanted to post a simple solution that does well and is shorter than my original code. This is a small modification of the Sieve of Eratosthenes to use Euler's product formula that also runs in <span class="math-container">\$O(n \log \log n)\$</span> time.</p>
+<p>For reference, this is the python/pseudocode in 5 lines of computation:</p>
+<pre class="lang-python prettyprint-override"><code>def totient_range(n):
+    tots = list(range(n+1))
+    for p in range(2, n+1):
+        if p == tots[p]:
+            for k in range(p, n+1, p):
+                tots[k] -= tots[k] // p
+
+    return tots
+</code></pre>
+<pre class="lang-c prettyprint-override"><code>#include &quot;stdio.h&quot;
+
+#define N 300'000'000
+
+int tot[N+1];
+
+int main(void) 
+{
+    for (int i=0; i&lt;=N; ++i) 
+        tot[i] = i;
+
+    for (int p=2; p&lt;=N; ++p)
+    {
+        if (p == tot[p]) 
+        {
+            for (int k=p; k&lt;=N; k+=p) 
+                tot[k] -= tot[k] / p;
+        }
+    }
+
+    long long s = 0;
+    for (int i=0; i&lt;=N; ++i) 
+        s += tot[i];
+    
+    printf(&quot;%lld\n&quot;, s);
+}
+</code></pre>
+</div>
+<div id="pu1" class="pu"><p>Here is my Python implementation that seems to be able to crank out ~60000 numbers in 10seconds. I am factorizing numbers using the pollard rho algorithm and using the Rabin miller primality test.</p>
+<pre class="lang-python prettyprint-override"><code>from Queue import Queue
+import random
+
+def gcd ( a , b ):
+    while b != 0: a, b = b, a % b
+    return a
+
+def rabin_miller(p):
+    if(p&lt;2): return False
+    if(p!=2 and p%2==0): return False
+    s=p-1
+    while(s%2==0): s&gt;&gt;=1
+    for _ in xrange(10):
+        a=random.randrange(p-1)+1
+        temp=s
+        mod=pow(a,temp,p)
+        while(temp!=p-1 and mod!=1 and mod!=p-1):
+            mod=(mod*mod)%p
+            temp=temp*2
+        if(mod!=p-1 and temp%2==0): return False
+    return True
+
+def pollard_rho(n):
+    if(n%2==0): return 2;
+    x=random.randrange(2,1000000)
+    c=random.randrange(2,1000000)
+    y=x
+    d=1
+    while(d==1):
+        x=(x*x+c)%n
+        y=(y*y+c)%n
+        y=(y*y+c)%n
+        d=gcd(x-y,n)
+        if(d==n): break;
+    return d;
+
+def primeFactorization(n):
+    if n &lt;= 0: raise ValueError(&quot;Fucked up input, n &lt;= 0&quot;)
+    elif n == 1: return []
+    queue = Queue()
+    factors=[]
+    queue.put(n)
+    while(not queue.empty()):
+        l=queue.get()
+        if(rabin_miller(l)):
+            factors.append(l)
+            continue
+        d=pollard_rho(l)
+        if(d==l):queue.put(l)
+        else:
+            queue.put(d)
+            queue.put(l/d)
+    return factors
+
+def phi(n):
+
+    if rabin_miller(n): return n-1
+    phi = n
+    for p in set(primeFactorization(n)):
+        phi -= (phi/p)
+    return phi
+
+if __name__ == '__main__':
+  
+  n = 1
+  s = 0
+
+  while n &lt; 60000:
+    n += 1
+    s += phi(n)
+  print(s)
+</code></pre>
+</div>
+<div id="pu2" class="pu"><p>
+<strong>C#: 49,000 (980,000,000 / 20,000)</strong></p>
+
+<p><a href="https://codegolf.stackexchange.com/a/26800">https://codegolf.stackexchange.com/a/26800</a> "Howard's code".<br>
+But modified, phi values are computed for odd integers.</p>
+
+<pre class="lang-cs prettyprint-override"><code>using System;
+using sw = System.Diagnostics.Stopwatch;
+class Program
+{
+    static void Main()
+    {
+        sw sw = sw.StartNew();
+        Console.Write(sumPhi(980000000) + " " + sw.Elapsed);
+        sw.Stop(); Console.Read();
+    }
+
+    static long sumPhi(int n)  // sum phi[i] , 1 &lt;= i &lt;= n
+    {
+        long s = 0; int[] phi;
+        if (n &lt; 1) return 0; phi = buildPhi(n + 1);
+        for (int i = 1; i &lt;= n; i++) s += getPhi(i, phi);
+        return s;
+    }
+
+    static int getPhi(int i, int[] phi)
+    {
+        if ((i &amp; 1) &gt; 0) return phi[i &gt;&gt; 1];
+        if ((i &amp; 3) &gt; 0) return phi[i &gt;&gt; 2];
+        int z = ntz(i); return phi[i &gt;&gt; z &gt;&gt; 1] &lt;&lt; z - 1;
+    }
+
+    static int[] buildPhi(int n)  // phi[i &gt;&gt; 1] , i odd , i &lt; n
+    {
+        int i, j, y, x, q, r, f; int[] phi;
+        if (n &lt; 2) return new int[] { 0 };
+        phi = new int[n / 2]; phi[0] = 1;
+        for (j = 2, i = 3; i &lt; n; i *= 3, j *= 3) phi[i &gt;&gt; 1] = j;
+        for (x = 4, i = 5; i &lt;= n &gt;&gt; 1; i += x ^= 6)
+        {
+            if (phi[i &gt;&gt; 1] &gt; 0) continue; phi[i &gt;&gt; 1] = i ^ 1;
+            for (j = 3, y = 3 * i; y &lt; n; y += i &lt;&lt; 1, j += 2)
+            {
+                if (phi[j &gt;&gt; 1] == 0) continue; q = j; f = i ^ 1;
+                while ((r = q) == i * (q /= i)) f *= i;
+                phi[y &gt;&gt; 1] = f * phi[r &gt;&gt; 1];
+            }
+        }
+        for (; i &lt; n; i += x ^= 6)  // primes &gt; n / 2 
+            if (phi[i &gt;&gt; 1] == 0)
+                phi[i &gt;&gt; 1] = i ^ 1;
+        return phi;
+    }
+
+    static int ntz(int i)  // number of trailing zeros
+    {
+        int z = 1;
+        if ((i &amp; 0xffff) == 0) { z += 16; i &gt;&gt;= 16; }
+        if ((i &amp; 0x00ff) == 0) { z += 08; i &gt;&gt;= 08; }
+        if ((i &amp; 0x000f) == 0) { z += 04; i &gt;&gt;= 04; }
+        if ((i &amp; 0x0003) == 0) { z += 02; i &gt;&gt;= 02; }
+        return z - (i &amp; 1);
+    }
+}
+</code></pre>
+
+<p>New score: <strong>61,000</strong> (1,220,000,000 / 20,000)<br>
+In "App.config" I had to add "gcAllowVeryLargeObjects enabled=true".</p>
+
+<pre class="lang-cs prettyprint-override"><code>    static long sumPhi(int n)
+    {
+        int i1, i2, i3, i4, z; long s1, s2, s3, s4; int[] phi;
+        if (n &lt; 1) return 0; phi = buildPhi(n + 1); n -= 4; z = 2;
+        i1 = 1; i2 = 2; i3 = 3; i4 = 4; s1 = s2 = s3 = s4 = 0;
+        if (n &gt; 0)
+            for (; ; )
+            {
+                s1 += phi[i1 &gt;&gt; 1];
+                s2 += phi[i2 &gt;&gt; 2];
+                s3 += phi[i3 &gt;&gt; 1];
+                s4 += phi[i4 &gt;&gt; z &gt;&gt; 1] &lt;&lt; z - 1;
+                i1 += 4; i2 += 4; i3 += 4; i4 += 4;
+                n -= 4; if (n &lt; 0) break;
+                if (z == 2)
+                {
+                    z = 3; i4 &gt;&gt;= 3;
+                    while ((i4 &amp; 3) == 0) { i4 &gt;&gt;= 2; z += 2; }
+                    z += i4 &amp; 1 ^ 1;
+                    i4 = i3 + 1;
+                }
+                else z = 2;
+            }
+        if (n &gt; -4) s1 += phi[i1 &gt;&gt; 1];
+        if (n &gt; -3) s2 += phi[i2 &gt;&gt; 2];
+        if (n &gt; -2) s3 += phi[i3 &gt;&gt; 1];
+        if (n &gt; -1) s4 += phi[i4 &gt;&gt; z &gt;&gt; 1] &lt;&lt; z - 1;
+        return s1 + s2 + s3 + s4;
+    }
+
+    static int[] buildPhi(int n)
+    {
+        int i, j, y, x, q0, q1, f; int[] phi;
+        if (n &lt; 2) return new int[] { 0 };
+        phi = new int[n / 2]; phi[0] = 1;
+        for (uint u = 2, v = 3; v &lt; n; v *= 3, u *= 3) phi[v &gt;&gt; 1] = (int)u;
+        for (x = 4, i = 5; i &lt;= n &gt;&gt; 1; i += x ^= 6)
+        {
+            if (phi[i &gt;&gt; 1] &gt; 0) continue; phi[i &gt;&gt; 1] = i ^ 1;
+            for (j = 3, y = 3 * i; y &lt; n; y += i &lt;&lt; 1, j += 2)
+            {
+                if (phi[j &gt;&gt; 1] == 0) continue; q0 = j; f = i ^ 1;
+                while ((q1 = q0) == i * (q0 /= i)) f *= i;
+                phi[y &gt;&gt; 1] = f * phi[q1 &gt;&gt; 1];
+            }
+        }
+        for (; i &lt; n; i += x ^= 6)
+            if (phi[i &gt;&gt; 1] == 0)
+                phi[i &gt;&gt; 1] = i ^ 1;
+        return phi;
+    }
+</code></pre>
+</div>
+<div id="pu3" class="pu"><h1>Python 2.7: 10.999 (165975/15090)</h1>
+
+<h1>Pypy 2.3.1: 28.496 (430000/15090)</h1>
+
+<p>Some interesting methods I use:</p>
+
+<p><strong>Rabin-Miller Strong Pseudoprime Test</strong> - A primality test that provides an efficient probabilistic algorithm for determining if a given number is prime</p>
+
+<p><strong>Euler's product formula</strong>  - The product is over the distinct prime numbers dividing n</p>
+
+<p><img src="https://upload.wikimedia.org/math/6/1/9/619a7845480ba7a8a749dc56a6de7c60.png" alt="Euler&#39;s product formula"></p>
+
+<p><strong>Code:</strong></p>
+
+<pre><code>import math
+import random
+
+#perform a Modular exponentiation
+def modular_pow(base, exponent, modulus):
+    result=1
+    while exponent&gt;0:
+        if exponent%2==1:
+           result=(result * base)%modulus
+        exponent=exponent&gt;&gt;1
+        base=(base * base)%modulus
+    return result
+
+#Miller-Rabin primality test
+def checkMillerRabin(n,k):
+    if n==2: return True
+    if n==1 or n%2==0: return False
+
+    #find s and d, with d odd
+    s=0
+    d=n-1
+    while(d%2==0):
+        d/=2
+        s+=1
+    assert (2**s*d==n-1)
+
+    #witness loop
+    composite=1
+    for i in xrange(k):
+        a=random.randint(2,n-1)
+        x=modular_pow(a,d,n)
+        if x==1 or x==n-1: continue
+        for j in xrange(s-1):
+            composite=1
+            x=modular_pow(x,2,n)
+            if x==1: return False #is composite
+            if x==n-1: 
+                composite=0
+                break
+        if composite==1:
+            return False        #is composite
+    return True                 #is probably prime
+
+def findPrimes(n):              #generate a list of primes, using the sieve of eratosthenes
+
+    primes=(n+2)*[True]
+
+    for i in range(2,int(math.sqrt(n))+1):
+        if primes[i]==True:
+            for j in range(i**2,n+1,i):
+                primes[j]=False
+
+    primes=[i for i in range(2,len(primes)-1) if primes[i]==True]
+    return primes
+
+def primeFactorization(n,primes):   #find the factors of a number
+
+    factors=[]
+
+    i=0
+    while(n!=1):
+        if(n%primes[i]==0):
+            factors.append(primes[i])
+            n/=primes[i]
+        else:
+            i+=1
+
+    return factors
+
+def phi(n,primes):
+    #some useful properties
+    if (checkMillerRabin(n,10)==True):      #fast prime check
+        return n-1
+
+    factors=primeFactorization(n,primes)    #prime factors
+    distinctive_prime_factors=set(factors)  
+
+    totient=n
+    for f in distinctive_prime_factors:     #phi = n * sum (1 - 1/p), p is a distinctive prime factor
+        totient*=(1-1.0/f);
+
+    return totient
+
+if __name__ == '__main__':
+
+
+    s=0
+    N=165975
+    # N=430000
+    primes=findPrimes(N)    #upper bound for the number of primes
+    for i in xrange(1,N):
+        s+=phi(i,primes)
+
+    print "Sum =",s 
+</code></pre>
+</div>
+<div id="pu4" class="pu"><h1>Nimrod: ~38,667 (580,000,000/15,000)</h1>
+
+<p>This answer uses a pretty simple approach. The code employs a simple prime number sieve that stores the prime of the smallest prime power in each slot for composite numbers (zero for primes), then uses dynamic programming to construct the totient function over the same range, then sums the results. The program spends virtually all its time constructing the sieve, then calculates the totient function in a fraction of the time. It looks like it comes down to constructing an efficient sieve (with the slight twist that one also has to be able to extract a prime factor for composite numbers from the result and has to keep memory usage at a reasonable level).</p>
+
+<p>Update: Improved performance by reducing memory footprint and improving cache behavior. It's possible to squeeze out 5%-10% more performance, but the increase in code complexity is not worth it. Ultimately, this algorithm primarily exercises a CPU's von Neumann bottleneck, and there are very few algorithmic tweaks that can get around that.</p>
+
+<p>Also updated the performance divisor since the C++ code wasn't meant to be compiled with all optimizations on and nobody else did it. :)</p>
+
+<p>Update 2: Optimized sieve operation for improved memory access. Now handling small primes in bulk via memcpy() (~5% speedup) and skipping multiples of 2, 3, and 5 when sieving bigger primes (~10% speedup).</p>
+
+<p>C++ code: 9.9 seconds (with g++ 4.9)</p>
+
+<p>Nimrod code: 9.9 seconds (with -d:release, gcc 4.9 backend)</p>
+
+<pre><code>proc handleSmallPrimes(sieve: var openarray[int32], m: int) =
+  # Small primes are handled as a special case through what is ideally
+  # the system's highly optimized memcpy() routine.
+  let k = 2*3*5*7*11*13*17
+  var sp = newSeq[int32](k div 2)
+  for i in [3,5,7,11,13,17]:
+    for j in countup(i, k, 2*i):
+      sp[j div 2] = int32(i)
+  for i in countup(0, sieve.high, len(sp)):
+    if i + len(sp) &lt;= len(sieve):
+      copyMem(addr(sieve[i]), addr(sp[0]), sizeof(int32)*len(sp))
+    else:
+      copyMem(addr(sieve[i]), addr(sp[0]), sizeof(int32)*(len(sieve)-i))
+  # Fixing up the numbers for values that are actually prime.
+  for i in [3,5,7,11,13,17]:
+    sieve[i div 2] = 0
+
+proc constructSieve(m: int): seq[int32] =
+  result = newSeq[int32](m div 2 + 1)
+  handleSmallPrimes(result, m)
+  var i = 19
+  # Having handled small primes, we only consider candidates for
+  # composite numbers that are relatively prime with 31. This cuts
+  # their number almost in half.
+  let steps = [ 1, 7, 11, 13, 17, 19, 23, 29, 31 ]
+  var isteps: array[8, int]
+  while i * i &lt;= m:
+    if result[i div 2] == 0:
+      for j in 0..7: isteps[j] = i*(steps[j+1]-steps[j])
+      var k = 1 # second entry in "steps mod 30" list.
+      var j = 7*i
+      while j &lt;= m:
+        result[j div 2] = int32(i)
+        j += isteps[k]
+        k = (k + 1) and 7 # "mod 30" list has eight elements.
+    i += 2
+
+proc calculateAndSumTotients(sieve: var openarray[int32], n: int): int =
+  result = 1
+  for i in 2'i32..int32(n):
+    var tot: int32
+    if (i and 1) == 0:
+      var m = i div 2
+      var pp: int32 = 2
+      while (m and 1) == 0:
+        pp *= 2
+        m = m div 2
+      if m == 1:
+        tot = pp div 2
+      else:
+        tot = (pp div 2) * sieve[m div 2]
+    elif sieve[i div 2] == 0: # prime?
+      tot = i - 1
+      sieve[i div 2] = tot
+    else:
+      # find and extract the first prime power pp.
+      # It's relatively prime with i/pp.
+      var p = sieve[i div 2]
+      var m = i div p
+      var pp = p
+      while m mod p == 0 and m != p:
+        pp *= p
+        m = m div p
+      if m == p: # is i a prime power?
+        tot = pp*(p-1)
+      else:
+        tot = sieve[pp div 2] * sieve[m div 2]
+      sieve[i div 2] = tot
+    result += tot
+
+proc main(n: int) =
+  var sieve = constructSieve(n)
+  let totSum = calculateAndSumTotients(sieve, n)
+  echo totSum
+
+main(580_000_000)
+</code></pre>
+</div>
+<div id="pu5" class="pu"><h1>Nimrod: ~2,333,333 (42,000,000,000/18,000)</h1>
+
+<p>This uses an entirely different approach from my previous answer. See comments for details. The <code>longint</code> module can be found <a href="https://bitbucket.org/behrends/nimlongint">here</a>.</p>
+
+<pre><code>import longint
+
+const max = 500_000_000
+
+var ts_mem: array[1..max, int]
+
+# ts(n, d) is defined as the number of pairs (a,b)
+# such that 1 &lt;= a &lt;= b &lt;= n and gcd(a,b) = d.
+#
+# The following equations hold:
+#
+# ts(n, d) = ts(n div d, 1)
+# sum for i in 1..n of ts(n, i) = n*(n+1)/2
+#
+# This leads to the recurrence:
+# ts(n, 1) = n*(n+1)/2 - sum for i in 2..n of ts(n, i)
+#
+# or, where ts(n) = ts(n, 1):
+# ts(n) = n*(n+1)/2 - sum for i in 2..n of ts(n div i)
+#
+# Note that the large numbers that we deal with can
+# overflow 64-bit integers.
+
+proc ts(n, gcd: int): int =
+  if n == 0:
+    result = 0
+  elif n == 1 and gcd == 1:
+    result = 1
+  elif gcd == 1:
+    result = n*(n+1) div 2
+    for i in 2..n:
+      result -= ts(n, i)
+  else:
+    result = ts(n div gcd, 1)
+
+# Below is the optimized version of the same algorithm.
+
+proc ts(n: int): int =
+  if n == 0:
+    result = 0
+  elif n == 1:
+    result = 1
+  else:
+    if n &lt;= max and ts_mem[n] &gt; 0:
+      return ts_mem[n]
+    result = n*(n+1) div 2
+    var p = n
+    var k = 2
+    while k &lt; n div k:
+      let pold = p
+      p = n div k
+      k += 1
+      let t = ts(n div pold)
+      result -= t * (pold-p)
+    while p &gt;= 2:
+      result -= ts(n div p)
+      p -= 1
+    if n &lt;= max:
+      ts_mem[n] = result
+
+proc ts(n: int128): int128 =
+  if n &lt;= 2_000_000_000:
+    result = ts(n.toInt)
+  else:
+    result = n*(n+1) div 2
+    var p = n
+    var k = 2
+    while k &lt; n div k:
+      let pold = p
+      p = n div k
+      k += 1
+      let t = ts(n div pold)
+      result = result - t * (pold-p)
+    while p &gt;= 2:
+      result = result - ts(n div p)
+      p = p - 1
+
+echo ts(42_000_000_000.toInt128)
+</code></pre>
+</div>
+<div id="pu6" class="pu">
+
+<h1>Python 3: ~24000 (335,000,000 / 14,000)</h1>
+
+<p>My version is a Python port of <a href="https://codegolf.stackexchange.com/a/26800/20998">Howard's algorithm</a>. My original function was a modification of an algorithm introduced in this <a href="http://abhisharlives.blogspot.fi/2013/03/euler-totient-function-in-3-ways.html" rel="nofollow noreferrer">blogpost</a>.</p>
+
+<p>I'm using Numpy and Numba modules to speed up the execution time. Note that normally you don't need to declare the types of the local variables (when using Numba), but in this case I wanted to squeeze the execution time as much as possible.</p>
+
+<p>Edit: combined constructsieve and summarum functions into a single function.</p>
+
+<p>C++: 9.99s (n = 14,000);
+Python 3: 9.94s (n = 335,000,000)</p>
+
+<pre class="lang-python prettyprint-override"><code>import numba as nb
+import numpy as np
+import time
+
+n = 335000000
+
+@nb.njit("i8(i4[:])", locals=dict(
+    n=nb.int32, s=nb.int64, i=nb.int32,
+    j=nb.int32, q=nb.int32, f=nb.int32))
+
+def summarum(phi):
+    s = 0
+
+    phi[1] = 1
+
+    i = 2
+    while i &lt; n:
+        if phi[i] == 0:
+            phi[i] = i - 1
+
+            j = 2
+
+            while j * i &lt; n:
+                if phi[j] != 0:
+                    q = j
+                    f = i - 1
+
+                    while q % i == 0:
+                        f *= i
+                        q //= i
+
+                    phi[i * j] = f * phi[q]
+                j += 1
+        s += phi[i]
+        i += 1
+    return s
+
+if __name__ == "__main__":
+    s1 = time.time()
+    a = summarum(np.zeros(n, np.int32))
+    s2 = time.time()
+
+    print(a)
+    print("{}s".format(s2 - s1))
+</code></pre>
+</div>
+<div id="pu7" class="pu"><h3>Java, score ~24,000 (360,000,000 / 15,000)</h3>
+<p>The java code below does calculation of the totient function and the prime sieve together. Note that depending on your machine you have to increase the initial/maximum heap size (on my rather slow laptop I had to go up to <code>-Xmx3g -Xms3g</code>).</p>
+<pre class="lang-java prettyprint-override"><code>public class Totient {
+
+    final static int size = 360000000;
+    final static int[] phi = new int[size];
+
+    public static void main(String[] args) {
+        long time = System.currentTimeMillis();
+        long sum = 0;
+
+        phi[1] = 1;
+        for (int i = 2; i &lt; size; i++) {
+            if (phi[i] == 0) {
+                phi[i] = i - 1;
+                for (int j = 2; i * j &lt; size; j++) {
+                    if (phi[j] == 0)
+                        continue;
+
+                    int q = j;
+                    int f = i - 1;
+                    while (q % i == 0) {
+                        f *= i;
+                        q /= i;
+                    }
+                    phi[i * j] = f * phi[q];
+                }
+            }
+            sum += phi[i];
+        }
+        System.out.println(System.currentTimeMillis() - time);
+        System.out.println(sum);
+    }
+}
+</code></pre>
+</div>
+<div id="pu8" class="pu"><h1>Matlab: 1464  = 26355867/ 18000</h1>
+<p>I can't test your code so I divided by 18000 as it represents the fastest computer of those who tested. I came to the score using this property:</p>
+<ul>
+<li>if p is prime, phi(p) = p - 1 (for p &lt; 10^20)</li>
+</ul>
+<p>I mostly like that it is a one liner:</p>
+<pre><code>sum(primes(500000000)-1)
+</code></pre>
+</div>
+<div id="pu9" class="pu"><p>φ(2<sup>n</sup>) = 2<sup>n &minus; 1</sup><br>
+&Sigma; φ(2<sup>i</sup>) = 2<sup>i</sup> &minus; 1 for i from 1 to n</p>
+
+<p>First, something to find times:</p>
+
+<pre><code>import os
+from time import perf_counter
+
+SEARCH_LOWER = -1
+SEARCH_HIGHER = 1
+
+def integer_binary_search(start, lower=None, upper=None, big_jump=1):
+    if lower is not None and lower == upper:
+        raise StopIteration # ?
+
+    result = yield start
+
+    if result == SEARCH_LOWER:
+        if lower is None:
+            yield from integer_binary_search(
+                start=start - big_jump,
+                lower=None,
+                upper=start - 1,
+                big_jump=big_jump * 2)
+        else:
+            yield from integer_binary_search(
+                start=(lower + start) // 2,
+                lower=lower,
+                upper=start - 1)
+    elif result == SEARCH_HIGHER:
+        if upper is None:
+            yield from integer_binary_search(
+                start=start + big_jump,
+                lower=start + 1,
+                upper=None,
+                big_jump=big_jump * 2)
+        else:
+            yield from integer_binary_search(
+                start=(start + upper) // 2,
+                lower=start + 1,
+                upper=upper)
+    else:
+        raise ValueError('Expected SEARCH_LOWER or SEARCH_HIGHER.')
+
+search = integer_binary_search(start=1000, lower=1, upper=None, big_jump=2500)
+n = search.send(None)
+
+while True:
+    print('Trying with %d iterations.' % (n,))
+
+    os.spawnlp(
+        os.P_WAIT,
+        'g++', 'g++', '-Wall', '-Wextra', '-pedantic', '-O0', '-o', 'reference',
+        '-DITERATIONS=%d' % (n,),
+        'reference.cpp')
+
+    start = perf_counter()
+    os.spawnl(os.P_WAIT, './reference', './reference')
+    end = perf_counter()
+    t = end - start
+
+    if t &gt;= 10.1:
+        n = search.send(SEARCH_LOWER)
+    elif t &lt;= 9.9:
+        n = search.send(SEARCH_HIGHER)
+    else:
+        print('%d iterations in %f seconds!' % (n, t))
+        break
+</code></pre>
+
+<p>For the reference code, for me, that’s:</p>
+
+<blockquote>
+  <p>…<br>
+  Trying with 14593 iterations.<br>
+  64724364<br>
+  14593 iterations in 9.987747 seconds!</p>
+</blockquote>
+
+<p>Now, Haskell:</p>
+
+<pre><code>import System.Environment (getArgs)
+
+phiSum :: Integer -&gt; Integer
+phiSum n = 2 ^ n - 1
+
+main :: IO ()
+main = getArgs &gt;&gt;= print . phiSum . (2^) . read . head
+</code></pre>
+
+<p>It makes something with 2525224 digits in 0.718 seconds. And now I’m just noticing @Howard’s comment.</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/26739/">26739</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
