@@ -81,14 +81,15 @@ b&quot;hello world&quot;[n]as char // char
 </code></pre>
 <h2>A comparison of techniques</h2>
 <p>Consumes mean methods that take <code>self</code> so you won't be able to use the string again afterwards.</p>
+<p>Note any method on <code>&amp;str</code> can also be called on a <code>String</code></p>
 <h3>Single Use</h3>
 <div class="s-table-container"><table class="s-table">
 <thead>
 <tr>
 <th>Code</th>
 <th>Bytes</th>
-<th><code>&amp;str</code></th>
-<th><code>String</code></th>
+<th>on what type</th>
+<th>Unicode Safe</th>
 <th>Consumes</th>
 <th>Return Type</th>
 </tr>
@@ -97,7 +98,7 @@ b&quot;hello world&quot;[n]as char // char
 <tr>
 <td><code>s.chars().nth(n).unwrap()</code></td>
 <td>25</td>
-<td>Yes</td>
+<td><code>&amp;str</code></td>
 <td>Yes</td>
 <td>No</td>
 <td><code>char</code></td>
@@ -105,71 +106,62 @@ b&quot;hello world&quot;[n]as char // char
 <tr>
 <td><code>s.bytes().nth(n).unwrap()</code></td>
 <td>25</td>
-<td>Yes</td>
-<td>Yes</td>
+<td><code>&amp;str</code></td>
+<td>No</td>
 <td>No</td>
 <td><code>u8</code></td>
 </tr>
 <tr>
 <td><code>s.as_bytes()[n]</code></td>
 <td>15</td>
-<td>Yes</td>
-<td>Yes</td>
+<td><code>&amp;str</code></td>
+<td>No</td>
 <td>No</td>
 <td><code>u8</code></td>
 </tr>
 <tr>
 <td><code>&amp;s[n..][..1]</code></td>
 <td>12</td>
-<td>Yes</td>
-<td>Yes</td>
+<td><code>&amp;str</code></td>
+<td>No</td>
 <td>No</td>
 <td><code>&amp;str</code></td>
 </tr>
 <tr>
 <td><code>&amp;s[n..m]</code></td>
 <td>8</td>
-<td>Yes</td>
-<td>Yes</td>
+<td><code>&amp;str</code></td>
+<td>No</td>
 <td>No</td>
 <td><code>&amp;str</code></td>
 </tr>
 <tr>
 <td><code>unsafe{&amp;s.as_bytes_mut()[n]}</code></td>
 <td>28</td>
-<td>Yes</td>
-<td>Yes</td>
+<td><code>&amp;str</code></td>
+<td>No</td>
 <td>No</td>
 <td><code>&amp;mut u8</code></td>
 </tr>
 <tr>
 <td><code>unsafe{&amp;s.as_mut_vec()[n]}</code></td>
 <td>26</td>
+<td><code>String</code></td>
 <td>No</td>
-<td>Yes</td>
 <td>No</td>
 <td><code>&amp;mut u8</code></td>
-</tr>
-<tr>
-<td><code>s.into_bytes()[n]</code></td>
-<td>17</td>
-<td>No</td>
-<td>Yes</td>
-<td>Yes</td>
-<td><code>u8</code></td>
 </tr>
 </tbody>
 </table></div>
 <h3>Multi Use</h3>
 <p>For assignment to a variable if you need to take multiple slices and/or modifications. All of these return a format compatible with standard <code>x[n]</code> indexing.</p>
-<p>All the ones that return <code>u8</code> will fail for Unicode text.</p>
 <div class="s-table-container"><table class="s-table">
 <thead>
 <tr>
 <th>Code</th>
 <th>Bytes</th>
-<th><code>&amp;str</code></th>
-<th><code>String</code></th>
+<th>on what type</th>
+<th>Unicode Safe</th>
 <th>Consumes</th>
 <th>Return Type</th>
 </tr>
@@ -178,15 +170,15 @@ b&quot;hello world&quot;[n]as char // char
 <tr>
 <td><code>s.as_bytes()</code></td>
 <td>12</td>
-<td>Yes</td>
-<td>Yes</td>
+<td><code>&amp;str</code></td>
+<td>No</td>
 <td>No</td>
 <td><code>&amp;[u8]</code></td>
 </tr>
 <tr>
 <td><code>s.chars().collect::Vec&lt;_&gt;()</code></td>
 <td>27</td>
-<td>Yes</td>
+<td><code>&amp;str</code></td>
 <td>Yes</td>
 <td>No</td>
 <td><code>Vec&lt;char&gt;</code></td>
@@ -194,24 +186,24 @@ b&quot;hello world&quot;[n]as char // char
 <tr>
 <td><code>unsafe{s.as_mut_bytes()}</code></td>
 <td>24</td>
-<td>Yes</td>
-<td>Yes</td>
+<td><code>&amp;str</code></td>
+<td>No</td>
 <td>No</td>
 <td><code>&amp;mut[u8]</code></td>
 </tr>
 <tr>
 <td><code>unsafe{s.as_mut_vec()}</code></td>
 <td>22</td>
+<td><code>String</code></td>
 <td>No</td>
-<td>Yes</td>
 <td>No</td>
 <td><code>&amp;mut Vec&lt;u8&gt;</code></td>
 </tr>
 <tr>
 <td><code>s.into_bytes()</code></td>
 <td>14</td>
+<td><code>String</code></td>
 <td>No</td>
-<td>Yes</td>
 <td>Yes</td>
 <td><code>Vec&lt;u8&gt;</code></td>
 </tr>
