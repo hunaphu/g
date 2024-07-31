@@ -26,13 +26,13 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>nan</td><td></td><td>240513T084122Z</td><td><a href="https://codegolf.stackexchange.com/questions/74096/tips-for-golfing-in-rust/273074#273074">mousetai</a></td></tr>
-<tr d-ix="1"><td>nan</td><td></td><td>240417T173802Z</td><td><a href="https://codegolf.stackexchange.com/questions/74096/tips-for-golfing-in-rust/272646#272646">ShadowRa</a></td></tr>
-<tr d-ix="2"><td>nan</td><td></td><td>240417T140656Z</td><td><a href="https://codegolf.stackexchange.com/questions/74096/tips-for-golfing-in-rust/272642#272642">ShadowRa</a></td></tr>
-<tr d-ix="3"><td>nan</td><td></td><td>200315T015036Z</td><td><a href="https://codegolf.stackexchange.com/questions/74096/tips-for-golfing-in-rust/201065#201065">JayXon</a></td></tr>
-<tr d-ix="4"><td>nan</td><td></td><td>240112T205829Z</td><td><a href="https://codegolf.stackexchange.com/questions/74096/tips-for-golfing-in-rust/269179#269179">mousetai</a></td></tr>
-<tr d-ix="5"><td>nan</td><td></td><td>220622T151938Z</td><td><a href="https://codegolf.stackexchange.com/questions/74096/tips-for-golfing-in-rust/248943#248943">mousetai</a></td></tr>
-<tr d-ix="6"><td>nan</td><td></td><td>220801T124532Z</td><td><a href="https://codegolf.stackexchange.com/questions/74096/tips-for-golfing-in-rust/250584#250584">mousetai</a></td></tr>
+<tr d-ix="0"><td>nan</td><td></td><td>220801T124532Z</td><td><a href="https://codegolf.stackexchange.com/questions/74096/tips-for-golfing-in-rust/250584#250584">mousetai</a></td></tr>
+<tr d-ix="1"><td>nan</td><td></td><td>240513T084122Z</td><td><a href="https://codegolf.stackexchange.com/questions/74096/tips-for-golfing-in-rust/273074#273074">mousetai</a></td></tr>
+<tr d-ix="2"><td>nan</td><td></td><td>240417T173802Z</td><td><a href="https://codegolf.stackexchange.com/questions/74096/tips-for-golfing-in-rust/272646#272646">ShadowRa</a></td></tr>
+<tr d-ix="3"><td>nan</td><td></td><td>240417T140656Z</td><td><a href="https://codegolf.stackexchange.com/questions/74096/tips-for-golfing-in-rust/272642#272642">ShadowRa</a></td></tr>
+<tr d-ix="4"><td>nan</td><td></td><td>200315T015036Z</td><td><a href="https://codegolf.stackexchange.com/questions/74096/tips-for-golfing-in-rust/201065#201065">JayXon</a></td></tr>
+<tr d-ix="5"><td>nan</td><td></td><td>240112T205829Z</td><td><a href="https://codegolf.stackexchange.com/questions/74096/tips-for-golfing-in-rust/269179#269179">mousetai</a></td></tr>
+<tr d-ix="6"><td>nan</td><td></td><td>220622T151938Z</td><td><a href="https://codegolf.stackexchange.com/questions/74096/tips-for-golfing-in-rust/248943#248943">mousetai</a></td></tr>
 <tr d-ix="7"><td>nan</td><td></td><td>220923T194211Z</td><td><a href="https://codegolf.stackexchange.com/questions/74096/tips-for-golfing-in-rust/252195#252195">naffetS</a></td></tr>
 <tr d-ix="8"><td>nan</td><td>When using string formatting for example with print!</td><td>190722T155710Z</td><td><a href="https://codegolf.stackexchange.com/questions/74096/tips-for-golfing-in-rust/188625#188625">ruohola</a></td></tr>
 <tr d-ix="9"><td>nan</td><td></td><td>211218T125254Z</td><td><a href="https://codegolf.stackexchange.com/questions/74096/tips-for-golfing-in-rust/239745#239745">Ezhik</a></td></tr>
@@ -53,7 +53,31 @@
 <tr d-ix="24"><td>000</td><td>If you need many mutable variables</td><td>161109T070403Z</td><td><a href="https://codegolf.stackexchange.com/questions/74096/tips-for-golfing-in-rust/99124#99124">user6126</a></td></tr>
 <tr d-ix="25"><td>nan</td><td></td><td>160706T213349Z</td><td><a href="https://codegolf.stackexchange.com/questions/74096/tips-for-golfing-in-rust/84662#84662">raggy</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h2>Abuse <code>reduce</code> to do something special with the first element of an iterator</h2>
+<div id="pu0" class="pu"><h1>Get the nth element of a <code>String</code> or <code>&amp;str</code> slice</h1>
+<p>In rust you can't directly index a string or slice. If you want to build a string from indexes of another string you would typically do this:</p>
+<pre class="lang-rs prettyprint-override"><code>s.chars().nth(n).unwrap() // char
+s.bytes().nth(n).unwrap() // u8
+</code></pre>
+<p>Shorter is this, but it will depend <code>s</code> so won't work if <code>s</code> is generated from a expression:</p>
+<pre class="lang-rs prettyprint-override"><code>s.as_bytes()[n]as char // char, supports only single byte characters
+s.as_bytes()[n] // u8
+</code></pre>
+<p>However, if you are ok with a <code>&amp;str</code> (like if you want to collect into a <code>String</code> or concatenate with a existing <code>String</code>). This also supports only single byte characters.</p>
+<pre class="lang-rs prettyprint-override"><code>&amp;s[n..][..1] // &amp;str
+&amp;s[n..=n] // &amp;str, if `n` is a single variable or sufficiently short expression
+</code></pre>
+<p>If your expression is a literal you can use byte string instead to index it directly:</p>
+<pre class="lang-rs prettyprint-override"><code>b&quot;hello world&quot;[n] // u8
+b&quot;hello world&quot;[n]as char // char
+</code></pre>
+<h2>Modifying the nth element of a <code>String</code></h2>
+<p>If you need to make multiple modifications:</p>
+<pre><code>unsafe{s.as_mut_vec()}
+</code></pre>
+<p>Gives you an array that allows very compact manipulation of the string. The original string can still be accessed after the last use of the mutable slice eg. for printing.</p>
+<p>This would obviously be a terrible idea outside of golfing.</p>
+</div>
+<div id="pu1" class="pu"><h2>Abuse <code>reduce</code> to do something special with the first element of an iterator</h2>
 <p>It's very inconvenient when the first element of an iterator is a special case, since all ways to deal with it are quite long.</p>
 <p>You can use <code>.next()</code>: <strong>(~73 bytes)</strong></p>
 <pre class="lang-rs prettyprint-override"><code>let mut a=m.iter();let f=a.next().unwrap();for i in a{do_something(f,i)};
@@ -65,7 +89,7 @@
 <pre class="lang-rs prettyprint-override"><code>m.reduce(|f,a|{do_something(f,a);f})
 </code></pre>
 </div>
-<div id="pu1" class="pu"><h3>Fallible unpacking can let you avoid filtering</h3>
+<div id="pu2" class="pu"><h3>Fallible unpacking can let you avoid filtering</h3>
 <p>If you have an iterable input, e.g. command-line arguments, where some values are known to be bad (the program name is not useful), and others can be split into multiple discrete values, the normal solution to loop over <code>.skip(n)</code> to bypass the bad values (e.g. <code>.skip(1)</code> to skip the program name in the arguments), <code>split</code>/<code>collect</code> the rest to a <code>Vec</code>, and use the values by indexing (unless they're referred to many times, it's not worth the cost to unpack). For example, imagine a program that receives four numbers at a time, comma-separated as command-line arguments, and must compute a value using each value individually. The simple solution (using <a href="https://codegolf.stackexchange.com/a/201065/70305">the <code>flat_map</code> trick</a> to avoid a level of <code>unwrap</code>ing or use of <code>filter_map</code>) is:</p>
 <pre class="lang-rust prettyprint-override"><code>fn main(){
   for a in std::env::args().skip(1){
@@ -93,7 +117,7 @@
 <p>If the iterator had no invalid values to skip, this wouldn't be worth as much (the <code>.skip(1)</code> is 40% of the savings here), but the general pattern can be useful even then if you have enough things to unpack, and use them often enough.</p>
 <p><a href="https://play.rust-lang.org/?version=stable&amp;mode=debug&amp;edition=2021&amp;gist=c03fabd4d826582d78ad9a6c0be269fc" rel="nofollow noreferrer">Try both out on the Rust Playground</a></p>
 </div>
-<div id="pu2" class="pu"><h3>Use <code>for</code> loops or <code>map</code> to unwrap known <code>Some</code>/<code>Ok</code> values when <code>?</code> isn't an option</h3>
+<div id="pu3" class="pu"><h3>Use <code>for</code> loops or <code>map</code> to unwrap known <code>Some</code>/<code>Ok</code> values when <code>?</code> isn't an option</h3>
 <p>When it's too expensive to declare a return value that would allow you to use <code>?</code> to handle known <code>Some</code>/<code>Ok</code> values, and scope is not an issue, you can use the fact that <code>Option</code> and <code>Result</code> implement <code>IntoIterator</code> and a custom version of <code>map</code> to shorten variable declarations by using a <code>for</code> loop or their <code>map</code> method.</p>
 <pre class="lang-rust prettyprint-override"><code>// Unwrapping Some
 if let Some(x)=returnsoption(){}  // Idiomatic fallible unwrap
@@ -121,7 +145,7 @@ s.parse().map(|x:u32|);
 </code></pre>
 <p>All the uses of <code>map</code> will produce a compile-time warning due to the result being unused, so avoid them if that's a problem.</p>
 </div>
-<div id="pu3" class="pu"><h1>Replace all <code>filter_map</code> with <code>flat_map</code></h1>
+<div id="pu4" class="pu"><h1>Replace all <code>filter_map</code> with <code>flat_map</code></h1>
 <p>It works because:</p>
 <ul>
 <li><p><code>filter_map</code> takes a <code>FnMut(Self::Item) -&gt; Option&lt;B&gt;</code></p>
@@ -133,7 +157,7 @@ iterator with one item for <code>Some</code> and empty iterator for <code>None</
 </li>
 </ul>
 </div>
-<div id="pu4" class="pu"><h2>Using slice patterns to get both an array and variables with the same value</h2>
+<div id="pu5" class="pu"><h2>Using slice patterns to get both an array and variables with the same value</h2>
 <p>It is a common trick to use array slicing to compactly assign many variables to the same value:</p>
 <pre class="lang-rs prettyprint-override"><code>let[a,b,c]=[0;3]
 // vs
@@ -155,7 +179,7 @@ let a=0;let b=[0;98];
 let(mut u,mut v)=(0,[0;98]);
 </code></pre>
 </div>
-<div id="pu5" class="pu"><h1><code>if let</code> can sometimes be shorter than <code>match</code></h1>
+<div id="pu6" class="pu"><h1><code>if let</code> can sometimes be shorter than <code>match</code></h1>
 <p>Using <code>match</code>:</p>
 <pre><code>match a{M(v)=&gt;expr,_=&gt;other}
 </code></pre>
@@ -169,24 +193,6 @@ let(mut u,mut v)=(0,[0;98]);
 <pre><code>if let M(v)=a{expr;}else{other;}
 </code></pre>
 <p>saves 1 byte.</p>
-</div>
-<div id="pu6" class="pu"><h1>Get the nth element of a <code>String</code> or <code>&amp;str</code> slice</h1>
-<p>In rust you can't directly index a string or slice. If you want to build a string from indexes of another string you would typically do this:</p>
-<pre class="lang-rs prettyprint-override"><code>s.chars().nth(n).unwrap() // char
-s.bytes().nth(n).unwrap() // u8
-</code></pre>
-<p>Shorter is this, but it will depend <code>s</code> so won't work if <code>s</code> is generated from a expression:</p>
-<pre class="lang-rs prettyprint-override"><code>s.as_bytes()[n]as char // char, supports only single byte characters
-s.as_bytes()[n] // u8
-</code></pre>
-<p>However, if you are ok with a <code>&amp;str</code> (like if you want to collect into a <code>String</code> or concatenate with a existing <code>String</code>). This also supports only single byte characters.</p>
-<pre class="lang-rs prettyprint-override"><code>&amp;s[n..][..1] // &amp;str
-&amp;s[n..=n] // &amp;str, if `n` is a single variable or sufficiently short expression
-</code></pre>
-<p>If your expression is a literal you can use byte string instead to index it directly:</p>
-<pre class="lang-rs prettyprint-override"><code>b&quot;hello world&quot;[n] // u8
-b&quot;hello world&quot;[n]as char // char
-</code></pre>
 </div>
 <div id="pu7" class="pu"><h1>Use <code>@</code> to define multiple variables to the same value</h1>
 <p><code>@</code> is meant to define an alias for pattern matching (like destructuring an array but also getting the original array at the same time). But it works with plain variables too.</p>
