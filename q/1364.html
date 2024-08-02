@@ -26,7 +26,7 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>077</td><td>Haskell</td><td>240802T215059Z</td><td><a href="https://codegolf.stackexchange.com/questions/1364/detect-rotated-strings/274637#274637">xnor</a></td></tr>
+<tr d-ix="0"><td>076</td><td>Haskell</td><td>240802T215059Z</td><td><a href="https://codegolf.stackexchange.com/questions/1364/detect-rotated-strings/274637#274637">xnor</a></td></tr>
 <tr d-ix="1"><td>022</td><td>J</td><td>230719T042821Z</td><td><a href="https://codegolf.stackexchange.com/questions/1364/detect-rotated-strings/263012#263012">south</a></td></tr>
 <tr d-ix="2"><td>090</td><td>Haskell</td><td>240731T060946Z</td><td><a href="https://codegolf.stackexchange.com/questions/1364/detect-rotated-strings/274590#274590">MaroonSp</a></td></tr>
 <tr d-ix="3"><td>055</td><td>Raku</td><td>230718T194430Z</td><td><a href="https://codegolf.stackexchange.com/questions/1364/detect-rotated-strings/263000#263000">bb94</a></td></tr>
@@ -78,15 +78,14 @@
 <tr d-ix="49"><td>084</td><td>J</td><td>110309T125206Z</td><td><a href="https://codegolf.stackexchange.com/questions/1364/detect-rotated-strings/1370#1370">Eelvex</a></td></tr>
 <tr d-ix="50"><td>115</td><td>Lua</td><td>110309T121643Z</td><td><a href="https://codegolf.stackexchange.com/questions/1364/detect-rotated-strings/1365#1365">jpjacobs</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.haskell.org/" rel="nofollow noreferrer">Haskell</a>, 77 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.haskell.org/" rel="nofollow noreferrer">Haskell</a>, 76 bytes</h1>
 
-<pre class="lang-hs prettyprint-override"><code>(h:t)?_=t++[h]
-f[x,y]|elem x$scanl(?)y y=&quot;Yes&quot;|1&gt;0=&quot;No&quot;
+<pre class="lang-hs prettyprint-override"><code>f[x,y]|elem x$scanl(\(h:t)_-&gt;t++[h])y y=&quot;Yes&quot;|1&gt;0=&quot;No&quot;
 main=interact$f.words
 </code></pre>
-<p><a href="https://tio.run/##FcfBCsIgGADg@55CZAdlMeoauR0KOtU9xgiZipL6h/7QhL27scsHn5X5o72vLnwhIblJlP0DIjhFGLsMnFdmz8jHt8Cum@zcmGk9lHnTXgeytnmR0bORF1IEfelMt9NwFPQJtAnSReEi6iQXbE3/g6RyrVdQ@g7ekJ09fw" rel="nofollow noreferrer" title="Haskell – Try It Online">Try it online!</a></p>
+<p><a href="https://tio.run/##y0gszk7Nyfn/Py26QqcytiY1JzVXoUKlODkxL0cjRiPDqkQzXteuRFs7OiNWs1Kh0lYpMrVYqcbQzsBWyS9fiSs3MTPPNjOvJLUoMblEJU2vPL8opfj/f@f8lFT3/Jw0BRAB4gAA" rel="nofollow noreferrer" title="Haskell – Try It Online">Try it online!</a></p>
 <p>Inspired by <a href="https://codegolf.stackexchange.com/a/274590/20260">MaroonSphinx's solution</a>. A full program that takes in two space-separated inputs and prints the result&quot;Yes&quot; or &quot;No&quot;, as was the style at the time in 2011 when this challenge was posted.</p>
-<p>The helper function <code>(?)</code> rotates a string <code>h:t</code> by moving its first character to the end giving <code>t++[h]</code>. Except, it takes an extra unused argument, which lets us use it as the binary operator for <code>scanl</code>. Doing <code>scanl(?) r s</code> makes each character of <code>s</code> trigger one rotation of <code>r</code> in turn, which is accumulated into a list of rotations of <code>r</code>, whose length is that of <code>s</code> plus 1. For example:</p>
+<p>The helper function <code>\(h:t)_-&gt;t++[h]</code> rotates a string by moving its first character to the end. Except, it takes an extra unused argument, which lets us use it as the binary operator for <code>scanl</code>. Doing <code>scanl(?) r s</code> makes each character of <code>s</code> trigger one rotation of <code>r</code> in turn, which is accumulated into a list of rotations of <code>r</code>, whose length is that of <code>s</code> plus 1. For example:</p>
 <pre class="lang-hs prettyprint-override"><code>scanl(?)&quot;abc&quot; &quot;def&quot; == [&quot;abc&quot;,&quot;bca&quot;,&quot;cab&quot;,&quot;abc&quot;]
 </code></pre>
 <p>The main function <code>f</code> on <code>[x,y]</code> takes these rotations of <code>y</code>, and checks if <code>x</code> is among them.</p>
@@ -98,6 +97,7 @@ main=interact$f.words
 main=interact$f.words
 </code></pre>
 <p><a href="https://tio.run/##y0gszk7Nyfn/Py26QqcytiYntUQjw6pEU1WjwKpQswbItLWttFWKTC1Wqim10S3R1o7OiLUtVS20jleNt1Xyy1eyrVCt4MpNzMyzzcwrSS1KTC5RSdMrzy9KKf7/3zk/JdU9PydNAUSAOAA" rel="nofollow noreferrer" title="Haskell – Try It Online">Try it online!</a></p>
+<p>I also tried importing <code>Data.List</code> for <code>isInfixOf</code>, to check that <code>x</code> is a substring of <code>y++y</code>, but this plus checking they're equal length turned out too long.</p>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://www.jsoftware.com" rel="nofollow noreferrer">J</a>, <s>28</s> 22 bytes</h1>
 <pre><code>No`Yes{::~[e.#\@]|.&quot;{]
