@@ -26,13 +26,45 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>219</td><td>Picat</td><td>240404T080229Z</td><td><a href="https://codegolf.stackexchange.com/questions/120584/is-it-a-cactus/272325#272325">Bubbler</a></td></tr>
-<tr d-ix="1"><td>130</td><td>JavaScript Node.js</td><td>240308T054930Z</td><td><a href="https://codegolf.stackexchange.com/questions/120584/is-it-a-cactus/271628#271628">l4m2</a></td></tr>
-<tr d-ix="2"><td>009</td><td>Mathematica</td><td>240308T020703Z</td><td><a href="https://codegolf.stackexchange.com/questions/120584/is-it-a-cactus/271624#271624">138 Aspe</a></td></tr>
+<tr d-ix="0"><td>009</td><td>Mathematica</td><td>240308T020703Z</td><td><a href="https://codegolf.stackexchange.com/questions/120584/is-it-a-cactus/271624#271624">138 Aspe</a></td></tr>
+<tr d-ix="1"><td>219</td><td>Picat</td><td>240404T080229Z</td><td><a href="https://codegolf.stackexchange.com/questions/120584/is-it-a-cactus/272325#272325">Bubbler</a></td></tr>
+<tr d-ix="2"><td>130</td><td>JavaScript Node.js</td><td>240308T054930Z</td><td><a href="https://codegolf.stackexchange.com/questions/120584/is-it-a-cactus/271628#271628">l4m2</a></td></tr>
 <tr d-ix="3"><td>289</td><td>Python 2</td><td>210630T095944Z</td><td><a href="https://codegolf.stackexchange.com/questions/120584/is-it-a-cactus/230755#230755">fireflam</a></td></tr>
 <tr d-ix="4"><td>062</td><td>Mathematica</td><td>170515T021431Z</td><td><a href="https://codegolf.stackexchange.com/questions/120584/is-it-a-cactus/120620#120620">JungHwan</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="http://picat-lang.org" rel="nofollow noreferrer">Picat</a>, 219 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.wolfram.com/wolframscript/" rel="nofollow noreferrer">Mathematica</a>, with IGraph/M, 9 bytes</h1>
+<pre class="lang-mathematica prettyprint-override"><code>IGCactusQ
+</code></pre>
+<p>IGraph/M provides a Mathematica interface to the popular igraph network analysis package. You can use <code>IGCactusQ</code> function in  <code>IGraphM` </code> package.</p>
+<pre class="lang-mathematica prettyprint-override"><code>Get[&quot;https://raw.githubusercontent.com/szhorvat/IGraphM/master/IGInstaller.m&quot;]   (* Installation *)
+Needs[&quot;IGraphM`&quot;];
+IGCactusQ[g]
+</code></pre>
+<hr />
+<p>Ungolfed version of <a href="https://codegolf.stackexchange.com/a/120620/110802">@JungHwan Min's Mathematica answer</a>.</p>
+<pre class="lang-mathematica prettyprint-override"><code>Clear[&quot;Global`*&quot;];
+g = Graph[{1 \[UndirectedEdge] 2, 1 \[UndirectedEdge] 3, 
+   3 \[UndirectedEdge] 4, 2 \[UndirectedEdge] 4, 
+   3 \[UndirectedEdge] 5, 5 \[UndirectedEdge] 6, 
+   6 \[UndirectedEdge] 7, 7 \[UndirectedEdge] 8, 
+   8 \[UndirectedEdge] 5, 7 \[UndirectedEdge] 9, 
+   9 \[UndirectedEdge] 10, 10 \[UndirectedEdge] 11, 
+   11 \[UndirectedEdge] 7, 8 \[UndirectedEdge] 12, 
+   8 \[UndirectedEdge] 13}, VertexLabels -&gt; &quot;Name&quot;, 
+  GraphLayout -&gt; &quot;SpringElectricalEmbedding&quot;]
+
+myCactusGraphQ[graph_] := 
+ Module[{cycles, noDuplicateEdges },
+  cycles = FindCycle[graph, \[Infinity], All]; (*Find all cycles in the graph, with no limit on their length *)
+  noDuplicateEdges = DuplicateFreeQ[Join@@cycles];
+  noDuplicateEdges &amp;&amp; ConnectedGraphQ[graph] (*Finally, check that the graph is connected AND the noDuplicateEdges condition is met*)
+] 
+
+Print[&quot;myCactusGraphQ[g]=&quot;, myCactusGraphQ[g]]
+</code></pre>
+<p><a href="https://i.sstatic.net/vvmIqm.png" rel="nofollow noreferrer"><img src="https://i.sstatic.net/vvmIqm.png" alt="enter image description here" /></a></p>
+</div>
+<div id="pu1" class="pu"><h1><a href="http://picat-lang.org" rel="nofollow noreferrer">Picat</a>, 219 bytes</h1>
 <pre><code>import sat.
 f(V,E,W,F,X)=&gt;W=[{I,B}:I in V],F=[I++{B}:I in map(reverse,E)++E],X=[Z[3]:Z in F].
 g(V,E)=&gt;once(f(V,E,W,F,B),hcp(W,F),sum(B)#&gt;2,Q=B.solve_all,B.solve;Q=[]),N=Q.len//2-E.len+2*V.len-1,f(V,E,X,G,C),tree(X,G,N).
@@ -110,44 +142,13 @@ h(M) =&gt;
     end.
 </code></pre>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 130 bytes</h1>
+<div id="pu2" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 130 bytes</h1>
 
 <pre class="lang-javascript prettyprint-override"><code>f=(x,y,h)=&gt;x.every(h=(c,i,g)=&gt;!g||h([c[1],c[0]],i)?eval(y)-c[0]||f(x.filter(_=&gt;i--),y+[,c]):0)&gt;/(,\d+,).*(,\d+),.*\1.*\2$/.test(y)
 </code></pre>
 <p><a href="https://tio.run/##jYzRioMwEEXf/YoW@jBjx9jEPu0S90PSsEhMNIvoolYU/Hc37dK@tnOYy3C4zE8xFYPp/e@YtF1pt81JmGmhGmU@MzvZfoFagiFPVVD7al1rUEZxTUadtCaPX3YqGlgwuYl1dTAz55vR9vAtc58kSMtRkdH4ccI8BbqUR0IW3w8kFl94WHFI2WiHMfzZPndpHF3b0jrf2pIE8UAWEIFzIIt2z5HPlA8TxWlkunboGsuargIHSnESmpSgLGRGXGvEF53zW53/bzdz729/" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
 <p>Finds a path through <code>a,b,a,b</code></p>
 <p><code>y</code> has form <code>undefined,1,2</code> therefore <code>eval(y)</code> gets the last value in <code>y</code></p>
-</div>
-<div id="pu2" class="pu"><h1><a href="https://www.wolfram.com/wolframscript/" rel="nofollow noreferrer">Mathematica</a>, with IGraph/M, 9 bytes</h1>
-<pre class="lang-mathematica prettyprint-override"><code>IGCactusQ
-</code></pre>
-<p>IGraph/M provides a Mathematica interface to the popular igraph network analysis package. You can use <code>IGCactusQ</code> function in  <code>IGraphM` </code> package.</p>
-<pre class="lang-mathematica prettyprint-override"><code>Needs[&quot;IGraphM`&quot;];
-IGCactusQ[g]
-</code></pre>
-<hr />
-<p>Ungolfed version of <a href="https://codegolf.stackexchange.com/a/120620/110802">@JungHwan Min's Mathematica answer</a>.</p>
-<pre class="lang-mathematica prettyprint-override"><code>Clear[&quot;Global`*&quot;];
-g = Graph[{1 \[UndirectedEdge] 2, 1 \[UndirectedEdge] 3, 
-   3 \[UndirectedEdge] 4, 2 \[UndirectedEdge] 4, 
-   3 \[UndirectedEdge] 5, 5 \[UndirectedEdge] 6, 
-   6 \[UndirectedEdge] 7, 7 \[UndirectedEdge] 8, 
-   8 \[UndirectedEdge] 5, 7 \[UndirectedEdge] 9, 
-   9 \[UndirectedEdge] 10, 10 \[UndirectedEdge] 11, 
-   11 \[UndirectedEdge] 7, 8 \[UndirectedEdge] 12, 
-   8 \[UndirectedEdge] 13}, VertexLabels -&gt; &quot;Name&quot;, 
-  GraphLayout -&gt; &quot;SpringElectricalEmbedding&quot;]
-
-myCactusGraphQ[graph_] := 
- Module[{cycles, noDuplicateEdges },
-  cycles = FindCycle[graph, \[Infinity], All]; (*Find all cycles in the graph, with no limit on their length *)
-  noDuplicateEdges = DuplicateFreeQ[Join@@cycles];
-  noDuplicateEdges &amp;&amp; ConnectedGraphQ[graph] (*Finally, check that the graph is connected AND the noDuplicateEdges condition is met*)
-] 
-
-Print[&quot;myCactusGraphQ[g]=&quot;, myCactusGraphQ[g]]
-</code></pre>
-<p><a href="https://i.stack.imgur.com/vvmIqm.png" rel="nofollow noreferrer"><img src="https://i.stack.imgur.com/vvmIqm.png" alt="enter image description here" /></a></p>
 </div>
 <div id="pu3" class="pu"><h1><a href="https://docs.python.org/2/" rel="nofollow noreferrer">Python 2</a>, <s>299</s> 289 bytes</h1>
 
