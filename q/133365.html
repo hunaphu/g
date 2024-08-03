@@ -26,7 +26,7 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>nan</td><td>Binary Lambda Calculus</td><td>240802T234231Z</td><td><a href="https://codegolf.stackexchange.com/questions/133365/find-the-closest-fibonacci-number/274640#274640">short_c1</a></td></tr>
+<tr d-ix="0"><td>3975</td><td>Binary Lambda Calculus</td><td>240802T234231Z</td><td><a href="https://codegolf.stackexchange.com/questions/133365/find-the-closest-fibonacci-number/274640#274640">short_c1</a></td></tr>
 <tr d-ix="1"><td>035</td><td>JavaScript Babel Node</td><td>240727T132433Z</td><td><a href="https://codegolf.stackexchange.com/questions/133365/find-the-closest-fibonacci-number/274468#274468">l4m2</a></td></tr>
 <tr d-ix="2"><td>048</td><td>Perl 5 p</td><td>201231T222204Z</td><td><a href="https://codegolf.stackexchange.com/questions/133365/find-the-closest-fibonacci-number/217095#217095">Xcali</a></td></tr>
 <tr d-ix="3"><td>028</td><td>K ngn/k</td><td>201230T210651Z</td><td><a href="https://codegolf.stackexchange.com/questions/133365/find-the-closest-fibonacci-number/217047#217047">coltim</a></td></tr>
@@ -62,12 +62,12 @@
 <tr d-ix="33"><td>084</td><td>Python 3</td><td>170719T152814Z</td><td><a href="https://codegolf.stackexchange.com/questions/133365/find-the-closest-fibonacci-number/133376#133376">notjagan</a></td></tr>
 <tr d-ix="34"><td>030</td><td>Mathematica</td><td>170719T150446Z</td><td><a href="https://codegolf.stackexchange.com/questions/133365/find-the-closest-fibonacci-number/133368#133368">ZaMoC</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://tromp.github.io/cl/cl.html" rel="nofollow noreferrer">Binary Lambda Calculus</a>, 44.375 bytes</h1>
-<pre><code>00010100 01000001 01010101 01010110 11100111 00000101 11001010 11100000 11011101 00000001
-00000110 01110000 01100111 00000100 10001010 00100011 10011010 00011100 11010000 00101010
-10101111 01111001 10000010 00000010 00001100 11100100 00010110 01110000 01001010 11100000
-11000000 00111001 01111011 01001110 00001010 10000101 10000010 00000111 01011000 00000101
-01111000 00011001 11011110 00110001 010
+<div id="pu0" class="pu"><h1><a href="https://tromp.github.io/cl/cl.html" rel="nofollow noreferrer">Binary Lambda Calculus</a>, <s>44.375</s> 39.75 bytes</h1>
+<pre><code>00010100 01000001 01010101 01010110 11100111 00000101 11001010 11100000 11011101
+00000001 00000110 01110000 01100111 00000100 10001011 00001010 10101011 10111001
+10000010 00000010 00001100 10000010 11001110 00001001 01011100 00011000 00000111
+00101111 01101001 11000001 01010000 10110000 01000000 11101011 00000000 10101111
+00000011 00111011 11000110 001010
 </code></pre>
 <p>This function takes in a Church numeral as input and returns a Church numeral as output. It's a reduced version of</p>
 <pre><code>λn.closer (boundpair n) n
@@ -84,15 +84,13 @@ pred        := λn.λf.λx.n (λg.λh.h (g f)) (λu.x) (λu.u)
 is0         := λn.n (λx.⊥) ⊤
 ≤           := λm.λn.is0 (- m n)
 
-Y           := λf.(λx.f (x x)) (λf (x x))
-
 nextfib     := λp.λf.f (p ⊥) (+ (p ⊤) (p ⊥))
-boundpair   := λn.Y (λrec.λp.≤ (p ⊥) n (rec (nextfib p)) p) (λf.f 0 1)
+boundpair   := λn.n (λp.≤ (p ⊥) n (nextfib p) p) (λf.f 0 1)
 closer      := λp.λn.≤ (- n (p ⊤)) (- (p ⊥) n) (p ⊤) (p ⊥)
 </code></pre>
 <p>All the blocks above <code>nextfib</code> are standard lambda calculus definitions, so I won't go into detail on them.</p>
 <p><code>nextfib</code> takes in a pair and returns a pair with the second element and the sum of the two elements. If initialised with <code>(0, 1)</code>, repeated application will create successive terms of the fibonacci sequence.</p>
-<p><code>boundpair n</code> finds the pair of consecutive fibonacci terms that are lower and upper bounds on <code>n</code>. It does this by repeatedly applying <code>nextfib</code> to <code>(0, 1)</code> until the second element is greater than or equal to <code>n</code>. As this is the first pair to do this, the first element will be less than <code>n</code>. One of these two is the closest fibonacci number to <code>n</code>.</p>
+<p><code>boundpair n</code> finds the pair of consecutive fibonacci terms that are lower and upper bounds on <code>n</code>. The first function applied to <code>n</code> takes a pair of consecutive fibonacci numbers and checks if the second element is less than or equal to n. If it is, we return <code>nextfib</code> of that pair. If the second element is greater than <code>n</code> we return the pair. If we repeatedly apply that to <code>(0, 1)</code> we check a sliding window of fibonacci numbers until we find the bounds. Applying it any more will just repeatedly return that pair. This used to be done recursively, stopping once we hit the pair, but the program still works if we just apply it <code>n</code> times. This is because <code>n ≤ F(n + 1)</code>, so we're guarenteed to hit our desired pair by <code>n</code> applications. This takes longer but produces a shorter program.</p>
 <p><code>closer</code> finds the difference between each of the elements in the pair and n. Whichever element has the smaller difference gets returned.</p>
 <p>To reduce the size, I manually applied functions where the input was only used in one spot and I factored out <code>pred</code> to be an argument to the rest of the program. A similar tactic may be applicable for <code>⊤</code> and <code>⊥</code>, but I think a larger size reduction might come from making a non recursive algorithm.</p>
 </div>
