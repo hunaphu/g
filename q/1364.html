@@ -26,9 +26,9 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>076</td><td>Haskell</td><td>240802T215059Z</td><td><a href="https://codegolf.stackexchange.com/questions/1364/detect-rotated-strings/274637#274637">xnor</a></td></tr>
-<tr d-ix="1"><td>022</td><td>J</td><td>230719T042821Z</td><td><a href="https://codegolf.stackexchange.com/questions/1364/detect-rotated-strings/263012#263012">south</a></td></tr>
-<tr d-ix="2"><td>090</td><td>Haskell</td><td>240731T060946Z</td><td><a href="https://codegolf.stackexchange.com/questions/1364/detect-rotated-strings/274590#274590">MaroonSp</a></td></tr>
+<tr d-ix="0"><td>089</td><td>Haskell</td><td>240731T060946Z</td><td><a href="https://codegolf.stackexchange.com/questions/1364/detect-rotated-strings/274590#274590">MaroonSp</a></td></tr>
+<tr d-ix="1"><td>076</td><td>Haskell</td><td>240802T215059Z</td><td><a href="https://codegolf.stackexchange.com/questions/1364/detect-rotated-strings/274637#274637">xnor</a></td></tr>
+<tr d-ix="2"><td>022</td><td>J</td><td>230719T042821Z</td><td><a href="https://codegolf.stackexchange.com/questions/1364/detect-rotated-strings/263012#263012">south</a></td></tr>
 <tr d-ix="3"><td>055</td><td>Raku</td><td>230718T194430Z</td><td><a href="https://codegolf.stackexchange.com/questions/1364/detect-rotated-strings/263000#263000">bb94</a></td></tr>
 <tr d-ix="4"><td>014</td><td>Thunno 2</td><td>230718T102051Z</td><td><a href="https://codegolf.stackexchange.com/questions/1364/detect-rotated-strings/262963#262963">The Thon</a></td></tr>
 <tr d-ix="5"><td>013</td><td>Jelly</td><td>171215T192513Z</td><td><a href="https://codegolf.stackexchange.com/questions/1364/detect-rotated-strings/150743#150743">caird co</a></td></tr>
@@ -78,42 +78,7 @@
 <tr d-ix="49"><td>084</td><td>J</td><td>110309T125206Z</td><td><a href="https://codegolf.stackexchange.com/questions/1364/detect-rotated-strings/1370#1370">Eelvex</a></td></tr>
 <tr d-ix="50"><td>115</td><td>Lua</td><td>110309T121643Z</td><td><a href="https://codegolf.stackexchange.com/questions/1364/detect-rotated-strings/1365#1365">jpjacobs</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.haskell.org/" rel="nofollow noreferrer">Haskell</a>, 76 bytes</h1>
-
-<pre class="lang-hs prettyprint-override"><code>f[x,y]|elem x$scanl(\(h:t)_-&gt;t++[h])y y=&quot;Yes&quot;|1&gt;0=&quot;No&quot;
-main=interact$f.words
-</code></pre>
-<p><a href="https://tio.run/##y0gszk7Nyfn/Py26QqcytiY1JzVXoUKlODkxL0cjRiPDqkQzXteuRFs7OiNWs1Kh0lYpMrVYqcbQzsBWyS9fiSs3MTPPNjOvJLUoMblEJU2vPL8opfj/f@f8lFT3/Jw0BRAB4gAA" rel="nofollow noreferrer" title="Haskell – Try It Online">Try it online!</a></p>
-<p>Inspired by <a href="https://codegolf.stackexchange.com/a/274590/20260">MaroonSphinx's solution</a>. A full program that takes in two space-separated inputs and prints the result&quot;Yes&quot; or &quot;No&quot;, as was the style at the time in 2011 when this challenge was posted.</p>
-<p>The helper function <code>\(h:t)_-&gt;t++[h]</code> rotates a string by moving its first character to the end. Except, it takes an extra unused argument, which lets us use it as the binary operator for <code>scanl</code>. Doing <code>scanl(?) r s</code> makes each character of <code>s</code> trigger one rotation of <code>r</code> in turn, which is accumulated into a list of rotations of <code>r</code>, whose length is that of <code>s</code> plus 1. For example:</p>
-<pre class="lang-hs prettyprint-override"><code>scanl(?)&quot;abc&quot; &quot;def&quot; == [&quot;abc&quot;,&quot;bca&quot;,&quot;cab&quot;,&quot;abc&quot;]
-</code></pre>
-<p>The main function <code>f</code> on <code>[x,y]</code> takes these rotations of <code>y</code>, and checks if <code>x</code> is among them.</p>
-<hr />
-<p>I tried checking membership inside the rotation helper, but it was longer. Note below that the <code>let</code> recursively defines a helper function <code>(%)</code> inside the main function, which comprises everything but the <code>=x%x</code> defining <code>f</code>. Doing this let the helper access <code>y</code> in it scope.</p>
-<p><strong>83 bytes</strong></p>
-
-<pre class="lang-hs prettyprint-override"><code>f[x,y]|let(h:t)%(p:q)|h:t==y=&quot;Yes&quot;|u&lt;-t++[h]=u%q;_%_=&quot;No&quot;=x%x
-main=interact$f.words
-</code></pre>
-<p><a href="https://tio.run/##y0gszk7Nyfn/Py26QqcytiYntUQjw6pEU1WjwKpQswbItLWttFWKTC1Wqim10S3R1o7OiLUtVS20jleNt1Xyy1eyrVCt4MpNzMyzzcwrSS1KTC5RSdMrzy9KKf7/3zk/JdU9PydNAUSAOAA" rel="nofollow noreferrer" title="Haskell – Try It Online">Try it online!</a></p>
-<p>I also tried importing <code>Data.List</code> for <code>isInfixOf</code>, to check that <code>x</code> is a substring of <code>y++y</code>, but this plus checking they're equal length turned out too long.</p>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://www.jsoftware.com" rel="nofollow noreferrer">J</a>, <s>28</s> 22 bytes</h1>
-<pre><code>No`Yes{::~[e.#\@]|.&quot;{]
-</code></pre>
-<p>Takes in input via function arguments.</p>
-<p><a href="https://ato.pxeger.com/run?1=m70wa8FOJT31NAVbKwV1BR0FAwUrINbVU3AO8nFbWlqSpmuxzS8_ITK1uNrKqi46VU85xiG2Rk-pOhYieXOeJldqcka-grpzfkqqe35OmrpCmoI6iAESUIdKFpckJmenViRnJOalp4JVQJhQcaKUwRR5pObk5IMlw_OLclJgwolJySmpaY5OYBlHJwhXHeLKBQsgNAA" rel="nofollow noreferrer">Attempt This Online!</a></p>
-<pre><code>No`Yes{::~[e.#\@]|.&quot;{]
-                     ]  NB. ‎⁡right arg
-             #\@]       NB. ‎⁢take the right arg then get the length of each prefix [1..len(y)]
-                 |.&quot;{   NB. ‎⁣rotate the right by each element of the left, obtain all rotations
-          [e.           NB. ‎⁤is the left arg a member of the resulting table?
-No`Yes                  NB. a lesser known trick, yields a boxed array but requires valid identifiers
-      {::~              NB. ‎⁢⁢fetch using the boolen result of e., unlike {, this unboxes the result
-</code></pre>
-</div>
-<div id="pu2" class="pu"><h1>Haskell, <strike>92</strike> 90 chars</h1>
+<div id="pu0" class="pu"><h1>Haskell, <strike>91</strike> 89 bytes</h1>
 <pre class="lang-hs prettyprint-override"><code>i[x,y]|x`elem`(take.length&lt;*&gt;iterate(tail&lt;&gt;take 1))y=&quot;Yes&quot;;i _=&quot;No&quot;
 main=interact$i.words
 </code></pre>
@@ -140,6 +105,41 @@ main = interact (answer . words)
 <p>To ensure the program terminates, it stops after the infinite list has generated as many elements as there are in the original list, because a list of <code>n</code> elements can only be rotated <code>n</code> times before repetitions are encountered.</p>
 <p>Using the Monad instance for functions, <code>\x -&gt; f (g x) (h x)</code> can be rewritten <code>liftM2 f g h</code>, which is equivalent to <code>f &lt;$&gt; g &lt;*&gt; h</code>. The operator <code>(&lt;$&gt;)</code> is a synonym for <code>fmap</code>, and for functions, <code>fmap</code> is just the function composition operator, so it can be rewritten <code>f . g &lt;*&gt; h</code> to save characters. That's why <code>take (length xs) (iterate rotateOnce xs)</code> can be rewritten like that in the golfed version.</p>
 <p>So anyway, using the functions described, the program just checks if <code>y</code> is some rotation of <code>x</code>. If so, the string &quot;Yes&quot; is returned, otherwise &quot;No&quot; is returned. And that's it.</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.haskell.org/" rel="nofollow noreferrer">Haskell</a>, 76 bytes</h1>
+
+<pre class="lang-hs prettyprint-override"><code>f[x,y]|elem x$scanl(\(h:t)_-&gt;t++[h])y y=&quot;Yes&quot;|1&gt;0=&quot;No&quot;
+main=interact$f.words
+</code></pre>
+<p><a href="https://tio.run/##y0gszk7Nyfn/Py26QqcytiY1JzVXoUKlODkxL0cjRiPDqkQzXteuRFs7OiNWs1Kh0lYpMrVYqcbQzsBWyS9fiSs3MTPPNjOvJLUoMblEJU2vPL8opfj/f@f8lFT3/Jw0BRAB4gAA" rel="nofollow noreferrer" title="Haskell – Try It Online">Try it online!</a></p>
+<p>Inspired by <a href="https://codegolf.stackexchange.com/a/274590/20260">MaroonSphinx's solution</a>. A full program that takes in two space-separated inputs and prints the result &quot;Yes&quot; or &quot;No&quot;, as was the style at the time in 2011 when this challenge was posted.</p>
+<p>The helper function <code>\(h:t)_-&gt;t++[h]</code> (call it <code>(?)</code>) rotates a string by moving its first character to the end. Except, it takes an extra unused argument, which lets us use it as the binary operator for <code>scanl</code>. Doing <code>scanl (?) r s</code> makes each character of <code>s</code> trigger one rotation of <code>r</code> in turn, which is accumulated into a list of rotations of <code>r</code>, whose length is that of <code>s</code> plus 1. For example:</p>
+<pre class="lang-hs prettyprint-override"><code>scanl(?)&quot;abc&quot; &quot;def&quot; == [&quot;abc&quot;,&quot;bca&quot;,&quot;cab&quot;,&quot;abc&quot;]
+</code></pre>
+<p>The main function <code>f</code> on <code>[x,y]</code> takes these rotations of <code>y</code>, and checks if <code>x</code> is among them.</p>
+<hr />
+<p>I tried checking membership inside the rotation helper, but it was longer. Note below that the <code>let</code> recursively defines a helper function <code>(%)</code> inside the main function, which comprises everything but the <code>=x%x</code> defining <code>f</code>. Doing this let the helper access <code>y</code> in it scope.</p>
+<p><strong>83 bytes</strong></p>
+
+<pre class="lang-hs prettyprint-override"><code>f[x,y]|let(h:t)%(p:q)|h:t==y=&quot;Yes&quot;|u&lt;-t++[h]=u%q;_%_=&quot;No&quot;=x%x
+main=interact$f.words
+</code></pre>
+<p><a href="https://tio.run/##y0gszk7Nyfn/Py26QqcytiYntUQjw6pEU1WjwKpQswbItLWttFWKTC1Wqim10S3R1o7OiLUtVS20jleNt1Xyy1eyrVCt4MpNzMyzzcwrSS1KTC5RSdMrzy9KKf7/3zk/JdU9PydNAUSAOAA" rel="nofollow noreferrer" title="Haskell – Try It Online">Try it online!</a></p>
+<p>I also tried importing <code>Data.List</code> for <code>isInfixOf</code>, to check that <code>x</code> is a substring of <code>y++y</code>, but this plus checking they're equal length turned out too long.</p>
+</div>
+<div id="pu2" class="pu"><h1><a href="https://www.jsoftware.com" rel="nofollow noreferrer">J</a>, <s>28</s> 22 bytes</h1>
+<pre><code>No`Yes{::~[e.#\@]|.&quot;{]
+</code></pre>
+<p>Takes in input via function arguments.</p>
+<p><a href="https://ato.pxeger.com/run?1=m70wa8FOJT31NAVbKwV1BR0FAwUrINbVU3AO8nFbWlqSpmuxzS8_ITK1uNrKqi46VU85xiG2Rk-pOhYieXOeJldqcka-grpzfkqqe35OmrpCmoI6iAESUIdKFpckJmenViRnJOalp4JVQJhQcaKUwRR5pObk5IMlw_OLclJgwolJySmpaY5OYBlHJwhXHeLKBQsgNAA" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<pre><code>No`Yes{::~[e.#\@]|.&quot;{]
+                     ]  NB. ‎⁡right arg
+             #\@]       NB. ‎⁢take the right arg then get the length of each prefix [1..len(y)]
+                 |.&quot;{   NB. ‎⁣rotate the right by each element of the left, obtain all rotations
+          [e.           NB. ‎⁤is the left arg a member of the resulting table?
+No`Yes                  NB. a lesser known trick, yields a boxed array but requires valid identifiers
+      {::~              NB. ‎⁢⁢fetch using the boolen result of e., unlike {, this unboxes the result
+</code></pre>
 </div>
 <div id="pu3" class="pu"><h1><a href="https://github.com/nxadm/rakudo-pkg" rel="nofollow noreferrer">Raku</a>, 55 bytes</h1>
 
