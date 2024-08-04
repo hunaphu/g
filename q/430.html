@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::430</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>nan</td><td></td><td>240804T132447Z</td><td><a href="https://codegolf.stackexchange.com/questions/430/drawing-a-gradient-in-ascii-art/274668#274668">iegik</a></td></tr>
+<tr d-ix="1"><td>173</td><td>Common Lisp</td><td>130123T110055Z</td><td><a href="https://codegolf.stackexchange.com/questions/430/drawing-a-gradient-in-ascii-art/10525#10525">Strigoid</a></td></tr>
+<tr d-ix="2"><td>1286</td><td>Brainfuck</td><td>130123T062321Z</td><td><a href="https://codegolf.stackexchange.com/questions/430/drawing-a-gradient-in-ascii-art/10524#10524">captncra</a></td></tr>
+<tr d-ix="3"><td>311</td><td>C#</td><td>120529T152819Z</td><td><a href="https://codegolf.stackexchange.com/questions/430/drawing-a-gradient-in-ascii-art/6071#6071">Cristian</a></td></tr>
+<tr d-ix="4"><td>nan</td><td></td><td>120529T173805Z</td><td><a href="https://codegolf.stackexchange.com/questions/430/drawing-a-gradient-in-ascii-art/6073#6073">user unk</a></td></tr>
+<tr d-ix="5"><td>074</td><td>APL</td><td>120529T140525Z</td><td><a href="https://codegolf.stackexchange.com/questions/430/drawing-a-gradient-in-ascii-art/6067#6067">marinus</a></td></tr>
+<tr d-ix="6"><td>nan</td><td>Ruby 1.9</td><td>110209T184231Z</td><td><a href="https://codegolf.stackexchange.com/questions/430/drawing-a-gradient-in-ascii-art/777#777">Ventero</a></td></tr>
+<tr d-ix="7"><td>176</td><td>C</td><td>110326T173656Z</td><td><a href="https://codegolf.stackexchange.com/questions/430/drawing-a-gradient-in-ascii-art/1806#1806">Patrickv</a></td></tr>
+<tr d-ix="8"><td>nan</td><td>Delphi</td><td>110325T155405Z</td><td><a href="https://codegolf.stackexchange.com/questions/430/drawing-a-gradient-in-ascii-art/1770#1770">Patrickv</a></td></tr>
+<tr d-ix="9"><td>103</td><td>Perl 5.10</td><td>110206T005543Z</td><td><a href="https://codegolf.stackexchange.com/questions/430/drawing-a-gradient-in-ascii-art/584#584">ninjalj</a></td></tr>
+<tr d-ix="10"><td>157</td><td>Windows PowerShell</td><td>110209T143313Z</td><td><a href="https://codegolf.stackexchange.com/questions/430/drawing-a-gradient-in-ascii-art/770#770">Joey</a></td></tr>
+<tr d-ix="11"><td>120</td><td>Perl</td><td>110206T051610Z</td><td><a href="https://codegolf.stackexchange.com/questions/430/drawing-a-gradient-in-ascii-art/588#588">anonymou</a></td></tr>
+<tr d-ix="12"><td>141</td><td>Python</td><td>110204T084407Z</td><td><a href="https://codegolf.stackexchange.com/questions/430/drawing-a-gradient-in-ascii-art/477#477">gnibbler</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h2>JavaScript (from image url or data-url)</h2>
+<p>Following script accept url or data-url (svg has own problems with <code>viewBox</code>) and gradient of 20 symbols, which represents 10 pixels by 2 chars in each.</p>
+<p>And returns an array of rows (including <code>\n</code>) with representation of provided image in ASCII art. I though, that will be right way to use it with Baili characters (My gradient: <code>  ⠂⠂⠁⢀⢁⢁⢌⢌⢕⢕⢗⢗⢟⢟⢷⢷⢿⢿</code>) and put in <code>alt</code> attribute of same image.</p>
+<pre class="lang-javascript prettyprint-override"><code>async function imageToColorfulASCII(imageUrl, chars) {
+  const img = new Image();
+  img.crossOrigin = &quot;Anonymous&quot;; // To avoid CORS issues
+  img.src = imageUrl;
+
+  await img.decode();
+
+  const width = img.width;
+  const height = img.height;
+  console.log({ width, height });
+
+  const offscreenCanvas = new OffscreenCanvas(width, height);
+  const ctx = offscreenCanvas.getContext(&quot;2d&quot;);
+  ctx.drawImage(img, 0, 0, width, height);
+
+  const imageData = ctx.getImageData(0, 0, width, height).data;
+
+  const darknesses = [];
+  const colors = [];
+
+  for (let y = 0; y &lt; height; y++) {
+    for (let x = 0; x &lt; width; x++) {
+      const index = (y * width + x) * 4;
+      const r = imageData[index];
+      const g = imageData[index + 1];
+      const b = imageData[index + 2];
+      const a = imageData[index + 3];
+
+      // Skip transparent pixels
+      if (a === 0) continue;
+
+      // Calculate the darkness value (0..20)
+      const brightness = (r + g + b) / 3;
+      const darkness = Math.floor((1 - brightness / 255) * 9);
+      const safeCheck = (char) =&gt; (char === &quot; &quot; ? &quot;\xA0&quot; : char);
+
+      darknesses.push(
+        safeCheck(chars[darkness * 2]) + safeCheck(chars[darkness * 2 + 1])
+      );
+      colors.push(
+        `#${r.toString(16).padStart(2, &quot;0&quot;)}${g
+          .toString(16)
+          .padStart(2, &quot;0&quot;)}${b.toString(16).padStart(2, &quot;0&quot;)}`
+      );
+    }
+    darknesses[darknesses.length - 1] += &quot;\n&quot;;
+  }
+
+  // Log the results in the console
+  console.log(
+    darknesses.map((d) =&gt; `%c${d}`).join(&quot;&quot;),
+    ...colors.map((color) =&gt; `background-color: ${color};font-family:monospace;`)
+  );
+
+  return darknesses.join(&quot;&quot;);
+}
+</code></pre>
+<p>Here is an example:</p>
+<pre><code>⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂
+⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂
+⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂
+⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂
+⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂
+⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂
+⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂  ⠂⠂⠂⠂
+⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⢁⢁⢁⢁  ⠂⠂⢌⢌⢕⢕⠁⢀⠂⠂⠂⠂
+⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⢕⢕⢌⢌⠂⠂⢕⢕⢕⢕⢌⢌⢕⢕⠂⠂  
+⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⢕⢕⢌⢌⠂⠂⢷⢷⢁⢁  ⠂⠂⠂⠂⠂⠂
+⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⢕⢕⢌⢌  ⢁⢁⢿⢿⢕⢕⠁⢀⠂⠂⠂⠂
+⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⢕⢕⢌⢌  ⠂⠂⠁⢀⢗⢗⢿⢿⢁⢁  
+⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⢕⢕⢌⢌⠂⠂⠁⢀⠂⠂⠂⠂⢕⢕⢕⢕  
+⠂⠂⠂⠂⠂⠂⠂⠂⢁⢁⢿⢿⢌⢌⢿⢿⢁⢁⠂⠂⢿⢿⢕⢕⢌⢌⢿⢿⢁⢁  
+⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⢁⢁⢕⢕⢁⢁⠂⠂⠂⠂⠁⢀⢌⢌⢕⢕⢁⢁⠂⠂⠂⠂
+⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂
+</code></pre>
+<p><a href="https://codepen.io/iegik/pen/xxoddBB" rel="nofollow noreferrer">https://codepen.io/iegik/pen/xxoddBB</a></p>
+</div>
+<div id="pu1" class="pu"><h3>Common Lisp, 173 characters</h3>
+
+<pre><code>(let*((c(read))(v(read))(g(read-line))(l(length g)))(dotimes(y 25)(dotimes(x 70)(princ(elt g(min(floor(*(sqrt(+(expt(/(- c x)2)2)(expt(- v y)2)))l)35)(1- l)))))(princ #\
+)))
+</code></pre>
+
+<p>The only real trick I use here is using</p>
+
+<pre><code>#\[actual newline]
+</code></pre>
+
+<p>as a newline character literal</p>
+</div>
+<div id="pu2" class="pu"><h1>Brainfuck - 1286</h1>
+
+<p>This is one of my favorite creations yet. Includes a working (for some definitions of working) square root function. </p>
+
+<pre><code>&gt;,&gt;,&lt;&lt;&lt;&lt;&lt;&lt;&lt;+&gt;,[&lt;+[&lt;+&gt;-],]&lt;-[&gt;&gt;[&gt;]&gt;&gt;&gt;+&lt;&lt;&lt;&lt;[&lt;]&lt;-]&gt;&gt;[&lt;+&lt;+&lt;+&gt;&gt;&gt;-]&lt;&lt;&lt;[&gt;&gt;&gt;+&lt;
+&lt;&lt;-]&gt;[&gt;]&gt;&gt;&gt;&gt;&gt;&gt;&gt;+++++[&lt;+++++&gt;-]&lt;[&gt;&gt;+++++++[&lt;++++++++++&gt;-]&lt;[&gt;&gt;+++++++[&lt;+
++++++++++&gt;-]&lt;&lt;[&gt;-&gt;+&lt;&lt;-]&gt;&gt;[&lt;&lt;+&gt;&gt;-]&lt;&lt;&lt;&lt;&lt;[&gt;&gt;&gt;&gt;-&gt;+&lt;&lt;&lt;&lt;&lt;-]&gt;&gt;&gt;&gt;&gt;[&lt;&lt;&lt;&lt;&lt;+&gt;&gt;&gt;&gt;&gt;
+-]&lt;[&gt;+&gt;+&lt;&lt;-]&gt;[&lt;+&gt;-]&gt;&gt;+++++++[&lt;&lt;++++++++++&gt;&gt;-]&gt;[-]&gt;[-]+&gt;[-]&lt;&lt;&lt;&lt;[&gt;+&gt;+&lt;&lt;-
+]&gt;[&lt;+&gt;-]&lt;&lt;[&gt;&gt;+&lt;&lt;-]+&gt;&gt;&gt;[&gt;-]&gt;[&lt;&lt;&lt;&lt;-&gt;&gt;[-]&gt;&gt;-&gt;]&lt;+&lt;&lt;[&gt;-[&gt;-]&gt;[&lt;&lt;&lt;&lt;-&gt;&gt;[-]+&gt;&gt;-
+&gt;]&lt;+&lt;&lt;-]&gt;[-]&gt;[-]&lt;&lt;&lt;[-]&lt;[-&lt;+[+&gt;+&lt;]&gt;+[&lt;+&gt;-]]++&lt;[-&gt;-[&gt;+&gt;&gt;]&gt;[+[-&lt;+&gt;]&gt;+&gt;&gt;]&lt;
+&lt;&lt;&lt;&lt;]&gt;[-]&gt;[-]&gt;[&lt;&lt;&lt;+&gt;&gt;&gt;-]&lt;+++++[&lt;+++++&gt;-]&lt;&lt;&lt;&lt;[&gt;&gt;&gt;-&gt;+&lt;&lt;&lt;&lt;-]&gt;&gt;&gt;&gt;[&lt;&lt;&lt;&lt;+&gt;&gt;&gt;
+&gt;-]&lt;&lt;&lt;&lt;&lt;[&gt;&gt;&gt;&gt;-&gt;+&lt;&lt;&lt;&lt;&lt;-]&gt;&gt;&gt;&gt;&gt;[&lt;&lt;&lt;&lt;&lt;+&gt;&gt;&gt;&gt;&gt;-]&lt;[&gt;+&gt;+&lt;&lt;-]&gt;[&lt;+&gt;-]&gt;&gt;+++++[&lt;&lt;+
+++++&gt;&gt;-]&gt;[-]&gt;[-]+&gt;[-]&lt;&lt;&lt;&lt;[&gt;+&gt;+&lt;&lt;-]&gt;[&lt;+&gt;-]&lt;&lt;[&gt;&gt;+&lt;&lt;-]+&gt;&gt;&gt;[&gt;-]&gt;[&lt;&lt;&lt;&lt;-&gt;&gt;[-
+]&gt;&gt;-&gt;]&lt;+&lt;&lt;[&gt;-[&gt;-]&gt;[&lt;&lt;&lt;&lt;-&gt;&gt;[-]+&gt;&gt;-&gt;]&lt;+&lt;&lt;-]&gt;[-]&gt;[-]&lt;&lt;&lt;[-]&lt;[-&lt;+[+&gt;+&lt;]&gt;+[&lt;
++&gt;-]]&lt;&lt;[&gt;&gt;+&gt;+&lt;&lt;&lt;-]&gt;&gt;[&gt;&gt;&gt;+&lt;&lt;&lt;-]&gt;&gt;&gt;[&lt;&lt;[&lt;+&gt;&gt;+&lt;-]&gt;[&lt;+&gt;-]&gt;-]&lt;&lt;[-]&lt;[&lt;&lt;+&gt;&gt;-]&lt;
+[&gt;+&gt;+&lt;&lt;-]&gt;[&gt;&gt;&gt;+&lt;&lt;&lt;-]&gt;&gt;&gt;[&lt;&lt;[&lt;+&gt;&gt;+&lt;-]&gt;[&lt;+&gt;-]&gt;-]&lt;&lt;[-]&lt;[&lt;&lt;+&gt;&gt;-]&lt;&lt;&gt;+&gt;&gt;+&lt;&lt;&lt;[
+[&gt;&gt;+&gt;&gt;+&lt;&lt;&lt;&lt;-]&gt;&gt;&gt;&gt;[&lt;&lt;&lt;&lt;+&gt;&gt;&gt;&gt;-]&gt;[-]&gt;[-]+&gt;[-]&lt;&lt;&lt;&lt;[&gt;+&gt;+&lt;&lt;-]&gt;&gt;[&lt;&lt;+&gt;&gt;-]&lt;&lt;&lt;[&gt;
+&gt;&gt;+&lt;&lt;&lt;-]&gt;&gt;&gt;[&gt;-]&gt;[&lt;&lt;&lt;&lt;+&gt;&gt;[-]&gt;&gt;-&gt;]&lt;+&lt;&lt;[&gt;-[&gt;-]&gt;[&lt;&lt;&lt;&lt;+&gt;&gt;[-]+&gt;&gt;-&gt;]&lt;+&lt;&lt;-]&gt;[-
+]&gt;[-]&lt;&lt;+&lt;&lt;[&gt;&gt;-&lt;[-]&lt;-&lt;&lt;[-]&gt;&gt;]&gt;&gt;[-&lt;&lt;&lt;[&gt;+&gt;+&lt;&lt;-]+&gt;[&lt;+&gt;&gt;+&lt;-]&gt;+&gt;]&lt;&lt;&lt;&lt;]&gt;[&lt;+&gt;-
+]&lt;-&lt;&lt;&lt;&lt;&lt;[&lt;+&gt;-&gt;&gt;&gt;&gt;&gt;&gt;+&lt;&lt;&lt;&lt;&lt;&lt;]&lt;[&gt;+&lt;-]&gt;&gt;&gt;&gt;&gt;&gt;[&gt;&gt;&gt;+&lt;&lt;&lt;-]&gt;&gt;&gt;[&lt;&lt;[&lt;+&gt;&gt;+&lt;-]&gt;[&lt;+&gt;
+-]&gt;-]&lt;+++++++&lt;[-]&gt;[&lt;+++++&gt;-]&lt;&lt;[-&gt;-[&gt;+&gt;&gt;]&gt;[+[-&lt;+&gt;]&gt;+&gt;&gt;]&lt;&lt;&lt;&lt;&lt;]&gt;[-]&gt;[-]&gt;[
+&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;+&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;-]&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;[-&lt;[&gt;&gt;+&lt;&lt;-]&gt;[&lt;+&gt;-]&lt;]&lt;.&gt;&gt;&gt;[[&lt;&lt;+&gt;&gt;-]
+&gt;]&gt;&gt;&gt;&gt;&gt;-]++++++++++.[-]&lt;-]
+</code></pre>
+
+<p>Output is a bit off due to rounding errors, but still recognizable. Floating point is beyond my current skill level. Unfortunately this will only work with 16 bit cells, which means it is going to be dog slow.</p>
+
+<p>Output 1:</p>
+
+<pre><code>&amp;$$$$$$$$XXXXXXXXxxxxxxxxxx========++++++++++++++++++++++;;;++++++++++
+$$$$$$$$$XXXXXXxxxxxxxxxx========++++++++++++++;;;;;;;;;;;;;;;;;;;;;;;
+$$$$$$$XXXXXXXXxxxxxxxx========++++++++++++;;;;;;;;;;;;;;;;;;;;;;;;;;;
+$$$$$$$XXXXXXxxxxxxxxxx======++++++++++++;;;;;;;;;;;;;;;;:::;;;;;;;;;;
+$$$$$XXXXXXXXxxxxxxxx========++++++++++;;;;;;;;;;:::::::::::::::::::;;
+$$$$$XXXXXXxxxxxxxxxx======++++++++++;;;;;;;;:::::::::::::::::::::::::
+$$$$$XXXXXXxxxxxxxx======++++++++++;;;;;;;;:::::::::::::::::::::::::::
+$$$XXXXXXxxxxxxxxxx======++++++++;;;;;;;;::::::::::::::::...::::::::::
+$$$XXXXXXxxxxxxxx========++++++++;;;;;;::::::::::::...............::::
+$$$XXXXXXxxxxxxxx======++++++++;;;;;;;;::::::::::...................::
+$$$XXXXXXxxxxxxxx======++++++++;;;;;;::::::::::..........   ..........
+$$$XXXXXXxxxxxxxx======++++++++;;;;;;::::::::........           ......
+$$$XXXXXXxxxxxxxx======++++++++;;;;;;::::::::......               ....
+$$$XXXXXXxxxxxxxx======++++++++;;;;;;::::::::......               ....
+$XXXXXXxxxxxxxx======++++++++;;;;;;::::::::......                   ..
+$$$XXXXXXxxxxxxxx======++++++++;;;;;;::::::::......               ....
+$$$XXXXXXxxxxxxxx======++++++++;;;;;;::::::::......               ....
+$$$XXXXXXxxxxxxxx======++++++++;;;;;;::::::::........           ......
+$$$XXXXXXxxxxxxxx======++++++++;;;;;;::::::::::..........   ..........
+$$$XXXXXXxxxxxxxx======++++++++;;;;;;;;::::::::::...................::
+$$$XXXXXXxxxxxxxx========++++++++;;;;;;::::::::::::...............::::
+$$$XXXXXXxxxxxxxxxx======++++++++;;;;;;;;::::::::::::::::...::::::::::
+$$$$$XXXXXXxxxxxxxx======++++++++++;;;;;;;;:::::::::::::::::::::::::::
+$$$$$XXXXXXxxxxxxxxxx======++++++++++;;;;;;;;:::::::::::::::::::::::::
+$$$$$XXXXXXXXxxxxxxxx========++++++++++;;;;;;;;;;:::::::::::::::::::;;
+</code></pre>
+
+<p>Output 2:</p>
+
+<pre><code>XXXXXXXXXXXX..........XXXXXXXXXX..........XXXXXXXXXX..........XXXXXXXX
+XXXXXXXXXX..........XXXXXXXXXX..........XXXXXXXXXX..........XXXXXXXXXX
+XXXXXXXXXX..........XXXXXXXXXX..........XXXXXXXXXX..........XXXXXXXXXX
+XXXXXXXXXX..........XXXXXXXXXX..........XXXXXXXXXX..........XXXXXXXXXX
+XXXXXXXX............XXXXXXXXXX..........XXXXXXXXXX..........XXXXXXXXXX
+XX................XXXXXXXXXXXX..........XXXXXXXXXX..........XXXXXXXXXX
+..................XXXXXXXXXX............XXXXXXXXXX..........XXXXXXXXXX
+................XXXXXXXXXXXX..........XXXXXXXXXXXX..........XXXXXXXXXX
+..............XXXXXXXXXXXX............XXXXXXXXXX..........XXXXXXXXXXXX
+..........XXXXXXXXXXXXXXXX..........XXXXXXXXXXXX..........XXXXXXXXXXXX
+..XXXXXXXXXXXXXXXXXXXXXX............XXXXXXXXXX............XXXXXXXXXXXX
+XXXXXXXXXXXXXXXXXXXXXX............XXXXXXXXXXXX..........XXXXXXXXXXXXXX
+XXXXXXXXXXXXXXXXXXXX..............XXXXXXXXXX............XXXXXXXXXXXXXX
+XXXXXXXXXXXXXXXX................XXXXXXXXXXXX............XXXXXXXXXXXXXX
+XXXXXXXXXXXX..................XXXXXXXXXXXX............XXXXXXXXXXXXXXXX
+XX..........................XXXXXXXXXXXXXX..........XXXXXXXXXXXXXXXXXX
+..........................XXXXXXXXXXXXXX............XXXXXXXXXXXXXXXXXX
+......................XXXXXXXXXXXXXXXX............XXXXXXXXXXXXXXXXXXXX
+..................XXXXXXXXXXXXXXXXXX..............XXXXXXXXXXXXXXXXXXXX
+..............XXXXXXXXXXXXXXXXXXXX..............XXXXXXXXXXXXXXXXXXXXXX
+..XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX..............XXXXXXXXXXXXXXXXXXXXXXXX
+XXXXXXXXXXXXXXXXXXXXXXXXXXXX................XXXXXXXXXXXXXXXXXXXXXXXXXX
+XXXXXXXXXXXXXXXXXXXXXXXX..................XXXXXXXXXXXXXXXXXXXXXXXXXXXX
+XXXXXXXXXXXXXXXXXXXX....................XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+XXXXXXXXXXXXXXXX......................XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+</code></pre>
+</div>
+<div id="pu3" class="pu"><h3>C# 311</h3>
+
+<p>Thought I'd make a long program to make the others feel better:</p>
+
+<pre><code>using System;class P{static void Main(){Func&lt;string&gt;r=Console.ReadLine;int x=int.Parse(r()),y=int.Parse(r());var c=r();for(int j=0;j&lt;25;j++){for(int i=0;i&lt;70;i++){var l=c.Length;Console.Write(c[(int)Math.Min(l*Math.Sqrt(Math.Pow(Math.Abs(x-i)/2.0,2)+Math.Pow(Math.Abs(y-j),2))/35,l-1)]);}Console.Write("\n");}}}
+</code></pre>
+
+<p>Input is taken from the console, one line at a time (two lines for the coordinates and one for the gradient chars).</p>
+
+<p>Thanks to <a href="https://codegolf.stackexchange.com/users/15/joey">Joey</a> for the tips.</p>
+
+<p>Sample 1: <a href="http://ideone.com/X0jIZ" rel="nofollow noreferrer">http://ideone.com/X0jIZ</a></p>
+
+<p>Sample 2: <a href="http://ideone.com/RvICt" rel="nofollow noreferrer">http://ideone.com/RvICt</a></p>
+</div>
+<div id="pu4" class="pu"><h3>scala 223 (204 without App-Wrapper)</h3>
+<pre><code>object C extends App{
+import math._
+def r=readInt
+val p=r
+val q=r
+val m=readLine
+(1 to 70)map(x=&gt;(0 to 25)map(y=&gt;{
+printf(&quot;%c[%d;%dH%s&quot;,27,y,x,m(({
+val a=abs(p-x)
+val b=abs(q-y)
+sqrt(a*a+2*b*b)
+}*(m.size-1)/74).toInt))}
+))}
+</code></pre>
+<p>Having cols and rows (70, 25) set dynamically would allow for screenfilling gradients.</p>
+</div>
+<div id="pu5" class="pu"><h2>APL (74)</h2>
+
+<pre><code>{L←⍴⊃C Y X⎕IO←⍞⎕⎕0⋄⎕←{C[⊃⌊L⌊35÷⍨L×.5*⍨+/2*⍨1 2÷⍨⍵-Y X]}¨⍳⍵}25 70
+</code></pre>
+
+<p>The reason it's wrapped in a function is that the modification to <code>⎕IO</code> doesn't apply to the rest of the system.</p>
+
+<p>Explanation:</p>
+
+<ul>
+<li><code>L←⍴⊃C Y X⎕IO←⍞⎕⎕0</code>: Set <code>⎕IO</code> to <code>0</code> (making arrays 0-based instead of 1-based), set X to <code>⎕</code> (first line read), set Y to <code>⎕</code> (second line read), set C to <code>⍞</code> (third line read, with no formatting), and set L to the length (<code>⍴</code>) of <code>C</code>.</li>
+<li><code>25 70</code>: the dimensions of the matrix. </li>
+<li><code>¨⍳⍵</code>: for each element in the matrix where each element is its own coordinates...</li>
+<li><code>⍵-Y X</code>: difference between the current point and the center point</li>
+<li><code>1 2÷⍨</code>: divide the X coordinate by 2 (because a char is half as wide as it is tall)</li>
+<li><code>.5*⍨+/2*⍨</code>: take the square root of the sum of the squares</li>
+<li><code>35÷⍨</code>: divide by 35</li>
+<li><code>⌊L⌊</code>: take the minimum of the amount of characters and the current value and round it down</li>
+<li><code>,/</code>: The values are still wrapped in a list (of only one element), and this will create spacing in the output, so 'free' the values from their lists.</li>
+<li><code>C[</code>...<code>]</code>: use the value we found as an index into the character list</li>
+<li><code>⎕←</code>: we now have a matrix where each element (x,y) is the character for (x,y), so output the matrix.</li>
+</ul>
+</div>
+<div id="pu6" class="pu"><h2>Ruby 1.9, <del>116 114 108</del> 101 characters</h2>
+
+<pre><code>x,y,z=*$&lt;;25.times{|r|70.times{|c|$&gt;&lt;&lt;z[[(c-x.to_i+2.i*(r-y.to_i)).abs/70.0*k=z=~/$/,k-1].min]};puts}
+</code></pre>
+</div>
+<div id="pu7" class="pu"><h2>C, 176</h2>
+
+<p>Here a translation of my Delphi solution to C, saving 24 characters :</p>
+
+<pre><code>X,Y,l,i,j,t;char G[99];main(){scanf("%d\n%d\n",&amp;X,&amp;Y);gets(G);l=strlen(G);for(j=-Y;j&lt;25-Y;j++)for(i=-X-1;i&lt;70-X;)t=floor(l*sqrt(i*i++/4+j*j)/35),putchar(!i+X?10:G[t&lt;l?t:l-1]);}
+</code></pre>
+
+<p>You can test this code here : <a href="http://www.ideone.com/oTvHt" rel="nofollow">http://www.ideone.com/oTvHt</a></p>
+</div>
+<div id="pu8" class="pu"><h2>Delphi, 200 (and 185)</h2>
+
+<p>Since I like ascii-art here a Delphi version of this code golf:</p>
+
+<pre><code>uses Math;var G:string;X,Y,l,i,j:Int16;begin ReadLn(X,Y);ReadLn(G);l:=Length(G);for j:=-y to 24-y do for i:=-x to 70-x do if i=70-x then WriteLn else Write(g[Min(l,1+Trunc(l*sqrt(i*i/4+j*j)/35))])end.
+</code></pre>
+
+<p>Not very impressive character-wise, as I had to use the Math unit to link in the Min() function. Also, ReadLn() somehow doesn't read integers and strings in one call, so that's quite expensive too. The newline needs a lot of characters too. Also, Delphi needs quite a lot of whitespace around it's keywords. Not very proud of this one.</p>
+
+<p>Anyway, the output of sample 4 gives me :</p>
+
+<pre><code>!+#-,|&gt;&lt;87654210ZYWVUTRQPONLKJIHFEDCBzyxwutsrqonmlkjhgfedcbbbcdefghjkl
+!+#-,|&gt;&lt;87654210ZYWVUTRQPONLKJIHFEDCAzyxwutsrqonmljihgfdcba abcdfghijl
+!+#-,|&gt;&lt;87654210ZYWVUTRQPONLKJIHFEDCBzyxwutsrqonmlkjhgfedcbbbcdefghjkl
+!+#-,|&gt;&lt;97654310ZYXVUTSQPONMKJIHGEDCBAyxwvutrqponmkjihgffeedeeffghijkm
+$+#-.|&gt;&lt;98654320ZYXWUTSRQONMLKIHGFEDBAzyxwutsrqponmlkjihhggggghhijklmn
+$!#-.,|&lt;987643210YXWVUSRQPONLKJIHGEDCBAzywvutsrqponmllkjjjiiijjjkllmno
+$!+#.,|&gt;&lt;87654210ZYXVUTSRQONMLKJHGFEDCBAzywvutsrrqponnmmlllllllmmnnopq
+%!+#-.|&gt;&lt;987543210YXWVUTRQPONMLJIHGFEDCBAzyxwvutsrrqppooonnnnnoooppqrr
+%$!+-.,|&gt;&lt;87654310ZYXWVTSRQPONMLJIHGFEDCBAzyxxwvuttssrrqqqqqqqqqrrsstt
+&amp;%!+#-.,&gt;&lt;987643210ZYXVUTSRQPONMLKJIHGFEDCBAzyyxwvvuutttssssssstttuuvv
+&amp;%$!+#.,|&gt;&lt;986543210ZYWVUTSRQPONMLKJIHGFEDDCBAzzyyxwwwvvvuuuuuvvvwwwxy
+/&amp;%$!#-.,|&gt;&lt;976543210ZYXVUTSRQPONMLKKJIHGFEEDCBBAAzzyyyxxxxxxxxxyyyzzA
+(/&amp;%!+#-.,|&gt;&lt;876543210ZYXWVUTSRQPONMLKJJIHGGFEEDCCBBBAAAzzzzzzzAAABBBC
+)(/%$!+#-.,|&gt;&lt;876543210ZYXWVUTSRQPPONMLKKJIIHGGFFEEDDDCCCCCCCCCCCDDDEE
+=)(&amp;%$!+#-.,|&gt;&lt;986543210ZYYXWVUTSRQPPONMMLKKJIIHHGGGFFFEEEEEEEEEFFFGGG
+?=)(&amp;%$!+#-.,|&gt;&lt;9876543210ZYXWVVUTSRRQPOONMMLLKJJJIIIHHHHHHHHHHHHHIIIJ
+*?=)(/%$!+#-.,|&gt;&lt;98765432210ZYXWWVUTSSRQQPOONNMMLLLKKKJJJJJJJJJJJKKKLL
+'*?=)(/&amp;%$!+#-.,|&gt;&lt;98765432110ZYXXWVUUTSSRRQPPOOONNNMMMMMLLLLLMMMMMNNN
+_'*?=)(/&amp;%$!+#-.,|&gt;&lt;988765432210ZYYXWWVUUTTSSRRQQQPPPOOOOOOOOOOOOOPPPQ
+:_'*?=)(/&amp;%$!+##-.,|&gt;&lt;9877654332100ZYYXXWVVUUTTTSSSRRRRQQQQQQQQQRRRRSS
+;;:_'*?=)(/&amp;%$!+#-.,,|&gt;&lt;98876554322100ZZYYXXWWVVVUUUTTTTTTTTTTTTTTTUUU
+;;;:_'*?=)(/&amp;&amp;%$!+#-.,,|&gt;&lt;9987665443321100ZZYYYXXXWWWWVVVVVVVVVVVWWWWX
+;;;;;:_'*?=)(/&amp;%$$!+#-..,|&gt;&gt;&lt;9887665544322211000ZZZYYYYYYYYYYYYYYYYYZZ
+;;;;;;:_'*??=)(/&amp;%%$!+##-.,,|&gt;&lt;&lt;99877665544333222111100000000000001111
+;;;;;;;;:_'*?==)(/&amp;&amp;%$!++#--.,,|&gt;&gt;&lt;&lt;9887766655544433333322222223333334
+</code></pre>
+
+<p>If you would accept indented output, this version is a bit shorter by changing the newline into an indent that leads to a 80-character wrap (simulating a newline on standard 80x25 consoles) :</p>
+
+<pre><code>uses Math;var G:string;X,Y,l,i,j:Int16;begin ReadLn(X,Y);ReadLn(G);l:=Length(G);for j:=-y to 24-y do for i:=-x to 70-x do Write(g[Min(l,1+Trunc(l*sqrt(i*i/4+j*j)/35))]:11*Ord(i=-x))end.
+</code></pre>
+
+<p>(this saves 15 characters, for a total of 185 characters).
+It's output for "0 0 X.X.X.X" is :</p>
+
+<pre><code>          XXXXXXXXXX..........XXXXXXXXXX..........XXXXXXXXXX..........XXXXXXXXXX
+          XXXXXXXXXX..........XXXXXXXXXX..........XXXXXXXXXX..........XXXXXXXXXX
+          XXXXXXXXXX..........XXXXXXXXXX..........XXXXXXXXXX..........XXXXXXXXXX
+          XXXXXXXX............XXXXXXXXXX..........XXXXXXXXXX..........XXXXXXXXXX
+          XXXXXX.............XXXXXXXXXX...........XXXXXXXXXX..........XXXXXXXXXX
+          ..................XXXXXXXXXXX..........XXXXXXXXXX...........XXXXXXXXXX
+          ................XXXXXXXXXXXX...........XXXXXXXXXX..........XXXXXXXXXXX
+          ...............XXXXXXXXXXXX...........XXXXXXXXXX...........XXXXXXXXXXX
+          ............XXXXXXXXXXXXXX...........XXXXXXXXXXX..........XXXXXXXXXXXX
+          .........XXXXXXXXXXXXXXX............XXXXXXXXXXX...........XXXXXXXXXXXX
+          XXXXXXXXXXXXXXXXXXXXXXX............XXXXXXXXXXX...........XXXXXXXXXXXXX
+          XXXXXXXXXXXXXXXXXXXXX.............XXXXXXXXXXX...........XXXXXXXXXXXXXX
+          XXXXXXXXXXXXXXXXXX..............XXXXXXXXXXXX...........XXXXXXXXXXXXXXX
+          XXXXXXXXXXXXXXX................XXXXXXXXXXXX............XXXXXXXXXXXXXXX
+          XXXXXXXXXXX..................XXXXXXXXXXXXX............XXXXXXXXXXXXXXXX
+          ...........................XXXXXXXXXXXXX............XXXXXXXXXXXXXXXXXX
+          ........................XXXXXXXXXXXXXXX............XXXXXXXXXXXXXXXXXXX
+          ......................XXXXXXXXXXXXXXX.............XXXXXXXXXXXXXXXXXXXX
+          ..................XXXXXXXXXXXXXXXXX.............XXXXXXXXXXXXXXXXXXXXXX
+          .............XXXXXXXXXXXXXXXXXXXX..............XXXXXXXXXXXXXXXXXXXXXXX
+          XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX...............XXXXXXXXXXXXXXXXXXXXXXXXX
+          XXXXXXXXXXXXXXXXXXXXXXXXXXXX...............XXXXXXXXXXXXXXXXXXXXXXXXXXX
+          XXXXXXXXXXXXXXXXXXXXXXXX.................XXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+          XXXXXXXXXXXXXXXXXXXX...................XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+          XXXXXXXXXXXXXX......................XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+</code></pre>
+
+<p>(Can you see the indent?! ;-) )</p>
+</div>
+<div id="pu9" class="pu"><h1>Perl 5.10, 103 chars</h1>
+
+<pre><code>$x=&lt;&gt;;$y=&lt;&gt;;@C=&lt;&gt;=~/./g;for$j(-$y..24-$y){print+(map$C[@C/35*sqrt$_**2/4+$j**2]//$C[-1],-$x..69-$x),$/}
+</code></pre>
+</div>
+<div id="pu10" class="pu"><h2>Windows PowerShell, 157</h2>
+<p>Nothing noteworthy. Beaten to death already:</p>
+<pre><code>$x,$y,$c=@($input)
+$l=$c.Length
+$c+=(&quot;&quot;+$c[-1])*90
+0..24|%{$r=$_
+-join(0..69|%{$c[[math]::truncate([math]::sqrt(($x-$_)*($x-$_)+4*($y-$r)*($y-$r))*$l/70)]})}
+</code></pre>
+</div>
+<div id="pu11" class="pu"><h2>Perl, 120 chars</h2>
+<pre><code>$x,$y=&lt;&gt;,&lt;&gt;;@C=split'',&lt;&gt;;for$j(0..24){print+(map$C[($c=$#C/35*sqrt(($x/2-$_/2)**2+($y-$j)**2))&lt;$#C?$c:$#C-1],0..69),$/}
+</code></pre>
+</div>
+<div id="pu12" class="pu"><h2>Python - 141 chars</h2>
+
+<pre><code>x=input();y=input();z=raw_input();w=len(z)
+for i in range(-y,25-y):print"".join(z[min(w-1,int((i*i*4+j*j)**.5*w/70))]for j in range(-x,70-x))
+</code></pre>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/430/">430</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
