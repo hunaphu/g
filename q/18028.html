@@ -136,12 +136,74 @@ console.log(k(r=g(o),k(r,k(r,r))))
 <p>EDIT: After thinking it over, I concluded that I don't need to use BigInt for the following reason: both BigInt and regular int are going to be maxed out by the numbers needed to do the calculation, so I've used int, based on the assumption that MAX_SAFE_INTEGER large enough.</p>
 <p>My code is based on the following functions:</p>
 <p><span class="math-container">$$ g(n) = 10^n $$</span>
-<span class="math-container">$$ k(n,z) = 10 ↑^{z} n $$</span></p>
+<span class="math-container">$$ k(n,z) = 10 ↑^{z+2} n $$</span></p>
+<p>Thus, when z=0 we have tetration, when z=1 we have pentation etc.</p>
 <p>Note that k is just a function, so after a bit of tweaking, I was able to pass the result from k() back into k() (twice).</p>
 <p>As a result the code outputs the following number (approx)</p>
 <p><span class="math-container">$$ 10↑^{10↑^{10↑^{10}10}10}10 $$</span></p>
 <p>I say approx because to save space, I only used 1's in the code.</p>
 <p>The byte count is 100, which means a penalty of approx 1,000,000 which is negligible given the size of the number output.</p>
+<p>EDIT #2: It bothered me that I couldn't test my code since it just maxes out the call-stack. So, what I did was to write some 'unit tests' - broke the code into pieces and test each in turn.</p>
+<ol>
+<li>Test g(n)</li>
+</ol>
+
+<pre class="lang-javascript prettyprint-override"><code>o=+!+[]
+g=n=&gt;n?(''+o+g(n-o)):o
+
+console.log(`g(0) ${g(0)}`)
+console.log(`g(1) ${g(1)}`)
+console.log(`g(2) ${g(2)}`)
+
+</code></pre>
+<p><a href="https://tio.run/##y0osSyxOLsosKNHNy09J/f8/31ZbUTs6livdNs/WLs9eQ11dO187XSNPN19T0yqfiys5P684PydVLyc/XSMhXcNAU0GlGkTVJmiiyxlC5AyxyRlB5IzAcv//AwA" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<p>output:</p>
+<pre class="lang-javascript prettyprint-override"><code>g(0) 1
+g(1) 11
+g(2) 111
+</code></pre>
+<ol start="2">
+<li>Test k(n,z) with g(n) re-written so that:</li>
+</ol>
+<p><span class="math-container">$$ g(n) = 2^n $$</span></p>
+
+<pre class="lang-javascript prettyprint-override"><code>o=1n
+g=n=&gt;2n**n
+k=(n,z)=&gt;n?(z?k:g)(k(n-o,z),z-o):o
+
+console.log(`k(0,0) ${k(0n,0n)}`)
+console.log(`k(1,0) ${k(1n,0n)}`)
+console.log(`k(2,0) ${k(2n,0n)}`)
+console.log(`k(3,0) ${k(3n,0n)}`)
+console.log(`k(4,0) ${k(4n,0n)}`)
+console.log()
+console.log(`k(0,1) ${k(0n,1n)}`)
+console.log(`k(1,1) ${k(1n,1n)}`)
+console.log(`k(2,1) ${k(2n,1n)}`)
+console.log(`k(3,1) ${k(3n,1n)}`)
+console.log()
+console.log(`k(0,2) ${k(0n,2n)}`)
+console.log(`k(1,2) ${k(1n,2n)}`)
+console.log(`k(2,2) ${k(2n,2n)}`)
+
+</code></pre>
+<p><a href="https://tio.run/##jc6xDoIwEMbxvU/h4NCSYriDiaTwKhAkREvujBgHjM9eGWwH9RK3L1/@w@/c3/tluJ4ut5z4OIbADkhNjlyDlGWkvNNkV@MaavXa@noy2mvKefvsmrOpWamBaeF5PMw86c7rwhZmt39sg2xB5tmZzwJiAVKBsUCpKGNRSkUVi@pnYb7dkNwguCG5QXBDcoPghuSGv1SYVCioMKlQUGFSvYsQXg" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<p>output:</p>
+<pre class="lang-javascript prettyprint-override"><code>k(0,0) 1
+k(1,0) 2
+k(2,0) 4
+k(3,0) 16
+k(4,0) 65536
+
+k(0,1) 1
+k(1,1) 2
+k(2,1) 4
+k(3,1) 65536
+
+k(0,2) 1
+k(1,2) 2
+k(2,2) 4
+</code></pre>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://github.com/Vyxal/Vyxal/tree/version-2" rel="nofollow noreferrer">Vyxal</a>, 47 bytes, <span class="math-container">\$G^{26}(26)\$</span></h1>
 <pre><code>nL:(&amp;⇧{:|wλ¥≥[¥τ:ẏṘvxZ;Mh&amp;›λ-[∩÷vx¥$e*∑;†‹←›→}→
