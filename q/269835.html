@@ -26,20 +26,85 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>209</td><td>JS 209 Bytes</td><td>240304T105529Z</td><td><a href="https://codegolf.stackexchange.com/questions/269835/how-quickly-can-you-type-this-string/271520#271520">Adam Bas</a></td></tr>
+<tr d-ix="0"><td>819</td><td>Elisp</td><td>240807T133429Z</td><td><a href="https://codegolf.stackexchange.com/questions/269835/how-quickly-can-you-type-this-string/274754#274754">Samuel J</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h2>JS 209 Bytes</h2>
-<p>Hello:)</p>
-<p>I have completed the challenge using html and js.</p>
-<h3>Code</h3>
-<p><div class="snippet" data-lang="js" data-hide="false" data-console="true" data-babel="false">
-<div class="snippet-code">
-<pre class="snippet-code-js lang-js prettyprint-override"><code>['input','copy'].forEach(evt =&gt;document.getElementById('txt').addEventListener(evt,(e) =&gt; document.getElementById("text").innerHTML=parseInt(document.getElementById("text").innerHTML)+(e.type=="input" ? 1:2)))</code></pre>
-<pre class="snippet-code-html lang-html prettyprint-override"><code>&lt;input type="text" id="txt"&gt;
-&lt;p id="text"&gt;0&lt;/p&gt;</code></pre>
-</div>
-</div>
-</p>
+<div id="pu0" class="pu"><h1>Elisp 819 bytes</h1>
+<p>This was a fun challenge. Not quite finished because doesn't use backspace. Most test cases pass. Use this to make your auto-type bot seem more human :)</p>
+<p>Ungolfed</p>
+<pre><code>#!/usr/bin/emacs --script
+(require 'seq)
+
+;; source: https://emacs.stackexchange.com/questions/7148/get-all-regexp-matches-in-buffer-as-a-list
+(defun re-seq (regexp string)
+  &quot;Get a list of all regexp matches in a string&quot;
+  (save-match-data
+    (let ((pos 0)
+          matches)
+      (while (string-match regexp string pos)
+        (push (match-string 0 string) matches)
+        (setq pos (match-end 0)))
+      matches)))
+
+(defun how-quickly-can-you-type-this-string (s)
+  ;; get all possible substrings, save right remainder
+  (let ((substrings nil))
+    (cl-loop for i to (length s) do
+             (setq substrings
+                   (append
+                    (cl-loop for j from i to (1-(length s))
+                             when (not (equal j i))
+                             collect
+                             (list
+                              (substring s i j)
+                              (substring s j (length s))
+                              i)
+                             )
+                    substrings
+                    )
+                   )
+             )
+
+    ;; count number of matches in right remainder
+    (setq substrings
+          (cl-loop for ss in substrings collect
+                   (cons (length (re-seq (car ss) (cadr ss)))
+                         ss
+                         )
+                   )
+          )
+    ;; calculate keystrokes
+    (princ
+     (car
+      (sort
+       (cl-loop for ss in substrings collect
+                (let ((keystrokes (+(cadddr ss)(length(cadr ss)))))
+                  ;; ctrl + c if matches exist
+                  (if (&gt; (car ss) 0)
+                      (setq keystrokes (+ 2 keystrokes))
+                    )
+                  (while (&gt; (car ss) 0)
+                    (let ((match-index (string-match (cadr ss) (caddr ss))))
+                      ;; add characters preceding match as keystrokes and 1 for paste
+                      (setq keystrokes (+ keystrokes match-index 1))
+                      (setf (car ss) (1- (car ss)))
+                      (setf (caddr ss) (substring (caddr ss) (+ match-index (length (cadr ss))) (length (caddr ss))))
+                      )
+                    )
+                  ;; add remaining characters as keystrokes
+                  (setq keystrokes (+ keystrokes (length (caddr ss))))
+                  )
+                )
+       #'&lt;)
+      )
+     )
+    )
+  )
+
+(how-quickly-can-you-type-this-string (pop argv))
+</code></pre>
+<p><a href="https://tio.run/##lZLNbuMgEMfvfYpR9tAZVZaSnlf7JHshGNskGAiQ1tqXT4eAHbuKdrWWDGjmP7/5ADUKGRujo7@hD663LxjU5aqDgteoLnTDVnVXCwHY3qvJQ0xB254wig/VjCLJoWlFEmhUAkTvIuzpblaR8HPQRgGWmKKGDQc4gNBf4wBYYNW@nxPBAosqXbJ@Virbci5ashHVYi@ckWpBE1ht2CNNY5zz0LkAGpID9ts@DRAJWlfYEwrvmboRn6ALbqwxh@YRRp@DsoDWcRoemTAs1UTSGaNkQp5pwng91n4iE060MZxWNRBHTrmDWsi6gj@gLUwwg6WzcYlEvhgpWEN5b/OBKP98m9rK7MPoQvobsAzqDPiWEe0dUvkPJhN1B/hrSbevteY4eIdzVtTr3ogKffz2CGbw/TCnWAHPMMKhWLpHh4dmPq9cbQU9RrsyvjFnmdXSzMa0NLjN/1zy4/VnkfIb8zxOEfoPoluZNux@2x29sG8nj0IceeGN12z8rmDXUcqnnvX3PFTyQ7@v/3D/h2iR0u0L" rel="nofollow noreferrer">Try it online</a></p>
+<pre><code>(require 'seq)(defun r (regexp string)(save-match-data(let ((pos 0)matches)(while (string-match regexp string pos)(push (match-string 0 string) matches)(setq pos (match-end 0)))matches)))(defun q (s)(let ((x nil))(cl-loop for i to (length s) do(setq x(append(cl-loop for j from i to (1-(length s))when (not (equal j i))collect(list(substring s i j)(substring s j (length s))i))x)))(setq x(cl-loop for z in x collect(cons (length (r (car z) (cadr z)))z)))(princ(car(sort(cl-loop for z in x collect(let ((k (+(cadddr z)(length(cadr z)))))(if (&gt; (car z) 0)(setq k (+ 2 k)))(while (&gt; (car z) 0)(let ((m (string-match (cadr z) (caddr z))))(setq k (+ k m 1))(setf (car z) (1- (car z)))(setf (caddr z) (substring (caddr z) (+ m (length (cadr z))) (length (caddr z))))))(setq k (+ k (length (caddr z))))))#'&lt;)))))(q (pop argv))
+</code></pre>
 </div>
 
 <table id="st">
