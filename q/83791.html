@@ -34,7 +34,7 @@
 <tr d-ix="5"><td>495</td><td>Rust</td><td>160707T174310Z</td><td><a href="https://codegolf.stackexchange.com/questions/83791/solve-the-chromatic-puzzle/84796#84796">raggy</a></td></tr>
 <tr d-ix="6"><td>266</td><td>Ruby</td><td>160707T185927Z</td><td><a href="https://codegolf.stackexchange.com/questions/83791/solve-the-chromatic-puzzle/84801#84801">Value In</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Python3, 966 bytes</h1>
+<div id="pu0" class="pu"><h2>Python3, 966 bytes</h2>
 <p>Runs input puzzle matrix through a series of transformation convolutions.</p>
 <pre class="lang-py prettyprint-override"><code>R=range
 v=lambda d:not d%2 and d%3
@@ -72,6 +72,53 @@ def f(b):
    if T not in s:q+=[T];s+=[T];break
 </code></pre>
 <p><a href="https://tio.run/##dVNda9swFH2ef4UolEqxUiTlZWhoUO@pLyuUNCRoothI6ZwPO7Xd4FDy27Mr2W5T2hmM5ft57jlXu0Pztywm33fV6XSvqrR4ctFebdJtZlNkZVE2yF4KlBYWvpPIuiX6hRPa0jk90AWREbLq9RihZVmhFcoLlOhWzg3Yg6nxppU@yIWRVjdG2esn1@CGMhLzCFWueakKZEPdJc58vUTpjGax1syMNq7AGRyIMTqcyaUwXbPWV77HjHp7QqggQ8/DB4/P7p3I0pnq0LexAPyHWBA65t6VL5EPt0SpiZypbdpiS9fuMFDRAvzWEB/qNmfBAoL16JVRTsVx/DqyRwMd@wD4vd6nmxdXY3KEYA65tUPbvPhvccic/RzzADdMM@@mCZC7KTr7orN3Q8hEz41eGDWLkFP6I0UdQV3uGT9v7JDPzWLe0xrzr3oObp/9HuGx7/GNVPNxS/zC7PGDVIvxgUgXK437naE3owcCCJ9prXRiKLwd3MRXf/bFBvryYF@HtQrH3B/XgUrZ704C8Xdh5BBx6yOcPJdUBs1Ht1qOOUwLmoV1/lIgeeeRfhYU0snQYjZsP330zeqyapzFdx8FbTU0o5Xbu6p2qudoqhx0w3VTeUEGPVaDwvMzJdaDvHDHpnpl9DqIG6aaIn8tfWv5DHCn5kfdfbLKpetTzZFCFxcXEReMcSZYxDgXQjABBwb/nEUiOMDF/eMtwQ7GiLPOCekC8hiPfC1/QZvyMSvTyuIagH7r@dd6tE13OC8ainJi3lRa5pvGVfh3WTiK6ut6t8kbfPWnuCJAZLSrIAEv8XtJTgg5/QM" rel="nofollow noreferrer">Try it online!</a></p>
+<h2>Python3, 1271 bytes</h2>
+<p>An even longer solution. Here, the original convolution rules have been extended to any <code>j x k</code> window, where <code>j &lt;= n</code> and <code>k &lt;= m</code>. This greatly increases performance, however, it still requires <code>O(n^4)</code> to produce the windows in the first place.</p>
+<pre class="lang-py prettyprint-override"><code>import math
+R=range
+v=lambda d:not d%2 and d%3
+def C(B,x,X,y,Y):
+ d={}
+ for j in B[x:X]:
+  for t in j[y:Y]:d[t]=d.get(t,0)+1
+ return d
+def f(b):
+ B=[b,b+[[0]*len(b[0])]][len(b)%2]
+ for x in R(0,len(B),2):
+  for y in R(0,len(B[0]),2):
+   d,V=C(B,x,x+2,y,y+2),-1
+   if len(d)==3:V=max(d,key=lambda x:d[x])
+   elif len(d)==2:V=[*{0,1,2}-{*d}][0]if len({*d.values()})==1 else min(d,key=lambda x:d[x])
+   if V&gt;-1:
+    for X in R(x,x+2):
+     for Y in R(y,y+2):B[X][Y]=V
+ e=[]
+ for x in R(len(B)):
+   for y in R(len(B[0])):
+    for X in R(x+1,len(B)+1):
+     for Y in R(y+1,len(B[0])+1):
+      if v(A:=X-x)and v(U:=Y-y):e+=[(x,X,y,Y,A*U)]
+ q,s=[B],[B]
+ for B in q:
+  if len({i for k in B for i in k})==1:return B
+  O=[]
+  for I in e:
+   if len(d:=C(B,*I[:-1]))&gt;1:
+    G=math.gcd(*d.values());M={i:d[i]/G for i in d}
+    if all(M[i]==int(M[i])for i in M):
+     M={i:int(M[i])for i in M}
+     if len(M)==2:
+      if len(o:={*M.values()})==1:O+=[([*{0,1,2}-{*M}][0],*I)]
+      if{1,3}==o:O+=[(min(M,key=lambda x:M[x]),*I)]
+     elif len(M)==3:
+      if[1,1,2]==sorted(M.values()):O+=[(max(M,key=lambda x:M[x]),*I)]
+  for V,x,X,y,Y,_ in sorted(O,key=lambda x:x[-1],reverse=1):
+   T=eval(str(B))
+   for j in R(x,X):
+    for k in R(y,Y):T[j][k]=V
+   if T not in s:q+=[T];s+=[T];break
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=fVRLbtswEN10U52CCBCUtGlXVDYFAwaIugiyUAMEjmGDFQK5pBPZsuRIiiHD8Em6yaY9RG_SXqTbDinJHzStAUPUfN7MPD7N1-_LdfmYpS8v357Lae_Drze_48Uyy0u0iMpH51bkUfqgnZVIosVERUjxNCuROvVQlCp4njlKT9FH7NOKjuiajgl3kBKbrYOmWY5mKE6RLys-CsFuTaUxzeSaj0OuZBkK1X_QJS6pS7rMQbkun_MUKYs7xROD5ws5oZOulG7YSXSKJ3AgYSjtmZx6YV2sMsi32KXG7hPqkbbm-shjshsnUnQo6u6rrgf9r7seoT1mXPEUmXBFhDjjQ7GIKqzoXK9bKipovwqJCdXJQbAHwbKzcSmj3ra36ahtCBWbAHjtr6LkWReYbCGYQW6h0SJO_wkOmcOLHrPt2mlG9TS25XqK2j6u7fUQ3JejUI5DMXSQFvKYopqgOveAnx075O9iXdbQ2mWv1WzdJnsfYXpf4UsuRr2KGMGs8B0X496acN0VEjeaoZedOwIdPtFCSD-k8K_b9Q36kwFr6YutfW5lZY-xOc4tlbzRjg_xN3ZkG3FtIjQ_vFJu77xzLXmPwbQXDblXwoi-__BF4YNrIueB2MRwH3H4_mpfU22dZsIoSXAAXiHitLQnsosKWiosxiv-GqXtLLD62ZNnbBkXm05wrBp-Y-g7VFlgVQYzGSKb9A2jZ1shsjraaCw41lhgNHaQs9NxYEW_A5LMlIEBC9gMWuF9N6TBho_jf9hm3mG7Iui9mbyBujnOqiTcCM31SueFFo2QBkJDPVyUuVFtK9pZ-xmMDuQ6b78BWEQDOQvl3H4BlswBMrvLlOZP0PQgPC_qxyTX0bzefz9_FAwJdHJy4jDPdZnruY7LmOd5rgcHF96Z63jWAS5mfsZi7WB0mFs7Id2DPJc5BsssszK7n2RRrnAB_b5ttCplZxEtMQiDopiEO11M46TUOf6UpZqiol8sk7jE7z6n7wjw6Sxzo6Qp3kMyQkg9QbvJ_wA" rel="nofollow noreferrer">Attempt This Online!</a></p>
 </div>
 <div id="pu1" class="pu"><h1>C, 404 bytes</h1>
 
