@@ -26,16 +26,17 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>037</td><td>05AB1E</td><td>240814T083430Z</td><td><a href="https://codegolf.stackexchange.com/questions/274951/sum-of-four-squares-grid/274969#274969">Kevin Cr</a></td></tr>
+<tr d-ix="0"><td>044</td><td>05AB1E</td><td>240814T083430Z</td><td><a href="https://codegolf.stackexchange.com/questions/274951/sum-of-four-squares-grid/274969#274969">Kevin Cr</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, <s>38</s> 37 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
-<pre><code>∞Íonîü2íε`U0LsãεXô]€`.Δ2δô2ä€ø˜4äOnOQ
+<div id="pu0" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, <s>45</s> 44 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
+<pre><code>∞Íonîü2íε`U0LsãεXô]€`.Δ[D˜g5‹#2δô2ô€øOOn}OOQ
 </code></pre>
 <p>Brute-force. Generates all <span class="math-container">\$2^k\times 2^k\$</span> sized matrices consisting of 0s and 1s, and will output the first valid one for the given input-integer <span class="math-container">\$n\$</span>.</p>
 <p>-1 byte by changing the <code>∞&lt;on1š</code> (-1 and prepend <span class="math-container">\$1\$</span> manually) to <code>∞Íonî</code> (-2 and ceil the <span class="math-container">\$0.25\$</span> to <span class="math-container">\$1\$</span>)</p>
-<p><a href="https://tio.run/##AUYAuf9vc2FiaWX//@KInsONb27DrsO8MsOtzrVgVTBMc8OjzrVYw7Rd4oKsYC7OlDLOtMO0MsOk4oKsw7jLnDTDpE9uT1H//zE1" rel="nofollow noreferrer">Try it online</a> or <a href="https://tio.run/##AVoApf9vc2FiaWX/MTXGkk4/IiDihpIgIj9OViL/4oiew41vbsOuw7wyw63OtWBVMExzw6POtVjDtF3igqxgLs6UMs60w7Qyw6TigqzDuMucNMOkT25PWVH/Ii5WLP8" rel="nofollow noreferrer">verify the smaller test cases up to n=15</a>. (Times out for test cases resulting in 8x8 outputs - e.g. <span class="math-container">\$n=39\$</span>. It won't time out for some larger <span class="math-container">\$n\$</span> - e.g. <span class="math-container">\$n=57\$</span>, since that one still results in a 4x4 output.)</p>
+<p><a href="https://tio.run/##AU4Asf9vc2FiaWX//@KInsONb27DrsO8MsOtzrVgVTBMc8OjzrVYw7Rd4oKsYC7OlFtEy5xnNeKAuSMyzrTDtDLDtOKCrMO4T09ufU9PUf//MTU" rel="nofollow noreferrer">Try it online</a> or <a href="https://tio.run/##AWIAnf9vc2FiaWX/MTXGkk4/IiDihpIgIj9OViL/4oiew41vbsOuw7wyw63OtWBVMExzw6POtVjDtF3igqxgLs6UW0TLnGc14oC5IzLOtMO0MsO04oKsw7hPT259T09ZUf8iLlYs/w" rel="nofollow noreferrer">verify the smaller test cases up to n=15</a>.</p>
 <p><strong>Explanation:</strong></p>
 
+<p>Step 1: Generate a list of all possible outputs:</p>
 <pre class="lang-python prettyprint-override"><code>∞          # Push an infinite positive list: [1,2,3,4,5,...]
  Í         # Decrease each by 2 to start at -1: [-1,0,1,2,3,...]
   o        # Take 2 to the power each: [0.5,1,2,4,8,...]
@@ -54,21 +55,30 @@
 ]          # Close the nested maps
  €`        # Flatten the list of list of lists one level down
            # (which has as side-effect that it reverses the inner lists)
-.Δ         # Find the first matrix in this infinite list that's truthy for:
-  2δô2ä€ø  #  Split the matrix into four corner-blocks:
-   δ       #   Map over each inner row:
-  2 ô      #    Split it into pairs
-     2ä    #   Then split the entire list into 2 equal parts as well
-       €   #   Map over each inner matrix:
-        ø  #    Zip/transpose; swapping rows/columns
-  ˜        #  Flatten it to a single list again
-   4ä      #  Then split it into 4 equal-sized lists
-     O     #  Sum each inner list
-      n    #  Square each sum
-       O   #  And sum those four values together again
-        Q  #  Check whether it now equals the (implicit) input-integer
+</code></pre>
+<p><a href="https://tio.run/##ASsA1P9vc2FiaWX//@KInsONb27DrsO8MsOtzrVgVTBMc8OjzrVYw7Rd4oKsYP//" rel="nofollow noreferrer">Try just this first step online.</a></p>
+<p>Step 2: Find the first matrix that's a valid reduction for the given input-integer:</p>
+<pre class="lang-python prettyprint-override"><code>.Δ         # Find the first matrix in this infinite list that's truthy for:
+  [        #  Start an infinite list:
+   D       #   Duplicate the current matrix
+    ˜      #   Flatten it to a list
+     g     #   Pop and push its length
+      5‹   #   If this length is smaller than 5 (e.g. either 4 or 1):
+        #  #    Stop the infinite inner loop
+   2δô2ä€ø #  Split the matrix into four corner-blocks:
+    δ      #   Map over each inner row:
+   2 ô     #    Split it into pairs
+      2ä   #   Then split the entire list into 2 equal parts as well
+        €  #   Map over each inner matrix:
+         ø #    Zip/transpose; swapping rows/columns
+   OO      #  Sum each inner-most matrix
+     n     #  Then square those sums
+  }        # After the infinite loop to reduce it to a 2x2 matrix:
+   OO      # Sum the four values in this matrix as well
+     Q     #  Check whether it now equals the (implicit) input-integer
            # (after which the found matrix is output implicitly)
 </code></pre>
+<p><a href="https://tio.run/##yy9OTMpM/f8/2uX0nHTTRw07lY3ObTm8xejwlkdNaw7v8Pe3zasFEkAF0YY6MGgAwrE60QY6KBBJxBBDBKEGqh@vGsIisQA" rel="nofollow noreferrer">Verify the resulting <span class="math-container">\$n\$</span> for a given matrix to test just this second step</a> (minus leading <code>.Δ</code> and trailing <code>Q</code>). I've added <code>=</code> after both <code>OO</code>, so you can see the intermediate steps of the reduction.</p>
 </div>
 
 <table id="st">
