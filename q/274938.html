@@ -26,9 +26,9 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>082</td><td>R</td><td>240813T202411Z</td><td><a href="https://codegolf.stackexchange.com/questions/274938/sums-of-xy-chunks-of-the-nonnegative-integers/274962#274962">int 21h </a></td></tr>
-<tr d-ix="1"><td>051</td><td>R</td><td>240814T114338Z</td><td><a href="https://codegolf.stackexchange.com/questions/274938/sums-of-xy-chunks-of-the-nonnegative-integers/274970#274970">Dominic </a></td></tr>
-<tr d-ix="2"><td>047</td><td>JavaScript</td><td>240814T040231Z</td><td><a href="https://codegolf.stackexchange.com/questions/274938/sums-of-xy-chunks-of-the-nonnegative-integers/274966#274966">noodle p</a></td></tr>
+<tr d-ix="0"><td>047</td><td>JavaScript</td><td>240814T040231Z</td><td><a href="https://codegolf.stackexchange.com/questions/274938/sums-of-xy-chunks-of-the-nonnegative-integers/274966#274966">noodle p</a></td></tr>
+<tr d-ix="1"><td>082</td><td>R</td><td>240813T202411Z</td><td><a href="https://codegolf.stackexchange.com/questions/274938/sums-of-xy-chunks-of-the-nonnegative-integers/274962#274962">int 21h </a></td></tr>
+<tr d-ix="2"><td>051</td><td>R</td><td>240814T114338Z</td><td><a href="https://codegolf.stackexchange.com/questions/274938/sums-of-xy-chunks-of-the-nonnegative-integers/274970#274970">Dominic </a></td></tr>
 <tr d-ix="3"><td>052</td><td>APL+WIN</td><td>240813T170209Z</td><td><a href="https://codegolf.stackexchange.com/questions/274938/sums-of-xy-chunks-of-the-nonnegative-integers/274959#274959">Graham</a></td></tr>
 <tr d-ix="4"><td>049</td><td>Python</td><td>240812T234108Z</td><td><a href="https://codegolf.stackexchange.com/questions/274938/sums-of-xy-chunks-of-the-nonnegative-integers/274945#274945">Lucenapo</a></td></tr>
 <tr d-ix="5"><td>013</td><td>05AB1E</td><td>240813T091741Z</td><td><a href="https://codegolf.stackexchange.com/questions/274938/sums-of-xy-chunks-of-the-nonnegative-integers/274956#274956">Kevin Cr</a></td></tr>
@@ -37,7 +37,51 @@
 <tr d-ix="8"><td>009</td><td>Vyxal</td><td>240812T231156Z</td><td><a href="https://codegolf.stackexchange.com/questions/274938/sums-of-xy-chunks-of-the-nonnegative-integers/274944#274944">emanresu</a></td></tr>
 <tr d-ix="9"><td>066</td><td>JavaScript Node.js</td><td>240812T195248Z</td><td><a href="https://codegolf.stackexchange.com/questions/274938/sums-of-xy-chunks-of-the-nonnegative-integers/274939#274939">l4m2</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.r-project.org" rel="nofollow noreferrer">R</a>, <s>85</s> 82 bytes</h1>
+<div id="pu0" class="pu"><h1>JavaScript, <s>50</s> 47 bytes</h1>
+<pre class="lang-javascript prettyprint-override"><code>(n,x,y,w)=&gt;x*y*(x*n/w*w*y+(w*~-y+~-x)/2n+x*n%w)
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=LYtBCsIwEABfI2w2G2MVQbHxM9pIoOyCVja59CO9BNFH-RsL9jJzGGZ6s1y7-orh8xyiO3w9MGUqpCacMxaEjOwVFYsFxdEVO7ps_JbtHFZqls1FuUMKGz6ltmlmWmsuwg_pu3UvN4iQaMe0ZzqyWaZa__4B" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<p>Takes input as BigInts. I think this uses a bit of a different method from emanresu A's solution, but I haven't quite figured out how hers works yet.</p>
+<p>Explanation: We can view the problem as dealing with arithmetic series.</p>
+<p>Here's the first chunk from the example in the question:</p>
+<pre><code>+----------+
+|  0  1  2 |
+| 12 13 14 |
+| 24 25 26 |
+| 36 37 38 |
++----------+
+</code></pre>
+<p>Take the vertical sums of each column:</p>
+<pre><code>0+12+34+36 = 72
+1+13+25+37 = 76
+2+14+26+38 = 80
+</code></pre>
+<p>This is an arithmetic sequence with first term 72 and common difference of 4. The 4 comes from the value of <code>y</code>, and the 72 comes from an arithmetic series of <code>y</code> terms with first term zero and common difference <code>w</code>.</p>
+<p>Except, the first term of that inner arithmetic series isn't always zero. Look at the first chunk of the second column:</p>
+<pre><code>+----------+
+| 48 49 50 |
+| 60 61 62 |
+| 72 73 74 |
+| 84 85 86 |
++----------+
+</code></pre>
+<p>Here, the first term isn't 0 - it's 48. We get this 48 by multiplying <code>y</code>, <code>w</code>, and the column number of the cell. In JavaScript, since we're using BigInts, this can be written <code>x*n/w*w*y</code>, because the division by <code>w</code> is actually floor division.</p>
+<p>Now we can get the sum of any cell in the first column, but we still need to account for the difference between rows.</p>
+<p>The sums of the first row are 228, 264, 300, and 336. The difference between each sum is 36, which is <span class="math-container">\$ x^2y \$</span>. We multiply that by the row number, giving <code>x*n%w*x*y</code>. Here, <code>x*n%w</code> gives us the row number multiplied by x.</p>
+<p>Okay, that's all we need to write this all out in JS. Remember that the formula for an arithmetic series is <span class="math-container">\$ \frac{n}{2}(2a+(n-1)d) \$</span>, where n is the number of terms, a is the first term, and d is the common difference.</p>
+<pre class="lang-javascript prettyprint-override"><code>x/2n*(2n*y/2n*(x*n/w*w*y*2n+(y-1n)*w)+(x-1n)*y)+x*n%w*x*y
+</code></pre>
+<p>Now reduce this expression to its final golfed form:</p>
+<pre class="lang-javascript prettyprint-override"><code>x/2n*(2n*y/2n*(x*n/w*w*y*2n+(y-1n)*w)+(x-1n)*y)+x*n%w*x*y
+x/2n*(y*(x*n/w*w*y*2n+(y-1n)*w)+(x-1n)*y)+x*n%w*x*y // 2*y/2 = y
+x/2n*(y*(x*n/w*w*y*2n+~-y*w)+~-x*y)+x*n%w*x*y       // y-1n = ~-y
+x*(y*(x*n/w*w*y*2n+~-y*w)+~-x*y)/2n+x*n%w*x*y       // rearrange
+x*y*(x*n/w*w*y*2n+~-y*w+~-x)/2n+x*n%w*x*y           // factor out y
+x*y*((x*n/w*w*y*2n+~-y*w+~-x)/2n+x*n%w)             // factor out x*y
+x*y*(x*n/w*w*y+(~-y*w+~-x)/2n+x*n%w)                // factor out 2
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.r-project.org" rel="nofollow noreferrer">R</a>, <s>85</s> 82 bytes</h1>
 <p>-3 bytes thanks to <a href="https://codegolf.stackexchange.com/users/55372/pajonk">pajonk</a></p>
 <pre class="lang-r prettyprint-override"><code>\(x,y,w,`[`=matrix,s=colSums)repeat show(s(s(((y*w*F):(y*w*(F=F+1)-1))[x])[y,,T]))
 </code></pre>
@@ -67,7 +111,7 @@
 </code></pre>
 <p>Proceed with the next part of the sequence <code>Y*W</code> to <code>2*Y*W-1</code> etc.</p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://www.r-project.org" rel="nofollow noreferrer">R</a>, <s>52</s> 51 bytes</h1>
+<div id="pu2" class="pu"><h1><a href="https://www.r-project.org" rel="nofollow noreferrer">R</a>, <s>52</s> 51 bytes</h1>
 <p><em>Edit: -1 byte by taking <code>g</code> directly as a parameter</em></p>
 <pre class="lang-r prettyprint-override"><code>\(n,x,y,g)y*x*((y*g-g+1)*x/2+n%/%g*g*x*y+n%%g*x-.5)
 </code></pre>
@@ -88,12 +132,6 @@ function(n,l,w,h){
 </code></pre>
 <p><a href="https://rdrr.io/snippets/embed/?code=library(%22pryr%22)%0Axychunks%3Df(y*x*((y*g-g%2B1)*x%2F2%2Bn%25%2F%25g*g*x*y%2Bn%25%25g*x-.5))%0Ax%3D3%3By%3D4%3Bg%3D4%0Asapply(0%3A10%2Cfunction(n)xychunks(g%2Cn%2Cx%2Cy))" rel="nofollow noreferrer">Try it at rdrr.io</a></p>
 <p>Same as above, but the using the <code>pryr</code> package to <a href="https://rdrr.io/cran/pryr/man/f.html" rel="nofollow noreferrer">'guess'</a> the function arguments from the code.</p>
-</div>
-<div id="pu2" class="pu"><h1>JavaScript, <s>50</s> 47 bytes</h1>
-<pre class="lang-javascript prettyprint-override"><code>(n,x,y,w)=&gt;x*y*(x*n/w*w*y+(w*~-y+~-x)/2n+x*n%w)
-</code></pre>
-<p><a href="https://ato.pxeger.com/run?1=LYtBCsIwEABfI2w2G2MVQbHxM9pIoOyCVja59CO9BNFH-RsL9jJzGGZ6s1y7-orh8xyiO3w9MGUqpCacMxaEjOwVFYsFxdEVO7ps_JbtHFZqls1FuUMKGz6ltmlmWmsuwg_pu3UvN4iQaMe0ZzqyWaZa__4B" rel="nofollow noreferrer">Attempt This Online!</a></p>
-<p>Takes input as BigInts. I think this uses a bit of a different method from emanresu A's solution, but I haven't quite figured out how hers works yet.</p>
 </div>
 <div id="pu3" class="pu"><h1>APL+WIN, 52 bytes</h1>
 <p>Prompts for a vector of n,x,y and w/x. Outputs first n terms. Index origin = 0</p>
