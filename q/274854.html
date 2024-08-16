@@ -26,15 +26,35 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>018</td><td>05AB1E</td><td>240812T130802Z</td><td><a href="https://codegolf.stackexchange.com/questions/274854/generalized-super-luhn/274917#274917">Kevin Cr</a></td></tr>
-<tr d-ix="1"><td>148</td><td>R</td><td>240812T082555Z</td><td><a href="https://codegolf.stackexchange.com/questions/274854/generalized-super-luhn/274912#274912">Dominic </a></td></tr>
+<tr d-ix="0"><td>145</td><td>R</td><td>240812T082555Z</td><td><a href="https://codegolf.stackexchange.com/questions/274854/generalized-super-luhn/274912#274912">Dominic </a></td></tr>
+<tr d-ix="1"><td>018</td><td>05AB1E</td><td>240812T130802Z</td><td><a href="https://codegolf.stackexchange.com/questions/274854/generalized-super-luhn/274917#274917">Kevin Cr</a></td></tr>
 <tr d-ix="2"><td>080</td><td>JavaScript ES7</td><td>240809T162406Z</td><td><a href="https://codegolf.stackexchange.com/questions/274854/generalized-super-luhn/274857#274857">Arnauld</a></td></tr>
 <tr d-ix="3"><td>103</td><td>Retina</td><td>240811T000621Z</td><td><a href="https://codegolf.stackexchange.com/questions/274854/generalized-super-luhn/274890#274890">Neil</a></td></tr>
 <tr d-ix="4"><td>018</td><td>Jelly</td><td>240809T183703Z</td><td><a href="https://codegolf.stackexchange.com/questions/274854/generalized-super-luhn/274861#274861">Unrelate</a></td></tr>
 <tr d-ix="5"><td>035</td><td>APLDyalog Unicode</td><td>240810T143509Z</td><td><a href="https://codegolf.stackexchange.com/questions/274854/generalized-super-luhn/274887#274887">akamayu</a></td></tr>
 <tr d-ix="6"><td>041</td><td>Charcoal</td><td>240809T235450Z</td><td><a href="https://codegolf.stackexchange.com/questions/274854/generalized-super-luhn/274866#274866">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, 18 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
+<div id="pu0" class="pu"><h1><a href="https://www.r-project.org" rel="nofollow noreferrer">R</a>, <s>148</s> 145 bytes</h1>
+<p><em>Edit: -3 bytes thanks to pajonk</em></p>
+<pre class="lang-r prettyprint-override"><code>\(l,b,s=sapply)sum(s(rev(l)*s(seq(!l),`?`&lt;-\(x,z=x)`if`(z&gt;1,`if`(x%%z|(b-1)%%z,x?z-1,?x/z),x)),d&lt;-\(x,a=sum(x%/%b^(0:x)%%b))`if`(a&lt;b,a,d(a))))%%b
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=lY9NTsMwEIX3nMIsIs2gFzVu-QmoIRepUGzaCiSDSk2QsbgEazZh0UNxErZM6qoRiyLhzYze9zxv5uNz3W1ce_dYbdrnZV5-vc_IwcJX3qxW7pV9-0Ce1osXcnziyS-e6NgxmrqZ5jMKiFXg5n7ZULzW2DYhy-Ib2VyzNAh1zDXqMIqMwIx5-maqfnDIRpm9oeIqiNdyGmSmFgZzMixP5N1i3_2WdEsa6hRKM_SYj3bahQhQY6jJFp5BnUOJWEJdCiqk_PL3yuA-jEpBekAp-f_huvg7fYjYk8mepPO7LtUf" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<p>Returns zero (falsy) for checksum-pass, or a positive inteter (truthy) for a checksum fail.</p>
+<p><strong>Ungolfed</strong></p>
+<pre><code># ncd (no common divisors) = funtion that returns x without any common divisors with y
+ncd=
+n=function(x,y,z=x)`if`(z&gt;1,`if`(x%%z|y%%z,n(x,y,z-1),n(x/z,y)),x)
+
+# digital_root = function that returns digital root of x in given base
+digital_root=
+d=function(x,base=10,a=sum(x%/%b^(0:log(x+1,b))%%b))`if`(a&lt;b,a,d(a,b))
+
+# luhn = uses helper functions ncd &amp; digital root to calculate luhn modulus
+luhn=
+function(l,b)sum(sapply(rev(l)*sapply(seq(!l),ncd,y=b-1),digital_root,base=b))%%b
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, 18 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
 <pre><code>āRΔDI&lt;¿÷}*ΔIвO}OIÖ
 </code></pre>
 <p>Inputs in the order <span class="math-container">\$list,B\$</span>.</p>
@@ -58,25 +78,6 @@
     }O    # After the second changes-loop: sum the list together
       IÖ  # Check whether it's divisible by the second input B
           # (after which this is output implicitly as result)
-</code></pre>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://www.r-project.org" rel="nofollow noreferrer">R</a>, 148 bytes</h1>
-<pre class="lang-r prettyprint-override"><code>\(l,b,s=sapply)sum(s(rev(l)*s(seq(!l),n&lt;-\(x,z=x)`if`(z&gt;1,`if`(x%%z|(b-1)%%z,n(x,z-1),n(x/z)),x)),d&lt;-\(x,a=sum(x%/%b^(0:x)%%b))`if`(a&lt;b,a,d(a))))%%b
-</code></pre>
-<p><a href="https://ato.pxeger.com/run?1=lY9BbsIwEEX3nMIsIs2giYihlLRKehJUYRcQlUyU4gaZqMdgxyZdcKiepNuOMUrEokhYsvz138z88fF725xMtS7yU_W5itOfwwwMabK5VWVp9mirDVjYLndgcGDBLj-gb5CKLJ6Bozp3OH9fzaF-kXQWLorqL9CxRBZU-BrWXgxrRHJ8F6FX5X62i4aRfoXk2XGDxjBNZZoULUAhH7Yvu_36ReENJIkHEjxVjrB38aZskBiRGJ_hhMQjCTZTEk-MEn6u6r3TVf-PUkayQyH5_nCZ3E7vIloybkn4ftOE9w8" rel="nofollow noreferrer">Attempt This Online!</a></p>
-<p>Returns zero (falsy) for checksum-pass, or a positive inteter (truthy) for a checksum fail.</p>
-<p><strong>Ungolfed</strong></p>
-<pre><code># ncd (no common divisors) = funtion that returns x without any common divisors with y
-ncd=
-n=function(x,y,z=x)`if`(z&gt;1,`if`(x%%z|y%%z,n(x,y,z-1),n(x/z,y)),x)
-
-# digital_root = function that returns digital root of x in given base
-digital_root=
-d=function(x,base=10,a=sum(x%/%b^(0:log(x+1,b))%%b))`if`(a&lt;b,a,d(a,b))
-
-# luhn = uses helper functions ncd &amp; digital root to calculate luhn modulus
-luhn=
-function(l,b)sum(sapply(rev(l)*sapply(seq(!l),ncd,y=b-1),digital_root,base=b))%%b
 </code></pre>
 </div>
 <div id="pu2" class="pu"><h1>JavaScript (ES7), 80 bytes</h1>
