@@ -26,41 +26,58 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>nan</td><td>apparently I was so tired when I was finishing the first time that I forgot that squares get bigger when you increase the length of a side the shuffling only works up to 4x4 squares right now first wrong answer is 39</td><td>240815T125547Z</td><td><a href="https://codegolf.stackexchange.com/questions/274951/sum-of-four-squares-grid/274997#274997">guest430</a></td></tr>
+<tr d-ix="0"><td>1303</td><td>sed 4.2.2</td><td>240815T125547Z</td><td><a href="https://codegolf.stackexchange.com/questions/274951/sum-of-four-squares-grid/274997#274997">guest430</a></td></tr>
 <tr d-ix="1"><td>101</td><td>Charcoal</td><td>240816T084104Z</td><td><a href="https://codegolf.stackexchange.com/questions/274951/sum-of-four-squares-grid/275008#275008">Neil</a></td></tr>
 <tr d-ix="2"><td>048</td><td>Pyth</td><td>240814T221156Z</td><td><a href="https://codegolf.stackexchange.com/questions/274951/sum-of-four-squares-grid/274988#274988">CursorCo</a></td></tr>
 <tr d-ix="3"><td>044</td><td>05AB1E</td><td>240814T083430Z</td><td><a href="https://codegolf.stackexchange.com/questions/274951/sum-of-four-squares-grid/274969#274969">Kevin Cr</a></td></tr>
 </table>
-<div id="pu0" class="pu"><p>apparently I was so tired when I was finishing the first time that I forgot that squares get bigger when you increase the length of a side; the shuffling only works up to 4x4 squares right now (first wrong answer is 39, which takes way more than a minute on tio anyways). give me like a couple hours, I should hopefully have it fixed by then...<br />
-edit: big breakthrough; finally <a href="https://tio.run/##lY/BbsMgDIbvPMWklASYghuybmtBfYrd4kYCNep6SaeSW5RXH8PapHaHHWYk49/wf@A4HFOK0AOOOAJju2BjrqEoSfgsetG5db09KFkANs41pn3aPL@8bot1s4d8QWjptMJGFEpLrfaABuzkGXGEwM6HA85YLlLJDM7vNNSiTpb2nRGBjm4Z4nB8qCLXiqPh9owtkq1yzlV5g@EvT30lW4/timNJnuyest9Q3eK4u0O80aBzR6M9LkDfgZOdAvvFvqPqGc3yjeWnGyelELz3IS8ffuJ/@vPyMZ0vY0z19Qs" rel="nofollow noreferrer">squarified an arbitrary string</a>. now I just need to add a shuffle and use it to replace the current shuffle I'm using.<br />
-<s># <a href="https://www.gnu.org/software/sed/" rel="nofollow noreferrer">sed 4.2.2</a> <code>-r</code>, <s>812</s> <s>806</s> 803 bytes</s></p>
-<pre><code>:a;s/[1-9]/&amp;#/g;y/123456789/012345678/;s/#0/9#/;ta;s/0//g
-h;z;s/^/0/
-:;H;y/10/!@/
-:b;s/^/\n/
-:c;s/^/#/
-:d;s/#/&lt;&lt;123456789#01&gt;/;s/(.)&lt;.*\1(#*.).*&gt;/\2/;td
-s/(.*)\n(.*)/sed -rn 's!(^| )([@!]{\1})([@!]{\1})([@!]{\1})([@!]{\1})([@!]{\1})([@!]{\1})([@!]{\1})([@!]{\1})($| )! \\2 \\3 \\4 \\5 \\6 \\7 \\8 \\9 \\n!;t;i\1\\n\2\nba;:;p;:a'&lt;&lt;&lt;'\2'/e
-T;s/ (.+) (.+) (.+) (.+) (.+) (.+) (.+) (.+) \n/ \1\3 \2\4 \5\7 \6\8  /
-tf;/^1.{,5}$/bf
-:e;s/[1-9]/&amp;#/g;y/123456789/012345678/;s/#0/9#/;te;s/0//g
-bc;:f;/[@!]{5}/bb;s/.*\n//
-s/[!@]/&amp; /g;y/ /\n/
-:g;s/@\n@/@/;s/@\n!/!/;s/!\n@/!/;s/!\n!/!!/;tg
-/^\n*!*\n*$/!s/.*/sed -rn 'h;s!.!!;x;:;s!.*!\&amp;!mp;T;x;s!.!!;x;t'&lt;&lt;&lt;'&amp;'/e
-s/\n(\n*)/\1/g;/\n/bg;y/!/#/
-G;s/\n0.*//;T
-s/^(#*)\n\1$//;th
-g;s/.*\n//;T
+<div id="pu0" class="pu"><h1><a href="https://www.gnu.org/software/sed/" rel="nofollow noreferrer">sed 4.2.2</a>, 1303 bytes</h1>
+<pre><code>s/^0$/0/;s/^1$/1/;tg
+x;s/^/0001/;x
+:k;s/[1-9]/&amp;#/g;y/123456789/012345678/;s/#0/9#/;tk;s/0//g
+G;s/(.*)\n(.*)/\2\n\1/;bi
+:;G;s/\n.*\n/\n/;h;s/\n.*//;x
+:i;y/10/ab/;G;s/\n//2
+:c;:h
+tw;:w;s/(.*)\b([ab]{2,})\b( *)\n(#*)/\2\n\3\1\n\4/;Tn
+h;s/\n.*//;s/^/\n\n/
+:b;s/\n/#&amp;/
+:a;s/^([&lt;0-9]*)#/\1&lt;&lt;123456789#01&gt;/;s/(.)&lt;.*\1(#*.).*&gt;/\2/;ta
+s/\n((\[ab]\{\&amp;})*)\n/\n\1[ab]{\&amp;}\n/
+s/(.*)\n(.*)\n(.*)/sed 's%.*%\2%;i\3\\n\1'&lt;&lt;&lt;'\1'/e
+s/(.*)\n(.*)\n(.*)/sed -r 's%^\3$%\&amp;\\n\2%;t;i\2\\n\3\n:'&lt;&lt;&lt;'\1'/e
+T;s/\{[0-9]+}/{\&amp;}/g;tb
+:y;s/[1-9]/&amp;#/g;y/123456789/012345678/;s/#0/9#/;ty;s/0//g
+s/(#+)\1/\1/
+:s;s/#/&lt;&lt;123456789#01&gt;/;s/(.)&lt;.*\1(#*.).*&gt;/\2/;ts
+s/(.*)\n(.*)/sed -r 's%.{\2}%\&amp;\\n%g;i\2'&lt;&lt;&lt;'\1'/e
+:x;s/[1-9]/&amp;#/g;y/123456789/012345678/;s/#0/9#/;tx;s/0//g
+s/(#+)/\1\1/
+:d;s/#/&lt;&lt;123456789#01&gt;/;s/(.)&lt;.*\1(#*.).*&gt;/\2/;td;
+s/([0-9]+)\n(.*)/sed -z 's%\\n%\\n\\n\\n%\1'&lt;&lt;&lt;'\2'/e
+s/.*/sed '2~2d'&lt;&lt;&lt;'&amp;';sed '1~2d'&lt;&lt;&lt;'&amp;'/e
+s/(.)\n/\1/g;y/\n/ /;G
+s/\n[ba]*\n/ /
+/[ab]{2,}/bh
+h;s/\n.*//
+:n;s/.*\n//;s/[ab]/&amp; /g;y/ /\n/
+:f;:e;s/b\nb/b/;s/b\na/a/;s/a\nb/a/;s/a\na/aa/;te
+/^\n*a*\n*$/!s/.*/sed -rn 'h;sa.aa;x;:;sa.*a\&amp;amp;T;x;sa.aa;x;t'&lt;&lt;&lt;'&amp;'/e
+s/\n(\n*)/\1/g;/\n/bf
+y/a/#/;s/b//;G;s/\n.*\n/ /
+Ta;s/^(#*) \1([01]*)$/\2/;tg;s/#* //
+s/^(#*)([01]*)$/\2\n\1/;h;s/\n.*//;T
 s/10(0*)(1*)$/01\2\1/;t
 s/(0*)0(1*)/\21\1/;t
 y/1/0/;s/.*/&amp;&amp;&amp;&amp;/;t
-:h;x;s/.*\n//
+:g
 </code></pre>
-<p><a href="https://tio.run/##rVLBjpswEL37K2yBEnAbxmZDdsFoxa39gNziRQobluyhbLRwaLvNr5e@Ic322kpFGvT8xn5jv5mhPUxTsXcD7ewqf6BFQJ37Rja9WWeb27uczBUS9gSG8oDcyPsNUSeO7jtgjYUo3Gc@aEhVWDQz7XvAxxkGQAeWoLJ8Vw@MvWfdKInLRHsbBTqJE31PPkWVg@CMjn3Pfxrag1y99nI5qKj@IeNoV6mHN2/P/wuFEFXS@xRxg1gjMsQGcYu4Q@SIXrnRPXsL5FPfN3tXuJMr9suyLJc@XVIrtniUjJIP8d/84JKEGkqmXDPjYhtUkyTGJ0e1Td4@ZueQmidRtP/YqfbaqebRFRCbX5udqeEGwfKeCC7vVAVBOQvKS9c65CvfV1TRBSlSjBRzVwQOcOwE1b7XCnI6JMXCf7p1dINKlHJf4RKQVn6hvpzcFsQ1Mc7OLdi4AdUjyMTkLa7Dd2n4VooH6JPjtIE6uS221pgXTIe3IYjxKLr3N81payKj48jqOIQ5MNdiF88UWMM0xsxeSPgIm@bjtMDHXHHkK/4WnCYrUrEWmch/vpzG55d@mFavvwA" rel="nofollow noreferrer" title="sed 4.2.2 – Try It Online">Try it online!</a></p>
+<p><a href="https://tio.run/##lVRtb5swEP7uX8FEQgJdOJu022Kjft0fyDecSmZJ02garQJSSaPspy97zoSWfpi0IgTn8708z93Z9WZ9bs2Lac813ckRSTIQ1IgUmWYrWl6RlBLLVuifWBZqtlhRFNLWHEhl8@ubL1@/LUj2IgcIJS1CBGB7SbQV3yFM0yS2FX/JZrayCFnuhDa8Z6s0sRV@ZB4uS/IZd5xEkivpYkeUCf3D6AfRPBv93Mctp4UrV8fs84nlwGcK@0xzq/C9JrOsxCA8U4O@IqHLLnYYQXa8MS1yCZ5JHJJVef7KM5TqlnzSOAdkhSRpnCa3SAS@TnCY6dQyGHu00SlmJJxFeXzQcL5hMS4lqTfrYFKP02Rss7HZATM7TfI8n@BHm3/5zPbsdmfno7GN2AfeDfwz64lXehBiySyPBRO7OhGDQRObUujDB/t66PsKUOFVjFbiFbpmE/rvatXvOA3YpEebnTo64y1zGXDQ7Qextu@xAqnHuv4Y1rVh/6507wC/MGAGyvX277hvW9a1DbPmm5v9ztZ@I5oYr1Bvikt//awozwpSgJn3A1WUbpV4haB@zKl8GMyy0JXhTHw@uD4woijwgQLyE35v9AY7pa1KKqmTHDmWHOt6CTqIzUbQna0Sh4jJiD69spjtq2CCvC51zrRGs5Q4G7lfT2YJRb/RDImhXggTd9QYTnkvDsgYehxEwysAHJfdCcTxDdCGQiocw1HXhi13LQmIj5C3GGx3V8rgfC9hpORUwkqxiVQw4nuNaw2tZDUcVafEJHXXH5wjPKzT2/NZCiUyMRfX4ubP41Oze6zq82z/Fw" rel="nofollow noreferrer" title="sed 4.2.2 – Try It Online">Try it online!</a></p>
 <p>did you know sed is turing complete? I happen to know that, and it makes me do things I shouldn't...</p>
-<p>(I'll come back to golf this, clean up the formatting a bit more, and add an explanation later, but it's working and I want sleep. basically it does the same thing the other answers are; generating an infinite list of binary matrices in the right order and outputting the first one that matches the input. since there's no numbers in sed, that first step is so much easier than the second...)</p>
-<p>I didn't even put the base conversion things in the header/footer this time so that byte count includes everything. you give it a decimal number and it outputs the binary number.</p>
+<p>I have finally fixed the shuffling. splitting an arbitrary length string into 4 quadrants of a square is stupidly hard. I will come back and explain more and golf a lot, but this works on any inputs, even 39 and 70 (you just have to wait a few years or something like that...)</p>
+<p>tio will finish on small numbers like 5 and 9, but even 6 is asking a bit much of it. hopefully my golfing will speed things up significantly.</p>
+<p>the formatting is even worse now, but I'll clean it up again as I golf it. sed is one of those weird languages that the more it's golfed, the more legible it gets. I'm sure even people not very familiar with sed can see that this has lots of room to golf with all the many nearly-exactly-repeated lines and duplicate commands...</p>
+<p>the <code>\&amp;amp;</code> is not an html error, at this point I have started using sed to write and modify sed scripts to build this answer with and when I saw it show up inside of a command I thought it was too cute to change it back. (the actual command it's part of is <code>sa.*a\&amp;amp</code>, or more legibly written as <code>s/.*/\&amp;/mp</code>)</p>
 <p>oh yeah, if you want to check the matrices are in the right order <a href="https://tio.run/##JcsxCoAwEETRfs8hEgM6u5bmAh7AMqUiNiYYGy/vusGpPg@mbKvqTBPNlGmngsHHEwiLpbBj3znxXQOWOEZBuM2rcmXEUX58IGCEekdrM1PlN@X7SGfR/voA" rel="nofollow noreferrer">this</a> outputs matrices infinitely starting at whatever matrix you input</p>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 101 bytes</h1>
