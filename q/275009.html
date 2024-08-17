@@ -26,11 +26,62 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>149</td><td>Charcoal</td><td>240817T124317Z</td><td><a href="https://codegolf.stackexchange.com/questions/275009/ways-to-paint-a-backbone-on-a-tree/275028#275028">Neil</a></td></tr>
-<tr d-ix="1"><td>189</td><td>Python</td><td>240817T044742Z</td><td><a href="https://codegolf.stackexchange.com/questions/275009/ways-to-paint-a-backbone-on-a-tree/275026#275026">Mukundan</a></td></tr>
+<tr d-ix="0"><td>189</td><td>Python</td><td>240817T044742Z</td><td><a href="https://codegolf.stackexchange.com/questions/275009/ways-to-paint-a-backbone-on-a-tree/275026#275026">Mukundan</a></td></tr>
+<tr d-ix="1"><td>149</td><td>Charcoal</td><td>240817T124317Z</td><td><a href="https://codegolf.stackexchange.com/questions/275009/ways-to-paint-a-backbone-on-a-tree/275028#275028">Neil</a></td></tr>
 <tr d-ix="2"><td>643</td><td>Python3</td><td>240816T145138Z</td><td><a href="https://codegolf.stackexchange.com/questions/275009/ways-to-paint-a-backbone-on-a-tree/275016#275016">Ajax1234</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 149 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, <sup><s>316</s> <s>246</s> <s>238</s> <s>197</s></sup> 189 bytes</h1>
+<p><em>-2 bytes thanks to <a href="https://codegolf.stackexchange.com/users/17602/neil">@Neil</a></em><br />
+<em>-8 bytes thanks to <a href="https://codegolf.stackexchange.com/users/100664/emanresu-a">@emanresu A</a></em></p>
+<pre class="lang-python prettyprint-override"><code>lambda g,s=[]:sum([s:=s+[t:=(T:=lambda p,n:(*sorted(T(n,c)for c in g[n]if p^c),))(n,n)],L(t),.5,0][min(3,s.count(t))]for n,c in enumerate(g)if len(c)&lt;2)
+L=lambda t:sum(L(i)for i in{*t})or.5
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=hZLPatwwEMbJ1U8hfJLS2WXt9f6JqQu5FAp7KCQ3RSnuWuu62LKw5WWb0ifpJRDat-iDNE-TkeTQbElTg0d45vt9M2P7-0_9xXxq1e3dTXb1YzC7yfr3rzpvPhY5KaHPuEj7oaG8T7P-FTdpRi_TbKxrUCk97dvOyIJeUgVbtms7siWVIiVXotoRfb1lwBjWFBOwoYbBdAEzwZtK0Tn00207KINpJiyKFhaWamhklxtJS4YmtVR0y17HLNg8tjZuqg2tXMcKoa-n5htru-nCL3F_cl3IHZFFKfs4Lz7XVW-oe2JpQPBSJCNNfqBNrvE-gJcy5ooIYJlzQaz9BztTl6tSUtzCCWx6ALJ301rQm44sH8iERGKaay1VQff2iR0J9keC4Y-gk2bolNUEgW1SV0raJi0K6WycvVIa5z1ot4Kmcp_X4JTTXteVoSGZvCHhuAuKUXf8IjDni-1gsHjjEy6juwo_CA_fnr_bhEDC9-cXF6HgTpjZpgIsxfxrvr0_MZxHEAvgMcwxziFxcSGEnSIOnisvYIlxCSuXsXEFaw8kzwLWz8blCLzg7aVPOyzR28azlzokDksctnLAGgGPAT-DaObp5X9p3zR54uFod0R4RBFEsTeLZn-5xf9w8xOtHlcYf_IH" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<p>Takes input as an adjacency list, test runner contains code to convert edge list to adjacency list.</p>
+<h2>Explanation</h2>
+<p>We use a unique representation for rooted unlabeled trees using nested tuples without introducing labels. In this system:</p>
+<ol>
+<li>Leaf are empty tuples <code>()</code>.</li>
+<li>Non-leaf node are tuples containing the representations of its child nodes.</li>
+<li>The outermost tuple is the root.</li>
+</ol>
+<p>Examples:</p>
+<ul>
+<li><code>((), ())</code>: Root with two leaves</li>
+<li><code>((()), ())</code>: Root with a leaf and a node having one leaf</li>
+</ul>
+<p>Let <span class="math-container">\$T(X)\$</span> be the tuple representation of a tree rooted at <span class="math-container">\$X\$</span></p>
+<p>We will now define an algorithm <span class="math-container">\$L(Y)\$</span> which counts the number of unique leaves in a tree when symmetries are taken into account. It operates on <span class="math-container">\$Y\$</span>, which is <span class="math-container">\$T(X)\$</span> for some node <span class="math-container">\$X\$</span>, i.e., the nested tuple representation of a tree rooted at <span class="math-container">\$X\$</span>:</p>
+<ol>
+<li>Base case: If Y is an empty tuple <code>()</code>, return 1</li>
+<li>For non-leaf nodes:
+<ol>
+<li>Deduplicate immediate child subtrees. (since path to nodes in duplicate subtrees will same)</li>
+<li>Recursively call <span class="math-container">\$L\$</span> for each remaining child subtree.</li>
+<li>Return the sum of recursive calls.</li>
+</ol>
+</li>
+</ol>
+<p>Note that <span class="math-container">\$L(T(X))\$</span> is also the number of backbones which include the node <span class="math-container">\$X\$</span> when <span class="math-container">\$X\$</span> is a leaf.</p>
+<p>Now summing up <span class="math-container">\$L(Y)\$</span> for every unique <span class="math-container">\$T(l)\$</span> where <span class="math-container">\$l\$</span> is a leaf node, gives us something very close to double the answer since we would double count every backbone from <span class="math-container">\$u\$</span> to <span class="math-container">\$v\$</span> when <span class="math-container">\$u\$</span> and <span class="math-container">\$v\$</span> are not isomorphic, we fix this by adding 1 for every path we didn't double count and final divide by 2 to get the answer.</p>
+<h3>Commented Version</h3>
+<pre class="lang-python prettyprint-override"><code># given a tuple representation counts the number of unique paths to leaves,
+# it does this by eliminating duplicate subtrees then counting the number of leaves
+L = lambda t: sum(L(i) for i in {*t}) or .5
+
+lambda g, s=[]: sum(
+    [
+      s := s + [ t :=                                                   # Append tuple representation of tree rooted at n to s:
+          (T := lambda p, n: (*sorted(T(n, c) for c in g[n] if p^c),))  #   Function to generate tuple representation of the tree rooted at n
+          (n, n) ],                                                     #   call function on n
+      L(t),                                                             # Add L(t) if tuple representation appears exactly once in s
+      .5,                                                               # Add .5   if tuple representation appears exactly twice in s
+      0][min(3, s.count(t))]                                            #
+    for n, c in enumerate(g) if len(c) &lt; 2                              # For every leaf node
+)
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 149 bytes</h1>
 <pre><code>≔Ｅθ⊞Ｏ⌕ＡＳ1κθ≔ＥθＥθυηＦθＦＥθλＦ§θκ«≔Ｅ⁻§θκ⟦κλ⟧§§ημκζ≔⟦⟧εＷ⁻ζεＦ№ζ⌊μ⊞ε⌊μ§≔§ηκλε»≔ΦＥη⟦κκ§ικ§θκ⟧⁼²Ｌ⊟ιζＦζ«≔⁻§θ§ι¹…ι²ε¿εＦε⊞ζ⁺⟦§ι¹κ§§ηκκ⟧✂ι²⊞υ✂ι²»ＵＭυ⌊⟦ι⮌ι⟧ＩＬΦυ⁼κ⌕υι
 </code></pre>
 <p><a href="https://tio.run/##bVLLasMwEDzXXyFykkGFKNeegmkg0FDTHE0OxlEiEVl@SErblH67u2vLSRxqsLSa3R3NDipk3hZVrrtuaa06GrrJa9owknor32vR5q5q6UqZ/VJruja1d1vXKnOkMSMzPoP1FMPSxC/RlCBsHrMSsoeqJbSJSb@HpI7DeenWZi@@EAM68hM93ZFtlPF2WsJIdoL2HQQjPu6SkXJUdYF7R6Zsx4jA86dUWpDAekEwiEgqbxwikFKlL2kZQwqNoGICXkn/uRu16eGm39GRldJOtP0sclB@uulWQ89kPJzrtfG5tnTByJswRydpWtVUgaIwVy/5MvHq0ae7Kzi2Jd@FFolEHkYWiPSGqAOhInggwsDgQqqBLZtwTIQ/DA2qGdlqVYjAjtRCWzEQ@mkS3QE/kqosc7PH7OhvBgUf4ixaC7XgBJSm8OAcTXLraPAiOOqvNoEufKSI9B5BW9fN@Xz4Ij7nQxzdMIx6NIJ/zPYRHyIMOB@iG4ZR93zWfw" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code. Takes input as an adjacency matrix. Explanation: Port of an earlier version of @Mukundan314's Python answer.</p>
@@ -73,41 +124,6 @@
 <pre><code>ＩＬΦυ⁼κ⌕υι
 </code></pre>
 <p>Deduplicate and count the backbones.</p>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, <sup><s>316</s> <s>246</s> <s>238</s> <s>197</s></sup> 189 bytes</h1>
-<p><em>-2 bytes thanks to <a href="https://codegolf.stackexchange.com/users/17602/neil">@Neil</a></em><br />
-<em>-8 bytes thanks to <a href="https://codegolf.stackexchange.com/users/100664/emanresu-a">@emanresu A</a></em></p>
-<pre class="lang-python prettyprint-override"><code>lambda g,s=[]:sum([s:=s+[t:=(T:=lambda p,n:(*sorted(T(n,c)for c in g[n]if p^c),))(n,n)],L(t),.5,0][min(3,s.count(t))]for n,c in enumerate(g)if len(c)&lt;2)
-L=lambda t:sum(L(i)for i in{*t})or.5
-</code></pre>
-<p><a href="https://ato.pxeger.com/run?1=hZLPatwwEMbJ1U8hfJLS2WXt9f6JqQu5FAp7KCQ3RSnuWuu62LKw5WWb0ifpJRDat-iDNE-TkeTQbElTg0d45vt9M2P7-0_9xXxq1e3dTXb1YzC7yfr3rzpvPhY5KaHPuEj7oaG8T7P-FTdpRi_TbKxrUCk97dvOyIJeUgVbtms7siWVIiVXotoRfb1lwBjWFBOwoYbBdAEzwZtK0Tn00207KINpJiyKFhaWamhklxtJS4YmtVR0y17HLNg8tjZuqg2tXMcKoa-n5htru-nCL3F_cl3IHZFFKfs4Lz7XVW-oe2JpQPBSJCNNfqBNrvE-gJcy5ooIYJlzQaz9BztTl6tSUtzCCWx6ALJ301rQm44sH8iERGKaay1VQff2iR0J9keC4Y-gk2bolNUEgW1SV0raJi0K6WycvVIa5z1ot4Kmcp_X4JTTXteVoSGZvCHhuAuKUXf8IjDni-1gsHjjEy6juwo_CA_fnr_bhEDC9-cXF6HgTpjZpgIsxfxrvr0_MZxHEAvgMcwxziFxcSGEnSIOnisvYIlxCSuXsXEFaw8kzwLWz8blCLzg7aVPOyzR28azlzokDksctnLAGgGPAT-DaObp5X9p3zR54uFod0R4RBFEsTeLZn-5xf9w8xOtHlcYf_IH" rel="nofollow noreferrer">Attempt This Online!</a></p>
-<p>Takes input as an adjacency list, test runner contains code to convert edge list to adjacency list.</p>
-<h2>Explanation</h2>
-<p>We use a unique representation for rooted unlabeled trees using nested tuples without introducing labels. In this system:</p>
-<ol>
-<li>Leaf are empty tuples <code>()</code>.</li>
-<li>Non-leaf node are tuples containing the representations of its child nodes.</li>
-<li>The outermost tuple is the root.</li>
-</ol>
-<p>Examples:</p>
-<ul>
-<li><code>((), ())</code>: Root with two leaves</li>
-<li><code>((()), ())</code>: Root with a leaf and a node having one leaf</li>
-</ul>
-<p>Let <span class="math-container">\$T(X)\$</span> be the tuple representation of a tree rooted at <span class="math-container">\$X\$</span></p>
-<p>We will now define an algorithm <span class="math-container">\$L(Y)\$</span> which counts the number of unique leaves in a tree when symmetries are taken into account. It operates on <span class="math-container">\$Y\$</span>, which is <span class="math-container">\$T(X)\$</span> for some node <span class="math-container">\$X\$</span>, i.e., the nested tuple representation of a tree rooted at <span class="math-container">\$X\$</span>:</p>
-<ol>
-<li>Base case: If Y is an empty tuple <code>()</code>, return 1</li>
-<li>For non-leaf nodes:
-<ol>
-<li>Deduplicate immediate child subtrees. (since path to nodes in duplicate subtrees will same)</li>
-<li>Recursively call <span class="math-container">\$L\$</span> for each remaining child subtree.</li>
-<li>Return the sum of recursive calls.</li>
-</ol>
-</li>
-</ol>
-<p>Note that <span class="math-container">\$L(T(X))\$</span> is also the number of backbones which include the node <span class="math-container">\$X\$</span> when <span class="math-container">\$X\$</span> is a leaf.</p>
-<p>Now summing up <span class="math-container">\$L(Y)\$</span> for every unique <span class="math-container">\$T(l)\$</span> where <span class="math-container">\$l\$</span> is a leaf node, gives us something very close to double the answer since we would double count every backbone from <span class="math-container">\$u\$</span> to <span class="math-container">\$v\$</span> when <span class="math-container">\$u\$</span> and <span class="math-container">\$v\$</span> are not isomorphic, we fix this by adding 1 for every path we didn't double count and final divide by 2 to get the answer.</p>
 </div>
 <div id="pu2" class="pu"><h1>Python3, 643 bytes</h1>
 <pre class="lang-py prettyprint-override"><code>F=lambda x:{J for K in x for J in K}
