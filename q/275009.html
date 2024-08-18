@@ -70,21 +70,19 @@ L=lambda t:sum(map(L,{*t}))or.5
 # it does this by eliminating duplicate subtrees then counting the number of leaves
 L = lambda t: sum(map(L, {*t})) or .5
 
-lambda g, s=[]: sum(
-  [
-    s := s + [                                                          # s.append(t)
-      t :=                                                              #   t = tuple representation of tree rooted at node
-        (T := lambda C, p: (*sorted(T({*g[c]} - {p}, c) for c in C),))  #     recursive function to generate tuple representation for a virtual node with given children
-        (c,T)                                                           #     called with children of current node
-        [0][1:]                                                         #     remove original leaf since virtual node is equivalent to original left
-    ],                                                                  #
-    L(t),                                                               # if s.count(t) == 1: add L(t)
-    .5,                                                                 # if s.count(t) == 2: add .5
-    0                                                                   # else: add 0
-  ][min(3, s.count(t))]                                                 #
-  for c in g                                                            # for every node
-  if len(c) &lt; 2                                                         # where number of adjacent nodes equals 1
-)
+lambda g: (
+  s :=                            # s = tuple of tuple representations of trees rooted at every node
+    (T := lambda C, p: (*sorted(  #   recursive function to generate tuple representations (dfs)
+      T({*g[c]} - {p}, c)         #     recursively call T with parent removed from adjacent nodes
+      for c in C),)               #     for every child
+    )(range(len(g)), T),          #   magic arguments to get function to generate tuple representation for every node
+  sum(                            #
+    L(t)                          # add L(t)
+    + .5 * (s.count(t) &gt; 1)       # add .5 if t occurs more than once in s
+    for t in {*s}                 # for every unique tuple representation t
+    if len(t) &lt; 2                 # which was generated from a leaf node
+  )
+)[1]
 </code></pre>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, <s>149</s> 135 bytes</h1>
