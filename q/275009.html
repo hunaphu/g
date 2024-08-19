@@ -26,12 +26,59 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>166</td><td>Python</td><td>240817T044742Z</td><td><a href="https://codegolf.stackexchange.com/questions/275009/ways-to-paint-a-backbone-on-a-tree/275026#275026">Mukundan</a></td></tr>
-<tr d-ix="1"><td>1987</td><td>Scala 3</td><td>240818T120941Z</td><td><a href="https://codegolf.stackexchange.com/questions/275009/ways-to-paint-a-backbone-on-a-tree/275041#275041">138 Aspe</a></td></tr>
-<tr d-ix="2"><td>135</td><td>Charcoal</td><td>240817T124317Z</td><td><a href="https://codegolf.stackexchange.com/questions/275009/ways-to-paint-a-backbone-on-a-tree/275028#275028">Neil</a></td></tr>
-<tr d-ix="3"><td>643</td><td>Python3</td><td>240816T145138Z</td><td><a href="https://codegolf.stackexchange.com/questions/275009/ways-to-paint-a-backbone-on-a-tree/275016#275016">Ajax1234</a></td></tr>
+<tr d-ix="0"><td>035</td><td>Jelly</td><td>240819T195234Z</td><td><a href="https://codegolf.stackexchange.com/questions/275009/ways-to-paint-a-backbone-on-a-tree/275058#275058">Jonathan</a></td></tr>
+<tr d-ix="1"><td>166</td><td>Python</td><td>240817T044742Z</td><td><a href="https://codegolf.stackexchange.com/questions/275009/ways-to-paint-a-backbone-on-a-tree/275026#275026">Mukundan</a></td></tr>
+<tr d-ix="2"><td>1987</td><td>Scala 3</td><td>240818T120941Z</td><td><a href="https://codegolf.stackexchange.com/questions/275009/ways-to-paint-a-backbone-on-a-tree/275041#275041">138 Aspe</a></td></tr>
+<tr d-ix="3"><td>135</td><td>Charcoal</td><td>240817T124317Z</td><td><a href="https://codegolf.stackexchange.com/questions/275009/ways-to-paint-a-backbone-on-a-tree/275028#275028">Neil</a></td></tr>
+<tr d-ix="4"><td>643</td><td>Python3</td><td>240816T145138Z</td><td><a href="https://codegolf.stackexchange.com/questions/275009/ways-to-paint-a-backbone-on-a-tree/275016#275016">Ajax1234</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, <sup><s>316</s> ... <s>170</s></sup> 166 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 35 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
+<p>Port of <a href="https://codegolf.stackexchange.com/a/275026/53748">Mukundan314's Python answer</a> which is superb, go give it some love!</p>
+<pre><code>Qß€Sȯ1
+ðị³ḟß⁸ð€Ṣ
+Jç©0LÐṂQµ®ċ’Ṡ+Ñ)SH
+</code></pre>
+<p>A full program that accepts a tree as a 1-indexed adjacency list and yields the number of identifiable backbone colourings of an unlabelled version of the tree.</p>
+<p><strong><a href="https://tio.run/##y0rNyan8/z/w8PxHTWuCT6w35Dq84eHu7kObH@6YDxRr3HF4A1Di4c5FXF6Hlx9aaeBzeMLDnU2Bh7YeWnek@1HDzIc7F2gfnqgZ7PH////oaKNYHYVoQx0FYx0FExATzDfSUTDVUTADMcGCJjoK5iDaTEfBQkfBEsQ0hxCxAA" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></strong><br />
+(This is the <code>[[1, 2], [2, 3], [2, 4], [4, 5], [4, 6], [6, 7], [7, 8], [7, 9]] -&gt; 5</code> example)</p>
+<h4>How?</h4>
+<p>Execution starts on the third line, the &quot;Main Link&quot;.</p>
+<pre><code>Qß€Sȯ1 - Link 1, Count equivalent leaves: Representation, R
+Q      - deduplicate {R}
+ ß€    - call this Link for each
+   S   - sum
+    ȯ1 - logical OR one
+
+ðị³ḟß⁸ð€Ṣ - Link 2, Make all node's representations: RemainingNodes; ParentNode
+ð     ð€  - dyadic link for each {Node in RemainingNodes} - f(Node, PerentNode)
+  ³       -   program's first argument -&gt; Tree
+ ị        -   {Node} index into {Tree} -&gt; AdjacentNodes
+   ḟ      -   {AdjacentNodes} filter discard {ParentNode} -&gt; ChildNodes
+     ⁸    -   chain's left argument -&gt; Node
+    ß     -   call this Link - f(ChildNodes, Node)
+        Ṣ - sort
+
+Jç©0LÐṂQµ®ċ’Ṡ+Ñ)SH - Main Link: Labelled Tree as a 1-indexed adjacency list
+J                  - indices {Tree} -&gt; [1..#Nodes]
+   0               - zero (just something that wont be a node label)
+ ç                 - call Link 2 as a dyad - f([1..#Nodes], 0)
+                       -&gt; AllReps = representation from each node
+  ©                - (and copy the result to the register)
+     ÐṂ            - keep those minimal by:
+    L              -   length -&gt; LeafReps = representations from each leaf node
+       Q           - deduplicate
+        µ      )   - for each {LeafRep in LeafReps}:
+          ċ        -   count occurrences of {LeafRep} in
+         ®         -     the register ({AllReps})
+           ’       -   decrement
+            Ṡ      -   sign -&gt; M = 1 if multiple were found else 0 (only 1 found)
+              Ñ    -   call Link 1 as a monad - f(LeafRep) -&gt; L = equivalent leaf count
+             +     -   {M} add {L}
+                S  - sum
+                 H - halve
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, <sup><s>316</s> ... <s>170</s></sup> 166 bytes</h1>
 <p><em>-7 bytes thanks to <a href="https://codegolf.stackexchange.com/users/17602/neil">@Neil</a></em><br />
 <em>-8 bytes thanks to <a href="https://codegolf.stackexchange.com/users/100664/emanresu-a">@emanresu A</a></em><br />
 <em>-5 bytes thanks to <a href="https://codegolf.stackexchange.com/users/20260/xnor">@xnor</a></em></p>
@@ -86,7 +133,7 @@ lambda g: (
 )[1] / 2                          # divide by 2 to account for double counting
 </code></pre>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://www.scala-lang.org/" rel="nofollow noreferrer">Scala 3</a>, 1987 bytes</h1>
+<div id="pu2" class="pu"><h1><a href="https://www.scala-lang.org/" rel="nofollow noreferrer">Scala 3</a>, 1987 bytes</h1>
 <p>A port of <a href="https://codegolf.stackexchange.com/a/275016/110802">@Ajax1234's Python code</a> in Scala.</p>
 <p>1987 bytes, it can be golfed much more.</p>
 <hr />
@@ -237,7 +284,7 @@ object Main {
 }
 </code></pre>
 </div>
-<div id="pu2" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, <s>149</s> 135 bytes</h1>
+<div id="pu3" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, <s>149</s> 135 bytes</h1>
 <pre><code>≔Ｅθ⊞Ｏ⌕ＡＳ1κθ≔ＥθＥθυηＦθＦＥθλＦ§θκ«≔Ｅ⁻§θκ⟦κλ⟧§§ημκζ≔⟦⟧εＷ⁻ζεＦ№ζ⌊μ⊞ε⌊μ§≔§ηκλε»≔ΦＥθ⟦κι⟧⁼²Ｌ⊟ιζＦζ«≔⁻§θ§ι⁰ιε¿εＦε⊞ζ⁺⟦κ⟧ι⊞υＥι§§ηκκ»ＵＭυ⌊⟦ι⮌ι⟧ＩＬΦυ⁼κ⌕υι
 </code></pre>
 <p><a href="https://tio.run/##bVJda4MwFH2evyL0KYIDs9c9lbJCYWWyPYoP0qY1GONHkm449tvdvSZp56igOTn3I/ccc6jK4dCWcprWWouzovuyo31CMqurt44PpWkHuhXquJaS7lRnzYcZhDrTOCErtoJvHcOnj5@jZQO/WIxWED21A6F9TObVB2Xs92uzU0f@hRy0I9/Rw59me6GsXqYkJK@hvAAQ@LBWCWnCVCOcGzrlRUI47j8rITnxXUck/RCb1iqDDIREYxvaxBBCIyhfkNemd87G2aQ76Sc4shXS8CGIxskFTv7S21Jq@pSQV67OpqJZ21EBZ/rJ56HGhRv/nQhQJCTFMhF7keJEKPe6uBcByjIJ9XldYCamcam5C1r3x8RdQ2tn6KwJsjZt05TqONd4V3IofOcXPmgOEgpMzeCaGLoptaFen/fBXqWDE3i1kJl1Q9k0pSx1T8RS5nB04xDNbARviM6IOYSAMYduHKLp8SJ/AQ" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code. Takes input as an adjacency matrix. Explanation: Port of an earlier version of @Mukundan314's Python answer.</p>
@@ -281,7 +328,7 @@ object Main {
 </code></pre>
 <p>Deduplicate and count the backbones.</p>
 </div>
-<div id="pu3" class="pu"><h1>Python3, 643 bytes</h1>
+<div id="pu4" class="pu"><h1>Python3, 643 bytes</h1>
 <pre class="lang-py prettyprint-override"><code>F=lambda x:{J for K in x for J in K}
 W=tuple
 def B(g):
