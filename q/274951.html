@@ -26,13 +26,42 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>838</td><td>sed 4.2.2 r</td><td>240815T125547Z</td><td><a href="https://codegolf.stackexchange.com/questions/274951/sum-of-four-squares-grid/274997#274997">guest430</a></td></tr>
-<tr d-ix="1"><td>653</td><td>Python</td><td>240819T183943Z</td><td><a href="https://codegolf.stackexchange.com/questions/274951/sum-of-four-squares-grid/275054#275054">Kolen Ch</a></td></tr>
+<tr d-ix="0"><td>634</td><td>Python</td><td>240819T183943Z</td><td><a href="https://codegolf.stackexchange.com/questions/274951/sum-of-four-squares-grid/275054#275054">Kolen Ch</a></td></tr>
+<tr d-ix="1"><td>838</td><td>sed 4.2.2 r</td><td>240815T125547Z</td><td><a href="https://codegolf.stackexchange.com/questions/274951/sum-of-four-squares-grid/274997#274997">guest430</a></td></tr>
 <tr d-ix="2"><td>049</td><td>05AB1E</td><td>240814T083430Z</td><td><a href="https://codegolf.stackexchange.com/questions/274951/sum-of-four-squares-grid/274969#274969">Kevin Cr</a></td></tr>
 <tr d-ix="3"><td>101</td><td>Charcoal</td><td>240816T084104Z</td><td><a href="https://codegolf.stackexchange.com/questions/274951/sum-of-four-squares-grid/275008#275008">Neil</a></td></tr>
 <tr d-ix="4"><td>048</td><td>Pyth</td><td>240814T221156Z</td><td><a href="https://codegolf.stackexchange.com/questions/274951/sum-of-four-squares-grid/274988#274988">CursorCo</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.gnu.org/software/sed/" rel="nofollow noreferrer">sed 4.2.2</a> <code>-r</code>, <s>1303</s> <s>1252</s> <s>1201</s> <s>1053</s> 838 bytes</h1>
+<div id="pu0" class="pu"><h1>Python, 634 bytes</h1>
+<pre class="lang-python prettyprint-override"><code>from numpy import*
+Z=zeros
+O=bool
+r=range
+R=lambda n:r(n,-1,-1)
+N=lambda M:M.shape[0]
+z=lambda M,n:M if N(M)==n else(lambda w:(a:=Z((n,n),O),[a.__setitem__((i*w,j*w),M[i,j])for i in r(N(M))for j in r(N(M))],a)[2])([2**i for i in r(n.bit_length())if N(M)*2**i==n][0])
+def g(n):
+    if n&lt;2:return array([[n]],O)
+    if n&lt;5:r=Z(4,O);r[:n]=1;return r.reshape(2,2)
+    else:a,b,c,d=(lambda n:next((i,j,k,l)for i in R(n)for j in R(i)for k in R(j)for l in R(k)if i*i+j*j+k*k+l*l==n))(n);A,B,C,D=map(g,(a,b,c,d));m=max(map(N,[A,B,C,D]));return block([[z(A,m),z(B,m)],[z(C,m),z(D,m)]])
+lambda n:&quot;;&quot;.join(&quot;&quot;.join(&quot;1&quot;if c else&quot;0&quot;for c in l)for l in g(n))
+</code></pre>
+<h1>Test</h1>
+<p>Assign the function to <code>G</code>, and</p>
+<pre class="lang-python prettyprint-override"><code>&gt;&gt;&gt; for i in (0, 1, 3, 4, 5, 9, 15, 67, 78):
+&gt;&gt;&gt;     print(i, G(i), sep=&quot; -&gt; &quot;)
+0 -&gt; 0
+1 -&gt; 1
+3 -&gt; 11;10
+4 -&gt; 11;11
+5 -&gt; 1110;0000;0000;0000
+9 -&gt; 1100;1000;0000;0000
+15 -&gt; 1111;1000;1010;0000
+67 -&gt; 11111000;00000000;00000000;00000000;10001000;00000000;00000000;00000000
+78 -&gt; 11111010;00000000;00001000;00000000;10101000;00000000;00000000;00000000
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.gnu.org/software/sed/" rel="nofollow noreferrer">sed 4.2.2</a> <code>-r</code>, <s>1303</s> <s>1252</s> <s>1201</s> <s>1053</s> 838 bytes</h1>
 <pre><code>/^(0|1)$/bz;x;s/^/0001/;x
 :a;s/[1-9]/&amp;#/g;y/123456789/012345678/;s/#0/9#/;ta;s/0//g
 G;s/(.*)\n(.*)/\2\n\1/
@@ -64,35 +93,6 @@ y/1/0/;s/.*/&amp;&amp;&amp;&amp;/
 <p>tio will finish on small numbers like 5 and 9, but even 6 is asking a bit much of it. hopefully my golfing will speed things up.</p>
 <p>the <code>\&amp;amp;</code> is not an html error, at this point I have started using sed to write and modify sed scripts to build this answer with and when I saw it show up inside of a command I thought it was too cute to change it back. (the actual command it's part of is <code>sa.*a\&amp;amp</code>, or more legibly written as <code>s/.*/\&amp;/mp</code>)</p>
 <p>we're back into the triple digits! this golf also brought massive performance improvements; it's about twice as fast for 5 &amp; 9, and the gains get even better as size increases (it still can't handle big inputs like 6 on TIO yet though). I'm not going to add any really detailed explanation yet; golfing can change an explanation a lot in sed since changing how you're storing or transforming the data itself is more effective when golfing than just finding a different way to say the same thing. once the golfing starts slowing down I'll start breaking things down and explaining them.</p>
-</div>
-<div id="pu1" class="pu"><h1>Python, 653 bytes</h1>
-<pre class="lang-python prettyprint-override"><code>from numpy import*
-Z=zeros
-O=bool
-r=range
-R=lambda n:r(n,-1,-1)
-N=lambda M:M.shape[0]
-z=lambda M,n: M if N(M)==n else (lambda w: (a:=Z((n,n),O),[a.__setitem__((i*w,j*w),M[i,j]) for i in r(N(M)) for j in r(N(M))],a)[2])([2**i for i in r(n.bit_length()) if N(M)*2**i==n][0])
-def g(n):
-    if n &lt; 2:return array([[n]], O)
-    if n &lt; 5:r = Z(4, O);r[:n]=1;return r.reshape(2, 2)
-    else:a,b,c,d=(lambda n:next((i,j,k,l)for i in R(n)for j in R(i)for k in R(j)for l in R(k)if i*i+j*j+k*k+l*l==n))(n);A,B,C,D=map(g,(a,b,c,d));m=max(map(N,[A,B,C,D]));return block([[z(A,m),z(B,m)],[z(C,m),z(D,m)]])
-lambda n:&quot;;&quot;.join(&quot;&quot;.join(&quot;1&quot; if c else &quot;0&quot; for c in l) for l in g(n))
-</code></pre>
-<h1>Test</h1>
-<p>Assign the function to <code>G</code>, and</p>
-<pre class="lang-python prettyprint-override"><code>&gt;&gt;&gt; for i in (0, 1, 3, 4, 5, 9, 15, 67, 78):
-&gt;&gt;&gt;     print(i, G(i), sep=&quot; -&gt; &quot;)
-0 -&gt; 0
-1 -&gt; 1
-3 -&gt; 11;10
-4 -&gt; 11;11
-5 -&gt; 1110;0000;0000;0000
-9 -&gt; 1100;1000;0000;0000
-15 -&gt; 1111;1000;1010;0000
-67 -&gt; 11111000;00000000;00000000;00000000;10001000;00000000;00000000;00000000
-78 -&gt; 11111010;00000000;00001000;00000000;10101000;00000000;00000000;00000000
-</code></pre>
 </div>
 <div id="pu2" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, <s>50</s> 49 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
 <pre><code>∞Íonîü2íε`U0LsãεXô}Σ˜O]í€`.Δ[D˜g5‹#2δô2ô€øOOn}OOQ
