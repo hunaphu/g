@@ -37,6 +37,62 @@
 <p><a href="https://i.sstatic.net/Yo8IXXx7m.png" rel="nofollow noreferrer"><img src="https://i.sstatic.net/Yo8IXXx7m.png" alt="MOG" /></a></p>
 <p>in row-major order, with <code>0</code> and <code>1</code> in the bricks and <code>1-4</code> in the squares</p>
 <p><strong><a href="https://tio.run/##y0rNyan8/98kyOLoZHuVhztnHVt7bI21UkJBwsMdi028Kkwe7mw8tslaJfBRw5yHO1sfNW5/uLPt6O5Dyx81zHAKf9S05tASayWgVgcgE4iOrXnUuPfQ0oe7ex/u6js6yQMoFAXCR/cAyVPdIEWN2yKBVNajxn2Hth3a5vb//38A" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></strong></p>
+<h4>How?</h4>
+<p>First, build the four rightmost squares of the top row with each in column-major order split into two:</p>
+<pre><code>4R8œ?$ṚƭƬ;&quot;`p`ḣ4
+4R               - range 4 -&gt; [1,2,3,4]
+        Ƭ        - collect up while distinct, applying:
+       ƭ         -   in turn:
+     $           -   a) last two links as a monad:
+  8              -        get the eighth
+   œ?            -        lexicographic permutation
+      Ṛ          -   b) reverse
+           `     - use {that} as both arguments of:
+          &quot;      -   zip with:
+         ;       -     concatenate
+             `   - use {that} as both arguments of:
+            p    -   Cartesian product
+              ḣ4 - keep the first four
+</code></pre>
+<p>Now prefix that with the top-left square in the same format:</p>
+<pre><code>Jx4ṁƲ;$Q
+      $  - last two links as a monad - f(TopRightSquares):
+    Ʋ    -   last four links as a monad:
+J        -     indices -&gt; [1,2,3,4]
+  4      -     four
+ x       -     times -&gt; [1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4]
+   ṁ     -     mould like {TopRightSquares}
+     ;   -   concatenate {TopRightSquares}
+       Q - deduplicate
+</code></pre>
+<p>Now add the top five blocks to their respective squares:</p>
+<pre><code>“ṅ⁷ṆŻ§‘BW€¤;&quot;
+          ¤   - nilad followed by link(s) as a nilad: 
+“ṅ⁷ṆŻ§‘       -   Code-page indices -&gt; [240,135,180,210,225]
+       B      -   convert to binary
+        W€    -   wrap each in a list
+            &quot; - zip with {TopFiveSquares} with:
+           ;  -   concatenate
+</code></pre>
+<p>Now add the other twenty-eight blocks and squares using the five constructed so far:</p>
+<pre><code>œ?@€€Ƭ⁽¥ọẎ
+     Ƭ     - collect up while distinct, applying:
+   €€      -   for each {TwoColumnList} of each {Block&amp;Square}:
+œ?@   ⁽¥ọ  -     2222nd lexicographic permutation
+         Ẏ - tighten to a list of the 35 Block&amp;Squares
+</code></pre>
+<p>Now print the results (surely this bit can be more terse?!):</p>
+<pre><code>ŒH€Z€Zż€ʋ€⁶Y€j⁾¶¶F
+          ⁶        - space character
+        ʋ€         - last four links for each as a dyad - f(Block&amp;Square, SpaceCharacter)
+ŒH€                -   split each into two
+   Z€              -   transpose each
+     Z             -   transpose
+      ż€           -   zip each with {SpaceCharacter}
+           Y€      - join each with newline characters
+             j⁾¶¶  - join with doubled newline characters
+                 F - flatten
+</code></pre>
 </div>
 <div id="pu1" class="pu"><h1>JavaScript (ES11), 236 bytes</h1>
 <p>Returns a single string, using the symbols suggested in the challenge.</p>
