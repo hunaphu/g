@@ -26,13 +26,46 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>238</td><td>Python</td><td>240817T044742Z</td><td><a href="https://codegolf.stackexchange.com/questions/275009/ways-to-paint-a-backbone-on-a-tree/275026#275026">Mukundan</a></td></tr>
-<tr d-ix="1"><td>161</td><td>Python</td><td>240820T201936Z</td><td><a href="https://codegolf.stackexchange.com/questions/275009/ways-to-paint-a-backbone-on-a-tree/275072#275072">CursorCo</a></td></tr>
+<tr d-ix="0"><td>150</td><td>Python</td><td>240820T201936Z</td><td><a href="https://codegolf.stackexchange.com/questions/275009/ways-to-paint-a-backbone-on-a-tree/275072#275072">CursorCo</a></td></tr>
+<tr d-ix="1"><td>238</td><td>Python</td><td>240817T044742Z</td><td><a href="https://codegolf.stackexchange.com/questions/275009/ways-to-paint-a-backbone-on-a-tree/275026#275026">Mukundan</a></td></tr>
 <tr d-ix="2"><td>1987</td><td>Scala 3</td><td>240818T120941Z</td><td><a href="https://codegolf.stackexchange.com/questions/275009/ways-to-paint-a-backbone-on-a-tree/275041#275041">138 Aspe</a></td></tr>
 <tr d-ix="3"><td>135</td><td>Charcoal</td><td>240817T124317Z</td><td><a href="https://codegolf.stackexchange.com/questions/275009/ways-to-paint-a-backbone-on-a-tree/275028#275028">Neil</a></td></tr>
 <tr d-ix="4"><td>643</td><td>Python3</td><td>240816T145138Z</td><td><a href="https://codegolf.stackexchange.com/questions/275009/ways-to-paint-a-backbone-on-a-tree/275016#275016">Ajax1234</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 238 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, <s>161</s> 150 bytes</h1>
+<p><em>-11 bytes thanks to <a href="https://codegolf.stackexchange.com/users/20260/xnor">@xnor</a>'s idea in the comments</em></p>
+<pre class="lang-python prettyprint-override"><code>lambda G:len({min((H:=lambda a,b,p=G:(1,*sorted(H(n,b,a)for n in G[a]if n!=p))*([]==G[b][a!=b:]))(j,k),H(k,j))for j in sum(G,[])for k in sum(G,[])})-1
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=jVNNj9MwED1wy6_w9mQvU1SnadqtFCS0EumRu7GQu3V226ZplI9qUdS_wYVLpRX8IU7wa7DHCW2BLlzGyvN7b14mk89f84_VwzY7PN1G77_UVdKffP-Uqs18oUg8TXVGm80yo3Q2jVpUwRzyKJ5SDtfltqj0gs5oZkDFkm1BMrLMSCyUXCYku4pyxq6pkFEUi7kU6iqaTyVjdAVrBjO6hhVD1cqqynpDYxASkfUZsmd97tL9ePGt0mX14U6VuiQRER4hVAgOvpRAOIPjMwgfhqYOIcA6sgz_MmMEoakhjBGxdQwTqwmed7U1bDXPd3Ds0z6h6WDrzT_6BKgMUDlGzcRonBLEDfCBNQj_z8C1Dk5s0AAPbg7OgbtxDv5m6F8wdLnG7l1G50p-ovR_m1kXJcAoIxdl5KKENgkeQ_TmgTvwWw6ZJz0vUcvUbsLAs3tzX6j8AYh-zPWd2U27Rcd9mZpIhKjFyi6OkMQKEkspVHav6UY9UrtyzsOsHWMSFZZXA9lZKl46o9ZM1H0uX6k819mC7vqcnV3uTi7r7rLQZZ1WJsUtNRyHmR-mg6Nf-Y-N8mKZVTTpvVNlaXDSYJA96b8mjdPte85Ip6X-U_fWjOmC7jitNkDTAZ0lDgHn_DIi3DNR8cl16To0iO1x3iUS9MLoj3E64ps0bUk5vkyPuX_7cHDnTw" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<p>Unnamed function which takes an adjacency list as input and outputs the number of backbones.</p>
+<p>While I came up with the algorithm I used here independently, I did use some stuff from <a href="https://codegolf.stackexchange.com/a/275026/73054">Mukundan314's answer</a>, so be sure to go upvote that as well. Specifically, the idea of using an adjacency list instead of edge pairs saved at least a dozen bytes, and I'm using their code that runs the test cases as well.</p>
+<h3>Explanation</h3>
+<p>The idea started out pretty simple: Look at each pair of leaves on the graph, take a representation of the graph with them &quot;marked&quot; in some way, add that to a set. Then our answer will be the size of the set at the end. First we have to think about how to represent the graph; in python, nested tuples are a pretty natural choice for a tree where nodes are not distinguishable. This is also just about the only choice since to get our free deduplication from the set, we need the representation to be hashable. But how to mark the two leaves? Well we get one for free, since we have to pick a root when converting the graph to nested tuples. The other one is a little trickier. We put an integer at the beginning of every tuple except the second leaf, which we leave as an empty tuple. To keep the representations consistent for isomorphic graphs, as they are recursively generated, the tuples are sorted at every step. This means that two isomorphic graphs will have the same representation. The last bit to consider is ordering. We pick ordered pairs, but backbones are not directional. To solve this problem, we simply look at both directions, compare them, and take the &quot;first&quot; one. In this way we can generate a set of all backbones and we have our answer.</p>
+<p>As for the actual code, let's start by looking at the helper function <code>H</code>. This is the function which generates the tuple representation of the graph given two nodes <code>a</code> and <code>b</code>. This is defined inline so it has access to the graph <code>G</code>, <code>p</code> is the previous node which is avoided to prevent backtracking.</p>
+<pre class="lang-python prettyprint-override"><code>H:=lambda a,b,p=G:          # define lambda H inline
+  (1,                       # integer for first element of tuple
+    *sorted(                # sort and splat elements in to tuple
+      H(n,b,a)              # make a recursive call to H
+      for n in G[a]if n!=p  # for each node connected to 'a' that isn't the previous node
+    )                       # 
+  )                         # 
+  *([]==G[b][a!=b:])        # if len(G[b]) &gt; 1 or if a==b, we return an empty tuple
+</code></pre>
+<p>That last bit there does a lot of heavy lifting. If <code>b</code> is not a leaf or <code>a</code> and <code>b</code> are equal at the start, we immediately return an empty tuple, meaning that this always returns an empty tuple for invalid node pairs. It also does the job of distinguishing the second leaf, since it will be the only empty tuple.</p>
+<p>For the main function then all we need to do is iterate over all node pairs, call <code>H</code> on both orderings, add the &quot;lesser&quot; one to the set, and take the length. We subtract one from this length since all invalid node pairs will be added to the set as an empty tuple, which we can discount.</p>
+<pre class="lang-python prettyprint-override"><code>lambda G:                                   # define our main funciton
+  len(                                      # take the length of
+    {                                       # the set of
+      min(                                  # the lesser of
+        H(j,k),H(k,j)                       # H called on (j,k) in both orders
+      )                                     # 
+      for j in sum(G,[])for k in sum(G,[])  # iterate j and k over all nodes
+    }                                       # 
+  )                                         # 
+  -1                                        # subtract 1 to account for invalid pairs
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 238 bytes</h1>
 <p><em>-7 bytes thanks to <a href="https://codegolf.stackexchange.com/users/17602/neil">@Neil</a></em><br />
 <em>-8 bytes thanks to <a href="https://codegolf.stackexchange.com/users/100664/emanresu-a">@emanresu A</a></em><br />
 <em>-5 bytes thanks to <a href="https://codegolf.stackexchange.com/users/20260/xnor">@xnor</a></em><br />
@@ -46,40 +79,6 @@ def f(g):
 </code></pre>
 <p><a href="https://ato.pxeger.com/run?1=hZHNjtMwFIU12zyFlZVd3FGdpmmnEKTZICGxQJql5UGhcdKg1PXkpypCPAmbboY3YsE8BM_AvXYG2lEZFrmW7fOde67z7bv93K235nC477tivPj5a53W2eZjnpGSW26WdNRum07ndE1LbviKFduGrEhlSCmNqgpib1eMsyDXBSloyZYBaVOpAgK6UYUWoKV3y1RK72AYFoU2YIdG2vQb3WSdBhwMa23oir2KFHqRuxcDuYLeHBwBUmcyqJctKOloA90qXsnlciwUBFMjiqI0lVaxgDS66xvjenwZtV-Zn_rh4hbz67zUbZTln-qq7ajbuQyEGJKSTbanm8zCt-deypi7BACupVQ4M_mAuZrMlJoappwAj3tOdm5YBL3pwMqejIlQl5m12uR0hzt2ItidCPq_gmEa0AQBNqkro7HJFoR0MmSvjIW8e-tGsFTvspo75WVr66qjIRm_JuEwC4hBd_oQcOYvt30Hl4U_cCe2qUxHZfjm-u27kJPw_fXNTaikE6bYVHGkhmc-PFz8kFLwSHEZ8SnUKY9dnSmFKaLg3PWMJ1ATPncnWOd84YH4LIB-WJMBeMbbS487JOCN9eq5DrHDYofNHbAAwGNcXnEx8XTyX9o3jY88HO0WAYsQXETeTEyeuEX_cPOJ5o8jzP5g4giLnjzSY4jYhZj5EDMfIsEMbpk6YxH7ZfhtU_97fwM" rel="nofollow noreferrer">Attempt This Online!</a></p>
 <p>Takes input as an adjacency list, test runner contains code to convert edge list to adjacency list.</p>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 161 bytes</h1>
-<pre class="lang-python prettyprint-override"><code>lambda G:len({min((H:=lambda a,b,p=G,t=():[(*sorted(H(n,b,a,(t,))for n in G[a]if n!=p),),t][[]&lt;G[b][a!=b:]])(j,k),H(k,j))for j in sum(G,[])for k in sum(G,[])})-1
-</code></pre>
-<p><a href="https://ato.pxeger.com/run?1=jVPNjtMwED5wy1N4e7JhgupumnYjgoRWoj1y91rI3Ti7adM0SpxqUdQn4dIVgneCp1n_JKQr6MJlrMx8P-MZ5-uP8ou63xXHb9fxzfdGpf7852MutqtEoEWUywK326zAeBnFXVbACsp4ASrGJGL4db2rlEzwEhe6IAArICTdVahAWYEWTPAsRcVFXBIgoDhj_N2CrTgTF_Eq4pzgNWwILPEG1o63Nry62eIFMG4zm2eZA_Gpa_TXq52Stfp8K2pZoxgxDyHMGIUJ54AogeEb2AQudbyEwMapQUzOI6YQ6hjCzGZMnMHccIKXVU0MO87LDg596hNqBxOv_uETWGZgmTPLmWuOYwK7Ajo2AuH_CTjr4ETGCtiD6oNSoG6c478JTs4Iur5m7i5T4nHPS0WWmy2NPbPTu0qU94DkQylv9fMxGx52GWkjhESyNktlHBlCaiCVKO4k3ooHbJ6D09BPghBuGQbXANobqC06oU6MNT7lb0VZyiLBe5-SZ8X9SbHpi5Wsm1zpLq6xxricfs59Ov7d_2BUVlmhcDr6JOpa51FrGzkg_z1qHe8wckIyr-WfvI96TGd4w7S6Bto-0UvaIdg5v4kR9XSr9su59A6tzR3svGsLkInmD-30wA953oFKe5kRcf_d8ejOJw" rel="nofollow noreferrer">Attempt This Online!</a></p>
-<p>Unnamed function which takes an adjacency list as input and outputs the number of backbones.</p>
-<p>While I came up with the algorithm I used here independently, I did use some stuff from <a href="https://codegolf.stackexchange.com/a/275026/73054">Mukundan314's answer</a>, so be sure to go upvote that as well. Specifically, the idea of using an adjacency list instead of edge pairs saved at least a dozen bytes, and I'm using their code that runs the test cases as well.</p>
-<h3>Explanation</h3>
-<p>The idea started out pretty simple: Look at each pair of leaves on the graph, take a representation of the graph with them &quot;marked&quot; in some way, add that to a set. Then our answer will be the size of the set at the end. First we have to think about how to represent the graph; in python, nested tuples are a pretty natural choice for a tree where nodes are not distinguishable. This is also just about the only choice since to get our free deduplication from the set, we need the representation to be hashable. But how to mark the two leaves? Well we get one for free, since we have to pick a root when converting the graph to nested tuples. The other one is tricky. We can't put anything other than tuples in our tuples because we also need the graphs to be comparable (we'll see why later), so to mark the second leaf we just stick a long chain of nested tuples in place of it. To keep the representations consistent for isomorphic graphs, as the are recursively generated, the tuples are sorted at every step. This means that two isomorphic graphs will have the same representation. The last bit to consider is ordering. We pick ordered pairs, but backbones are not directional. To solve this problem, we simply look at both directions, compare them, and take the &quot;first&quot; one. In this way we can generate a set of all backbones and we have our answer.</p>
-<p>As for the actual code, let's start by looking at the helper function <code>H</code>. This is the function which generates the tuple representation of the graph given two nodes <code>a</code> and <code>b</code>. This is defined inline so it has access to the graph <code>G</code>, <code>p</code> is the previous node which is avoided to prevent backtracking, and <code>t</code> is the long chain which is added at the end.</p>
-<pre class="lang-python prettyprint-override"><code>H:=lambda a,b,p=G,t=():       # define lambda H inline
-  [                           #
-    (*                        # convert to tuple
-      sorted(                 # sort to keep representation consistent
-        H(n,b,a,(t,))         # make a recursive call to H
-        for n in G[a]if n!=p  # for each node connected to 'a' that isn't the previous node
-      ),                      # 
-    ),                        # 
-    t                         # put this is a list with t
-  ][[]&lt;G[b][a!=b:]]           # if len(G[b]) &gt; 1 or if a==b, we return t
-</code></pre>
-<p>That last bit there does a lot of heavy lifting. If <code>b</code> is not a leaf or <code>a</code> and <code>b</code> are equal at the start, we immediately return an empty tuple, meaning that this always returns an empty tuple for invalid node pairs. It also does the job of tacking on or long node chain when we reach node <code>b</code>, since by that point <code>t</code> will be many nested tuples.</p>
-<p>For the main function then all we need to do is iterate over all node pairs, call <code>H</code> on both orderings, add the &quot;lesser&quot; one to the set, and take the length. We subtract one from this length since all invalid node pairs will be added to the set as an empty tuple, which we can discount.</p>
-<pre class="lang-python prettyprint-override"><code>lambda G:                                   # define our main funciton
-  len(                                      # take the length of
-    {                                       # the set of
-      min(                                  # the lesser of
-        H(j,k),H(k,j)                       # H called on (j,k) in both orders
-      )                                     # 
-      for j in sum(G,[])for k in sum(G,[])  # iterate j and k over all nodes
-    }                                       # 
-  )                                         # 
-  -1                                        # subtract 1 to account for invalid pairs
-</code></pre>
 </div>
 <div id="pu2" class="pu"><h1><a href="https://www.scala-lang.org/" rel="nofollow noreferrer">Scala 3</a>, 1987 bytes</h1>
 <p>A port of <a href="https://codegolf.stackexchange.com/a/275016/110802">@Ajax1234's Python code</a> in Scala.</p>
