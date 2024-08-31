@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::47694</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>462</td><td>Python3</td><td>240831T172859Z</td><td><a href="https://codegolf.stackexchange.com/questions/47694/count-maximal-fence-arrangements/275281#275281">Ajax1234</a></td></tr>
+<tr d-ix="1"><td>318</td><td>Haskell</td><td>150316T200017Z</td><td><a href="https://codegolf.stackexchange.com/questions/47694/count-maximal-fence-arrangements/47854#47854">nimi</a></td></tr>
+<tr d-ix="2"><td>301</td><td>Mathematica</td><td>150312T203045Z</td><td><a href="https://codegolf.stackexchange.com/questions/47694/count-maximal-fence-arrangements/47709#47709">Martin E</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>Python3, 462 bytes</h1>
+<pre class="lang-py prettyprint-override"><code>R=range
+def f(p):
+ q,s,F=[({*p},{*p},[])],[],[]
+ for p,P,O in q:
+  T=1
+  for x,y in p:
+   for X,Y in p-{(x,y)}:
+    if(x==X or y==Y)and(S:=sorted([(x,y),(X,Y)]))not in O and not P&amp;(K:={*{(x,min(y,Y)+i)for i in R(1,abs(y-Y))},*{(min(x,X)+i,y)for i in R(1,abs(x-X))}})and not any(len(I)&gt;len(O)and all(w in I for w in O+[S])for I in s):q+=[(p,P|K,O+[S])];T=0;s+=[O+[S]]
+  if T:F+=[O]
+ return sum(not any(len(I)&gt;len(i)and all(w in I for w in i)for I in F)for i in F)
+</code></pre>
+<p><a href="https://tio.run/##pZPfa9swEMef579C5GHWNfLwjwyKi/oYCIWltHlI8PzgEHkTuLJjqVtMlr89PcmLa9btYRSM7Lvv575nnVDTme@1Sq6b9nx@4G2hvglvJ0pS0gZSj@yZZnOe0eNVc2JuyXLIccHHI2XdkobdsyWRiuwRJyse4WrzB9bZbGOzLrFmG5cIjhQ1ODmByJIeOF8TBDrON1CoHX1Mua5bI3Y0cyijWAs5gKqNtVgSpIgN7j/Su5Qfr6zlk1S0Q24qwbaTlnygESu2mnbBBuDEkLPUga2RQuM33CFYI3eCi3@hOloJRRdwa19LJxRVRX/aqoXbl/tcTrPH3PktbKgh3U9xbDicX3esF/ObFQ9vNKZdjOPDzZNVOrcZjFphnlssfX6if2kt/9lavradv@5oDmdNOJlMJl6Wk@CWRF5GQxbiMCMW4RqzGN4IoRPCP4XQVURD9SBHIzm4BMFvIEYgGXUMsaPDHB07BaOg14LYgZfiZGg@G1lEPZa4IOmDuHeYvbN0/Oez/3UI@9cw08/v@YWRz7VnD3A41FJWRrT0S60EI/qTbippqP9V@YB39UPByBaPXF7y1sAHzGstWoM3WvwoKloAcC6VoVvwvKa1X74R2mjSWHDnw/kF" rel="nofollow noreferrer">Try it online!</a></p>
+</div>
+<div id="pu1" class="pu"><h1>Haskell, 318 bytes</h1>
+
+<pre><code>import Data.List
+s=subsequences
+k[(_,a,b),(_,c,d)]|a==c=f(\w-&gt;(1,a,w))b d|1&lt;2=f(\w-&gt;(2,w,b))a c
+f t u v=[t x|x&lt;-[min u v+1..max u v-1]]
+q l=nub[x|x&lt;-map(k=&lt;&lt;)$s[a|a@[(_,n,m),(_,o,p)]&lt;-s l,n==o||m==p],x++l==nubBy(\(_,a,b)(_,c,d)-&gt;a==c&amp;&amp;b==d)(x++l)]
+m=q.map(\(a,b)-&gt;(0,a,b))
+p l=sum[1|x&lt;-m l,all(\y-&gt;y==x||x\\y/=[])$m l]
+</code></pre>
+
+<p>Usage: <code>p [(1,0),(0,1),(-1,0),(0,-1)]</code>. Output: <code>2</code></p>
+
+<p>How it works:</p>
+
+<ul>
+<li>create all sublists of the input list and keep those with two elements and with either equal x or equal y coordinates. This is a list of all pairs of poles where a fence can be build in between.</li>
+<li>create all sublists of it</li>
+<li>add boards for every list</li>
+<li>remove lists where a x-y coordinate appears twice (boards and poles)</li>
+<li>remove duplicate lists (boards only) to handle multiple empty lists, because of directly adjacent poles (e.g. (1,0) and (1,1))</li>
+<li>keep those which are not a strict sublist of another list</li>
+<li>count remaining lists</li>
+</ul>
+</div>
+<div id="pu2" class="pu"><h1>Mathematica, 301 bytes</h1>
+
+<pre><code>(t~SetAttributes~Orderless;u=Subsets;c=Complement;l=Select;f=FreeQ;Count[s=List@@@l[t@@@u[Sort@l[Sort/@#~u~{2},!f[#-#2&amp;@@#,0]&amp;]//.{a___,{x_,y_},{x_,z_},b___,{y_,z_},c___}:&gt;{a,{x,y},b,{y,z},c}],f[#,t[{{a_,b_},{a_,c_}},{{d_,e_},{f_,e_}},___]/;d&lt;a&lt;f&amp;&amp;b&lt;e&lt;c]&amp;],l_/;f[s,k_List/;k~c~l!={}&amp;&amp;l~c~k=={},{1}]])&amp;
+</code></pre>
+
+<p>This is an unnamed function which takes the coordinates as a nested <code>List</code> and returns an integer. That is, you can either give it a name and call it, or just append</p>
+
+<pre><code>@ {{3, 0}, {1, 1}, {0, 2}, {-1, 1}, {-2, 0}, {-1, -1}, {0, -2}, {1, -1}}
+</code></pre>
+
+<p>With indentation:</p>
+
+<pre><code>(
+  t~SetAttributes~Orderless;
+  u = Subsets;
+  c = Complement;
+  l = Select;
+  f = FreeQ;
+  Count[
+    s = List @@@ l[
+      t @@@ u[
+        Sort @ l[
+          Sort /@ #~u~{2}, 
+          !f[# - #2 &amp; @@ #, 0] &amp;
+        ] //. {a___, {x_, y_}, {x_, z_}, b___, {y_, z_}, c___} :&gt; 
+              {a, {x, y}, b, {y, z}, c}
+      ],
+      f[
+        #,
+        t[{{a_, b_}, {a_, c_}}, {{d_, e_}, {f_, e_}}, ___] 
+          /; d &lt; a &lt; f &amp;&amp; b &lt; e &lt; c
+      ] &amp;
+    ], 
+    l_ /; f[
+      s, 
+      k_List /; k~c~l != {} &amp;&amp; l~c~k == {}, 
+      {1}
+    ]
+  ]
+) &amp;
+</code></pre>
+
+<p>I can't even begin to express how naive this implementation is... it definitely couldn't be more brute force...</p>
+
+<ul>
+<li>Get all (unordered) pairs of poles.</li>
+<li>Sort each pair and all pairs into a canonical order.</li>
+<li>Discard pairs which don't share one coordinate (i.e. which aren't connectible by an orthogonal line).</li>
+<li>Discard pairs can be formed from two shorter pairs (so that <code>o--o--o</code> yields only two fences instead of three).</li>
+<li>Get all subsets of those pairs - i.e. all possible combinations of fences.</li>
+<li>Filter out combinations which have fences crossing each other.</li>
+<li>Count the number of resulting fence sets for which no strict superset can be found in the list.</li>
+</ul>
+
+<p>Surprisingly it does solve all the test cases virtually immediately.</p>
+
+<p>A really neat trick I discovered for this is the use of <code>Orderless</code> to cut down on the number of patterns I have to match. Essentially, when I want to ditch fence sets with crossing fences, I need to find a pair of vertical and horizontal fence and check the condition on them. But I don't know what order they'll appear in. Since list patterns are normally order dependent, this would result in two really long patterns. So instead I replace with surrounding list with a function <code>t</code> with <code>t @@@</code> - which isn't defined so it is held as it is. But that function is <code>Orderless</code>, so I <em>can</em> just check a single order in the pattern, and Mathematica will check it against all permutations. Afterwards, I put the lists back in place with <code>List @@@</code>.</p>
+
+<p>I wish there was a built-in that is a) <code>Orderless</code>, b) <em>not</em> <code>Listable</code> and c) not defined for 0 arguments or list arguments. Then I could replace <code>t</code> by that. But there doesn't seem to be such an operator.</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/47694/">47694</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
