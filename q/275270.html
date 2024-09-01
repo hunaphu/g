@@ -26,14 +26,89 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>084</td><td>Python</td><td>240831T190213Z</td><td><a href="https://codegolf.stackexchange.com/questions/275270/snake-a-string-through-a-simplex/275283#275283">shape wa</a></td></tr>
+<tr d-ix="0"><td>nan</td><td></td><td>240901T064335Z</td><td><a href="https://codegolf.stackexchange.com/questions/275270/snake-a-string-through-a-simplex/275289#275289">InShotsP</a></td></tr>
+<tr d-ix="1"><td>084</td><td>Python</td><td>240831T190213Z</td><td><a href="https://codegolf.stackexchange.com/questions/275270/snake-a-string-through-a-simplex/275283#275283">shape wa</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, <s>85</s> 84 bytes</h1>
+<div id="pu0" class="pu"><ol>
+<li><p><strong>Understanding the Structure of an n-Simplex:</strong>
+An n-simplex is the simplest n-dimensional shape.
+The key challenge is to correctly structure the given string into this shape, where each level of the shape is represented as a nested list. Each layer alternates direction (forwards/backwards) as you move through it.</p>
+</li>
+<li><p><strong>General Approach:</strong>
+Input:
+n: Number of dimensions.
+string: The string that needs to be split.
+Optionally, the side length l can also be input to help structure the string into layers.
+Output:
+A nested list that represents the n-simplex structure with the string woven through the points in alternating directions.</p>
+</li>
+<li><p><strong>Steps to Solve:</strong>
+Base Case:
+For n=0 (0-dimensional simplex), the output is just the string itself since it represents a single point.
+Recursive Case:
+For higher dimensions, you recursively break down the string, creating lists that alternate between forwards and backwards directions.
+At each level, the number of elements to include can be determined by the combinatorial formula for an n-simplex.</p>
+</li>
+<li><p><strong>Implementation Steps:</strong>
+Calculate the Number of Points: Use the combinatorial formula C(n + l - 1, n) to find the total number of points for the given dimensions.
+Divide the String into Layers: Divide the string into sections corresponding to each layer of the simplex.
+Recursion for Nesting: Use recursion to structure the string into the nested list representation. Each recursion will handle the next dimension.
+Alternating Directions: Ensure that each layer alternates direction (forwards/backwards) as required by the problem.</p>
+</li>
+<li><p><strong>Python Code Implementation:</strong>`from math import comb</p>
+</li>
+</ol>
+<p>def build_simplex(n, l, s):
+def recursive_build(n, l, s, reverse=False):
+if n == 0:
+return s
+size = comb(n + l - 1, n)
+idx = 0
+layers = []
+for i in range(l, 0, -1):
+layer_size = comb(n + i - 2, n - 1)
+layer = recursive_build(n - 1, i, s[idx:idx + layer_size], reverse=not reverse)
+if reverse:
+layer.reverse()
+layers.append(layer)
+idx += layer_size
+return layers</p>
+<pre><code>return recursive_build(n, l, list(s))
+</code></pre>
+<h1>Example usage:</h1>
+<p>n = 3
+l = 4
+s = &quot;abcdefghijklmnopqrst&quot;
+simplex_structure = build_simplex(n, l, s)
+print(simplex_structure)
+`
+6.  <strong>Explanation of the Code:</strong>
+comb(n + l - 1, n) is used to calculate the number of points required for an n-simplex with sides of length l.
+The function recursive_build constructs the simplex recursively by dividing the string into the necessary layers, alternating the direction of each layer.
+For each layer, the string is split into smaller sections and passed recursively to the next level of the simplex.</p>
+<ol start="7">
+<li><strong>Sample Output:</strong>
+n = 3
+l = 4
+s = &quot;abcdefghijklmnopqrst&quot;</li>
+</ol>
+<p>The output will be:
+[[['a'], ['b', 'c'], ['j', 'h', 'i', 'g', 'f', 'e']], ['k', 'l', 'm', 'p', 'o', 'n'], ['q', 'r', 's', 't']]</p>
+<p>This represents a 3-dimensional simplex with layers alternating direction.</p>
+<ol start="8">
+<li><strong>Key Points:</strong>
+Recursive Nature: The solution involves recursion to handle the nested list structure.</li>
+</ol>
+<p><strong>String Traversal:</strong> The string is traversed in alternating directions (forwards/backwards) at each level.
+Mathematical Combinatorics: The formula comb(n + l - 1, n) is central to determining how many elements are in each layer.
+This approach provides a clear, structured way to build the n-simplex based on the input string.</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.python.org" rel="noreferrer">Python</a>, <s>85</s> 84 bytes</h1>
 <pre class="lang-python prettyprint-override"><code>f=lambda s,n,l,r=1:n and[f(s,n-1,i+1,-(-1)**i)for i in range(l)[::r]][::r]or next(s)
 </code></pre>
 <p>Takes the string (<code>s</code>) as an iterator of characters -- to take a <code>str</code>, add <code>(s:=iter(s))and </code> as the first thing in the lambda body for +16 bytes.<br />
 Assumes <code>l</code> is nonzero -- to support the case where <code>l</code> is zero, change <code>&lt;a&gt; and&lt;b&gt;or &lt;c&gt;</code> to <code>&lt;b&gt;if &lt;a&gt; else &lt;c&gt;</code> for +2 bytes.</p>
-<p><a href="https://ato.pxeger.com/run?1=zVbJbttADD3XXzE9SUrHQGVnNeBD9mbfV8EobEuylciyLI3jJciX9JJL-xv9jvZrSpEjaeykSdEWRQOMQz7ykRyKGs2nL-FItLvB4-PnvnCLi99O3apf7zTsOot5wH0eVc1KwOqBbbk6IEWTe-9MXtSLpjEz4xluN2Ie8wIW1YOWo_uGValEtRr-gilwhkKPDYr9_c1X4cTioxeEfRGzKrMKulbXOHvPmWnwXCmpSllVZjPFzDgN0iSp0SS1nKo26TmzlDObpGZU23EJKStIq-3dEJrHKCsxbNJLTynlp4Fu_U7QDXtRLMieh5xVQzoETMdENpl-Hrh_NxiOxmapPDs3v7C4RO55nrmJPC4hzyaiaOTwWrrlldW19Y3ND1vbO7t7-weHR8cnp2fnF5dX10khFCOvYX6yhhZBLxQhc5BfUkutUMBZ6vZFNkxJ6OkfC35r9I9rDVXkWnNa5ZqNEJIygVup9zMQSNBCzSHuqw6gwWa1NiwP1o2kUEJF5JaF1VppVS8bE-QGEYqc5qHMf0hO7LeI-oB0UApBgkHUAtR6IEWwYlgiSyc3NaFwi9JjUOqOndb4y45o60qbj7YO1aLUKtsrd0X7-VdJkBtKzx7aqT2EjBAZADJE6Q6kvmxdYh8jagJSQmkOJHiFtDJq8yAtwFqEtaRsKW33lMqtdJNUVlMmoWF0sr78Jo38-plfT_pF6JcPhNoRGqEAR0jtLxyZSl-po_95aZTjLoszkCx6sCPwG2e2bWnbRNsHsG1JZAORNUDWUVoFCc46bTnj7kjPXbTvgW1fIqeIHANygtIRSIewDqT9DNFzQC5QugbpCtalMmTJaCUjpjY7G6cnALfyByAb0MwKTQ8UJzv5Wn81jGStKKxBxhpOvGDjtINPnlIk_WL0E_j6TU8JnWzJGTc5G7eA5DNB05BuED5KyX0I7knM9jpOEHvdAGTfCVqibXCmfLGSK9PYC3XlQjRhj41KgcFfvSn6dR8-b67uCSeCu9Szsck3jp1IZJSqGo8zV3OGodMUjs3uFcMDZ62uYPfEetAKhTDyAqFry76PAWIWJoHtt5pRoHtcelf8AQ" rel="nofollow noreferrer">Attempt This Online!</a> (does not have the final 3 test cases)</p>
+<p><a href="https://ato.pxeger.com/run?1=zVbJbttADD3XXzE9SUrHQGVnNeBD9mbfV8EobEuylciyLI3jJciX9JJL-xv9jvZrSpEjaeykSdEWRQOMQz7ykRyKGs2nL-FItLvB4-PnvnCLi99O3apf7zTsOot5wH0eVc1KwOqBbbk6IEWTe-9MXtSLpjEz4xluN2Ie8wIW1YOWo_uGValEtRr-gilwhkKPDYr9_c1X4cTioxeEfRGzKrMKulbXOHvPmWnwXCmpSllVZjPFzDgN0iSp0SS1nKo26TmzlDObpGZU23EJKStIq-3dEJrHKCsxbNJLTynlp4Fu_U7QDXtRLMieh5xVQzoETMdENpl-Hrh_NxiOxmapPDs3v7C4RO55nrmJPC4hzyaiaOTwWrrlldW19Y3ND1vbO7t7-weHR8cnp2fnF5dX10khFCOvYX6yhhZBLxQhc5BfUkutUMBZ6vZFNkxJ6OkfC35r9I9rDVXkWnNa5ZqNEJIygVup9zMQSNBCzSHuqw6gwWa1NiwP1o2kUEJF5JaF1VppVS8bE-QGEYqc5qHMf0hO7LeI-oB0UApBgkHUAtR6IEWwYlgiSyc3NaFwi9JjUOqOndb4y45o60qbj7YO1aLUKtsrd0X7-VdJkBtKzx7aqT2EjBAZADJE6Q6kvmxdYh8jagJSQmkOJHiFtDJq8yAtwFqEtaRsKW33lMqtdJNUVlMmoWF0sr78Jo38-plfT_pF6JcPhNoRGqEAR0jtLxyZSl-po_95aZTjLoszkCx6sCPwG2e2bWnbRNsHsG1JZAORNUDWUVoFCc46bTnj7kjPXbTvgW1fIqeIHANygtIRSIewDqT9DNFzQC5QugbpCtalMmTJaCUjpjY7G6cnALfyByAb0MwKTQ8UJzv5Wn81jGStKKxBxhpOvGDjtINPnlIk_WL0E_j6TU8JnWzJGTc5G7eA5DNB05BuED5KyX0I7knM9jpOEHvdAGTfCVqibXCmfLGSK9PYC3XlQjRhj41KgcFfvSn6dR8-b67uCSeCu9Szsck3jp1IZJSqGo8zV3OGodMUjs3uFcMDZ62uYPfEetAKhTDyAqFry76PAWIWJoHtt5pRoHtcelf8AQ" rel="noreferrer">Attempt This Online!</a> (does not have the final 3 test cases)</p>
 <p>Ungolfed:</p>
 <pre class="lang-python prettyprint-override"><code>def snake(src, dimensions, length, reverse=False):
     if dimensions == 0:
