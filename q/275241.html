@@ -26,8 +26,8 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>078</td><td>F#</td><td>240831T120047Z</td><td><a href="https://codegolf.stackexchange.com/questions/275241/encode-a-varint/275278#275278">Juuz</a></td></tr>
-<tr d-ix="1"><td>115</td><td>C gcc</td><td>240830T170906Z</td><td><a href="https://codegolf.stackexchange.com/questions/275241/encode-a-varint/275266#275266">Digital </a></td></tr>
+<tr d-ix="0"><td>097</td><td>C gcc</td><td>240830T170906Z</td><td><a href="https://codegolf.stackexchange.com/questions/275241/encode-a-varint/275266#275266">Digital </a></td></tr>
+<tr d-ix="1"><td>078</td><td>F#</td><td>240831T120047Z</td><td><a href="https://codegolf.stackexchange.com/questions/275241/encode-a-varint/275278#275278">Juuz</a></td></tr>
 <tr d-ix="2"><td>053</td><td>C gcc</td><td>240829T203006Z</td><td><a href="https://codegolf.stackexchange.com/questions/275241/encode-a-varint/275246#275246">jdt</a></td></tr>
 <tr d-ix="3"><td>012</td><td>Vyxal 3</td><td>240830T122450Z</td><td><a href="https://codegolf.stackexchange.com/questions/275241/encode-a-varint/275264#275264">pacman25</a></td></tr>
 <tr d-ix="4"><td>050</td><td>Python 2</td><td>240830T114323Z</td><td><a href="https://codegolf.stackexchange.com/questions/275241/encode-a-varint/275263#275263">Lucenapo</a></td></tr>
@@ -35,24 +35,27 @@
 <tr d-ix="6"><td>037</td><td>JavaScript ES6</td><td>240829T171331Z</td><td><a href="https://codegolf.stackexchange.com/questions/275241/encode-a-varint/275242#275242">Arnauld</a></td></tr>
 <tr d-ix="7"><td>023</td><td>Charcoal</td><td>240829T232654Z</td><td><a href="https://codegolf.stackexchange.com/questions/275241/encode-a-varint/275249#275249">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>F#, 78 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C (gcc)</a>, 97 bytes</h1>
+<ul>
+<li>Saved 2 bytes, thanks to @jdt</li>
+<li>Saved 16 bytes, thanks to @ceilingcat</li>
+</ul>
+<p>Most of the other entries seem to be taking a recursive approach.  I was curious to try a direct approach using x86 instruction intrinsics.</p>
+<p>Returns the output in a <code>uint64_t</code> which can be cast to a 0-terminated char array.</p>
+<p>Definitely not the golfiest - and I'm sure there are golf opportunities I've missed.</p>
+
+<pre class="lang-c prettyprint-override"><code>#define f(n)_pdep_u64(n+0U,~(~0LU/510))|_pdep_u64((1&lt;&lt;((63-__builtin_clzll(n+0U))/7))-1,~0LU/510)
+</code></pre>
+<p><a href="https://tio.run/##hVJNb6MwEL3zK0apWtkNNDYBQkW6v2CvPaUVosYES8RE2FRRW/LTl518NJDuYeeAPI/3xm9mLLy1EP2N0qJqcwlLY3Ol7UP5y7nG6p9Qo/Qasf4ml4XSEgqiabrN5TZto4DoKXt292TPfj/PQs4o/Rr@Eb5cEhLNvTR9a1VllU5F9VFVRxGlswWlHncv0v69VjmUcpe3my0RtTYWWvQYpxbua2GlNS4Y9SExr6Re25LCpwMYSAKVHI9F3QBR8AQsAQXLMzGB6VR9sw@xxa5sQSZwy/zdxIVT@ZV6pcmFowogWOoO9mxX0LF6XOFFT0aazhm@14zOcQ42N5nSZOzbSmNFZqRZvaLrT@YOV3A8c38xIH4YRiGmPntc8JC7V4ZG4fNgEcTzKEAtThi8CxC7wDmfP8bzLnH@N7vDrOuCXBxSmP2DrRiO7Od0D1uLAlxTI00UYMGx4GrGoswauEdaW1nkkVNO747Cgfb9KE5EfAW2wcWeU3qu150aaqRtG409OF3/RxRVtja9t8kaUT7pzKp3idnbRvXe@Y3v4gjt4q4eyr8" rel="nofollow noreferrer" title="C (gcc) – Try It Online">Try it online!</a></p>
+<p><a href="https://godbolt.org/z/vrdPG3x5K" rel="nofollow noreferrer">Compiler Explorer was helpful</a></p>
+</div>
+<div id="pu1" class="pu"><h1>F#, 78 bytes</h1>
 <pre class="lang-fs prettyprint-override"><code>let rec e v=
  let b=v&amp;&amp;&amp;127u
  if b=v then[byte b]else byte(b|||128u)::e(v&gt;&gt;&gt;7)
 </code></pre>
 <p><a href="https://tio.run/##VY3BCoMwDIbvPkUQJnoQbGttFSzsuBfYZeywSmWCdKNWYeC7u@phLJckX/L/@fsp717ObNtoPDjTgYGljWAn3S5JkhAq5giGfkfwT2Nv@uMN6LsZp9DCnOp1XQmVc9Y0Jl2UUiI73r3dYP314S7WQwtzAEZBqRARynHsLcSncxxF/9ICEcFEBWLKecXxpqgF4dhFSSlKyaoSm3Osyn8yiTMJYbVk2xc" rel="nofollow noreferrer">Try it online!</a></p>
 <p>A function taking a unsigned 32-bit int (treated as a signed int with the same bits) and returning a list of bytes.</p>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C (gcc)</a>, 115 bytes</h1>
-<p>Most of the other entries seem to be taking a recursive approach.  I was curious to try a direct approach using x86 instruction intrinsics.</p>
-<p>Returns the output in a <code>uint64_t</code> which can be cast to a 0-terminated char array.</p>
-<p>Definitely not the golfiest - and I'm sure there are golf opportunities I've missed.</p>
-
-<pre class="lang-c prettyprint-override"><code>#define P _pdep_u64
-uint64_t f(uint32_t n){return P(n,~(~0LU/510))|P((1&lt;&lt;((63-__builtin_clzll(n))/7))-1,~0LU/510);}
-</code></pre>
-<p><a href="https://tio.run/##hVLLbqswEN3zFaNUrewWGswrVKT9grvIpqvcClFjgiViIjBV1JR8@qVDQwnpXdQLa2Z05szx8XBrw3l3JRUvmlTAstapVPo@fzIua@XPUiXVBmvdVSoyqQSsIN6lYhc3gWc0SBF4sYaM9KHrYKjooRK6qRSsiDKP5Gj/eZ77zKb0Y0UIWy4JCVwrjl8bWWipYl68FwVRlM4XlFrMHPFR272VMoVc7NNmuyO8VLWGfk6IY25LroWuTajlu8C8EGqjcwoHA/AgCGT0FWZlBUTCI9gRSFgOwAju7uQ3uj87fKfOyAyubWc/M@FEv5YvNBoxMgOCVDdwtPcZnXZPGf6q2aSnNc73JaI1jF7mNpGKTHVrUWue1KJev6Dqg22eRzCMmbM4VxzfD3xMHfthwXxmXgiaHId5Cy90Aw970WOwxkJoAmPMfQjdNjJ@8673uszIqJDC/L/a2kbLfro7Lkol6sBDwmnDhcc8Tyq4RVhTaMSRU05vvhrPsO@lOAFxC3SFHzukdOBrTw8a1tFGy7t/PCuSTd1Z26Ti@aNKtHwTmL1uZWcNW78PA5SLf3WffwI" rel="nofollow noreferrer" title="C (gcc) – Try It Online">Try it online!</a></p>
-<p><a href="https://godbolt.org/z/vrdPG3x5K" rel="nofollow noreferrer">Compiler Explorer was helpful</a></p>
 </div>
 <div id="pu2" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C (gcc)</a>, <s>62</s> <s>59</s> 53 bytes</h1>
 
