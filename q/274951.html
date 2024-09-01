@@ -26,35 +26,34 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>629</td><td>sed 4.2.2 r</td><td>240815T125547Z</td><td><a href="https://codegolf.stackexchange.com/questions/274951/sum-of-four-squares-grid/274997#274997">guest430</a></td></tr>
+<tr d-ix="0"><td>615</td><td>sed 4.2.2 r</td><td>240815T125547Z</td><td><a href="https://codegolf.stackexchange.com/questions/274951/sum-of-four-squares-grid/274997#274997">guest430</a></td></tr>
 <tr d-ix="1"><td>615</td><td>Python</td><td>240819T183943Z</td><td><a href="https://codegolf.stackexchange.com/questions/274951/sum-of-four-squares-grid/275054#275054">Kolen Ch</a></td></tr>
 <tr d-ix="2"><td>049</td><td>05AB1E</td><td>240814T083430Z</td><td><a href="https://codegolf.stackexchange.com/questions/274951/sum-of-four-squares-grid/274969#274969">Kevin Cr</a></td></tr>
 <tr d-ix="3"><td>101</td><td>Charcoal</td><td>240816T084104Z</td><td><a href="https://codegolf.stackexchange.com/questions/274951/sum-of-four-squares-grid/275008#275008">Neil</a></td></tr>
 <tr d-ix="4"><td>048</td><td>Pyth</td><td>240814T221156Z</td><td><a href="https://codegolf.stackexchange.com/questions/274951/sum-of-four-squares-grid/274988#274988">CursorCo</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.gnu.org/software/sed/" rel="nofollow noreferrer">sed 4.2.2</a> <code>-r</code>, <sub><sup><s>1303</s> <s>1252</s> <s>1201</s> <s>1053</s> <s>838</s> <s>764</s> <s>710</s> <s>681</s></sup></sub> 629 bytes</h1>
-<pre><code>/^(0|1)$/bz
-:a;s/[1-9]/&amp;#/g;y/123456789/012345678/;s/#0/9#/;ta
-s/0+(#*)/\10001/
-:;h;s/\W*//;y/10/ab/;G
-:b;s/(.*)\b([ab]+)\b( *)/\2\n\3\1/;h;s/\n.*/\n.... ./
-:c;s%(.*)\n((.*) (.*))%sed 's/^\3$/\4\4\&amp;/;T;s/\4/\&amp;\\n/2g;q;:;a\3\3\3\2\4'&lt;&lt;&lt;\1%e
-/\n$/!bc
+<div id="pu0" class="pu"><h1><a href="https://www.gnu.org/software/sed/" rel="nofollow noreferrer">sed 4.2.2</a> <code>-r</code>, <sub><sup><s>1303</s> <s>1252</s> <s>1201</s> <s>1053</s> <s>838</s> <s>764</s> <s>710</s> <s>681</s> <s>629</s> </sup></sub> 615 bytes</h1>
+<pre><code>/^(0|1)$/bz                                          #if 0 or 1, return right away
+:a;s/[1-9]/&amp;#/g;y/123456789/012345678/;s/#0/9#/;ta   #convert input to unary
+s/0+/0001/                                           #set initial array to test against
+:;h;s/\W+//;y/10/ab/;G                               #the start of the main loop
+:b;s/(.*)\b([ab]+)( *)/\2\n\3\1/;h;s/\n.*/\n.... ./  #the start of the shuffle loop
+:c;s%(.*)\n((.*) (.*))%sed 's/^\3$/\4\4\&amp;/;T;s/\4/\&amp;\\n/2g;q;:;a\3\3\3\2\4'&lt;&lt;&lt;\1%e;/\n$/!bc
 s%.*%sed '1h;1d;x;2!s/\\.//;T;/^\\n/{s/$/\\n/p;z};:;$!x;3~2{H;d}'&lt;&lt;&lt;'&amp;'%e
-s/(.)\n/\1/g;y/\n/ /;G;s/\n\w*\n/ /;/[ab]{2}/bb
-h;s/\n.*//;y/ /\n/
-:d;s!.*!sed -n 'h;:;x;p;x;s/.//;//b'&lt;&lt;&lt;'&amp;'!e
-:e;s/b\nb/b/;s/a\na/aa/;te;s/[ab]\n[ab]/a/;te
-s/\n(\n*)/\1/g;/\n/bd
-y/ab/##/;G;s/\n.*\n/ /
-T;s/^(#*) \1(\w*)$/\2/;tz
-s/#* //;T
-s/10(0*)(1*)$/01\2\1/;t
-s/(0*)0(1*)/\21\1/;t
-y/1/0/;s/0+/&amp;&amp;&amp;&amp;/;t
-:z
+s/(.)\n/\1/g;y/\n/ /;G;s/\n\w*\n/ /;/[ab]{2}/bb      #the end of the shuffle loop
+h;s/\n.*//;y/ /\n/                                   #formatting for the calc loop
+:d;s!.*!sed -n 'h;:;x;p;x;s/.//;//b'&lt;&lt;&lt;'&amp;'!e         #start of the calc loop; square everything
+:e;s/b\nb/b/;s/a\na/aa/;te;s/[ab]\n[ab]/a/;te        #add those squares
+s/\n(\n*)/\1/g;/\n/bd                                #remove a layer, end calc loop
+y/ab/##/;G;s/\n.*\n/ /                               #grab input to compare against
+T;s/^(#*) (\w*)\1$/\2/;tz                            #if they match, output the matrix
+s/#* //;T                                            #delete the calc result
+s/10(0*)(1*)#/01\2\1#/;t                             # vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+s/(0*)0(1*)/\21\1/;t                                 # get the next matrix, end main loop
+s/1/0000/g;t                                         # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:z                                                   # label to escape to
 </code></pre>
-<p><a href="https://tio.run/##PVJNb9swDL3rVzBwPhwHNSUn3RarxwHrYcAuA3aoWkCKtcRDKnuW06bpsp@@jEzW2bBMP4uPj4@Kvjrt9UHvIYF21/d1WMPjbtvX7dZDHQiKEH3rO9v7CtwLBP@8rYOP8OhtiNBvPNx@@fwRYmtXPo2@mkRogocn29XWbf0U1p44Vk1bE0Hz5Dv43jWP58S28091s4vQ7UJOSB3hxy72sNp620Wo@xM@pPKXmg7RHURpdcQ7dbW8x3GCa/2Cqpgvrt@9/7BE@RYi7UkkLhPUvRUR5SxNsikaJaVUKEq9oQ3mW4bI@RKtQ/1JlI7QNM@mxqV31t3POADOK0wwc6PwkhfyjBe6ICeylY6jc1ZI@QW8TEfkAUwiPpj5EM2C7jHqr5y9QDM2JmCx1j91qS0R812YxeTm5saokdfEPsSBW4k4yrMLk9poVem9LgZEYXJkMiInnteIVIGCVh@ORDgc7PX8d/F6q6sjM07Gk5EX3BgpJAvOnlEE1PK5G/OcXT6Rm34tjuic@N8oOwS8X5SVjoM8G7CeqwCTDRXb65aeiCwI0f2rN/Ci9IQ6Exw6HoY1waK1NA7GuY4JvOIZElwrNeE8ItLH5VwlXnguSfKmM7/IFOziA88TjEpJPJ0LUxDNgWiSDNgaipRMZTZNFf@Wiuyl6fVsA6GSYUpSF5COAEpWKWc4poux8nA6KVGIuViIa7H807R93YR4uur@Ag" rel="nofollow noreferrer" title="sed 4.2.2 – Try It Online">Try it online!</a></p>
+<p><a href="https://tio.run/##PVJNb9swDL3rVzBwPmwXNSUn3RarxwHrYcAuA3aoWkCKtcRDKnuW06bpup@@jEzW2bBMP4uPfI@Kvj7u9UHvIYFuNwxNWMPDbjs03dZDEwiKEH3nezv4GtwzBP@0bYKP8OBtiDBsPNx8@fwRYmdXPo2@nkVog4dH2zfWbX0Ga08cq7ZriKB99D1879uHU2LX@8em3UXod6EgpInwYxcHWG297SM0wxHvU/lLZWN0B1FZHfFWXS7vcJrgWj@jKueLq3fvPyxRvoVIexKJywT1YEVEeYFSSoWi0hv6Zb5dIHKmROtQfxKVIzQt8sy49Na6u4sshTxDU5pg5kbhOSsUOS90QUFUKx0np5yQ8gt4ySakHWYR7818jGZB9xT1V85eoJkaE7Bc65@60paI@S7NYnZ9fW3UxGtiH@PIrUScFPmZSW20qvVelyOiMAUyGZETz0tEqkBBpw@vRDge7fX8d/lyo@tXZpxNZxMvWBZ1iCSCvaIISPBJjXnKz5/Ikl/KV3RO/BfK/gDvF1Wt46jIR9zPZYDZhortdUdPRG4I0f2rN/Ki8oQ6Exw6HoI1waK1NAbGuY4JvOIJElwrNYGt5v64nKvFM08lSd76LM5tCnbxPk3YaWo9M4rkl0RzIJokB7aGIiVTmWepyrOEzgPZq/gQsA8ES8YpS/FMGVR8LiSVHkR1OB6lUKIUc7EQV2L5p@2Gpg3xeNn/BQ" rel="nofollow noreferrer" title="sed 4.2.2 – Try It Online">Try it online!</a></p>
 <p>did you know sed is turing complete? I happen to know that, and it makes me do things I shouldn't...</p>
 <p>this does basically the same thing that the other answers are doing. we come up with a way to generate an infinite list of matrices <a href="https://tio.run/##VY7PbsIwDMbveQpLm6DtBk44ri/AA@zYSwSmzVSSKnHoePllbtEm4YP9fT//kROdSzmqD3VUk@pVwn3TecT2U6TRlW7qyjT1K2rTHTqDLQtfqF4wdgfzgHc0qLFNqN9wIyGsvAAPLsEpnAlmN47wlROL9ex8JgiZp8yie7haju5ECS4xXGEeLNONIiS2ce3f7CgL95BBNsB5OUxSFlNR/w5/d4zREo@81OfR9Yc0hHllnr4ZtpPtaQvh8v9CXfRPmNgFn8ou/gI" rel="nofollow noreferrer">(check the order here)</a>, calculate the value of each matrix <a href="https://tio.run/##bVHbcpswEH3XV4iJMZgmLMLuDTF5bT@gb1U7IxnFMHGFg3Dj1ON8euku1HHb6QpWR2d3z2rB22oYnkBkoA2wwkgPcZoslIk/a/PlFQGeLEDlyqmlEiBrzFAuTcih8RSr1tKHY5WLaePkFqG3FY88fFXLGagVrjnIT1S9AjVXykG@kQ@ykBqFaeVqFZVlqURoJarPIDBr5sM0mZRELUUlDzIPUEKlQGIojjpHD9gBwU7@OKHgLDjI5XN@/CirEylG8yi0jAbDGwIOsZFP2AA4yA/jNOoxmY5AQx/zExjDXgYFzOaUz4pK@iBNArrPjeNRjc0OcoevB7oQgPndL7CssMga5QwYQKSV06A1yJ546qMceRgpRr1i5ehT0/2onalYsaVKKEuRL1ev37x9915n4hbGn7Qo00SJWCfpIk1u8Q@hDqUbyGC44n1t@Vb7nt@1@443brfvPdedHQONq5rvTbXXW/6w11WnHQbbu6modRveOnvNH@tmXaO3DkW6b7rvcW6NKnzTNdU1Zrb3nm@be1swdsUztNG9YCH@j6ccfESWCS7QKIQZI/EPvuQMY6EgQhCcEMv@tCly2QnSCY04wuf9zP8tQC2yi/pEnMvOpWwSvGj8bHd90zo/3HS/AA" rel="nofollow noreferrer">(check the math here)</a>, and then see if it's equal to the input. The two individual steps are fast and easy enough to check edge cases with; it's only the combined loop that takes a long time.</p>
 <p>tio will finish on small numbers like 5 and 9, but even 6 is asking a bit much of it. hopefully my golfing will speed things up.</p>
