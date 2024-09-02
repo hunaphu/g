@@ -26,8 +26,8 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>nan</td><td></td><td>240806T141821Z</td><td><a href="https://codegolf.stackexchange.com/questions/70916/tips-for-golfing-in-jelly/274732#274732">Unrelate</a></td></tr>
-<tr d-ix="1"><td>nan</td><td></td><td>230312T061725Z</td><td><a href="https://codegolf.stackexchange.com/questions/70916/tips-for-golfing-in-jelly/259062#259062">Unrelate</a></td></tr>
+<tr d-ix="0"><td>nan</td><td></td><td>230312T061725Z</td><td><a href="https://codegolf.stackexchange.com/questions/70916/tips-for-golfing-in-jelly/259062#259062">Unrelate</a></td></tr>
+<tr d-ix="1"><td>nan</td><td></td><td>240806T141821Z</td><td><a href="https://codegolf.stackexchange.com/questions/70916/tips-for-golfing-in-jelly/274732#274732">Unrelate</a></td></tr>
 <tr d-ix="2"><td>nan</td><td></td><td>220410T235912Z</td><td><a href="https://codegolf.stackexchange.com/questions/70916/tips-for-golfing-in-jelly/246144#246144">PurkkaKo</a></td></tr>
 <tr d-ix="3"><td>nan</td><td></td><td>220212T165016Z</td><td><a href="https://codegolf.stackexchange.com/questions/70916/tips-for-golfing-in-jelly/242763#242763">lynn</a></td></tr>
 <tr d-ix="4"><td>nan</td><td></td><td>180225T210629Z</td><td><a href="https://codegolf.stackexchange.com/questions/70916/tips-for-golfing-in-jelly/156725#156725">dylnan</a></td></tr>
@@ -53,16 +53,17 @@
 <tr d-ix="24"><td>nan</td><td></td><td>160203T134204Z</td><td><a href="https://codegolf.stackexchange.com/questions/70916/tips-for-golfing-in-jelly/70920#70920">lynn</a></td></tr>
 <tr d-ix="25"><td>nan</td><td></td><td>160204T014100Z</td><td><a href="https://codegolf.stackexchange.com/questions/70916/tips-for-golfing-in-jelly/71001#71001">lynn</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Head/tail after vectorizing operations</h1>
+<div id="pu0" class="pu"><h1>Many quick-link monads get a free <code>{</code></h1>
+<p>Quicks that expect dyads typically error when run on monads, because most atomic monads have their underlying <code>call</code> as a lambda accepting only one argument. However, most quicks that emit monads--whether conditionally or unconditionally--implement the emitted monad's <code>call</code> as a lambda accepting up to two arguments, with the only exceptions being <code>Ɲɼ`⁺</code>.</p>
+<p>This is <em>completely useless</em> unless you're already severely abusing one of the handful of quicks that strictly require a dyad, but it <a href="https://codegolf.stackexchange.com/questions/258951/sort-by-element-duplication/258955#258955">can</a> come up. I could also see this coming up with <code>\</code> in some obscure circumstance.</p>
+<p>Further note that it <em>doesn't even meaningfully work</em> with the otherwise promising grouping quicks <code>$ƊƲ</code> or line-reference quicks <code>ÇÑĿ</code>--they further use an underlying call to <code>variadic_chain</code>, so being passed a right argument causes them to actually evaluate their bodies with dyadic chaining, making <code>$/</code> equivalent to <code>¥/</code> rather than <code>${/</code>.</p>
+</div>
+<div id="pu1" class="pu"><h1>Head/tail after vectorizing operations</h1>
 <p>Credit to Jonathan Allan for this trick--it just so happens that he taught it to me on <a href="https://codegolf.stackexchange.com/questions/258951/sort-by-element-duplication/258955#258955">the very same solution</a> that inspired <a href="https://codegolf.stackexchange.com/a/259062/85334">my previous tip</a>.</p>
 <p>Jelly's one-byte builtins for the first and last element of a list, <code>Ḣ</code> and <code>Ṫ</code>, (in)famously mutate the list they're given to remove the element they return. This is usually of no consequence since the list is often not reused, and it also comes in handy when manually removing the element later would cost at least one byte (often more due to grouping/chaining), but sometimes you really don't want it.</p>
 <p>Costing an extra byte, <code>ḷ/</code> or <code>ị1</code> are non-mutating substitutes for <code>Ḣ</code> and likewise <code>ṛ/</code> and <code>ị0</code> for <code>Ṫ</code>, but sometimes a little rearranging can bypass the mutations for free by forcibly operating on a different list than the one you intend to reuse.</p>
 <p>Take the monadic (1),(2,1) chain <code>Ṃ=Ṫ</code> for example. &quot;Is the minimum equal to the last element?&quot; Here, <code>Ṫ</code> operates directly on the argument and mutates it, so if it's undesirable to mutate then your first instinct might be to rewrite it as <code>Ṃ=ṛ/</code>, spending a byte to make the same tail operation non-mutating. or even the (2,0),(2,1) chain <code>ị0=Ṃ</code>. However, since <code>=</code> vectorizes, a byte can be saved by rearranging it into the (2,1),(1) chain <code>=ṂṪ</code>: compare <em>every</em> element to the minimum, then take the last comparison from the resulting new list.</p>
 <p>This is often easier <a href="https://codegolf.stackexchange.com/a/273649/85334">with dyadic chaining</a>, since the <code>Ḣ</code>/<code>Ṫ</code> can't end up accidentally forming a (2,1) chain. With a list on the left and a scalar on the right, mutation is the only difference between <code>Ḣ+</code> and <code>+Ḣ</code>!</p>
-</div>
-<div id="pu1" class="pu"><h1>Most quick-link monads get a free <code>{</code></h1>
-<p>Quicks that expect dyads typically error when run on monads, because most monads have their underlying <code>call</code> as a lambda accepting only one argument. However, most quicks that emit monads--whether conditionally or unconditionally--implement the emitted monad's <code>call</code> as a lambda accepting up to two arguments, with the only exceptions being <code>Ɲɼ`⁺</code>.</p>
-<p>This is <em>completely useless</em> unless you're already severely abusing one of the handful of quicks that strictly require a dyad, but it <a href="https://codegolf.stackexchange.com/questions/258951/sort-by-element-duplication/258955#258955">can</a> come up. I could also see this coming up with <code>\</code> in some circumstance, most likely in conjunction with a simple grouping quick.</p>
 </div>
 <div id="pu2" class="pu"><h1>Jelly IDE/Debugger</h1>
 <p>After struggling a lot with Jelly's codepage, parsing, error messages and debugging, I decided to build a IDE/debugger for Jelly. This has been in the works for a very long time, but I finally decided to finish most of the features.</p>
