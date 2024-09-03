@@ -34,9 +34,9 @@
 <tr d-ix="5"><td>387</td><td>C#</td><td>170327T211358Z</td><td><a href="https://codegolf.stackexchange.com/questions/114053/island-golf-2-the-eccentric-hermits/114094#114094">VisualMe</a></td></tr>
 </table>
 <div id="pu0" class="pu"><hr />
-<h2>Dyalog APL, 186 bytes</h2>
+<h2>Dyalog APL, <strike>186</strike> 179 bytes</h2>
 <pre><code>I←⌷⍨∘⊃⍨⍤0 99
-a←(⊂¨⍸g) {d←(⍴⍵)⍴⌊/⍬ ⋄ d[⍺]←0 ⋄ ((~⍺⍷⍸⍵)/⍸⍵)({t←⍵ ⋄ t[⍺]←⌊/↑1+({⍵+⊂(¯1 0)(1 0)(0 ¯1)(0 1)}⊂¨⍺)I¨⊂t ⋄ t}⍣≡)d}¨ ⊂g←i='#'
+a←(⊂¨⍸g) {d←(⍴⍵)⍴⌊/⍬ ⋄ d[⍺]←0 ⋄ ((~⍺⍷⍸⍵)/⍸⍵)({t←⍵ ⋄ t[⍺]←⌊/↑1+({⍵+⊂(-,⊢)(⌽,⍥⊂⊢)1 0}⊂¨⍺)I¨⊂t ⋄ t}⍣≡)d}¨ ⊂g←i='#'
 x←{t[⊃1↓⍒t←∪,⍵]}¨a
 m←⊃x[⍒x]
 i[⍸(⊃a[⊃⍒x])∊0 m]←'X'
@@ -44,7 +44,17 @@ i
 </code></pre>
 <p>De-golfed:</p>
 <pre><code>I←⌷⍨∘⊃⍨⍤0 99                          ⍝ Sane indexing from https://xpqz.github.io/learnapl/
-neighbors←{⍵+⊂(¯1 0)(1 0)(0 ¯1)(0 1)} ⍝ Returns the cardinal neighbors of each element
+neighbors←{⍵+⊂(-,⊢)(⌽,⍥⊂⊢)1 0} ⍝ Returns the cardinal neighbors of each element
+                   (     )     ⍝ As a tacit function
+                        ⊢      ⍝ take the array 1 0
+                    ⌽          ⍝ and a reverse copy
+                     ,⍥⊂       ⍝ and join them after encapsulating each of them
+                               ⍝ (0 1) (1 0)
+              (   )            ⍝ And as another tacit function
+                 ⊢             ⍝ take that new array
+               -               ⍝ and a negated copy
+                ,              ⍝ and join them together
+                               ⍝ (0 -1) (-1 0) (0 1) (1 0)
 
 explore←{t←⍵ ⋄ t[⍺]←⌊/↑1+(neighbors⊂¨⍺)I¨⊂t ⋄ t} ⍝ Takes a set of coordinates of land 
                                                 ⍝ on the left and a map of distances on the right.
