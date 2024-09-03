@@ -26,8 +26,8 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>300</td><td>Go</td><td>240808T170004Z</td><td><a href="https://codegolf.stackexchange.com/questions/105998/recreate-the-ascii-table-as-an-ascii-table/274812#274812">bigyihsu</a></td></tr>
-<tr d-ix="1"><td>nan</td><td>Haskell GHC2024</td><td>240807T222037Z</td><td><a href="https://codegolf.stackexchange.com/questions/105998/recreate-the-ascii-table-as-an-ascii-table/274769#274769">Khuldrae</a></td></tr>
+<tr d-ix="0"><td>nan</td><td>Haskell GHC2024</td><td>240807T222037Z</td><td><a href="https://codegolf.stackexchange.com/questions/105998/recreate-the-ascii-table-as-an-ascii-table/274769#274769">Khuldrae</a></td></tr>
+<tr d-ix="1"><td>300</td><td>Go</td><td>240808T170004Z</td><td><a href="https://codegolf.stackexchange.com/questions/105998/recreate-the-ascii-table-as-an-ascii-table/274812#274812">bigyihsu</a></td></tr>
 <tr d-ix="2"><td>065</td><td>Japt R</td><td>240807T135148Z</td><td><a href="https://codegolf.stackexchange.com/questions/105998/recreate-the-ascii-table-as-an-ascii-table/274755#274755">Shaggy</a></td></tr>
 <tr d-ix="3"><td>253</td><td>JavaScript Node.js</td><td>240807T073016Z</td><td><a href="https://codegolf.stackexchange.com/questions/105998/recreate-the-ascii-table-as-an-ascii-table/274752#274752">Andrew B</a></td></tr>
 <tr d-ix="4"><td>156</td><td>Python</td><td>170107T172416Z</td><td><a href="https://codegolf.stackexchange.com/questions/105998/recreate-the-ascii-table-as-an-ascii-table/106006#106006">busukxua</a></td></tr>
@@ -59,7 +59,28 @@
 <tr d-ix="30"><td>179</td><td>C</td><td>170107T171910Z</td><td><a href="https://codegolf.stackexchange.com/questions/105998/recreate-the-ascii-table-as-an-ascii-table/106005#106005">simon</a></td></tr>
 <tr d-ix="31"><td>173</td><td>JavaScript ES6</td><td>170107T170956Z</td><td><a href="https://codegolf.stackexchange.com/questions/105998/recreate-the-ascii-table-as-an-ascii-table/106004#106004">Arnauld</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://go.dev" rel="nofollow noreferrer">Go</a>, 300 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.haskell.org/" rel="nofollow noreferrer">Haskell</a> (GHC2024), <del>199</del> <del>193</del> 191 bytes</h1>
+<p>-5 by realizing <code>intercalate x [y] == y</code>, -1 by not using <code>fmap</code> on a list like a silly goose, -2 by getting rid of some unnecessary parentheses</p>
+
+<pre class="lang-hs prettyprint-override"><code>import Text.Printf
+(#)=replicate
+o=drop 3.(&gt;&gt;=(&quot; | &quot;++))&lt;$&gt;3#&quot;Dec  Chr  &quot;:[34#'-']:(zipWith(printf&quot;%-5d%-5s&quot;)&lt;*&gt;map(\case{32-&gt;&quot;Space&quot;;127-&gt;&quot;DEL&quot;;c-&gt;[toEnum c]})&lt;$&gt;[[c,c+32..127]|c&lt;-[32..63]])
+</code></pre>
+<p><a href="https://tio.run/##TY1RS8MwGEXf@ys@0slSa4q2U2FrC2MbVSgqbOJD7UNMMxZsk5CmMNz222vrkxfuw4HLuQfafvO67gmBnDZfFV3RloNoQVNjQe0he1qFt@EMsFQW2k5rZSyvQEnYPb96zom4kC9fsvdltvlvcMmlF804hh0/2uDNCGn3Dna9xHBdC0Ytd1RSGaUhCnCaJhjBGZDve148SSMXrTkDWB0MAJoX0cydkmk5xz9Cfwh7wPrPh67IfTW0RV58nTZU4082vJ@ikKRoqynjaHEXPg6w3uRowUhaWLWRXQOsvIw/RcFumB@FQTDMyjOLSTHCQ1SWXt9QISGBSjkwRHd2a00uIYBO1kLyFiag@l8" rel="nofollow noreferrer">Try it online!</a></p>
+<pre class="lang-hs prettyprint-override"><code>drop 3.(&gt;&gt;=(&quot; | &quot;++))&lt;$&gt;3#&quot;Dec  Chr  &quot;:[34#'-']:(zipWith(printf&quot;%-5d%-5s&quot;)&lt;*&gt;map(\case{32-&gt;&quot;Space&quot;;127-&gt;&quot;DEL&quot;;c-&gt;[toEnum c]})&lt;$&gt;[[c,c+32..127]|c&lt;-[32..63]])
+drop 3.(&gt;&gt;=(&quot; | &quot;++))                                                                                                                                           `intercalate &quot; | &quot;` without the Data.List import
+                     &lt;$&gt;                                                                                                                                        map over list:
+                        3#&quot;Dec  Chr  &quot;:                                                                                                                           First line in three pieces minus the &quot; | &quot; separators, followed by
+                                       [34#'-']:                                                                                                                  Second line in one piece (unchanged by intercalate), followed by
+                                                (                                                                                                          )
+                                                                                                                                [[c,c+32..127]|c&lt;-[32..63]]       For each row, the three characters in that row as numbers...
+                                                 zipWith(                )&lt;*&gt;                                                &lt;$&gt;[[c,c+32..127]|c&lt;-[32..63]]         ... combined with a copy of that row transformed by...
+                                                                             map(\case{32-&gt;&quot;Space&quot;;127-&gt;&quot;DEL&quot;;c-&gt;[toEnum c]})                                       ... self-explanatory...
+                                                         printf&quot;%-5d%-5s&quot;                                                                                           ... using this pretty-printing function to make a table cell
+</code></pre>
+<p>Shorter <code>intercalate &quot; | &quot;</code> adapted from a <a href="https://codegolf.stackexchange.com/a/266748/73884">tip by @corvus_192</a>.</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://go.dev" rel="nofollow noreferrer">Go</a>, 300 bytes</h1>
 <pre class="lang-go prettyprint-override"><code>import(.&quot;fmt&quot;;.&quot;strings&quot;)
 func f(){R:=Repeat
 Println(R(`Dec  Chr   | `,3)[:34]+`
@@ -73,27 +94,6 @@ if j&gt;1{s,q=0,&quot;\n&quot;}
 Printf(`%d%s%s%s%s`,k,R(&quot; &quot;,l),c,R(&quot; &quot;,s),q)}}}
 </code></pre>
 <p><a href="https://ato.pxeger.com/run?1=LVCxTsNADBXrfYVlqdIdcSraKxVNe10oGwNKR0BKFJJyTXpNk3Q68iUsFRIbG3_D13BNKg-2ny2_5_f5tdmffso4yeNNCrtYm-9jk_l3f1ekd-W-avgQs12D8yHWTaXNpkbBsqNJIOPChoEK0zKNG_bkZk1heMijVZoA3L9XAPABEUnxHMjJqxexyAs5-khyItyNfQU6UHI814vpZK49z56hbaCq2Dgp0uZUBEp722s5JskSqukQqHV5JuK9Fl4dTcpzIQTdEn4AMp1BvpDSum2Fa_dWijRqO3g5m9nC9y_NaDy1icLVwyN2yHY5so5A3RC-GAd1_2Q8GrwN6j4iysnpB6RCUHIpa0EH0bZtb9pvZ8zZRC7AMucQu0xOpz7_Aw" rel="nofollow noreferrer">Attempt This Online!</a></p>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://www.haskell.org/" rel="nofollow noreferrer">Haskell</a> (GHC2024), <del>199</del> 193 bytes</h1>
-<p>-5 by realizing <code>intercalate x [y] == y</code>, -1 by not using <code>fmap</code> on a list like a silly goose</p>
-
-<pre class="lang-hs prettyprint-override"><code>import Text.Printf
-(#)=replicate
-o=drop 3.(&gt;&gt;=(&quot; | &quot;++))&lt;$&gt;(3#&quot;Dec  Chr  &quot;):[34#'-']:(zipWith(printf&quot;%-5d%-5s&quot;)&lt;*&gt;map(\case{32-&gt;&quot;Space&quot;;127-&gt;&quot;DEL&quot;;c-&gt;[toEnum c]})&lt;$&gt;[[c,c+32..127]|c&lt;-[32..63]])
-</code></pre>
-<p><a href="https://tio.run/##TY1RS8MwGEXf@ys@0skSZ4q2U2FrC2MbUygqbOJD7UNMMxZsk5CmMNz222vrkxfuw4HLuQfWfIuq6iiFjNVfJVuyRoBswDDrQO9h87QMb8MpYKUdNK0x2jpRglawe34l3on6kC1eNu@Lzfq/waeXTtbDGHbi6II3K5Xbe9gniRWmkpw54emktNpAFOA0TTCCM6DJhJB4lOLIRyvBAZYHC4DILI@m/piOixn@keZDugM2f0Z0Re/Lvg0i8XVaM4M/ef9/ikKaoq1hXKD5XfjYw2qdoTmnae70WrU18OIyPOU5v@GTKAyCflaceUzzAR6ioiBdzaSCBErtQR/Tuq2zmYIAWlVJJRoYge5@AQ" rel="nofollow noreferrer">Try it online!</a></p>
-<pre class="lang-hs prettyprint-override"><code>drop 3.(&gt;&gt;=(&quot; | &quot;++))&lt;$&gt;(3#&quot;Dec  Chr  &quot;):[34#'-']:(zipWith(printf&quot;%-5d%-5s&quot;)&lt;*&gt;map(\case{32-&gt;&quot;Space&quot;;127-&gt;&quot;DEL&quot;;c-&gt;[toEnum c]})&lt;$&gt;[[c,c+32..127]|c&lt;-[32..63]])
-drop 3.(&gt;&gt;=(&quot; | &quot;++))                                                                                                                                             `intercalate &quot; | &quot;` without the Data.List import
-                     &lt;$&gt;                                                                                                                                          map over list:
-                        (3#&quot;Dec  Chr  &quot;):                                                                                                                           First line in three pieces minus the &quot; | &quot; separators, followed by
-                                         [34#'-']:                                                                                                                  Second line in one piece (unchanged by intercalate), followed by
-                                                  (                                                                                                          )
-                                                                                                                                  [[c,c+32..127]|c&lt;-[32..63]]       For each row, the three characters in that row as numbers...
-                                                   zipWith(                )&lt;*&gt;                                                &lt;$&gt;[[c,c+32..127]|c&lt;-[32..63]]         ... combined with a copy of that row transformed by...
-                                                                               map(\case{32-&gt;&quot;Space&quot;;127-&gt;&quot;DEL&quot;;c-&gt;[toEnum c]})                                       ... self-explanatory...
-                                                           printf&quot;%-5d%-5s&quot;                                                                                           ... using this pretty-printing function to make a table cell
-</code></pre>
-<p>Shorter <code>intercalate &quot; | &quot;</code> adapted from a <a href="https://codegolf.stackexchange.com/a/266748/73884">tip by @corvus_192</a>.</p>
 </div>
 <div id="pu2" class="pu"><h1><a href="https://github.com/ETHproductions/japt" rel="nofollow noreferrer">Japt</a> <a href="https://codegolf.meta.stackexchange.com/a/14339/"><code>-R</code></a>, 65 <a href="https://en.wikipedia.org/wiki/ISO/IEC_8859-1" rel="nofollow noreferrer">bytes</a></h1>
 <p>First pass at this; very much not happy with it. Particularly the insertion of the line of dashes. Another approach may be needed.</p>
