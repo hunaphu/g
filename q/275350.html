@@ -26,36 +26,80 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>070</td><td>Ruby</td><td>240905T100333Z</td><td><a href="https://codegolf.stackexchange.com/questions/275350/sylvester-primes/275369#275369">G B</a></td></tr>
-<tr d-ix="1"><td>019</td><td>Japt</td><td>240905T154442Z</td><td><a href="https://codegolf.stackexchange.com/questions/275350/sylvester-primes/275374#275374">Shaggy</a></td></tr>
-<tr d-ix="2"><td>084</td><td>Perl 5 + MathPrimeUtil</td><td>240905T120039Z</td><td><a href="https://codegolf.stackexchange.com/questions/275350/sylvester-primes/275370#275370">Kjetil S</a></td></tr>
-<tr d-ix="3"><td>012</td><td>05AB1E</td><td>240905T070144Z</td><td><a href="https://codegolf.stackexchange.com/questions/275350/sylvester-primes/275367#275367">Kevin Cr</a></td></tr>
-<tr d-ix="4"><td>076</td><td>JavaScript ES11</td><td>240904T171431Z</td><td><a href="https://codegolf.stackexchange.com/questions/275350/sylvester-primes/275355#275355">Arnauld</a></td></tr>
+<tr d-ix="0"><td>076</td><td>JavaScript ES11</td><td>240904T171431Z</td><td><a href="https://codegolf.stackexchange.com/questions/275350/sylvester-primes/275355#275355">Arnauld</a></td></tr>
+<tr d-ix="1"><td>070</td><td>Ruby</td><td>240905T100333Z</td><td><a href="https://codegolf.stackexchange.com/questions/275350/sylvester-primes/275369#275369">G B</a></td></tr>
+<tr d-ix="2"><td>019</td><td>Japt</td><td>240905T154442Z</td><td><a href="https://codegolf.stackexchange.com/questions/275350/sylvester-primes/275374#275374">Shaggy</a></td></tr>
+<tr d-ix="3"><td>084</td><td>Perl 5 + MathPrimeUtil</td><td>240905T120039Z</td><td><a href="https://codegolf.stackexchange.com/questions/275350/sylvester-primes/275370#275370">Kjetil S</a></td></tr>
+<tr d-ix="4"><td>012</td><td>05AB1E</td><td>240905T070144Z</td><td><a href="https://codegolf.stackexchange.com/questions/275350/sylvester-primes/275367#275367">Kevin Cr</a></td></tr>
 <tr d-ix="5"><td>027</td><td>Charcoal</td><td>240904T185258Z</td><td><a href="https://codegolf.stackexchange.com/questions/275350/sylvester-primes/275356#275356">Neil</a></td></tr>
 <tr d-ix="6"><td>014</td><td>Jelly</td><td>240904T150642Z</td><td><a href="https://codegolf.stackexchange.com/questions/275350/sylvester-primes/275352#275352">Jonathan</a></td></tr>
 <tr d-ix="7"><td>015</td><td>Stax</td><td>240904T162249Z</td><td><a href="https://codegolf.stackexchange.com/questions/275350/sylvester-primes/275353#275353">Khuldrae</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a>, <s>72</s> 70 bytes</h1>
+<div id="pu0" class="pu"><h1>JavaScript (ES11), 76 bytes</h1>
+<p>Expects a Bigint <span class="math-container">\$n\$</span> and returns <span class="math-container">\$a(n)\$</span> as another Bigint. This assumes that Sylvester's sequence is squarefree, which is an unresolved problem (<a href="https://tio.run/##FYxBCoMwFET3niILC/k1aalL7deDiKBYbdqEn6ISFNGrp3E1b4aZ@baunbrx85sl2Vfv/YCcxIIpCYUai/WiS8XloSFT1XpHLXQdgmC1cKh46K24AGAhJZXDub3KYxGqcjUqyJwf7MhNPzNiyB6UB30GSE9KEmBbxFhnabKmvxn75k3L4412CO14C3@wN5BHu/8D" rel="nofollow noreferrer">+4 bytes</a> for a safe version without this assumption).</p>
+<p>Computes <span class="math-container">\$a(1)\$</span> to <span class="math-container">\$a(12)\$</span> almost instantly.</p>
+
+<pre class="lang-javascript prettyprint-override"><code>f=(n,x=2n,h=k=&gt;y%++k||h[y/=k,k]?h(k):k,v=h(1n,y=x))=&gt;--n?f(n,x*-~x,h[v]=h):v
+</code></pre>
+<p><a href="https://tio.run/##FYzBDoIwEAXvfEUPmHRt0cARXPgQQgJBsFqyNUAaCOCv13KaOcx7n8Y2Uzu@v3NE5tk51yMnuWBCUqHGfL0IofddlesdtdRVobiGVEuLisckV1wAMI8iKvpzd41@i1SlrVBBal1vRj50MyOGLKbM8@ElOU0IYFvAWGtoMkN3G8yL1w0PNzrA1@Hm/@CoIQsO9wc" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<h3>Commented</h3>
+<pre class="lang-javascript prettyprint-override"><code>f = (        // f is a recursive function taking:
+  n,         //   n = input
+  x = 2n,    //   x = current term of Sylvester's sequence
+  h = k =&gt;   //   h is a recursive helper function taking a counter k
+             //   and returning the first prime factor of y which was
+             //   not listed before:
+  y % ++k || //     increment k; if k is not a divisor of y
+  h[         //     or h[k] is already defined ...
+    y /= k,  //     (divide y by k if this 2nd test was reached)
+    k        //     
+  ] ?        //     ... then:
+    h(k)     //       try again
+  :          //     else:
+    k,       //       return k
+  v = h(     //   initialize v by calling h:
+    1n,      //     with k = 1
+    y = x    //     and y = x
+  )          //   end of call
+) =&gt;         //
+--n ?        // decrement n; if it's not zero:
+  f(         //   recursive call:
+    n,       //     pass n
+    x * -~x, //     update x to the next term of the sequence
+    h[v] = h //     pass h with h[v] set
+  )          //   end of recursive call
+:            // else:
+  v          //   end of recursion: return v
+</code></pre>
+<hr />
+<h3>Limited recursion, 77 bytes</h3>
+<p>This version can reach <span class="math-container">\$a(19)\$</span> within TIO's time limit.</p>
+
+<pre class="lang-javascript prettyprint-override"><code>f=(n,x=2n,h=y=&gt;{for(v=1n;y%++v||h[y/=v,v];);})=&gt;h(x)||--n?f(n,x*-~x,h[v]=h):v
+</code></pre>
+<p><a href="https://tio.run/##FYzLDoMgFAX3fgULm3AL9OGy9NoPMSYaq6WNgUYN0QD9dYqrM4sz82ltO3fT@7sIbZ59jANSzVcsNFe4YekGM1GLVy23A2PWe1VtZ7Tc1hJkACwVXcF7IfRj2MWj@K1cVbZGBTcbd3vsF6IJktRIeyfFZQfGgLiMkM7o2Yz9aTQv2rQ0dzpAOucu5SA0ILMQ/w" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a>, <s>72</s> 70 bytes</h1>
 
 <pre class="lang-ruby prettyprint-override"><code>-&gt;n{r,*t=1;n.times{t&lt;&lt;(2..r*=r+1).find{|x|r%x&lt;1&amp;&amp;t.all?{|y|x%y&gt;0}}};t}
 </code></pre>
 <p><a href="https://tio.run/##KypNqvyfZvtf1y6vukhHq8TW0DpPryQzN7W4usTGRsNIT69Iy7ZI21BTLy0zL6W6pqKmSLXCxlBNrUQvMSfHvrqmsqZCtdLOoLa21rqk9n@BQlq0oUEsF4g2Moj9DwA" rel="nofollow noreferrer" title="Ruby – Try It Online">Try it online!</a></p>
 <p>Calculates f[20] in 30 seconds on TIO.</p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://github.com/ETHproductions/japt" rel="nofollow noreferrer">Japt</a>, 19 <a href="https://en.wikipedia.org/wiki/ISO/IEC_8859-1" rel="nofollow noreferrer">bytes</a></h1>
+<div id="pu2" class="pu"><h1><a href="https://github.com/ETHproductions/japt" rel="nofollow noreferrer">Japt</a>, 19 <a href="https://en.wikipedia.org/wiki/ISO/IEC_8859-1" rel="nofollow noreferrer">bytes</a></h1>
 <p>Outputs the first <code>n</code> terms. Produces inaccurate results for <code>n&gt;6</code> as we get into scientific notation &amp; floating point inaccuracies in the terms of the Sylvester Sequence.</p>
 <pre><code>È+²}h2ì)mk rÈpYkX Î
 </code></pre>
 <p><a href="https://petershaggynoble.github.io/Japt-Interpreter/?v=1.4.6&amp;code=yCuyfWgy7CltayByyHBZa1ggzg&amp;input=Ng" rel="nofollow noreferrer">Try it</a></p>
 </div>
-<div id="pu2" class="pu"><h1><a href="https://www.perl.org/" rel="nofollow noreferrer">Perl 5</a> + Math::Prime::Util, 84 bytes</h1>
+<div id="pu3" class="pu"><h1><a href="https://www.perl.org/" rel="nofollow noreferrer">Perl 5</a> + Math::Prime::Util, 84 bytes</h1>
 
 <pre class="lang-perl prettyprint-override"><code>sub S{$_[0]?S($_[0]-1)*(S(-1+pop)+1):1}say+(grep!$s{$_}++,factor S($_))[0]for 1..pop
 </code></pre>
 <p><a href="https://tio.run/##K0gtyjH9/7@4NEkhuFolPtog1j5YA0zrGmpqaQRr6BpqF@QXaGobaloZ1hYnVmprpBelFiiqFANV12pr66QlJpfkFymANGlqArWlATmGenpAPf///zc0@JdfUJKZn1f8X9c3KTM9rzQXyCgz1TM0ANK@iSUZVlYBRZm5qVZWoSWZObYQwwA" rel="nofollow noreferrer" title="Perl 5 – Try It Online">Try it online!</a></p>
 <p>For input 10 it outputs 2, 3, 7, 43, 13, 3263443, 547, 29881, 5295435634831, 181. Runtime for n=10 varies a lot. From 12 seconds and up.</p>
 </div>
-<div id="pu3" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, <s>15</s> 12 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
+<div id="pu4" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, <s>15</s> 12 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
 <pre><code>$FD&gt;*Df¯Kß=ˆ
 </code></pre>
 <p>Given <span class="math-container">\$n\$</span>, it'll output the first <span class="math-container">\$n\$</span> values on separated lines.</p>
@@ -102,49 +146,6 @@ f         # Map each inner value to a list of its unique prime factors
        =  #  Output it with trailing newline (without popping)
         ª #  Add it to the list for the next iteration
 </code></pre>
-</div>
-<div id="pu4" class="pu"><h1>JavaScript (ES11), 76 bytes</h1>
-<p><sup>I'm not convinced this is as terse as possible.</sup></p>
-<p>Expects a Bigint <span class="math-container">\$n\$</span> and returns <span class="math-container">\$a(n)\$</span> as another Bigint. This assumes that Sylvester's sequence is squarefree, which is an unresolved problem (<a href="https://tio.run/##FYxBCoMwFET3niILC/k1aalL7deDiKBYbdqEn6ISFNGrp3E1b4aZ@baunbrx85sl2Vfv/YCcxIIpCYUai/WiS8XloSFT1XpHLXQdgmC1cKh46K24AGAhJZXDub3KYxGqcjUqyJwf7MhNPzNiyB6UB30GSE9KEmBbxFhnabKmvxn75k3L4412CO14C3@wN5BHu/8D" rel="nofollow noreferrer">+4 bytes</a> for a safe version without this assumption).</p>
-<p>Computes <span class="math-container">\$a(1)\$</span> to <span class="math-container">\$a(12)\$</span> almost instantly.</p>
-
-<pre class="lang-javascript prettyprint-override"><code>f=(n,x=2n,h=k=&gt;y%++k||h[y/=k,k]?h(k):k,v=h(1n,y=x))=&gt;--n?f(n,x*-~x,h[v]=h):v
-</code></pre>
-<p><a href="https://tio.run/##FYzBDoIwEAXvfEUPmHRt0cARXPgQQgJBsFqyNUAaCOCv13KaOcx7n8Y2Uzu@v3NE5tk51yMnuWBCUqHGfL0IofddlesdtdRVobiGVEuLisckV1wAMI8iKvpzd41@i1SlrVBBal1vRj50MyOGLKbM8@ElOU0IYFvAWGtoMkN3G8yL1w0PNzrA1@Hm/@CoIQsO9wc" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
-<h3>Commented</h3>
-<pre class="lang-javascript prettyprint-override"><code>f = (        // f is a recursive function taking:
-  n,         //   n = input
-  x = 2n,    //   x = current term of Sylvester's sequence
-  h = k =&gt;   //   h is a recursive helper function taking k
-  y % ++k || //   increment k; if k is not a divisor of y
-  h[         //   or h[k] is already defined ...
-    y /= k,  //   (divide y by k if the 2nd test was reached)
-    k        //
-  ] ?        //   ... then:
-    h(k)     //     try again
-  :          //   else:
-    k,       //     return k
-  v = h(     //   initialize v by calling h:
-    1n,      //     with k = 1
-    y = x    //     and y = x
-  )          //
-) =&gt;         //
---n ?        // decrement n; if it's not zero:
-  f(         //   recursive call:
-    n,       //     pass n
-    x * -~x, //     update x to the next term of the sequence
-    h[v] = h //     pass h with h[v] set
-  )          //   end of recursive call
-:            // else:
-  v          //   end of recursion: return v
-</code></pre>
-<hr />
-<h3>Limited recursion, 77 bytes</h3>
-<p>This version can reach <span class="math-container">\$a(19)\$</span> within TIO's time limit.</p>
-
-<pre class="lang-javascript prettyprint-override"><code>f=(n,x=2n,h=y=&gt;{for(v=1n;y%++v||h[y/=v,v];);})=&gt;h(x)||--n?f(n,x*-~x,h[v]=h):v
-</code></pre>
-<p><a href="https://tio.run/##FYzLDoMgFAX3fgULm3AL9OGy9NoPMSYaq6WNgUYN0QD9dYqrM4sz82ltO3fT@7sIbZ59jANSzVcsNFe4YekGM1GLVy23A2PWe1VtZ7Tc1hJkACwVXcF7IfRj2MWj@K1cVbZGBTcbd3vsF6IJktRIeyfFZQfGgLiMkM7o2Yz9aTQv2rQ0dzpAOucu5SA0ILMQ/w" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
 </div>
 <div id="pu5" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 27 bytes</h1>
 <pre><code>≔¹ηＦＮ«≧×⊕ηη⊞υ²Ｗ﹪ηΠυ⊞υ⊕⊟υ»Ｉυ
