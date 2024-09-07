@@ -26,7 +26,7 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>023</td><td>x86</td><td>240907T003125Z</td><td><a href="https://codegolf.stackexchange.com/questions/275210/parse-minecrafts-varint/275398#275398">qwr</a></td></tr>
+<tr d-ix="0"><td>022</td><td>x86</td><td>240907T003125Z</td><td><a href="https://codegolf.stackexchange.com/questions/275210/parse-minecrafts-varint/275398#275398">qwr</a></td></tr>
 <tr d-ix="1"><td>042</td><td>APL+WIN</td><td>240905T161648Z</td><td><a href="https://codegolf.stackexchange.com/questions/275210/parse-minecrafts-varint/275376#275376">Graham</a></td></tr>
 <tr d-ix="2"><td>431</td><td>Minecraft Function</td><td>240902T031306Z</td><td><a href="https://codegolf.stackexchange.com/questions/275210/parse-minecrafts-varint/275298#275298">LostXOR</a></td></tr>
 <tr d-ix="3"><td>077</td><td>F#</td><td>240831T012959Z</td><td><a href="https://codegolf.stackexchange.com/questions/275210/parse-minecrafts-varint/275273#275273">Juuz</a></td></tr>
@@ -39,24 +39,24 @@
 <tr d-ix="10"><td>034</td><td>JavaScript ES6</td><td>240828T181212Z</td><td><a href="https://codegolf.stackexchange.com/questions/275210/parse-minecrafts-varint/275211#275211">Arnauld</a></td></tr>
 <tr d-ix="11"><td>015</td><td>Uiua</td><td>240828T194612Z</td><td><a href="https://codegolf.stackexchange.com/questions/275210/parse-minecrafts-varint/275217#275217">nyxbird</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>x86, <s>24</s> 23 bytes</h1>
-<p>Couldn't figure out any tricks to get rid of <code>shift</code>, so it's a straight-forward do-while loop, checking the byte's sign bit. Input in edi, output in ebx, everything clobbered.</p>
+<div id="pu0" class="pu"><h1>x86, <s>24</s> <s>23</s> 22 bytes</h1>
+<p>Couldn't figure out any tricks to get rid of <code>shift</code>, so it's a straight-forward do-while loop, checking the byte's sign bit. Input in esi, output in ebx, everything clobbered.</p>
 <p>-1 byte by using eax for the <code>t</code> calculations, so I can do 2-byte <code>and al, imm8</code>.</p>
-<pre><code>parse:                          ; edi input pointer
+<p>-1 byte by using <code>lodsb</code> instead of <code>mov</code>/<code>inc</code> (but I have to clear upper bits of eax).</p>
+<pre><code>parse:                          ; esi input pointer
         xor     ebx, ebx        ; ebx result = 0
         xor     ecx, ecx        ; ecx shift = 0
 
 .loop:  
-        mov     dl, BYTE [edi]  ; edx byte = *varint
-        mov     eax, edx        ; eax t = byte
-        and     al, 0x7F        ; t &amp;= 0x7F
+        lodsb                   ; al byte = [esi++]
+        mov     dl, al          ; save byte for test later
+        and     eax, 0x7F       ; t &amp;= 0x7F, clear upper bits
         sal     eax, cl         ; t &lt;&lt;= shift
         or      ebx, eax        ; result |= t
         add     cl, 7           ; shift += 7
-        inc     edi             ; ++varint
         test    dl, dl    
         js      .loop           ; loop if byte's sign bit is set
-        ret                     ; return in ebx        
+        ret                     ; return in ebx     
 </code></pre>
 <p>Objdump:</p>
 <pre><code>00000000 &lt;parse&gt;:
@@ -64,16 +64,15 @@
    2:   31 c9                   xor    ecx,ecx
 
 00000004 &lt;parse.loop&gt;:
-   4:   8a 17                   mov    dl,BYTE PTR [edi]
-   6:   89 d0                   mov    eax,edx
-   8:   24 7f                   and    al,0x7f
+   4:   ac                      lods   al,BYTE PTR ds:[esi]
+   5:   88 c2                   mov    dl,al
+   7:   83 e0 7f                and    eax,0x7f
    a:   d3 e0                   shl    eax,cl
    c:   09 c3                   or     ebx,eax
    e:   80 c1 07                add    cl,0x7
-  11:   47                      inc    edi
-  12:   84 d2                   test   dl,dl
-  14:   78 ee                   js     4 &lt;parse.loop&gt;
-  16:   c3                      ret      
+  11:   84 d2                   test   dl,dl
+  13:   78 ef                   js     4 &lt;parse.loop&gt;
+  15:   c3                      ret        
 </code></pre>
 </div>
 <div id="pu1" class="pu"><h1>APL+WIN, 42 bytes</h1>
