@@ -100,28 +100,17 @@
 <tr d-ix="71"><td>000</td><td>Vyxal s</td><td>230224T230306Z</td><td><a href="https://codegolf.stackexchange.com/questions/258232/summing-the-digits-of-a-number/258233#258233">lyxal</a></td></tr>
 </table>
 <div id="pu0" class="pu"><h1>x86-64 Linux assembly, <s>18</s> 15 bytes</h1>
-<p>Custom calling convention because I remembered <code>lodsb</code> exists. It turns out the answer is nearly identical to Cody Gray's now, except he cleverly used ah instead of 0 in <code>cmp</code>. Oh well. <code>lea</code> is 4 bytes, the same as <code>sub al,'0'</code>/<code>add edx,eax</code>.</p>
-<pre><code>sum_digits:                         ; input: null-terminated string in esi
-        xor     edx, edx            ; sum = 0
-        xor     eax, eax            ; clear upper bits of eax
-.L:                                 ; do
-        lodsb                       ; al c = *str++
-        lea     edx, [edx-48+eax]   ; sum += c - '0'
-        jmp     .L
-        cmp     BYTE [esi], 0       ; while (*str)
-        ret                         ; return in edx
-</code></pre>
-<p>Objdump:</p>
-<pre><code>00000000 &lt;sum_digits&gt;:
-   0:   31 d2                   xor    edx,edx
-   2:   31 c0                   xor    eax,eax
-
-00000004 &lt;sum_digits.L&gt;:
-   4:   ac                      lods   al,BYTE PTR ds:[esi]
-   5:   8d 54 02 d0             lea    edx,[edx+eax*1-0x30]
-   9:   80 3e 00                cmp    BYTE PTR [esi],0x0
-   c:   75 f6                   jne    4 &lt;sum_digits.L&gt;
-   e:   c3                      ret      
+<p>Custom calling convention because I remembered <code>lodsb</code> exists. It turns out the answer is nearly identical to Cody Gray's now, except he cleverly used ah instead of 0 in <code>cmp</code>. Oh well.  <code>lea</code> is 4 bytes, the same as <code>sub al,'0'</code>/<code>add edx,eax</code>.</p>
+<p>I copied his listing format too because it's nicer to look at than an objdump.</p>
+<pre><code>sum_digits:                                 ; input: null-terminated string in esi
+  31 D2         xor     edx, edx            ; sum = 0
+  31 C0         xor     eax, eax            ; clear upper bits of eax
+.L:                                         ; do
+  AC            lodsb                       ; al c = *str++
+  8D 54 02 D0   lea     edx, [edx-48+eax]   ; sum += c - '0'
+  80 3E 00      cmp     BYTE [esi], 0       ; while (*str)
+  75 F6         jne     .L
+  C3            ret                         ; return in edx
 </code></pre>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://www.perl.org/" rel="nofollow noreferrer">Perl 5</a> <code>-MList::Util=sum -pF</code>, 8 bytes</h1>
