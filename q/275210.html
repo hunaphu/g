@@ -44,36 +44,20 @@
 <p>-1 byte by using eax for the <code>t</code> calculations, so I can do 2-byte <code>and al, imm8</code>.</p>
 <p>-1 byte by using <code>lodsb</code> instead of <code>mov</code>/<code>inc</code> (but I have to clear upper bits of eax).</p>
 <pre><code>parse:                          ; esi input pointer
-        xor     ebx, ebx        ; ebx result = 0
-        xor     ecx, ecx        ; ecx shift = 0
-
+  31 DB     xor     ebx, ebx    ; ebx result = 0
+  31 C9     xor     ecx, ecx    ; ecx shift = 0
 .loop:  
-        lodsb                   ; al byte = [esi++]
-        mov     dl, al          ; save byte for test later
-        and     eax, 0x7F       ; t &amp;= 0x7F, clear upper bits
-        sal     eax, cl         ; t &lt;&lt;= shift
-        or      ebx, eax        ; result |= t
-        add     cl, 7           ; shift += 7
-        test    dl, dl    
-        js      .loop           ; loop if byte's sign bit is set
-        ret                     ; return in ebx     
+  AC        lodsb               ; al byte = [esi++]
+  88 C2     mov     dl, al      ; save byte for test later
+  83 E0 7F  and     eax, 0x7F   ; t &amp;= 0x7F, clear upper bits
+  D3 E0     sal     eax, cl     ; t &lt;&lt;= shift
+  09 C3     or      ebx, eax    ; result |= t
+  80 C1 07  add     cl, 7       ; shift += 7
+  84 D2     test    dl, dl    
+  78 EF     js      .loop       ; loop if byte's sign bit is set
+  C3        ret                 ; return in ebx   
 </code></pre>
-<p>Objdump:</p>
-<pre><code>00000000 &lt;parse&gt;:
-   0:   31 db                   xor    ebx,ebx
-   2:   31 c9                   xor    ecx,ecx
-
-00000004 &lt;parse.loop&gt;:
-   4:   ac                      lods   al,BYTE PTR ds:[esi]
-   5:   88 c2                   mov    dl,al
-   7:   83 e0 7f                and    eax,0x7f
-   a:   d3 e0                   shl    eax,cl
-   c:   09 c3                   or     ebx,eax
-   e:   80 c1 07                add    cl,0x7
-  11:   84 d2                   test   dl,dl
-  13:   78 ef                   js     4 &lt;parse.loop&gt;
-  15:   c3                      ret        
-</code></pre>
+<p>I formatted all above manually from a NASM listing. Please tell me if there's an easier way.</p>
 </div>
 <div id="pu1" class="pu"><h1>APL+WIN, 42 bytes</h1>
 <p>Prompts for bytes as a nested vector.</p>
