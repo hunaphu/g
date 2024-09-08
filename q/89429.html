@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::89429</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>045</td><td>Uiua</td><td>240908T195017Z</td><td><a href="https://codegolf.stackexchange.com/questions/89429/help-sam-understand-chess/275422#275422">nyxbird</a></td></tr>
+<tr d-ix="1"><td>103</td><td>x86 machine code</td><td>191219T110118Z</td><td><a href="https://codegolf.stackexchange.com/questions/89429/help-sam-understand-chess/197193#197193">Dmitry S</a></td></tr>
+<tr d-ix="2"><td>125</td><td>Ruby</td><td>160810T231702Z</td><td><a href="https://codegolf.stackexchange.com/questions/89429/help-sam-understand-chess/89449#89449">Level Ri</a></td></tr>
+<tr d-ix="3"><td>130</td><td>JavaScript ES6</td><td>160811T115233Z</td><td><a href="https://codegolf.stackexchange.com/questions/89429/help-sam-understand-chess/89495#89495">Neil</a></td></tr>
+<tr d-ix="4"><td>289</td><td>Java 8 lambda</td><td>160810T215524Z</td><td><a href="https://codegolf.stackexchange.com/questions/89429/help-sam-understand-chess/89435#89435">Frozn</a></td></tr>
+<tr d-ix="5"><td>209</td><td>Ruby</td><td>160810T220919Z</td><td><a href="https://codegolf.stackexchange.com/questions/89429/help-sam-understand-chess/89438#89438">MegaTom</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1><a href="https://uiua.org" rel="nofollow noreferrer">Uiua</a>, 45 bytes</h1>
+<pre><code>⊡⊗:&quot;QRBNK&quot;:⍜≡⊡⊸↥:+@.[↥,,⊃(/↥=0|/=|=2/×|=1/↥)]⌵-°⍉⇡8_8⟜¤
+</code></pre>
+<p><a href="https://www.uiua.org/pad?src=0_13_0-dev_2__ZiDihpAg4oqh4oqXOiJRUkJOSyI64o2c4omh4oqh4oq44oalOitALlvihqUsLOKKgygv4oalPTB8Lz18PTIvw5d8PTEv4oalKV3ijLUtwrDijYnih6E4Xzjin5zCpApmIDRfNCBATgpmIDRfNCBASwpmIDRfNCBAUgpmIDJfNyBAUQpmIDZfMyBAQgo=" rel="nofollow noreferrer">Try it!</a></p>
+<pre><code>                                                     ⇡8_8   # coordinates of an 8x8 grid
+                                                ⌵-°⍉       # the absolute difference of each x and y from the point
+                       [   ⊃(                 )]            # push an array of boolean arrays with the coordinates that have:
+                                         |=1/↥              #   a max distance of 1 (king)
+                                    |=2/×                   #   a product of 2 (knight)
+                                 |/=                        #   equal values (bishop) 
+                             /↥=0                           #   a zero (rook)
+                        ↥,,                                 #   a 1 in one of the previous two arrays (queen)
+                    +@.                                     # convert into .s and /s
+            ⍜≡⊡ ↥:                                     ⟜¤ # put the piece's char into each array
+⊡⊗:&quot;QRBNK&quot;:    ⊸                                          # pick the array with the corresponding index in &quot;QRBNK&quot;
+</code></pre>
+<p>This feels too long (mainly in the <code>⊃</code>).</p>
+</div>
+<div id="pu1" class="pu"><h1>x86 machine code, <s>114</s> 103 bytes</h1>
+
+<p>Input:</p>
+
+<ul>
+<li>AL - ASCII piece type (N/B/R/Q/K)</li>
+<li>BP - 0x88 index</li>
+<li>DI - Buffer</li>
+</ul>
+
+<p>Output:</p>
+
+<ul>
+<li>DI - Last character + 1</li>
+</ul>
+
+<p>Assembly source code:</p>
+
+<pre><code>    pusha
+    mov di, offset disp_db - 3
+    mov cx, 8
+    mov bx, cx
+    repne scasb
+    mov dx, di
+    sub dx, offset disp_db - 1
+    pop si
+    mov di, si
+
+init_loop:
+    mov ax, '.'
+    mov cl, 8
+    rep stosb
+    mov al, 9
+    mov cl, 7
+    rep stosb
+    inc ax
+    stosb
+    dec bx
+    jnz init_loop
+
+init_done:
+    push di
+    mov di, si
+
+piece_loop:
+    mov si, offset moves_knight - 2
+    add si, dx
+    lodsb
+    add si, ax
+
+vec_loop:
+    lodsb
+    cbw
+
+sign_loop:
+    mov bx, bp
+
+dest_loop:
+    add bx, ax
+    test bl, 088h
+    jnz vec_cont
+    mov byte ptr [di + bx], '*'
+    test dl, dl
+    jp dest_loop
+
+vec_cont:
+    neg ax
+    js sign_loop
+    cmp al, 80h
+    jnz vec_loop
+
+done:
+    popa
+    mov [di + bp - 128], al
+    ret
+
+disp_db db "NBKRQ"
+
+moves_knight db vec_knight - moves_knight - 1
+moves_bishop db vec_bishop - moves_bishop - 1
+moves_king   db vec_king   - moves_king   - 1
+moves_rook   db vec_rook   - moves_rook   - 1
+moves_queen  db vec_king   - moves_queen  - 1
+
+vec_knight db 0Eh, 12h, 1Fh, 21h, 80h
+vec_bishop db 0Fh, 11h, 80h
+vec_king   db 0Fh, 11h
+vec_rook   db 01h, 10h, 80h
+</code></pre>
+</div>
+<div id="pu2" class="pu"><h1>Ruby, 125</h1>
+<p>anonymous function, prints to stdout.</p>
+<p>RevB: golfed, but a bug fix brought it back to the same length as before.</p>
+<pre><code>-&gt;x,y,z{72.times{|i|v=y-i/9;u=x-i%=9
+e=u*u+v*v
+$&gt;&lt;&lt;(i&lt;8?e&lt;1?z:[r=0==v*u,b=u*u==v*v,b|r,3&gt;e,5==e][&quot;RBQKN&quot;=~/#{z}/]??*:?.:$/)}}
+</code></pre>
+<p>Prints each of the 64 squares + 8 newlines = 72 characters individually.
+Relies on e, the square of the Euclidean distance between the current square and the given coordinates for checking king moves and knight moves (and also for printing the piece value z when the Euclidean distance is zero.)</p>
+<p><strong>Ungolfed in test program</strong></p>
+<pre><code>f=-&gt;x,y,z{                         #x,y,character
+  72.times{|i|                     #8 rows of (8 chars + newline) = 72 chars
+    v=y-i/9;                       #vertical diff between y coord and current square
+    u=x-i%=9                       #horizontal diff between x coord and current square. note i%=8
+    e=u*u+v*v                      #square of euclidean distance
+    $&gt;&lt;&lt;(                          #$&gt; is stdout. send to it....
+      i&lt;8?                         #if not the newline column,
+        e&lt;1?z:                       #if the euclidean distance is 0, print the symbol for the piece, else
+        [r=0==v*u,                   #TRUE if v or u is 0 (rook)
+        b=u*u==v*v,                  #TRUE if abs(u)==abs(v) (bishop)
+        b|r,                         #TRUE if either of the above are true (queen)
+        3&gt;e,                         #TRUE if e == 1 or 2 (king)
+        5==e                         #TRUE if e == 5 (knight)
+        ][&quot;RBQKN&quot;=~/#{z}/]??*:?.:    #select value from array corresponding to piece and print * or . accordingly
+      $/                           #if newline column, print a newline
+    )
+  }
+}
+
+x=gets.to_i
+y=gets.to_i
+z=gets.chomp
+f[x,y,z]
+</code></pre>
+</div>
+<div id="pu3" class="pu"><h2>JavaScript (ES6), <s>137</s> 130 bytes</h2>
+
+<p><div class="snippet" data-lang="js" data-hide="false" data-console="true" data-babel="false">
+<div class="snippet-code">
+<pre class="snippet-code-js lang-js prettyprint-override"><code>f=
+(x,y,p)=&gt;`${1e8}`.repeat(8).replace(/./g,c=&gt;+c?(i=x*x--,z=y,`
+`):i+(j=z*z--)?`.*`[+!{K:i+j&gt;3,N:i+j-5,R:i*j,B:b=i-j,Q:b*i*j}[p]]:p)
+;</code></pre>
+<pre class="snippet-code-html lang-html prettyprint-override"><code>&lt;div onchange=if(+x.value&amp;&amp;+y.value&amp;&amp;p.value)o.textContent=f(x.value,y.value,p.value)&gt;&lt;input id=x type=number placeholder=X&gt;&lt;input id=y type=number placeholder=Y&gt;&lt;select id=p&gt;&lt;option value=&gt;Piece&lt;option value=B&gt;Bishop&lt;option value=K&gt;King&lt;option value=N&gt;Knight&lt;option value=Q&gt;Queen&lt;option value=R&gt;Rook&lt;/select&gt;&lt;div&gt;&lt;pre id=o&gt;&lt;/pre&gt;</code></pre>
+</div>
+</div>
+</p>
+
+<p>Note: Outputs one leading newline.</p>
+
+<p>Explanation: Builds and scans though the string <code>100000000100000000100000000100000000100000000100000000100000000100000000</code>. Each <code>1</code> indicates a new line where the relative coordinate <code>x</code> is decremented and the relative coordinate <code>z</code> is reset. Each <code>0</code> indicates a new square where the relative coordinate <code>z</code> is decremented. (<code>y</code> is reserved to reset <code>z</code>.) Then uses the fact that many of the moves can be categorised by the squares <code>i</code> and <code>j</code> of the relative coordinates (before they were decremented):</p>
+
+<ul>
+<li>(initial square) <code>i + j == 0</code></li>
+<li>B: <code>i == j</code></li>
+<li>K: <code>i + j &lt; 3</code></li>
+<li>N: <code>i + j == 5</code></li>
+<li>Q: <code>i == j || !i || !j</code></li>
+<li>R: <code>!i || !j</code></li>
+</ul>
+
+<p>Because <code>-</code> is shorter than <code>==</code> it's golfier to compute the negation and invert it later. (This lets me use the cute <code>'.*'[]</code> expression although it's actually the same length as a boring <code>?:</code> expression.) <code>*</code> is also golfier than <code>&amp;&amp;</code>.</p>
+</div>
+<div id="pu4" class="pu"><h2>Java 8 lambda, <s>473</s> <s>435</s> 289 characters</h2>
+
+<p>Looks like this:</p>
+
+<pre><code>(R,C,f)-&gt;{String b="";for(int r=0,c,d,D;r&lt;8;r++){for(c=0;c&lt;8;c++){d=R-r&lt;0?r-R:R-r;D=C-c&lt;0?c-C:C-c;b+=R==r&amp;&amp;C==c?f:((f=='R'||f=='Q')&amp;&amp;(R==r||C==c))||((f=='B'||f=='Q')&amp;&amp;d==D)||(f=='K'&amp;&amp;((R==r&amp;&amp;D==1||C==c&amp;&amp;d==1)||(d==D&amp;&amp;d==1)))||(f=='N'&amp;&amp;(d==2&amp;&amp;D==1||d==1&amp;&amp;D==2))?"M":".";}b+="\n";}return b;}
+</code></pre>
+
+<p>Or ungolfed into a class:</p>
+
+<pre><code>public class Q89429 {
+
+    static String chessMoves(int row, int column, char figure) {
+        String board = "";
+
+        for (int r = 0, c, deltaRow, deltaColumn; r &lt; 8; r++) {
+            for (c = 0; c &lt; 8; c++) {
+                deltaRow = row - r &lt; 0 ? r - row : row - r;
+                deltaColumn = column - c &lt; 0 ? c - column : column - c;
+                board += row == r &amp;&amp; column == c ?
+                        figure :
+                        ((figure == 'R' || figure == 'Q') &amp;&amp; (row == r || column == c))
+                        || ((figure == 'B' || figure == 'Q') &amp;&amp; deltaRow == deltaColumn)
+                        || (figure == 'K' &amp;&amp; (
+                                (row == r &amp;&amp; deltaColumn == 1 || column == c &amp;&amp; deltaRow == 1)
+                                || (deltaRow == deltaColumn &amp;&amp; deltaRow == 1)))
+                        || (figure == 'N' &amp;&amp; (deltaRow == 2 &amp;&amp; deltaColumn == 1 || deltaRow == 1 &amp;&amp; deltaColumn == 2))
+                        ? "M" : ".";
+            }
+            board += "\n";
+        }
+
+        return board;
+    }
+}
+</code></pre>
+
+<p>This is a <a href="https://stackoverflow.com/a/19649473/3764634">TriFunction</a>. It returns the chess field as a printable String. <s>I wanted to use streams, and it looks quite good. It's like a 2D iteration, may be shorter without the streams.</s> <em>Switched to classic loops and saved a lot!</em></p>
+
+<p><s>It can definitely be shortened by using a ternary, I will do that now.</s></p>
+
+<p><strong>Updates</strong></p>
+
+<p>Saved 38 characters by using a ternary.</p>
+
+<p>Saved 146 characters by using good old loops. We should all abandon streams ;)</p>
+</div>
+<div id="pu5" class="pu"><h1>Ruby, 209 Bytes</h1>
+<pre><code>-&gt;v,a,b{R=-&gt;x,y{x==a||y==b};B=-&gt;x,y{x-y==a-b||a-x==y-b};Q=-&gt;x,y{R.(x,y)||B.(x,y)};K=-&gt;x,y{((x-a).i+y-b).abs&lt;2};N=-&gt;x,y{((a-x)*(b-y)).abs==2};(r=(0..7)).map{|x|r.map{|y|[x,y]==[a,b]?v: eval(v+&quot;.(x,y)??x:?o&quot;)}}}
+</code></pre>
+<p>This is a lambda that makes use of other lambdas, defined inside.</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/89429/">89429</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
