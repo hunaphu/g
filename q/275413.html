@@ -26,56 +26,62 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>061</td><td>Charcoal</td><td>240908T232023Z</td><td><a href="https://codegolf.stackexchange.com/questions/275413/p%c3%b3lya-trees-counted-efficiently/275424#275424">Neil</a></td></tr>
-<tr d-ix="1"><td>125</td><td>Python 3.8 prerelease</td><td>240908T183007Z</td><td><a href="https://codegolf.stackexchange.com/questions/275413/p%c3%b3lya-trees-counted-efficiently/275420#275420">Jonathan</a></td></tr>
+<tr d-ix="0"><td>nan</td><td>Python 3.8+</td><td>240908T183007Z</td><td><a href="https://codegolf.stackexchange.com/questions/275413/p%c3%b3lya-trees-counted-efficiently/275420#275420">Jonathan</a></td></tr>
+<tr d-ix="1"><td>061</td><td>Charcoal</td><td>240908T232023Z</td><td><a href="https://codegolf.stackexchange.com/questions/275413/p%c3%b3lya-trees-counted-efficiently/275424#275424">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 61 bytes, score ~9.4</h1>
+<div id="pu0" class="pu"><h1><a href="https://docs.python.org/3.8/" rel="nofollow noreferrer">Python 3.8+</a>, ~8.3 - ~11.5</h1>
+<pre class="lang-python prettyprint-override"><code>import functools
+
+
+@functools.lru_cache(maxsize=None)
+def divisor_pairs(n):
+    divisors = [d for d in range(1, n + 1) if n % d == 0]
+    return list(zip(divisors, divisors[::-1]))
+
+
+@functools.lru_cache(maxsize=None)
+def tree_count(nodes, max_height):
+    if nodes == 1:
+        return int(max_height > 0)
+    next_height = max_height - 1
+    return sum(
+        sum(tree_count(i, max_height) * m * tree_count(m, next_height) for d, m in divisor_pairs(nodes - i))
+        for i in range(1, nodes)
+    ) // (nodes - 1)
+</code></pre>
+<p><strong><a href="https://tio.run/##jVPBatwwEL37KwZDQWq92TgppSy49At66DUEodrjWNSWjCSXNGG/fauRvF5tyKGGBe/Mmzdv3oznv34w@v7rbE8nNc3GeugX3XpjRlf01kzg1YSwpma0vWjNoj3aoii@b9Cb0S6ile2AbJLPTr1g88No5EWHPXTqj3LGilkq65jmhwLCs0YdNPDQQW8sdKA0WKmfkNUVaPgENQfVh7cPIdc0cPsYKy36xWoYlfPsRc3szFRtnA@Hw65@5Pz/NXqLmCZj2nQYuAJGDKieBr8KJiWUIiV1CmVqVKi8lMA3uOURovHZn4NNRgo7qPNp3DKxjZP@ZIrUlRr4CFP4ZfmpytvwZGaoIT/fmB8H2IHifGtGaHVtPaESgMN@D1tZTY6SXRNKt1hk5OL1PlOjm@izaEeUliWmi953ks5LS/7kB3auk79GpCPJV1TBkMbUF@FRSwwOl2C6onQ3qLv3W@AoZ4eUJMguqYmZ2dJe@/KVyI8HeF2hR3DYGt25kudLXLNVEn32SiqdG0UflPDyN4YpBN1E7uUbhLirNgNyXNj/Hb9S@FN6ZYLAvBb2GdWxzAsiKW0zXLUQWgaUoMMuhSC9QpRJbBRPBUrPi2c83M3p9OXzPw" rel="nofollow noreferrer" title="Python 3.8 (pre-release) – Try It Online">Try it online!</a></strong></p>
+<p>Comparing the best of 10 for 128 with the best of 10 for 64 locally (Python 3.11):</p>
+<pre><code>64: 0.18319399980828166 seconds
+64: 0.1899204000364989 seconds
+64: 0.1844264001119882 seconds
+64: 0.18357419990934432 seconds
+64: 0.18458399991504848 seconds
+64: 0.18514750013127923 seconds
+64: 0.1847832000348717 seconds
+64: 0.1895240000449121 seconds
+64: 0.19388579996302724 seconds
+64: 0.1968191999476403 seconds
+128: 1.9430903000757098 seconds
+128: 2.072759500006214 seconds
+128: 2.087206399999559 seconds
+128: 2.0786594001110643 seconds
+128: 2.0545860999263823 seconds
+128: 2.0574580000247806 seconds
+128: 2.0918258000165224 seconds
+128: 2.069296200061217 seconds
+128: 2.0624867000151426 seconds
+128: 2.062176400097087 seconds
+min times: [0.18319399980828166, 1.9430903000757098]
+ratio: 10.606735494116704
+</code></pre>
+<p>(Although the numbers are somewhat variable still, as per the headline ratio range of &quot;~8.3 - ~11.5&quot;.)</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 61 bytes, score ~9.4</h1>
 <pre><code>Ｎθ⊞υ⟦⁰⟧Ｆθ⊞υＥ⊕θ∧κ∨¬ι÷ΣＥιΣＥ÷ι⊕μ××⊕ξ§§υ⊕ξ⊖κ§§υ⁻ι⊖×⊕ξ⊕μκιＥυ⭆¹…ι⊕κ
 </code></pre>
 <p><a href="https://tio.run/##bVA9D4IwEN39FR2PpCZ@jExGFwbURDfjgHDKBVqwtAR/fW1RghqXXu@9e@/1muaJSquktDaStdFbIy6o4B6Ek71pcjCcnWZn110rxRzMBjROaohkqlCg1Jg5irOVzKDgbKdgW2kgh0RSb6ilDOFgBHgNcTZcR5L85OglAic9ksAGXucn2fkgHckMOxiq@dZ3Xr/BESiC4L8qJmkaH/85/T/z54G9Y/Gu1Ff3ZYqk7ndz3gftuptv5pytH2mJ67yqf3d9WYTWLhd22pZP" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code. Explanation: Initially based on the reference implementation but using dynamic programming rather than recursion and memoisation, I replaced <code>i</code> with <code>nodes - i</code> and then switched the order of the double sum, allowing me to replace the inner loop with a stepped loop.</p>
 <p>Before the last optimisation this code definitely exhibited <code>O(n⁴)</code> complexity and could only manage <code>n=32</code> online. However if I <a href="https://ato.pxeger.com/run?1=m70iOSOxKDk_MWfBgqWlJWm6FrcYaz3zCkpL_Epzk1KLNAo1rbkCSoszNEp1FKINYoG8tPwiBaCwAkzUN7FAwzMvuSg1NzWvJDUFKKWj4JiXopGto-BfpOGXX6KRCRTxzCtxySzLTEnVCC7N1QDpydRRgDERkpkglQizcjWBWkMyc1OLNSAksmQFyKISz7yU1AoNGF2Kqr8CpN8lFSGQramJXZdvZl5pMch6ZNXY7URzINjEbCidCaaBQVaUmVcC9hvQ7OASIC8dxDHUUXCuTM5Jdc7IL0D3K8QI6yXFScnF0LhYHq2kW5ajFLvIzAQiAAA" rel="nofollow noreferrer" title="Charcoal – Attempt This Online">Attempt This Online!</a> I get timings of <code>~1s</code> for <code>n=16</code>, <code>~4s</code> for <code>n=32</code> and <code>~32s</code> for <code>n=64</code>, so this version might actually be better than that.</p>
 <p>Edit: Testing locally, <code>10</code> runs for <code>n=128</code> averaged out at <code>2.63</code> minutes each while <code>10</code> runs for <code>n=64</code> averaged out at <code>0.28</code> minutes each, about <code>9.4</code> times faster.</p>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://docs.python.org/3.8/" rel="nofollow noreferrer">Python 3.8 (pre-release)</a>, ~12.5</h1>
-<pre class="lang-python prettyprint-override"><code>import functools
-
-@functools.lru_cache(maxsize=None)
-def tree_count(nodes, max_height):
-    if nodes == 1:
-        return int(max_height &gt; 0)
-    return sum(
-        sum(tree_count(i, max_height) * (m := (nodes - i) // d) * tree_count(m, max_height - 1)
-            for d in range(1, nodes - i + 1)
-            if (nodes - i) % d == 0
-            )
-        for i in range(1, nodes)
-    ) // (nodes - 1)
-</code></pre>
-<p><strong><a href="https://tio.run/##dVLbatwwEH3XVwyGgJQ6l01DaRYc8gV9yGspQrHHsagtGUmGpGG/fTOSN7acEr1Jcy5zZjS@hs6a7z9HdzzqYbQuQDuZOljbe9Y6O0DQA8KpNDpbo/cyvknjGWMPC/qyd5OsVd0hH9SL1/@w@mUNCtZgC8EhytpOJnBjG/QlEEZ2qJ@7IPYM6OgWUgmqCnbzUzwOw@QMaGKuFLiHa8Gysp8GvlDiJTPUGzM4Bz7AvoK5EbgALeDqCppYyVhDziLUTiz68bTWQUNdgVPmGfmuhEUOvn0GU7Tc7YyYFPJ6g1kZUVr/Lz0DUq@LGPmwNN8BlZ8c8jj20zx9ULSx6vPO@KwT1FOPVP2db6aETiR7s9onxfTYrY8mZfyTlNA0X7pgr0aPsc4j7GJuijLADu8SYnRxs23xFn0Oe3g7UQ7gsbam8cVmz6dqOff/EV5pkydPPQT1FymQJO/NcGbEEvoy/VhZ96jcx2gWurwpl0HlIvRTbsSm/UcVtKXucy6lXK@HIick0bg7@hlSGkUoGb9EIWUMI2UxJ0nJIkGbcQpcCMGOxx@37w" rel="nofollow noreferrer" title="Python 3.8 (pre-release) – Try It Online">Try it online!</a></strong></p>
-<p>Comparing the best of 10 for 128 with the best of 10 for 64 locally:</p>
-<pre><code>64: 0.3564850001130253 seconds
-64: 0.354586600093171 seconds
-64: 0.34739749995060265 seconds
-64: 0.3520206999965012 seconds
-64: 0.35501500009559095 seconds
-64: 0.3540529999881983 seconds
-64: 0.3504652001429349 seconds
-64: 0.35809569992125034 seconds
-64: 0.36698739998973906 seconds
-64: 0.3678796999156475 seconds
-128: 4.400793200125918 seconds
-128: 4.383526899851859 seconds
-128: 4.399534699972719 seconds
-128: 4.373627800028771 seconds
-128: 4.390383999794722 seconds
-128: 4.388113199966028 seconds
-128: 4.3945054998621345 seconds
-128: 4.3814515001140535 seconds
-128: 4.363093799911439 seconds
-128: 4.397979799890891 seconds
-min times: [0.34739749995060265, 4.363093799911439]
-ratio: 12.559370175467121
-</code></pre>
 </div>
 
 <table id="st">
