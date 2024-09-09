@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::91688</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>017</td><td>Vyxal</td><td>240909T113934Z</td><td><a href="https://codegolf.stackexchange.com/questions/91688/can-you-beat-the-british-intelligence-nonogram-solver/275433#275433">emanresu</a></td></tr>
+<tr d-ix="1"><td>109</td><td>Haskell</td><td>160906T230806Z</td><td><a href="https://codegolf.stackexchange.com/questions/91688/can-you-beat-the-british-intelligence-nonogram-solver/92434#92434">nimi</a></td></tr>
+<tr d-ix="2"><td>682</td><td>PHP</td><td>160831T055055Z</td><td><a href="https://codegolf.stackexchange.com/questions/91688/can-you-beat-the-british-intelligence-nonogram-solver/91759#91759">Titus</a></td></tr>
+<tr d-ix="3"><td>069</td><td>Brachylog</td><td>160902T084732Z</td><td><a href="https://codegolf.stackexchange.com/questions/91688/can-you-beat-the-british-intelligence-nonogram-solver/92010#92010">Fatalize</a></td></tr>
+<tr d-ix="4"><td>071</td><td>Pyth</td><td>160831T010647Z</td><td><a href="https://codegolf.stackexchange.com/questions/91688/can-you-beat-the-british-intelligence-nonogram-solver/91750#91750">TheBikin</a></td></tr>
+<tr d-ix="5"><td>131</td><td>Haskell</td><td>160830T175751Z</td><td><a href="https://codegolf.stackexchange.com/questions/91688/can-you-beat-the-british-intelligence-nonogram-solver/91700#91700">ThreeFx</a></td></tr>
+<tr d-ix="6"><td>333</td><td>Javascript ES6</td><td>160830T174926Z</td><td><a href="https://codegolf.stackexchange.com/questions/91688/can-you-beat-the-british-intelligence-nonogram-solver/91699#91699">Arnauld</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1><a href="https://github.com/Vyxal/Vyxal/tree/version-2" rel="nofollow noreferrer">Vyxal</a>, 17 bytes</h1>
+<pre><code>L½D₀$↔↔'∩JƛĠṠꜝ;?⁼
+</code></pre>
+<p><a href="https://vyxal.pythonanywhere.com/?v=2&amp;c=1#WyJUIiwiIiwiTMK9ROKCgCTihpTihpQn4oipSsabxKDhuaDqnJ07P+KBvCIsIiIsIltbMl0sWzFdLFsyXSxbMV0sWzEsMV0sWzJdXSJd" rel="nofollow noreferrer">Try it Online!</a></p>
+<p>Average <span class="math-container">\$ O(2^{n^2}) \$</span> bruteforcer. I have not managed to get this to do a 4x4 testcase, so a 3x3 one's in the link above. Outputs all possible solutions, but as uniqueness is guaranteed in the test cases this is effectively outputting one solution in a list.</p>
+<pre><code>     ↔            # All combinations of
+   ₀$             # [0, 1]
+L½                # Of length input/2
+      ↔           # All combinations of that
+  D               # Of length input/2
+                  # (effectively this gives all n/2-by-n/2 boolean grids
+                  # Each cut into chunks of length 
+       '          # Keep only those where
+        ∩J        # Appending the transpose
+          ƛ   ;   # And over each 
+           ĠṠꜝ    # summing consecutive groups and removing zeroes
+               ?⁼ # results in the input?
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h2>Haskell, 109 bytes</h2>
+
+<p>Disclaimer: this is derived from <a href="https://codegolf.stackexchange.com/a/91700/34531">@ThreeFx's answer</a>. I helped him to golf down his answer but he seems to have lost interest to include my last substantial improvements, so I post them as new answer.</p>
+
+<pre><code>import Data.List
+n=mapM id
+a#b=[x|x&lt;-n$(n$" #"&lt;$a)&lt;$b,g x==a,g(transpose x)==b]
+g=map$max[0].map length.words
+</code></pre>
+
+<p>Usage example: <code>[[2],[3],[3],[3,1],[1]] # [[2],[3],[4],[2],[2]]</code> -> <code>[["  ## "," ### ","###  ","### #","    #"]]</code>.</p>
+
+<p>Brute force. Try all combinations of <code></code> and <code>#</code>, split int chunks of <code>#</code>, count the lengths and compare to the input. </p>
+</div>
+<div id="pu2" class="pu"><h1>PHP, <s>751</s> <s>833 (720)</s> <s>753</s> <s>724</s> <s>726</s> <s>710</s> <s>691</s> <s>680</s> 682 bytes</h1>
+
+<p>I was eager to build a specialised sequence increment and try my cartesian generator once more;<br>
+but dropped the cartesian in favour of backtracking to solve the large puzzle faster.</p>
+
+<pre><code>$p=[];foreach($r as$y=&gt;$h){for($d=[2-($n=count($h)+1)+$u=-array_sum($h)+$w=count($r)]+array_fill($i=0,$n,1),$d[$n-1]=0;$i&lt;1;$d[0]+=$u-array_sum($d)){$o=$x=0;foreach($d as$i=&gt;$v)for($x+=$v,$k=$h[$i];$k--;)$o+=1&lt;&lt;$x++;if(($s[$y]|$o)==$o){$p[$y][]=$o;$q[$y]++;}for($i=0;$i&lt;$n-1&amp;$d[$i]==($i?1:0);$i++);if(++$i&lt;$n)for($d[$i]++;$i--;)$d[$i]=1;}}
+function s($i,$m){global$c,$w,$p;for(;!$k&amp;&amp;$i[$m]--;$k=$k&amp;$m&lt;$w-1?s($i,$m+1):$k){for($k=1,$x=$w;$k&amp;&amp;$x--;){$h=$c[$x];for($v=$n=$z=$y=0;$k&amp;&amp;$y&lt;=$m;$y++)$n=$n*($f=($p[$y][$i[$y]]&gt;&gt;$x&amp;1)==$v)+$k=$f?:($v=!$v)||$n==$h[$z++];if($k&amp;$v)$k=$n&lt;=$h[$z];}}return$k?is_array($k)?$k:$i:0;}
+foreach(s($q,0)as$y=&gt;$o)echo strrev(sprintf("\n%0{$w}b",$p[$y][$o]));
+</code></pre>
+
+<ul>
+<li>expects hints in arrays <code>$r</code> for row hints, <code>$c</code> for column hints and <code>$s</code> for square hints.</li>
+<li>throws <code>invalid argument supplied for foreach</code> if it finds no solution.</li>
+<li>to get the correct byte count, use a physical <code>\n</code> and remove the other two line breaks.</li>
+</ul>
+
+<p><strong>description</strong></p>
+
+<p>1) from row hints<br>
+generate possible rows that satisfy the square hints<br>
+and remember their counts for each row index.</p>
+
+<p>2) backtrack over the row combinations:<br>
+If the combination satisfies the column hints,
+      seek deeper or return successful combination,<br>
+else try next possibility for this row</p>
+
+<p>3) print solution</p>
+
+<hr>
+
+<p>The last golfing had severe impact on the performance;<br>
+but I removed profiling assignments for the final benchmarks.</p>
+
+<p>Replace <code>$n=$n*($f=($p[$y][$i[$y]]&gt;&gt;$x&amp;1)==$v)+$k=$f?:($v=!$v)||$n==$h[$z++];</code><br>
+with <code>if(($p[$y][$i[$y]]&gt;&gt;$x&amp;1)-$v){$k=($v=!$v)||$n==$h[$z++];$n=1;}else$n++;</code><br>
+to undo the last golfing step.</p>
+
+<p><strong>examples</strong></p>
+
+<p>For the small example (<s>17 to 21</s> around <s>12</s> <s>8</s> <s>7</s> <s>6.7</s> 5.3 ms), use</p>
+
+<pre><code>$r=[[2],[3],[3],[3,1],[1]];$c=[[2],[3],[4],[2],[2]];$s=[0,0,0,0,0];
+</code></pre>
+
+<p>for the christmas puzzle:</p>
+
+<ul>
+<li>killed my small home server with the old solution</li>
+<li>killed the browser with test outputs </li>
+<li>now solved in <s>50</s> <s>37.8</s> <s>45.5</s> around 36 seconds</li>
+</ul>
+
+<p>put data from question to a file <code>christmas.nonogram</code> and use this code to import:</p>
+
+<pre><code>$t=r;foreach(file('christmas.nonogram')as$h)if('-'==$h=trim($h))$t=c;elseif('#'==$h){$t=s;$f=count($h).b;}else
+{$v=explode(' ',$h);if(s==$t)for($h=$v,$v=0,$b=1;count($h);$b*=2)$v+=$b*array_shift($h);${$t}[]=$v;}
+</code></pre>
+
+<hr>
+
+<p><strong>breakdown</strong></p>
+
+<pre><code>$p=[];  // must init $p to array or `$p[$y][]=$o;` will fail
+foreach($r as$y=&gt;$h)
+{
+    // walk $d through all combinations of $n=`hint count+1` numbers that sum up to $u=`width-hint sum`
+    // (possible `0` hints for $h) - first and last number can be 0, all others are &gt;0
+    for(
+        $d=[2-
+            ($n=count($h)+1)+               // count(0 hint)=count(1 hint)+1
+            $u=-array_sum($h)+$w=count($r)  // sum(0 hint) = width-sum(1 hint)
+        ]                           // index 0 to max value $u-$n+2
+        +array_fill($i=0,$n,1)      // other indexes to 1
+        ,$d[$n-1]=0;                // last index to 0
+                                    // --&gt; first combination (little endian)
+        $i&lt;1;   // $i:0 before loop; -1 after increment; &gt;=$n after the last combination
+        $d[0]+=$u-array_sum($d) // (see below)
+    )
+    {
+        // A: create row (binary value) from 1-hints $h and 0-hints $d
+        $o=$x=0;
+        foreach($d as$i=&gt;$v)
+            for($x+=$v,$k=$h[$i];$k--;)
+                $o+=1&lt;&lt;$x++;
+        // B: if $o satisfies the square hints
+        if(($s[$y]|$o)==$o)
+        {
+            $p[$y][]=$o;    // add to possible combinations
+            $q[$y]++;       // increase possibility counter
+        }
+        // C: increase $d
+            // find lowest index with a value&gt;min
+                // this loop doesn´t need to go to the last index:
+                // if all previous values are min, there is nothing left to increase
+        for($i=0;$i&lt;$n-1&amp;$d[$i]==($i?1:0);$i++);
+        if(++$i&lt;$n)             // index one up; increase $d if possible
+            for($d[$i]++        // increase this value
+            ;$i--;)$d[$i]=1;    // reset everything below to 1
+            // adjust $d[0] to have the correct sum (loop post condition)
+    }
+}
+
+// search solution: with backtracking on the row combinations ...
+function s($i,$m)
+{
+    global $c,$w,$p;
+    for(;
+        !$k // solution not yet found
+        &amp;&amp;$i[$m]    // if $i[$m]==0, the previous iteration was the last one on this row: no solution
+            --;     // decrease possibility index for row $m
+        $k=$k&amp;$m&lt;$w-1? s($i,$m+1) : $k      // if ok, seek deeper while last row not reached ($m&lt;$w-1)
+    )
+    {
+        // test if the field so far satisfies the column hints: loop $x through columns
+        for($k=1,$x=$w;$k&amp;&amp;$x--;)   // ok while $k is true
+        {
+            $h=$c[$x];
+            // test column hints on the current combination: loop $y through rows up to $m
+            for($v=$n=$z=   // $v=temporary value, $n=temporary hint, $z=hint index
+                $y=0;$k&amp;&amp;$y&lt;=$m;$y++)
+                // if value has not changed, increase $n. if not, reset $n to 1
+                // (or 0 for $k=false; in that case $n is irrelevant)
+                $n=$n*  
+                    // $f=false (int 0) when value has changed, true (1) if not
+                    ($f=($p[$y][$i[$y]]&gt;&gt;$x&amp;1)==$v)
+                    +$k=$f?:    // ok if value has NOT changed, else
+                        ($v=!$v)        // invert value. ok if value was 0
+                        || $n==$h[$z    // value was 1: ok if temp hint equals current sub-hint
+                        ++]             // next sub-hint
+                ;
+            // if there is a possibly incomplete hint ($v==1)
+            // the incomplete hint ($n) must be &lt;= the next sub-hint ($c[x][$z])
+            // if $n was &lt;$h[$z] in the last row, the previous column hints would not have matched
+            if($k&amp;$v)$k=$n&lt;=$h[$z];
+        }
+        // ok: seek deeper (loop post condition)
+        // not ok: try next possibility (loop pre condition)
+    }
+    return$k?is_array($k)?$k:$i:0;  // return solution if solved, 0 if not
+}
+
+// print solution
+foreach(s($q,0)as$y=&gt;$o)echo strrev(sprintf("\n%0{$w}b",$p[$y][$o]));
+</code></pre>
+</div>
+<div id="pu3" class="pu"><h1><a href="http://github.com/JCumin/Brachylog" rel="nofollow">Brachylog</a>, <s>70</s> 69 bytes</h1>
+
+<pre><code>[R:C]hlL~l:L:1f=.:3aR,.z:3aC,
+tL,?he##ElL,E:2a
+.&lt;2,_1&lt;
+@b:4f:la
+e.h1,
+</code></pre>
+
+<p>This takes a list of two lists (first the rows indicators, then the column ones). Each indicator is itself a list (for situtions like <code>[3,1]</code> on one row).</p>
+
+<p>This version takes about 3 minutes to solve the 5 by 5 example of the challenge.</p>
+
+<h2>Way more efficient version, 91 bytes</h2>
+
+<pre><code>[R:C]hlL~l:L:1f:Cz:3az:Rz:3a=.:4aR,.z:4aC,
+tL,?he##ElL,E:2a
+.&lt;2,_1&lt;
+:+a#=,?h
+@b:5f:la
+e.h1,
+</code></pre>
+
+<p><a href="http://brachylog.tryitonline.net/#code=W1I6Q11obEx-bDpMOjFmOkN6OjNhJFw6Uno6M2E9Ljo0YVIsLiRcOjRhQywKdEwsP2hlIyNFbEwsRToyYQouPDIsXzE8CjorYSM9LD9oCkBiOjVmOmxhCmUuaDEs&amp;input=W1tbMl06WzNdOlszXTpbMzoxXTpbMV1dOltbMl06WzNdOls0XTpbMl06WzJdXV0&amp;args=Wg" rel="nofollow">Try it online!</a></p>
+
+<p>This one is not complete brute force: the only difference is that this one imposes constraints on the values of cells such that the number of 1s in each row and column matches the numbers given as indicators in the input. The only brute force part is then in finding the one grid with those constraints for which the "blocks" of 1s match what is given as indication.</p>
+
+<p>This one takes about 0.05 seconds on the 5 by 5 example of the challenge. This is still way too slow for the bonus case, as I have no idea how to express the blocks of ones separated by one or more zeroes in terms of constraints.</p>
+
+<h3>Explanation</h3>
+
+<p>I will explain below the 93 bytes version. The only difference between the two is the call to predicate 3 which doesn't exist in the 70 bytes version, and the numbering of the predicates (since there is one less).</p>
+
+<ul>
+<li><p>Main predicate:</p>
+
+<pre><code>[R:C]     Input = [R, C]
+hlL       The length of R is L
+~l        Create a list of length L
+:L:1f     Each element of that list is a sublist of length L with cells 0 or 1 (Pred 1)
+          %%% Part unique to the 93 bytes version
+:Cz       Zip the rows of the list of lists with C
+:3a       The sum of 1s in each row is equal to the sum of the indicators (Pred 3)
+z         Transpose
+:Rz       Zip the columns of the list of lists with R
+:3a       The sum of 1s in each column is equal to the sum of the indicators (Pred 3)
+          %%%
+=.        Assign values to the cells of the list of lists which satisfy the constraints
+:4aR,     The blocks of 1s must match the indicators on rows
+.z        Transpose
+:4aC,     The blocks of 1s must match the indicators on columns
+</code></pre></li>
+<li><p>Predicate 1: Forces the rows to have a specific length, and that each cell is 0 or 1.</p>
+
+<pre><code>tL,       L is the length given as second element of the input
+?he       Take an element from the list
+##ElL,    That element E is itself a list of length L
+E:2a      The elements of E are 0s and 1s (Pred 2)
+</code></pre></li>
+<li><p>Predicate 2: Constrain a variable to be either 0 or 1</p>
+
+<pre><code>.&lt;2,      Input = Output &lt; 2
+_1&lt;       Output &gt; -1
+</code></pre></li>
+<li><p>Predicate 3: The sum of 1s in a list must be equal to the sum of indicators (e.g. if the indicator is [3:1] then the list must have sum 4)</p>
+
+<pre><code>:+a       Sum the elements of the list and sum the indicator
+#=,       Both sums must be equal
+?h        Output is the list
+</code></pre></li>
+<li><p>Predicate 4: Check that blocks of 1s match the indicator</p>
+
+<pre><code>@b        Split the list in blocks of the same value
+:5f       Find all blocks of 1s (Pred 5)
+:la       The list of lengths of the blocks results in the indicator (given as output)
+</code></pre></li>
+<li><p>Predicate 5: True for blocks of 1s, false otherwise</p>
+
+<pre><code>e.        Output is an element of the input
+  h1,     Its first value is 1
+</code></pre></li>
+</ul>
+</div>
+<div id="pu4" class="pu"><h1>Pyth, <s>91</s> <s>72</s> 71 bytes</h1>
+<pre><code>D:GHdRq@@QdG.nCf.)TrH8V^,01^hQ2=TcNhQ=Y1VhQ=*Y*:H@TH1:H@CTH2)IYjbmjkdTb
+</code></pre>
+<p>A program that takes input of a list of the form <code>[size, [horizontal clues], [vertical clues]]</code> where each clue is a list of integers (empty clues are the empty list, <code>[]</code>), and prints every solution, newline separated, in the form of a binary grid where <code>1</code> is shaded and <code>0</code> is unshaded.</p>
+<p>This is a brute force, so is roughly <code>O(2^n^2)</code>. It starts taking a very long time for larger puzzles, but will solve any arbritrary size given sufficient time.</p>
+<p><a href="https://pyth.herokuapp.com/?code=D%3AGHdRq%40%40QdG.nCf.%29TrH8V%5E%2C01%5EhQ2%3DTcNhQ%3DY1VhQ%3D%2aY%2a%3AH%40TH1%3AH%40CTH2%29IYjbmjkdTb&amp;input=%5B3%2C%5B%5B1%2C1%5D%2C%5B3%5D%2C%5B1%5D%5D%2C%5B%5B3%5D%2C%5B1%5D%2C%5B2%5D%5D%5D&amp;debug=0" rel="nofollow noreferrer">Try it online</a></p>
+<p><strong>How it works</strong></p>
+<p>The program generates every possible layout by taking the repeated Cartesian product of <code>[0, 1]</code> with a length equal to <code>size^2</code>. This is then split into chunks, giving a list for each horizontal line. Each line is run-length encoded, filtered by the presence of <code>1</code> and flattened, leaving the clue for that line. This is then checked against the input. The above process is repeated for the transpose of the chunks, checking the vertical lines. If there is a hit, each chunk is concatenated, and the concatenated chunks are joined on newlines and implicitly printed, with a trailing newline.</p>
+<pre><code>D:GHdRq@@QdG.nCf.)TrH8V^,01^hQ2=TcNhQ=Y1VhQ=*Y*:H@TH1:H@CTH2)IYjbmjkdTb  Program. Input: Q
+                            hQ                                           Q[0], size
+                           ^  2                                          Square
+                        ,01                                              [0, 1]
+                       ^                                                 Cartesian product
+                      V                                     )            For N in the Cartesian product:
+                                 cNhQ                                    Split N into Q[0] chunks
+                               =T                                        Assign that to T
+                                     =Y1                                 Y=1
+                                        VhQ                              For H in range [0, Q[0]-1]:
+D:GHd                                                                     def :(G, H, d)
+                   rH8                                                     Run-length-encode(H)
+               f.)T                                                        Filter by presence of 1 in character part
+            .nC                                                            Transpose and flatten, giving the clue
+       @@QdG                                                               Q[d][G], the relevant input clue
+     Rq                                                                    Return clue==input clue
+                                               :H@TH1                     :(H, T, 1)
+                                                     :H@CTH2              :(H, transpose(T), 2)
+                                           =*Y*                           Y=Y*product of above two
+                                                             IY           If Y:
+                                                                 mjkdT     Conacatenate each element of T
+                                                               jb          Join on newlines
+                                                                      b    Add a newline and implicitly print
+</code></pre>
+<p><em>Thanks to @Pietu1998 for some tips</em></p>
+</div>
+<div id="pu5" class="pu"><h2>Haskell, <s>242 230 201 199 177 163 160 149</s> 131 bytes</h2>
+
+<pre class="lang-haskell prettyprint-override"><code>import Data.Lists
+m=map
+a#b=[x|x&lt;-m(chunk$length b).mapM id$[0,1]&lt;$(a&gt;&gt;b),g x==a,g(transpose x)==b]
+g=m$list[0]id.m sum.wordsBy(&lt;1)
+</code></pre>
+
+<p>Finally under 200 bytes, credit to @Bergi. Huge thanks to @nimi for helping almost halving the size.</p>
+
+<p>Wow. Almost at half size now, partly because of me but mainly because of @nimi.</p>
+
+<p>The magic function is <code>(#)</code>. It finds <strong>all</strong> solutions of a given nonogram.</p>
+
+<p>This is able to solve all cases, but may be super slow, since it's complexity is about <code>O(2^(len a * len b))</code>. A quick benchmark revealed 86GB allocated for a 5x5 nonogram.</p>
+
+<p>Fun fact: It works for all nonograms, not only square ones.</p>
+
+<hr>
+
+<p>How it works:</p>
+
+<ul>
+<li><code>a#b</code>: Given lists of lists of integers which represent the number of squares, generate all grids (<code>map(chunk$length b).mapM id$a&gt;&gt;b&gt;&gt;[[0,1]]</code>) and filter the results to keep only the valid ones.</li>
+<li><code>g</code>: Given a potential nonogram it sums the runs of 1's horizontally.</li>
+</ul>
+</div>
+<div id="pu6" class="pu"><h2>Javascript (ES6), <s>401</s> <s>386</s> 333 bytes</h2>
+
+<p>This is an early attempt. It's not very efficient but I was curious to test a solution using regular expressions on the binary representation of the rows and columns.</p>
+
+<p>For example, it will translate the clue <code>[3,1]</code> into the following regular expression:</p>
+
+<pre><code>/^0*1{3}0+1{1}0*$/
+</code></pre>
+
+<p>Right now, this version is not taking square clues into account. I will probably add this later.</p>
+
+<h3>Code</h3>
+
+<pre><code>(c,r)=&gt;{W=c.length;w=[];S=0;M=(n,p)=&gt;eval(`/^0*${p.map(v=&gt;`1{${v}}`).join`0+`}0*$/`).exec(n);R=(y,i=0)=&gt;S||(w[y]=r[y][i],y+1&lt;W?R(y+1):c.every((c,y)=&gt;(n=0,w.map((_,x)=&gt;n+=w[W-1-x][y]),M(n,c)))&amp;&amp;(S=w.join`
+`),r[y][i+1]&amp;&amp;R(y,i+1));r=r.map(r=&gt;[...Array(1&lt;&lt;W)].map((_,n)=&gt;((1&lt;&lt;30)|n).toString(2).slice(-W)).filter(n=&gt;M(n,r)));return R(0)}
+</code></pre>
+
+<h3>Output</h3>
+
+<p>The solution is displayed in binary format. Such as:</p>
+
+<pre><code>00110
+01110
+11100
+11101
+00001
+</code></pre>
+
+<h3>Test</h3>
+
+<p>This is a simple test on the example grid.</p>
+
+<p><div class="snippet" data-lang="js" data-hide="false" data-console="true" data-babel="false">
+<div class="snippet-code">
+<pre class="snippet-code-js lang-js prettyprint-override"><code>let f =
+(c,r)=&gt;{W=c.length;w=[];S=0;M=(n,p)=&gt;eval(`/^0*${p.map(v=&gt;`1{${v}}`).join`0+`}0*$/`).exec(n);R=(y,i=0)=&gt;S||(w[y]=r[y][i],y+1&lt;W?R(y+1):c.every((c,y)=&gt;(n=0,w.map((_,x)=&gt;n+=w[W-1-x][y]),M(n,c)))&amp;&amp;(S=w.join`
+`),r[y][i+1]&amp;&amp;R(y,i+1));r=r.map(r=&gt;[...Array(1&lt;&lt;W)].map((_,n)=&gt;((1&lt;&lt;30)|n).toString(2).slice(-W)).filter(n=&gt;M(n,r)));return R(0)}
+
+console.log(f(
+  [[2],[3],[4],[2],[2]],
+  [[2],[3],[3],[3,1],[1]]
+));</code></pre>
+</div>
+</div>
+</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/91688/">91688</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
