@@ -39,49 +39,29 @@
 #include &lt;boost/multiprecision/cpp_int.hpp&gt;
 
 using bigint = boost::multiprecision::cpp_int;
-using namespace std;
-using namespace std::chrono;
 
-// Custom hash function for std::pair&lt;int, int&gt;
-struct pair_hash {
-    template &lt;class T1, class T2&gt;
-    std::size_t operator()(const std::pair&lt;T1, T2&gt;&amp; p) const {
-        auto h1 = std::hash&lt;T1&gt;{}(p.first);
-        auto h2 = std::hash&lt;T2&gt;{}(p.second);
-        return h1 ^ (h2 &lt;&lt; 1); // Combine the two hash values
-    }
-};
-
-// Caches for memoization
-unordered_map&lt;int, vector&lt;pair&lt;int, int&gt;&gt;&gt; divisor_pairs_cache;
-unordered_map&lt;pair&lt;int, int&gt;, bigint, pair_hash&gt; tree_count_cache; // Use custom hash for pair
+std::map&lt;int, std::vector&lt;std::pair&lt;int, int&gt;&gt;&gt; divisor_pairs_cache;
+std::map&lt;std::pair&lt;int, int&gt;, bigint&gt; tree_count_cache;
 
 // Function to find divisor pairs
-const vector&lt;pair&lt;int, int&gt;&gt;&amp; divisor_pairs(int n) {
+const std::vector&lt;std::pair&lt;int, int&gt;&gt;&amp; divisor_pairs(int n) {
     if (divisor_pairs_cache.find(n) != divisor_pairs_cache.end()) {
         return divisor_pairs_cache[n];
     }
 
-    vector&lt;pair&lt;int, int&gt;&gt; pairs;
-    vector&lt;int&gt; divisors;
-    divisors.reserve(32);&#32;
-
-    for (int d = 1; d * d &lt;= n; ++d) {
+    std::vector&lt;int&gt; divisors;
+    for (int d = 1; d &lt;= n; ++d) {
         if (n % d == 0) {
             divisors.push_back(d);
-            if (d != n / d) {
-                divisors.push_back(n / d); // Add both divisors
-            }
         }
     }
 
-    sort(divisors.begin(), divisors.end()); // Sort divisors to ensure correct pairing
-
+    std::vector&lt;std::pair&lt;int, int&gt;&gt; pairs;
     for (size_t i = 0; i &lt; divisors.size(); ++i) {
         pairs.emplace_back(divisors[i], divisors[divisors.size() - 1 - i]);
     }
 
-    divisor_pairs_cache[n] = move(pairs); // Move to avoid copy
+    divisor_pairs_cache[n] = pairs;
     return divisor_pairs_cache[n];
 }
 
@@ -91,7 +71,7 @@ bigint tree_count(int nodes, int max_height) {
         return max_height &gt; 0 ? 1 : 0;
     }
 
-    auto cache_key = make_pair(nodes, max_height);
+    auto cache_key = std::make_pair(nodes, max_height);
     if (tree_count_cache.find(cache_key) != tree_count_cache.end()) {
         return tree_count_cache[cache_key];
     }
@@ -100,8 +80,7 @@ bigint tree_count(int nodes, int max_height) {
     bigint total = 0;
 
     for (int i = 1; i &lt; nodes; ++i) {
-        const auto&amp; pairs = divisor_pairs(nodes - i); // Use local reference for efficiency
-        for (const auto&amp; [d, m] : pairs) {
+        for (const auto&amp; [d, m] : divisor_pairs(nodes - i)) {
             total += tree_count(i, max_height) * m * tree_count(m, next_height);
         }
     }
@@ -111,8 +90,8 @@ bigint tree_count(int nodes, int max_height) {
     return total;
 }
 
-
-pair&lt;double, vector&lt;bigint&gt;&gt; measure(int size) {
+// Function to measure the time taken for calculation
+std::pair&lt;double, std::vector&lt;bigint&gt;&gt; measure(int size) {
     using namespace std;
     using namespace std::chrono;
 
@@ -120,20 +99,20 @@ pair&lt;double, vector&lt;bigint&gt;&gt; measure(int size) {
     tree_count_cache.clear();
 
     auto start = steady_clock::now();
-    vector&lt;bigint&gt; table;
-    table.reserve(size * (size + 1) / 2);
+
+    vector&lt;bigint&gt; table(size * (size + 1) / 2);&#32;
 
     for (int n = 0; n &lt; size; ++n) {
         for (int h = 0; h &lt;= n; ++h) {
-            table.push_back(tree_count(n, h));
+            table[n * (n + 1) / 2 + h] = tree_count(n, h);
         }
     }
 
     auto end = steady_clock::now();
     duration&lt;double&gt; elapsed = end - start;
 
-    cout &lt;&lt; size &lt;&lt; ": " &lt;&lt; elapsed.count() &lt;&lt; " seconds" &lt;&lt; endl;
-    return { elapsed.count(), table };
+    std::cout &lt;&lt; size &lt;&lt; ": " &lt;&lt; elapsed.count() &lt;&lt; " seconds" &lt;&lt; std::endl;
+    return {elapsed.count(), table};
 }
 
 // Main function
@@ -154,29 +133,29 @@ int main() {
 }
 
 </code></pre>
-<p><a href="https://tio.run/##jVbbbuM2EH3XV0xTNJBqx469RQtYtouiQN8WW/Ty5E0FmqIjIhYpiFR2s4F/ve7wIpmSlUUDOLLJmeGcM2dGpFV190jp@fwtF/TY5AzWtKilkNvoslKSKvzJpdI1I2W49syolnW4spdoNi@bo@ZVzShXXIo5raqMCz0rKowYNYqLR9jzR1yCDViP1arvslp5n9SbC1IyVRHKQOl8dBFdLIQ0iuZz@LVRWpZQEFXAoRFUY1A4yNpZVoTXa4w@Bfy3jRBYQzWY1cx6vEaAf5qV1ZFoQ86RKAV/Labgvy231sIGU/wLyzTIitUE2YiTmEqhdHCScUSXW6gScHvuAPNHGi2hWCAR1t4cj/bb11NczQ68VjpJB7bLvu3S2SqGkfPAuGa6qYUJ/Q/E6LRewyJJwXAjyz0XDHSBn0/SkfRMjg1T1vsUnTyJhBZMWdpKVkr@hRgao0bIOmc1yzOUiKPRCWHd53W7hZw/cyXrzGyojJp46cC/7zP1wpheqrEF1B3LqGyE9iEMir8VAxpWGbM0Pjbz39qSI2EHLvI2EWuhIleE8aRv@0nHRqUi8RXjB4hHMM3MGTFafbMZgzxjuJskQdV9cUZsd@Ih9VWwj/EkHY40tDDrbUC/0/6a1Uyx@pnF75aoABfX0GWx5SinRYqP7/Gz3oBIYTLJw2QNaAHfGcsN3Ic7vUOqRhXZntCnOJRhx5rhRsAc8mGAN4I4W1vqX/Icx4QuOrOe/ynqf/PEoZ2Ou7h7hqqKk@nlJFcTG/9PNO02jGSYUE2N8pI1DiQ3GHDeBMT5nufI3X2Kj/UlrtmKE0MiD5Hags3sRKHM0@RddvzhktduEAjuYIEf/pD0ZDGuHEynlFhnu@qwvcffBhJ5ljxHRNVL9D8EeLrqItt@dmSIptyzGuTB9qWK/CS/NKlrGZkzZdUKJfmcFYw/FjpsI2tgFLUYaYyLC2zhHn5GDlbIdMiAHYY24@yJvRjk5IlZILE/Ozg37Y4dzhLXul0c28JXNm/179Bw18XpN7ElhH3WLaZNCBAL7IxbIqUmRyusQady16lGbRbhlcbcWDPE3Dq9wWAcedJRTkk3Q4@S4nE1O@BEFvgqNcexw4FTjj9futg2i/CAXY4MP2BZnNgGTe1ATDY9WfRKgvOmxE@wX05DkoIZ0utrF3m@gQ7Mwpt@pRpIhPVLQ/H7FYwb2fGay2Z/ZN3LzJUDZ23JiBkHtgamKVusozeTNzaC28kb7TujR0bw9jCO5bJ7Eb/SpNb2MsBI/pJRrOTTaiXkpzZIHwhogvB8ePO1ey0YUFgK95yYhpzDMhnKT7hhJ1B@xtCoT4Rl7wwLZ1h0b5PiSh32@MusD0QgplAkb9XewsZm/BrovKntNcWXcwvsSCrFjI/xvHO0eXB4pjY3I4scnzcruDFP7zNzOSV2C9wVSzkDkffF9Dr0mTqUcGqn6XvCRXcXjdxgNO@kdiZ6dWGeP/6Ab@kO707zEl82ON1EtvBRs4Wd9V6YVpTpuMey9VgOPbDiXZGdQj0ZN38YAj0TYSiURZiLtf0odjc@CGL8veb@LeHAB7fKqwGCezg9fHKhQnrJGCtzzhRu2pF6nfDDR9Em4ctxb1g/n/@lhyN5VOc7tN/QyWTx0/nuw7v/AA" rel="nofollow noreferrer" title="C++ (gcc) – Try It Online">Try it online!</a></p>
+<p><a href="https://tio.run/##hVVdr@I2EH3Pr5iy2hWUr8tt1ZUIsG99q1r1lUWRcQyxbuJEsXO729X960vHYyc4ELpIEBLPx5kzZya8quZnzi@Xd1LxvEkFbHhWl6rcRdcnBavCW1lqUwtWhM9eBTdlHT45lmi2LJrcyKoWXGpZqiWvqkQqs8gqjBg1WqozHOUZH8EWyGO97rus194njiJtUjxm1QZvZ0B3Lu@G/ldM1u4If3a7HaTyVeqyTuyBTjjjmYivQQZ8Zh7MDrBAkfCyUab1i5ZL@L1R3CAoMCWcpErbDEAZIl4qbX6I60Mf19gWrybwLQL8yBOMB2AvbLYxWv20HapqIfB00sawn1qYplZDtnt1iMnsLaJLCJdK9z7aWZ2wOoKYYodWMV42W1AxTKdpmM/iVvDeWm3hKTyxnzbkomp0lhwZfxmnk7gzeXuEZ4g@x3UATst/RWJAIr6nGC@bazp7NJ5YsDKERBEWoqhyxoWH41328jDr/Pc3gWAOK/zKw6TH4DDJCCdA@oN@vN3Ji7QHJhOgmuIoaihPJEod@Xm5KtQpqEyFJoqgYF@STMhzZkJVkYHtzmpAJ1cX2METfMI618hmWCVrLCqLOHkRX7E6P0gvgqoZewBB8rjLfTtNTs5dMJL1nc0jTd8a7rs4fWETK@KLaQvbhlViJ51xy2ZpWE4Kivqyl072VlZU4Z2YyNJNvqXoA@xTZOGA/PXH3PGP6pncTofLPd32WtpjEn6GAr/BeTELa3s0Sy7ycgtd9pU3/R8SsWDy6wnXP7nXaSGYbmpBSjWywB9UhCJWOMt5kzNrGV0nOS2bYy7669tv3V0bjZi3M9dS5d4UihVCVziz1jl@dIBvDHqDxQ@nc8FzwerxAyqup1fda8NqQ5oXLP2a8LzkL@u1Kv/pzPqVIAtYJK0m7Ju7Tu3kLeEZ99GNxpRbXQo1Zi2txNSdxKxh5gyzbgdnd1qyeffKJlVdRvyTUVuv@lEzyB6phirG6XtUL7Ha1NRY384diJxVWlgf6zl3jMXBSse8BjauQnsdrWFkr95x4XBN6Ai0wIlKNRmQNwbtC/Lbjd/Mlf7WavQPJlGFXqiRW4tSjbuN6AWGeH/7FRvS1b23Ik5IxMnKB01Wlr1Wm6TLeNjjufV4vvXAjjxPhvgY/W2J9GSEobBzIRay/az2Ix8Ea/yrlv4dQUnhleUNviAGtxKe4Ury4ELV9MBYK5tnBqN2l94DPnxWLQjfjCfL@uXynZ9ydtaXOdpv@XS6@niZ//nLfw" rel="nofollow noreferrer" title="C++ (gcc) – Try It Online">Try it online!</a></p>
 <p>C++ port of Jonathan Allan's answer. The ratio looks about same:</p>
-<pre class="lang-cpp prettyprint-override"><code>64: 0.0380029 seconds
-64: 0.0341999 seconds
-64: 0.0323951 seconds
-64: 0.0315826 seconds
-64: 0.0333075 seconds
-64: 0.0323621 seconds
-64: 0.0328862 seconds
-64: 0.0327247 seconds
-64: 0.0326469 seconds
-64: 0.0326173 seconds
-128: 0.47027 seconds
-128: 0.453605 seconds
-128: 0.47583 seconds
-128: 0.450111 seconds
-128: 0.453145 seconds
-128: 0.420956 seconds
-128: 0.422395 seconds
-128: 0.429799 seconds
-128: 0.423545 seconds
-128: 0.432313 seconds
-Ratio: 13.3202
+<pre class="lang-cpp prettyprint-override"><code>64: 0.115634 seconds
+64: 0.116452 seconds
+64: 0.114451 seconds
+64: 0.118066 seconds
+64: 0.118879 seconds
+64: 0.117783 seconds
+64: 0.116525 seconds
+64: 0.117978 seconds
+64: 0.116567 seconds
+64: 0.117778 seconds
+128: 1.38461 seconds
+128: 1.40242 seconds
+128: 1.39773 seconds
+128: 1.41565 seconds
+128: 1.36205 seconds
+128: 1.36052 seconds
+128: 1.38965 seconds
+128: 1.38398 seconds
+128: 1.34887 seconds
+128: 1.32237 seconds
+Ratio: 11.7663
 </code></pre>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://docs.python.org/3.8/" rel="nofollow noreferrer">Python 3.8+</a>, ~8.3 - ~11.5</h1>
