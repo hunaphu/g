@@ -26,10 +26,139 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>nan</td><td>Python 3.8+</td><td>240908T183007Z</td><td><a href="https://codegolf.stackexchange.com/questions/275413/p%c3%b3lya-trees-counted-efficiently/275420#275420">Jonathan</a></td></tr>
-<tr d-ix="1"><td>061</td><td>Charcoal</td><td>240908T232023Z</td><td><a href="https://codegolf.stackexchange.com/questions/275413/p%c3%b3lya-trees-counted-efficiently/275424#275424">Neil</a></td></tr>
+<tr d-ix="0"><td>nan</td><td></td><td>240909T133454Z</td><td><a href="https://codegolf.stackexchange.com/questions/275413/p%c3%b3lya-trees-counted-efficiently/275434#275434">jdt</a></td></tr>
+<tr d-ix="1"><td>nan</td><td>Python 3.8+</td><td>240908T183007Z</td><td><a href="https://codegolf.stackexchange.com/questions/275413/p%c3%b3lya-trees-counted-efficiently/275420#275420">Jonathan</a></td></tr>
+<tr d-ix="2"><td>061</td><td>Charcoal</td><td>240908T232023Z</td><td><a href="https://codegolf.stackexchange.com/questions/275413/p%c3%b3lya-trees-counted-efficiently/275424#275424">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://docs.python.org/3.8/" rel="nofollow noreferrer">Python 3.8+</a>, ~8.3 - ~11.5</h1>
+<div id="pu0" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C++ (gcc)</a></h1>
+
+<pre class="lang-cpp prettyprint-override"><code>#include &lt;chrono&gt;
+#include &lt;map&gt;
+#include &lt;iostream&gt;
+#include &lt;vector&gt;
+#include &lt;boost/multiprecision/cpp_int.hpp&gt;
+
+using bigint = boost::multiprecision::cpp_int;
+
+std::map&lt;int, std::vector&lt;std::pair&lt;int, int&gt;&gt;&gt; divisor_pairs_cache;
+std::map&lt;std::pair&lt;int, int&gt;, bigint&gt; tree_count_cache;
+
+// Function to find divisor pairs
+const std::vector&lt;std::pair&lt;int, int&gt;&gt;&amp; divisor_pairs(int n) {
+    if (divisor_pairs_cache.find(n) != divisor_pairs_cache.end()) {
+        return divisor_pairs_cache[n];
+    }
+
+    std::vector&lt;int&gt; divisors;
+    for (int d = 1; d &lt;= n; ++d) {
+        if (n % d == 0) {
+            divisors.push_back(d);
+        }
+    }
+
+    std::vector&lt;std::pair&lt;int, int&gt;&gt; pairs;
+    for (size_t i = 0; i &lt; divisors.size(); ++i) {
+        pairs.emplace_back(divisors[i], divisors[divisors.size() - 1 - i]);
+    }
+
+    divisor_pairs_cache[n] = pairs;
+    return divisor_pairs_cache[n];
+}
+
+// Function to count the number of trees
+bigint tree_count(int nodes, int max_height) {
+    if (nodes == 1) {
+        return max_height &gt; 0 ? 1 : 0;
+    }
+
+    auto cache_key = std::make_pair(nodes, max_height);
+    if (tree_count_cache.find(cache_key) != tree_count_cache.end()) {
+        return tree_count_cache[cache_key];
+    }
+
+    int next_height = max_height - 1;
+    bigint total = 0;
+
+    for (int i = 1; i &lt; nodes; ++i) {
+        for (const auto&amp; [d, m] : divisor_pairs(nodes - i)) {
+            total += tree_count(i, max_height) * m * tree_count(m, next_height);
+        }
+    }
+
+    total /= (nodes - 1);
+    tree_count_cache[cache_key] = total;
+    return total;
+}
+
+// Function to measure the time taken for calculation
+std::pair&lt;double, std::vector&lt;bigint&gt;&gt; measure(int size) {
+    using namespace std;
+    using namespace std::chrono;
+
+    divisor_pairs_cache.clear();
+    tree_count_cache.clear();
+
+    auto start = steady_clock::now();
+
+    vector&lt;bigint&gt; table(size * (size + 1) / 2);&#32;
+
+    for (int n = 0; n &lt; size; ++n) {
+        for (int h = 0; h &lt;= n; ++h) {
+            table[n * (n + 1) / 2 + h] = tree_count(n, h);
+        }
+    }
+
+    auto end = steady_clock::now();
+    duration&lt;double&gt; elapsed = end - start;
+
+    std::cout &lt;&lt; size &lt;&lt; ": " &lt;&lt; elapsed.count() &lt;&lt; " seconds" &lt;&lt; std::endl;
+    return {elapsed.count(), table};
+}
+
+// Main function
+int main() {
+    int size = 64;&#32;
+    auto [time_taken_1, table_1] = measure(size);
+    auto [time_taken_2, table_2] = measure(size * 2);
+
+    std::cout &lt;&lt; "Ratio: " &lt;&lt; time_taken_2 / time_taken_1 &lt;&lt; "\n[";
+
+    // Print the table values
+    for (const auto&amp; val : table_2) {
+        std::cout &lt;&lt; val &lt;&lt; ", ";
+    }
+    std::cout &lt;&lt; "]\n";
+
+    return 0;
+}
+
+</code></pre>
+<p><a href="https://tio.run/##hVVdr@I2EH3Pr5iy2hWUr8tt1ZUIsG99q1r1lUWRcQyxbuJEsXO729X960vHYyc4ELpIEBLPx5kzZya8quZnzi@Xd1LxvEkFbHhWl6rcRdcnBavCW1lqUwtWhM9eBTdlHT45lmi2LJrcyKoWXGpZqiWvqkQqs8gqjBg1WqozHOUZH8EWyGO97rus194njiJtUjxm1QZvZ0B3Lu@G/ldM1u4If3a7HaTyVeqyTuyBTjjjmYivQQZ8Zh7MDrBAkfCyUab1i5ZL@L1R3CAoMCWcpErbDEAZIl4qbX6I60Mf19gWrybwLQL8yBOMB2AvbLYxWv20HapqIfB00sawn1qYplZDtnt1iMnsLaJLCJdK9z7aWZ2wOoKYYodWMV42W1AxTKdpmM/iVvDeWm3hKTyxnzbkomp0lhwZfxmnk7gzeXuEZ4g@x3UATst/RWJAIr6nGC@bazp7NJ5YsDKERBEWoqhyxoWH41328jDr/Pc3gWAOK/zKw6TH4DDJCCdA@oN@vN3Ji7QHJhOgmuIoaihPJEod@Xm5KtQpqEyFJoqgYF@STMhzZkJVkYHtzmpAJ1cX2METfMI618hmWCVrLCqLOHkRX7E6P0gvgqoZewBB8rjLfTtNTs5dMJL1nc0jTd8a7rs4fWETK@KLaQvbhlViJ51xy2ZpWE4Kivqyl072VlZU4Z2YyNJNvqXoA@xTZOGA/PXH3PGP6pncTofLPd32WtpjEn6GAr/BeTELa3s0Sy7ycgtd9pU3/R8SsWDy6wnXP7nXaSGYbmpBSjWywB9UhCJWOMt5kzNrGV0nOS2bYy7669tv3V0bjZi3M9dS5d4UihVCVziz1jl@dIBvDHqDxQ@nc8FzwerxAyqup1fda8NqQ5oXLP2a8LzkL@u1Kv/pzPqVIAtYJK0m7Ju7Tu3kLeEZ99GNxpRbXQo1Zi2txNSdxKxh5gyzbgdnd1qyeffKJlVdRvyTUVuv@lEzyB6phirG6XtUL7Ha1NRY384diJxVWlgf6zl3jMXBSse8BjauQnsdrWFkr95x4XBN6Ai0wIlKNRmQNwbtC/Lbjd/Mlf7WavQPJlGFXqiRW4tSjbuN6AWGeH/7FRvS1b23Ik5IxMnKB01Wlr1Wm6TLeNjjufV4vvXAjjxPhvgY/W2J9GSEobBzIRay/az2Ix8Ea/yrlv4dQUnhleUNviAGtxKe4Ury4ELV9MBYK5tnBqN2l94DPnxWLQjfjCfL@uXynZ9ydtaXOdpv@XS6@niZ//nLfw" rel="nofollow noreferrer" title="C++ (gcc) – Try It Online">Try it online!</a></p>
+<p>C++ port of Jonathan Allan's answer. The ratio looks about same:</p>
+<pre class="lang-cpp prettyprint-override"><code>64: 0.115634 seconds
+64: 0.116452 seconds
+64: 0.114451 seconds
+64: 0.118066 seconds
+64: 0.118879 seconds
+64: 0.117783 seconds
+64: 0.116525 seconds
+64: 0.117978 seconds
+64: 0.116567 seconds
+64: 0.117778 seconds
+128: 1.38461 seconds
+128: 1.40242 seconds
+128: 1.39773 seconds
+128: 1.41565 seconds
+128: 1.36205 seconds
+128: 1.36052 seconds
+128: 1.38965 seconds
+128: 1.38398 seconds
+128: 1.34887 seconds
+128: 1.32237 seconds
+Ratio: 11.7663
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://docs.python.org/3.8/" rel="nofollow noreferrer">Python 3.8+</a>, ~8.3 - ~11.5</h1>
 <pre class="lang-python prettyprint-override"><code>import functools
 
 
@@ -75,7 +204,7 @@ ratio: 10.930027672001193
 </code></pre>
 <p>(Although the numbers are somewhat variable, as per the headline ratio range of &quot;~8.3 - ~11.5&quot;.)</p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 61 bytes, score ~9.4</h1>
+<div id="pu2" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 61 bytes, score ~9.4</h1>
 <pre><code>Ｎθ⊞υ⟦⁰⟧Ｆθ⊞υＥ⊕θ∧κ∨¬ι÷ΣＥιΣＥ÷ι⊕μ××⊕ξ§§υ⊕ξ⊖κ§§υ⁻ι⊖×⊕ξ⊕μκιＥυ⭆¹…ι⊕κ
 </code></pre>
 <p><a href="https://tio.run/##bVA9D4IwEN39FR2PpCZ@jExGFwbURDfjgHDKBVqwtAR/fW1RghqXXu@9e@/1muaJSquktDaStdFbIy6o4B6Ek71pcjCcnWZn110rxRzMBjROaohkqlCg1Jg5irOVzKDgbKdgW2kgh0RSb6ilDOFgBHgNcTZcR5L85OglAic9ksAGXucn2fkgHckMOxiq@dZ3Xr/BESiC4L8qJmkaH/85/T/z54G9Y/Gu1Ff3ZYqk7ndz3gftuptv5pytH2mJ67yqf3d9WYTWLhd22pZP" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code. Explanation: Initially based on the reference implementation but using dynamic programming rather than recursion and memoisation, I replaced <code>i</code> with <code>nodes - i</code> and then switched the order of the double sum, allowing me to replace the inner loop with a stepped loop.</p>
