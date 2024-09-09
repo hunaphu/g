@@ -26,11 +26,11 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>nan</td><td></td><td>240909T133454Z</td><td><a href="https://codegolf.stackexchange.com/questions/275413/p%c3%b3lya-trees-counted-efficiently/275434#275434">jdt</a></td></tr>
+<tr d-ix="0"><td>2232</td><td>C++ gcc</td><td>240909T133454Z</td><td><a href="https://codegolf.stackexchange.com/questions/275413/p%c3%b3lya-trees-counted-efficiently/275434#275434">jdt</a></td></tr>
 <tr d-ix="1"><td>nan</td><td>Python 3.8+</td><td>240908T183007Z</td><td><a href="https://codegolf.stackexchange.com/questions/275413/p%c3%b3lya-trees-counted-efficiently/275420#275420">Jonathan</a></td></tr>
 <tr d-ix="2"><td>061</td><td>Charcoal</td><td>240908T232023Z</td><td><a href="https://codegolf.stackexchange.com/questions/275413/p%c3%b3lya-trees-counted-efficiently/275424#275424">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C++ (gcc)</a></h1>
+<div id="pu0" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C++ (gcc)</a>, 2232 bytes</h1>
 
 <pre class="lang-cpp prettyprint-override"><code>#include &lt;chrono&gt;
 #include &lt;map&gt;
@@ -40,13 +40,12 @@
 
 using bigint = boost::multiprecision::cpp_int;
 
-std::map&lt;int, std::vector&lt;std::pair&lt;int, int&gt;&gt;&gt; divisor_pairs_cache;
+std::map&lt;int, std::vector&lt;int&gt;&gt; divisor_cache;
 std::map&lt;std::pair&lt;int, int&gt;, bigint&gt; tree_count_cache;
 
-// Function to find divisor pairs
-const std::vector&lt;std::pair&lt;int, int&gt;&gt;&amp; divisor_pairs(int n) {
-    if (divisor_pairs_cache.find(n) != divisor_pairs_cache.end()) {
-        return divisor_pairs_cache[n];
+const std::vector&lt;int&gt;&amp; divisor_pairs(int n) {
+    if (divisor_cache.find(n) != divisor_cache.end()) {
+        return divisor_cache[n];
     }
 
     std::vector&lt;int&gt; divisors;
@@ -56,16 +55,10 @@ const std::vector&lt;std::pair&lt;int, int&gt;&gt;&amp; divisor_pairs(int n) {
         }
     }
 
-    std::vector&lt;std::pair&lt;int, int&gt;&gt; pairs;
-    for (size_t i = 0; i &lt; divisors.size(); ++i) {
-        pairs.emplace_back(divisors[i], divisors[divisors.size() - 1 - i]);
-    }
-
-    divisor_pairs_cache[n] = pairs;
-    return divisor_pairs_cache[n];
+    divisor_cache[n] = divisors;
+    return divisor_cache[n];
 }
 
-// Function to count the number of trees
 bigint tree_count(int nodes, int max_height) {
     if (nodes == 1) {
         return max_height &gt; 0 ? 1 : 0;
@@ -80,8 +73,8 @@ bigint tree_count(int nodes, int max_height) {
     bigint total = 0;
 
     for (int i = 1; i &lt; nodes; ++i) {
-        for (const auto&amp; [d, m] : divisor_pairs(nodes - i)) {
-            total += tree_count(i, max_height) * m * tree_count(m, next_height);
+        for (const auto&amp; d : divisor_pairs(nodes - i)) {
+            total += tree_count(i, max_height) * d * tree_count(d, next_height);
         }
     }
 
@@ -90,50 +83,48 @@ bigint tree_count(int nodes, int max_height) {
     return total;
 }
 
-// Function to measure the time taken for calculation
 std::pair&lt;double, std::vector&lt;bigint&gt;&gt; measure(int size) {
     using namespace std;
     using namespace std::chrono;
 
-    divisor_pairs_cache.clear();
+    divisor_cache.clear();
     tree_count_cache.clear();
 
     auto start = steady_clock::now();
 
-    vector&lt;bigint&gt; table(size * (size + 1) / 2);&#32;
+    vector&lt;bigint&gt; table;
+    table.reserve(size * (size + 1) / 2);
 
     for (int n = 0; n &lt; size; ++n) {
         for (int h = 0; h &lt;= n; ++h) {
-            table[n * (n + 1) / 2 + h] = tree_count(n, h);
+            table.push_back(tree_count(n, h));
         }
     }
 
     auto end = steady_clock::now();
     duration&lt;double&gt; elapsed = end - start;
 
-    std::cout &lt;&lt; size &lt;&lt; ": " &lt;&lt; elapsed.count() &lt;&lt; " seconds" &lt;&lt; std::endl;
-    return {elapsed.count(), table};
+    std::cout &lt;&lt; size &lt;&lt; &quot;: &quot; &lt;&lt; elapsed.count() &lt;&lt; &quot; seconds&quot; &lt;&lt; std::endl;
+    return { elapsed.count(), table };
 }
 
-// Main function
 int main() {
-    int size = 64;&#32;
+    int size = 64;
     auto [time_taken_1, table_1] = measure(size);
     auto [time_taken_2, table_2] = measure(size * 2);
 
-    std::cout &lt;&lt; "Ratio: " &lt;&lt; time_taken_2 / time_taken_1 &lt;&lt; "\n[";
+    std::cout &lt;&lt; &quot;Ratio: &quot; &lt;&lt; time_taken_2 / time_taken_1 &lt;&lt; &quot;\n[&quot;;
 
     // Print the table values
     for (const auto&amp; val : table_2) {
-        std::cout &lt;&lt; val &lt;&lt; ", ";
+        std::cout &lt;&lt; val &lt;&lt; &quot;, &quot;;
     }
-    std::cout &lt;&lt; "]\n";
+    std::cout &lt;&lt; &quot;]\n&quot;;
 
     return 0;
 }
-
 </code></pre>
-<p><a href="https://tio.run/##hVVdr@I2EH3Pr5iy2hWUr8tt1ZUIsG99q1r1lUWRcQyxbuJEsXO729X960vHYyc4ELpIEBLPx5kzZya8quZnzi@Xd1LxvEkFbHhWl6rcRdcnBavCW1lqUwtWhM9eBTdlHT45lmi2LJrcyKoWXGpZqiWvqkQqs8gqjBg1WqozHOUZH8EWyGO97rus194njiJtUjxm1QZvZ0B3Lu@G/ldM1u4If3a7HaTyVeqyTuyBTjjjmYivQQZ8Zh7MDrBAkfCyUab1i5ZL@L1R3CAoMCWcpErbDEAZIl4qbX6I60Mf19gWrybwLQL8yBOMB2AvbLYxWv20HapqIfB00sawn1qYplZDtnt1iMnsLaJLCJdK9z7aWZ2wOoKYYodWMV42W1AxTKdpmM/iVvDeWm3hKTyxnzbkomp0lhwZfxmnk7gzeXuEZ4g@x3UATst/RWJAIr6nGC@bazp7NJ5YsDKERBEWoqhyxoWH41328jDr/Pc3gWAOK/zKw6TH4DDJCCdA@oN@vN3Ji7QHJhOgmuIoaihPJEod@Xm5KtQpqEyFJoqgYF@STMhzZkJVkYHtzmpAJ1cX2METfMI618hmWCVrLCqLOHkRX7E6P0gvgqoZewBB8rjLfTtNTs5dMJL1nc0jTd8a7rs4fWETK@KLaQvbhlViJ51xy2ZpWE4Kivqyl072VlZU4Z2YyNJNvqXoA@xTZOGA/PXH3PGP6pncTofLPd32WtpjEn6GAr/BeTELa3s0Sy7ycgtd9pU3/R8SsWDy6wnXP7nXaSGYbmpBSjWywB9UhCJWOMt5kzNrGV0nOS2bYy7669tv3V0bjZi3M9dS5d4UihVCVziz1jl@dIBvDHqDxQ@nc8FzwerxAyqup1fda8NqQ5oXLP2a8LzkL@u1Kv/pzPqVIAtYJK0m7Ju7Tu3kLeEZ99GNxpRbXQo1Zi2txNSdxKxh5gyzbgdnd1qyeffKJlVdRvyTUVuv@lEzyB6phirG6XtUL7Ha1NRY384diJxVWlgf6zl3jMXBSse8BjauQnsdrWFkr95x4XBN6Ai0wIlKNRmQNwbtC/Lbjd/Mlf7WavQPJlGFXqiRW4tSjbuN6AWGeH/7FRvS1b23Ik5IxMnKB01Wlr1Wm6TLeNjjufV4vvXAjjxPhvgY/W2J9GSEobBzIRay/az2Ix8Ea/yrlv4dQUnhleUNviAGtxKe4Ury4ELV9MBYK5tnBqN2l94DPnxWLQjfjCfL@uXynZ9ydtaXOdpv@XS6@niZ//nLfw" rel="nofollow noreferrer" title="C++ (gcc) – Try It Online">Try it online!</a></p>
+<p><a href="https://tio.run/##fVXbjpswEH3PV0xTtSKb22ZbtRKE9BNa9TW7Qo5xghViEDbb3Vb59abjC8SQpbw42GfGZ84cJrQs5wdKL5f3XNC8ThmsaVYVotiMrjsnUvqvvJCqYuTk7z0zqorK39kVCFue6lzxsmKUS16IJS3LhAu1yErMOKolFwfY8QNuQQwmIgy7IWHoYqLRSKoUj0m5xtcZmDd7r97YbCDlz1wWVUIJzVh0hZsfJeGVDdTgmbt2A1gKS2hRC9XEjWghpLrJ/7HNr1PJQJMWE/gzAnz4HoLO9Ys9F2mA5@/iLq8Fw/1JE6efiqm6El3UVjxFBnAemaVPpkFLi9oXFRhCKeq4inBZxyAimE5T/ybNUsAHjYrh3j/RT5NyUdYyS3aEHoN0ErWQs8@nTxbiHqPBojCB6/hVeatlkTJpugMn8pJkjB8y5etrAJr56g31riGwgXv4BisI4b6jIalVAYZIcmSvyNgZ5MhMRwNHwLs8au/uu8S2t01m2nyDGep0H7ht83SbblRhL6opLParnGOfDapRs1AkRwjW3LUEt5bgsLYSa1dwn5VBWs9ridDnKF3X61b6OfBJ3zT22mnc6WZHRLjDhHf@eTrzyxqymM28jKG9feWg/9EPazVxHRO6nbObIGYSpEW9y1l3iriRsIETI7KumJFP8t@sKdoOLEFOTJaEMh0cDR3g4DKDNHrjg1nQnJEqGCjnenq1rVSkUsayjKSvCc0LegxDUfxqYd0aQBEsz@XXPxcVk6x6ZoGuB9th16n@lpbwMOmbRhgn4bI2AmjPiBvPaGBmgVk7cLIbh5jrrzPFM4KYQTYZ6r@pGz@hoaqNqnVFFP5LuHZugOWklEzH6Mi51S3yZiherGBtq9LrOISxXl3gwhKbmCOQDD@LVBqAicakXWv96QfObL1wNn6zw4yLoJ1jzlFI8Mvn6FrnVvETSxTOIpGsXI5kpe3ceNH4cCDioYl46Edgp9vmduof/9TCueL9VGgHn4vBPort2CVZLuFHZeZNxlypzySvmRy9OUrwDIeJI@c7o0NGo/Q9Mxg3A/CW8NOjaEg48XHUnS@Xv3Sfk4O8zBEe0@l09fUy//7pHw" rel="nofollow noreferrer" title="C++ (gcc) – Try It Online">Try it online!</a></p>
 <p>C++ port of Jonathan Allan's answer. The ratio looks about same:</p>
 <pre class="lang-cpp prettyprint-override"><code>64: 0.115634 seconds
 64: 0.116452 seconds
