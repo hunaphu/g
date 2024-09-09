@@ -26,11 +26,35 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>2232</td><td>C++ gcc</td><td>240909T133454Z</td><td><a href="https://codegolf.stackexchange.com/questions/275413/p%c3%b3lya-trees-counted-efficiently/275434#275434">jdt</a></td></tr>
-<tr d-ix="1"><td>nan</td><td>Python 3.8+</td><td>240908T183007Z</td><td><a href="https://codegolf.stackexchange.com/questions/275413/p%c3%b3lya-trees-counted-efficiently/275420#275420">Jonathan</a></td></tr>
-<tr d-ix="2"><td>061</td><td>Charcoal</td><td>240908T232023Z</td><td><a href="https://codegolf.stackexchange.com/questions/275413/p%c3%b3lya-trees-counted-efficiently/275424#275424">Neil</a></td></tr>
+<tr d-ix="0"><td>161</td><td>Maple</td><td>240909T164645Z</td><td><a href="https://codegolf.stackexchange.com/questions/275413/p%c3%b3lya-trees-counted-efficiently/275438#275438">Sophia A</a></td></tr>
+<tr d-ix="1"><td>2222</td><td>C++ gcc</td><td>240909T133454Z</td><td><a href="https://codegolf.stackexchange.com/questions/275413/p%c3%b3lya-trees-counted-efficiently/275434#275434">jdt</a></td></tr>
+<tr d-ix="2"><td>nan</td><td>Python 3.8+</td><td>240908T183007Z</td><td><a href="https://codegolf.stackexchange.com/questions/275413/p%c3%b3lya-trees-counted-efficiently/275420#275420">Jonathan</a></td></tr>
+<tr d-ix="3"><td>061</td><td>Charcoal</td><td>240908T232023Z</td><td><a href="https://codegolf.stackexchange.com/questions/275413/p%c3%b3lya-trees-counted-efficiently/275424#275424">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C++ (gcc)</a>, 2232 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://en.wikipedia.org/wiki/Maple_(software)" rel="nofollow noreferrer">Maple</a>, 161 bytes, ~9.8</h1>
+<p>Uncompressed:</p>
+<pre><code>div := n -&gt; numtheory:-divisors(n):
+PT := proc(n, k) option remember; local d, i;
+   if n = 1 then ifelse(k &gt; 0, 1, 0) else
+   add(add(d * PT(i + 1, k) * PT(d, k - 1),
+   d = div(n - i - 1)), i = 0..n - 2) / (n - 1) fi end:
+</code></pre>
+<p>Benchmark:</p>
+<pre><code>Tri := rows -&gt; local n, k; seq(seq(PT(n, k), k=0..n), n=0..rows):
+
+CodeTools:-Usage(Tri(64));
+memory used=97.22MiB, alloc change=32.00MiB, 
+cpu time=1.42s, real time=1.47s, gc time=0ns
+
+CodeTools:-Usage(Tri(128));
+memory used=1.02GiB, alloc change=97.00MiB, 
+cpu time=14.03s, real time=14.26s, gc time=93.75ms
+
+cpu: 14.03/1.42 ~ 9.8; 
+real: 14.26/1.47 ~ 9.7;
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C++ (gcc)</a>, 2222 bytes</h1>
 
 <pre class="lang-cpp prettyprint-override"><code>#include &lt;chrono&gt;
 #include &lt;map&gt;
@@ -43,7 +67,7 @@ using bigint = boost::multiprecision::cpp_int;
 std::map&lt;int, std::vector&lt;int&gt;&gt; divisor_cache;
 std::map&lt;std::pair&lt;int, int&gt;, bigint&gt; tree_count_cache;
 
-const std::vector&lt;int&gt;&amp; divisor_pairs(int n) {
+const std::vector&lt;int&gt;&amp; divisors(int n) {
     if (divisor_cache.find(n) != divisor_cache.end()) {
         return divisor_cache[n];
     }
@@ -73,7 +97,7 @@ bigint tree_count(int nodes, int max_height) {
     bigint total = 0;
 
     for (int i = 1; i &lt; nodes; ++i) {
-        for (const auto&amp; d : divisor_pairs(nodes - i)) {
+        for (const auto&amp; d : divisors(nodes - i)) {
             total += tree_count(i, max_height) * d * tree_count(d, next_height);
         }
     }
@@ -124,7 +148,7 @@ int main() {
     return 0;
 }
 </code></pre>
-<p><a href="https://tio.run/##fVXbjpswEH3PV0xTtSKb22ZbtRKE9BNa9TW7Qo5xghViEDbb3Vb59abjC8SQpbw42GfGZ84cJrQs5wdKL5f3XNC8ThmsaVYVotiMrjsnUvqvvJCqYuTk7z0zqorK39kVCFue6lzxsmKUS16IJS3LhAu1yErMOKolFwfY8QNuQQwmIgy7IWHoYqLRSKoUj0m5xtcZmDd7r97YbCDlz1wWVUIJzVh0hZsfJeGVDdTgmbt2A1gKS2hRC9XEjWghpLrJ/7HNr1PJQJMWE/gzAnz4HoLO9Ys9F2mA5@/iLq8Fw/1JE6efiqm6El3UVjxFBnAemaVPpkFLi9oXFRhCKeq4inBZxyAimE5T/ybNUsAHjYrh3j/RT5NyUdYyS3aEHoN0ErWQs8@nTxbiHqPBojCB6/hVeatlkTJpugMn8pJkjB8y5etrAJr56g31riGwgXv4BisI4b6jIalVAYZIcmSvyNgZ5MhMRwNHwLs8au/uu8S2t01m2nyDGep0H7ht83SbblRhL6opLParnGOfDapRs1AkRwjW3LUEt5bgsLYSa1dwn5VBWs9ridDnKF3X61b6OfBJ3zT22mnc6WZHRLjDhHf@eTrzyxqymM28jKG9feWg/9EPazVxHRO6nbObIGYSpEW9y1l3iriRsIETI7KumJFP8t@sKdoOLEFOTJaEMh0cDR3g4DKDNHrjg1nQnJEqGCjnenq1rVSkUsayjKSvCc0LegxDUfxqYd0aQBEsz@XXPxcVk6x6ZoGuB9th16n@lpbwMOmbRhgn4bI2AmjPiBvPaGBmgVk7cLIbh5jrrzPFM4KYQTYZ6r@pGz@hoaqNqnVFFP5LuHZugOWklEzH6Mi51S3yZiherGBtq9LrOISxXl3gwhKbmCOQDD@LVBqAicakXWv96QfObL1wNn6zw4yLoJ1jzlFI8Mvn6FrnVvETSxTOIpGsXI5kpe3ceNH4cCDioYl46Edgp9vmduof/9TCueL9VGgHn4vBPort2CVZLuFHZeZNxlypzySvmRy9OUrwDIeJI@c7o0NGo/Q9Mxg3A/CW8NOjaEg48XHUnS@Xv3Sfk4O8zBEe0@l09fUy//7pHw" rel="nofollow noreferrer" title="C++ (gcc) – Try It Online">Try it online!</a></p>
+<p><a href="https://tio.run/##fVXbjpswEH3PV0xTtSKb22ZbtRKE9BNa9TW7Qo5xghViEDbb3Vb59abjC8SQpbw42GfGZ84cJrQs5wdKL5f3XNC8ThmsaVYVotiMrjsnUvqvvJCqYuTk7z0zqorK39kVCFue6lzxsmKUS16IJS3LhAu1yErMOKolFwfY8QNuQQwmIgy7IWHoYqLRSKoUj0m5xtcZmDd7r97YbCDlz1wWVUIJzVh0hZsfJeGVDdTgmbt2A1gKS2hRC9XEjWghpLrJ/7HJLwPNV0zgzwjw4XsIOjcv9lykAZ6/i7uUFgz3J02cfiqm6kp0UVvxFBnAeWSWPo@WhkXtiwoMoRQlXEW4rGMQEUynqX@TZingg0bFcO@f6KdJuShrmSU7Qo9BOolayNnn0ycLcY/RYFGYwDX7KrrVskiZNI2BE3lJMsYPmfL1NQDNfPWGetcQ2MA9fIMVhHDf0ZDUqgBDJDmyV2TsvHFkifZF4Ah4l0ft3X2D2Pa2yUybbzBDne4Dt22ebtONKuxFNYXFfpVz7LNBNWoWiuQIwZq7luDWEhzWVmLtCu6zMkhrdy0RWhyla21uVZ8Dn/T9Ym@cxp1GdvSDO8x155@nM7@iIXfZzMsY2ttXDvof6bBME9fxn9s5u7lhvv@0qHc5684ONwg2cGJE1hUzykn@mzVF2zElyInJklCmg6OhAxxXZnxGb3wrC5ozUgUD5VxPr46VilTKuJWR9DWheUGPYSiKXy2sWwMoguW5/PrnomKSVc8s0PVgO@w61Z/REh4mfb8IYyJc1kYAbRdxYxcNzCwwa2dNduMQc/11nHhGEDPIJkP9N3Xj1zNUtVG1rojC/wbXzg2wnJSS6RgdObe6Rd74xIsVrG1Veh2HMNarC1xYYhNzBJLhF5FKAzDRmLRrrT/9wJmtF87Gb3aOcRG0I8w5Cgl@@Rxd69wqfmKJwjEkkpXLkay0nRsvGh8ORDw0EQ/9COx029xO/eOfWjhXvJ8K7eBzMdhHsR27JMsl/KjMqMmYK/WZ5DWTozenCJ7hHHHkfGd0yGiUvmcG42b23RJ@ehQNCSc@Trnz5fKX7nNykJc5wmM6na6@XubfP/0D" rel="nofollow noreferrer" title="C++ (gcc) – Try It Online">Try it online!</a></p>
 <p>C++ port of Jonathan Allan's answer. The ratio looks about same:</p>
 <pre class="lang-cpp prettyprint-override"><code>64: 0.115634 seconds
 64: 0.116452 seconds
@@ -149,7 +173,7 @@ int main() {
 Ratio: 11.7663
 </code></pre>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://docs.python.org/3.8/" rel="nofollow noreferrer">Python 3.8+</a>, ~8.3 - ~11.5</h1>
+<div id="pu2" class="pu"><h1><a href="https://docs.python.org/3.8/" rel="nofollow noreferrer">Python 3.8+</a>, ~8.3 - ~11.5</h1>
 <pre class="lang-python prettyprint-override"><code>import functools
 
 
@@ -195,7 +219,7 @@ ratio: 10.930027672001193
 </code></pre>
 <p>(Although the numbers are somewhat variable, as per the headline ratio range of &quot;~8.3 - ~11.5&quot;.)</p>
 </div>
-<div id="pu2" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 61 bytes, score ~9.4</h1>
+<div id="pu3" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 61 bytes, score ~9.4</h1>
 <pre><code>Ｎθ⊞υ⟦⁰⟧Ｆθ⊞υＥ⊕θ∧κ∨¬ι÷ΣＥιΣＥ÷ι⊕μ××⊕ξ§§υ⊕ξ⊖κ§§υ⁻ι⊖×⊕ξ⊕μκιＥυ⭆¹…ι⊕κ
 </code></pre>
 <p><a href="https://tio.run/##bVA9D4IwEN39FR2PpCZ@jExGFwbURDfjgHDKBVqwtAR/fW1RghqXXu@9e@/1muaJSquktDaStdFbIy6o4B6Ek71pcjCcnWZn110rxRzMBjROaohkqlCg1Jg5irOVzKDgbKdgW2kgh0RSb6ilDOFgBHgNcTZcR5L85OglAic9ksAGXucn2fkgHckMOxiq@dZ3Xr/BESiC4L8qJmkaH/85/T/z54G9Y/Gu1Ff3ZYqk7ndz3gftuptv5pytH2mJ67yqf3d9WYTWLhd22pZP" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code. Explanation: Initially based on the reference implementation but using dynamic programming rather than recursion and memoisation, I replaced <code>i</code> with <code>nodes - i</code> and then switched the order of the double sum, allowing me to replace the inner loop with a stepped loop.</p>
