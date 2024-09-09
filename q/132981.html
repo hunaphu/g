@@ -26,8 +26,8 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>nan</td><td>Useful onebyte instructions</td><td>240909T151426Z</td><td><a href="https://codegolf.stackexchange.com/questions/132981/tips-for-golfing-in-x86-x64-machine-code/275437#275437">qwr</a></td></tr>
-<tr d-ix="1"><td>nan</td><td></td><td>240908T012122Z</td><td><a href="https://codegolf.stackexchange.com/questions/132981/tips-for-golfing-in-x86-x64-machine-code/275411#275411">qwr</a></td></tr>
+<tr d-ix="0"><td>nan</td><td></td><td>240908T012122Z</td><td><a href="https://codegolf.stackexchange.com/questions/132981/tips-for-golfing-in-x86-x64-machine-code/275411#275411">qwr</a></td></tr>
+<tr d-ix="1"><td>nan</td><td>Useful onebyte instructions</td><td>240909T151426Z</td><td><a href="https://codegolf.stackexchange.com/questions/132981/tips-for-golfing-in-x86-x64-machine-code/275437#275437">qwr</a></td></tr>
 <tr d-ix="2"><td>nan</td><td>Use 32bit x86 instead of 64bit x8664</td><td>240907T055727Z</td><td><a href="https://codegolf.stackexchange.com/questions/132981/tips-for-golfing-in-x86-x64-machine-code/275400#275400">qwr</a></td></tr>
 <tr d-ix="3"><td>nan</td><td></td><td>230518T214846Z</td><td><a href="https://codegolf.stackexchange.com/questions/132981/tips-for-golfing-in-x86-x64-machine-code/261057#261057">l4m2</a></td></tr>
 <tr d-ix="4"><td>nan</td><td></td><td>190312T184356Z</td><td><a href="https://codegolf.stackexchange.com/questions/132981/tips-for-golfing-in-x86-x64-machine-code/181407#181407">640KB</a></td></tr>
@@ -65,7 +65,17 @@
 <tr d-ix="36"><td>nan</td><td>You can fetch sequential objects from the stack by setting esi to esp</td><td>171114T002925Z</td><td><a href="https://codegolf.stackexchange.com/questions/132981/tips-for-golfing-in-x86-x64-machine-code/147968#147968">peter fe</a></td></tr>
 <tr d-ix="37"><td>001</td><td>In a lot of cases</td><td>170717T214734Z</td><td><a href="https://codegolf.stackexchange.com/questions/132981/tips-for-golfing-in-x86-x64-machine-code/132983#132983">Govind P</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Useful one-byte instructions</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.felixcloutier.com/x86/loop:loopcc" rel="nofollow noreferrer"><code>LOOP</code></a> according to ECX</h1>
+<p>This is the <a href="https://stackoverflow.com/questions/35742570/why-is-the-loop-instruction-slow-couldnt-intel-have-implemented-it-efficiently">famously slow</a> instruction that decrements CX/ECX/RCX as a counter, then short jumps if not zero, all in 2 bytes! <code>LOOPcc</code> variants also check ZF. Compare this to regular short branching, which takes 3 bytes:</p>
+<pre><code>E2 cb   loop    label   ; cb is rel8
+</code></pre>
+<pre><code>4A      dec     ecx     ; sets ZF
+75 cb   jnz     label   
+</code></pre>
+<h1><a href="https://www.felixcloutier.com/x86/jcc" rel="nofollow noreferrer"><code>JECXZ</code></a> according to ECX</h1>
+<p><code>JCXZ</code>/<code>JECXZ</code>/<code>JRCXZ</code> are weird instructions in the <code>Jcc</code> family that jump short based on if CX/ECX/RCX is 0, in 2 bytes. If you had an instruction before that sets ZF such as <code>dec</code>, you could use a standard <code>JZ</code>.</p>
+</div>
+<div id="pu1" class="pu"><h1>Useful one-byte instructions</h1>
 <p>Most are listed <a href="http://xxeo.com/single-byte-or-small-x86-opcodes" rel="nofollow noreferrer">here</a>. This answer will assume x86 (32-bit), with some notes for x86-64 (<a href="https://codegolf.stackexchange.com/a/275400/17360">usually more bytes</a>). I checked these with Compiler Explorer (godbolt.org) running NASM.</p>
 <h2>Stack Operations</h2>
 <ul>
@@ -97,14 +107,27 @@
 <li>In 64-bit mode, takes 2 bytes for 32-bit register, 3 bytes for 64-bit register</li>
 </ul>
 </li>
+<li><code>XCHG</code>: Exchange any +rd register with EAX. Other sizes take 2 bytes.
+<ul>
+<li>In 64-bit mode, the default operation size is still 32 bits. 64-bit exchange with RAX takes an extra byte.</li>
+</ul>
+</li>
+</ul>
+<h2>String Operations</h2>
+<ul>
 <li><code>MOVSB</code>/<code>MOVSD</code>: Move byte/dword from address ESI to EDI. (<code>MOVSW</code> takes 2 bytes.)
 <ul>
 <li>In 64-bit mode, same as above and <code>MOVSQ</code> uses two bytes.</li>
 </ul>
 </li>
-<li><code>XCHG</code>: Exchange any +rd register with EAX. Other sizes take 2 bytes.
+<li><code>LODSB</code>/<code>LODSD</code>: Load byte/dword from address ESI into AL/EAX, and inc/dec ESI based on DF direction flag. This is very useful in iterating over strings/arrays. (<code>LODSW</code> takes 2 bytes.)
 <ul>
-<li>In 64-bit mode, the default operation size is still 32 bits. 64-bit exchange with RAX takes an extra byte.</li>
+<li>In 64-bit mode, defaults to 64-bit operands. <code>LODSQ</code> takes 2 bytes.</li>
+</ul>
+</li>
+<li><code>STOSB</code>/<code>STOSD</code>: Store byte/dword from AL/EAX into address EDI. (<code>STOSW</code> takes 2 bytes).
+<ul>
+<li>In 64-bit mode,  defaults to 64-bit operands. <code>STOSQ</code> takes 2 bytes.</li>
 </ul>
 </li>
 </ul>
@@ -113,14 +136,6 @@
 <li><code>RET</code>: return to caller.</li>
 </ul>
 <p>WIP</p>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://www.felixcloutier.com/x86/loop:loopcc" rel="nofollow noreferrer"><code>LOOP</code></a> according to ECX</h1>
-<p>This is the <a href="https://stackoverflow.com/questions/35742570/why-is-the-loop-instruction-slow-couldnt-intel-have-implemented-it-efficiently">famously slow</a> instruction that decrements CX/ECX/RCX as a counter, then short jumps if not zero, all in 2 bytes! <code>LOOPcc</code> variants also check ZF. Compare this to regular short branching, which takes 3 bytes:</p>
-<pre><code>4A      dec     ecx     ; sets ZF
-75 cb   jnz     label   ; cb is rel8 
-</code></pre>
-<h1><a href="https://www.felixcloutier.com/x86/jcc" rel="nofollow noreferrer"><code>JECXZ</code></a> according to ECX</h1>
-<p><code>JCXZ</code>/<code>JECXZ</code>/<code>JRCXZ</code> are weird instructions in the <code>Jcc</code> family that jump short based on if CX/ECX/RCX is 0, in 2 bytes. If you had an instruction before that sets ZF such as <code>dec</code>, you could use a standard <code>JZ</code>.</p>
 </div>
 <div id="pu2" class="pu"><h1>Use 32-bit x86 instead of 64-bit x86-64, if you can</h1>
 <p>This is a bit silly, but many code golf challenges only require 32-bit inputs, and 32-bit programs execute just fine on x86-64 processors (<a href="https://stackoverflow.com/questions/32868293/x86-32-bit-opcodes-that-differ-in-x86-x64-or-entirely-removed">almost all instructions work</a>, <a href="https://www.tortall.net/projects/yasm/manual/html/arch-x86-registers.html" rel="nofollow noreferrer">you can't use the lower 8 bits SIL, DIL, SPL, BPL</a>). Assemble with <code>nasm -f elf32</code> and link with <code>ld -m elf_i386</code>. You avoid extra bytes from REX prefixes without even thinking about it. MUL can multiply two 32-bit numbers and puts the full result in EDX:EAX, and DIV can divide a 64-bit dividend by r/m32.</p>
