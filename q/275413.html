@@ -26,12 +26,57 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>161</td><td>Maple</td><td>240909T164645Z</td><td><a href="https://codegolf.stackexchange.com/questions/275413/p%c3%b3lya-trees-counted-efficiently/275438#275438">Sophia A</a></td></tr>
-<tr d-ix="1"><td>2222</td><td>C++ gcc</td><td>240909T133454Z</td><td><a href="https://codegolf.stackexchange.com/questions/275413/p%c3%b3lya-trees-counted-efficiently/275434#275434">jdt</a></td></tr>
-<tr d-ix="2"><td>nan</td><td>Python 3.8+</td><td>240908T183007Z</td><td><a href="https://codegolf.stackexchange.com/questions/275413/p%c3%b3lya-trees-counted-efficiently/275420#275420">Jonathan</a></td></tr>
+<tr d-ix="0"><td>nan</td><td>Python 3.8+</td><td>240908T183007Z</td><td><a href="https://codegolf.stackexchange.com/questions/275413/p%c3%b3lya-trees-counted-efficiently/275420#275420">Jonathan</a></td></tr>
+<tr d-ix="1"><td>161</td><td>Maple</td><td>240909T164645Z</td><td><a href="https://codegolf.stackexchange.com/questions/275413/p%c3%b3lya-trees-counted-efficiently/275438#275438">Sophia A</a></td></tr>
+<tr d-ix="2"><td>2222</td><td>C++ gcc</td><td>240909T133454Z</td><td><a href="https://codegolf.stackexchange.com/questions/275413/p%c3%b3lya-trees-counted-efficiently/275434#275434">jdt</a></td></tr>
 <tr d-ix="3"><td>061</td><td>Charcoal</td><td>240908T232023Z</td><td><a href="https://codegolf.stackexchange.com/questions/275413/p%c3%b3lya-trees-counted-efficiently/275424#275424">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://en.wikipedia.org/wiki/Maple_(software)" rel="nofollow noreferrer">Maple</a>, 161 bytes, ~9.8</h1>
+<div id="pu0" class="pu"><h1><a href="https://docs.python.org/3.8/" rel="nofollow noreferrer">Python 3.8+</a>, <s> ~ 8.3 - 11.5 </s> ~ 8.8 - 10.3</h1>
+<p>Thanks to <a href="https://codegolf.stackexchange.com/users/95116/gsitcia">gsitcia</a> for improving speed by extracting a memoised weighted tree count function and for providing a nice timing framework.</p>
+<pre class="lang-python prettyprint-override"><code>import functools
+
+
+@functools.lru_cache(None)
+def divisors(n):
+    return [d for d in range(n, 0, -1) if n % d == 0]
+
+
+@functools.lru_cache(None)
+def divisor_weighted_tree_count(nodes, max_height):
+    return sum(d * tree_count(d, max_height) for d in divisors(nodes))
+
+
+@functools.lru_cache(None)
+def tree_count(nodes, max_height):
+    if nodes == 1:
+        return int(max_height > 0)
+    if max_height == 0:
+        return 0
+    next_height = max_height - 1
+    return sum(
+        tree_count(i, max_height) * divisor_weighted_tree_count(nodes - i, next_height)
+        for i in range(1, nodes)
+    ) // (nodes - 1)
+</code></pre>
+<p><strong><a href="https://tio.run/##jVNbbtswEPzXKRYGCpCJX0qbIg3qoifoBQyDIKSVRUAiBYpK0hY9u8sVZYlK3Tj60z5mZ2aXzU9XGv3xobGnk6obYx0Unc6cMVWbFNbU4FSNMKQatIXITKcd2iRJvo@l68p2IpNZieyH0ciTHAvI1ZNqjW2Z5o8J@M@i66yGfQ6FsZCD0mClPiLTS9guYZVyUAVo@OBzux1sD@@eIZ5RHUuHuXAWMVBk2uTYLqGWL6Ls03MabVezHG4g6shn1RPLSQlBcn6d1ztokFRKkdQ0hCJ2yndOLfANtvzcFYXJpX9at31A44sby@KeFaSvbRgRItpq7sXNdas9sm@K5vIRl5xU077TZZAeCjhsNjBCpOQuWVijbDuLrFW/cLDsvId1b7fIKpSWBZCJzIXkG9QvVLdOWvIsvvYhtY81L6EMN6InZT3ZPlhG5w23XtahR0CdX4Ye1kH5VaBw9kEqzQYD6DGKStWK@N1/GRoblM6fEaRh81Y6Zeh/f7im57lUFUKFmoUm3l8UePpsXn3mRIfA4npSBpsZxNeIZnScfXYtm8ZLZLXXdF5wevcQLBOTZYMoTthx7edP/y/lkfq1X7cbRDaWHlOx@B1Suz@LEJdPaOURhSmENlqYzlUKrRjto5cRfvbp4yo9EJeZ9hXcvZrwJmQ/OEn8CxZCS@@QILcXQtCGhVgEr8K6k9PpLw" rel="nofollow noreferrer" title="Python 3.8 (pre-release) – Try It Online">Try it online!</a></strong> (The ratio at TIO is not as good as locally in Python 11 on Windows 11 for some reason, I used the latter for my headline ratio range.)</p>
+<p>Here are the results of the same performance measuring as in the TIO code run six times locally (Python 3.11, Windows 11, AMD Ryzen 9 5900HX):</p>
+<pre><code>ratios=[7.547238551824045, 7.7139313128133695, 8.107636991904526, 8.47469155964413, 8.515605405050453, 9.172278506610215, 9.264749488149516, 9.557285255101801, 9.732214553686939, 10.802841012657689]
+average_of_non_outlier_ratios=8.81729913412012
+ratios=[8.762047219247435, 9.363372687067253, 10.145566544719255, 10.273140281551237, 10.487873752826854, 10.565872639113923, 10.64029167782034, 10.851233192929538, 10.912942606522284]
+average_of_non_outlier_ratios=10.332478682289771
+ratios=[8.382434555765164, 8.908493460199315, 9.066042017779642, 9.246098538177652, 9.304737133942659, 9.344529276678669, 9.546876520275672, 9.67229994476119, 9.823606780332556, 10.052732405298912, 10.14929796045462]
+average_of_non_outlier_ratios=9.440601786382919
+ratios=[7.803052242564962, 7.932774450890674, 8.347134115632969, 8.852060665356214, 8.994566905937972, 9.0039864187857, 9.498503106794697, 9.546413522518069, 9.691255389690461, 9.854593372412797, 9.937521780512633, 10.19999157374594]
+average_of_non_outlier_ratios=9.165880972853216
+ratios=[7.099565478498517, 8.512732314924916, 9.046465299081852, 9.084934322568525, 9.327585485547285, 9.338322586851053, 9.863004542840564, 10.110251878795596, 10.392818699806847, 10.751848197312722]
+average_of_non_outlier_ratios=9.459514391302081
+ratios=[8.368777843440359, 8.996354403223918, 9.304374924721822, 9.380879393237096, 9.64438818894823, 9.765254594302451, 10.050183387024001, 10.396627186085164, 10.611003799304875]
+average_of_non_outlier_ratios=9.648294582506097
+</code></pre>
+<p>Each <code>ratio</code> in <code>ratios</code> is the minimum time across ten trials at size <span class="math-container">\$128\$</span> divided by the minimum time across ten trials at size <span class="math-container">\$64\$</span>. Each run of trials stops when it does not appear that the next trial will finish within <span class="math-container">\$59\$</span> seconds of starting the run. The average of the ratios after discarding the minimum and maximum (<code>average_of_non_outlier_ratios</code>) is then displayed.</p>
+<p>Yes, there is quite a large variance, and it seems quite machine-dependent too (<a href="https://codegolf.stackexchange.com/users/95116/gsitcia">gsitcia</a> reporting ~ 6.8 - 10.9 locally).</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://en.wikipedia.org/wiki/Maple_(software)" rel="nofollow noreferrer">Maple</a>, 161 bytes, ~9.8</h1>
 <p>Uncompressed:</p>
 <pre><code>div := n -&gt; numtheory:-divisors(n):
 PT := proc(n, k) option remember; local d, i;
@@ -54,7 +99,7 @@ cpu: 14.03/1.42 ~ 9.8;
 real: 14.26/1.47 ~ 9.7;
 </code></pre>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C++ (gcc)</a>, 2222 bytes</h1>
+<div id="pu2" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C++ (gcc)</a>, 2222 bytes</h1>
 
 <pre class="lang-cpp prettyprint-override"><code>#include &lt;chrono&gt;
 #include &lt;map&gt;
@@ -172,52 +217,6 @@ int main() {
 128: 1.32237 seconds
 Ratio: 11.7663
 </code></pre>
-</div>
-<div id="pu2" class="pu"><h1><a href="https://docs.python.org/3.8/" rel="nofollow noreferrer">Python 3.8+</a>, ~8.3 - ~11.5</h1>
-<pre class="lang-python prettyprint-override"><code>import functools
-
-
-@functools.lru_cache(maxsize=None)
-def divisors(n):
-    return [d for d in range(n, 0, -1) if n % d == 0]
-
-
-@functools.lru_cache(maxsize=None)
-def tree_count(nodes, max_height):
-    if nodes == 1:
-        return int(max_height > 0)
-    next_height = max_height - 1
-    return sum(
-        sum(tree_count(i, max_height) * d * tree_count(d, next_height) for d in divisors(nodes - i))
-        for i in range(1, nodes)
-    ) // (nodes - 1)
-</code></pre>
-<p><strong><a href="https://tio.run/##jVPBatwwEL37KwZDwEq92XVaSgls6Bf00GsIQrHHsag9MpJc0ob99o1G9tpKyaF7s96bN2/ezI5/fGfo87fRns96GI310E5Ue2N6l7XWDOD1gLBAI9pW1mYijzbLsu8r9aa3k6xV3WExqBen/@LxhyEUWYMtNPq3dsa6gsRdBuFn0U@W4KGB1lhoQBNYRc9YUAmHEnaVAN0CwVXAjkc4PP5/L28RZ4cFmQZdCYEjO9TPnV@6szRDLF3NT4kpHSq3EriHg4gUwhd/eTwmorCDKh3KTUOxavJH4ki/cwPXYbzr1HFTpm3Els6WYDS@Ay3E2oRZesuwKufxZoKA/R7WskqEJDmmAZWbLBac3hLLpcdNjFbWPSpbzCKbxQ9A55XlSNLbuNSppx4D9JBupYRunow2z9FGfOySY4BPwfBjVEJqPm6BvRodMsiU3ewmIqPlVbb5K4uf7uB1oZ7AYW2ocblI97ag5Wz6EpPSlGbE/wXp1S8MU0g@gzTGfxjytlwDSHlh5bfincOfymsTDKa1sE@kTnlaEEV5keGQpSQVWJJvOZeS/UqZz2ajeS7QNE6@EOFkzuevX94A" rel="nofollow noreferrer" title="Python 3.8 (pre-release) – Try It Online">Try it online!</a></strong></p>
-<p>Comparing the best of 10 for 128 with the best of 10 for 64 locally (Python 3.11):</p>
-<pre><code>64: 0.19101410009898245 seconds
-64: 0.18521020002663136 seconds
-64: 0.1802940999623388 seconds
-64: 0.17891630018129945 seconds
-64: 0.1778055999893695 seconds
-64: 0.1801361998077482 seconds
-64: 0.17966359993442893 seconds
-64: 0.177247199928388 seconds
-64: 0.177305500023067 seconds
-64: 0.17877000011503696 seconds
-128: 1.9373168000020087 seconds
-128: 2.049261200008914 seconds
-128: 2.115953000029549 seconds
-128: 2.0155012998729944 seconds
-128: 1.9960896000266075 seconds
-128: 1.9871222998481244 seconds
-128: 1.991358800092712 seconds
-128: 1.9692697999998927 seconds
-128: 1.9912266000173986 seconds
-128: 1.9978642000351101 seconds
-min times: [0.177247199928388, 1.9373168000020087]
-ratio: 10.930027672001193
-</code></pre>
-<p>(Although the numbers are somewhat variable, as per the headline ratio range of &quot;~8.3 - ~11.5&quot;.)</p>
 </div>
 <div id="pu3" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 61 bytes, score ~9.4</h1>
 <pre><code>Ｎθ⊞υ⟦⁰⟧Ｆθ⊞υＥ⊕θ∧κ∨¬ι÷ΣＥιΣＥ÷ι⊕μ××⊕ξ§§υ⊕ξ⊖κ§§υ⁻ι⊖×⊕ξ⊕μκιＥυ⭆¹…ι⊕κ
