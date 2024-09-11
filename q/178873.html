@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::178873</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>nan</td><td></td><td>190118T083610Z</td><td><a href="https://codegolf.stackexchange.com/questions/178873/matrix-rotation-sort/178894#178894">att</a></td></tr>
+<tr d-ix="1"><td>035</td><td>Jelly</td><td>190330T171749Z</td><td><a href="https://codegolf.stackexchange.com/questions/178873/matrix-rotation-sort/182453#182453">Nick Ken</a></td></tr>
+<tr d-ix="2"><td>219</td><td>JavaScript ES6</td><td>190118T095206Z</td><td><a href="https://codegolf.stackexchange.com/questions/178873/matrix-rotation-sort/178899#178899">Arnauld</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h3><s><a href="https://docs.python.org/2/" rel="nofollow noreferrer">Python 2</a>, 296 277 245</s></h3>
+<h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a>, <s>200</s> <s>194</s> 170 bytes</h1>
+
+<pre class="lang-python prettyprint-override"><code>from numpy import*
+def f(p,s='',*u):
+ while any(ediff1d(p)&lt;0):(p,s,i),*u=*u,*[(r_[p],s+f'v{v}',(s_[:],v))for v in r_[:len(p[1])]],(p,s+'&gt;0',0);p[i]=roll(p[i],1)
+ return s
+</code></pre>
+<p><a href="https://tio.run/##VY/dasMwDIWvm6fQnaxUg3jNNsiWvogxZZCYGhLHOD8jjD17ZmfQtbrSOfp0kPw6XQd32jYThh7c3PsVbO@HMOVZ0xowwvNYI3I@U5XB19V2LXy6VbSNNUY2wtNHQVWi2FKk6nzmXIlwUV7zeDS4fC8/yGK8qErzQmSGAAtYBxGputYJr6QmrTllHPFcIBf07pXVdRi6TqSOJWUQ2mkODsYtJYSYoJQqGZ4ZTpozuJWSDC8Mr/reVSpxDPIRLf/RA@xxafmRiVtvd4z8s28yXpBkUjtb7kNdZQcfrJtE4NY1NcLTGTD@tXsokI0IxEhI2y8" rel="nofollow noreferrer" title="Python 3 – Try It Online">Try it online!</a> or <a href="https://tio.run/##VY/NasMwEITP8VPsbaV4W6zGbcGp8yJChIIlIrAlIf@UUPrsruRCmuxJM/pm2A3X6eLdYV1N9AO4eQhXsEPwcdoXnTZgWOBNASPt5xaRCvi62F7Dp7sy3VljRJeAj4o3c9lKFs8yKBpLg8v38oPExrNsFC2cGx9hAesgIU2vHQtSKK5UKVlIATxVSBVXxyTItvNz8IFV/BikVW30fc/yiwQvIOppjg7GNVfGVCmlrAleCA4q7XcbKQheCd7UvStl5gjEI1r/ozvY6nL4kUmp9ztG/Nk3mTbIMquNrbdP1RS7EK2bWCTtuhbh6QSY7to8ZEiGRU7Ika@/" rel="nofollow noreferrer" title="Python 3 – Try It Online">Try a faster version</a></p>
+<p>-19: unicode arrows weren't required...<br />
+-32: slightly reworked, but much slower performance on average.<br />
+-45: took some inspiration from @Arnauld's answer. Switched to Python 3 for <code>f''</code> (-4 bytes)<br />
+-6: <a href="https://codegolf.stackexchange.com/a/156676/81203"><code>range( )</code>→<code>r_[: ]</code></a>, <code>diff(ravel( ))</code>→<code>ediff1d( )</code><br />
+-24: <a href="https://numpy.org/doc/stable/reference/generated/numpy.s_.html" rel="nofollow noreferrer"><code>s_</code></a>, assorted improvements</p>
+<hr />
+<p>Searches combinations of all possible <code>↓</code> moves and <code>→0</code>. Times out on the third test case.</p>
+<p>Since <code>→n</code> is equivalent to</p>
+<pre class="lang-python prettyprint-override"><code>↓0↓1...↓<i>(c-1)</i> &#9;<i>... repeated r-n times</i>
+→0
+↓0↓1...↓<i>(c-1)</i>&#9;<i>... repeated n times</i>
+</code></pre>
+<p>where <code>r</code> and <code>c</code> are the numbers of rows and columns, these moves are sufficient to find every solution.</p>
+<hr />
+<pre class="lang-python prettyprint-override"><code>from numpy import*
+def f(p,s='',u=[]):                         # s: moves taken, u: queue
+    while any(ediff1d(p)&lt;0):                # while p not sorted
+        (p,s,i),*u=                         # pop from queue
+            *u,                             #   and append:
+            *[(r_[p],s+f'v{v}',(s_[:],v))   #     p,↓v
+              for v in r_[:len(p[1])]],     #       for all columns v
+            (p,s+'&gt;0',0)                    #     p,→0
+        p[i]=roll(p[i],1)                   # transform p
+    return s                                #return the moves taken
+</code></pre>
+<hr />
+<p><code>&gt;v</code> correspond to <code>→↓</code>, respectively.</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 35 bytes</h1>
+
+<pre><code>ṙ€LXȮƊ¦1
+ÇZÇZƊ⁾ULXȮOịØ.¤?F⁻Ṣ$$¿,“”Ṫ
+</code></pre>
+
+<p><a href="https://tio.run/##y0rNyan8///hzpmPmtb4RJxYd6zr0DJDrsPtUUB0rOtR475QkKj/w93dh2foHVpi7/aocffDnYtUVA7t13nUMOdRw9yHO1f9//8/2lTHUscsVifaQsdIxyQWAA" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></p>
+
+<p>Full program. Outputs moves to STDOUT using L for left and R for right. Keeps trying random moves until the matrix is sorted, so not very efficient in terms of speed or algorithmic complexity. </p>
+</div>
+<div id="pu2" class="pu"><h1>JavaScript (ES6), <s> 226 </s> 219 bytes</h1>
+<p>Brute force search, using <em>right</em> (<code>&quot;R&quot;</code>) and <em>down</em> (<code>&quot;D&quot;</code>) moves.</p>
+<p>Returns either a string describing the moves, or an empty array if the input matrix is already sorted. Columns and rows in the output are 0-indexed.</p>
+
+<pre class="lang-javascript prettyprint-override"><code>f=(m,M=2)=&gt;(g=(s,m)=&gt;m[S='some'](p=r=&gt;r[S](x=&gt;p&gt;(p=x)))?!s[M]&amp;&amp;m[0][S]((_,x,a)=&gt;g(s+'D'+x,m.map(([...r],y)=&gt;(r[x]=(m[y+1]||a)[x])&amp;&amp;r)))|m[S]((_,y)=&gt;g(s+'R'+y,m.map(([...r])=&gt;y--?r:[r.pop(),...r]))):o=s)([],m)?o:f(m,M+2)
+</code></pre>
+<p><a href="https://tio.run/##lY9Na8MwDIbv/RXdJZGJapaPrlvByWWnQTdYjsaM0DWho66DXUYM/e@Z3K6HndbeLEvP80pfzXfj1nbbH2Z787kZx1aAxpXImCihE@BQ00vLWsTO6E2soBdWlFbWCgZR9iXVA2OsunNypaJIy3sVevCBAzaEduCS@DlOBtRcNz2A5JxbhT4EWDkoypM@SdXx2DAqWRRZ8h31r8VfHO9x4v86qONns8oupeW96YHh@ZuxpRGOgVS0fGWWbbgoydi4Nntndhu@Mx281G@v3B3sdt9tWw8tyMl0KgvMMFcYninO8UFNgm7yP0gYpmewuAkM04tLYn4DOMcnmj6Bj7R1cXEs6IBrHen1k5idA3JKOkHjDw" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<h3>Commented</h3>
+<pre class="lang-javascript prettyprint-override"><code>f =                              // f = main recursive function taking:
+(m, M = 2) =&gt; (                  //   m[] = input matrix; M = maximum length of the solution
+  g =                            // g = recursive solver taking:
+  (s, m) =&gt;                      //   s = solution, m[] = current matrix
+    m[S = 'some'](p =            // we first test whether m[] is sorted
+      r =&gt;                       // by iterating on each row
+        r[S](x =&gt;                // and each column
+          p &gt; (p = x)            // and comparing each cell x with the previous cell p
+        )                        //
+    ) ?                          // if the matrix is not sorted:
+      !s[M] &amp;&amp;                   //   if we haven't reached the maximum length:
+      m[0][S]((_, x, a) =&gt;       //     try all 'down' moves:
+        g(                       //       do a recursive call:
+          s + 'D' + x,           //         append the move to s
+          m.map(([...r], y) =&gt;   //         for each row r[] at position y:
+            (r[x] =              //           rotate the column x by replacing r[x] with
+              (m[y + 1] || a)[x] //           m[y + 1][x] or a[x] for the last row (a = m[0])
+            ) &amp;&amp; r               //           yield the updated row
+      ))) |                      //
+      m[S]((_, y) =&gt;             //     try all 'right' moves:
+        g(                       //       do a recursive call:
+          s + 'R' + y,           //         append the move to s
+          m.map(([...r]) =&gt;      //         for each row:
+            y-- ?                //           if this is not the row we're looking for:
+              r                  //             leave it unchanged
+            :                    //           else:
+              [r.pop(), ...r]    //             rotate it to the right
+      )))                        //
+    :                            // else (the matrix is sorted):
+      o = s                      //   store the solution in o
+)([], m) ?                       // initial call to g(); if we have a solution:
+  o                              //   return it
+:                                // else:
+  f(m, M + 2)                    //   try again with a larger maximum length
+</code></pre>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/178873/">178873</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
