@@ -26,7 +26,7 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>004</td><td>tinylisp</td><td>240913T032214Z</td><td><a href="https://codegolf.stackexchange.com/questions/110648/fewest-distinct-characters-for-turing-completeness/275492#275492">Andrew B</a></td></tr>
+<tr d-ix="0"><td>003</td><td>tinylisp</td><td>240913T032214Z</td><td><a href="https://codegolf.stackexchange.com/questions/110648/fewest-distinct-characters-for-turing-completeness/275492#275492">Andrew B</a></td></tr>
 <tr d-ix="1"><td>027</td><td>Ada GNAT</td><td>231123T210804Z</td><td><a href="https://codegolf.stackexchange.com/questions/110648/fewest-distinct-characters-for-turing-completeness/267029#267029">ceilingc</a></td></tr>
 <tr d-ix="2"><td>003</td><td>+</td><td>240508T120620Z</td><td><a href="https://codegolf.stackexchange.com/questions/110648/fewest-distinct-characters-for-turing-completeness/273011#273011">None1</a></td></tr>
 <tr d-ix="3"><td>008</td><td>Chicken</td><td>240508T115459Z</td><td><a href="https://codegolf.stackexchange.com/questions/110648/fewest-distinct-characters-for-turing-completeness/273009#273009">None1</a></td></tr>
@@ -112,33 +112,58 @@
 <tr d-ix="83"><td>003</td><td>Whitespace</td><td>170220T162708Z</td><td><a href="https://codegolf.stackexchange.com/questions/110648/fewest-distinct-characters-for-turing-completeness/110665#110665">NoOneIsH</a></td></tr>
 <tr d-ix="84"><td>001</td><td>Unary</td><td>170220T154126Z</td><td><a href="https://codegolf.stackexchange.com/questions/110648/fewest-distinct-characters-for-turing-completeness/110653#110653">Dennis</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/dloscutoff/Esolangs/tree/master/tinylisp" rel="nofollow noreferrer">tinylisp</a>, 4 characters</h1>
-<pre><code>(q )
+<div id="pu0" class="pu"><h1><a href="https://github.com/dloscutoff/Esolangs/tree/master/tinylisp" rel="nofollow noreferrer">tinylisp</a>, <s>4</s> 3 characters</h1>
+<pre><code>(q)
 </code></pre>
 <p>My starting point for the challenge is <a href="https://codegolf.stackexchange.com/questions/110648/fewest-distinct-characters-for-turing-completeness/110982#110982">@DLosc's Answer</a> where he presents a set of tinylisp functions that only use the built-ins d and q. I am going further by using only q. The argument is similar - that we can build a program using the <a href="https://en.wikipedia.org/wiki/SKI_combinator_calculus" rel="nofollow noreferrer">S and K combinators</a> which are <a href="http://esolangs.org/wiki/S_and_K_Turing-completeness_proof" rel="nofollow noreferrer">known to be Turing Complete</a>.</p>
 <p>Instead of d (which is very convenient) - it allows us to reference a function by name - we use a set of re-write rules. Starting with an S-Expression containing only S, K &amp; I which is our program, we apply the re-write rules in turn, replacing the left-hand-side with the right-hand-side. The end result is a program that uses only the built-in q and parameters which are strings of q's.</p>
+<h2>Update</h2>
+<p>Inspired by @emanresuA's comment, I was able to make space optional in the re-write rules by following these steps:</p>
+<ol>
+<li>Replacing <code>q</code> with <code>(q(()(qq)qq))</code> as needed</li>
+<li>Replacing <code>x</code> with <code>(q((qq)qq)x)</code> as needed</li>
+<li>Replacing functions with lists of atoms using <code>list</code> and <code>q</code></li>
+</ol>
 <h2>Re-write Rules</h2>
-<pre><code>I -&gt; ((S K) K)
+<pre>
+I -> ((S K) K)
 
-S -&gt;
- (q( (qq)
-  (list (q (qqq)) (list (q 
-   (q( (qq qqq)
-    (list (q (qqqq)) (list (q 
-     (q( (qq qqq qqqq)
-      ((qq qqqq)
-     (qqq qqqq))))
-    ) 
-    (list (q q) qq) (list (q q) qqq) (q qqqq))))
-  ))(list (q q) qq) (q qqq)))
-))
+K ->
+  (list 
+    (list ((q(()(qq)qq)) qqq))
+    (list ((q(()(qq)qq)) list) (list ((q(()(qq)qq)) q) (list ((q(()(qq)qq)) qqqq))) (list ((q(()(qq)qq)) list) (list ((q(()(qq)qq)) q) ((q(()(qq)qq)) q)) ((q(()(qq)qq)) qqq)))
+  )
 
-K -&gt;
- (q( (qq)
-   (list (q (qqq)) (list (q q) qq))))
 
-list -&gt; (q( qq qq))  
-</code></pre>
+S ->
+  (list
+    (list ((q(()(qq)qq)) qqq))
+    (list ((q(()(qq)qq)) list) (list ((q(()(qq)qq)) q) (list ((q(()(qq)qq)) qqqq))) (list ((q(()(qq)qq)) list) (list ((q(()(qq)qq)) q) 
+      ((q(()(qq)qq)) S2)) (list ((q(()(qq)qq)) list) (list ((q(()(qq)qq)) q) ((q(()(qq)qq)) q)) ((q(()(qq)qq)) qqq)) (list ((q(()(qq)qq)) q) ((q(()(qq)qq)) qqqq)))
+    )
+  )
+
+
+S2 ->
+  (list
+    (list ((q(()(qq)qq)) qqq) ((q(()(qq)qq)) qqqq))
+    (list ((q(()(qq)qq)) list) (list ((q(()(qq)qq)) q) (list ((q(()(qq)qq)) qqqqq))) (list ((q(()(qq)qq)) list) 
+      (list ((q(()(qq)qq)) q) ((q(()(qq)qq)) S3)) (list ((q(()(qq)qq)) list) (list ((q(()(qq)qq)) q) ((q(()(qq)qq)) q)) 
+      ((q(()(qq)qq)) qqq)) (list ((q(()(qq)qq)) list) (list ((q(()(qq)qq)) q) ((q(()(qq)qq)) q) ) ((q(()(qq)qq)) qqqq)) (list ((q(()(qq)qq)) q) ((q(()(qq)qq)) qqqqq)))
+    )
+  )
+
+
+S3 ->
+  (list 
+    (list ((q(()(qq)qq))qqq) ((q(()(qq)qq)) qqqq) ((q(()(qq)qq)) qqqqq))
+    (list (list ((q(()(qq)qq)) qqq) ((q(()(qq)qq)) qqqqq)) (list ((q(()(qq)qq)) qqqq) ((q(()(qq)qq)) qqqqq)))
+  )
+
+
+list -> (q(qqq ((q((qq)qq))qqq) ))
+
+</pre>  
 <h2>Example</h2>
 <p>There are two programs. If all goes well, we expect them to evaluate to the same expression, which serves as a test.</p>
 <h3>Original Code</h3>
@@ -146,26 +171,46 @@ list -&gt; (q( qq qq))
 (I K)
 </code></pre>
 <h3>After re-writing</h3>
-<pre><code>(q( (qq) ((q( qq qq)) (q (qqq)) ((q( qq qq)) (q q) qq))))
+<pre>
 
-((((q( (qq)
-  ((q( qq qq)) (q (qqq)) ((q( qq qq)) (q 
-   (q( (qq qqq)
-    ((q( qq qq)) (q (qqqq)) ((q( qq qq)) (q 
-     (q( (qq qqq qqqq)
-      ((qq qqqq)
-      (qqq qqqq))))
-    ) 
-    ((q( qq qq)) (q q) qq) ((q( qq qq)) (q q) qqq) (q qqqq))))
-  ))((q( qq qq)) (q q) qq) (q qqq)))
-)) (q( (qq)
-  ((q( qq qq)) (q (qqq)) ((q( qq qq)) (q q) qq))))) (q( (qq)
-  ((q( qq qq)) (q (qqq)) ((q( qq qq)) (q q) qq))))) (q( (qq)
-  ((q( qq qq)) (q (qqq)) ((q( qq qq)) (q q) qq)))))
-</code></pre>
-<p>As a final step, we should replace line-feeds with spaces, however I've left the line-feeds in for clarity.</p>
-<p>The TIO link contains the above code, where you can see the outputs from the two code fragments are the same as expected.</p>
-<p><a href="https://tio.run/##xZDBCoAwDEPv/Yoe208biBj04tfPdtWJYwM9CTtkIS9bu6V5n9K65CwQFkBZXAF21C5ws6jGtqRLVSIRuWjit7wl@aQYQfbZEfzAGbWjtDRGTfh/3VHuvhdD9W2EvFtUR3hMZKFif91M3eyPMFHOBw" rel="nofollow noreferrer" title="tinylisp – Try It Online">Try it online!</a></p>
+((q(qqq ((q((qq)qq))qqq) )) 
+    ((q(qqq ((q((qq)qq))qqq) )) ((q(()(qq)qq)) qqq))
+    ((q(qqq ((q((qq)qq))qqq) )) ((q(()(qq)qq)) (q(qqq ((q((qq)qq))qqq) ))) ((q(qqq ((q((qq)qq))qqq) )) ((q(()(qq)qq)) q) ((q(qqq ((q((qq)qq))qqq) )) ((q(()(qq)qq)) qqqq))) ((q(qqq ((q((qq)qq))qqq) )) ((q(()(qq)qq)) (q(qqq ((q((qq)qq))qqq) ))) ((q(qqq ((q((qq)qq))qqq) )) ((q(()(qq)qq)) q) ((q(()(qq)qq)) q)) ((q(()(qq)qq)) qqq)))
+  )
+
+
+
+(((((q(qqq ((q((qq)qq))qqq) ))
+    ((q(qqq ((q((qq)qq))qqq) )) ((q(()(qq)qq)) qqq))
+    ((q(qqq ((q((qq)qq))qqq) )) ((q(()(qq)qq)) (q(qqq ((q((qq)qq))qqq) ))) ((q(qqq ((q((qq)qq))qqq) )) ((q(()(qq)qq)) q) ((q(qqq ((q((qq)qq))qqq) )) ((q(()(qq)qq)) qqqq))) ((q(qqq ((q((qq)qq))qqq) )) ((q(()(qq)qq)) (q(qqq ((q((qq)qq))qqq) ))) ((q(qqq ((q((qq)qq))qqq) )) ((q(()(qq)qq)) q) 
+      ((q(()(qq)qq)) ((q(qqq ((q((qq)qq))qqq) ))
+    ((q(qqq ((q((qq)qq))qqq) )) ((q(()(qq)qq)) qqq) ((q(()(qq)qq)) qqqq))
+    ((q(qqq ((q((qq)qq))qqq) )) ((q(()(qq)qq)) (q(qqq ((q((qq)qq))qqq) ))) ((q(qqq ((q((qq)qq))qqq) )) ((q(()(qq)qq)) q) ((q(qqq ((q((qq)qq))qqq) )) ((q(()(qq)qq)) qqqqq))) ((q(qqq ((q((qq)qq))qqq) )) ((q(()(qq)qq)) (q(qqq ((q((qq)qq))qqq) ))) 
+      ((q(qqq ((q((qq)qq))qqq) )) ((q(()(qq)qq)) q) ((q(()(qq)qq)) ((q(qqq ((q((qq)qq))qqq) )) 
+    ((q(qqq ((q((qq)qq))qqq) )) ((q(()(qq)qq))qqq) ((q(()(qq)qq)) qqqq) ((q(()(qq)qq)) qqqqq))
+    ((q(qqq ((q((qq)qq))qqq) )) ((q(qqq ((q((qq)qq))qqq) )) ((q(()(qq)qq)) qqq) ((q(()(qq)qq)) qqqqq)) ((q(qqq ((q((qq)qq))qqq) )) ((q(()(qq)qq)) qqqq) ((q(()(qq)qq)) qqqqq)))
+  ))) ((q(qqq ((q((qq)qq))qqq) )) ((q(()(qq)qq)) (q(qqq ((q((qq)qq))qqq) ))) ((q(qqq ((q((qq)qq))qqq) )) ((q(()(qq)qq)) q) ((q(()(qq)qq)) q)) 
+      ((q(()(qq)qq)) qqq)) ((q(qqq ((q((qq)qq))qqq) )) ((q(()(qq)qq)) (q(qqq ((q((qq)qq))qqq) ))) ((q(qqq ((q((qq)qq))qqq) )) ((q(()(qq)qq)) q) ((q(()(qq)qq)) q) ) ((q(()(qq)qq)) qqqq)) ((q(qqq ((q((qq)qq))qqq) )) ((q(()(qq)qq)) q) ((q(()(qq)qq)) qqqqq)))
+    )
+  ))) ((q(qqq ((q((qq)qq))qqq) )) ((q(()(qq)qq)) (q(qqq ((q((qq)qq))qqq) ))) ((q(qqq ((q((qq)qq))qqq) )) ((q(()(qq)qq)) q) ((q(()(qq)qq)) q)) ((q(()(qq)qq)) qqq)) ((q(qqq ((q((qq)qq))qqq) )) ((q(()(qq)qq)) q) ((q(()(qq)qq)) qqqq)))
+    )
+  ) ((q(qqq ((q((qq)qq))qqq) )) 
+    ((q(qqq ((q((qq)qq))qqq) )) ((q(()(qq)qq)) qqq))
+    ((q(qqq ((q((qq)qq))qqq) )) ((q(()(qq)qq)) (q(qqq ((q((qq)qq))qqq) ))) ((q(qqq ((q((qq)qq))qqq) )) ((q(()(qq)qq)) q) ((q(qqq ((q((qq)qq))qqq) )) ((q(()(qq)qq)) qqqq))) ((q(qqq ((q((qq)qq))qqq) )) ((q(()(qq)qq)) (q(qqq ((q((qq)qq))qqq) ))) ((q(qqq ((q((qq)qq))qqq) )) ((q(()(qq)qq)) q) ((q(()(qq)qq)) q)) ((q(()(qq)qq)) qqq)))
+  )) ((q(qqq ((q((qq)qq))qqq) )) 
+    ((q(qqq ((q((qq)qq))qqq) )) ((q(()(qq)qq)) qqq))
+    ((q(qqq ((q((qq)qq))qqq) )) ((q(()(qq)qq)) (q(qqq ((q((qq)qq))qqq) ))) ((q(qqq ((q((qq)qq))qqq) )) ((q(()(qq)qq)) q) ((q(qqq ((q((qq)qq))qqq) )) ((q(()(qq)qq)) qqqq))) ((q(qqq ((q((qq)qq))qqq) )) ((q(()(qq)qq)) (q(qqq ((q((qq)qq))qqq) ))) ((q(qqq ((q((qq)qq))qqq) )) ((q(()(qq)qq)) q) ((q(()(qq)qq)) q)) ((q(()(qq)qq)) qqq)))
+  )) ((q(qqq ((q((qq)qq))qqq) )) 
+    ((q(qqq ((q((qq)qq))qqq) )) ((q(()(qq)qq)) qqq))
+    ((q(qqq ((q((qq)qq))qqq) )) ((q(()(qq)qq)) (q(qqq ((q((qq)qq))qqq) ))) ((q(qqq ((q((qq)qq))qqq) )) ((q(()(qq)qq)) q) ((q(qqq ((q((qq)qq))qqq) )) ((q(()(qq)qq)) qqqq))) ((q(qqq ((q((qq)qq))qqq) )) ((q(()(qq)qq)) (q(qqq ((q((qq)qq))qqq) ))) ((q(qqq ((q((qq)qq))qqq) )) ((q(()(qq)qq)) q) ((q(()(qq)qq)) q)) ((q(()(qq)qq)) qqq)))
+  ))
+
+
+
+</pre>
+<p>As a final step, we should remove line-feeds and spaces, however I've left the line-feeds and spaces in for clarity.</p>
+<p>The TIO link contains the above code, where you can see the outputs from the two code fragments are the same, as expected.</p>
+<p><a href="https://tio.run/##7ZbbCoMwDIbv8xS57P9ogsjCdrOnr40w5lgji63QQaSihDanrwl5TMtznu63nIlSkiQirN/yg7LKK2CAictztGGT4SVlFcN7yN4Jl204PRWngb5@fkjqidRMgkgRpQMDAekSP7cM8Zf@vhzqEf8NnJ50dvk@XUkde5lJx8jDT@obb4bAXz4WNu0tA/W/erW5Q77QRzaKtVHvG4c2@7GgtNKw@tsuWo7xY@jxIwAFoADUBEgn@JxX" rel="nofollow noreferrer" title="tinylisp – Try It Online">Try it online!</a></p>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://www.gnu.org/software/gnat" rel="nofollow noreferrer">Ada (GNAT)</a>, <s>29 28</s> 27 distinct characters</h1>
 <p>It is possible to construct any computer program in GNAT with the following set of characters...</p>
@@ -283,16 +328,16 @@ f()
 </code></pre>
 <p><code>⍬</code> can be represented with <code>1↓1</code> and <code>0</code> can be represented with <code>⊃1↓1</code>.</p>
 </div>
-<div id="pu5" class="pu"><h1><a href="https://github.com/Vyxal/Vyxal" rel="nofollow noreferrer">Vyxal</a>, 3 characters</h1>
+<div id="pu5" class="pu"><h1><a href="https://github.com/Vyxal/Vyxal" rel="noreferrer">Vyxal</a>, 3 characters</h1>
 <pre><code>`/¢
 </code></pre>
 <p>This answer has been several months in the making. I've spent a lot of time trying to find a 3-character Turing-Complete subset of Vyxal, and honestly this answer was somewhat obvious.</p>
-<p>As I showed <a href="https://codegolf.stackexchange.com/a/264467/100664">here</a>, the Vyxal builtin <code>¢</code> on its own is Turing-Complete, as it can interpret a variant of <a href="https://esolangs.org/wiki/Thue" rel="nofollow noreferrer">Thue</a>. However, that answer takes input in a very specific format; here we need to construct the input within the program itself.</p>
+<p>As I showed <a href="https://codegolf.stackexchange.com/a/264467/100664">here</a>, the Vyxal builtin <code>¢</code> on its own is Turing-Complete, as it can interpret a variant of <a href="https://esolangs.org/wiki/Thue" rel="noreferrer">Thue</a>. However, that answer takes input in a very specific format; here we need to construct the input within the program itself.</p>
 <p>Essentially, <code>¢</code> takes two lists of strings and a string to perform replacements on, and repeatedly applies replacements until the string doesn't change, which is sufficient for Turing-Completeness provided the strings are sufficiently complex. Thue requires at least two different symbols to be Turing-Complete (then arbitrarily many symbols can be generated by concatenatng the two).</p>
 <p>So, we need some way to construct arbitrary strings / string lists that contain more than two distinct symbols. That's what the other two characters are for. <code>`abc`</code> delimits a string of characters <code>abc</code>, and <code>/</code> splits a string by another string. By splitting by a constant string (which then can't be used) we can construct arbitrary sets of rules. There's just one snag.</p>
 <p>As I said before, Thue needs to have two distinct symbols to be Turing-Complete. However, in strings we can only have the symbols <code>/¢</code>, and we need to use one to split by. This is further complicated by that, in strings, Vyxal decompresses non-unicode characters into common words and expressions - <code>¢¢</code> becomes <code>eyes</code> and <code>¢</code> becomes <code>[^aeiou]</code>. For the sake of simplicity I'm just going to use <code>¢¢</code> and pretend <code>¢</code> doesn't exist.</p>
 <p>In short, we need to construct three symbols out of <code>/</code> and <code>¢¢</code>, such that no concatenation of any of them can contain any of them, ensuring they can be concatenated without causing problems. I came up with the set <code>//¢¢//</code>, <code>¢¢¢¢/¢¢¢¢</code>, <code>¢¢/¢¢/¢¢</code>, although something simpler probably exists.</p>
-<p>With all of that, we can create arbitrarily complex replacement systems and emulate the behaviour of any Thue program, which is sufficient for Turing-Completeness! To do so, we push an initial string containing some combination of <code>¢¢¢¢/¢¢¢¢</code> and <code>¢¢/¢¢/¢¢</code>, then two sets of rules containing some combination of <code>//¢¢//</code>, <code>¢¢¢¢/¢¢¢¢</code>, <code>¢¢/¢¢/¢¢</code> and split them by <code>//¢¢//</code>, then simply run <code>¢</code>. <a href="https://vyxal.pythonanywhere.com/?v=2#WyIiLCIiLCJcbiMgU3ltYm9sczogXG4jIMKiwqLCosKiL8KiwqLCosKiwqLCosKiwqIvwqLCosKiwqLCosKiwqLCoi/CosKiwqLCoiA9IDFcbiMgwqLCosKiwqIvwqLCosKiwqLCosKiwqLCoi/CosKiwqLCosKiwqIvwqLCoi/CosKiICA9IDBcbiMgwqLCosKiwqIvwqLCosKiwqLCosKiL8KiwqIvwqLCosKiL8KiwqIvwqIgPSBeXG4jIMKiwqLCosKiL8KiwqLCosKiwqLCoi/CosKiL8KiwqLCosKiwqIvwqLCosKiwqIgPSAqXG4jIC8vwqLCoi8vID0gZGVsaW1cblxuIyBUaGlzIGJpdCBpcyBqdXN0IHByZXByb2Nlc3NpbmcgdGhlIGlucHV0LiBUaGUgaW5wdXQgY291bGQganVzdCBiZSBpbnNlcnRlZCBkaXJlY3RseSBpbnRvIHRoZSBwcm9ncmFtLlxuYDFgIGDCosKiwqLCoi/CosKiwqLCosKiwqLCosKiL8KiwqLCosKiwqLCosKiwqIvwqLCosKiwqJgIFZcbmAwYCBgwqLCosKiwqIvwqLCosKiwqLCosKiwqLCoi/CosKiwqLCosKiwqIvwqLCoi/CosKiYCBWXG5gXmAgYMKiwqLCosKiL8KiwqLCosKiwqLCoi/CosKiL8KiwqLCosKiL8KiwqIvwqLComAgVlxuYCpgIGDCosKiwqLCoi/CosKiwqLCosKiwqIvwqLCoi/CosKiwqLCosKiwqIvwqLCosKiwqJgIFZcblxuYElucHV0OiBgICwg4oCmXG46IMO4RCBgSW5wdXQgcmVwcmVzZW50YXRpb246IGAgLCAsXG5cbiMgSGVyZSdzIHRoZSBhY3R1YWwgcHJvZ3JhbVxuXG5gwqLCosKiwqIvwqLCosKiwqLCosKiwqLCoi/CosKiwqLCosKiwqLCosKiL8KiwqLCosKiLy/CosKiLy/CosKiwqLCoi/CosKiwqLCosKiwqIvwqLCoi/CosKiwqLCosKiwqIvwqLCosKiwqLCosKiwqLCoi/CosKiwqLCosKiwqLCosKiL8KiwqLCosKiwqLCoi/CosKiL8KiwqIvL8KiwqIvL8KiwqLCosKiL8KiwqLCosKiwqLCoi/CosKiL8KiwqLCosKiL8KiwqIvwqLCosKiwqLCosKiL8KiwqLCosKiwqLCosKiwqIvwqLCosKiwqLCosKiL8KiwqIvwqLComBgLy/CosKiLy9gL2DCosKiwqLCoi/CosKiwqLCosKiwqLCosKiL8KiwqLCosKiwqLCoi/CosKiL8KiwqLCosKiwqLCoi/CosKiwqLCosKiwqIvwqLCoi/CosKiwqLCosKiwqIvwqLCosKiwqIvL8KiwqIvL8KiwqLCosKiL8KiwqLCosKiwqLCosKiwqIvwqLCosKiwqLCosKiL8KiwqIvwqLCosKiwqLCosKiL8KiwqLCosKiwqLCoi/CosKiL8KiwqLCosKiwqLCoi/CosKiwqLCosKiwqLCosKiL8KiwqLCosKiwqLCoi/CosKiL8KiwqLCosKiwqLCoi/CosKiwqLCoi8vwqLCoi8vwqLCosKiwqIvwqLCosKiwqLCosKiL8KiwqIvwqLCosKiwqIvwqLCoi/CosKiYGAvL8KiwqIvL2AvwqJcblxuIyBwb3N0cHJvY2Vzc2luZ1xuXG5gT3V0cHV0OiBgICwg4oCmXG46IMO4RCBgT3V0cHV0IHJlcHJlc2VudGF0aW9uOiBgICwgLFxuXG5gwqLCosKiwqIvwqLCosKiwqLCosKiL8KiwqIvwqLCosKiwqLCosKiL8KiwqLCosKiYCBgKmAgVlxuYMKiwqLCosKiL8KiwqLCosKiwqLCoi/CosKiL8KiwqLCosKiL8KiwqIvwqLComAgYF5gIFZcblxuYFJlYWRhYmxlIHVuYXJ5IG91dHB1dDogYCAsIOKAplxuXG5gTnVtYmVyOmAsTOKAuSxcblxuIiwiIiwiXjEwMTEiXQ==" rel="nofollow noreferrer">Here</a>'s a extremely-overcomplicated binary-to-unary converter with some vague explanations of what's going on, and it's possible to expand this approach to emulate any possible Thue program.</p>
+<p>With all of that, we can create arbitrarily complex replacement systems and emulate the behaviour of any Thue program, which is sufficient for Turing-Completeness! To do so, we push an initial string containing some combination of <code>¢¢¢¢/¢¢¢¢</code> and <code>¢¢/¢¢/¢¢</code>, then two sets of rules containing some combination of <code>//¢¢//</code>, <code>¢¢¢¢/¢¢¢¢</code>, <code>¢¢/¢¢/¢¢</code> and split them by <code>//¢¢//</code>, then simply run <code>¢</code>. <a href="https://vyxal.pythonanywhere.com/?v=2#WyIiLCIiLCJcbiMgU3ltYm9sczogXG4jIMKiwqLCosKiL8KiwqLCosKiwqLCosKiwqIvwqLCosKiwqLCosKiwqLCoi/CosKiwqLCoiA9IDFcbiMgwqLCosKiwqIvwqLCosKiwqLCosKiwqLCoi/CosKiwqLCosKiwqIvwqLCoi/CosKiICA9IDBcbiMgwqLCosKiwqIvwqLCosKiwqLCosKiL8KiwqIvwqLCosKiL8KiwqIvwqIgPSBeXG4jIMKiwqLCosKiL8KiwqLCosKiwqLCoi/CosKiL8KiwqLCosKiwqIvwqLCosKiwqIgPSAqXG4jIC8vwqLCoi8vID0gZGVsaW1cblxuIyBUaGlzIGJpdCBpcyBqdXN0IHByZXByb2Nlc3NpbmcgdGhlIGlucHV0LiBUaGUgaW5wdXQgY291bGQganVzdCBiZSBpbnNlcnRlZCBkaXJlY3RseSBpbnRvIHRoZSBwcm9ncmFtLlxuYDFgIGDCosKiwqLCoi/CosKiwqLCosKiwqLCosKiL8KiwqLCosKiwqLCosKiwqIvwqLCosKiwqJgIFZcbmAwYCBgwqLCosKiwqIvwqLCosKiwqLCosKiwqLCoi/CosKiwqLCosKiwqIvwqLCoi/CosKiYCBWXG5gXmAgYMKiwqLCosKiL8KiwqLCosKiwqLCoi/CosKiL8KiwqLCosKiL8KiwqIvwqLComAgVlxuYCpgIGDCosKiwqLCoi/CosKiwqLCosKiwqIvwqLCoi/CosKiwqLCosKiwqIvwqLCosKiwqJgIFZcblxuYElucHV0OiBgICwg4oCmXG46IMO4RCBgSW5wdXQgcmVwcmVzZW50YXRpb246IGAgLCAsXG5cbiMgSGVyZSdzIHRoZSBhY3R1YWwgcHJvZ3JhbVxuXG5gwqLCosKiwqIvwqLCosKiwqLCosKiwqLCoi/CosKiwqLCosKiwqLCosKiL8KiwqLCosKiLy/CosKiLy/CosKiwqLCoi/CosKiwqLCosKiwqIvwqLCoi/CosKiwqLCosKiwqIvwqLCosKiwqLCosKiwqLCoi/CosKiwqLCosKiwqLCosKiL8KiwqLCosKiwqLCoi/CosKiL8KiwqIvL8KiwqIvL8KiwqLCosKiL8KiwqLCosKiwqLCoi/CosKiL8KiwqLCosKiL8KiwqIvwqLCosKiwqLCosKiL8KiwqLCosKiwqLCosKiwqIvwqLCosKiwqLCosKiL8KiwqIvwqLComBgLy/CosKiLy9gL2DCosKiwqLCoi/CosKiwqLCosKiwqLCosKiL8KiwqLCosKiwqLCoi/CosKiL8KiwqLCosKiwqLCoi/CosKiwqLCosKiwqIvwqLCoi/CosKiwqLCosKiwqIvwqLCosKiwqIvL8KiwqIvL8KiwqLCosKiL8KiwqLCosKiwqLCosKiwqIvwqLCosKiwqLCosKiL8KiwqIvwqLCosKiwqLCosKiL8KiwqLCosKiwqLCoi/CosKiL8KiwqLCosKiwqLCoi/CosKiwqLCosKiwqLCosKiL8KiwqLCosKiwqLCoi/CosKiL8KiwqLCosKiwqLCoi/CosKiwqLCoi8vwqLCoi8vwqLCosKiwqIvwqLCosKiwqLCosKiL8KiwqIvwqLCosKiwqIvwqLCoi/CosKiYGAvL8KiwqIvL2AvwqJcblxuIyBwb3N0cHJvY2Vzc2luZ1xuXG5gT3V0cHV0OiBgICwg4oCmXG46IMO4RCBgT3V0cHV0IHJlcHJlc2VudGF0aW9uOiBgICwgLFxuXG5gwqLCosKiwqIvwqLCosKiwqLCosKiL8KiwqIvwqLCosKiwqLCosKiL8KiwqLCosKiYCBgKmAgVlxuYMKiwqLCosKiL8KiwqLCosKiwqLCoi/CosKiL8KiwqLCosKiL8KiwqIvwqLComAgYF5gIFZcblxuYFJlYWRhYmxlIHVuYXJ5IG91dHB1dDogYCAsIOKAplxuXG5gTnVtYmVyOmAsTOKAuSxcblxuIiwiIiwiXjEwMTEiXQ==" rel="noreferrer">Here</a>'s a extremely-overcomplicated binary-to-unary converter with some vague explanations of what's going on, and it's possible to expand this approach to emulate any possible Thue program.</p>
 <p>I feel like three characters is optimal for this, and I can't imagine how a two-character solution would work.</p>
 </div>
 <div id="pu6" class="pu"><h1>Vyxal, 6 characters</h1>
@@ -318,14 +363,14 @@ f()
 <p>As an example, the following program written in the above style prints <code>Hello, World!</code> on Linux and OSX on x86 and x86_64.</p>
 <pre><code>main[]={11111111111111+1111111111111+111111111111+111111111111+111111111111+111111111111+111111111111+11111+1111+1111+1111+1111+1111+111+111+1,1111111111111111+1111111111111111+11111111111+1111111111+11111111+11111111+111111+1111+111+111+11+11+1+1+1+1,111111111111111+11111111111+1111111111+1111111111+1111111111+1111111+1111111+111111+111111+111111+111111+1111+1111+1111+111+111+111+111+11+11+1,111111111111111111+11111111111111111+111111111111+111111111111+111111111+111111+111111+111111+111111+1111+111+11+11+11+11+11+11+11+11+11+1+1+1+1,11111111111111111+111111111111+111111111+111111111+111111111+111111111+11111111+11111111+11111+1111+1111+11+11+11+1+1+1+1,111111111111111111+11111111111111+1111111111111+1111111111111+111111111111+111111111111+11111111111+111111+111111+111111+111111+1111+11+11+11+1+1+1+1+1,11111111111111+1111111111+1111111111+1111111111+1111111111+111111111+1111111+1111111+111111+111111+111111+1111+1111+1111+1111+1111+1111+111+111+111+111+111+11+1+1+1,111111111111+111111111111+11111111111+11111111111+11111111111+11111111111+1111111111+1111111+1111111+1111111+11111+11111+11111+111+11+11,111111111111111+11111111111111+1111111111+111111111+111111111+111111111+1111111+111111+111111+11111+11111+11111+11111+11111+1111+1,1111111111111+1111111111111+1111111111+111111111+11111111+111111+111111+111111+111111+111111+111111+111111+11111+111+111+111+11+11+11+11+11+1+1,111111111111111111+11111111111111+11111111111+11111111111+1111111111+1111111111+1111111111+111111111+11111111+1111111+111111+111111+1111+1111+1+1,1111111111111111+111111111111+11111111111+11111111111+11111111+111111+111111+111111+111111+111111+1111+1111+1111+1111+1111+111+111+111+111+111+111+11+11+11+11+1+1+1+1,111111111111111111+11111111111111111+1111111111111111+11111111111+111111111+11111111+1111111+1111111+111111+11111+1111+111+111+111+11+1+1+1+1+1+1+1+1+1,11111111111111111+11111111111111111+11111111111111111+11111111111111+1111111111111+11111111111+11111111111+1111111+1111+1111+1111+1111+1111+1111+1+1+1+1+1,111111111111111111+111111111111+11111111111+111111111+111111+1111+1111+1111+11+11+11+1+1+1+1+1+1+1+1+1,11111111111+11111111111+11111111111+1111111111+111111+11111+11111+11111+11111+1111+1111+1111+1111+1111+1111+1111+111+111+1+1,1111111111111111+1111111111111111+11111111111111+1111111111111+111111111+111111111+11111111+1111111+111111+11111+11111+11111+11111+111+111+11+11+11,11111111111111111+11111111111111111+1111111111111+111111111+111111111+11111111+111111+111111+111111+111111+111111+111111+11111+111+111+111+11+11+11+11+11+1,111111111+11111+11111+111+1};
 </code></pre>
-<p><a href="https://tio.run/##rVbLDoIwEPygKYeejV9iPJAGifFxwYPR@OvWAyRK2e5OizzaLSHsdDo7NDR9CDFe2uN1t98@/exAflQ/gNaMt/NeA5I8gBCmQZJgvMbTFX5aDCGkEztpunNUi8kL06cYp7BAu2SCrIRWBEUPVuaUCqzWK8PSHNUCF6pCXjpExSQyWoAEoXAmhtqn7cibo5eQE5BElNqmC4aC/KjrpML@kVGZsOFXCUwjbmosyzXRoMr@VBWTXmSZYx4@qEqEzxUY8o7AweLNTIota2Apg/nzgOaFUhpevEbdcrIp3TAoVLPVk/W7L0XlksA/jUh1ICftyaZXX5sY3@FwbvshNo/u3oXh1obTBw" rel="nofollow noreferrer" title="C (gcc) – Try It Online">Try it online!</a></p>
+<p><a href="https://tio.run/##rVbLDoIwEPygKYeejV9iPJAGifFxwYPR@OvWAyRK2e5OizzaLSHsdDo7NDR9CDFe2uN1t98@/exAflQ/gNaMt/NeA5I8gBCmQZJgvMbTFX5aDCGkEztpunNUi8kL06cYp7BAu2SCrIRWBEUPVuaUCqzWK8PSHNUCF6pCXjpExSQyWoAEoXAmhtqn7cibo5eQE5BElNqmC4aC/KjrpML@kVGZsOFXCUwjbmosyzXRoMr@VBWTXmSZYx4@qEqEzxUY8o7AweLNTIota2Apg/nzgOaFUhpevEbdcrIp3TAoVLPVk/W7L0XlksA/jUh1ICftyaZXX5sY3@FwbvshNo/u3oXh1obTBw" rel="noreferrer" title="C (gcc) – Try It Online">Try it online!</a></p>
 <h1>C (gcc) (unportable), <s>24 18 13</s> 8 characters</h1>
 <pre><code>+1;=aimn
 </code></pre>
 <p>It is possible to build any program using fewer than 13 distinct characters by abusing the linker and laying out the machine code in such a way that it spans several scalar variables. This technique is much more sensitive to toolchain particulars. The following is the above program converted to this format for gcc</p>
 <pre><code>main=11111111111111+1111111111111+111111111111+111111111111+111111111111+111111111111+111111111111+11111+1111+1111+1111+1111+1111+111+111+1;mainn=1111111111111111+1111111111111111+11111111111+1111111111+11111111+11111111+111111+1111+111+111+11+11+1+1+1+1;mainnn=111111111111111+11111111111+1111111111+1111111111+1111111111+1111111+1111111+111111+111111+111111+111111+1111+1111+1111+111+111+111+111+11+11+1;mainnnn=111111111111111111+11111111111111111+111111111111+111111111111+111111111+111111+111111+111111+111111+1111+111+11+11+11+11+11+11+11+11+11+1+1+1+1;mainnnnn=11111111111111111+111111111111+111111111+111111111+111111111+111111111+11111111+11111111+11111+1111+1111+11+11+11+1+1+1+1;mainnnnnn=111111111111111111+11111111111111+1111111111111+1111111111111+111111111111+111111111111+11111111111+111111+111111+111111+111111+1111+11+11+11+1+1+1+1+1;mainnnnnnn=11111111111111+1111111111+1111111111+1111111111+1111111111+111111111+1111111+1111111+111111+111111+111111+1111+1111+1111+1111+1111+1111+111+111+111+111+111+11+1+1+1;mainnnnnnnn=111111111111+111111111111+11111111111+11111111111+11111111111+11111111111+1111111111+1111111+1111111+1111111+11111+11111+11111+111+11+11;mainnnnnnnnn=111111111111111+11111111111111+1111111111+111111111+111111111+111111111+1111111+111111+111111+11111+11111+11111+11111+11111+1111+1;mainnnnnnnnnn=1111111111111+1111111111111+1111111111+111111111+11111111+111111+111111+111111+111111+111111+111111+111111+11111+111+111+111+11+11+11+11+11+1+1;mainnnnnnnnnnn=111111111111111111+11111111111111+11111111111+11111111111+1111111111+1111111111+1111111111+111111111+11111111+1111111+111111+111111+1111+1111+1+1;mainnnnnnnnnnnn=1111111111111111+111111111111+11111111111+11111111111+11111111+111111+111111+111111+111111+111111+1111+1111+1111+1111+1111+111+111+111+111+111+111+11+11+11+11+1+1+1+1;mainnnnnnnnnnnnn=111111111111111111+11111111111111111+1111111111111111+11111111111+111111111+11111111+1111111+1111111+111111+11111+1111+111+111+111+11+1+1+1+1+1+1+1+1+1;mainnnnnnnnnnnnnn=11111111111111111+11111111111111111+11111111111111111+11111111111111+1111111111111+11111111111+11111111111+1111111+1111+1111+1111+1111+1111+1111+1+1+1+1+1;mainnnnnnnnnnnnnnn=111111111111111111+111111111111+11111111111+111111111+111111+1111+1111+1111+11+11+11+1+1+1+1+1+1+1+1+1;mainnnnnnnnnnnnnnnn=11111111111+11111111111+11111111111+1111111111+111111+11111+11111+11111+11111+1111+1111+1111+1111+1111+1111+1111+111+111+1+1;mainnnnnnnnnnnnnnnnn=1111111111111111+1111111111111111+11111111111111+1111111111111+111111111+111111111+11111111+1111111+111111+11111+11111+11111+11111+111+111+11+11+11;mainnnnnnnnnnnnnnnnnn=11111111111111111+11111111111111111+1111111111111+111111111+111111111+11111111+111111+111111+111111+111111+111111+111111+11111+111+111+111+11+11+11+11+11+1;mainnnnnnnnnnnnnnnnnnn=111111111+11111+11111+111+1;
 </code></pre>
-<p><a href="https://tio.run/##rZbdDoIwDIUf6IQLrokPQxYkxp8bTDQ@vDNmJK6la7uh4la46ceh52Do5hBivI6n26EnH5TP2k@gLek3fFk4DMdhFyCUvGBt0pG@qeWmp9VBLCF0FTfp3incirXVQlDD9RhcTNAOopdEpne2KijTUkBwqIPdc@0RjvLlhIqzKkr/gDlMxoaN8VJgODzhqaHufE1y5lCqPy3VFCWhYbBRJDwMCBU0aNuklMgGj9JVOgP9rrHUVF2XDaCR8iYdmqJW9YKed35l/W8suAyOvuRbyJlTJEX9FVQNjZVBZVhTV5ivNWiRrHQmrf22MOLCN4AyUOVfIOUxec1aDOKfliJow5Dhn@GopqJMnCFv73eI8R2Ol3FeYveanlNY7mM4x@7xAQ" rel="nofollow noreferrer" title="C (gcc) – Try It Online">Try it online!</a></p>
+<p><a href="https://tio.run/##rZbdDoIwDIUf6IQLrokPQxYkxp8bTDQ@vDNmJK6la7uh4la46ceh52Do5hBivI6n26EnH5TP2k@gLek3fFk4DMdhFyCUvGBt0pG@qeWmp9VBLCF0FTfp3incirXVQlDD9RhcTNAOopdEpne2KijTUkBwqIPdc@0RjvLlhIqzKkr/gDlMxoaN8VJgODzhqaHufE1y5lCqPy3VFCWhYbBRJDwMCBU0aNuklMgGj9JVOgP9rrHUVF2XDaCR8iYdmqJW9YKed35l/W8suAyOvuRbyJlTJEX9FVQNjZVBZVhTV5ivNWiRrHQmrf22MOLCN4AyUOVfIOUxec1aDOKfliJow5Dhn@GopqJMnCFv73eI8R2Ol3FeYveanlNY7mM4x@7xAQ" rel="noreferrer" title="C (gcc) – Try It Online">Try it online!</a></p>
 <p>It is possible to represent any program with 5 distinct characters <code>+1;=a</code> by <a href="https://codegolf.stackexchange.com/questions/201650/hello-ascii-world/201711#201711">replacing <code>main</code> with a shorter entry point.</a></p>
 <p>Thanks to @Bubbler for 8 -&gt; 5</p>
 <p>Edit: More compact encoding in example programs.</p>
