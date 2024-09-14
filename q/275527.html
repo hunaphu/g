@@ -28,14 +28,36 @@
   </tr>
 <tr d-ix="0"><td>102</td><td>C clang</td><td>240914T090748Z</td><td><a href="https://codegolf.stackexchange.com/questions/275527/branchless-median-of-5/275530#275530">Neil</a></td></tr>
 <tr d-ix="1"><td>061</td><td>Python 3</td><td>240914T073427Z</td><td><a href="https://codegolf.stackexchange.com/questions/275527/branchless-median-of-5/275528#275528">Redz</a></td></tr>
-<tr d-ix="2"><td>003</td><td>Vyxal 3</td><td>240914T074552Z</td><td><a href="https://codegolf.stackexchange.com/questions/275527/branchless-median-of-5/275529#275529">lyxal</a></td></tr>
 </table>
 <div id="pu0" class="pu"><h1><a href="http://clang.llvm.org/" rel="nofollow noreferrer">C (clang)</a>, <s>105</s> 102 bytes</h1>
-
 <pre class="lang-c prettyprint-override"><code>#define s(x,y)x&gt;y?f=x,x=y,y=f:y;
 f;int m(a,b,c,d,e){s(a,b)s(d,e)s(a,d)s(b,e)s(b,c)s(c,d)return s(b,c)}
 </code></pre>
-<p><a href="https://tio.run/##VZFhb4IwEIY/y6@4aJaA3hYRnGyI@yGMD9AWbeLqArhADL@dXY9pWELbu@e9vukd4lmcc3McFtqI81Uq2NeN1JeX08HRphkWUpXaKKjdFjuvPXQfZdJim3TYJeV7FztlTGXw5eZYoECJyrvVNvFq1yY2lrQXHFMJ7VTmVaq5VgZG1A/Wo1F1U6dZus0ggZszu4UIW/5eEYIeibxRgEB7hLBhErG6Yegz2VGAsGO4ZTKa/N1l4rM6VkZMKA2ZkNuOScBqMPrffUJOo/t7/Pt7KAh7p48dHkaujWuDvDoKBHHKq@XSJj@e7au8VMCypj7XMR178O25WrE@46ukjQPRWbrO4j9cTLH/wGKKNw8spzh4YDXFIePvioTSnadPEuH/ymh9mjlCjlBQNwiEFfIvnwDPIx8awfAL" rel="nofollow noreferrer" title="C (clang) – Try It Online">Try it online!</a> Link includes test suite. Explanation: If <code>f</code> is turned into a local variable then <code>clang</code> is able to optimise all of the swaps to a series of compares and <code>cmov</code> instructions. This is not a full sorting network (it would need to end with <code>s(a,b)s(d,e)</code>) but <code>c</code> is always the median by this point. Edit: Saved 3 bytes thanks to @l4m2.</p>
+<p><a href="https://tio.run/##VZFhb4IwEIY/y6@4aJaA3hYRnGyI@yGMD9AWbeLqArhADL@dXY9pWELbu@e9vukd4lmcc3McFtqI81Uq2NeN1JeX08HRphkWUpXaKKjdFjuvPXQfZdJim3TYJeV7FztlTGXw5eZYoECJyrvVNvFq1yY2lrQXHFMJ7VTmVaq5VgZG1A/Wo1F1U6dZus0ggZszu4UIW/5eEYIeibxRgEB7hLBhErG6Yegz2VGAsGO4ZTKa/N1l4rM6VkZMKA2ZkNuOScBqMPrffUJOo/t7/Pt7KAh7p48dHkaujWuDvDoKBHHKq@XSJj@e7au8VMCypj7XMR178O25WrE@46ukjQPRWbrO4j9cTLH/wGKKNw8spzh4YDXFIePvioTSnadPEuH/ymh9mjlCjlBQNwiEFfIvnwDPIx8awfAL" rel="nofollow noreferrer" title="C (clang) – Try It Online">Try it online!</a> Link includes test suite. Explanation: This is not a full sorting network (it would need to end with <code>s(a,b)s(d,e)</code>) but <code>c</code> is always the median by this point. Edit: Saved 3 bytes thanks to @l4m2.</p>
+<p>If <code>f</code> is turned into a local variable then <code>clang</code> is able to optimise all of the swaps to a series of compares and <code>cmov</code> instructions:</p>
+<pre><code>    cmp     edi, esi ; s(a,b) edi = a esi = b
+    mov     r9d, esi
+    cmovl   r9d, edi ; r9d = a = min(a, b)
+    cmovg   esi, edi ; esi = b = max(a, b)
+    cmp     ecx, r8d ; s(d,e) ecx = d r8d = e
+    mov     eax, r8d
+    cmovl   eax, ecx ; eax = d = min(d, e)
+    cmovg   r8d, ecx ; r8d = e = max(d, e)
+    cmp     r9d, eax ; s(a,d) r9d = a eax = d
+    cmovg   eax, r9d ; eax = d = max(a, d)
+    cmp     esi, r8d ; s(b,e) esi = b r8d = e
+    cmovl   r8d, esi ; r8d = b = min(b, e)
+    cmp     r8d, edx ; s(b,c) r8d = b edx = c
+    mov     ecx, edx
+    cmovl   ecx, r8d ; ecx = b = min(b, c)
+    cmovle  r8d, edx ; r8d = c = max(b, c)
+    cmp     r8d, eax ; s(c,d) r8d = c eax = d
+    cmovl   eax, r8d ; eax = c = min(c, d)
+    cmp     ecx, eax ; s(b,c) ecx = b eax = c
+    cmovg   eax, ecx ; eax = c = max(b, c)
+    ret              ; return c
+</code></pre>
+<p>Note that clang optimises away the obviously useless last assignments to each of <code>a</code>, <code>e</code>, <code>d</code> and <code>b</code> which is why those swaps are only two lines and not four.</p>
 </div>
 <div id="pu1" class="pu"><h1>Python 3, 61 bytes</h1>
 <pre><code>x=[]
@@ -45,26 +67,6 @@ print(sorted(x)[2])
 <p><a href="https://tio.run/##K6gsycjPM/7/v8I2OpYrLb9IIVMhMy/aIFbL1KpCL7GgIDUvRSMzrwSIC0pLNDQ1NbkKikD84vyiktQUjQrNaKNYzf//DbmMuIy5TLhMAQ" rel="nofollow noreferrer" title="Python 3 – Try It Online">Try it online!</a></p>
 <p>Expects input as one integer per line. No input rules were specified, so I'm pretty sure this is ok.</p>
 <p>Python is also interpreted, not compiled, so there is nothing being translated into the CPU level.</p>
-</div>
-<div id="pu2" class="pu"><h1><a href="https://github.com/Vyxal/Vyxal/tree/version-3/" rel="nofollow noreferrer">Vyxal 3</a>, 3 bytes</h1>
-<pre><code>S2i
-</code></pre>
-<p><a href="https://vyxal.github.io/latest.html#JTdCJTIyZm9ybWF0JTIyJTNBMiUyQyUyMmhlYWRlciUyMiUzQSUyMiUyMiUyQyUyMmNvZGUlMjIlM0ElMjJTMmklMjIlMkMlMjJmb290ZXIlMjIlM0ElMjIlMjIlMkMlMjJmbGFncyUyMiUzQSU1QiU1RCUyQyUyMmlucHV0cyUyMiUzQSU1QiUyMiU1QjklMkMlMjAzJTJDJTIwOSUyQyUyMDglMkMlMjAyJTVEJTIyJTVEJTJDJTIydmVyc2lvbiUyMiUzQSUyMjMuNC44JTIyJTdE" rel="nofollow noreferrer">Vyxal It Online!</a></p>
-<blockquote>
-<p>no if statements or jumps in your code</p>
-</blockquote>
-<p>My code executes in a linear order, executing <code>S</code>, then <code>2</code>, and then <code>i</code>.</p>
-<blockquote>
-<p>or anything that would translate to an if statement or jump at the cpu level.</p>
-</blockquote>
-<p>Vyxal 3 is interpreted, not compiled, so there is nothing being translated into the CPU level.</p>
-<h2>Explained</h2>
-<pre><code>S2i­⁡​‎‎⁪⁡⁪⁠⁪⁡⁪‏‏​⁡⁠⁡‌⁢​‎‎⁪⁡⁪⁠⁪⁢⁪‏⁠‎⁪⁡⁪⁠⁪⁣⁪‏‏​⁡⁠⁡‌­
-S    # ‎⁡Sort the input
- 2i  # ‎⁢Get the 3rd item (0-indexed) 
-💎
-</code></pre>
-<p>Created with the help of <a href="https://vyxal.github.io/Luminespire" rel="nofollow noreferrer">Luminespire</a>.</p>
 </div>
 
 <table id="st">
