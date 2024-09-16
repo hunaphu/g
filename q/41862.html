@@ -26,9 +26,9 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>nan</td><td></td><td>240719T015232Z</td><td><a href="https://codegolf.stackexchange.com/questions/41862/tips-for-golfing-in-go/274255#274255">bigyihsu</a></td></tr>
-<tr d-ix="1"><td>nan</td><td></td><td>240131T223125Z</td><td><a href="https://codegolf.stackexchange.com/questions/41862/tips-for-golfing-in-go/269663#269663">bigyihsu</a></td></tr>
-<tr d-ix="2"><td>nan</td><td></td><td>240126T160256Z</td><td><a href="https://codegolf.stackexchange.com/questions/41862/tips-for-golfing-in-go/269569#269569">bigyihsu</a></td></tr>
+<tr d-ix="0"><td>nan</td><td></td><td>240126T160256Z</td><td><a href="https://codegolf.stackexchange.com/questions/41862/tips-for-golfing-in-go/269569#269569">bigyihsu</a></td></tr>
+<tr d-ix="1"><td>nan</td><td></td><td>240719T015232Z</td><td><a href="https://codegolf.stackexchange.com/questions/41862/tips-for-golfing-in-go/274255#274255">bigyihsu</a></td></tr>
+<tr d-ix="2"><td>nan</td><td></td><td>240131T223125Z</td><td><a href="https://codegolf.stackexchange.com/questions/41862/tips-for-golfing-in-go/269663#269663">bigyihsu</a></td></tr>
 <tr d-ix="3"><td>nan</td><td></td><td>230722T234345Z</td><td><a href="https://codegolf.stackexchange.com/questions/41862/tips-for-golfing-in-go/263193#263193">c--</a></td></tr>
 <tr d-ix="4"><td>nan</td><td>When taking a single character substring from a string and want to keep it as a string</td><td>221217T044451Z</td><td><a href="https://codegolf.stackexchange.com/questions/41862/tips-for-golfing-in-go/255615#255615">bigyihsu</a></td></tr>
 <tr d-ix="5"><td>005</td><td>When looping a constant n times</td><td>221205T163612Z</td><td><a href="https://codegolf.stackexchange.com/questions/41862/tips-for-golfing-in-go/255233#255233">bigyihsu</a></td></tr>
@@ -46,7 +46,28 @@
 <tr d-ix="17"><td>nan</td><td></td><td>160315T053818Z</td><td><a href="https://codegolf.stackexchange.com/questions/41862/tips-for-golfing-in-go/75569#75569">EMBLEM</a></td></tr>
 <tr d-ix="18"><td>nan</td><td>Named return values can save a few bytes. For example</td><td>160322T171256Z</td><td><a href="https://codegolf.stackexchange.com/questions/41862/tips-for-golfing-in-go/75974#75974">EMBLEM</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Use range over int when iterating <code>n</code> times (Go 1.22 or newer)</h1>
+<div id="pu0" class="pu"><h1><code>rand.Perm</code> is shorter than <code>rand.Shuffle</code> if and only if you can make an empty spare</h1>
+<p>These are 2 built-ins included in the <code>math/rand</code> and <code>math/rand/v2</code> packages to help with shuffle elements:</p>
+<ul>
+<li><a href="https://pkg.go.dev/math/rand/v2#Perm" rel="nofollow noreferrer"><code>rand.Perm</code></a> takes an <code>n int</code> and returns an <code>[]int</code> that contains half-right-open range <code>[0,n)</code>.</li>
+<li><a href="https://pkg.go.dev/math/rand#Shuffle" rel="nofollow noreferrer"><code>rand.Shuffle</code></a> takes an index limit <code>n int</code> and a swapping function, and runs the swapping function on the half-right-open range <code>[0,n)</code>. It is expected that the swapping function operates on a collection outside of its scope, i.e. it operates in-place.</li>
+</ul>
+<h3>For strings, always use <code>rand.Perm</code>.</h3>
+<p>Because strings in Go are immutable, it is better to use <code>rand.Perm</code> to shuffle elements in strings. Otherwise, a conversion to <code>[]rune</code> and back to <code>string</code> is needed to be able to use <code>rand.Shuffle</code>. Given an input string <code>s</code>:</p>
+<pre class="lang-go prettyprint-override"><code>o:=&quot;&quot;;for _,i:=range Perm(len(s)){o+=s[i:i+1]} // 45 bytes, output on `o`
+S:=[]rune(s);Shuffle(len(S),func(i,j int){S[i],S[j]=S[j],S[i]);s=string(S) // 66 bytes, output on `s`
+</code></pre>
+<h3>For slices, it depends</h3>
+<p>The function to use for slices depends on whether you have an empty slice available to you. If you do, it is better to use <code>rand.Perm</code>. Given an input slice <code>s</code> and an empty output slice <code>o</code>:</p>
+<pre class="lang-go prettyprint-override"><code>for _,i:=range Perm(len(s)){o=append(o,s[i])} // 45 bytes, output on `o`
+Shuffle(len(s),func(i,j int){s[i],s[j]=s[j],s[i]}) // 50 bytes, output on `s`
+</code></pre>
+<p>If you do not have an empty slice already available, your only option is to use <code>rand.Shuffle</code> and do it in-place:</p>
+<pre class="lang-go prettyprint-override"><code>o:=[]T{};for _,i:=range Perm(len(s)){o=append(o,s[i])} // 57 bytes + length of type name, output on `o`
+Shuffle(len(s),func(i,j int){s[i],s[j]=s[j],s[i]}) // 50 bytes, output on `s`
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>Use range over int when iterating <code>n</code> times (Go 1.22 or newer)</h1>
 
 <p>Introduced in Go 1.22 is range-over-int, which iterates from 0 inclusive to the integer exclusive:</p>
 <pre class="lang-go prettyprint-override"><code>for i := range 123 {} // goes from 0 to 123 exclusive
@@ -57,7 +78,7 @@ for i:=range n{}   // -2 bytes
 </code></pre>
 <p>However, this requires Go 1.22 or later.</p>
 </div>
-<div id="pu1" class="pu"><h2>Use <code>min</code> and <code>max</code> to clamp values (Go 1.21+)</h2>
+<div id="pu2" class="pu"><h2>Use <code>min</code> and <code>max</code> to clamp values (Go 1.21+)</h2>
 <p>Say you have 2 comparables <code>l</code> and <code>h</code>, where you must satisfy <code>l &lt;= h</code>. It is 1 byte shorter to use the builtins than an if-statement.</p>
 <pre class="lang-go prettyprint-override"><code>// assuming
 l,h := n, 0
@@ -76,21 +97,6 @@ h=min(h,l)
 
 if l&lt;h{l=h}
 l=max(h,l)
-</code></pre>
-</div>
-<div id="pu2" class="pu"><h1>Shuffle elements with <code>rand.Perm</code></h1>
-<p>I discovered <code>math/rand.Perm</code> the other day, which returns a slice of integers from 0 to <code>n</code>, shuffled.</p>
-<h3>For strings</h3>
-<p>Given an input string <code>k</code>, and you need to return a string, and we have that string as a named return, <code>Perm</code> is shorter because you don't need to real with the boilerplate for <code>Shuffle</code> or the swapping:</p>
-<pre class="lang-go prettyprint-override"><code>Shuffle(len(k),func(i,j int){k[i],k[j]=k[j],k[i]}) // 48 bytes
-for i:=range k{j:=Intn(i);k[i],k[j]=k[j],k[i]}     // 44 bytes, -4, no separate string needed
-for i:=range Perm(len(k)){e+=k[i:i+1]}             // 36 bytes, -12
-</code></pre>
-<h3>For slices</h3>
-<p>Assuming the same conditions as above but with a slice, it is still shorter:</p>
-<pre class="lang-go prettyprint-override"><code>Shuffle(len(k),func(i,j int){k[i],k[j]=k[j],k[i]}) // 48 bytes
-for i:=range k{j:=Intn(i);k[i],k[j]=k[j],k[i]}     // 44 bytes, -4, no separate slice needed
-for i:=range Perm(len(k)){e=append(e,k[i])}        // 41 bytes, -7
 </code></pre>
 </div>
 <div id="pu3" class="pu"><p>Don't declare variables in the <code>for</code>'s init statement:</p>
