@@ -26,13 +26,33 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>379</td><td>PowerShell</td><td>240918T153022Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275613#275613">bigyihsu</a></td></tr>
-<tr d-ix="1"><td>677</td><td>Chipmunk Basic</td><td>240918T153621Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275614#275614">roblogic</a></td></tr>
-<tr d-ix="2"><td>246</td><td>ZX Spectrum 48K/128K Basic</td><td>240918T121524Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275609#275609">Neil</a></td></tr>
-<tr d-ix="3"><td>190</td><td>alsautils</td><td>240918T121158Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275608#275608">Themooni</a></td></tr>
-<tr d-ix="4"><td>078</td><td>MATL 1 language</td><td>240917T230511Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275600#275600">Luis Men</a></td></tr>
+<tr d-ix="0"><td>078</td><td>MATL 1 language</td><td>240917T230511Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275600#275600">Luis Men</a></td></tr>
+<tr d-ix="1"><td>379</td><td>PowerShell</td><td>240918T153022Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275613#275613">bigyihsu</a></td></tr>
+<tr d-ix="2"><td>677</td><td>Chipmunk Basic</td><td>240918T153621Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275614#275614">roblogic</a></td></tr>
+<tr d-ix="3"><td>246</td><td>ZX Spectrum 48K/128K Basic</td><td>240918T121524Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275609#275609">Neil</a></td></tr>
+<tr d-ix="4"><td>190</td><td>alsautils</td><td>240918T121158Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275608#275608">Themooni</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/PowerShell/PowerShell" rel="nofollow noreferrer">PowerShell</a>, <s>401</s> 379 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://github.com/lmendo/MATL" rel="nofollow noreferrer">MATL</a> (1 language), 78 bytes</h1>
+<pre><code>0'!4XC@nRAxt~&amp;'F5:ZaKe16:Y)tP[AaABOlHN]0Y(_&amp;vhYs&quot;1875:YPE*76/@12/W*Y,E]&amp;h1e4Y#
+</code></pre>
+<p>This uses equal temperament, with a C<sub>3</sub> frequency of 131.6 Hz (more accurate values could be achieved at the cost of 2 or 3 bytes, namely replacing <code>76</code> in the code by <code>76.4</code> or <code>76.45</code>).</p>
+<p>The timbre corresponds to a sine wave hard-clipped at half its amplitude (this clipping costs 1 byte but produces nicer sound than a pure sine wave; the latter can be obtained by removing the <code>E</code> near the end of the code).</p>
+<p>Try it at <a href="https://matl.io/?code=0%27%214XC%40nRAxt%7E%26%27F5%3AZaKe16%3AY%29tP%5BAaABOlHN%5D0Y%28_%26vhYs%221875%3AYPE%2a76%2F%4012%2FW%2aY%2CE%5D%26h1e4Y%23&amp;inputs=&amp;version=22.8.0" rel="nofollow noreferrer">MATL online</a>!</p>
+<h2>How it works</h2>
+<p>A <code>0</code> is first pushed to the stack. This will serve as the initial note.</p>
+<p>The basic structure of the song is contained in the following 4×8 matrix:</p>
+<pre><code>2 2 2 2 2 2 4 4
+2 1 2 1 2 2 3 3
+3 4 3 4 3 3 4 4
+5 5 5 5 5 5 1 1
+</code></pre>
+<p>which contains the increments (in semitones) of the ascending arpeggios, each column corresponding to one of the 8 chords in order. To produce this matrix, the string <code>'!4XC@nRAxt~&amp;'</code> is interpreted as a number in the base defined by all ASCII characters except single qoute, and is decoded into the base formed by the numbers <code>[1 2 3 4 5]</code>, producing a row vector (this operation is done by the code <code>F5:Za</code>), which is converted to a 4-row matrix (<code>Ke</code>). Then, the matrix is repeated 4 times vertically, because each ascending arpeggio is played 4 times. This is done by modular indexing from <code>1</code> to <code>16</code> into the rows of the 4×8 matrix (code <code>16:Y)</code>), which yields a 16×8 matrix.</p>
+<p>A duplicate ( <code>t</code>) of this matrix is produced, and it is then flipped vertically (<code>P</code>). This represents the descending arpeggios, except that the sign should be negated; and the last row is incorrect, because it is affected by the transition to the next chord. Specifically, the values of the last row should be <code>[5 −1 5 6 0 1 2 NaN]</code> (represented more efficiently in the code as <code>[AaABOlHN]</code>). The final <code>NaN</code> value indicates that there no following chord. Thus, the last row of the second 16×8 matrix is overwritten with this (<code>0Y(</code>), and the two matrices are concatenated vertically (<code>&amp;v</code>). The resulting 32×8 matrix represents the repeatd up and down arpeggios for each chord, with the correc transition to the next chord. To produce the notes it should be read in major column order (down, then across).</p>
+<p>To transform the increments between notes into the actual notes, the 0 produced at the beginning of the program is concatenated horizontally (<code>h</code>) with the 32×8 matrix. This causes the matrix to be read in column major order, and produces a 1×257 row vector. Its cumulative sum (<code>Ys</code>) produces the notes, starting at <code>0</code>. Each note is represented by the number <em>S</em> of semitones up or down from C<sub>3</sub>. The final value is <code>NaN</code>, which will be interpreted as no note.</p>
+<p>A for loop (<code>&quot;</code>···<code>]</code>) reads each note, represend the number <em>S</em>. To generate the corresponding waveform for each note, a time vector <code>[1 2 ... 1875]</code> is first generated. The length of this vector, when replayed at 10000 samples per second, corresponds to the required tempo of 80 bpm. This is element-wise multipled by 2*pi <code>(YPE*)</code>, divided by 76 (<code>76/</code>), and then multiplied by the number that results from 2 raised to the number that results from dividing <em>S</em> by 12 (<code>@12/W*</code>). Applying the sine function (<code>Y,</code>) produces a 1×1875 vector with samples of a sinusoid of the appropriate frequency correponding to <em>S</em>. The values of this vector are multiplied by 2 (<code>E</code>). The last sinusoid contains <code>NaN</code> values and will produce no sound.</p>
+<p>The 257 resulting waveforms, each with 1875 samples, are concatened horizontally (<code>&amp;h</code>) into a single waveform, which is played without scaling at the indicated sample rate (<code>1e4Y#</code>). When playing, sample values are clipped to the interval [1, −1].</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/PowerShell/PowerShell" rel="nofollow noreferrer">PowerShell</a>, <s>401</s> 379 bytes</h1>
 <pre class="lang-powershell prettyprint-override"><code>$C=130,146,164,196,261,196,164,146
 $A=110,123,130,174,220,174,130,123
 $G=103,130,155,196,207,196,155,130
@@ -50,7 +70,7 @@ P $G 2
 <p>An extremely brute-force solution, since I'm a novice at PowerShell golf. Defines a function <code>P</code> that plays a chord (array of numbers, truncated to the nearest integer) at a given half-step offset, first up 4 times then down 4 times. Each note is played using the builtin <code>[System.Console]::Beep</code> method.</p>
 <p>To run, paste this into a <code>.ps1</code> file, then run it in PowerShell.</p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://www.nicholson.com/rhn/basic/" rel="nofollow noreferrer">Chipmunk Basic</a>, 677 bytes</h1>
+<div id="pu2" class="pu"><h1><a href="https://www.nicholson.com/rhn/basic/" rel="nofollow noreferrer">Chipmunk Basic</a>, 677 bytes</h1>
 <pre class="lang-basic prettyprint-override"><code>data 131,147,165,196,262,294,330,392,523,587,659,784,1047,1175,1319,1568,2093
 data 110,123,131,165,220,247,262,330,440,494,523,659,880,988,1047,1319,1760
 data 131,147,165,196,262,294,330,392,523,587,659,784,1047,1175,1319,1568,2093
@@ -64,7 +84,7 @@ sub s(n):sound n,.18,50:return
 </code></pre>
 <p>May have golfed the data too much by converting all the frequencies to integers. I am sure there is a better way of coding this using base frequencies and interesting formulae using powers of 2. But this is enough for today.</p>
 </div>
-<div id="pu2" class="pu"><h1>ZX Spectrum 48K/128K Basic, 246 bytes</h1>
+<div id="pu3" class="pu"><h1>ZX Spectrum 48K/128K Basic, 246 bytes</h1>
 <pre><code>  10 LET t=VAL &quot;.13&quot;: FOR i=SGN
 PI TO VAL &quot;8&quot;: READ a$,b$: FOR j
 =NOT PI TO INT PI: FOR k=SGN PI
@@ -120,7 +140,7 @@ ODE b$(k)-VAL a$: NEXT k: NEXT j
 </code></pre>
 <p>Tonic and arpeggio data.</p>
 </div>
-<div id="pu3" class="pu"><h1><a href="https://github.com/bear24rw/alsa-utils" rel="nofollow noreferrer">alsa-utils</a>, 190 bytes</h1>
+<div id="pu4" class="pu"><h1><a href="https://github.com/bear24rw/alsa-utils" rel="nofollow noreferrer">alsa-utils</a>, 190 bytes</h1>
 <p>xxd dump:</p>
 <pre><code>00000000: 4d54 6864 0000 0006 0001 0002 00dc 4d54  MThd..........MT
 00000010: 726b 0000 0013 00ff 5103 07a1 2000 ff58  rk......Q... ..X
@@ -141,13 +161,6 @@ save code to a file, then</p>
 <pre><code>aplaymidi --port=x.0 &lt;filepath&gt;
 </code></pre>
 <p>as you can probably guess, this is just a straight up midi file I generated with the appropriate notes and tempo.</p>
-</div>
-<div id="pu4" class="pu"><h1><a href="https://github.com/lmendo/MATL" rel="noreferrer">MATL</a> (1 language), 78 bytes</h1>
-<pre><code>0'!4XC@nRAxt~&amp;'F5:ZaKe16:Y)tP[AaABOlHN]0Y(_&amp;vhYs&quot;1875:YPE*76/@12/W*Y,E]&amp;h1e4Y#
-</code></pre>
-<p>This uses equal temperament, with a C<sub>3</sub> frequency of 131.6 Hz (more accurate values could be achieved at the cost of 2 or 3 bytes, namely replacing <code>76</code> in the code by <code>76.4</code> or <code>76.45</code>).</p>
-<p>The timbre corresponds to a sine wave hard-clipped at half its amplitude (this clipping costs 1 byte but produces nicer sound than a pure sine wave; the latter can be obtained by removing the <code>E</code> near the end of the code).</p>
-<p>Try it at <a href="https://matl.io/?code=0%27%214XC%40nRAxt%7E%26%27F5%3AZaKe16%3AY%29tP%5BAaABOlHN%5D0Y%28_%26vhYs%221875%3AYPE%2a76%2F%4012%2FW%2aY%2CE%5D%26h1e4Y%23&amp;inputs=&amp;version=22.8.0" rel="noreferrer">MATL online</a>!</p>
 </div>
 
 <table id="st">
