@@ -27,9 +27,9 @@
     <th class="tlink">Link</th>
   </tr>
 <tr d-ix="0"><td>078</td><td>MATL 1 language</td><td>240917T230511Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275600#275600">Luis Men</a></td></tr>
-<tr d-ix="1"><td>379</td><td>PowerShell</td><td>240918T153022Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275613#275613">bigyihsu</a></td></tr>
-<tr d-ix="2"><td>677</td><td>Chipmunk Basic</td><td>240918T153621Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275614#275614">roblogic</a></td></tr>
-<tr d-ix="3"><td>246</td><td>ZX Spectrum 48K/128K Basic</td><td>240918T121524Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275609#275609">Neil</a></td></tr>
+<tr d-ix="1"><td>203</td><td>ZX Spectrum 48K Basic</td><td>240918T121524Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275609#275609">Neil</a></td></tr>
+<tr d-ix="2"><td>379</td><td>PowerShell</td><td>240918T153022Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275613#275613">bigyihsu</a></td></tr>
+<tr d-ix="3"><td>677</td><td>Chipmunk Basic</td><td>240918T153621Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275614#275614">roblogic</a></td></tr>
 <tr d-ix="4"><td>190</td><td>alsautils</td><td>240918T121158Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275608#275608">Themooni</a></td></tr>
 </table>
 <div id="pu0" class="pu"><h1><a href="https://github.com/lmendo/MATL" rel="nofollow noreferrer">MATL</a> (1 language), 78 bytes</h1>
@@ -39,7 +39,7 @@
 <p>The timbre corresponds to a sine wave hard-clipped at half its amplitude (this clipping costs 1 byte but produces nicer sound than a pure sine wave; the latter can be obtained by removing the <code>E</code> near the end of the code).</p>
 <p>Try it at <a href="https://matl.io/?code=0%27%214XC%40nRAxt%7E%26%27F5%3AZaKe16%3AY%29tP%5BAaABOlHN%5D0Y%28_%26vhYs%221875%3AYPE%2a76%2F%4012%2FW%2aY%2CE%5D%26h1e4Y%23&amp;inputs=&amp;version=22.8.0" rel="nofollow noreferrer">MATL online</a>!</p>
 <h2>How it works</h2>
-<p>A <code>0</code> is first pushed to the stack. This will serve as the initial note.</p>
+<p>A <code>0</code> is first pushed to the stack. This will serve as the initial note. The rest of the notes will be defined by consecutive differences.</p>
 <p>The basic structure of the song is described by the following 4×8 matrix:</p>
 <pre><code>2 2 2 2 2 2 4 4
 2 1 2 1 2 2 3 3
@@ -48,12 +48,65 @@
 </code></pre>
 <p>which contains the increments (in semitones) of the ascending arpeggios, each column corresponding to one of the 8 chords in order.</p>
 <p>To generate this matrix, the string <code>'!4XC@nRAxt~&amp;'</code> is interpreted as a &quot;number&quot; in the base defined by all ASCII characters except single quote, and is decoded into the base formed by the numbers [1 2 3 4 5], producing a row vector (this operation is done by the code <code>F5:Za</code>). Converting this to a 4-row matrix (<code>Ke</code>) gives the above matrix. Then, the matrix is repeated 4 times vertically, because each ascending arpeggio is played 4 times. This is carried out by applying modular indexing from 1 to 16 into the rows of the above matrix (code <code>16:Y)</code>), which yields a 16×8 matrix.</p>
-<p>A duplicate (<code>t</code>) of this 16×8 matrix is produced, and it is then flipped vertically (<code>P</code>). This represents the descending arpeggios, except that the sign should be negated; and the last row is incorrect, because it does not consider the transition to the next chord. Specifically, the values of the last row should be [5 −1 5 6 0 1 2 NaN] (represented compactly in the code as <code>[AaABOlHN]</code>). The final NaN value indicates that there is no following chord in the last column. Thus, the last row of the second 16×8 matrix is overwritten with that vector (<code>0Y(</code>), and the two matrices are concatenated vertically (<code>&amp;v</code>). The resulting 32×8 matrix represents the repeated up and down arpeggios for each chord, with the correct transition to the next chord. To produce the notes it should be read in column-major order (down, then across).</p>
+<p>A duplicate (<code>t</code>) of this 16×8 matrix is produced, and it is then flipped vertically (<code>P</code>). This represents the descending arpeggios, except that the sign should be negated; and the last row is incorrect, because it does not consider the transition to the next chord. Specifically, the values of the last row should be [5 −1 5 6 0 1 2 NaN] (represented compactly in the code as <code>[AaABOlHN]</code>). The final NaN value indicates that there is no following chord in the last column. Thus, the last row of the second 16×8 matrix is overwritten with that vector (<code>0Y(</code>), and the two matrices are concatenated vertically (<code>&amp;v</code>). The resulting 32×8 matrix describes the repeated up and down arpeggios for each chord, with the correct transition to the next chord. To produce the notes it should be read in column-major order (down, then across).</p>
 <p>To transform the increments between notes into the actual notes, the 0 produced at the beginning of the program is concatenated horizontally (<code>h</code>) with the 32×8 matrix. This causes the matrix to be read in column-major order, and gives a 1×257 row vector. Its cumulative sum (<code>Ys</code>) produces the notes, starting at <code>0</code>, where each note is represented by the number <em>S</em> of semitones up or down from C<sub>3</sub>. The last value is NaN, which will be interpreted as no note.</p>
 <p>A <em>for each</em> loop (<code>&quot;</code>...<code>]</code>) reads each note, represented by the corresponding number <em>S</em>. To generate the waveform for each note, a time vector [1 2 ... 1875] is first generated (<code>1875:</code>). The length of this vector, when replayed at 10000 samples per second, determines a tempo of 80 bpm, as required. This vector is element-wise multiplied by 2*pi <code>(YPE*)</code>, divided by 76 (<code>76/</code>), and then multiplied by 2 raised to the number that results from dividing <em>S</em> by 12 (<code>@12/W*</code>). Applying the sine function (<code>Y,</code>) produces a 1×1875 vector with samples of a sinusoid of the frequency correponding to <em>S</em>. The values of this vector are multiplied by 2 (<code>E</code>). The last sinusoid contains NaN values and will produce no sound.</p>
-<p>The 257 resulting waveforms, each with 1875 samples, are concatened horizontally (<code>&amp;h</code>) into a single waveform, which is played without scaling at the indicated sample rate (<code>1e4Y#</code>). When playing, sample values are clipped to the interval [1, −1].</p>
+<p>The 257 resulting waveforms, each with 1875 samples, are concatened horizontally (<code>&amp;h</code>) into a single waveform, and this is replayed, without scaling, at the indicated sample rate (<code>1e4Y#</code>). When replaying, sample values are clipped to the interval [1, −1].</p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://github.com/PowerShell/PowerShell" rel="nofollow noreferrer">PowerShell</a>, <s>401</s> 379 bytes</h1>
+<div id="pu1" class="pu"><h1>ZX Spectrum 48K Basic, <s>246</s> 203 bytes</h1>
+<pre><code>  10 LET t=VAL &quot;.14&quot;: LET a$=&quot;&lt;0
+247&lt;?0237&lt;&lt;0247&lt;?0237&lt;C0247&lt;A024
+7&lt;@047;&lt;&gt;047;&lt;&quot;: FOR i=SGN PI TO
+ LEN a$ STEP VAL &quot;6&quot;: FOR j=NOT
+PI TO INT PI: FOR k=SGN PI TO VA
+L &quot;4&quot;: BEEP t,VAL &quot;12&quot;*j+CODE a$
+(i+k)-CODE a$(i): NEXT k: NEXT j
+: FOR j=INT PI TO NOT PI STEP -S
+GN PI: FOR k=VAL &quot;5&quot; TO VAL &quot;2&quot;
+STEP -SGN PI: BEEP t,VAL &quot;12&quot;*j+
+CODE a$(i+k)-CODE a$(i): NEXT k:
+ NEXT j: NEXT i
+</code></pre>
+<p>The above is how the program lists on screen as the ZX Spectrum's screen is 32 characters wide. The byte count was calculated by subtracting the system variables for the end and start of the program; this will be one less than the save file length as an empty program has a save file length of 1. Unfortunately I was using an online emulator which only has a save snapshot option, so you'll have to retype this yourself to test it. Note that if you try to enter this program literally in 128K mode it will try to tokenise the <code>&lt;&gt;</code> inside the string, breaking the program, so either replace it with <code>&lt;&quot;+&quot;&gt;</code>, do some magic with POKE, or use 48K mode and type <code>&lt;&gt;</code> as two characters rather than the token. In both modes you may also need to use the keyboard layout to enter some special characters such as <code>-</code> or <code>*</code>. Explanation:</p>
+<pre><code>  10
+</code></pre>
+<p>Arbitrary line number (always costs 2 bytes).</p>
+<pre><code>LET t=VAL &quot;.14&quot;
+</code></pre>
+<p>Timing variable, adjusted to make the overall run time about 48s of real time. (Processing overhead makes the program take about 50% longer than the actual notes).</p>
+<pre><code>LET a$=&quot;&lt;0247&lt;?0237&lt;&lt;0247&lt;?0237&lt;C0247&lt;A0247&lt;@047;&lt;&gt;047;&lt;&quot;
+</code></pre>
+<p>String of tonic and arpeggio data.</p>
+<pre><code>FOR i=SGN PI TO LEN a$ STEP VAL &quot;6&quot;
+</code></pre>
+<p>This steps through each tonic in the data string, thus repeating <code>8</code> times. <code>SGN PI</code> is used as it's even shorter than <code>VAL &quot;1&quot;</code>, which saves a few bytes because numeric literals take up six bytes for their internal representation.</p>
+<pre><code>FOR j=NOT PI TO INT PI
+</code></pre>
+<p>Repeat for four octaves; <code>NOT PI</code> is <code>0</code> and <code>INT PI</code> is of course <code>3</code>.</p>
+<pre><code>FOR k=SGN PI TO VAL &quot;4&quot;
+</code></pre>
+<p>Repeat for four notes.</p>
+<pre><code>BEEP t,VAL &quot;12&quot;*j+CODE a$(i+k)-CODE a$(i)
+</code></pre>
+<p>Compute the note index (<code>C₄=0</code>) and play it.</p>
+<pre><code>NEXT k: NEXT j
+</code></pre>
+<p>Repeat for the rest of the ascending arpeggio.</p>
+<pre><code>FOR j=INT PI TO NOT PI STEP -SGN PI
+</code></pre>
+<p>Loop back down through the octaves.</p>
+<pre><code>FOR k=VAL &quot;5&quot; TO VAL &quot;2&quot; STEP -SGN PI
+</code></pre>
+<p>Loop down through the notes.</p>
+<pre><code>BEEP t,VAL &quot;12&quot;*j+CODE a$(i+k)-CODE a$(i)
+</code></pre>
+<p>Compute and play the note.</p>
+<pre><code>NEXT k: NEXT j: NEXT i
+</code></pre>
+<p>Repeat for the remainder of the prelude.</p>
+<p>Edit: Saved 43 bytes thanks to @Arnauld's suggesting of indexing into a single data string.</p>
+</div>
+<div id="pu2" class="pu"><h1><a href="https://github.com/PowerShell/PowerShell" rel="nofollow noreferrer">PowerShell</a>, <s>401</s> 379 bytes</h1>
 <pre class="lang-powershell prettyprint-override"><code>$C=130,146,164,196,261,196,164,146
 $A=110,123,130,174,220,174,130,123
 $G=103,130,155,196,207,196,155,130
@@ -71,7 +124,7 @@ P $G 2
 <p>An extremely brute-force solution, since I'm a novice at PowerShell golf. Defines a function <code>P</code> that plays a chord (array of numbers, truncated to the nearest integer) at a given half-step offset, first up 4 times then down 4 times. Each note is played using the builtin <code>[System.Console]::Beep</code> method.</p>
 <p>To run, paste this into a <code>.ps1</code> file, then run it in PowerShell.</p>
 </div>
-<div id="pu2" class="pu"><h1><a href="https://www.nicholson.com/rhn/basic/" rel="nofollow noreferrer">Chipmunk Basic</a>, 677 bytes</h1>
+<div id="pu3" class="pu"><h1><a href="https://www.nicholson.com/rhn/basic/" rel="nofollow noreferrer">Chipmunk Basic</a>, 677 bytes</h1>
 <pre class="lang-basic prettyprint-override"><code>data 131,147,165,196,262,294,330,392,523,587,659,784,1047,1175,1319,1568,2093
 data 110,123,131,165,220,247,262,330,440,494,523,659,880,988,1047,1319,1760
 data 131,147,165,196,262,294,330,392,523,587,659,784,1047,1175,1319,1568,2093
@@ -84,62 +137,6 @@ for i=0 to 16:s(m(i)):next:for i=0 to 15:s(m(15-i)):next:next
 sub s(n):sound n,.18,50:return
 </code></pre>
 <p>May have golfed the data too much by converting all the frequencies to integers. I am sure there is a better way of coding this using base frequencies and interesting formulae using powers of 2. But this is enough for today.</p>
-</div>
-<div id="pu3" class="pu"><h1>ZX Spectrum 48K/128K Basic, 246 bytes</h1>
-<pre><code>  10 LET t=VAL &quot;.13&quot;: FOR i=SGN
-PI TO VAL &quot;8&quot;: READ a$,b$: FOR j
-=NOT PI TO INT PI: FOR k=SGN PI
-TO VAL &quot;4&quot;: BEEP t,VAL &quot;12&quot;*j+CO
-DE b$(k)-VAL a$: NEXT k: NEXT j:
- FOR j=INT PI TO NOT PI STEP -SG
-N PI: FOR k=VAL &quot;5&quot; TO VAL &quot;2&quot; S
-TEP -SGN PI: BEEP t,VAL &quot;12&quot;*j+C
-ODE b$(k)-VAL a$: NEXT k: NEXT j
-: NEXT i: DATA &quot;60&quot;,&quot;0247&lt;&quot;,&quot;63&quot;
-,&quot;0237&lt;&quot;,&quot;60&quot;,&quot;0247&lt;&quot;,&quot;63&quot;,&quot;0237
-&lt;&quot;,&quot;67&quot;,&quot;0247&lt;&quot;,&quot;65&quot;,&quot;0247&lt;&quot;,&quot;64
-&quot;,&quot;047;&lt;&quot;,&quot;62&quot;,&quot;047;&lt;&quot;
-</code></pre>
-<p>The above is how the program lists on screen as the ZX Spectrum's screen is 32 characters wide. The byte count was calculated by subtracting the system variables for the end and start of the program; this will be one less than the save file length as an empty program has a save file length of 1. Unfortunately I was using an online emulator which only has a save snapshot option, so you'll have to retype this yourself to test it. In 48K mode all of the keywords are tokenised so check the emulator's keyboard layout to find out how to enter the appropriate tokens, but in 128K mode you can type the words and they will be tokenised for you. In both modes you may also need to use the keyboard layout to enter some special characters such as <code>-</code> or <code>*</code>. Explanation:</p>
-<pre><code>  10
-</code></pre>
-<p>Arbitrary line number (always costs 2 bytes).</p>
-<pre><code>LET t=VAL &quot;.13&quot;
-</code></pre>
-<p>Timing variable, adjusted to make the overall run time about 48s of real time. (Processing overhead makes the program take about 50% longer than the actual notes).</p>
-<pre><code>FOR i=SGN PI TO VAL &quot;8&quot;
-</code></pre>
-<p>Repeat <code>8</code> times. <code>VAL</code> is used as otherwise numbers take up six extra bytes for the internal representation, but <code>SGN PI</code> is even shorter way of expressing <code>1</code>.</p>
-<pre><code>READ a$,b$
-</code></pre>
-<p>Get the tonic and arpeggio of the next chord.</p>
-<pre><code>FOR j=NOT PI TO INT PI
-</code></pre>
-<p>Repeat for four octaves; <code>NOT PI</code> is <code>0</code> and <code>INT PI</code> is of course <code>3</code>.</p>
-<pre><code>FOR k=SGN PI TO VAL &quot;4&quot;
-</code></pre>
-<p>Repeat for four notes.</p>
-<pre><code>BEEP t,VAL &quot;12&quot;*j+CODE b$(k)-VAL a$
-</code></pre>
-<p>Compute the note index (<code>C₄=0</code>) and play it.</p>
-<pre><code>NEXT k: NEXT j
-</code></pre>
-<p>Repeat for the rest of the ascending arpeggio.</p>
-<pre><code>FOR j=INT PI TO NOT PI STEP -SGN PI
-</code></pre>
-<p>Loop back down through the octaves.</p>
-<pre><code>FOR k=VAL &quot;5&quot; TO VAL &quot;2&quot; STEP -SGN PI
-</code></pre>
-<p>Loop down through the notes.</p>
-<pre><code>BEEP t,VAL &quot;12&quot;*j+CODE b$(k)-VAL a$
-</code></pre>
-<p>Compute and play the note.</p>
-<pre><code>NEXT k: NEXT j: NEXT i
-</code></pre>
-<p>Repeat for the remainder of the prelude.</p>
-<pre><code>DATA &quot;60&quot;,&quot;0247&lt;&quot;,&quot;63&quot;,&quot;0237&lt;&quot;,&quot;60&quot;,&quot;0247&lt;&quot;,&quot;63&quot;,&quot;0237&lt;&quot;,&quot;67&quot;,&quot;0247&lt;&quot;,&quot;65&quot;,&quot;0247&lt;&quot;,&quot;64&quot;,&quot;047;&lt;&quot;,&quot;62&quot;,&quot;047;&lt;&quot;
-</code></pre>
-<p>Tonic and arpeggio data.</p>
 </div>
 <div id="pu4" class="pu"><h1><a href="https://github.com/bear24rw/alsa-utils" rel="nofollow noreferrer">alsa-utils</a>, 190 bytes</h1>
 <p>xxd dump:</p>
