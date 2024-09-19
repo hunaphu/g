@@ -176,9 +176,20 @@
 <p><span class="math-container">$$1/\sqrt[12]{2}\approx 0,9438743$$</span></p>
 <p>To apply this ratio to a period <span class="math-container">\$P_n\$</span>, we use the following approximation:</p>
 <p><span class="math-container">$$P_{n+1}=\left\lfloor\frac{P_n \times 483 + 350}{512}\right\rfloor$$</span></p>
-<p>We start with <span class="math-container">\$P_0=1432\$</span>, which is the period for F-2 on a PAL Intellivision, computed with the formula described in the previous section.</p>
+<p>We start with <span class="math-container">\$P_0=1432\$</span>, which is the period for F<sub>2</sub> (87.31Hz) on a PAL Intellivision, computed with the formula described in the previous section. We stop when a period of 15 is reached -- an arbitrary choice to have a register ready to initialize the volume on the PSG.</p>
 <p>The CP-1610 doesn't have any multiplication instruction, so we have to compute it with additions and shifts. Besides, we need 32-bit values to have enough precision. So two pairs of 16-bit registers are used (R0/R1 and R2/R3).</p>
 <p>The integer division by 512 is of course much simpler since it boils down to a right-shift by 9.</p>
+<h3>Chords encoding</h3>
+<p>Each chord is described by the address of the first note in our period table, followed by a pointer to 7 delta values:</p>
+<pre><code>a0, a1, a2, s, d0, d1, d2
+</code></pre>
+<p>where:</p>
+<ul>
+<li><code>a0</code>, <code>a1</code>, <code>a2</code> are the delta values for the ascending phase, repeated 4 times and starting at the next octave each time</li>
+<li><code>s</code> is the delta value applied when switching from the ascending to the descending phase</li>
+<li><code>d0</code>, <code>d1</code>, <code>d2</code> are the delta values for the descending phase, repeated 4 times and starting at the previous octave each time</li>
+</ul>
+<p>The actual delta values are obtained by subtracting 5 to the stored values.</p>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://github.com/lmendo/MATL" rel="nofollow noreferrer">MATL</a> (1 language), <s>78</s> 77 bytes</h1>
 <pre><code>0'!4XC@nRAxt~&amp;'F5:ZaKeK1X&quot;tP[AaABOlHN]0Y(_&amp;vhYs&quot;1875:YPE*76/@12/W*Y,E]&amp;h1e4Y#
