@@ -37,7 +37,7 @@
 <p><em><sup>1. CP-1610 instructions are encoded with 10-bit values (0x000 to 0x3FF), known as DECLEs. Although the Intellivision is also able to work on 16-bit data, programs were really stored in 10-bit ROM back then.</sup></em></p>
 <p>A fantasy console?!? Let's do it on a real one!</p>
 <p>This code is meant to be run on a PAL Intellivision (50Hz). It would also work on an NTSC system (60Hz), but at a different pitch and speed.</p>
-<p>Audio output and more detailed explanation to be added later.</p>
+<p><em>Audio output and more detailed explanation to be added later.</em></p>
 <pre><code>                            ROMW  10          ; use 10-bit ROM width
 0x4800                      ORG   $4800       ; map our code at $4800
                    
@@ -96,8 +96,8 @@
 482A   2BC 064 048          MVII  #chords, R4
                    
 482D   2A2          chord   MVI@  R4, R2      ; R2 = initial note address
-482E   274                  PSHR  R4
-482F   2E4                  ADD@  R4, R4
+482E   274                  PSHR  R4          ; save R4 on the stack
+482F   2E4                  ADD@  R4, R4      ; R4 = pointer into delta values
 4830   2BD 008              MVII  #8, R5      ; R5 = octave counter
                    
 4832   093          octave  MOVR  R2, R3      ; copy R2 to R3
@@ -163,6 +163,21 @@
                    
 0x4889              end
 </code></pre>
+<h2>How it works</h2>
+<h3>About the Programmable Sound Generator (PSG)</h3>
+<p>The PAL-based Intellivision uses a 4.00MHz clock. The PSG is driven from a clock signal at half this rate. Internally, the PSG divides down its clock by 16 to determine the final square-wave frequency. The frequency of a tone produced by a PAL Intellivision is therefore given by:</p>
+<p><span class="math-container">$$F\_tone=\frac{4000000}{32\times P\_channel}$$</span></p>
+<p>where <span class="math-container">\$P\_channel\$</span> is the period register setting for the given channel.</p>
+<p><em>(adapted from the <code>psg.txt</code> file included in <a href="http://spatula-city.org/%7Eim14u2c/intv/" rel="nofollow noreferrer">jzIntv</a>)</em></p>
+<h3>Building the note period table</h3>
+<p>The frequency ratio between two semitones is given by:</p>
+<p><span class="math-container">$$\sqrt[12]{2}\approx 1,0594631$$</span></p>
+<p>And what we really need is the period ratio between two semitones:</p>
+<p><span class="math-container">$$1/\sqrt[12]{2}\approx 0,9438743$$</span></p>
+<p>To apply this ratio to a period <span class="math-container">\$P_n\$</span>, we use the following approximation:</p>
+<p><span class="math-container">$$P_{n+1}=\left\lfloor\frac{P_n \times 483 + 350}{512}\right\rfloor$$</span></p>
+<p>The CP-1610 doesn't have any multiplication instruction, so we have to compute it with additions and shifts. Besides, we need 32-bit values to have enough precision. So two pairs of 16-bit registers are used (R0/R1 and R2/R3).</p>
+<p>The integer division by 512 is of course much simpler since it boils down to a right-shift by 9.</p>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://github.com/lmendo/MATL" rel="nofollow noreferrer">MATL</a> (1 language), <s>78</s> 77 bytes</h1>
 <pre><code>0'!4XC@nRAxt~&amp;'F5:ZaKeK1X&quot;tP[AaABOlHN]0Y(_&amp;vhYs&quot;1875:YPE*76/@12/W*Y,E]&amp;h1e4Y#
