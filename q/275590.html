@@ -26,14 +26,85 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>280</td><td>Chipmunk Basic</td><td>240918T153621Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275614#275614">roblogic</a></td></tr>
-<tr d-ix="1"><td>323</td><td>JavaScript</td><td>240919T161621Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275646#275646">Jordan</a></td></tr>
-<tr d-ix="2"><td>077</td><td>MATL 1 language</td><td>240917T230511Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275600#275600">Luis Men</a></td></tr>
-<tr d-ix="3"><td>290</td><td>PowerShell</td><td>240918T153022Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275613#275613">bigyihsu</a></td></tr>
-<tr d-ix="4"><td>203</td><td>ZX Spectrum 48K Basic</td><td>240918T121524Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275609#275609">Neil</a></td></tr>
-<tr d-ix="5"><td>nan</td><td>CP1610 machine code</td><td>240919T013051Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275627#275627">Arnauld</a></td></tr>
+<tr d-ix="0"><td>272</td><td>Javascript</td><td>240920T193816Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275663#275663">ccprog</a></td></tr>
+<tr d-ix="1"><td>280</td><td>Chipmunk Basic</td><td>240918T153621Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275614#275614">roblogic</a></td></tr>
+<tr d-ix="2"><td>323</td><td>JavaScript</td><td>240919T161621Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275646#275646">Jordan</a></td></tr>
+<tr d-ix="3"><td>077</td><td>MATL 1 language</td><td>240917T230511Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275600#275600">Luis Men</a></td></tr>
+<tr d-ix="4"><td>290</td><td>PowerShell</td><td>240918T153022Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275613#275613">bigyihsu</a></td></tr>
+<tr d-ix="5"><td>203</td><td>ZX Spectrum 48K Basic</td><td>240918T121524Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275609#275609">Neil</a></td></tr>
+<tr d-ix="6"><td>nan</td><td>CP1610 machine code</td><td>240919T013051Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275627#275627">Arnauld</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.nicholson.com/rhn/basic/" rel="nofollow noreferrer">Chipmunk Basic</a>, <sub><s>677</s></sub> <sub><s>303</s></sub> 280 bytes</h1>
+<div id="pu0" class="pu"><h1>Javascript, 272 bytes</h1>
+<pre><code>x=&gt;{a=new AudioContext
+with(a.createOscillator()){
+for(i=0;i&lt;256;i++){n=[60,49,60,49,16,24,30,38][i&gt;&gt;5]
+q = [1258,810,1804][n%4]
+frequency.setValueAtTime(55*2**((b=i&amp;31?b+(i%32&gt;16?-(q&gt;&gt;i%4*3&amp;7):q&gt;&gt;(257-i)%4*3&amp;7):n&gt;&gt;2)/12),i*3/16)}
+connect(a.destination)
+start()
+stop(48)}}
+</code></pre>
+<p>If you have to express the frequency in Herz, the formula given in the question is unneccessary complicated. The note A is defined as 440Hz, each octave below halves that, and the A that is lower than the lowest note played is A₃ at 55Hz.</p>
+<p>The start note frequencies of the arpeggios from that become</p>
+<pre><code>f = 55 * 2 ** (s / 12)
+</code></pre>
+<p>with the semitones distance form the base note <code>s</code> being</p>
+<pre><code>15 12 15 12 4 6 7 9
+</code></pre>
+<p>There are only three different chords being used that can be described by their sequence of semitone differences. The last column is a magic number encoding the differences as octal. For golfing reasons the digits are ordered ascending as 1-2-3-0</p>
+<pre><code>0:  major add2  |  2 2 3 5  |  1258
+1:  minor add2  |  2 1 4 5  |   810
+2:  major 7     |  4 3 4 1  |  1804
+</code></pre>
+<p>The whole sequence can be described as a two-dimensional array</p>
+<pre><code>[[15, 0], [12, 1], [15, 0], [12, 1], [4, 0], [6, 0], [7, 2] [9, 2]]
+</code></pre>
+<p>or with the chord index as the lowest two bits in one number</p>
+<pre><code>[60, 49, 60, 49, 16, 24, 30, 38]
+</code></pre>
+<p>From there, using the same code as <strong>@Jordan</strong> for the <code>AudioContext</code> interface (ungolfed):</p>
+<pre><code>x =&gt; {
+  a=new AudioContext
+  with (a.createOscillator()) {
+    for (i = 0; i &lt; 256; i++) {
+      
+      n = [60,49,60,49,16,24,30,38][i&gt;&gt;5]  // after each 32 a new arpegio
+      q = [1258,810,1804][n%4]             // magic chord number
+      b = i&amp;31 ?                           // inside arpeggio sequence,
+        b + (                              // add semitone difference
+          i%32 &gt; 16 ?
+          -(q&gt;&gt;i%4*3&amp;7) :                 // downward
+          q&gt;&gt;(257-i)%4*3&amp;7                // upward
+        ) :
+        n &gt;&gt; 2                            // start new arpeggio at base note
+      
+      frequency.setValueAtTime(55 * 2 ** (b/12), i * 3 / 16)
+    }
+    connect(a.destination)
+    start()
+    stop(48)
+  }
+}
+</code></pre>
+<h2>Try it</h2>
+<p><div class="snippet" data-lang="js" data-hide="false" data-console="true" data-babel="false">
+<div class="snippet-code">
+<pre class="snippet-code-js lang-js prettyprint-override"><code>f =
+
+x=&gt;{a=new AudioContext
+with(a.createOscillator()){
+for(i=0;i&lt;256;i++){n=[60,49,60,49,16,24,30,38][i&gt;&gt;5]
+q = [1258,810,1804][n%4]
+frequency.setValueAtTime(55*2**((b=i&amp;31?b+(i%32&gt;16?-(q&gt;&gt;i%4*3&amp;7):q&gt;&gt;(257-i)%4*3&amp;7):n&gt;&gt;2)/12),i*3/16)}
+connect(a.destination)
+start()
+stop(48)}}</code></pre>
+<pre class="snippet-code-html lang-html prettyprint-override"><code>&lt;button type="button" onclick="f()"&gt;Play (Warning: Loud)&lt;/button&gt;</code></pre>
+</div>
+</div>
+</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.nicholson.com/rhn/basic/" rel="nofollow noreferrer">Chipmunk Basic</a>, <sub><s>677</s></sub> <sub><s>303</s></sub> 280 bytes</h1>
 <pre class="lang-basic prettyprint-override"><code>data 0,2,4,7,-3,-1,0,4,0,2,4,7,-3,-1,0,4,-7,-5,-3,0,-5,-3,-1,2,-4,0,3,7,-2,2,5,9
 dim a(4),m(16):for k=0to 7:for i=1to 4:read a(i):next
 for i=0to 3:for j=1to 4:f=440*2^(((a(j)+12*i)-21)/12):m(j+4*i)=f:s(f):next:next
@@ -68,7 +139,7 @@ return
 </code></pre>
 <p><sub><s><a href="https://github.com/roblogic/golf/blob/46d9ed8a30eaa2785bd216b5188800784a5be9eb/basic/275590-play-the-final-fantasy-prelude.bas" rel="nofollow noreferrer">677 bytes</a></s> <em>: I am sure there is a better way of coding this ...</em></sub></p>
 </div>
-<div id="pu1" class="pu"><h1>JavaScript, 323 bytes</h1>
+<div id="pu2" class="pu"><h1>JavaScript, 323 bytes</h1>
 <p>I don't golf with JavaScript much so I'm sure there's a lot of opportunities for golfing here. Should work on most browsers.</p>
 <pre class="lang-js prettyprint-override"><code>x=&gt;{a=new AudioContext
 with(a.createOscillator()){[y=[0,2,4,7],z=[-3,-1,0,4],y,z,[-7,-5,-3,0],[-5,-3,-1,2],[-4,0,3,7],[-2,2,5,9]].map((c,t)=&gt;{p=s=&gt;frequency.setValueAtTime(440*2**(s-1.75),(t*32+i)*.19)
@@ -94,7 +165,7 @@ stop(48.64)}}</code></pre>
 </div>
 </p>
 </div>
-<div id="pu2" class="pu"><h1><a href="https://github.com/lmendo/MATL" rel="nofollow noreferrer">MATL</a> (1 language), <s>78</s> 77 bytes</h1>
+<div id="pu3" class="pu"><h1><a href="https://github.com/lmendo/MATL" rel="nofollow noreferrer">MATL</a> (1 language), <s>78</s> 77 bytes</h1>
 <pre><code>0'!4XC@nRAxt~&amp;'F5:ZaKeK1X&quot;tP[AaABOlHN]0Y(_&amp;vhYs&quot;1875:YPE*76/@12/W*Y,E]&amp;h1e4Y#
 </code></pre>
 <p>This uses equal temperament, with a C<sub>3</sub> frequency of 131.6 Hz (more accurate values could be achieved at the cost of 2 or 3 bytes, namely replacing <code>76</code> in the code by <code>76.4</code> or <code>76.45</code>).</p>
@@ -115,7 +186,7 @@ stop(48.64)}}</code></pre>
 <p>A <em>for each</em> loop (<code>&quot;</code>...<code>]</code>) reads each note, represented by the corresponding number <em>S</em>. To generate the waveform for the note, a time vector [1 2 ... 1875] is first created (<code>1875:</code>). The length of this vector, when replayed at 10000 samples per second, determines a tempo of 80 bpm, as required. This vector is element-wise multiplied by 2π <code>(YPE*)</code>, divided by 76 (<code>76/</code>), and then multiplied by 2 raised to the number that results from dividing <em>S</em> by 12 (<code>@12/W*</code>). Applying the sine function (<code>Y,</code>) produces a 1×1875 vector with samples of a sinusoid of the frequency correponding to <em>S</em>. The values of this vector are multiplied by 2 (<code>E</code>). The last sinusoid contains NaN values and will produce no sound.</p>
 <p>The 257 resulting waveforms, each with 1875 samples, are concatened horizontally (<code>&amp;h</code>) into a single waveform. This waveform is then replayed, without scaling, at the indicated sample rate (<code>1e4Y#</code>). When replaying, sample values are clipped to the interval [1, −1].</p>
 </div>
-<div id="pu3" class="pu"><h1><a href="https://github.com/PowerShell/PowerShell" rel="nofollow noreferrer">PowerShell</a>, <s>401</s> <s>379</s> <s>340</s> <s>304</s> 290 bytes</h1>
+<div id="pu4" class="pu"><h1><a href="https://github.com/PowerShell/PowerShell" rel="nofollow noreferrer">PowerShell</a>, <s>401</s> <s>379</s> <s>340</s> <s>304</s> 290 bytes</h1>
 <pre class="lang-powershell prettyprint-override"><code>$C=130,146,164,196,261;$A=110,123,130,174,220;$G=103,130,155,196,207
 $q=[console]
 function P($c=$C,$h=0){0..7|%{$i=$_;if($i-lt4){0..3|%{$q::Beep(($c[$_])*[math]::Pow(2,$i+$h/12),187)}}else{4..1|%{$q::Beep(($c[$_])*[math]::Pow(2,7-$i+$h/12),187)}}}}
@@ -132,7 +203,7 @@ P;P $A;P;P $A;P $C -7;P $C -5;P $G;P $G 2
 </ul>
 <p><em>P.S. I keep getting this weird issue where some notes are missed; I modified the code to write out the current note and index that it's on and it is indeed running correctly, but the beeps are being clobbered by something else.</em></p>
 </div>
-<div id="pu4" class="pu"><h1>ZX Spectrum 48K Basic, <s>246</s> 203 bytes</h1>
+<div id="pu5" class="pu"><h1>ZX Spectrum 48K Basic, <s>246</s> 203 bytes</h1>
 <pre><code>  10 LET t=VAL &quot;.14&quot;: LET a$=&quot;&lt;0
 247&lt;?0237&lt;&lt;0247&lt;?0237&lt;C0247&lt;A024
 7&lt;@047;&lt;&gt;047;&lt;&quot;: FOR i=SGN PI TO
@@ -229,7 +300,7 @@ $aC$EG$AO5c$eg$aC$EG$AO7c$eg$ag$ecO5$AG$EC$ag$ecO3$AG$EC
 $bDFA$BO5dfa$bDFA$BO7dfa$bafdO5$BAFD$bafdO3$BAFD
 </code></pre>
 </div>
-<div id="pu5" class="pu"><h1><a href="https://en.wikipedia.org/wiki/General_Instrument_CP1600" rel="nofollow noreferrer">CP-1610</a> machine code, 136 DECLEs<sup>1</sup>=170 bytes</h1>
+<div id="pu6" class="pu"><h1><a href="https://en.wikipedia.org/wiki/General_Instrument_CP1600" rel="nofollow noreferrer">CP-1610</a> machine code, 136 DECLEs<sup>1</sup>=170 bytes</h1>
 <p><em><sup>1. CP-1610 instructions are encoded with 10-bit values (0x000 to 0x3FF), known as DECLEs. Although the Intellivision is also able to work on 16-bit data, programs were really stored in 10-bit ROM back then.</sup></em></p>
 <p>A fantasy console?!? Let's do it on a real one!</p>
 <p>This code is meant to be run on a PAL Intellivision (50Hz). It would also work on an NTSC system (60Hz), but at a different pitch and speed.</p>
