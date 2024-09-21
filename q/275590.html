@@ -26,16 +26,165 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>270</td><td>Javascript</td><td>240920T193816Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275663#275663">ccprog</a></td></tr>
-<tr d-ix="1"><td>378</td><td>JavaScript</td><td>240920T204734Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275664#275664">rougepie</a></td></tr>
-<tr d-ix="2"><td>280</td><td>Chipmunk Basic</td><td>240918T153621Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275614#275614">roblogic</a></td></tr>
-<tr d-ix="3"><td>323</td><td>JavaScript</td><td>240919T161621Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275646#275646">Jordan</a></td></tr>
-<tr d-ix="4"><td>077</td><td>MATL 1 language</td><td>240917T230511Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275600#275600">Luis Men</a></td></tr>
-<tr d-ix="5"><td>290</td><td>PowerShell</td><td>240918T153022Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275613#275613">bigyihsu</a></td></tr>
-<tr d-ix="6"><td>203</td><td>ZX Spectrum 48K Basic</td><td>240918T121524Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275609#275609">Neil</a></td></tr>
-<tr d-ix="7"><td>nan</td><td>CP1610 machine code</td><td>240919T013051Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275627#275627">Arnauld</a></td></tr>
+<tr d-ix="0"><td>nan</td><td>CP1610 machine code</td><td>240919T013051Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275627#275627">Arnauld</a></td></tr>
+<tr d-ix="1"><td>270</td><td>Javascript</td><td>240920T193816Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275663#275663">ccprog</a></td></tr>
+<tr d-ix="2"><td>378</td><td>JavaScript</td><td>240920T204734Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275664#275664">rougepie</a></td></tr>
+<tr d-ix="3"><td>280</td><td>Chipmunk Basic</td><td>240918T153621Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275614#275614">roblogic</a></td></tr>
+<tr d-ix="4"><td>323</td><td>JavaScript</td><td>240919T161621Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275646#275646">Jordan</a></td></tr>
+<tr d-ix="5"><td>077</td><td>MATL 1 language</td><td>240917T230511Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275600#275600">Luis Men</a></td></tr>
+<tr d-ix="6"><td>290</td><td>PowerShell</td><td>240918T153022Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275613#275613">bigyihsu</a></td></tr>
+<tr d-ix="7"><td>203</td><td>ZX Spectrum 48K Basic</td><td>240918T121524Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275609#275609">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Javascript, 270 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://en.wikipedia.org/wiki/General_Instrument_CP1600" rel="nofollow noreferrer">CP-1610</a> machine code, 127 DECLEs<sup>1</sup>=158.75 bytes</h1>
+<p><em><sup>1. CP-1610 instructions are encoded with 10-bit values (0x000 to 0x3FF), known as DECLEs. Although the Intellivision is also able to work on 16-bit data, programs were really stored in 10-bit ROM back then.</sup></em></p>
+<p>A fantasy console?!? Let's do it on a real one!</p>
+<p>This code is meant to be run on a PAL Intellivision (50Hz). It would also work on an NTSC system (60Hz), but at a different pitch and speed.</p>
+<h2>Demo</h2>
+<p><a href="https://youtu.be/2DOweHnZf0g" rel="nofollow noreferrer">Here is what we get</a> on the real hardware (YouTube video), using the <a href="http://ltoflash.leftturnonly.info/" rel="nofollow noreferrer">LTO Flash!</a>.</p>
+<h2>Source code</h2>
+<pre><code>                             ROMW  10          ; use 10-bit ROM width
+0x4800                       ORG   $4800       ; map our code at $4800
+                   
+                     ;; -------------------------------------------------------- ;;
+                     ;;  build the note period table in RAM:                     ;;
+                     ;;    p(0) = 1432                                           ;;
+                     ;;    p(n) = p(n-1) * 483 + 350 &gt;&gt; 9                        ;;
+                     ;; -------------------------------------------------------- ;;
+4800   001                   SDBD              ; R0 = note period, starting at ...
+4801   2B8 098 005           MVII  #1432, R0   ; ... the highest value 1432 for F-2
+4804   2BC 2F0               MVII  #$2F0, R4   ; R4 = write pointer in RAM
+                   
+4806   260           init    MVO@  R0, R4      ; write the period
+                   
+4807   1D2                   CLRR  R2          ; use R3:R2 as a 32-bit value
+4808   1DB                   CLRR  R3
+                   
+4809   2B9 1E3               MVII  #483, R1    ; process multiplication by 483
+                   
+480B   0C2           mult    ADDR  R0, R2      ; by adding R0 that many times
+480C   02B                   ADCR  R3          ; to R3:R2
+480D   011                   DECR  R1
+480E   22C 004               BNEQ  mult
+                   
+4810   2FA 15E               ADDI  #350, R2    ; R3:R2 += 350
+                                               ; (carry never set -&gt; no ADCR R3)
+                   
+4812   042                   SWAP  R2          ; R2 = R3:R2 &gt;&gt; 9
+4813   043                   SWAP  R3
+4814   3BA 0FF               ANDI  #$FF, R2
+4816   1DA                   XORR  R3, R2
+4817   07A                   SARC  R2
+                   
+4818   090                   MOVR  R2, R0      ; copy R2 to R0
+                   
+4819   378 00F               CMPI  #$F, R0     ; loop until R0 = $F
+481B   22E 016               BGT   init
+                   
+                     ;; -------------------------------------------------------- ;;
+                     ;;  play the song                                           ;;
+                     ;; -------------------------------------------------------- ;;
+481D   240 1FB               MVO   R0, $1FB    ; set the volume on channel A to $F
+                   
+481F   001           loop    SDBD              ; R4 = pointer into chords table
+4820   2BC 05A 048           MVII  #chords, R4
+                   
+4823   2A2           chord   MVI@  R4, R2      ; R2 = initial note address
+4824   274                   PSHR  R4          ; save R4 on the stack
+4825   2E4                   ADD@  R4, R4      ; R4 = pointer into delta values
+4826   2BD 008               MVII  #8, R5      ; R5 = octave counter
+                   
+4828   093           octave  MOVR  R2, R3      ; copy R2 to R3
+4829   2B9 004               MVII  #4, R1      ; R1 = note counter
+                   
+482B   298           note    MVI@  R3, R0      ; R0 = note period
+482C   240 1F0               MVO   R0, $1F0    ; save the low bits
+482E   040                   SWAP  R0          ; and the high bits
+482F   240 1F4               MVO   R0, $1F4    ; into the PSG registers
+                   
+4831   001                   SDBD              ; wait for ~184500 cycles
+4832   2B8 00C 030           MVII  #12300, R0  ; (approximately 185ms)
+                   
+4835   010           spin    DECR  R0          ; (6 cycles)
+4836   22C 002               BNEQ  spin        ; (9 cycles)
+                   
+4838   2E3                   ADD@  R4, R3      ; update R3
+4839   33B 005               SUBI  #5, R3
+483B   011                   DECR  R1          ; decrement the note counter
+483C   22C 012               BNEQ  note        ; loop if not zero
+                   
+483E   37D 005               CMPI  #5, R5      ; compare octave counter with 5
+4840   20C 003               BNEQ  phase       ; time to switch the phase? ...
+                   
+4842   09A                   MOVR  R3, R2      ; ... yes: copy R3 to R2
+4843   200 008               B     next
+                   
+4845   20E 002       phase   BGT   asc         ; ascending phase?
+                   
+4847   33A 018               SUBI  #24, R2     ; descending phase: -12 semitones
+4849   2FA 00C       asc     ADDI  #12, R2     ; ascending phase: +12 semitones
+                   
+484B   33C 004               SUBI  #4, R4      ; rewind R4
+                   
+484D   015           next    DECR  R5          ; decrement the octave counter
+484E   22C 027               BNEQ  octave      ; loop if not zero
+                   
+4850   2B4                   PULR  R4          ; advance to the next chord
+4851   00C                   INCR  R4
+                   
+4852   001                   SDBD              ; was it the last chord?
+4853   37C 06A 048           CMPI  #ch_end, R4
+4856   225 034               BLT   chord
+4858   220 03A               B     loop        ; if yes, repeat from the beginning
+                   
+                     ;; -------------------------------------------------------- ;;
+                     ;;  chords tables                                           ;;
+                     ;; -------------------------------------------------------- ;;
+485A   2F7 00E       chords  DECLE $2F7, add2   - $ - 1  ; C/add2
+485C   2F4 013               DECLE $2F4, add2_m - $ - 1  ; Am/add2
+485E   2F7 00A               DECLE $2F7, add2   - $ - 1  ; C/add2
+4860   2F4 00F               DECLE $2F4, add2_m - $ - 1  ; Am/add2
+4862   2F0 006               DECLE $2F0, add2   - $ - 1  ; F/add2
+4864   2F2 004               DECLE $2F2, add2   - $ - 1  ; G/add2
+4866   2F3 010               DECLE $2F3, maj7   - $ - 1  ; G#/maj7
+4868   2F5 00E               DECLE $2F5, maj7   - $ - 1  ; A#/maj7
+0x486A               ch_end
+                   
+                             ; delta values, with +5 offset
+486A   007 007 ...   add2    DECLE 7, 7, 8, 10, 0, 2, 3
+4871   007 006 ...   add2_m  DECLE 7, 6, 9, 10, 0, 1, 4
+4878   009 008 ...   maj7    DECLE 9, 8, 9,  6, 4, 1, 2
+                   
+0x487F               end
+</code></pre>
+<h2>How it works</h2>
+<h3>About the Programmable Sound Generator (PSG)</h3>
+<p>The PAL-based Intellivision uses a 4.00MHz clock. The PSG is driven from a clock signal at half this rate. Internally, the PSG divides down its clock by 16 to determine the final square-wave frequency. The frequency of a tone produced by a PAL Intellivision is therefore given by:</p>
+<p><span class="math-container">$$F\_tone=\frac{4000000}{32\times P\_channel}$$</span></p>
+<p>where <span class="math-container">\$P\_channel\$</span> is the period register setting for the given channel.</p>
+<p><em>(adapted from the <code>psg.txt</code> file included in <a href="http://spatula-city.org/%7Eim14u2c/intv/" rel="nofollow noreferrer">jzIntv</a>)</em></p>
+<h3>Building the note period table</h3>
+<p>The frequency ratio between two consecutive semitones is given by:</p>
+<p><span class="math-container">$$\sqrt[12]{2}\approx 1,0594631$$</span></p>
+<p>And what we really need is the period ratio between two consecutive semitones:</p>
+<p><span class="math-container">$$1/\sqrt[12]{2}\approx 0,9438743$$</span></p>
+<p>To apply this ratio to a period <span class="math-container">\$P_n\$</span>, we use the following approximation:</p>
+<p><span class="math-container">$$P_{n+1}=\left\lfloor\frac{P_n \times 483 + 350}{512}\right\rfloor$$</span></p>
+<p>We start with <span class="math-container">\$P_0=1432\$</span>, which is the period for F<sub>2</sub> (87.31Hz) on a PAL Intellivision, computed with the formula described in the previous section. We stop when a period of 15 is reached -- an arbitrary choice to have a register ready to initialize the volume on the PSG.</p>
+<p>The CP-1610 doesn't have any multiplication instruction, so we have to compute it with either additions and shifts (see the <a href="https://codegolf.stackexchange.com/revisions/275627/9">previous revision</a>) or just repeated additions (the current revision). Besides, we need 32-bit values to have enough precision. So two pairs of 16-bit registers are used (R0/R1 and R2/R3).</p>
+<p>The integer division by 512 is of course much simpler since it boils down to a right-shift by 9.</p>
+<h3>Chords encoding</h3>
+<p>Each chord is described by the address of the first note in our period table, followed by a pointer to 7 delta values:</p>
+<pre><code>a0, a1, a2, s, d0, d1, d2
+</code></pre>
+<p>where:</p>
+<ul>
+<li><code>a0</code>, <code>a1</code>, <code>a2</code> are the delta values for the ascending phase, repeated 4 times and starting at the next octave each time</li>
+<li><code>s</code> is the delta value applied when switching from the ascending to the descending phase</li>
+<li><code>d0</code>, <code>d1</code>, <code>d2</code> are the delta values for the descending phase, repeated 4 times and starting at the previous octave each time</li>
+</ul>
+<p>The actual delta values are obtained by subtracting 5 to the stored values.</p>
+</div>
+<div id="pu1" class="pu"><h1>Javascript, 270 bytes</h1>
 <pre><code>x=&gt;{a=new AudioContext
 with(a.createOscillator()){
 for(i=0;i&lt;256;i++){n=[60,49,60,49,32,40,46,54][i&gt;&gt;5]
@@ -105,7 +254,7 @@ stop(48)}}</code></pre>
 </div>
 </p>
 </div>
-<div id="pu1" class="pu"><h1>JavaScript, 378 bytes</h1>
+<div id="pu2" class="pu"><h1>JavaScript, 378 bytes</h1>
 <p>I used an array containing as many elements as there are notes to play, making sure that each element can be represented by a single hexadecimal character.</p>
 <p>This character represents a number of semitones of difference between this note and the previous note (except for the first element which is played as is)</p>
 <p>I then realized that some big chunks were repeated (those corresponding to the arpeggios in add2 and Maj7) and that I could factorize these portions of code</p>
@@ -126,7 +275,7 @@ stop(48.64)}}</code></pre>
 </div>
 </p>
 </div>
-<div id="pu2" class="pu"><h1><a href="https://www.nicholson.com/rhn/basic/" rel="nofollow noreferrer">Chipmunk Basic</a>, <sub><s>677</s></sub> <sub><s>303</s></sub> 280 bytes</h1>
+<div id="pu3" class="pu"><h1><a href="https://www.nicholson.com/rhn/basic/" rel="nofollow noreferrer">Chipmunk Basic</a>, <sub><s>677</s></sub> <sub><s>303</s></sub> 280 bytes</h1>
 <pre class="lang-basic prettyprint-override"><code>data 0,2,4,7,-3,-1,0,4,0,2,4,7,-3,-1,0,4,-7,-5,-3,0,-5,-3,-1,2,-4,0,3,7,-2,2,5,9
 dim a(4),m(16):for k=0to 7:for i=1to 4:read a(i):next
 for i=0to 3:for j=1to 4:f=440*2^(((a(j)+12*i)-21)/12):m(j+4*i)=f:s(f):next:next
@@ -161,7 +310,7 @@ return
 </code></pre>
 <p><sub><s><a href="https://github.com/roblogic/golf/blob/46d9ed8a30eaa2785bd216b5188800784a5be9eb/basic/275590-play-the-final-fantasy-prelude.bas" rel="nofollow noreferrer">677 bytes</a></s> <em>: I am sure there is a better way of coding this ...</em></sub></p>
 </div>
-<div id="pu3" class="pu"><h1>JavaScript, 323 bytes</h1>
+<div id="pu4" class="pu"><h1>JavaScript, 323 bytes</h1>
 <p>I don't golf with JavaScript much so I'm sure there's a lot of opportunities for golfing here. Should work on most browsers.</p>
 <pre class="lang-js prettyprint-override"><code>x=&gt;{a=new AudioContext
 with(a.createOscillator()){[y=[0,2,4,7],z=[-3,-1,0,4],y,z,[-7,-5,-3,0],[-5,-3,-1,2],[-4,0,3,7],[-2,2,5,9]].map((c,t)=&gt;{p=s=&gt;frequency.setValueAtTime(440*2**(s-1.75),(t*32+i)*.19)
@@ -187,7 +336,7 @@ stop(48.64)}}</code></pre>
 </div>
 </p>
 </div>
-<div id="pu4" class="pu"><h1><a href="https://github.com/lmendo/MATL" rel="nofollow noreferrer">MATL</a> (1 language), <s>78</s> 77 bytes</h1>
+<div id="pu5" class="pu"><h1><a href="https://github.com/lmendo/MATL" rel="nofollow noreferrer">MATL</a> (1 language), <s>78</s> 77 bytes</h1>
 <pre><code>0'!4XC@nRAxt~&amp;'F5:ZaKeK1X&quot;tP[AaABOlHN]0Y(_&amp;vhYs&quot;1875:YPE*76/@12/W*Y,E]&amp;h1e4Y#
 </code></pre>
 <p>This uses equal temperament, with a C<sub>3</sub> frequency of 131.6 Hz (more accurate values could be achieved at the cost of 2 or 3 bytes, namely replacing <code>76</code> in the code by <code>76.4</code> or <code>76.45</code>).</p>
@@ -208,7 +357,7 @@ stop(48.64)}}</code></pre>
 <p>A <em>for each</em> loop (<code>&quot;</code>...<code>]</code>) reads each note, represented by the corresponding number <em>S</em>. To generate the waveform for the note, a time vector [1 2 ... 1875] is first created (<code>1875:</code>). The length of this vector, when replayed at 10000 samples per second, determines a tempo of 80 bpm, as required. This vector is element-wise multiplied by 2π <code>(YPE*)</code>, divided by 76 (<code>76/</code>), and then multiplied by 2 raised to the number that results from dividing <em>S</em> by 12 (<code>@12/W*</code>). Applying the sine function (<code>Y,</code>) produces a 1×1875 vector with samples of a sinusoid of the frequency correponding to <em>S</em>. The values of this vector are multiplied by 2 (<code>E</code>). The last sinusoid contains NaN values and will produce no sound.</p>
 <p>The 257 resulting waveforms, each with 1875 samples, are concatened horizontally (<code>&amp;h</code>) into a single waveform. This waveform is then replayed, without scaling, at the indicated sample rate (<code>1e4Y#</code>). When replaying, sample values are clipped to the interval [1, −1].</p>
 </div>
-<div id="pu5" class="pu"><h1><a href="https://github.com/PowerShell/PowerShell" rel="nofollow noreferrer">PowerShell</a>, <s>401</s> <s>379</s> <s>340</s> <s>304</s> 290 bytes</h1>
+<div id="pu6" class="pu"><h1><a href="https://github.com/PowerShell/PowerShell" rel="nofollow noreferrer">PowerShell</a>, <s>401</s> <s>379</s> <s>340</s> <s>304</s> 290 bytes</h1>
 <pre class="lang-powershell prettyprint-override"><code>$C=130,146,164,196,261;$A=110,123,130,174,220;$G=103,130,155,196,207
 $q=[console]
 function P($c=$C,$h=0){0..7|%{$i=$_;if($i-lt4){0..3|%{$q::Beep(($c[$_])*[math]::Pow(2,$i+$h/12),187)}}else{4..1|%{$q::Beep(($c[$_])*[math]::Pow(2,7-$i+$h/12),187)}}}}
@@ -225,7 +374,7 @@ P;P $A;P;P $A;P $C -7;P $C -5;P $G;P $G 2
 </ul>
 <p><em>P.S. I keep getting this weird issue where some notes are missed; I modified the code to write out the current note and index that it's on and it is indeed running correctly, but the beeps are being clobbered by something else.</em></p>
 </div>
-<div id="pu6" class="pu"><h1>ZX Spectrum 48K Basic, <s>246</s> 203 bytes</h1>
+<div id="pu7" class="pu"><h1>ZX Spectrum 48K Basic, <s>246</s> 203 bytes</h1>
 <pre><code>  10 LET t=VAL &quot;.14&quot;: LET a$=&quot;&lt;0
 247&lt;?0237&lt;&lt;0247&lt;?0237&lt;C0247&lt;A024
 7&lt;@047;&lt;&gt;047;&lt;&quot;: FOR i=SGN PI TO
@@ -321,167 +470,6 @@ gabDGABO5dgabDGABO7dgdO5BAGDbagdO3BAGDba
 $aC$EG$AO5c$eg$aC$EG$AO7c$eg$ag$ecO5$AG$EC$ag$ecO3$AG$EC
 $bDFA$BO5dfa$bDFA$BO7dfa$bafdO5$BAFD$bafdO3$BAFD
 </code></pre>
-</div>
-<div id="pu7" class="pu"><h1><a href="https://en.wikipedia.org/wiki/General_Instrument_CP1600" rel="noreferrer">CP-1610</a> machine code, 136 DECLEs<sup>1</sup>=170 bytes</h1>
-<p><em><sup>1. CP-1610 instructions are encoded with 10-bit values (0x000 to 0x3FF), known as DECLEs. Although the Intellivision is also able to work on 16-bit data, programs were really stored in 10-bit ROM back then.</sup></em></p>
-<p>A fantasy console?!? Let's do it on a real one!</p>
-<p>This code is meant to be run on a PAL Intellivision (50Hz). It would also work on an NTSC system (60Hz), but at a different pitch and speed.</p>
-<h2>Demo</h2>
-<p><a href="https://youtu.be/2DOweHnZf0g" rel="noreferrer">Here is what we get</a> on the real hardware (YouTube video), using the <a href="http://ltoflash.leftturnonly.info/" rel="noreferrer">LTO Flash!</a>.</p>
-<h2>Source code</h2>
-<pre><code>                            ROMW  10          ; use 10-bit ROM width
-0x4800                      ORG   $4800       ; map our code at $4800
-                   
-                    ;; -------------------------------------------------------- ;;
-                    ;;  build the note period table in RAM:                     ;;
-                    ;;    p(0) = 1432                                           ;;
-                    ;;    p(n) = p(n-1) * 483 + 350 &gt;&gt; 9                        ;;
-                    ;; -------------------------------------------------------- ;;
-4800   001                  SDBD              ; R0 = note period, starting at ...
-4801   2B8 098 005          MVII  #1432, R0   ; ... the highest value 1432 for F-2
-4804   2BC 2F0              MVII  #$2F0, R4   ; R4 = write pointer in RAM
-                   
-4806   260          init    MVO@  R0, R4      ; write the period
-                   
-4807   1C9                  CLRR  R1          ; R1 and R3 are the most significant
-4808   1DB                  CLRR  R3          ; words in R1:R0 and R3:R2 (32-bit)
-                   
-                            ; multiplication by 483, split into 2 + 1 - 32 + 512
-4809   082                  MOVR  R0, R2      ; R2 = R0  \
-480A   048                  SLL   R0          ; R0 *= 2   |__ 16-bit operations
-480B   0C2                  ADDR  R0, R2      ; R2 += R0  |
-480C   04C                  SLL   R0, 2       ; R0 *= 4  /
-480D   05C                  SLLC  R0, 2       ; 32-bit values required from here
-480E   055                  RLC   R1, 2       ; R1:R0 *= 4
-480F   102                  SUBR  R0, R2      ; R3:R2 -= R1:R0
-                                              ; (carry never set -&gt; no ADCR R3)
-4810   013                  DECR  R3
-4811   10B                  SUBR  R1, R3
-4812   05C                  SLLC  R0, 2       ; R1:R0 *= 16
-4813   055                  RLC   R1, 2
-4814   05C                  SLLC  R0, 2
-4815   055                  RLC   R1, 2
-4816   0C2                  ADDR  R0, R2      ; R3:R2 += R1:R0
-4817   02B                  ADCR  R3
-4818   0CB                  ADDR  R1, R3
-                   
-4819   2FA 15E              ADDI  #350, R2    ; R3:R2 += 350
-                                              ; (carry never set -&gt; no ADCR R3)
-                   
-481B   042                  SWAP  R2          ; R2 = R3:R2 &gt;&gt; 9
-481C   043                  SWAP  R3
-481D   3BA 0FF              ANDI  #$FF, R2
-481F   1DA                  XORR  R3, R2
-4820   07A                  SARC  R2
-                   
-4821   090                  MOVR  R2, R0      ; copy R2 to R0
-                   
-4822   378 00F              CMPI  #$F, R0     ; loop until R0 = $F
-4824   22E 01F              BGT   init
-                   
-                    ;; -------------------------------------------------------- ;;
-                    ;;  play the song                                           ;;
-                    ;; -------------------------------------------------------- ;;
-4826   240 1FB              MVO   R0, $1FB    ; set the volume on channel A to $F
-                   
-4828   001          loop    SDBD              ; R4 = pointer into chords table
-4829   2BC 063 048          MVII  #chords, R4
-                   
-482C   2A2          chord   MVI@  R4, R2      ; R2 = initial note address
-482D   274                  PSHR  R4          ; save R4 on the stack
-482E   2E4                  ADD@  R4, R4      ; R4 = pointer into delta values
-482F   2BD 008              MVII  #8, R5      ; R5 = octave counter
-                   
-4831   093          octave  MOVR  R2, R3      ; copy R2 to R3
-4832   2B9 004              MVII  #4, R1      ; R1 = note counter
-                   
-4834   298          note    MVI@  R3, R0      ; R0 = note period
-4835   240 1F0              MVO   R0, $1F0    ; save the low bits
-4837   040                  SWAP  R0
-4838   240 1F4              MVO   R0, $1F4    ; save the high bits
-                   
-483A   001                  SDBD              ; wait for ~184500 cycles
-483B   2B8 00C 030          MVII  #12300, R0  ; (approximately 185ms)
-                   
-483E   010          spin    DECR  R0          ; (6 cycles)
-483F   22C 002              BNEQ  spin        ; (9 cycles)
-                   
-4841   2E3                  ADD@  R4, R3      ; update R3
-4842   33B 005              SUBI  #5, R3
-4844   011                  DECR  R1          ; decrement the note counter
-4845   22C 012              BNEQ  note        ; loop if not zero
-                   
-4847   37D 005              CMPI  #5, R5      ; compare octave counter with 5
-4849   20C 003              BNEQ  phase       ; time to switch the phase? ...
-                   
-484B   09A                  MOVR  R3, R2      ; ... yes: copy R3 to R2
-484C   200 008              B     next
-                   
-484E   20E 002      phase   BGT   asc         ; ascending phase?
-                   
-4850   33A 018              SUBI  #24, R2     ; descending phase: -12 semitones
-4852   2FA 00C      asc     ADDI  #12, R2     ; ascending phase: +12 semitones
-                   
-4854   33C 004              SUBI  #4, R4      ; rewind R4
-                   
-4856   015          next    DECR  R5          ; decrement the octave counter
-4857   22C 027              BNEQ  octave      ; loop if not zero
-                   
-4859   2B4                  PULR  R4          ; advance to the next chord
-485A   00C                  INCR  R4
-                   
-485B   001                  SDBD              ; was it the last chord?
-485C   37C 073 048          CMPI  #ch_end, R4
-485F   225 034              BLT   chord
-4861   220 03A              B     loop        ; if yes, repeat from the beginning
-                   
-                    ;; -------------------------------------------------------- ;;
-                    ;;  chords tables                                           ;;
-                    ;; -------------------------------------------------------- ;;
-4863   2F7 00E      chords  DECLE $2F7, add2   - $ - 1  ; C/add2
-4865   2F4 013              DECLE $2F4, add2_m - $ - 1  ; Am/add2
-4867   2F7 00A              DECLE $2F7, add2   - $ - 1  ; C/add2
-4869   2F4 00F              DECLE $2F4, add2_m - $ - 1  ; Am/add2
-486B   2F0 006              DECLE $2F0, add2   - $ - 1  ; F/add2
-486D   2F2 004              DECLE $2F2, add2   - $ - 1  ; G/add2
-486F   2F3 010              DECLE $2F3, maj7   - $ - 1  ; G#/maj7
-4871   2F5 00E              DECLE $2F5, maj7   - $ - 1  ; A#/maj7
-0x4873              ch_end
-                   
-                            ; delta values, with +5 offset
-4873   007 007 ...  add2    DECLE 7, 7, 8, 10, 0, 2, 3
-487A   007 006 ...  add2_m  DECLE 7, 6, 9, 10, 0, 1, 4
-4881   009 008 ...  maj7    DECLE 9, 8, 9,  6, 4, 1, 2
-
-0x4888              end
-</code></pre>
-<h2>How it works</h2>
-<h3>About the Programmable Sound Generator (PSG)</h3>
-<p>The PAL-based Intellivision uses a 4.00MHz clock. The PSG is driven from a clock signal at half this rate. Internally, the PSG divides down its clock by 16 to determine the final square-wave frequency. The frequency of a tone produced by a PAL Intellivision is therefore given by:</p>
-<p><span class="math-container">$$F\_tone=\frac{4000000}{32\times P\_channel}$$</span></p>
-<p>where <span class="math-container">\$P\_channel\$</span> is the period register setting for the given channel.</p>
-<p><em>(adapted from the <code>psg.txt</code> file included in <a href="http://spatula-city.org/%7Eim14u2c/intv/" rel="noreferrer">jzIntv</a>)</em></p>
-<h3>Building the note period table</h3>
-<p>The frequency ratio between two consecutive semitones is given by:</p>
-<p><span class="math-container">$$\sqrt[12]{2}\approx 1,0594631$$</span></p>
-<p>And what we really need is the period ratio between two consecutive semitones:</p>
-<p><span class="math-container">$$1/\sqrt[12]{2}\approx 0,9438743$$</span></p>
-<p>To apply this ratio to a period <span class="math-container">\$P_n\$</span>, we use the following approximation:</p>
-<p><span class="math-container">$$P_{n+1}=\left\lfloor\frac{P_n \times 483 + 350}{512}\right\rfloor$$</span></p>
-<p>We start with <span class="math-container">\$P_0=1432\$</span>, which is the period for F<sub>2</sub> (87.31Hz) on a PAL Intellivision, computed with the formula described in the previous section. We stop when a period of 15 is reached -- an arbitrary choice to have a register ready to initialize the volume on the PSG.</p>
-<p>The CP-1610 doesn't have any multiplication instruction, so we have to compute it with additions and shifts. Besides, we need 32-bit values to have enough precision. So two pairs of 16-bit registers are used (R0/R1 and R2/R3).</p>
-<p>The integer division by 512 is of course much simpler since it boils down to a right-shift by 9.</p>
-<h3>Chords encoding</h3>
-<p>Each chord is described by the address of the first note in our period table, followed by a pointer to 7 delta values:</p>
-<pre><code>a0, a1, a2, s, d0, d1, d2
-</code></pre>
-<p>where:</p>
-<ul>
-<li><code>a0</code>, <code>a1</code>, <code>a2</code> are the delta values for the ascending phase, repeated 4 times and starting at the next octave each time</li>
-<li><code>s</code> is the delta value applied when switching from the ascending to the descending phase</li>
-<li><code>d0</code>, <code>d1</code>, <code>d2</code> are the delta values for the descending phase, repeated 4 times and starting at the previous octave each time</li>
-</ul>
-<p>The actual delta values are obtained by subtracting 5 to the stored values.</p>
 </div>
 
 <table id="st">
