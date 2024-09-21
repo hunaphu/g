@@ -26,8 +26,8 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>nan</td><td>JavaScript</td><td>240920T204734Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275664#275664">rougepie</a></td></tr>
-<tr d-ix="1"><td>nan</td><td>CP1610 machine code</td><td>240919T013051Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275627#275627">Arnauld</a></td></tr>
+<tr d-ix="0"><td>nan</td><td>CP1610 machine code</td><td>240919T013051Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275627#275627">Arnauld</a></td></tr>
+<tr d-ix="1"><td>nan</td><td>JavaScript</td><td>240920T204734Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275664#275664">rougepie</a></td></tr>
 <tr d-ix="2"><td>270</td><td>Javascript</td><td>240920T193816Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275663#275663">ccprog</a></td></tr>
 <tr d-ix="3"><td>280</td><td>Chipmunk Basic</td><td>240918T153621Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275614#275614">roblogic</a></td></tr>
 <tr d-ix="4"><td>323</td><td>JavaScript</td><td>240919T161621Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275646#275646">Jordan</a></td></tr>
@@ -35,26 +35,7 @@
 <tr d-ix="6"><td>290</td><td>PowerShell</td><td>240918T153022Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275613#275613">bigyihsu</a></td></tr>
 <tr d-ix="7"><td>203</td><td>ZX Spectrum 48K Basic</td><td>240918T121524Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275609#275609">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>JavaScript, (378) 346 bytes</h1>
-<p>I used an array containing as many elements as there are notes to play, making sure that each element can be represented by a single hexadecimal character.</p>
-<p>This character represents a number of semitones of difference between this note and the previous note (except for the first element which is played as is)</p>
-<p>I then realized that some big chunks were repeated (those corresponding to the arpeggios in add2 and Maj7) and that I could factorize these portions of code</p>
-<p>EDIT: I save some extra bytes by fixing the melody (thx @G.Sliepen ) and starting with <code>c=3</code> and using <code>110*2**(c/12)</code> to compute the frequency (thx @Neil)</p>
-<p><div class="snippet" data-lang="js" data-hide="false" data-console="true" data-babel="false">
-<div class="snippet-code">
-<pre class="snippet-code-js lang-js prettyprint-override"><code>h=`6${b="889b889b889b889b134413441344134"}1${d="87ab87ab87ab87ab125412541254125"}7${b}1${d}0${b}6${b}5${D="a9a7a9a7a9a7a9a7523252325232523"}2${D}`.split``.map(x=&gt;+("0x"+x)-6)
-f=()=&gt;{a=new AudioContext()
-with(a.createOscillator()){c=3
-h.map((u, i)=&gt;{frequency.setValueAtTime(110*2**(c/12),i*.19);c+=u})
-connect(a.destination)
-start()
-stop(48.64)}}</code></pre>
-<pre class="snippet-code-html lang-html prettyprint-override"><code>&lt;button type="button" onclick="f()"&gt;Play (Warning: Loud)&lt;/button&gt;</code></pre>
-</div>
-</div>
-</p>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://en.wikipedia.org/wiki/General_Instrument_CP1600" rel="nofollow noreferrer">CP-1610</a> machine code, 127 DECLEs<sup>1</sup>=158.75 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://en.wikipedia.org/wiki/General_Instrument_CP1600" rel="nofollow noreferrer">CP-1610</a> machine code, 125 DECLEs<sup>1</sup>=156.25 bytes</h1>
 <p><em><sup>1. CP-1610 instructions are encoded with 10-bit values (0x000 to 0x3FF), known as DECLEs. Although the Intellivision is also able to work on 16-bit data, programs were really stored in 10-bit ROM back then.</sup></em></p>
 <p>A fantasy console?!? Let's do it on a real one!</p>
 <p>This code is meant to be run on a PAL Intellivision (50Hz). It would also work on an NTSC system (60Hz), but at a different pitch and speed.</p>
@@ -105,75 +86,74 @@ stop(48.64)}}</code></pre>
 481D   240 1FB               MVO   R0, $1FB    ; set the volume on channel A to $F
                    
 481F   001           loop    SDBD              ; R4 = pointer into chords table
-4820   2BC 05A 048           MVII  #chords, R4
+4820   2BC 057 048           MVII  #chords, R4
                    
 4823   2A2           chord   MVI@  R4, R2      ; R2 = initial note address
-4824   274                   PSHR  R4          ; save R4 on the stack
-4825   2E4                   ADD@  R4, R4      ; R4 = pointer into delta values
-4826   2BD 008               MVII  #8, R5      ; R5 = octave counter
+4824   092                   TSTR  R2          ; time to loop?
+4825   224 007               BEQ   loop
                    
-4828   093           octave  MOVR  R2, R3      ; copy R2 to R3
-4829   2B9 004               MVII  #4, R1      ; R1 = note counter
+4827   274                   PSHR  R4          ; save R4 on the stack
+4828   2E4                   ADD@  R4, R4      ; R4 = pointer into delta values
+4829   2BD 008               MVII  #8, R5      ; R5 = octave counter
                    
-482B   298           note    MVI@  R3, R0      ; R0 = note period
-482C   240 1F0               MVO   R0, $1F0    ; save the low bits
-482E   040                   SWAP  R0          ; and the high bits
-482F   240 1F4               MVO   R0, $1F4    ; into the PSG registers
+482B   093           octave  MOVR  R2, R3      ; copy R2 to R3
+482C   2B9 004               MVII  #4, R1      ; R1 = note counter
                    
-4831   001                   SDBD              ; wait for ~184500 cycles
-4832   2B8 00C 030           MVII  #12300, R0  ; (approximately 185ms)
+482E   298           note    MVI@  R3, R0      ; R0 = note period
+482F   240 1F0               MVO   R0, $1F0    ; save the low bits
+4831   040                   SWAP  R0          ; and the high bits
+4832   240 1F4               MVO   R0, $1F4    ; into the PSG registers
                    
-4835   010           spin    DECR  R0          ; (6 cycles)
-4836   22C 002               BNEQ  spin        ; (9 cycles)
+4834   001                   SDBD              ; wait for ~184500 cycles
+4835   2B8 00C 030           MVII  #12300, R0  ; (approximately 185ms)
                    
-4838   2E3                   ADD@  R4, R3      ; update R3
-4839   33B 005               SUBI  #5, R3
-483B   011                   DECR  R1          ; decrement the note counter
-483C   22C 012               BNEQ  note        ; loop if not zero
+4838   010           spin    DECR  R0          ; (6 cycles)
+4839   22C 002               BNEQ  spin        ; (9 cycles)
                    
-483E   37D 005               CMPI  #5, R5      ; compare octave counter with 5
-4840   20C 003               BNEQ  phase       ; time to switch the phase? ...
+483B   2E3                   ADD@  R4, R3      ; update R3
+483C   33B 005               SUBI  #5, R3
+483E   011                   DECR  R1          ; decrement the note counter
+483F   22C 012               BNEQ  note        ; loop if not zero
                    
-4842   09A                   MOVR  R3, R2      ; ... yes: copy R3 to R2
-4843   200 008               B     next
+4841   37D 005               CMPI  #5, R5      ; compare octave counter with 5
+4843   20C 003               BNEQ  phase       ; time to switch the phase? ...
                    
-4845   20E 002       phase   BGT   asc         ; ascending phase?
+4845   09A                   MOVR  R3, R2      ; ... yes: copy R3 to R2
+4846   200 008               B     next
                    
-4847   33A 018               SUBI  #24, R2     ; descending phase: -12 semitones
-4849   2FA 00C       asc     ADDI  #12, R2     ; ascending phase: +12 semitones
+4848   20E 002       phase   BGT   asc         ; ascending phase?
                    
-484B   33C 004               SUBI  #4, R4      ; rewind R4
+484A   33A 018               SUBI  #24, R2     ; descending phase: -12 semitones
+484C   2FA 00C       asc     ADDI  #12, R2     ; ascending phase: +12 semitones
                    
-484D   015           next    DECR  R5          ; decrement the octave counter
-484E   22C 027               BNEQ  octave      ; loop if not zero
+484E   33C 004               SUBI  #4, R4      ; rewind R4
                    
-4850   2B4                   PULR  R4          ; advance to the next chord
-4851   00C                   INCR  R4
+4850   015           next    DECR  R5          ; decrement the octave counter
+4851   22C 027               BNEQ  octave      ; loop if not zero
                    
-4852   001                   SDBD              ; was it the last chord?
-4853   37C 06A 048           CMPI  #ch_end, R4
-4856   225 034               BLT   chord
-4858   220 03A               B     loop        ; if yes, repeat from the beginning
+4853   2B4                   PULR  R4          ; advance to the next chord
+4854   00C                   INCR  R4
+4855   220 033               B     chord
                    
                      ;; -------------------------------------------------------- ;;
                      ;;  chords tables                                           ;;
                      ;; -------------------------------------------------------- ;;
-485A   2F7 00E       chords  DECLE $2F7, add2   - $ - 1  ; C/add2
-485C   2F4 013               DECLE $2F4, add2_m - $ - 1  ; Am/add2
-485E   2F7 00A               DECLE $2F7, add2   - $ - 1  ; C/add2
-4860   2F4 00F               DECLE $2F4, add2_m - $ - 1  ; Am/add2
-4862   2F0 006               DECLE $2F0, add2   - $ - 1  ; F/add2
-4864   2F2 004               DECLE $2F2, add2   - $ - 1  ; G/add2
-4866   2F3 010               DECLE $2F3, maj7   - $ - 1  ; G#/maj7
-4868   2F5 00E               DECLE $2F5, maj7   - $ - 1  ; A#/maj7
-0x486A               ch_end
+4857   2F7 00F       chords  DECLE $2F7, add2   - $ - 1  ; C/add2
+4859   2F4 014               DECLE $2F4, add2_m - $ - 1  ; Am/add2
+485B   2F7 00B               DECLE $2F7, add2   - $ - 1  ; C/add2
+485D   2F4 010               DECLE $2F4, add2_m - $ - 1  ; Am/add2
+485F   2F0 007               DECLE $2F0, add2   - $ - 1  ; F/add2
+4861   2F2 005               DECLE $2F2, add2   - $ - 1  ; G/add2
+4863   2F3 011               DECLE $2F3, maj7   - $ - 1  ; G#/maj7
+4865   2F5 00F               DECLE $2F5, maj7   - $ - 1  ; A#/maj7
+4867   000                   DECLE 0
                    
                              ; delta values, with +5 offset
-486A   007 007 ...   add2    DECLE 7, 7, 8, 10, 0, 2, 3
-4871   007 006 ...   add2_m  DECLE 7, 6, 9, 10, 0, 1, 4
-4878   009 008 ...   maj7    DECLE 9, 8, 9,  6, 4, 1, 2
+4868   007 007 ...   add2    DECLE 7, 7, 8, 10, 0, 2, 3
+486F   007 006 ...   add2_m  DECLE 7, 6, 9, 10, 0, 1, 4
+4876   009 008 ...   maj7    DECLE 9, 8, 9,  6, 4, 1, 2
                    
-0x487F               end
+0x487D               end
 </code></pre>
 <h2>How it works</h2>
 <h3>About the Programmable Sound Generator (PSG)</h3>
@@ -202,6 +182,25 @@ stop(48.64)}}</code></pre>
 <li><code>d0</code>, <code>d1</code>, <code>d2</code> are the delta values for the descending phase, repeated 4 times and starting at the previous octave each time</li>
 </ul>
 <p>The actual delta values are obtained by subtracting 5 to the stored values.</p>
+</div>
+<div id="pu1" class="pu"><h1>JavaScript, (378) 346 bytes</h1>
+<p>I used an array containing as many elements as there are notes to play, making sure that each element can be represented by a single hexadecimal character.</p>
+<p>This character represents a number of semitones of difference between this note and the previous note (except for the first element which is played as is)</p>
+<p>I then realized that some big chunks were repeated (those corresponding to the arpeggios in add2 and Maj7) and that I could factorize these portions of code</p>
+<p>EDIT: I save some extra bytes by fixing the melody (thx @G.Sliepen ) and starting with <code>c=3</code> and using <code>110*2**(c/12)</code> to compute the frequency (thx @Neil)</p>
+<p><div class="snippet" data-lang="js" data-hide="false" data-console="true" data-babel="false">
+<div class="snippet-code">
+<pre class="snippet-code-js lang-js prettyprint-override"><code>h=`6${b="889b889b889b889b134413441344134"}1${d="87ab87ab87ab87ab125412541254125"}7${b}1${d}0${b}6${b}5${D="a9a7a9a7a9a7a9a7523252325232523"}2${D}`.split``.map(x=&gt;+("0x"+x)-6)
+f=()=&gt;{a=new AudioContext()
+with(a.createOscillator()){c=3
+h.map((u, i)=&gt;{frequency.setValueAtTime(110*2**(c/12),i*.19);c+=u})
+connect(a.destination)
+start()
+stop(48.64)}}</code></pre>
+<pre class="snippet-code-html lang-html prettyprint-override"><code>&lt;button type="button" onclick="f()"&gt;Play (Warning: Loud)&lt;/button&gt;</code></pre>
+</div>
+</div>
+</p>
 </div>
 <div id="pu2" class="pu"><h1>Javascript, 270 bytes</h1>
 <pre><code>x=&gt;{a=new AudioContext
