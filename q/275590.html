@@ -26,9 +26,9 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>201</td><td>C GCC using OSS</td><td>240921T162403Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275674#275674">G. Sliep</a></td></tr>
-<tr d-ix="1"><td>nan</td><td>CP1610 machine code</td><td>240919T013051Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275627#275627">Arnauld</a></td></tr>
-<tr d-ix="2"><td>nan</td><td>JavaScript</td><td>240920T204734Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275664#275664">rougepie</a></td></tr>
+<tr d-ix="0"><td>196</td><td>C GCC using OSS</td><td>240921T162403Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275674#275674">G. Sliep</a></td></tr>
+<tr d-ix="1"><td>343</td><td>JavaScript</td><td>240920T204734Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275664#275664">rougepie</a></td></tr>
+<tr d-ix="2"><td>nan</td><td>CP1610 machine code</td><td>240919T013051Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275627#275627">Arnauld</a></td></tr>
 <tr d-ix="3"><td>270</td><td>Javascript</td><td>240920T193816Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275663#275663">ccprog</a></td></tr>
 <tr d-ix="4"><td>280</td><td>Chipmunk Basic</td><td>240918T153621Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275614#275614">roblogic</a></td></tr>
 <tr d-ix="5"><td>323</td><td>JavaScript</td><td>240919T161621Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275646#275646">Jordan</a></td></tr>
@@ -36,10 +36,10 @@
 <tr d-ix="7"><td>290</td><td>PowerShell</td><td>240918T153022Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275613#275613">bigyihsu</a></td></tr>
 <tr d-ix="8"><td>203</td><td>ZX Spectrum 48K Basic</td><td>240918T121524Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275609#275609">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>C (GCC) using OSS, 201 bytes</h1>
-<pre><code>c;n;k;i;A;a;f(){open(&quot;/dev/dsp&quot;,1);for(c=0;c&lt;8;++c)for(n=0;n&lt;32;++n)for(k=n&gt;16?32-n:n,i=0;i&lt;1500;++i)A=(a+=901*exp2(k/4+(&quot;047;02470237&quot;[k%4+(5732&gt;&gt;c*2&amp;12)]-&quot;03037542&quot;[c]+4)/12.f))&gt;&gt;9,write(3,&amp;A,1);}
+<div id="pu0" class="pu"><h1>C (GCC) using OSS, <s>201</s> 196 bytes</h1>
+<pre><code>c;n;;i;A;a;f(){open(&quot;/dev/dsp&quot;,1);for(c=0;c&lt;8;++c)for(n=0;n&lt;32;n++)for(k=n&gt;16?32-n:n,i=1500;i--;)A=(a+=901*exp2(k/4+(&quot;047;02470237&quot;[k%4+(5732&gt;&gt;c*2&amp;12)]-&quot;03037542&quot;[c]+4)/12.))&gt;&gt;9,write(3,&amp;A,1);}
 </code></pre>
-<p>The score includes 3 bytes for the <code>-lm</code> compiler flag. It runs on any UNIX system with support for the Open Sound System (OSS), or any other sound system that provides compatibility with OSS.</p>
+<p>The score includes 3 bytes for the <code>-lm</code> compiler flag. It runs on any UNIX system with support for the Open Sound System (OSS), or any other sound system that provides compatibility with OSS. On modern Linux, you might have to <code>modload snd_pcm_oss</code> if this is not done automatically already.</p>
 <p>The code opens /dev/dsp, which by default accepts 8-bit, unsigned, 8 kHz audio. It has three nested loops:</p>
 <ul>
 <li>Outer loop for each chord</li>
@@ -50,11 +50,30 @@
 <ul>
 <li><code>5732</code> is 8 2-bit values storing which type of chord to play (major seventh, major and minor)</li>
 <li><code>&quot;047;02470237&quot;</code> stores the notes of each of the three chord types</li>
-<li><code>&quot;03037542&quot;</code> stores the first note of the start of each up-down arpeggio</li>
+<li><code>&quot;03037542&quot;</code> stores the first note of the start of each up-down arpeggio, inverted (higher ASCII code means lower note), as it will be subtracted from the previous table values</li>
 </ul>
-<p>It then calculates the change in phase per sample for the waveform at that frequency in 25.7 fixed point format, and adds it to <code>a</code>. This is then converted to a byte to be send to the audio device.</p>
+<p>It then calculates the change in phase per sample for the waveform at that frequency in fixed point format, and adds it to the phase accumulator  <code>a</code>. This is then converted to a byte to be send straight to the audio device, thus generating a sawtooth wave with the right frequency.</p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://en.wikipedia.org/wiki/General_Instrument_CP1600" rel="nofollow noreferrer">CP-1610</a> machine code, 125 DECLEs<sup>1</sup>=156.25 bytes</h1>
+<div id="pu1" class="pu"><h1>JavaScript, 343 bytes</h1>
+<p>I used an array containing as many elements as there are notes to play, making sure that each element can be represented by a single hexadecimal character.</p>
+<p>This character represents a number of semitones of difference between this note and the previous note (except for the first element which is played as is)</p>
+<p>I then realized that some big chunks were repeated (those corresponding to the arpeggios in add2 and Maj7) and that I could factorize these portions of code</p>
+<p>EDIT: I save some extra bytes by fixing the melody (thx @G.Sliepen ) and starting with <code>c=3</code> and using <code>110*2**(c/12)</code> to compute the frequency (thx @Neil). Thank to @Arnauld too</p>
+<p><div class="snippet" data-lang="js" data-hide="false" data-console="true" data-babel="false">
+<div class="snippet-code">
+<pre class="snippet-code-js lang-js prettyprint-override"><code>h=`6${b="889b889b889b889b134413441344134"}1${d="87ab87ab87ab87ab125412541254125"}7${b}1${d}0${b}6${b}5${D="a9a7a9a7a9a7a9a7523252325232523"}2${D}`.split``.map(x=&gt;"0x"+x-6)
+f=()=&gt;{a=new AudioContext()
+with(a.createOscillator()){c=3
+h.map((u, i)=&gt;{frequency.setValueAtTime(110*2**(c/12),i*.19);c+=u})
+connect(a.destination)
+start()
+stop(48.64)}}</code></pre>
+<pre class="snippet-code-html lang-html prettyprint-override"><code>&lt;button type="button" onclick="f()"&gt;Play (Warning: Loud)&lt;/button&gt;</code></pre>
+</div>
+</div>
+</p>
+</div>
+<div id="pu2" class="pu"><h1><a href="https://en.wikipedia.org/wiki/General_Instrument_CP1600" rel="nofollow noreferrer">CP-1610</a> machine code, 125 DECLEs<sup>1</sup>=156.25 bytes</h1>
 <p><em><sup>1. CP-1610 instructions are encoded with 10-bit values (0x000 to 0x3FF), known as DECLEs. Although the Intellivision is also able to work on 16-bit data, programs were really stored in 10-bit ROM back then.</sup></em></p>
 <p>A fantasy console?!? Let's do it on a real one!</p>
 <p>This code is meant to be run on a PAL Intellivision (50Hz). It would also work on an NTSC system (60Hz), but at a different pitch and speed.</p>
@@ -201,25 +220,6 @@
 <li><code>d0</code>, <code>d1</code>, <code>d2</code> are the delta values for the descending phase, repeated 4 times and starting at the previous octave each time</li>
 </ul>
 <p>The actual delta values are obtained by subtracting 5 to the stored values.</p>
-</div>
-<div id="pu2" class="pu"><h1>JavaScript, (378) 346 bytes</h1>
-<p>I used an array containing as many elements as there are notes to play, making sure that each element can be represented by a single hexadecimal character.</p>
-<p>This character represents a number of semitones of difference between this note and the previous note (except for the first element which is played as is)</p>
-<p>I then realized that some big chunks were repeated (those corresponding to the arpeggios in add2 and Maj7) and that I could factorize these portions of code</p>
-<p>EDIT: I save some extra bytes by fixing the melody (thx @G.Sliepen ) and starting with <code>c=3</code> and using <code>110*2**(c/12)</code> to compute the frequency (thx @Neil)</p>
-<p><div class="snippet" data-lang="js" data-hide="false" data-console="true" data-babel="false">
-<div class="snippet-code">
-<pre class="snippet-code-js lang-js prettyprint-override"><code>h=`6${b="889b889b889b889b134413441344134"}1${d="87ab87ab87ab87ab125412541254125"}7${b}1${d}0${b}6${b}5${D="a9a7a9a7a9a7a9a7523252325232523"}2${D}`.split``.map(x=&gt;+("0x"+x)-6)
-f=()=&gt;{a=new AudioContext()
-with(a.createOscillator()){c=3
-h.map((u, i)=&gt;{frequency.setValueAtTime(110*2**(c/12),i*.19);c+=u})
-connect(a.destination)
-start()
-stop(48.64)}}</code></pre>
-<pre class="snippet-code-html lang-html prettyprint-override"><code>&lt;button type="button" onclick="f()"&gt;Play (Warning: Loud)&lt;/button&gt;</code></pre>
-</div>
-</div>
-</p>
 </div>
 <div id="pu3" class="pu"><h1>Javascript, 270 bytes</h1>
 <pre><code>x=&gt;{a=new AudioContext
