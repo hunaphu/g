@@ -26,8 +26,8 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>320</td><td>JavaScript</td><td>240919T161621Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275646#275646">Jordan</a></td></tr>
-<tr d-ix="1"><td>177</td><td>C GCC using OSS</td><td>240921T162403Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275674#275674">G. Sliep</a></td></tr>
+<tr d-ix="0"><td>174</td><td>C GCC using OSS</td><td>240921T162403Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275674#275674">G. Sliep</a></td></tr>
+<tr d-ix="1"><td>320</td><td>JavaScript</td><td>240919T161621Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275646#275646">Jordan</a></td></tr>
 <tr d-ix="2"><td>343</td><td>JavaScript</td><td>240920T204734Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275664#275664">rougepie</a></td></tr>
 <tr d-ix="3"><td>nan</td><td>CP1610 machine code</td><td>240919T013051Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275627#275627">Arnauld</a></td></tr>
 <tr d-ix="4"><td>270</td><td>Javascript</td><td>240920T193816Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275663#275663">ccprog</a></td></tr>
@@ -36,7 +36,27 @@
 <tr d-ix="7"><td>290</td><td>PowerShell</td><td>240918T153022Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275613#275613">bigyihsu</a></td></tr>
 <tr d-ix="8"><td>203</td><td>ZX Spectrum 48K Basic</td><td>240918T121524Z</td><td><a href="https://codegolf.stackexchange.com/questions/275590/play-the-final-fantasy-prelude/275609#275609">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>JavaScript, 320 bytes</h1>
+<div id="pu0" class="pu"><h1>C (GCC) using OSS, <s>201</s> <s>197</s> <s>177</s> 174 bytes</h1>
+<pre><code>i;main(c,n,a){for(open(&quot;/dev/dsp&quot;,1);write(3,&amp;n,1);n=(a+=901*exp2(n/4+(&quot;047;02470237&quot;[n%4+(5732&gt;&gt;c*2&amp;12)]-&quot;,/,/310.&quot;[c])/12.))&gt;&gt;9)n=i++/1500,c=n/32%8,n%=32,n=n&gt;16?32-n:n;}
+</code></pre>
+<p>The score includes 3 bytes for the <code>-lm</code> compiler flag. It runs on any UNIX system with support for the Open Sound System (OSS), or any other sound system that provides compatibility with OSS. On modern Linux, you might have to <code>sudo modprobe snd_pcm_oss</code> if this is not done automatically already. If you compile with GCC 14 or later, you might need to pass the <code>-std=gnu89</code> flag, but earlier versions don't need it.</p>
+<p>The code opens <code>/dev/dsp</code>, which by default accepts 8-bit, unsigned, 8 kHz mono audio. It has three nested loops:</p>
+<ul>
+<li>Outer loop for each chord</li>
+<li>Middle loop for the arpeggio</li>
+<li>Inner loop to generate samples</li>
+</ul>
+<p>However, you'll only see one <code>for</code>-loop; it calculates the chord number and position in the arpeggio from the sample counter <code>i</code>. It also reuses the arpeggio position <code>n</code> for the sample value.</p>
+<p>It uses a several lookup tables to find out which note to play:</p>
+<ul>
+<li><code>5732</code> is 8 2-bit values storing which type of chord to play (major seventh, major and minor)</li>
+<li><code>&quot;047;02470237&quot;</code> stores the notes of each of the three chord types</li>
+<li><code>&quot;,/,/310.&quot;</code> stores the first note of the start of each up-down arpeggio, inverted (higher ASCII code means lower note), as it will be subtracted from the previous table's values</li>
+</ul>
+<p>It then calculates the change in phase per sample for the waveform at that frequency in fixed point format, and adds it to the phase accumulator  <code>a</code>. This is then converted to a byte to be send straight to the audio device, thus generating a sawtooth wave with the right frequency.</p>
+<p>This version loops (for at least six days).</p>
+</div>
+<div id="pu1" class="pu"><h1>JavaScript, 320 bytes</h1>
 <p>I don't golf with JavaScript much so I'm sure there's a lot of opportunities for golfing here. Should work on most browsers.</p>
 <pre class="lang-js prettyprint-override"><code>x=&gt;{a=new AudioContext
 with(a.createOscillator()){[y=[0,2,4,7],z=[-3,-1,0,4],y,z,[-7,-5,-3,0],[-5,-3,-1,2],[-4,0,3,7],[-2,2,5,9]].map((c,t)=&gt;{p=s=&gt;frequency.setValueAtTime(440*2**(s-1.75),(t*32+i)*.19)
@@ -61,26 +81,6 @@ stop(48.64)}}</code></pre>
 </div>
 </div>
 </p>
-</div>
-<div id="pu1" class="pu"><h1>C (GCC) using OSS, <s>201</s> <s>197</s> 177 bytes</h1>
-<pre><code>c;n;i;a;main(){for(open(&quot;/dev/dsp&quot;,1);write(3,&amp;n,1);n=(a+=901*exp2(n/4+(&quot;047;02470237&quot;[n%4+(5732&gt;&gt;c*2&amp;12)]-&quot;03037542&quot;[c]+4)/12.))&gt;&gt;9)n=i++/1500,c=n/32%8,n%=32,n=n&gt;16?32-n:n;}
-</code></pre>
-<p>The score includes 3 bytes for the <code>-lm</code> compiler flag. It runs on any UNIX system with support for the Open Sound System (OSS), or any other sound system that provides compatibility with OSS. On modern Linux, you might have to <code>sudo modprobe snd_pcm_oss</code> if this is not done automatically already. If you compile with GCC 14 or later, you might need to pass the <code>-std=gnu89</code> flag, but earlier versions don't need it.</p>
-<p>The code opens <code>/dev/dsp</code>, which by default accepts 8-bit, unsigned, 8 kHz mono audio. It has three nested loops:</p>
-<ul>
-<li>Outer loop for each chord</li>
-<li>Middle loop for the arpeggio</li>
-<li>Inner loop to generate samples</li>
-</ul>
-<p>However, you'll only see one <code>for</code>-loop; it calculates the chord number and position in the arpeggio from the sample counter <code>i</code>. It also reuses the arpeggio position <code>n</code> for the sample value.</p>
-<p>It uses a several lookup tables to find out which note to play:</p>
-<ul>
-<li><code>5732</code> is 8 2-bit values storing which type of chord to play (major seventh, major and minor)</li>
-<li><code>&quot;047;02470237&quot;</code> stores the notes of each of the three chord types</li>
-<li><code>&quot;03037542&quot;</code> stores the first note of the start of each up-down arpeggio, inverted (higher ASCII code means lower note), as it will be subtracted from the previous table's values</li>
-</ul>
-<p>It then calculates the change in phase per sample for the waveform at that frequency in fixed point format, and adds it to the phase accumulator  <code>a</code>. This is then converted to a byte to be send straight to the audio device, thus generating a sawtooth wave with the right frequency.</p>
-<p>This version loops (for at least six days).</p>
 </div>
 <div id="pu2" class="pu"><h1>JavaScript, 343 bytes</h1>
 <p>I used an array containing as many elements as there are notes to play, making sure that each element can be represented by a single hexadecimal character.</p>
