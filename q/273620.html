@@ -26,13 +26,42 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>nan</td><td></td><td>240612T182909Z</td><td><a href="https://codegolf.stackexchange.com/questions/273620/9-16-25-2d-matrix/273625#273625">Tobias G</a></td></tr>
-<tr d-ix="1"><td>043</td><td>Brachylog</td><td>240613T115529Z</td><td><a href="https://codegolf.stackexchange.com/questions/273620/9-16-25-2d-matrix/273645#273645">Fatalize</a></td></tr>
-<tr d-ix="2"><td>021</td><td>Nekomata + 1</td><td>240613T060507Z</td><td><a href="https://codegolf.stackexchange.com/questions/273620/9-16-25-2d-matrix/273638#273638">alephalp</a></td></tr>
-<tr d-ix="3"><td>nan</td><td></td><td>240612T231107Z</td><td><a href="https://codegolf.stackexchange.com/questions/273620/9-16-25-2d-matrix/273630#273630">Bubbler</a></td></tr>
-<tr d-ix="4"><td>nan</td><td></td><td>240612T221913Z</td><td><a href="https://codegolf.stackexchange.com/questions/273620/9-16-25-2d-matrix/273629#273629">dingledo</a></td></tr>
+<tr d-ix="0"><td>nan</td><td></td><td>240923T204435Z</td><td><a href="https://codegolf.stackexchange.com/questions/273620/9-16-25-2d-matrix/275725#275725">S. Sharm</a></td></tr>
+<tr d-ix="1"><td>nan</td><td></td><td>240612T182909Z</td><td><a href="https://codegolf.stackexchange.com/questions/273620/9-16-25-2d-matrix/273625#273625">Tobias G</a></td></tr>
+<tr d-ix="2"><td>043</td><td>Brachylog</td><td>240613T115529Z</td><td><a href="https://codegolf.stackexchange.com/questions/273620/9-16-25-2d-matrix/273645#273645">Fatalize</a></td></tr>
+<tr d-ix="3"><td>021</td><td>Nekomata + 1</td><td>240613T060507Z</td><td><a href="https://codegolf.stackexchange.com/questions/273620/9-16-25-2d-matrix/273638#273638">alephalp</a></td></tr>
+<tr d-ix="4"><td>nan</td><td></td><td>240612T231107Z</td><td><a href="https://codegolf.stackexchange.com/questions/273620/9-16-25-2d-matrix/273630#273630">Bubbler</a></td></tr>
+<tr d-ix="5"><td>nan</td><td></td><td>240612T221913Z</td><td><a href="https://codegolf.stackexchange.com/questions/273620/9-16-25-2d-matrix/273629#273629">dingledo</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.oracle.com/de/java/technologies/java-se-glance.html" rel="nofollow noreferrer">Java</a></h1>
+<div id="pu0" class="pu"><h1><a href="https://julialang.org/" rel="nofollow noreferrer">Julia</a></h1>
+<p>Needs JuMP and MiniZinc.jl. Takes ~0.5 seconds on my machine to solve all 3.</p>
+<pre class="lang-julia prettyprint-override"><code>using JuMP
+using MiniZinc
+
+# Only need this for Windows.
+ENV[&quot;JULIA_LIBMINIZINC_DIR&quot;] = &quot;C:\\Program Files\\MiniZinc&quot;
+
+function find_matrix(mat_sum)
+    n = length(mat_sum[1, :])
+    model = Model(() -&gt; MiniZinc.Optimizer{Float64}(&quot;highs&quot;))
+    @variable(model, 1 ≤ x[1:n, 1:n] ≤ n^2, Int)
+    @constraint(model, vec(x) in MOI.AllDifferent(n^2))
+    for i in 1:n
+        @constraint(model, sum(x[i, :]) == mat_sum[1, i])
+        @constraint(model, sum(x[:, i]) == mat_sum[2, i])
+    end
+    optimize!(model)
+    display(value.(x))
+end
+
+
+find_matrix([12 18 15; 9 18 18])
+find_matrix([33 21 43 39; 24 36 41 35])
+find_matrix([43 79 58 60 85; 76 66 44 70 69])
+<span class="math-container">```</span>
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.oracle.com/de/java/technologies/java-se-glance.html" rel="nofollow noreferrer">Java</a></h1>
 <p>(Simple) backtracking approach with random candidates:</p>
 <pre class="lang-java prettyprint-override"><code>import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
@@ -157,7 +186,7 @@ public class Main {
 <li>2024-06-17: Improved exit condition. Runs in under 200ms now!</li>
 </ul>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://github.com/JCumin/Brachylog" rel="noreferrer">Brachylog</a>, 43 bytes</h1>
+<div id="pu2" class="pu"><h1><a href="https://github.com/JCumin/Brachylog" rel="noreferrer">Brachylog</a>, 43 bytes</h1>
 <pre><code>{hlL;Mṁ₍+ᵐ~h?∧M\+ᵐ~t?∧Mc≠{&gt;0∧.^₂≥?∧}ᵛL∧M≜}ᵐ
 </code></pre>
 <p><a href="https://tio.run/##JYw9CsJAFISvsr0Pyf5mF0EvkFzAdQVNYYqAIDYSFEzlFkJ6LWzEE6TwONmLrC@xGPhmPpjtYVOUp2q/YzHWZZXN8v57Dc190nftpVyE2ydfjXwcuQj@Vc8TxOk6NE3w72E@990jG3TwT@Q2RmstZUA1UOnAmpG0c0Cs5RwYBcGBG1RMAFcgKHD51yhIaoBIDUQlQPRwkCosGCFQ4qiMcy4ufw" rel="noreferrer" title="Brachylog – Try It Online">Try it online!</a></p>
@@ -182,7 +211,7 @@ public class Main {
                                                 constraints, M is the output
 </code></pre>
 </div>
-<div id="pu2" class="pu"><h1><a href="https://github.com/AlephAlpha/Nekomata" rel="nofollow noreferrer">Nekomata</a> + <code>-1</code>, 21 bytes</h1>
+<div id="pu3" class="pu"><h1><a href="https://github.com/AlephAlpha/Nekomata" rel="nofollow noreferrer">Nekomata</a> + <code>-1</code>, 21 bytes</h1>
 <pre><code>ᵃ#*R↕v#Š:ᵐ∑ᵈv=¿:∑ᵈ§=¿
 </code></pre>
 <p><a href="https://ato.pxeger.com/run?1=m70iLzU7PzexJHFNtJJurpKOgpKuoVLsgqWlJWm6FjfVH25tVtYKetQ2tUz56AKrh1snPOqY-HBrR5ntof1WEOah5UD2kuKk5GKopgU3DaINjXQMLXQMTWMVoi3BLItYrmhjYx0jQx0TYx1jS6C4kYmOsZmOiaGOsWksRCMA" rel="nofollow noreferrer">Attempt This Online!</a></p>
@@ -206,7 +235,7 @@ cabal run Nekomata -- -c 'ᵃ#*R↕v#Š:ᵐ∑ᵈv=¿:∑ᵈ§=¿' -1 -i '[12,18
 cabal run Nekomata -- -c 'ᵃ#*R↕v#Š:ᵐ∑ᵈv=¿:∑ᵈ§=¿' -1 -i '[33,21,43,39] [24,36,41,35]'
 </code></pre>
 </div>
-<div id="pu3" class="pu"><h1><a href="http://picat-lang.org" rel="noreferrer">Picat</a></h1>
+<div id="pu4" class="pu"><h1><a href="http://picat-lang.org" rel="noreferrer">Picat</a></h1>
 <pre><code>import cp.
 
 puzzle(Rows, Cols, N) = A =&gt;
@@ -230,7 +259,7 @@ main =&gt;
 <p><a href="https://ato.pxeger.com/run?1=bZHNaoQwEMfpsT7FQC9JSaV-u4IF8e7Bq8gSXJcGYhSNXbqv0stC2Zfq03Syq6VfhyQzw__3zwzzdh5Ew_XpdJ71_iH-uHkX3dCPGprBtqxhPh5lS8r-MDHIe4l3QSGFDNIn6xZvUO1hy8eRv5KCFZSZYpKAY9vFfYEZl3K7E5MWqtGkyqqS5XUCJQh10aDpGtYG3vdjy5tn8iWgMM0dQa6mcJeCaQRjaNXumzr_qf77zRU2_Vf5Ck-9fGlJRnHKjqPODDSMQmmpyDJ25bgMnBhPUDOoNksSY-JR0-5vvecxcB0GPr7exjCuj1GIFax6xsX_FzRAhP4B-oePDOLLhxGCoYHRJMJqaCwDSu3rrpaVrav7BA" rel="noreferrer">Attempt This Online!</a></p>
 <p>Solves all three puzzles in 0.1 second on ATO.</p>
 </div>
-<div id="pu4" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python</a></h1>
+<div id="pu5" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python</a></h1>
 <p>To run the code, install the <a href="https://pypi.org/project/z3-solver/" rel="nofollow noreferrer">z3-solver</a>
 package. It can usually solve all three cases in ~1s.</p>
 
