@@ -26,25 +26,47 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>044</td><td>Perl 5 pl</td><td>240923T195249Z</td><td><a href="https://codegolf.stackexchange.com/questions/275697/figure-out-which-of-your-friends-reveals-confidential-information-to-the-media/275724#275724">Xcali</a></td></tr>
-<tr d-ix="1"><td>092</td><td>Python</td><td>240923T184232Z</td><td><a href="https://codegolf.stackexchange.com/questions/275697/figure-out-which-of-your-friends-reveals-confidential-information-to-the-media/275722#275722">TallMoos</a></td></tr>
+<tr d-ix="0"><td>091</td><td>Python</td><td>240923T184232Z</td><td><a href="https://codegolf.stackexchange.com/questions/275697/figure-out-which-of-your-friends-reveals-confidential-information-to-the-media/275722#275722">TallMoos</a></td></tr>
+<tr d-ix="1"><td>044</td><td>Perl 5 pl</td><td>240923T195249Z</td><td><a href="https://codegolf.stackexchange.com/questions/275697/figure-out-which-of-your-friends-reveals-confidential-information-to-the-media/275724#275724">Xcali</a></td></tr>
 <tr d-ix="2"><td>048</td><td>JavaScript Node.js</td><td>240922T225207Z</td><td><a href="https://codegolf.stackexchange.com/questions/275697/figure-out-which-of-your-friends-reveals-confidential-information-to-the-media/275698#275698">l4m2</a></td></tr>
 <tr d-ix="3"><td>020</td><td>MATL</td><td>240923T103216Z</td><td><a href="https://codegolf.stackexchange.com/questions/275697/figure-out-which-of-your-friends-reveals-confidential-information-to-the-media/275720#275720">Luis Men</a></td></tr>
 <tr d-ix="4"><td>033</td><td>Charcoal</td><td>240923T084717Z</td><td><a href="https://codegolf.stackexchange.com/questions/275697/figure-out-which-of-your-friends-reveals-confidential-information-to-the-media/275713#275713">Neil</a></td></tr>
 <tr d-ix="5"><td>021</td><td>05AB1E</td><td>240923T083207Z</td><td><a href="https://codegolf.stackexchange.com/questions/275697/figure-out-which-of-your-friends-reveals-confidential-information-to-the-media/275712#275712">Kevin Cr</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.perl.org/" rel="nofollow noreferrer">Perl 5</a> <code>-pl</code>, 44 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.python.org/" rel="nofollow noreferrer">Python</a>, <s>93</s> <s>92</s> 91 bytes</h1>
+<pre><code>lambda s, n : ''.join( [ c +c*((1&lt;&lt;s[:i].count(' ')&amp;n&gt;0)&amp;(c==' '))for i,c in enumerate(s)])
+</code></pre>
+<p><a href="https://tio.run/##dVJNT8JAEL33V4wcaNcCaUOipKHcNB5N9IaELO0Aq2Xa7G79iPLbcdst2KLOZTsz77356BQfepvTeFLIwyGDGDK@W6Uc1AAIInDd0XMuyIM5JOAnl54XTqdqHonFKMlL0p4LLuvTLGB9L4njymOwziWIgSEIAqRyh5Jr9BRbMMdJcQ0pIiV5akJaCtowGM4MVEcOGFsJrUwbQe2oF1EY55ZnCm2g4Aku69In0D/lrLYVrUysa7mfwJ8FjpbkpAWV2KG3ik9hApxSUzWOwYzdlTVgYSAZ0rGPYVjDrTcXC/BP3364sCLnKq111M8XBKswaOwXshnlUZbdSdoKsxmE3flbI/lxk5SoS0kthmNbNSqCilJ7zDFrXqFc6nxpf2Wd0l6TZo6NptU9NRsw93TGMddQyIq17t00cAuN4LPh75/onktVZTAxbcEOleIbNIjTETVQtu@xw8G9Q4kgFOSEgO98V2QIb0Jv4drOqkbwgK9IF64zvvoG" rel="nofollow noreferrer" title="Python 3.8 (pre-release) – Try It Online">Try it online!</a></p>
+<p>There are exactly 7 spaces before the <code>.count(' ')</code> so it should not be affected for integer inputs &lt;= 128 when feeding itself as the source string</p>
+<h2>Ungolfed</h2>
+<pre><code>def ungolfed(input_string, secret_int_to_encode):
+    return ''.join(
+        [
+            character # Always return the base character
+            + # Optionally adding the same character multiplied by a value of 0 or 1 based on the challenge conditions
+            character * (
+                    (
+                        1 &lt;&lt; input_string[:string_index].count(' ') # The number 1 bitshifted by the number of spaces in the string so far.
+                                                                    # This acts as a bitmask against secret_int_to_encode
+                        &amp;
+                        secret_int_to_encode # Bitwise AND here will return non-zero if the bit representation of the integer has a 1 at this index
+                        &gt; 0 # Comparing against 0 to normalize the value as 0 or 1, as opposed to whatever bit of secret_to_encode we might be at
+                    ) # This value is 1 if the bitwise representation of the integer to encode has a 1 at this space-based index
+                    &amp;
+                    (character==' ') # Bitwise AND with 1 if the current character is a whitespace.
+                                     # This will null the second character when we are iterating on a char not equal to ' '
+                ) for string_index , character in enumerate(input_string)
+        ]
+    )```
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.perl.org/" rel="nofollow noreferrer">Perl 5</a> <code>-pl</code>, 44 bytes</h1>
 
 <pre class="lang-perl prettyprint-override"><code>$a = sprintf &quot;%b&quot;, &lt;&gt;; s/$&quot;\K/$&quot;x chop $a/ge
 </code></pre>
 <p><a href="https://tio.run/##FZBJTlxBEESv8tRq7xgq5ywZ@wLIN/AGLAxIiP6iWXB6PsUmFiHFuD28vcS@H@/4xXl7e359/8/hx/3hgpvfPzlfHw9/bxd88O/ptHG8u3582PeBoBhOkBTNRBYpiCKGOBJIIoU0MtGBLo2ihjoaaKKFNjqxgQm2LA1zLLDECmts4gMXXPGV6HjgiRfe@CQGIYQSRqxCQSRRRBOTHKSQShrp5OqbZJFNTmpQQilllFNBrTlFNTXpQQuttNFOB530Wtv0ZA6mMJVpTGcGM5nFXGd8vzE@T9v78@n1vF/@iashY7/cXr4A" rel="nofollow noreferrer" title="Perl 5 – Try It Online">Try it online!</a></p>
 <p>Takes the message on the first input line, the number on the second.</p>
 <p>Encodes the friend number in binary in the first 7 spaces, least significant bit first, with one space representing 0 and two spaces representing 1.</p>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://www.python.org/" rel="nofollow noreferrer">Python</a>, <s>93</s> 92 bytes</h1>
-<p><code>lambda s, n : ''.join( [ c +c*((1&lt;&lt;s[:i].count(' ')&amp;n&gt;0)&amp;(c==' ')) for i,c in enumerate(s)])</code></p>
-<p><a href="https://tio.run/##dVJNT8JAEL33V4wcaNcCaUOipKHcNB5N9IaELO0Aq2Xa7G79iPLbcdst2KLOZTsz77356BQfepvTeFLIwyGDGDK@W6Uc1AAIInDd0XMuyIM5JOAnl54XTqdqHonFKMlL0p4LLuvTLGB9L4njymOwziWIgSEIAqRyh5Jr9BRbMMdJcQ0pIiV5akJaCtowGM4MVEcOGFsJrUwbQe2oF1EY55ZnCm2g4Aku69In0D/lrLYVrUysa7mfwJ8FjpbkpAWV2KG3ik9hApxSUzWOwYzdlTVgYSAZ0rGPYVjDrTcXC/BP3364sCLnKq111M8XBKswaOwXshnlUZbdSdoKsxmE3flbI/lxk5SoS0kthmNbNSqCilJ7zDFrXqFc6nxpf2Wd0l6TZo6NptU9NRsw93TGMddQyIq17t00cAuN4LPh75/onktVZTAxbcEOleIbNIjTETVQtu@xw8G9Q4kgFOSEgO98V2QIb0Jv4drOqkbwgK9IF64zvvoG" rel="nofollow noreferrer" title="Python 3.8 (pre-release) – Try It Online">Try it online!</a></p>
-<p>There are exactly 7 spaces before the <code>.count(' ')</code> so it should not be affected for integer inputs &lt;= 128 when feeding itself as the source string</p>
 </div>
 <div id="pu2" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 48 bytes</h1>
 
