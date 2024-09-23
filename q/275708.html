@@ -26,11 +26,55 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>356</td><td>Python3</td><td>240923T184659Z</td><td><a href="https://codegolf.stackexchange.com/questions/275708/what-kind-of-fibonacci-subword-at-this-offset/275723#275723">Ajax1234</a></td></tr>
-<tr d-ix="1"><td>118</td><td>JavaScript ES6</td><td>240923T103031Z</td><td><a href="https://codegolf.stackexchange.com/questions/275708/what-kind-of-fibonacci-subword-at-this-offset/275719#275719">Arnauld</a></td></tr>
+<tr d-ix="0"><td>117</td><td>JavaScript ES6</td><td>240923T103031Z</td><td><a href="https://codegolf.stackexchange.com/questions/275708/what-kind-of-fibonacci-subword-at-this-offset/275719#275719">Arnauld</a></td></tr>
+<tr d-ix="1"><td>356</td><td>Python3</td><td>240923T184659Z</td><td><a href="https://codegolf.stackexchange.com/questions/275708/what-kind-of-fibonacci-subword-at-this-offset/275723#275723">Ajax1234</a></td></tr>
 <tr d-ix="2"><td>030</td><td>05AB1E</td><td>240923T095642Z</td><td><a href="https://codegolf.stackexchange.com/questions/275708/what-kind-of-fibonacci-subword-at-this-offset/275718#275718">Kevin Cr</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Python3, 356 bytes</h1>
+<div id="pu0" class="pu"><h1>JavaScript (ES6), 117 bytes</h1>
+<p>Expects <code>(N,n,o)</code> and returns <strong>false</strong> for <em>strange</em>, <strong>true</strong> for <em>regular</em>, <strong>2</strong> for <em>wrong</em>.</p>
+
+<pre class="lang-javascript prettyprint-override"><code>(N,n,o)=&gt;(i=1,U=&quot;toUpperCase&quot;,g=(x,y=U[i])=&gt;N+i--?g(i+n?y:y=p=y[U](),x&amp;&amp;x+y):s=x.substr(o,p.length))()[U]()==p?s==p:2
+</code></pre>
+<p><a href="https://tio.run/##rZQxbtswGIX3nILgEJAwrYiSaSMqGA9FOnRwB8OT44GxKEWFQqmk3FoNcoMCXTq29@h5eoEewWWcpIFrxiKQchBI4eP/3vtJ6b34KMxSF3XTV1UqNxnfoAlRpML8DBWckhmHTTWra6lfCyMhyTlak5bP5sXCIpNe0e@Pc1T01LhNWl7zdj5bIEzWx8frXosTw9eBWV2aRqOK1EEpVd5cYYzwFuO8Hhv7SKKNlh9WhZYIZgbiQEuRvilKOW3VEoU4aKppowuVIxyYuiwaBC@UxbJKn4vlFTKAn4GbIwBK2YA5mBCgCKjAAnBggmvRWOTkIu2d5NiuajRZXV9KjYndcDfkupbLRqaWvgHQWhUqlzDJRGkkAVDLfFUKDZNGr@7Wn3SlcphE4Hb@t/hc9D8veid48VhTS@sJZOjBCn5l3y8rZapSBmWVo7fTd5PAbDMVWYssjoNapOcqRQyT@@38ydkYwF/fv/3@@RWCxE5/fIG24i3eDMDjCB2zeyNb90cuku6Q21xOLvLkYm/lgaMi68zyPEedyswzC/POwl6QhXlyQ2/l0cFzoQe76OJox/nRZ7p4iIw9tQcdqWnH/Wadef7teFca5pmGvSgN8yaHntojZ0Xq@XXRcL8rrns2cvTEfTIucrfiwy/XSZ56atPQV5tSR@rBvrPByOXRTZ56knHM/j859FVnNPYkaRh69Sjy5GJPbsfg0911kVHsSUaxLxlH0T75Bw" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<h3>Method</h3>
+<p>We recursively build all patterns <span class="math-container">\$F_0\$</span> to <span class="math-container">\$F_N\$</span> using letters in lower case (<code>'o'</code> and <code>'t'</code> for golfing reasons).</p>
+<p>When <span class="math-container">\$F_n\$</span> is reached, we convert it to upper case and save it in <span class="math-container">\$p\$</span>. All subsequent regular occurrences of <span class="math-container">\$p\$</span> will appear in upper case as well.</p>
+<p>At the end of the process, we look for <span class="math-container">\$p\$</span> at offset <span class="math-container">\$o\$</span> in <span class="math-container">\$F_N\$</span>:</p>
+<ul>
+<li>If <span class="math-container">\$p\$</span> appears in upper case, this is a <em>regular</em> match.</li>
+<li>If <span class="math-container">\$p\$</span> appears in lower or mixed case, this is a <em>strange</em> match.</li>
+<li>If <span class="math-container">\$p\$</span> doesn't appear at all, this is obviously <em>wrong</em>.</li>
+</ul>
+<h3>Commented</h3>
+<pre class="lang-javascript prettyprint-override"><code>(N, n, o) =&gt;              // input values
+( i = 1,                  // initialize i to 1
+  U = &quot;toUpperCase&quot;,      // store &quot;toUpperCase&quot; in U
+  g = (                   // g is a recursive function taking:
+    x,                    //   a string x
+    y = U[i]              //   a string y initialized to &quot;o&quot; or &quot;t&quot;
+                          //   for i = 1 and i = 0 respectively
+  ) =&gt;                    //
+  N + i-- ?               // if -i is not equal to N
+                          // (decrement i afterwards):
+    g(                    //   do a recursive call:
+      i + n ?             //     if -i is not equal to n:
+        y                 //       use y unchanged
+      :                   //     else:
+        y = p = y[U](),   //       udpate y and p to y in upper case
+      x &amp;&amp; x + y          //     if x is defined, pass x + y
+                          //     (pass undefined otherwise)
+    )                     //   end of recursive call
+  :                       // else:
+    s =                   //   save in s and return ...
+    x.substr(o, p.length) //   ... the relevant slice of x
+)()                       // invoke g with x and y undefined
+[U]() == p ?              // if the result in upper case matches p:
+  s == p                  //   compare s with p (Boolean value)
+:                         // else:
+  2                       //   return 2
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>Python3, 356 bytes</h1>
 <pre class="lang-py prettyprint-override"><code>I=lambda a:isinstance(a,str)
 T=lambda a:a if I(a)else''.join(T(b)for _,b in a)
 def O(t,n,C):
@@ -47,51 +91,6 @@ def f(N,n,o):
  if T(K[N])[o:].startswith(T(K[n])):return 1
 </code></pre>
 <p><a href="https://tio.run/##rZZBb9sgFMfP9adAuQCJFxk7TlZrnHqKKqWX3lxrwg1OWBxsYaqomvbZM3BSVVlpjNT5ZB4/v//7P7CgfdXbRibfW3U8LmnN9uWaAZaJTshOM/nMEQs7rXDw@D7JgKjAEjHM645DOP3VCIkeUYmrRoGfYQmEBAwHa16BB6RDGd7hLDh9o3GmuH5RMgAWZidYm2k7zyiV2avg9Rrc5VFxCi5N4swOJ7Tm0gxM2AqfwUo1eyNT9jK9ZoVWZtBYzR3NURRCBnGIdEZJCEuITd7DVtTcRvSE4B90le0mhtThLv8WZ4Ul7ulaPGu0w33hjakyHz@g@3xVmNymGFycjYC4Jx77OZw3WTE1jVO6Owi9RTYsC/zmGpBjR0ejUTADb0/keLOP4puXmiknSS7Ig2rkxsnFnlzirTxzZEwHvXzOEady6ukl9faSfsFL6snNvZUXV9eFXO2iiyMD60c@6eI1MvHUng24JgP7Ox3082/Hh9yknm7SL7lJvcm5p/bCmZF4/l0k@tgV1z5bOHriXhkXeZnRHAxMbriTvPXUJpGvNiEO17OPlc0Wrhrd5K0nmSTp/yfnvuopSTxJEkVePYo9ucSTuyjwfe@6yDjxJOPEl0zi2EHac9ZeMoS9YlSi1lyhVSN5CLpp19ZCI/gkoTmbg5uxuYhQcY7i4IZ1HVfa3CTGe9YiIXXIMKb0NzznhlkcwvM6wMxcK/rOwMym/5OXRdAq8xGCmne6A61Nt4b4@Bc" rel="nofollow noreferrer">Try it online!</a></p>
-</div>
-<div id="pu1" class="pu"><h1>JavaScript (ES6), 118 bytes</h1>
-<p>Expects <code>(N,n,o)</code> and returns <strong>false</strong> for <em>strange</em>, <strong>true</strong> for <em>regular</em>, <strong>2</strong> for <em>wrong</em>.</p>
-
-<pre class="lang-javascript prettyprint-override"><code>(N,n,o)=&gt;(i=1,g=(x,y=&quot;ba&quot;[i])=&gt;N+i--?g(i+n?y:y=p=y[U=&quot;toUpperCase&quot;](),x&amp;&amp;x+y):s=x.substr(o,p.length))()[U]()==p?s==p:2
-</code></pre>
-<p><a href="https://tio.run/##rZQxbtswGIX3nILgEJCwLIuSaSMqGA9FOnRwB8OT4oG2KEWFQqmk3FoNcoMCXTq29@h5eoEewWWcpIFrxiKQchBI4tP/3vtJ6T3/yPVKFXXTl1UqthnboqknvQqzc1Qw4uUMbbyWwSWHSbEwu9Ne0e9PclT05KSNW1azNpkz2FTzuhbqNdcCLhD2Nqenm16LY802vl4vdaNQ5dV@KWTeXGGMcDI3GGP1RJtHHG6V@LAulEAw0xD7SvD0TVGKWStXKMB@U80aVcgcYV/XZdEgeCkNllXqgq@ukAbsHNycAFCKBiRg6gHpgQosAAPav@aNQQaXaW@QY7Oq0XR9vRQKe@aFuyE2tVg1IjX0DYDGKpe5gHHGSy08AJXI1yVXMG7U@m79SVUyh3EIbpO/xRPe/7zoDfDisaYSxhPI0IMV/Mrsryqpq1L4ZZWjt7N3U1/vMhVZiwyO/ZqnFzJFFHv3r7MnZxMAf33/9vvnVwhiM/3xBZqKt3g7BI8jsMzujezcn9hIskfuclm50JGLnJWHloq0M8vzHLEqU8cs1DkLfUEW6siNnJXHR8@FHO2ijSMd50ee6eIxMnLUHnakJh33m3bm@bfjXWmoYxr6ojTUmRw5ao@tFYnj10WCw67Y7tnY0hP7ydjI/YoPv1wreeaoTQJXbUIsqYeHzoZjm0c7eeZIRhH9/@TIVZ2SyJEkQeDUo9CRixy5PYNPd9dGhpEjGUauZBSGh@Qf" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
-<h3>Method</h3>
-<p>We recursively build all patterns <span class="math-container">\$F_0\$</span> to <span class="math-container">\$F_N\$</span>, using <code>'a'</code> and <code>'b'</code>.</p>
-<p>When <span class="math-container">\$F_n\$</span> is reached, we convert it to upper case and save it in <span class="math-container">\$p\$</span>. All subsequent regular occurrences of <span class="math-container">\$p\$</span> will appear in upper case as well.</p>
-<p>At the end of the process, we look for <span class="math-container">\$p\$</span> at offset <span class="math-container">\$o\$</span> in <span class="math-container">\$F_N\$</span>:</p>
-<ul>
-<li>If <span class="math-container">\$p\$</span> appears in upper case, this is a <em>regular</em> match.</li>
-<li>If <span class="math-container">\$p\$</span> appears in lower or mixed case, this is a <em>strange</em> match.</li>
-<li>If <span class="math-container">\$p\$</span> doesn't appear at all, this is obviously <em>wrong</em>.</li>
-</ul>
-<h3>Commented</h3>
-<pre class="lang-javascript prettyprint-override"><code>(N, n, o) =&gt;                // input values
-( i = 1,                    // initialize i to 1
-  g = (                     // g is a recursive function taking:
-    x,                      //   a string x
-    y = &quot;ba&quot;[i]             //   a string y initialized to &quot;a&quot; or &quot;b&quot;
-                            //   for i = 1 and i = 0 respectively
-  ) =&gt;                      //
-  N + i-- ?                 // if -i is not equal to N
-                            // (decrement i afterwards):
-    g(                      //   do a recursive call:
-      i + n ?               //     if -i is not equal to n:
-        y                   //       use y unchanged
-      :                     //     else:
-        y = p = y[          //       udpate y and p to
-          U = &quot;toUpperCase&quot; //       y in upper case
-        ](),                //
-      x &amp;&amp; x + y            //     if x is defined, pass x + y
-                            //     (pass undefined otherwise)
-    )                       //   end of recursive call
-  :                         // else:
-    s =                     //   save in s and return ...
-    x.substr(o, p.length)   //   ... the relevant slice of x
-)()                         // invoke g with x and y undefined
-[U]() == p ?                // if the result in upper case matches p:
-  s == p                    //   compare s with p (Boolean value)
-:                           // else:
-  2                         //   return 2
-</code></pre>
 </div>
 <div id="pu2" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, 30 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
 <pre><code>1ÝλN¹›i‚»ë«]¹I‚è`IF¦¶Û}Dþ‚sδÅ?
