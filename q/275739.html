@@ -50,6 +50,17 @@ $f odd
 </code></pre>
 <p>If bash could do the brace expansion <code>{0..4294967295}</code> <em>and</em> pass the result as command-line args to <code>printf</code> then this would work.  The result of the expansion is going to be a memory allocation at least in the 45GB range, so bash understandably barfs at this.</p>
 <p><a href="https://tio.run/##S0oszvj/P81WXUNDxVBXNUVTs6YmNTkjX52roCgzryRNQUklTSG1LDWPC0jnp6RwKSlUG@jpmRhZmliamRtZmtb@/w8A" rel="nofollow noreferrer">Try it online!</a></p>
+<p>The output looks like this:</p>
+<pre class="lang-bash prettyprint-override"><code>(($1-0))||echo even
+(($1-1))||echo odd
+(($1-2))||echo even
+(($1-3))||echo odd
+.
+.
+.
+(($1-4294967294))||echo even
+(($1-4294967295))||echo odd
+</code></pre>
 <p>As a proof-of-concept, this can be scaled down to something that works fine within the constraints of bash and TIO:</p>
 
 <pre class="lang-bash prettyprint-override"><code>f='(($1-%d))||echo'
@@ -59,23 +70,23 @@ $f odd
 </code></pre>
 <p><a href="https://tio.run/##S0oszvj/P81WXUNDxVBXNUVTs6YmNTkjX52roCgzryRNQUklTSG1LDWPC0jnp6RwKSlUG@jpmRhYmtb@/w8A" rel="nofollow noreferrer">Try it online!</a></p>
 <hr />
-<h1><a href="https://www.gnu.org/software/bash/" rel="nofollow noreferrer">Bash</a>, 78 bytes (Actual)</h1>
+<h1><a href="https://www.gnu.org/software/bash/" rel="nofollow noreferrer">Bash</a>, 77 bytes (Actual)</h1>
 
-<pre class="lang-bash prettyprint-override"><code>f='(($1==%d))&amp;&amp;echo'
+<pre class="lang-bash prettyprint-override"><code>f='(($1-%d))||echo'
 for((i=2**32;i--;)){ printf &quot;$f odd
 $f even
 &quot; $i $[--i];}
 </code></pre>
 <p>This one will take several hours (days?) to run, so again TIO won't be happy with this, but it will complete eventually given enough time and disk space for the resulting script.</p>
-<p><a href="https://tio.run/##S0oszvj/P81WXUNDxdDWVjVFU1NNLTU5I1@dKy2/SEMj09ZIS8vYyDpTV9daU7NaoaAoM68kTUFJJU0hPyWFC0illqXmcSkpqGQqqETr6mbGWtf@/w8A" rel="nofollow noreferrer">Try it online!</a></p>
+<p><a href="https://tio.run/##S0oszvj/P81WXUNDxVBXNUVTs6YmNTkjX50rLb9IQyPT1khLy9jIOlNX11pTs1qhoCgzryRNQUklTSE/JYULSKWWpeZxKSmoZCqoROvqZsZa1/7/DwA" rel="nofollow noreferrer">Try it online!</a></p>
 <p>Again, a scaled-down proof-of-concept for TIO.  Same as the above except <code>2**32</code> is replaced with <code>2**12</code>:</p>
 
-<pre class="lang-bash prettyprint-override"><code>f='(($1==%d))&amp;&amp;echo'
+<pre class="lang-bash prettyprint-override"><code>f='(($1-%d))||echo'
 for((i=2**12;i--;)){ printf &quot;$f odd
 $f even
 &quot; $i $[--i];}
 </code></pre>
-<p><a href="https://tio.run/##S0oszvj/P81WXUNDxdDWVjVFU1NNLTU5I1@dKy2/SEMj09ZIS8vQyDpTV9daU7NaoaAoM68kTUFJJU0hPyWFC0illqXmcSkpqGQqqETr6mbGWtf@/w8A" rel="nofollow noreferrer">Try it online!</a></p>
+<p><a href="https://tio.run/##S0oszvj/P81WXUNDxVBXNUVTs6YmNTkjX50rLb9IQyPT1khLy9DIOlNX11pTs1qhoCgzryRNQUklTSE/JYULSKWWpeZxKSmoZCqoROvqZsZa1/7/DwA" rel="nofollow noreferrer">Try it online!</a></p>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://www.perl.org/" rel="nofollow noreferrer">Perl 5</a>, 60 bytes</h1>
 
