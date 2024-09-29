@@ -26,12 +26,126 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>nan</td><td>Python 3.8+</td><td>240908T183007Z</td><td><a href="https://codegolf.stackexchange.com/questions/275413/p%c3%b3lya-trees-counted-efficiently/275420#275420">Jonathan</a></td></tr>
-<tr d-ix="1"><td>161</td><td>Maple</td><td>240909T164645Z</td><td><a href="https://codegolf.stackexchange.com/questions/275413/p%c3%b3lya-trees-counted-efficiently/275438#275438">Sophia A</a></td></tr>
-<tr d-ix="2"><td>2222</td><td>C++ gcc</td><td>240909T133454Z</td><td><a href="https://codegolf.stackexchange.com/questions/275413/p%c3%b3lya-trees-counted-efficiently/275434#275434">jdt</a></td></tr>
-<tr d-ix="3"><td>061</td><td>Charcoal</td><td>240908T232023Z</td><td><a href="https://codegolf.stackexchange.com/questions/275413/p%c3%b3lya-trees-counted-efficiently/275424#275424">Neil</a></td></tr>
+<tr d-ix="0"><td>nan</td><td></td><td>240929T015852Z</td><td><a href="https://codegolf.stackexchange.com/questions/275413/p%c3%b3lya-trees-counted-efficiently/275865#275865">138 Aspe</a></td></tr>
+<tr d-ix="1"><td>nan</td><td>Python 3.8+</td><td>240908T183007Z</td><td><a href="https://codegolf.stackexchange.com/questions/275413/p%c3%b3lya-trees-counted-efficiently/275420#275420">Jonathan</a></td></tr>
+<tr d-ix="2"><td>161</td><td>Maple</td><td>240909T164645Z</td><td><a href="https://codegolf.stackexchange.com/questions/275413/p%c3%b3lya-trees-counted-efficiently/275438#275438">Sophia A</a></td></tr>
+<tr d-ix="3"><td>2222</td><td>C++ gcc</td><td>240909T133454Z</td><td><a href="https://codegolf.stackexchange.com/questions/275413/p%c3%b3lya-trees-counted-efficiently/275434#275434">jdt</a></td></tr>
+<tr d-ix="4"><td>061</td><td>Charcoal</td><td>240908T232023Z</td><td><a href="https://codegolf.stackexchange.com/questions/275413/p%c3%b3lya-trees-counted-efficiently/275424#275424">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://docs.python.org/3.8/" rel="nofollow noreferrer">Python 3.8+</a>, <s> ~ 8.3 - 11.5 </s> ~ 6.8 - 10.9</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.rust-lang.org/" rel="nofollow noreferrer">Rust</a></h1>
+<p>Rust port of Jonathan Allan's answer. The ratio looks about same:</p>
+<pre class="lang-rust prettyprint-override"><code>// Cargo.toml
+// [package]
+// name = &quot;rust_hello&quot;
+// version = &quot;0.1.0&quot;
+// edition = &quot;2021&quot;
+
+// # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+// [dependencies]
+// num-bigint = &quot;0.4&quot;
+// num-traits = &quot;0.2&quot;
+
+
+// [profile.release]
+// lto = &quot;y&quot;
+// panic = &quot;abort&quot;
+
+// $ cargo build --release
+// $ cargo run   --release
+
+use std::collections::HashMap;
+use std::time::Instant;
+use num_bigint::BigInt;
+use num_traits::One;
+
+type BigIntCache = HashMap&lt;(i32, i32), BigInt&gt;;
+type DivisorCache = HashMap&lt;i32, Vec&lt;i32&gt;&gt;;
+
+fn divisors(n: i32, cache: &amp;mut DivisorCache) -&gt; Vec&lt;i32&gt; {
+    if let Some(divs) = cache.get(&amp;n) {
+        return divs.clone();
+    }
+
+    let mut divs = Vec::new();
+    for d in 1..=n {
+        if n % d == 0 {
+            divs.push(d);
+        }
+    }
+
+    cache.insert(n, divs.clone());
+    divs
+}
+
+fn tree_count(nodes: i32, max_height: i32, cache: &amp;mut BigIntCache, divisor_cache: &amp;mut DivisorCache) -&gt; BigInt {
+    if nodes == 1 {
+        return if max_height &gt; 0 { BigInt::one() } else { BigInt::from(0) };
+    }
+
+    if let Some(count) = cache.get(&amp;(nodes, max_height)) {
+        return count.clone();
+    }
+
+    let next_height = max_height - 1;
+    let mut total = BigInt::from(0);
+
+    for i in 1..nodes {
+        for &amp;d in &amp;divisors(nodes - i, divisor_cache) {
+            total += tree_count(i, max_height, cache, divisor_cache) * BigInt::from(d) * tree_count(d, next_height, cache, divisor_cache);
+        }
+    }
+
+    total /= BigInt::from(nodes - 1);
+    cache.insert((nodes, max_height), total.clone());
+    total
+}
+
+fn measure(size: usize) -&gt; (f64, Vec&lt;BigInt&gt;) {
+    let mut divisor_cache = DivisorCache::new();
+    let mut tree_count_cache = BigIntCache::new();
+
+    let start = Instant::now();
+    let mut table = Vec::with_capacity(size * (size + 1) / 2);
+
+    for n in 0..size as i32 {
+        for h in 0..=n {
+            table.push(tree_count(n, h, &amp;mut tree_count_cache, &amp;mut divisor_cache));
+        }
+    }
+
+    let elapsed = start.elapsed();
+    println!(&quot;{}: {} seconds&quot;, size, elapsed.as_secs_f64());
+    (elapsed.as_secs_f64(), table)
+}
+
+fn main() {
+    let size = 64;
+    let (time_taken_1, _table_1) = measure(size);
+    let (time_taken_2, table_2) = measure(size * 2);
+
+    println!(&quot;Ratio: {}&quot;, time_taken_2 / time_taken_1);
+    print!(&quot;[&quot;);
+    for val in &amp;table_2 {
+        print!(&quot;{}, &quot;, val);
+    }
+    println!(&quot;]&quot;);
+
+</code></pre>
+<pre><code>64: 0.0767605 seconds
+128: 0.8220573 seconds
+Ratio: 10.709379172881887
+
+64: 0.0745293 seconds
+128: 0.824322 seconds
+Ratio: 11.060374912953696
+
+64: 0.0759358 seconds
+128: 0.881342 seconds
+Ratio: 11.606409624972674
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://docs.python.org/3.8/" rel="nofollow noreferrer">Python 3.8+</a>, <s> ~ 8.3 - 11.5 </s> ~ 6.8 - 10.9</h1>
 <p>Thanks to <a href="https://codegolf.stackexchange.com/users/95116/gsitcia">gsitcia</a> for improving speed by extracting a memoised weighted tree count function and for providing a nice timing framework.</p>
 <pre class="lang-python prettyprint-override"><code>import functools
 
@@ -76,7 +190,7 @@ average_of_non_outlier_ratios=9.648294582506097
 <p>Each <code>ratio</code> in <code>ratios</code> is the minimum time across ten trials at size <span class="math-container">\$128\$</span> divided by the minimum time across ten trials at size <span class="math-container">\$64\$</span>. Each run of trials stops when it does not appear that the next trial will finish within <span class="math-container">\$59\$</span> seconds of starting the run. The average of the ratios after discarding the minimum and maximum (<code>average_of_non_outlier_ratios</code>) is then displayed.</p>
 <p>Yes, there is quite a large variance in the results, I'm not sure how to better measure this, but it looks like it's roughly <span class="math-container">\$8=2^3\$</span>.</p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://en.wikipedia.org/wiki/Maple_(software)" rel="nofollow noreferrer">Maple</a>, 161 bytes, ~9.8</h1>
+<div id="pu2" class="pu"><h1><a href="https://en.wikipedia.org/wiki/Maple_(software)" rel="nofollow noreferrer">Maple</a>, 161 bytes, ~9.8</h1>
 <p>Uncompressed:</p>
 <pre><code>div := n -&gt; numtheory:-divisors(n):
 PT := proc(n, k) option remember; local d, i;
@@ -99,7 +213,7 @@ cpu: 14.03/1.42 ~ 9.8;
 real: 14.26/1.47 ~ 9.7;
 </code></pre>
 </div>
-<div id="pu2" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C++ (gcc)</a>, 2222 bytes</h1>
+<div id="pu3" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C++ (gcc)</a>, 2222 bytes</h1>
 
 <pre class="lang-cpp prettyprint-override"><code>#include &lt;chrono&gt;
 #include &lt;map&gt;
@@ -218,7 +332,7 @@ int main() {
 Ratio: 11.7663
 </code></pre>
 </div>
-<div id="pu3" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 61 bytes, score ~9.4</h1>
+<div id="pu4" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 61 bytes, score ~9.4</h1>
 <pre><code>Ｎθ⊞υ⟦⁰⟧Ｆθ⊞υＥ⊕θ∧κ∨¬ι÷ΣＥιΣＥ÷ι⊕μ××⊕ξ§§υ⊕ξ⊖κ§§υ⁻ι⊖×⊕ξ⊕μκιＥυ⭆¹…ι⊕κ
 </code></pre>
 <p><a href="https://tio.run/##bVA9D4IwEN39FR2PpCZ@jExGFwbURDfjgHDKBVqwtAR/fW1RghqXXu@9e@/1muaJSquktDaStdFbIy6o4B6Ek71pcjCcnWZn110rxRzMBjROaohkqlCg1Jg5irOVzKDgbKdgW2kgh0RSb6ilDOFgBHgNcTZcR5L85OglAic9ksAGXucn2fkgHckMOxiq@dZ3Xr/BESiC4L8qJmkaH/85/T/z54G9Y/Gu1Ff3ZYqk7ndz3gftuptv5pytH2mJ67yqf3d9WYTWLhd22pZP" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code. Explanation: Initially based on the reference implementation but using dynamic programming rather than recursion and memoisation, I replaced <code>i</code> with <code>nodes - i</code> and then switched the order of the double sum, allowing me to replace the inner loop with a stepped loop.</p>
