@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::275939</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>027</td><td>Rust</td><td>241004T230501Z</td><td><a href="https://codegolf.stackexchange.com/questions/275939/create-251610-matrices-as-quickly-as-possible/275941#275941">Anders K</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1><a href="https://www.rust-lang.org/" rel="nofollow noreferrer">Rust</a>, 0.27 s unofficial time</h1>
+<p>Compile with <code>cargo build --release</code>, run with <code>target/release/matrices</code>.</p>
+<h3><code>Cargo.toml</code></h3>
+<pre class="lang-toml prettyprint-override"><code>[package]
+name = &quot;matrices&quot;
+version = &quot;0.1.0&quot;
+edition = &quot;2021&quot;
+
+[dependencies]
+fxhash = &quot;0.2.1&quot;
+
+[profile.release]
+lto = true
+</code></pre>
+<h3><code>src/main.rs</code></h3>
+<pre class="lang-rust prettyprint-override"><code>use fxhash::FxHashSet;
+use std::io::{BufWriter, StdoutLock, Write};
+
+const ROWS: usize = 6;
+const COLS: usize = 6;
+
+fn transpose&lt;const A: usize, const B: usize&gt;(m: &amp;[[bool; B]; A]) -&gt; [[bool; A]; B] {
+    let mut mt = [[false; A]; B];
+    for j in 0..B {
+        for i in 0..A {
+            mt[j][i] = m[i][j];
+        }
+    }
+    mt
+}
+
+fn found_permutations(
+    m: &amp;mut [[bool; COLS]; ROWS],
+    row_sums: &amp;[u32; ROWS],
+    i: u32,
+    permuted: bool,
+    found: &amp;mut FxHashSet&lt;[[bool; COLS]; ROWS]&gt;,
+) {
+    if i == ROWS as u32 {
+        if permuted {
+            let mut mt = transpose(m);
+            mt.sort();
+            let mtt = transpose(&amp;mt);
+            if mtt.is_sorted_by_key(|row| (row.iter().map(|&amp;cell| cell as u32).sum::&lt;u32&gt;(), row)) {
+                found.insert(mtt);
+            }
+        }
+    } else {
+        found_permutations(m, row_sums, i + 1, permuted, found);
+        for i1 in i as usize + 1..ROWS {
+            if row_sums[i1] != row_sums[i as usize] {
+                break;
+            }
+            if &amp;m[i1] != &amp;m[i as usize] {
+                m.swap(i as usize, i1);
+                found_permutations(m, row_sums, i + 1, true, found);
+                m.swap(i as usize, i1);
+            }
+        }
+    }
+}
+
+fn search(
+    m: &amp;mut [[bool; COLS]; ROWS],
+    mut i: u32,
+    mut j: u32,
+    mut row_sum: u32,
+    mut min_row_sum: u32,
+    mut equal_row: bool,
+    equal_cols: &amp;mut [bool; COLS],
+    found: &amp;mut FxHashSet&lt;[[bool; COLS]; ROWS]&gt;,
+    stdout: &amp;mut BufWriter&lt;StdoutLock&lt;'static&gt;&gt;,
+) {
+    if row_sum + COLS as u32 - j &lt; min_row_sum {
+        return;
+    }
+    if j == COLS as u32 {
+        i += 1;
+        if i == ROWS as u32 {
+            if !found.remove(&amp;*m) {
+                let mut row_sums = [0; ROWS];
+                for (row_sum, row) in row_sums.iter_mut().zip(&amp;*m) {
+                    *row_sum = row.iter().map(|&amp;cell| cell as u32).sum::&lt;u32&gt;();
+                }
+                found_permutations(m, &amp;row_sums, 0, false, found);
+                for row in &amp;*m {
+                    for &amp;cell in row {
+                        stdout.write_all(if cell { b&quot;1&quot; } else { b&quot;0&quot; }).unwrap();
+                    }
+                    stdout.write_all(b&quot; &quot;).unwrap();
+                }
+                stdout.write_all(b&quot;\n&quot;).unwrap();
+            }
+            return;
+        }
+        j = 0;
+        min_row_sum = row_sum;
+        row_sum = 0;
+        equal_row = true;
+    }
+    let equal_col = equal_cols[j as usize];
+    if !equal_col || !m[i as usize][j as usize - 1] {
+        m[i as usize][j as usize] = false;
+        equal_cols[j as usize] = equal_col &amp;&amp; !m[i as usize][j as usize - 1];
+        search(
+            m,
+            i,
+            j + 1,
+            row_sum,
+            min_row_sum + (equal_row &amp;&amp; m[i as usize - 1][j as usize]) as u32,
+            equal_row &amp;&amp; !m[i as usize - 1][j as usize],
+            equal_cols,
+            found,
+            stdout,
+        );
+    }
+    m[i as usize][j as usize] = true;
+    equal_cols[j as usize] = equal_col &amp;&amp; m[i as usize][j as usize - 1];
+    search(
+        m,
+        i,
+        j + 1,
+        row_sum + 1,
+        min_row_sum,
+        equal_row &amp;&amp; m[i as usize - 1][j as usize],
+        equal_cols,
+        found,
+        stdout,
+    );
+    equal_cols[j as usize] = equal_col;
+}
+
+fn main() {
+    let mut equal_cols = [true; COLS];
+    equal_cols[0] = false;
+    search(
+        &amp;mut [[false; COLS]; ROWS],
+        0,
+        0,
+        0,
+        0,
+        false,
+        &amp;mut equal_cols,
+        &amp;mut FxHashSet::default(),
+        &amp;mut BufWriter::new(std::io::stdout().lock()),
+    );
+}
+</code></pre>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/275939/">275939</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
