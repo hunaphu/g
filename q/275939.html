@@ -26,10 +26,148 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>5225</td><td>Rust</td><td>241005T121443Z</td><td><a href="https://codegolf.stackexchange.com/questions/275939/create-251610-matrices-as-quickly-as-possible/275944#275944">138 Aspe</a></td></tr>
-<tr d-ix="1"><td>027</td><td>Rust</td><td>241004T230501Z</td><td><a href="https://codegolf.stackexchange.com/questions/275939/create-251610-matrices-as-quickly-as-possible/275941#275941">Anders K</a></td></tr>
+<tr d-ix="0"><td>1033</td><td>Python 3.12.3</td><td>241005T114540Z</td><td><a href="https://codegolf.stackexchange.com/questions/275939/create-251610-matrices-as-quickly-as-possible/275943#275943">138 Aspe</a></td></tr>
+<tr d-ix="1"><td>5225</td><td>Rust</td><td>241005T121443Z</td><td><a href="https://codegolf.stackexchange.com/questions/275939/create-251610-matrices-as-quickly-as-possible/275944#275944">138 Aspe</a></td></tr>
+<tr d-ix="2"><td>027</td><td>Rust</td><td>241004T230501Z</td><td><a href="https://codegolf.stackexchange.com/questions/275939/create-251610-matrices-as-quickly-as-possible/275941#275941">Anders K</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.rust-lang.org/" rel="nofollow noreferrer">Rust</a>, 5.225 seconds unofficial time</h1>
+<div id="pu0" class="pu"><h1><a href="https://docs.python.org/3.12.3/" rel="nofollow noreferrer">Python 3.12.3</a>, 10.33 s unofficial time</h1>
+<p>Python port of <a href="https://codegolf.stackexchange.com/a/275941/110802">@Ander Kaseorg's Rust code</a>.</p>
+<hr />
+<pre class="lang-python prettyprint-override"><code>import sys
+import time
+
+ROWS = 6
+COLS = 6
+
+def is_sorted_by_key(arr):
+    for i in range(1, ROWS):
+        prev_sum = sum(arr[i - 1])
+        curr_sum = sum(arr[i])
+        if curr_sum &lt; prev_sum or (curr_sum == prev_sum and arr[i] &lt; arr[i - 1]):
+            return False
+    return True
+
+def transpose(m):
+    return [list(row) for row in zip(*m)]
+
+def found_permutations(m, row_sums, i, permuted, found):
+    if i == ROWS:
+        if permuted:
+            mt = transpose(m)
+            mt.sort()
+            mtt = transpose(mt)
+            if is_sorted_by_key(mtt):
+                mtt_tuple = tuple(tuple(row) for row in mtt)
+                found.add(mtt_tuple)
+    else:
+        found_permutations(m, row_sums, i + 1, permuted, found)
+        for i1 in range(i + 1, ROWS):
+            if row_sums[i1] != row_sums[i]:
+                break
+            if m[i1] != m[i]:
+                m[i], m[i1] = m[i1], m[i]
+                found_permutations(m, row_sums, i + 1, True, found)
+                m[i], m[i1] = m[i1], m[i]
+
+def search(m, i, j, row_sum, min_row_sum, equal_row, equal_cols, found, stdout, cnt):
+    if row_sum + (COLS - j) &lt; min_row_sum:
+        return
+    if j == COLS:
+        i += 1
+        if i == ROWS:
+            m_tuple = tuple(tuple(row) for row in m)
+            if m_tuple not in found:
+                row_sums = [sum(row) for row in m]
+                found_permutations(m, row_sums, 0, False, found)
+                for row in m:
+                    stdout.write(''.join('1' if cell else '0' for cell in row) + ' ')
+                stdout.write('\n')
+                cnt[0] += 1
+            return
+        else:
+            j = 0
+            min_row_sum = row_sum
+            row_sum = 0
+            equal_row = True
+
+    if i == 0 and j == 0:
+        m[i][j] = False
+        equal_cols_prev_j = equal_cols[j]
+        equal_cols[j] = False
+        search(m, i, j + 1, row_sum, min_row_sum, False, equal_cols, found, stdout, cnt)
+        equal_cols[j] = equal_cols_prev_j
+
+        m[i][j] = True
+        equal_cols_prev_j = equal_cols[j]
+        equal_cols[j] = False
+        search(m, i, j + 1, row_sum + 1, min_row_sum, False, equal_cols, found, stdout, cnt)
+        equal_cols[j] = equal_cols_prev_j
+
+    elif i == 0:
+        equal_col = equal_cols[j]
+        if not equal_col or not m[i][j - 1]:
+            m[i][j] = False
+            prev_equal_cols_j = equal_cols[j]
+            equal_cols[j] = equal_col and not m[i][j - 1]
+            search(m, i, j + 1, row_sum, min_row_sum, False, equal_cols, found, stdout, cnt)
+            equal_cols[j] = prev_equal_cols_j
+
+        m[i][j] = True
+        prev_equal_cols_j = equal_cols[j]
+        equal_cols[j] = equal_col and m[i][j - 1]
+        search(m, i, j + 1, row_sum + 1, min_row_sum, False, equal_cols, found, stdout, cnt)
+        equal_cols[j] = prev_equal_cols_j
+
+    elif j == 0:
+        m[i][j] = False
+        prev_equal_cols_j = equal_cols[j]
+        equal_cols[j] = False
+        m_i1_j = m[i - 1][j]
+        search(m, i, j + 1, row_sum, min_row_sum + int(equal_row and m_i1_j), equal_row and not m_i1_j, equal_cols, found, stdout, cnt)
+        equal_cols[j] = prev_equal_cols_j
+
+        m[i][j] = True
+        prev_equal_cols_j = equal_cols[j]
+        equal_cols[j] = False
+        m_i1_j = m[i - 1][j]
+        search(m, i, j + 1, row_sum + 1, min_row_sum, equal_row and m_i1_j, equal_cols, found, stdout, cnt)
+        equal_cols[j] = prev_equal_cols_j
+
+    else:
+        equal_col = equal_cols[j]
+        m_i1_j = m[i - 1][j]
+        if not equal_col or not m[i][j - 1]:
+            m[i][j] = False
+            prev_equal_cols_j = equal_cols[j]
+            equal_cols[j] = equal_col and not m[i][j - 1]
+            search(m, i, j + 1, row_sum, min_row_sum + int(equal_row and m_i1_j), equal_row and not m_i1_j, equal_cols, found, stdout, cnt)
+            equal_cols[j] = prev_equal_cols_j
+
+        m[i][j] = True
+        prev_equal_cols_j = equal_cols[j]
+        equal_cols[j] = equal_col and m[i][j - 1]
+        search(m, i, j + 1, row_sum + 1, min_row_sum, equal_row and m_i1_j, equal_cols, found, stdout, cnt)
+        equal_cols[j] = prev_equal_cols_j
+
+def main():
+    equal_cols = [True] * COLS
+    equal_cols[0] = False
+    cnt = [0]
+    m = [[False] * COLS for _ in range(ROWS)]
+    found = set()
+    start = time.time()
+    stdout = sys.stdout
+    search(m, 0, 0, 0, 0, False, equal_cols, found, stdout, cnt)
+    duration = time.time() - start
+    print(f&quot;Total count: {cnt[0]}&quot;)
+    print(f&quot;Execution time: {duration} seconds&quot;)
+
+if __name__ == '__main__':
+    main()
+
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.rust-lang.org/" rel="nofollow noreferrer">Rust</a>, 5.225 seconds unofficial time</h1>
 <p>Based on @Anders Kaseorg's Rust code, I made minor modification:</p>
 <ul>
 <li>add matrices count</li>
@@ -199,7 +337,7 @@ fn main() {
 }
 </code></pre>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://www.rust-lang.org/" rel="nofollow noreferrer">Rust</a>, 0.27 s unofficial time</h1>
+<div id="pu2" class="pu"><h1><a href="https://www.rust-lang.org/" rel="nofollow noreferrer">Rust</a>, 0.27 s unofficial time</h1>
 <p>Compile with <code>cargo build --release</code>, run with <code>target/release/matrices</code>.</p>
 <h3><code>Cargo.toml</code></h3>
 <pre class="lang-toml prettyprint-override"><code>[package]
