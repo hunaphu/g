@@ -26,9 +26,168 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>027</td><td>Rust</td><td>241004T230501Z</td><td><a href="https://codegolf.stackexchange.com/questions/275939/create-251610-matrices-as-quickly-as-possible/275941#275941">Anders K</a></td></tr>
+<tr d-ix="0"><td>5225</td><td>Rust</td><td>241005T121443Z</td><td><a href="https://codegolf.stackexchange.com/questions/275939/create-251610-matrices-as-quickly-as-possible/275944#275944">138 Aspe</a></td></tr>
+<tr d-ix="1"><td>027</td><td>Rust</td><td>241004T230501Z</td><td><a href="https://codegolf.stackexchange.com/questions/275939/create-251610-matrices-as-quickly-as-possible/275941#275941">Anders K</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.rust-lang.org/" rel="nofollow noreferrer">Rust</a>, 0.27 s unofficial time</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.rust-lang.org/" rel="nofollow noreferrer">Rust</a>, 5.225 seconds unofficial time</h1>
+<p>Based on @Anders Kaseorg's Rust code, I made minor modification. (Add matrices count, add timing, user-defined <code>is_sorted_by_key</code> so don't need nightly release of rust)</p>
+<hr />
+<pre class="lang-rust prettyprint-override"><code>use fxhash::FxHashSet;
+use std::io::{BufWriter, StdoutLock, Write};
+
+const ROWS: usize = 6;
+const COLS: usize = 6;
+
+fn is_sorted_by_key(arr: &amp;[[bool; COLS]; ROWS]) -&gt; bool {
+    for i in 1..ROWS {
+        let prev_sum: u32 = arr[i - 1].iter().map(|&amp;cell| cell as u32).sum();
+        let curr_sum: u32 = arr[i].iter().map(|&amp;cell| cell as u32).sum();
+        if curr_sum &lt; prev_sum || (curr_sum == prev_sum &amp;&amp; arr[i] &lt; arr[i - 1]) {
+            return false;
+        }
+    }
+    true
+}
+
+fn transpose&lt;const A: usize, const B: usize&gt;(m: &amp;[[bool; B]; A]) -&gt; [[bool; A]; B] {
+    let mut mt = [[false; A]; B];
+    for j in 0..B {
+        for i in 0..A {
+            mt[j][i] = m[i][j];
+        }
+    }
+    mt
+}
+
+fn found_permutations(
+    m: &amp;mut [[bool; COLS]; ROWS],
+    row_sums: &amp;[u32; ROWS],
+    i: u32,
+    permuted: bool,
+    found: &amp;mut FxHashSet&lt;[[bool; COLS]; ROWS]&gt;,
+) {
+    if i == ROWS as u32 {
+        if permuted {
+            let mut mt: [[bool; 6]; 6] = transpose(m);
+            mt.sort();
+            let mtt: [[bool; 6]; 6] = transpose(&amp;mt);
+
+            if is_sorted_by_key(&amp;mtt) {
+                found.insert(mtt);
+            }
+        }
+    } else {
+        found_permutations(m, row_sums, i + 1, permuted, found);
+        for i1 in i as usize + 1..ROWS {
+            if row_sums[i1] != row_sums[i as usize] {
+                break;
+            }
+            if &amp;m[i1] != &amp;m[i as usize] {
+                m.swap(i as usize, i1);
+                found_permutations(m, row_sums, i + 1, true, found);
+                m.swap(i as usize, i1);
+            }
+        }
+    }
+}
+
+fn search(
+    m: &amp;mut [[bool; COLS]; ROWS],
+    mut i: u32,
+    mut j: u32,
+    mut row_sum: u32,
+    mut min_row_sum: u32,
+    mut equal_row: bool,
+    equal_cols: &amp;mut [bool; COLS],
+    found: &amp;mut FxHashSet&lt;[[bool; COLS]; ROWS]&gt;,
+    stdout: &amp;mut BufWriter&lt;StdoutLock&lt;'static&gt;&gt;,
+    cnt: &amp;mut u32,
+) {
+    if row_sum + COLS as u32 - j &lt; min_row_sum {
+        return;
+    }
+    if j == COLS as u32 {
+        i += 1;
+        if i == ROWS as u32 {
+            if !found.remove(&amp;*m) {
+                let mut row_sums = [0; ROWS];
+                for (row_sum, row) in row_sums.iter_mut().zip(&amp;*m) {
+                    *row_sum = row.iter().map(|&amp;cell| cell as u32).sum::&lt;u32&gt;();
+                }
+                found_permutations(m, &amp;row_sums, 0, false, found);
+                for row in &amp;*m {
+                    for &amp;cell in row {
+                        stdout.write_all(if cell { b&quot;1&quot; } else { b&quot;0&quot; }).unwrap();
+                    }
+                    stdout.write_all(b&quot; &quot;).unwrap();
+                }
+                stdout.write_all(b&quot;\n&quot;).unwrap();
+
+                *cnt += 1; // Increment the count here
+            }
+            return;
+        }
+        j = 0;
+        min_row_sum = row_sum;
+        row_sum = 0;
+        equal_row = true;
+    }
+    let equal_col = equal_cols[j as usize];
+    if !equal_col || !m[i as usize][j as usize - 1] {
+        m[i as usize][j as usize] = false;
+        equal_cols[j as usize] = equal_col &amp;&amp; !m[i as usize][j as usize - 1];
+        search(
+            m,
+            i,
+            j + 1,
+            row_sum,
+            min_row_sum + (equal_row &amp;&amp; m[i as usize - 1][j as usize]) as u32,
+            equal_row &amp;&amp; !m[i as usize - 1][j as usize],
+            equal_cols,
+            found,
+            stdout,
+            cnt,
+        );
+    }
+    m[i as usize][j as usize] = true;
+    equal_cols[j as usize] = equal_col &amp;&amp; m[i as usize][j as usize - 1];
+    search(
+        m,
+        i,
+        j + 1,
+        row_sum + 1,
+        min_row_sum,
+        equal_row &amp;&amp; m[i as usize - 1][j as usize],
+        equal_cols,
+        found,
+        stdout,
+        cnt,
+    );
+    equal_cols[j as usize] = equal_col;
+}
+
+fn main() {
+    let mut equal_cols = [true; COLS];
+    equal_cols[0] = false;
+    let mut cnt = 0;
+    search(
+        &amp;mut [[false; COLS]; ROWS],
+        0,
+        0,
+        0,
+        0,
+        false,
+        &amp;mut equal_cols,
+        &amp;mut FxHashSet::default(),
+        &amp;mut BufWriter::new(std::io::stdout().lock()),
+        &amp;mut cnt,
+    );
+
+    println!(&quot;Total count: {}&quot;, cnt);
+}
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.rust-lang.org/" rel="nofollow noreferrer">Rust</a>, 0.27 s unofficial time</h1>
 <p>Compile with <code>cargo build --release</code>, run with <code>target/release/matrices</code>.</p>
 <h3><code>Cargo.toml</code></h3>
 <pre class="lang-toml prettyprint-override"><code>[package]
