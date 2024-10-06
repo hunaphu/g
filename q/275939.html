@@ -26,11 +26,175 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>1033</td><td>Python 3.12</td><td>241005T114540Z</td><td><a href="https://codegolf.stackexchange.com/questions/275939/create-251610-matrices-as-quickly-as-possible/275943#275943">138 Aspe</a></td></tr>
-<tr d-ix="1"><td>5225</td><td>Rust</td><td>241005T121443Z</td><td><a href="https://codegolf.stackexchange.com/questions/275939/create-251610-matrices-as-quickly-as-possible/275944#275944">138 Aspe</a></td></tr>
-<tr d-ix="2"><td>027</td><td>Rust</td><td>241004T230501Z</td><td><a href="https://codegolf.stackexchange.com/questions/275939/create-251610-matrices-as-quickly-as-possible/275941#275941">Anders K</a></td></tr>
+<tr d-ix="0"><td>001</td><td>C++ gcc</td><td>241006T143713Z</td><td><a href="https://codegolf.stackexchange.com/questions/275939/create-251610-matrices-as-quickly-as-possible/275951#275951">jdt</a></td></tr>
+<tr d-ix="1"><td>1033</td><td>Python 3.12</td><td>241005T114540Z</td><td><a href="https://codegolf.stackexchange.com/questions/275939/create-251610-matrices-as-quickly-as-possible/275943#275943">138 Aspe</a></td></tr>
+<tr d-ix="2"><td>5225</td><td>Rust</td><td>241005T121443Z</td><td><a href="https://codegolf.stackexchange.com/questions/275939/create-251610-matrices-as-quickly-as-possible/275944#275944">138 Aspe</a></td></tr>
+<tr d-ix="3"><td>027</td><td>Rust</td><td>241004T230501Z</td><td><a href="https://codegolf.stackexchange.com/questions/275939/create-251610-matrices-as-quickly-as-possible/275941#275941">Anders K</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://docs.python.org/3.12/" rel="nofollow noreferrer">Python 3.12</a>, 10.33 s unofficial time</h1>
+<div id="pu0" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C++ (gcc)</a>, about 1 second in TIO</h1>
+
+<p>C++ port of @Ander Kaseorg's Rust code.</p>
+<pre class="lang-cpp prettyprint-override"><code>#include &lt;iostream&gt;
+#include &lt;unordered_set&gt;
+#include &lt;vector&gt;
+#include &lt;algorithm&gt;
+#include &lt;array&gt;
+#include &lt;tuple&gt;
+#include &lt;iomanip&gt;
+#include &lt;numeric&gt;
+#include &lt;chrono&gt;
+
+const int ROWS = 6;
+const int COLS = 6;
+using Matrix = std::array&lt;std::array&lt;bool, COLS&gt;, ROWS&gt;;
+int totalCount = 0;
+
+// #define PRINT_ALL 1
+
+// Optimized custom hash function for std::unordered_set of matrices
+struct MatrixHash {
+    size_t operator()(const Matrix&amp; m) const {
+        size_t hash = 0;
+        for (const auto&amp; row : m) {
+            size_t rowHash = 0;
+            for (bool cell : row) {
+                rowHash = (rowHash &lt;&lt; 1) | cell; &#32;
+            }
+            hash ^= rowHash + 0x9e3779b9 + (hash &lt;&lt; 6) + (hash &gt;&gt; 2); &#32;
+        }
+        return hash;
+    }
+};
+
+void found_permutations(
+    Matrix&amp; m,
+    const std::array&lt;uint32_t, ROWS&gt;&amp; row_sums,
+    uint32_t i,
+    bool permuted,
+    std::unordered_set&lt;Matrix, MatrixHash&gt;&amp; found
+) {
+    if (i == ROWS) {
+        if (permuted) {
+            // transpose
+            Matrix mt{};
+            for (int j = 0; j &lt; COLS; ++j) {
+                for (size_t i = 0; i &lt; ROWS; ++i) {
+                    mt[j][i] = m[i][j];
+                }
+            }
+
+            std::sort(mt.begin(), mt.end());
+            // transpose
+            Matrix mtt{};
+            for (int j = 0; j &lt; ROWS; ++j) {
+                for (size_t i = 0; i &lt; COLS; ++i) {
+                    mtt[j][i] = mt[i][j];
+                }
+            }
+
+            if (std::is_sorted(mtt.begin(), mtt.end(), [](const auto&amp; row1, const auto&amp; row2) {
+                auto sum1 = std::accumulate(row1.begin(), row1.end(), 0u);
+                auto sum2 = std::accumulate(row2.begin(), row2.end(), 0u);
+                return std::tie(sum1, row1) &lt; std::tie(sum2, row2);
+                })) {
+                found.insert(mtt);
+            }
+        }
+    }
+    else {
+        found_permutations(m, row_sums, i + 1, permuted, found);
+        for (size_t i1 = i + 1; i1 &lt; ROWS; ++i1) {
+            if (row_sums[i1] != row_sums[i]) {
+                break;
+            }
+            if (m[i1] != m[i]) {
+                std::swap(m[i], m[i1]);
+                found_permutations(m, row_sums, i + 1, true, found);
+                std::swap(m[i], m[i1]);
+            }
+        }
+    }
+}
+
+// Search function
+void search(
+    Matrix&amp; m,
+    uint32_t i,
+    uint32_t j,
+    uint32_t row_sum,
+    uint32_t min_row_sum,
+    bool equal_row,
+    std::array&lt;bool, COLS&gt;&amp; equal_cols,
+    std::unordered_set&lt;Matrix, MatrixHash&gt;&amp; found
+) {
+    if (row_sum + COLS - j &lt; min_row_sum) return;
+
+    if (j == COLS) {
+        ++i;
+        if (i == ROWS) {
+            if (found.find(m) == found.end()) {
+                std::array&lt;uint32_t, ROWS&gt; row_sums{};
+                for (size_t r = 0; r &lt; ROWS; ++r) {
+                    row_sums[r] = std::accumulate(m[r].begin(), m[r].end(), 0u);
+                }
+                found_permutations(m, row_sums, 0, false, found);
+                totalCount++;
+#ifdef PRINT_ALL
+                for (const auto&amp; row : m) {
+                    for (bool cell : row) {
+                        std::cout &lt;&lt; (cell ? '1' : '0');
+                    }
+                    std::cout &lt;&lt; " ";
+                }
+                std::cout &lt;&lt; "\n";
+#endif
+            }
+            return;
+        }
+        j = 0;
+        min_row_sum = row_sum;
+        row_sum = 0;
+        equal_row = true;
+    }
+
+    bool equal_col = equal_cols[j];
+
+    if (!equal_col || !m[i][j - 1]) {
+        m[i][j] = false;
+        equal_cols[j] = equal_col &amp;&amp; !m[i][j - 1];
+        search(m, i, j + 1, row_sum, min_row_sum + (equal_row &amp;&amp; m[i - 1][j]), equal_row &amp;&amp; !m[i - 1][j], equal_cols, found);
+    }
+
+    m[i][j] = true;
+    equal_cols[j] = equal_col &amp;&amp; m[i][j - 1];
+    search(m, i, j + 1, row_sum + 1, min_row_sum, equal_row &amp;&amp; m[i - 1][j], equal_cols, found);
+    equal_cols[j] = equal_col;
+}
+
+// Main function
+int main() {
+    auto start = std::chrono::steady_clock::now();
+
+    std::array&lt;bool, COLS&gt; equal_cols{};
+    equal_cols.fill(true);
+    equal_cols[0] = false;
+
+    Matrix m{};
+    std::unordered_set&lt;Matrix, MatrixHash&gt; found;
+
+    search(m, 0, 0, 0, 0, false, equal_cols, found);
+
+    auto end = std::chrono::steady_clock::now();
+    std::chrono::duration&lt;double&gt; elapsed = end - start;
+
+    std::cout &lt;&lt; "Total count: " &lt;&lt; totalCount &lt;&lt; '\n';
+    std::cout &lt;&lt; "Elapsed time: " &lt;&lt; elapsed.count() &lt;&lt; " seconds" &lt;&lt; '\n';
+}
+
+</code></pre>
+<p><a href="https://tio.run/##pVdtb9s2EP6uX8GkQCzBSmo7QItYtoehGNAB6TK0BfYh9QxFohO6kuiRVNKu8V@fd3yRSMmy4WxG0ZhH3sPjw7uH52S9Pr9Pku32FSmSrEwxmhDKBcNxPvOsrSwoSzHD6YJj4U484kRQ5lri7J4yIh4a/jFj8XfXIMp1hl0DoXlckLVrKsocM5K4puSB0YLOPC@hBReIFAJ9vPnjE5qiN5Fje3dzbWwlJ8U9@hALRr6BhYt0PFbBTJyvd5RmoXKahQpvFnkSRlARZ@9oCV@naBB53uvX6FWKl6TA6PePv/72efHz9TUaKvvNWpCc/I1TlJRc0Bw9xPwBLcsiEYQWaEmZ3rzBJKJLlMvYEsw9YL1MhIn1vfT@4SH4cEBdwNI1ZjFw7Qe@PqheeIbyAGmDXu64qBBU5NWEDMO4x6WgZ4jRJzSWENbZAYDZ9zsYNY6kDSU4ywABVrYx5McC@NXXyQQNA/SsHCOEGi6bxkiF/@e0BumjwbcrfPn27dXdFQz8BwP3JqhHsxkaBS6qRWRYlKxQoPosG28DV/pISQrHKYt0AQTnpYjlfXFfLakpDtVQE@ckTglZcjlaCJM1is4FL3Ou11fTiOixIkzvglNt2s2Jid40dBIBgFWEXkUxWSKfoOlUbevyLieqDdr3AUkqWFzwNeW4MWGqIxc/Nh23LAthpTIA/kxUlUSo3191XbdyMLlDtA8BHxml9CFdPvKTi9vV/JbMwSWHPzCIdtZtWpnSzFdJI6dM@Lm4uMP3pPCDEGAvcJH6QRC9kIijmKhO9RImKvYOMOFQIf4TFzIHFB@ELyQlOAVSGqwYWkJ0O2@LwTBELcuoK1Q5iyDRh7WmJkmZl1kssCz0od1Njcx2gzKI9kKNuqFGDajRQShT4gpFEOzLAHUEAXDvmkcarQNjE3RfJ5TfBSk4VikmWo6blt7o/3HGsYPVITJ5aBUD8qOPINxaH7RD0BLvKqck88ojkt@dGhu245f5UO1yS4ZzdDJFdjzvOu4dvP9fowPSLDHzCizfg6KL8iley6XzECmHDsqPJAaeR7xLyks2272mjXq7P@GYJfax1m8CV8bOd6Ct6/V41RqbM7SsOSkWjRn1LuC/yjiTdudh2GlPzsyyhGb8/z4gJgQgV7VL50rUnNgCU0@RV7us5JsjV7vXDTkXNR6gzpepmtSVBC0UqFIgF2qD1ul9SdT52tYZ0hbrdq0wrb/MqRK2T3/rwmDzDj3KwewIqRwd0qPNi1N9AAkeg2zsz3Pbk/b7EXTGS@hHbTPazcMRDd9LG7vG9SS0FLIR85XPT6g37IFnb9DriL@blx2oU3R6DJ9Nny8FOL2CGyHLA9pVZfXu7KrZ6Dq1gGrJtNN2yvGpqxjMUrCqVrNd51DAsMIWs3rm6zo7sYuen9GJ7omgQocNnTWtEuConGkHYWDdbdDZWQPNuhi1g2QkIfCgBLfSqAYR0GnbMwIcoCko2AnKoDF14syFrnA1kttwYw9jaTt4jp1jHDiCHri6i/YdYn@ge6OJzDPyISaFfURkt5jHUinMlelGR8RMVMqif83CsyVwnH5fJBlNvo7HBX3yA5MM3a@AE0qlfdYC2pplviRxN@6Bkyye2/FWMMe9JpqWKsSa9oHzz6hYF5eWDKjUo6iwlW5WpSVT6jlJaXmXYSAki9ccSzSJea5pdjmsNeKz1E/ocUFAx6AyYHJ@5cOo96XoRR1@v5gd4Fc@No5m0wsFBtesZItjUNuUn1qsjbfd/pMss/ieb89vLrfnuSRsWsAJHvG/" rel="nofollow noreferrer" title="C++ (gcc) – Try It Online">Try it online!</a></p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://docs.python.org/3.12/" rel="nofollow noreferrer">Python 3.12</a>, 10.33 s unofficial time</h1>
 <p>Python port of <a href="https://codegolf.stackexchange.com/a/275941/110802">@Ander Kaseorg's Rust code</a>.</p>
 <hr />
 <pre class="lang-python prettyprint-override"><code>import sys
@@ -167,7 +331,7 @@ if __name__ == '__main__':
 
 </code></pre>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://www.rust-lang.org/" rel="nofollow noreferrer">Rust</a>, 5.225 seconds unofficial time</h1>
+<div id="pu2" class="pu"><h1><a href="https://www.rust-lang.org/" rel="nofollow noreferrer">Rust</a>, 5.225 seconds unofficial time</h1>
 <p>Based on @Anders Kaseorg's Rust code, I made minor modification:</p>
 <ul>
 <li>add matrices count</li>
@@ -337,7 +501,7 @@ fn main() {
 }
 </code></pre>
 </div>
-<div id="pu2" class="pu"><h1><a href="https://www.rust-lang.org/" rel="nofollow noreferrer">Rust</a>, 0.27 s unofficial time</h1>
+<div id="pu3" class="pu"><h1><a href="https://www.rust-lang.org/" rel="nofollow noreferrer">Rust</a>, 0.27 s unofficial time</h1>
 <p>Compile with <code>cargo build --release</code>, run with <code>target/release/matrices</code>.</p>
 <h3><code>Cargo.toml</code></h3>
 <pre class="lang-toml prettyprint-override"><code>[package]
