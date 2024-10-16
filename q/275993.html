@@ -36,11 +36,12 @@
 <tr d-ix="7"><td>nan</td><td></td><td>241009T124041Z</td><td><a href="https://codegolf.stackexchange.com/questions/275993/mexican-hat-challenge-%e3%83%a1%e3%82%ad%e3%82%b7%e3%82%ab%e3%83%b3%e3%83%8f%e3%83%83%e3%83%88%e3%83%81%e3%83%a3%e3%83%ac%e3%83%b3%e3%82%b8/275994#275994">Luis Men</a></td></tr>
 </table>
 <div id="pu0" class="pu"><h1>Microsoft Excel</h1>
-<p>This is not at all optimized for character count, but that's not really a criterion for this one anyway. Excel is a bit finicky as to whether or not it renders. I have a feeling this is about the resolution limit before it will just never work as this already takes a good long time to render.</p>
+<p>This is not at all optimized for character count, but that's not really a criterion for this one anyway.</p>
 <p>Speed Optimizations:</p>
 <ul>
 <li>Originally, I had a plot function that plotted a single point at a time. This required copying the entire &quot;canvas&quot; every time I wanted to plot a point, which was O(n<sup>2</sup>m<sup>2</sup>), where n and m are canvas and sample area widths respectively.</li>
 <li>Then I realized I could just make a sorted lookup table for the points (sort is both for depth buffer and lookup efficiency). Now it's O(n<sup>2</sup> log(m) + m<sup>2</sup>), assuming the sort is sub-O(m<sup>2</sup>) and sorted lookups is O(log m).</li>
+<li>Sorting by numeric values is way faster than sorting by text values, which is why I'm multiplying by 1000. Using a comma takes over twice as long. (Personal benchmarks are 7s vs 15s).</li>
 </ul>
 <pre><code>=LET(
  tableWidth,80,
@@ -63,14 +64,14 @@
  plotAll,LAMBDA(pts,
   LET(
    zBufs,MAP(pts,LAMBDA(pt,0+INDEX(TEXTSPLIT(pt,&quot;|&quot;),1))),
-   coords,MAP(pts,LAMBDA(pt,INDEX(TEXTSPLIT(pt,&quot;|&quot;),2))),
+   coords,MAP(pts,LAMBDA(pt,0+INDEX(TEXTSPLIT(pt,&quot;|&quot;),2))),
    vals,MAP(pts,LAMBDA(pt,0+INDEX(TEXTSPLIT(pt,&quot;|&quot;),3))),
    sorted,SORTBY(HSTACK(coords,zBufs,vals),coords,1,zBufs,1),
    MAP(indexes,LAMBDA(cPtNo,
     LET(
      cX,MOD(cPtNo,tableWidth),
      cY,INT(cPtNo/tableWidth),
-     id,cX&amp;&quot;,&quot;&amp;cY,
+     id,1000*cX+cY,
      IF(IFNA(VLOOKUP(id,sorted,1,1),&quot;&quot;)=id,VLOOKUP(id,sorted,3,1),&quot;&quot;)
     )
    ))
@@ -84,8 +85,8 @@
     k,z(i,j),
     newPt,MAP(MMULT(rotMatrix,VSTACK(i,j,k)),LAMBDA(x,x*scale)),
     INDEX(newPt,3)&amp;&quot;|&quot;
-     &amp;ROUND(INDEX(newPt,1),0)+40&amp;&quot;,&quot;
-     &amp;ROUND(INDEX(newPt,2),0)+30&amp;&quot;|&quot;
+     &amp;(1000*ROUND(40+INDEX(newPt,1),0)
+      +ROUND(30+INDEX(newPt,2),0))&amp;&quot;|&quot;
      &amp;k
    )
   ))
@@ -117,14 +118,14 @@
  plotAll,LAMBDA(pts,
   LET(
    zBufs,MAP(pts,LAMBDA(pt,0+INDEX(SPLIT(pt,&quot;|&quot;),1))),
-   coords,MAP(pts,LAMBDA(pt,INDEX(SPLIT(pt,&quot;|&quot;),2))),
+   coords,MAP(pts,LAMBDA(pt,0+INDEX(SPLIT(pt,&quot;|&quot;),2))),
    vals,MAP(pts,LAMBDA(pt,0+INDEX(SPLIT(pt,&quot;|&quot;),3))),
    sorted,SORT(HSTACK(coords,zBufs,vals),coords,1,zBufs,1),
    MAP(indexes,LAMBDA(cPtNo,
     LET(
      cX,MOD(cPtNo,tableWidth),
      cY,INT(cPtNo/tableWidth),
-     id,cX&amp;&quot;,&quot;&amp;cY,
+     id,1000*cX+cY,
      IF(IFNA(VLOOKUP(id,sorted,1,1),&quot;&quot;)=id,VLOOKUP(id,sorted,3,1),&quot;&quot;)
     )
    ))
@@ -138,8 +139,8 @@
     k,z(i,j),
     newPt,MAP(MMULT(rotMatrix,VSTACK(i,j,k)),LAMBDA(x,x*scale)),
     INDEX(newPt,3)&amp;&quot;|&quot;
-     &amp;ROUND(INDEX(newPt,1),0)+40&amp;&quot;,&quot;
-     &amp;ROUND(INDEX(newPt,2),0)+30&amp;&quot;|&quot;
+     &amp;(1000*ROUND(40+INDEX(newPt,1),0)
+      +ROUND(30+INDEX(newPt,2),0))&amp;&quot;|&quot;
      &amp;k
    )
   ))
