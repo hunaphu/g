@@ -65,20 +65,20 @@
    zBufs,MAP(pts,LAMBDA(pt,0+INDEX(TEXTSPLIT(pt,&quot;|&quot;),1))),
    coords,MAP(pts,LAMBDA(pt,0+INDEX(TEXTSPLIT(pt,&quot;|&quot;),2))),
    vals,MAP(pts,LAMBDA(pt,0+INDEX(TEXTSPLIT(pt,&quot;|&quot;),3))),
-   sorted,SORTBY(HSTACK(coords,zBufs,vals),coords,1,zBufs,1),
+   sorted,CHOOSECOLS(SORT(SORT(HSTACK(coords,zBufs,vals),2,1),1,1),1,3),
    MAKEARRAY(tableWidth,tableWidth,LAMBDA(row,col,
     LET(
      id,1000*col+row,
-     IF(IFNA(VLOOKUP(id,sorted,1,1),&quot;&quot;)=id,VLOOKUP(id,sorted,3,1),&quot;&quot;)
+     IF(IFNA(VLOOKUP(id,sorted,1,1),-2)=id,VLOOKUP(id,sorted,2,1),&quot;&quot;)
     )
    ))
   )
  ),
  plotAll(
-  MAKEARRAY(dimX*dimY,1,LAMBDA(ptNo,_,
+  TOCOL(MAKEARRAY(dimX,dimY,LAMBDA(row,col,
    LET(
-    i,MOD(ptNo-1,dimX)*resX-width/2,
-    j,INT((ptNo-1)/dimX)*resY-width/2,
+    i,(col-1)*resX-width/2,
+    j,(row-1)*resY-width/2,
     k,z(i,j),
     newPt,MMULT(rotMatrix,VSTACK(i*scale,j*scale,k*scale)),
     INDEX(newPt,3)&amp;&quot;|&quot;
@@ -86,7 +86,7 @@
       +ROUND(30+INDEX(newPt,2),0))&amp;&quot;|&quot;
      &amp;k
    )
-  ))
+  )))
  )
 )
 </code></pre>
