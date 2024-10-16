@@ -96,7 +96,7 @@
 <a href="https://i.sstatic.net/oTmaq53A.png" rel="nofollow noreferrer"><img src="https://i.sstatic.net/oTmaq53A.png" alt="enter image description here" /></a></p>
 <p>I added a Color Scale formatter for ease of viewing.</p>
 <h2>Google Sheets port</h2>
-<pre><code>=ArrayFormula(LET(
+<pre><code>=LET(
  tableWidth,80,
  resX,0.0625,resY,0.0625,
  width,8,
@@ -136,16 +136,23 @@
     i,MOD(ptNo,dimX)*resX-width/2,
     j,INT(ptNo/dimX)*resY-width/2,
     k,z(i,j),
-    newPt,scale*MMULT(rotMatrix,VSTACK(i,j,k)),
+    newPt,MAP(MMULT(rotMatrix,VSTACK(i,j,k)),LAMBDA(x,x*scale)),
     INDEX(newPt,3)&amp;&quot;|&quot;
      &amp;ROUND(INDEX(newPt,1),0)+40&amp;&quot;,&quot;
-     &amp;ROUND(INDEX(newPt,2),0)+26&amp;&quot;|&quot;
+     &amp;ROUND(INDEX(newPt,2),0)+30&amp;&quot;|&quot;
      &amp;k
    )
   ))
  )
-))
+)
 </code></pre>
+<p>Port notes:</p>
+<ul>
+<li>Google Sheets does not have <code>SORTBY</code>, but <code>SORT</code> is capable of multi-column sort.</li>
+<li>An extra <code>MAP</code> was required to scalar-multiply a vector. I don't like <code>ArrayFormula</code>.</li>
+<li><code>TEXTJOIN</code> becomes just <code>JOIN</code></li>
+<li>I'm surprised that this actually runs faster than my on my Desktop Excel. I'll have to try on Excel Online later.</li>
+</ul>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 738 bytes</h1>
 <pre class="lang-python prettyprint-override"><code>import math
