@@ -26,8 +26,8 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>nan</td><td></td><td>240409T123151Z</td><td><a href="https://codegolf.stackexchange.com/questions/51323/tips-for-golfing-in-sed/272424#272424">guest430</a></td></tr>
-<tr d-ix="1"><td>nan</td><td></td><td>210907T153358Z</td><td><a href="https://codegolf.stackexchange.com/questions/51323/tips-for-golfing-in-sed/235144#235144">user4180</a></td></tr>
+<tr d-ix="0"><td>nan</td><td></td><td>210907T153358Z</td><td><a href="https://codegolf.stackexchange.com/questions/51323/tips-for-golfing-in-sed/235144#235144">user4180</a></td></tr>
+<tr d-ix="1"><td>nan</td><td></td><td>240409T123151Z</td><td><a href="https://codegolf.stackexchange.com/questions/51323/tips-for-golfing-in-sed/272424#272424">guest430</a></td></tr>
 <tr d-ix="2"><td>nan</td><td>\L</td><td>240528T104808Z</td><td><a href="https://codegolf.stackexchange.com/questions/51323/tips-for-golfing-in-sed/273332#273332">user4180</a></td></tr>
 <tr d-ix="3"><td>nan</td><td></td><td>240420T231633Z</td><td><a href="https://codegolf.stackexchange.com/questions/51323/tips-for-golfing-in-sed/272693#272693">guest430</a></td></tr>
 <tr d-ix="4"><td>nan</td><td>Okay</td><td>210914T140407Z</td><td><a href="https://codegolf.stackexchange.com/questions/51323/tips-for-golfing-in-sed/235308#235308">user4180</a></td></tr>
@@ -54,32 +54,7 @@
 <tr d-ix="25"><td>nan</td><td>The GNU sed documentation describes the s command as "sed's Swiss Army Knife".  But if all you want to do is replace all instances of one character with another</td><td>150605T173901Z</td><td><a href="https://codegolf.stackexchange.com/questions/51323/tips-for-golfing-in-sed/51351#51351">Digital </a></td></tr>
 <tr d-ix="26"><td>nan</td><td>Consider using extended regex syntax in GNU sed.  The r option costs one byte in scoring</td><td>150605T112301Z</td><td><a href="https://codegolf.stackexchange.com/questions/51323/tips-for-golfing-in-sed/51327#51327">Toby Spe</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>use the e flag on s for simplifying things</h1>
-<p>your output may depend on which shell sed is using. I'll only include things that work on TIO at time of writing.</p>
-<p>I know there are lots of decimal to unary and back solutions on here, but they are all unreasonably long. here's some that are much shorter:</p>
-<h3>decimal to unary:</h3>
-<pre><code>s/.*/echo {0..&amp;}/e
-s/\w//g
-</code></pre>
-<p>this sends <code>echo {0..#}</code> to the shell which usually expands it into a list from 0 to #, with spaces inbetween each number. remove the numbers and you have the right number of spaces. works for any positive integer</p>
-<h3>unary to decimal:</h3>
-<pre><code>s/.*/wc -L&lt;&lt;&lt;&amp;/e
-s/.*/wc -L&lt;&lt;&lt;'&amp;'/e         #the above if you're using spaces as your unary char
-s/.*/echo &amp;|wc -L/e        #shells that don't support &lt;&lt;&lt; redirects
-s/.*/echo '&amp;'|wc -L/e      # + using spaces
-</code></pre>
-<p>these send all the chars to <code>wc</code> which returns the longest line with <code>-L</code> (the <code>&lt;&lt;&lt;</code> redirect and <code>echo</code> add a newline to the end). the unary must consist of the entire line; as it runs the text of the full line after the swap, so if you leave something out you end up trying to run <code>loremipsumwc -L&lt;&lt;&lt;'   '</code></p>
-<h3>basic math (-E)</h3>
-<pre><code>s/(.*) (.*)/echo $[\1+\2]/e   #two numbers seperated by a space
-s/(.*) (.*)/echo $[\1*\2]/e   #there's at least + - * / %
-</code></pre>
-<p><a href="https://tio.run/##K05N0U3PK/3/v1hfQ09LUwFE6KcmZ@QrqETHGGrHGMXqp/7/b6xgwmVioGDEZWRkbGGgYG5pYWzyL7@gJDM/r/i/risA" rel="nofollow noreferrer" title="sed – Try It Online">Try it online!</a></p>
-<h3>idk, go have fun</h3>
-<pre><code>s/.*/for i in {1..&amp;};{ echo $[&amp;%$i];}/e
-</code></pre>
-<p>basically if a shell solution is a lot shorter than a sed solution it doesn't need to be that way</p>
-</div>
-<div id="pu1" class="pu"><h1>Unary-UCD-Decimal conversions</h1>
+<div id="pu0" class="pu"><h1>Unary-UCD-Decimal conversions</h1>
 <p>The programs below are adapted from solutions in <a href="http://golf.shinh.org/" rel="nofollow noreferrer">anarchy golf</a>. The solutions below work on GNU sed 4.2.2, where empty labels are allowed. It is possible I've missed better solutions on anarchy golf.</p>
 <h2>Unary to Decimal, <code>sed -r</code> at 47 bytes</h2>
 <p>From solutions by <a href="http://golf.shinh.org/reveal.rb?Collatz+Problem/%2520_1480130793&amp;sed" rel="nofollow noreferrer">%20</a> and <a href="http://golf.shinh.org/reveal.rb?Bijective+base+10+add/tails_1536134169&amp;sed" rel="nofollow noreferrer">tails</a>. Works only for integers other than 0. The chosen unary digit (<code>a</code> in the below program) occurs 3 times in the program.</p>
@@ -114,6 +89,40 @@ t
 s/0//g
 </code></pre>
 <p><a href="https://tio.run/##K05N@f/fiqtYP9pQ1zJWX81aP52rUt/QyNjE1MzcwlLfAMbUB6qxNtC3tNbnKgEyDfT10///NzKwBAA" rel="nofollow noreferrer" title="sed 4.2.2 – Try It Online">Try it online!</a> and <a href="https://tio.run/##S0oszvivn19Qol@cmqKflJkHohXU/1txFetHG@paxuqrWeunc1XqGxoZm5iamVtY6hvAmPpANdYG@pbW@lwlQKaBvn76f/WatPycFAVdw5rSvMxCBd3k/7pGBpYA" rel="nofollow noreferrer" title="Bash – Try It Online">(bash wrapper)</a></p>
+<p>If you don't care about 0, you can golf a byte off of this:</p>
+<pre><code>:
+s/\w/&amp;#/g
+y/0123456789/!!12345678/
+s/#!/9#/
+t
+s/!//g
+</code></pre>
+<p><a href="https://tio.run/##K05N@f/fiqtYP6ZcX01ZP52rUt/A0MjYxNTM3MJSX1ERxtYHKlFW1LdU1ucqATIV9fXT//83MrAEAA" rel="nofollow noreferrer" title="sed 4.2.2 – Try It Online">Try it online!</a></p>
+</div>
+<div id="pu1" class="pu"><h1>use the e flag on s for simplifying things</h1>
+<p>your output may depend on which shell sed is using. I'll only include things that work on TIO at time of writing.</p>
+<p>I know there are lots of decimal to unary and back solutions on here, but they are all unreasonably long. here's some that are much shorter:</p>
+<h3>decimal to unary:</h3>
+<pre><code>s/.*/echo {0..&amp;}/e
+s/\w//g
+</code></pre>
+<p>this sends <code>echo {0..#}</code> to the shell which usually expands it into a list from 0 to #, with spaces inbetween each number. remove the numbers and you have the right number of spaces. works for any positive integer</p>
+<h3>unary to decimal:</h3>
+<pre><code>s/.*/wc -L&lt;&lt;&lt;&amp;/e
+s/.*/wc -L&lt;&lt;&lt;'&amp;'/e         #the above if you're using spaces as your unary char
+s/.*/echo &amp;|wc -L/e        #shells that don't support &lt;&lt;&lt; redirects
+s/.*/echo '&amp;'|wc -L/e      # + using spaces
+</code></pre>
+<p>these send all the chars to <code>wc</code> which returns the longest line with <code>-L</code> (the <code>&lt;&lt;&lt;</code> redirect and <code>echo</code> add a newline to the end). the unary must consist of the entire line; as it runs the text of the full line after the swap, so if you leave something out you end up trying to run <code>loremipsumwc -L&lt;&lt;&lt;'   '</code></p>
+<h3>basic math (-E)</h3>
+<pre><code>s/(.*) (.*)/echo $[\1+\2]/e   #two numbers seperated by a space
+s/(.*) (.*)/echo $[\1*\2]/e   #there's at least + - * / %
+</code></pre>
+<p><a href="https://tio.run/##K05N0U3PK/3/v1hfQ09LUwFE6KcmZ@QrqETHGGrHGMXqp/7/b6xgwmVioGDEZWRkbGGgYG5pYWzyL7@gJDM/r/i/risA" rel="nofollow noreferrer" title="sed – Try It Online">Try it online!</a></p>
+<h3>idk, go have fun</h3>
+<pre><code>s/.*/for i in {1..&amp;};{ echo $[&amp;%$i];}/e
+</code></pre>
+<p>basically if a shell solution is a lot shorter than a sed solution it doesn't need to be that way</p>
 </div>
 <div id="pu2" class="pu"><h1><code>\L</code>, <code>\U</code>, <code>\E</code> for fractals in GNU sed</h1>
 <p>The case switching special sequences help in &quot;toggling&quot; a line. An example is the following challenge to produce a fractal X on <a href="http://golf.shinh.org/p.rb?Fractal+X" rel="nofollow noreferrer">anagol</a>, whose shortest sed solution by mitchs et al is reproduced here.</p>
