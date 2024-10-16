@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::320</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>077</td><td>Python</td><td>110201T041028Z</td><td><a href="https://codegolf.stackexchange.com/questions/320/binary-search-bisect-tool/324#324">gnibbler</a></td></tr>
+<tr d-ix="1"><td>070</td><td>Python</td><td>110201T043214Z</td><td><a href="https://codegolf.stackexchange.com/questions/320/binary-search-bisect-tool/325#325">gnibbler</a></td></tr>
+<tr d-ix="2"><td>064</td><td>Python</td><td>110201T044442Z</td><td><a href="https://codegolf.stackexchange.com/questions/320/binary-search-bisect-tool/327#327">gnibbler</a></td></tr>
+<tr d-ix="3"><td>060</td><td>Ruby</td><td>110201T030405Z</td><td><a href="https://codegolf.stackexchange.com/questions/320/binary-search-bisect-tool/321#321">Nemo157</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h2>Python - 77 chars</h2>
+<p>Abusing the python bisect module. L is the low value, H is the high value</p>
+<pre class="lang-python prettyprint-override"><code>class B:__getitem__=lambda s,n:test(n)
+import bisect as b
+b.bisect(B(),0,L,H)
+</code></pre>
+<p>here is a test run</p>
+<pre class="lang-python prettyprint-override"><code>def test(n):
+    print &quot;testing &quot;, n
+    return n&gt;66
+L,H=10,1000
+    
+class B:__getitem__=lambda s,n:test(n)
+import bisect as b
+b.bisect(B(),0,L,H)
+</code></pre>
+<p>outputs</p>
+<pre class="lang-none prettyprint-override"><code>testing  505
+testing  257
+testing  133
+testing  71
+testing  40
+testing  56
+testing  64
+testing  68
+testing  66
+testing  67
+</code></pre>
+<p>Explanation:</p>
+<p>Here is how bisect is defined. Basically it expects a list and decides whether to bisect up or down based on the value it finds by looking at <code>a[mid]</code>. This calls <code>__getitem__</code> on <code>a</code>, which instead of being a list, is a class that I have defined myself.</p>
+<pre class="lang-python prettyprint-override"><code>def bisect_right(a, x, lo=0, hi=None):
+&quot;&quot;&quot;Return the index where to insert item x in list a, assuming a is sorted.
+  
+    The return value i is such that all e in a[:i] have e &lt;= x, and all e in
+    a[i:] have e &gt; x.  So if x already appears in the list, a.insert(x) will
+    insert just after the rightmost x already there.
+    
+    Optional args lo (default 0) and hi (default len(a)) bound the
+    slice of a to be searched.
+&quot;&quot;&quot;
+    
+    if lo &lt; 0:
+        raise ValueError('lo must be non-negative')
+    if hi is None:
+        hi = len(a)
+    while lo &lt; hi:
+        mid = (lo+hi)//2
+        if x &lt; a[mid]: hi = mid
+        else: lo = mid+1
+    return lo
+
+    bisect=bisect_right
+<span class="math-container">```</span>
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h2>Python - 70 chars</h2>
+<pre class="lang-python prettyprint-override"><code>def B(L,H):
+ while L+1&lt;H:M=L+H;L,H=[L,M/2,H][test(M/2):][:2]
+ return L
+</code></pre>
+<p>test run</p>
+<pre class="lang-python prettyprint-override"><code>def test(n):
+    print &quot;testing &quot;, n
+    return n&lt;66
+L,H=10,1000
+    
+def B(L,H):
+ while L+1&lt;H:M=L+H;L,H=[L,M/2,H][test(M/2):][:2]
+ return L
+    
+print B(L,H)
+</code></pre>
+<p>outputs</p>
+<pre class="lang-none prettyprint-override"><code>testing  505
+testing  257
+testing  133
+testing  71
+testing  40
+testing  55
+testing  63
+testing  67
+testing  65
+testing  66
+65
+</code></pre>
+</div>
+<div id="pu2" class="pu"><h1>Python, 64 chars</h1>
+ 
+<p>This one is recursive, so will overflow the stack for really large input</p>
+<pre class="lang-py prettyprint-override"><code>01234567890123456789012345678901234567890123456789012345678901234567890
+|         |         |         |         |         |         |         |
+ B=lambda L,H:H&gt;L+1 and B(*[L,L/2+H/2,H][test(L/2+H/2):][:2])or H
+</code></pre>
+<p>test run</p>
+<pre class="lang-py prettyprint-override"><code>def test(n):
+    print &quot;testing &quot;, n
+    return n&lt;66
+
+L,H=10,1000
+
+
+B=lambda L,H:H&gt;L+1 and B(*[L,L/2+H/2,H][test(L/2+H/2):][:2])or H
+
+print B(L,H)
+</code></pre>
+<p>outputs</p>
+<pre class="lang-py prettyprint-override"><code>testing  505
+testing  257
+testing  133
+testing  71
+testing  40
+testing  55
+testing  62
+testing  66
+testing  64
+testing  65
+66
+</code></pre>
+</div>
+<div id="pu3" class="pu"><h2>Ruby - <strike>92 82 62</strike> 60 characters</h2>
+
+<p>Iterative is way shorter, but nowhere near as cool as tail recursive.</p>
+
+<pre><code>l,h=$*.map &amp;:to_i
+test(m=(l+h)/2)?l=m+1:h=m-1 while l&lt;=h
+p l
+</code></pre>
+
+<p>The old tail recursive method for reference</p>
+
+<pre><code>b=proc{|l,h|h&lt;l ?l:(m=(l+h)/2;test(m)?l=m+1:h=m-1;redo)}
+puts b[*$*.map(&amp;:to_i)]
+</code></pre>
+
+<h3>Testing script</h3>
+
+<p>Uses a little magic to inject the <code>test</code> function and runs a file consisting of purely the above code.</p>
+
+<pre><code>low = Random.rand(100)
+mid = low + Random.rand(1e25)
+high = mid + Random.rand(1e50)
+
+File.open('./bisect-test-method.rb','w') do |file|
+  file &lt;&lt; "def test(value)
+             value &lt; #{mid}
+           end
+          "
+end
+
+puts "Using input:"
+puts "  low=#{low}"
+puts "  high=#{high}"
+puts "  first_bad=#{mid}"
+puts "Output: #{`ruby -r ./bisect-test-method golf-bisect.rb #{low} #{high}`}"
+</code></pre>
+
+<p>Output:</p>
+
+<pre><code>Using input:
+  low=4
+  high=75343785543465286986587973836706907796015092187720
+  first_bad=5013102893257647460384884
+Output: 5013102893257647460384884
+</code></pre>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/320/">320</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
