@@ -49,9 +49,7 @@
  resX,0.0625,resY,0.0625,
  width,8,
  dimX,width/resX,
- dimY,width/resY,
- indexes,SEQUENCE(tableWidth-10,tableWidth,0),
- thX,RADIANS(30),
+ dimY,width/resY, thX,RADIANS(30),
  thZ,RADIANS(60),
  scale,8,
  sX,SIN(thX),cX,COS(thX),
@@ -68,23 +66,21 @@
    coords,MAP(pts,LAMBDA(pt,0+INDEX(TEXTSPLIT(pt,&quot;|&quot;),2))),
    vals,MAP(pts,LAMBDA(pt,0+INDEX(TEXTSPLIT(pt,&quot;|&quot;),3))),
    sorted,SORTBY(HSTACK(coords,zBufs,vals),coords,1,zBufs,1),
-   MAP(indexes,LAMBDA(cPtNo,
+   MAKEARRAY(tableWidth,tableWidth,LAMBDA(row,col,
     LET(
-     cX,MOD(cPtNo,tableWidth),
-     cY,INT(cPtNo/tableWidth),
-     id,1000*cX+cY,
+     id,1000*col+row,
      IF(IFNA(VLOOKUP(id,sorted,1,1),&quot;&quot;)=id,VLOOKUP(id,sorted,3,1),&quot;&quot;)
     )
    ))
   )
  ),
  plotAll(
-  MAP(SEQUENCE(dimX*dimY,1,0,1),LAMBDA(ptNo,
+  MAKEARRAY(dimX*dimY,1,LAMBDA(ptNo,_,
    LET(
-    i,MOD(ptNo,dimX)*resX-width/2,
-    j,INT(ptNo/dimX)*resY-width/2,
+    i,MOD(ptNo-1,dimX)*resX-width/2,
+    j,INT((ptNo-1)/dimX)*resY-width/2,
     k,z(i,j),
-    newPt,MAP(MMULT(rotMatrix,VSTACK(i,j,k)),LAMBDA(x,x*scale)),
+    newPt,MMULT(rotMatrix,VSTACK(i*scale,j*scale,k*scale)),
     INDEX(newPt,3)&amp;&quot;|&quot;
      &amp;(1000*ROUND(40+INDEX(newPt,1),0)
       +ROUND(30+INDEX(newPt,2),0))&amp;&quot;|&quot;
