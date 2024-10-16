@@ -95,7 +95,57 @@
 <p>Screenshot for amusement:
 <a href="https://i.sstatic.net/oTmaq53A.png" rel="nofollow noreferrer"><img src="https://i.sstatic.net/oTmaq53A.png" alt="enter image description here" /></a></p>
 <p>I added a Color Scale formatter for ease of viewing.</p>
-<p>This is no longer portable to Google Sheets as it does not currently have a <code>SORTBY</code> function.</p>
+<h2>Google Sheets port</h2>
+<pre><code>=ArrayFormula(LET(
+ tableWidth,80,
+ resX,0.0625,resY,0.0625,
+ width,8,
+ dimX,width/resX,
+ dimY,width/resY,
+ indexes,SEQUENCE(tableWidth-10,tableWidth,0),
+ thX,RADIANS(30),
+ thZ,RADIANS(60),
+ scale,8,
+ sX,SIN(thX),cX,COS(thX),
+ sZ,SIN(thZ),cZ,COS(thZ),
+ rotMatrix,VSTACK(
+  HSTACK(cX,-sX*cZ,sX*sZ),
+  HSTACK(sX,cX*cZ,-cX*sZ),
+  HSTACK(0,sZ,cZ)
+ ),
+ z,LAMBDA(i,j,SIN(SQRT(i*i+j*j))),
+ plotAll,LAMBDA(pts,
+  LET(
+   zBufs,MAP(pts,LAMBDA(pt,0+INDEX(SPLIT(pt,&quot;|&quot;),1))),
+   coords,MAP(pts,LAMBDA(pt,INDEX(SPLIT(pt,&quot;|&quot;),2))),
+   vals,MAP(pts,LAMBDA(pt,0+INDEX(SPLIT(pt,&quot;|&quot;),3))),
+   sorted,SORT(HSTACK(coords,zBufs,vals),coords,1,zBufs,1),
+   MAP(indexes,LAMBDA(cPtNo,
+    LET(
+     cX,MOD(cPtNo,tableWidth),
+     cY,INT(cPtNo/tableWidth),
+     id,cX&amp;&quot;,&quot;&amp;cY,
+     IF(IFNA(VLOOKUP(id,sorted,1,1),&quot;&quot;)=id,VLOOKUP(id,sorted,3,1),&quot;&quot;)
+    )
+   ))
+  )
+ ),
+ plotAll(
+  MAP(SEQUENCE(dimX*dimY,1,0,1),LAMBDA(ptNo,
+   LET(
+    i,MOD(ptNo,dimX)*resX-width/2,
+    j,INT(ptNo/dimX)*resY-width/2,
+    k,z(i,j),
+    newPt,scale*MMULT(rotMatrix,VSTACK(i,j,k)),
+    INDEX(newPt,3)&amp;&quot;|&quot;
+     &amp;ROUND(INDEX(newPt,1),0)+40&amp;&quot;,&quot;
+     &amp;ROUND(INDEX(newPt,2),0)+26&amp;&quot;|&quot;
+     &amp;k
+   )
+  ))
+ )
+))
+</code></pre>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 738 bytes</h1>
 <pre class="lang-python prettyprint-override"><code>import math
