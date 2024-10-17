@@ -42,7 +42,8 @@
 <ul>
 <li>Originally, I had a plot function that plotted a single point at a time. This required copying the entire &quot;canvas&quot; every time I wanted to plot a point, which was O(n<sup>2</sup>m<sup>2</sup>), where n and m are canvas and sample area widths respectively.</li>
 <li>Then I realized I could just make a sorted lookup table for the points (sort is both for depth buffer and lookup efficiency). Now it's O(n<sup>2</sup> log(m) + m<sup>2</sup>), assuming the sort is sub-O(m<sup>2</sup>) and sorted lookups is O(log m).</li>
-<li>Sorting by numeric values is way faster than sorting by text values, which is why I'm multiplying by 1000. Using a comma takes over twice as long. (Personal benchmarks are 7s vs 15s).</li>
+<li>Sorting by numeric values is way faster than sorting by text values, which is why I'm multiplying by 1000. Using a comma-separated string takes over twice as long.</li>
+<li><code>MATCH</code> with 2 <code>INDEX</code>es is about 2x faster than 2 <code>VLOOKUP</code>s.</li>
 </ul>
 <pre><code>=LET(
  tableWidth,80,
@@ -65,20 +66,23 @@
    zBufs,MAP(pts,LAMBDA(pt,0+INDEX(TEXTSPLIT(pt,&quot;|&quot;),1))),
    coords,MAP(pts,LAMBDA(pt,0+INDEX(TEXTSPLIT(pt,&quot;|&quot;),2))),
    vals,MAP(pts,LAMBDA(pt,0+INDEX(TEXTSPLIT(pt,&quot;|&quot;),3))),
-   sorted,CHOOSECOLS(SORT(SORT(HSTACK(coords,zBufs,vals),2,1),1,1),1,3),
+   sorted,SORT(SORT(HSTACK(zBufs,coords,vals),1,1),2,1),
+   indexCol,CHOOSECOLS(sorted,2),
+   valueCol,CHOOSECOLS(sorted,3),
    MAKEARRAY(tableWidth,tableWidth,LAMBDA(row,col,
     LET(
      id,1000*col+row,
-     IF(IFNA(VLOOKUP(id,sorted,1,1),-2)=id,VLOOKUP(id,sorted,2,1),&quot;&quot;)
+     check,MATCH(id,indexCol,1),
+     IF(IFNA(INDEX(indexCol,check),2)=id,INDEX(valueCol,check),&quot;&quot;)
     )
    ))
   )
  ),
  plotAll(
-  TOCOL(MAKEARRAY(dimX,dimY,LAMBDA(row,col,
+  MAKEARRAY(dimX*dimY,1,LAMBDA(ptNo,_,
    LET(
-    i,(col-1)*resX-width/2,
-    j,(row-1)*resY-width/2,
+    i,MOD(ptNo-1,dimX)*resX-width/2,
+    j,INT((ptNo-1)/dimX)*resY-width/2,
     k,z(i,j),
     newPt,MMULT(rotMatrix,VSTACK(i*scale,j*scale,k*scale)),
     INDEX(newPt,3)&amp;&quot;|&quot;
@@ -86,7 +90,7 @@
       +ROUND(30+INDEX(newPt,2),0))&amp;&quot;|&quot;
      &amp;k
    )
-  )))
+  ))
  )
 )
 </code></pre>
@@ -114,10 +118,13 @@
  plotAll,LAMBDA(pts,
   LET(
    sorted,SORT(pts,1,1,2,1),
+   indexCol,CHOOSECOLS(sorted,1),
+   valueCol,CHOOSECOLS(sorted,3),
    MAKEARRAY(tableWidth,tableWidth,LAMBDA(row,col,
     LET(
      id,1000*col+row,
-     IF(IFNA(VLOOKUP(id,sorted,1,1),&quot;&quot;)=id,VLOOKUP(id,sorted,3,1),&quot;&quot;)
+     check,MATCH(id,indexCol,1),
+     IF(IFNA(INDEX(indexCol,check),2)=id,INDEX(valueCol,check),&quot;&quot;)
     )
    ))
   )
@@ -138,10 +145,10 @@
 </code></pre>
 <p>Port notes:</p>
 <ul>
-<li>Google Sheets does not have <code>SORTBY</code>, but <code>SORT</code> is capable of multi-column sort. All it needs is the column indexes, which is nice.</li>
-<li>Sheets accepts variables in array literals, so no need to do a lot of H/VSTACKs. There's just the one I can't get rid of because it errors for some reason.</li>
+<li>Google Sheets <code>SORT</code> is capable of multi-column sort. All it needs is the column indexes, which is nice.</li>
+<li>Sheets accepts variables in array literals, so no need to do as many H/VSTACKs. There's just the one I can't get rid of because it errors for some reason.</li>
 <li>You can also return nested arrays with array lambdas, so no need to do any parsing.</li>
-<li>I'm surprised that this actually runs faster than my on my Desktop Excel. I'll have to try on Excel Online later.</li>
+<li>Google Sheets' render time is faster than Excel's somehow (theweb-app seems to be about as fast as the Desktop version). Whatever Google is doing in its lookup algorithms, it's much more optimized.</li>
 </ul>
 </div>
 <div id="pu1" class="pu"><h1>JavaScript</h1>
