@@ -26,68 +26,23 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>076</td><td>JavaScript ES6</td><td>160413T185510Z</td><td><a href="https://codegolf.stackexchange.com/questions/77719/subsequence-substitution/77737#77737">Neil</a></td></tr>
-<tr d-ix="1"><td>017</td><td>Japt</td><td>241017T164943Z</td><td><a href="https://codegolf.stackexchange.com/questions/77719/subsequence-substitution/276179#276179">Shaggy</a></td></tr>
-<tr d-ix="2"><td>057</td><td>JavaScript</td><td>241017T212430Z</td><td><a href="https://codegolf.stackexchange.com/questions/77719/subsequence-substitution/276183#276183">Shaggy</a></td></tr>
-<tr d-ix="3"><td>059</td><td>C gcc</td><td>170505T055052Z</td><td><a href="https://codegolf.stackexchange.com/questions/77719/subsequence-substitution/119056#119056">betseg</a></td></tr>
-<tr d-ix="4"><td>058</td><td>Ruby</td><td>160413T212212Z</td><td><a href="https://codegolf.stackexchange.com/questions/77719/subsequence-substitution/77744#77744">Value In</a></td></tr>
+<tr d-ix="0"><td>nan</td><td>Perl</td><td>161207T154018Z</td><td><a href="https://codegolf.stackexchange.com/questions/77719/subsequence-substitution/102438#102438">Gabriel </a></td></tr>
+<tr d-ix="1"><td>058</td><td>Ruby</td><td>160413T212212Z</td><td><a href="https://codegolf.stackexchange.com/questions/77719/subsequence-substitution/77744#77744">Value In</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h2>JavaScript (ES6), <s>84</s> 76 bytes</h2>
-
-<pre class="lang-javascript prettyprint-override"><code>(a,b,c)=&gt;a.replace(RegExp([...b].join`(.*?)`),c.replace(/\B/g,(_,i)=&gt;'$'+i))
+<div id="pu0" class="pu"><h1>Perl, 80 + 1 = 81 bytes</h1>
+<p>Run with the <code>-p</code> flag</p>
+<pre class="lang-perl prettyprint-override"><code>$a=join&quot;(.*?)&quot;,split//,&lt;&gt;;$b.=$_.&quot; .\$&quot;.++$;.&quot;.&quot;for split//,&lt;&gt;;chop$b;s/$a/$b/ee
 </code></pre>
-<p>Because I was sure that this was a job for RegExp.</p>
-<p>Edit: Saved 8 bytes thanks to @MartinBüttner♦.</p>
-<p>A port of @KevinLau's Ruby answer took 82 bytes:</p>
-<pre class="lang-javascript prettyprint-override"><code>([...a],[...b],[...c])=&gt;(d=a.map(e=&gt;e==b[0]?c.shift(b.shift()):e),b[0]?a:d).join``
-</code></pre>
-<p>I also tried a recursive RegExp solution but that took 90 bytes:</p>
-<pre class="lang-javascript prettyprint-override"><code>f=(a,[b,...d],[c,...e])=&gt;b?a.replace(RegExp(b+'(.*'+d.join`.*`+'.*)'),(_,s)=&gt;c+f(s,d,e)):a
-</code></pre>
+<p><a href="https://tio.run/nexus/perl#@6@SaJuVn5mnpKGnZa@ppFNckJNZoq@vY2NnrZKkZ6sSr6ekoBejoqSnra1iraekp5SWX6SApCg5I79AJcm6WF8lUV8lST819f//xKTklNTUlOSkRDCLKzWFy9Dov27Bf11fUz0DQwMA" rel="nofollow noreferrer" title="Perl – TIO Nexus">Try it online!</a></p>
+<p>The code procedurally generates a search and replace regex command, which it then executes in the last bit of code.</p>
+<p>The string <code>ghost</code> in the first example gets turned into the string <code>g(.*?)h(.*?)o(.*?)s(.*?)t(.*?)</code>, which means a <code>g</code> followed by 0 or more characters, followed by an <code>h</code> followed by 0 or more characters, followed by etc.  The <code>*?</code> quantifier means that the search should be non-greedy and &quot;gobble&quot; as few characters as possible, instead of the default of matching as much as possible.</p>
+<p>The string <code>12345</code> then gets turned into <code>1 .$1.2 .$2.3 .$3.4 .$4.5 .$5</code>, which gets evaluated after the regex is performed.  Each of <code>$1,$2,$3,$4,$5</code> is actually a backreference to a capture group (in parentheses) from the first string.</p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://github.com/ETHproductions/japt" rel="nofollow noreferrer">Japt</a>, <s>21</s> <s>19</s> 17 <a href="https://en.wikipedia.org/wiki/ISO/IEC_8859-1" rel="nofollow noreferrer">bytes</a></h1>
-<p>Takes input in the order <code>A</code> (as a string or character array), <code>B</code> (character array), <code>C</code> (character array), with output of the same type as <code>A</code>.</p>
-<pre><code>ËrVÎ@WvVj
-WÊ?NÎ:U
-</code></pre>
-<p><a href="https://petershaggynoble.github.io/Japt-Interpreter/?v=1.4.6&amp;code=y3JWzkBXdlZqClfKP07OOlU&amp;input=ImRhY2NkZWRjYSIKWyJhIiAiYyIgImUiXQpbImMiICJyIiAiYSJd" rel="nofollow noreferrer">Try it</a></p>
-<pre><code>ËrVÎ@WvVj\nWÊ?NÎ:U     :Implicit input of string/array U=A and arrays V=B &amp; W=C
-Ë                      :Map U
- r                     :  Replace
-  VÎ                   :    First element of V (undefined if V is empty)
-    @                  :    By passing it through the following function
-     Wv                :      Remove &amp; return the 1st element of W, mutating W
-       Wj              :        Remove &amp; return the 1st element of V in an array*, mutating V
-         \n            :Reassign to U
-           WÊ          :Length of W
-             ?         :If truthy (not zero)
-              N        :  Array of all inputs
-               Î       :  First element (the original U)
-                :U     :Else U
-</code></pre>
-<p>*This array gets passed as an argument to the <code>v</code> method but, as the <code>v</code> method expects an integer, a string or a function as an argument, the array is ignored.</p>
-</div>
-<div id="pu2" class="pu"><h1>JavaScript, 57 bytes</h1>
-<p>I/O as character arrays.</p>
-
-<pre class="lang-none prettyprint-override"><code>(a,b,c,d=a.map(x=&gt;x==b[0]?c.shift(b.shift()):x))=&gt;c+c?a:d
-</code></pre>
-<p><a href="https://tio.run/##NcjRCsIwDEDRf9lTgjX4KINsHzIGS5MWO1BHV2b/voro072cVQ7ZNaetnI9ri9xAnHfqjIXuskHloTL76TKPSvstxQL@V8S@IvKgJx2lt/bKqQSIMBFRZ6JqwVS62X1BNPxX80eR1md6LAu2Nw" rel="nofollow noreferrer">Try it online!</a></p>
-</div>
-<div id="pu3" class="pu"><h1>C (gcc), <s>67</s> <s>62</s> <s>61</s> 59 bytes</h1>
-
-
-
-<pre class="lang-c prettyprint-override"><code>f(s,a,b)char*s,*a,*b;{*s==*a?*s=*b++,a++:1;*a&amp;&amp;f(s+1,a,b);}
-</code></pre>
-
-<p><a href="https://tio.run/nexus/c-gcc#VY45DsIwEEX7nAK5QMGeJiwNVoTEBTgAohgvJCxJANtsUc4ebKMgUc3T139f0@9TAwhiIku8UQMUgQreUpPnFFf@UMEYIGPLjFMcj32dZVHgXV/hoU4nbRLckdnucoJCKr0vysPxdK7q5nK9Gevuj@frTQBDoSgbYwmIwNl0Nl8Qngwv8OTirEmNh@@k/U1qJQUSkDFQnlSg9WYddQsS1KDbn@7@9UgEdEi1IlB8f4gLDjQUw4Lz0PUf" rel="nofollow noreferrer" title="C (gcc) – TIO Nexus">Try it online!</a></p>
-</div>
-<div id="pu4" class="pu"><h1>Ruby, <s>70</s> <s>64</s> <s>59</s> 58 bytes</h1>
+<div id="pu1" class="pu"><h1>Ruby, <s>70</s> <s>64</s> <s>59</s> 58 bytes</h1>
 <p>Anonymous function. Walk through the string <code>a</code> to build a new string with letters replaced in accordance to the next character in <code>b</code> and <code>c</code>, then if all characters in <code>b</code> are exhausted at the end, return the newly constructed string, otherwise return the original string.</p>
 <p>@histocrat helped save 6 bytes via <code>gsub</code>.</p>
 <p>Saved 1 byte thanks to @Cyoce.</p>
-<pre><code>-&gt;a,b,c{i=0;s=a.gsub(/./){$&amp;==b[i]?c[~-i+=1]:$&amp;};b[i]?a:s}
+<pre class="lang-ruby prettyprint-override"><code>-&gt;a,b,c{i=0;s=a.gsub(/./){$&amp;==b[i]?c[~-i+=1]:$&amp;};b[i]?a:s}
 </code></pre>
 <p><a href="https://tio.run/nexus/ruby#S7ON@a9rl6iTpJNcnWlrYF1sm6iXXlyapKGvp69ZraJma5sUnRlrnxxdp5upbWsYa6WiVmsNFkq0Kq79X1BaUqyQppecmJOjkJ5aUqyXnJGfW6CDg/0/NSU5KREbwZWYlJySymVoZGxiCgA" rel="nofollow noreferrer" title="Ruby – TIO Nexus">Try it online!</a></p>
 </div>
