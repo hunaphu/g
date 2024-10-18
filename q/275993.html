@@ -39,6 +39,7 @@
 </table>
 <div id="pu0" class="pu"><h1>HTML+CSS</h1>
 <p>The animation, depending on device performance, might give a few artifacts and obscure a bit which ring is drawn in front of which one. (which actually is fine, since otherwise it might be more obvious this solution is <em>not</em> really perfect.)</p>
+<p><strong>Edit:</strong> Tweaked the nature of the animation and the order of the rings in such a way that they are now <em>mostly</em> correctly aligned.</p>
 <p><div class="snippet" data-lang="js" data-hide="false" data-console="true" data-babel="false" data-babel-preset-react="false" data-babel-preset-ts="false">
 <div class="snippet-code">
 <pre class="snippet-code-css lang-css prettyprint-override"><code>@property --r {
@@ -53,59 +54,62 @@ body {
 }
 .base {
   width: 400px;
+  animation: grow 1s linear infinite;
 }
 .ring {
   position: absolute;
   width: 400px;
   height: 400px;
-  transform: rotateX(60deg) rotateZ(-20deg) translateZ(calc(sin(var(--r) * 1rad) * 100px));
-  animation: grow 5.6s linear infinite;
+  transform-style: preserve-3d;
+  transform: rotateX(60deg) rotateZ(-20deg);
 }
 .ring::before {
   content: "";
   position: absolute;
-  width: calc(var(--r) * 100px);
-  height: calc(var(--r) * 100px);
-  top: calc(200px - var(--r) * 50px);
-  left: calc(200px - var(--r) * 50px);
-  border: 4px solid hsl(calc(var(--r) * 1rad) 100% 50%);
+  width: calc((var(--s) + var(--r)) * 100px);
+  height: calc((var(--s) + var(--r)) * 100px);
+  top: calc(200px - (var(--s) + var(--r)) * 50px);
+  left: calc(200px - (var(--s) + var(--r)) * 50px);
+  border: 4px solid hsl(calc((var(--s) + var(--r)) * 1rad) 100% 50%);
   border-radius: 50%;
-  clip-path: inset(calc(var(--r) * 50px - 200px))
+  clip-path: inset(calc((var(--s) + var(--r)) * 50px - 200px));
+  transform:  translateZ(calc(sin((var(--s) + var(--r)) * 1rad) * 100px))
 }
 
 @keyframes grow {
   from { --r: 0 }
-  to { --r: 5.6 }
+  to { --r: 0.2 }
 }</code></pre>
 <pre class="snippet-code-html lang-html prettyprint-override"><code>&lt;div class="base"&gt;
-  &lt;div class="ring" style="animation-delay: 0s"&gt;&lt;/div&gt;
-  &lt;div class="ring" style="animation-delay: -0.2s"&gt;&lt;/div&gt;
-  &lt;div class="ring" style="animation-delay: -0.4s"&gt;&lt;/div&gt;
-  &lt;div class="ring" style="animation-delay: -0.6s"&gt;&lt;/div&gt;
-  &lt;div class="ring" style="animation-delay: -0.8s"&gt;&lt;/div&gt;
-  &lt;div class="ring" style="animation-delay: -1s"&gt;&lt;/div&gt;
-  &lt;div class="ring" style="animation-delay: -1.2s"&gt;&lt;/div&gt;
-  &lt;div class="ring" style="animation-delay: -1.4s"&gt;&lt;/div&gt;
-  &lt;div class="ring" style="animation-delay: -1.6s"&gt;&lt;/div&gt;
-  &lt;div class="ring" style="animation-delay: -1.8s"&gt;&lt;/div&gt;
-  &lt;div class="ring" style="animation-delay: -2s"&gt;&lt;/div&gt;
-  &lt;div class="ring" style="animation-delay: -2.2s"&gt;&lt;/div&gt;
-  &lt;div class="ring" style="animation-delay: -2.4s"&gt;&lt;/div&gt;
-  &lt;div class="ring" style="animation-delay: -2.6s"&gt;&lt;/div&gt;
-  &lt;div class="ring" style="animation-delay: -2.8s"&gt;&lt;/div&gt;
-  &lt;div class="ring" style="animation-delay: -3s"&gt;&lt;/div&gt;
-  &lt;div class="ring" style="animation-delay: -3.2s"&gt;&lt;/div&gt;
-  &lt;div class="ring" style="animation-delay: -3.41s"&gt;&lt;/div&gt;
-  &lt;div class="ring" style="animation-delay: -3.6s"&gt;&lt;/div&gt;
-  &lt;div class="ring" style="animation-delay: -3.8s"&gt;&lt;/div&gt;
-  &lt;div class="ring" style="animation-delay: -4s"&gt;&lt;/div&gt;
-  &lt;div class="ring" style="animation-delay: -4.2s"&gt;&lt;/div&gt;
-  &lt;div class="ring" style="animation-delay: -4.4s"&gt;&lt;/div&gt;
-  &lt;div class="ring" style="animation-delay: -4.6s"&gt;&lt;/div&gt;
-  &lt;div class="ring" style="animation-delay: -4.8s"&gt;&lt;/div&gt;
-  &lt;div class="ring" style="animation-delay: -5s"&gt;&lt;/div&gt;
-  &lt;div class="ring" style="animation-delay: -5.2s"&gt;&lt;/div&gt;
-  &lt;div class="ring" style="animation-delay: -5.4s"&gt;&lt;/div&gt;
+  &lt;div class="ring" style="--s: 5.6"&gt;&lt;/div&gt;
+  &lt;div class="ring" style="--s: 5.4"&gt;&lt;/div&gt;
+  &lt;div class="ring" style="--s: 5.2"&gt;&lt;/div&gt;
+  &lt;div class="ring" style="--s: 5"&gt;&lt;/div&gt;
+  &lt;div class="ring" style="--s: 4.8"&gt;&lt;/div&gt;
+  &lt;div class="ring" style="--s: 4.6"&gt;&lt;/div&gt;
+  &lt;div class="ring" style="--s: 4.4"&gt;&lt;/div&gt;
+  &lt;div class="ring" style="--s: 4.2"&gt;&lt;/div&gt;
+  &lt;div class="ring" style="--s: 4"&gt;&lt;/div&gt;
+  &lt;div class="ring" style="--s: 3.8"&gt;&lt;/div&gt;
+  &lt;div class="ring" style="--s: 3.6"&gt;&lt;/div&gt;
+  &lt;div class="ring" style="--s: 3.4"&gt;&lt;/div&gt;
+  &lt;div class="ring" style="--s: 3.2"&gt;&lt;/div&gt;
+  &lt;div class="ring" style="--s: 3"&gt;&lt;/div&gt;
+  &lt;div class="ring" style="--s: 2.8"&gt;&lt;/div&gt;
+  &lt;div class="ring" style="--s: 2.6"&gt;&lt;/div&gt;
+  &lt;div class="ring" style="--s: 0"&gt;&lt;/div&gt;
+  &lt;div class="ring" style="--s: 0.2"&gt;&lt;/div&gt;
+  &lt;div class="ring" style="--s: 0.4"&gt;&lt;/div&gt;
+  &lt;div class="ring" style="--s: 0.6"&gt;&lt;/div&gt;
+  &lt;div class="ring" style="--s: 0.8"&gt;&lt;/div&gt;
+  &lt;div class="ring" style="--s: 1"&gt;&lt;/div&gt;
+  &lt;div class="ring" style="--s: 1.2"&gt;&lt;/div&gt;
+  &lt;div class="ring" style="--s: 2.4"&gt;&lt;/div&gt;
+  &lt;div class="ring" style="--s: 2.2"&gt;&lt;/div&gt;
+  &lt;div class="ring" style="--s: 2"&gt;&lt;/div&gt;
+  &lt;div class="ring" style="--s: 1.8"&gt;&lt;/div&gt;
+  &lt;div class="ring" style="--s: 1.6"&gt;&lt;/div&gt;
+  &lt;div class="ring" style="--s: 1.4"&gt;&lt;/div&gt;
 &lt;/div&gt;</code></pre>
 </div>
 </div>
