@@ -44,6 +44,23 @@
 <p>We can handle this special case by matching the <code>-</code> when it precedes a <code>v</code>, thus turning <code>-vingt</code> and <code>-vingts</code> into negative values (in base 36) pointing out of the lookup table. By choosing <span class="math-container">\$76\$</span> as the XOR, they are evaluated to this value and we get the expected sum <span class="math-container">\$4+76=80\$</span>.</p>
 <h3>Lookup table</h3>
 <p>The modulo chain and the corresponding lookup table were found by running a brute-force search.</p>
+<h3>Commented</h3>
+<pre class="lang-none prettyprint-override"><code>s =&gt;                  // s = input string
+s.replace(            // replace in s:
+  /(-v)?\w+/g,        //   look for words, optionally preceded by &quot;-v&quot;
+  p =&gt;                //   for each part p,
+  t +=                //   add to t:
+    Buffer(           //     the ASCII code of the character
+      `IdL...~L(`     //     from this lookup string
+    )[                //     at the position obtained by:
+      parseInt(p, 36) //       parsing p in base 36
+      % 166 % 90 % 33 //       and reducing it with this modulo chain
+    ]                 //
+    ^ 76,             //     XORed with 76
+  t = 0               //   start with t = 0
+)                     // end of replace()
+&amp;&amp; t                  // return t
+</code></pre>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://docs.python.org/3.8/" rel="nofollow noreferrer">Python 3.8 (pre-release)</a>, <s> 324 </s> <s> 302 </s> 278 bytes</h1>
 <p><em>-22 bytes by shrinking the multiples-of-10-ish prefixes.</em><br />
