@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::240326</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>nan</td><td></td><td>241021T180617Z</td><td><a href="https://codegolf.stackexchange.com/questions/240326/largest-ski-output-in-less-than-200-combinators/276227#276227">John Tro</a></td></tr>
+<tr d-ix="1"><td>133</td><td>44 combinators</td><td>211229T235730Z</td><td><a href="https://codegolf.stackexchange.com/questions/240326/largest-ski-output-in-less-than-200-combinators/240338#240338">Bubbler</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>69 combinators ~ f_{ε_0+1}(4)</h1>
+<p>S (S (S I I) (K (S (S (S (S I (S (K (S (K (S (K (S (S (K S) (S (K (S S (K (S (K (S (K (S (K (S S (K (S (K (S (K (S S (K K))) K)) S)))) K)) S)) K)))) K)))) K)) (S I))) K)) (K (S K))) (K (S S (S K)))) I))) I (S (S (K S) K) I)</p>
+<p>This is compiled from the lambda term in <a href="https://github.com/tromp/AIT/blob/master/fast_growing_and_conjectures/BBE0.lam" rel="nofollow noreferrer">https://github.com/tromp/AIT/blob/master/fast_growing_and_conjectures/BBE0.lam</a></p>
+</div>
+<div id="pu1" class="pu"><h1>44 combinators, score: <span class="math-container">\$\approx f_{\omega+1}(3\uparrow\uparrow\uparrow\uparrow3)\$</span></h1>
+<pre class="lang-haskell prettyprint-override"><code>(S (S (K S) (S S K)) (K I)) arrow_diag (S (S (K S) K) (S (S (K S) K) I)) S K
+where arrow_diag = S (S (S I (K (S (S (K S) (S (K (S I)) K)) (K I)))) (S (K (S I)) K)) I
+</code></pre>
+<p>This reduces to an expression of <code>S (S (S (...(S K)...)))</code> which contains <code>n</code> copies of <code>S</code>, where <code>n</code> is the value obtained by repeatedly applying <code>arrow_diag</code> function (a 1-input function that diagonalizes over the Knuth's up arrow notation, explained below) <code>arrow_diag 3</code> times to the number 3.</p>
+<p><strong>Edit:</strong> Fixed the <code>arrow_diag</code> function, and changed 2 to 3 because I found <code>arrow_diag 2</code> was just 4. Though I guess <code>arrow_diag (arrow_diag (arrow_diag (arrow_diag 2)))</code> would still be insanely large.</p>
+<p>The first idea is that we will construct a Church numeral for a very large natural number <code>n</code>, which is <code>\f. \x. f (f (f ... f x))</code> (<code>f</code> applied <code>n</code> times to <code>x</code>), and then force it by applying <code>S</code> and <code>K</code> to it. Then the normal form would be <code>S (S (... S K))</code> which has exactly <code>n+1</code> combinators.</p>
+<p>Now, let's find a way to build large numbers. A good start point is the deceptively short power function</p>
+<pre class="lang-haskell prettyprint-override"><code>-- x^y
+exp x y = y x
+exp = \x. \y. y x
+</code></pre>
+<p>Then we can repeat the partially applied <code>exp</code> to build tetration and beyond (corresponding to <span class="math-container">\$x\uparrow\uparrow y\$</span>, <span class="math-container">\$x\uparrow\uparrow\uparrow y\$</span> and so on):</p>
+<pre class="lang-haskell prettyprint-override"><code>-- x^^y = x^(x^...(x^x))
+tet x y = y (x^) 1
+tet = \x. \y. y (\y. y x) 1
+-- x^^^y = x^^(x^^...)
+quad x y = y (x^^) 1
+quad = \x. \y. y (\y. y (\y. y x) 1) 1
+-- in general:
+arrow&lt;N&gt; = \x. \y. y (arrow&lt;N-1&gt; x) 1
+</code></pre>
+<p>Then we can try converting these into SKI. Since the next arrow notation involves a partially applied previous one, just partially converting gives helpful insights.</p>
+<pre class="lang-haskell prettyprint-override"><code>exp = \x. \y. y x
+= \x. S I (K x)
+tet = \x. \y. y (\y. y x) 1
+= \x. \y. y (S I (K x)) I
+= \x. S (\y. y (S I (K x))) (K I)
+= \x. S (S I (K (S I (K x)))) (K I)
+quad = \x. \y. y (\y. y (\y. y x) 1) 1
+= \x. \y. y (S (S I (K (S I (K x)))) (K I)) I
+= ...
+</code></pre>
+<p>Here we can spot a pattern. Here comes the beauty of pure lambda calculus: we can extract arbitrary subexpression into a lambda. Meanwhile, we can change 1 to <code>y</code> to get a higher number and save 1 combinator.</p>
+<pre class="lang-haskell prettyprint-override"><code>\x. \y. y (someexpr) 1
+= \x. S (S I (K someexpr)) (K I)
+= \x. (\e. S (S I (K e)) (K I)) someexpr
+
+\x. \y. y (someexpr) y
+= \x. S (S I (K someexpr)) I
+= \x. (\e. S (S I (K e)) I) someexpr
+
+tet' = \x. 1 (\e. S (S I (K e)) I) (S I (K x))
+arrow&lt;n&gt; = \x. n (\e. S (S I (K e)) I) (S I (K x))
+</code></pre>
+<p>Here <code>arrow&lt;n&gt; x y</code> (roughly) calculates <span class="math-container">\$x \uparrow^{n+1} y\$</span>.</p>
+<p>Now we diagonalize over the arrow notation, by using <code>x</code>, the input value, instead of <code>n</code>.</p>
+<pre class="lang-haskell prettyprint-override"><code>arrow_diag2 = \x. x (\e. S (S I (K e)) I) (S I (K x))
+= S (S I (K (S (S (K S) (S (K (S I)) K)) (K I)))) (S (K (S I)) K)
+</code></pre>
+<p>But it is still a binary function that calculates (roughly) <span class="math-container">\$x \uparrow^{x+1} y\$</span>, so let's make it unary:</p>
+<pre class="lang-haskell prettyprint-override"><code>arrow_diag = \x. arrow_diag2 x x
+= S arrow_diag2 I
+= S (S (S I (K (S (S (K S) (S (K (S I)) K)) (K I)))) (S (K (S I)) K)) I
+</code></pre>
+<p>This has just <strong>22</strong> combinators. To get a non-trivial number (don't forget, we're also adding <code>S K</code> at the end to get a deterministic combinator count), we evaluate</p>
+<pre class="lang-haskell prettyprint-override"><code>arrow_diag 3 arrow_diag 3 S K
+= (\x y. x y x y) arrow_diag 3 S K
+= (S (S (K S) (S S K)) (K I)) arrow_diag (S (S (K S) K) (S (S (K S) K) I)) S K
+</code></pre>
+<p>which has just <strong>44</strong> combinators but evaluates to an... extremely large number that I don't know how to express correctly.</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/240326/">240326</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
