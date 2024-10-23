@@ -26,8 +26,8 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>073</td><td>Regex .NET</td><td>241022T211923Z</td><td><a href="https://codegolf.stackexchange.com/questions/1294/determine-whether-strings-are-anagrams/276261#276261">Deadcode</a></td></tr>
-<tr d-ix="1"><td>065</td><td>Regex PCRE</td><td>220804T003020Z</td><td><a href="https://codegolf.stackexchange.com/questions/1294/determine-whether-strings-are-anagrams/250689#250689">Deadcode</a></td></tr>
+<tr d-ix="0"><td>065</td><td>Regex PCRE</td><td>220804T003020Z</td><td><a href="https://codegolf.stackexchange.com/questions/1294/determine-whether-strings-are-anagrams/250689#250689">Deadcode</a></td></tr>
+<tr d-ix="1"><td>073</td><td>Regex .NET</td><td>241022T211923Z</td><td><a href="https://codegolf.stackexchange.com/questions/1294/determine-whether-strings-are-anagrams/276261#276261">Deadcode</a></td></tr>
 <tr d-ix="2"><td>003</td><td>TinyAPL</td><td>241021T214250Z</td><td><a href="https://codegolf.stackexchange.com/questions/1294/determine-whether-strings-are-anagrams/276235#276235">noodle p</a></td></tr>
 <tr d-ix="3"><td>037</td><td>JavaScript Node.js</td><td>240725T150740Z</td><td><a href="https://codegolf.stackexchange.com/questions/1294/determine-whether-strings-are-anagrams/274438#274438">Fhuvi</a></td></tr>
 <tr d-ix="4"><td>072</td><td>Setanta 72 Bytes</td><td>240806T211134Z</td><td><a href="https://codegolf.stackexchange.com/questions/1294/determine-whether-strings-are-anagrams/274742#274742">colmmurp</a></td></tr>
@@ -196,51 +196,7 @@
 <tr d-ix="167"><td>003</td><td>Golfscript</td><td>110308T173049Z</td><td><a href="https://codegolf.stackexchange.com/questions/1294/determine-whether-strings-are-anagrams/1306#1306">YOU</a></td></tr>
 <tr d-ix="168"><td>008</td><td>J</td><td>110308T155017Z</td><td><a href="https://codegolf.stackexchange.com/questions/1294/determine-whether-strings-are-anagrams/1296#1296">J B</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Regex (.NET), <s>74</s> 73 bytes</h1>
-<pre><code>^(.)*
-((.)(?&lt;=(?=\3(?&lt;-4&gt;.*?(?&lt;1&gt;\4))*)(?&lt;-1&gt;\1.*(?=(.)?))*
-.*))*$(?(1)^)
-</code></pre>
-<p><a href="https://tio.run/##fZFvT9swEMbf51N4RwV2lFoNY2@apUFCmzQJNGkw7QWlkpO6JZLrRLHLmoR@9u7yB8pot3vhXPx77vycnZhhkhVyp8VKmlwkktyWxspVvTapXpI7ubH8h1yulSi@bPJCGpNm2gSJEsaQVW2ssGlCnrJ0Tm5Eqgll9ZMoiAkvYTejnLkOxZVGn0MahdOPmAwvJtyNMPEn0wvG3AYOMfe5ixIUR7jpcBfXAY2oz2ZsB0HTtAi1/E3QjdxQw2/XsbEFmqS@Z/i11Ev7ODxnXsu/57bxya@yVZ4qOWdtg/xNg0sAoDQaT6f8@X4G8IBOAIjrEfc4wK0TdBUBC7pziQoWWUFTbckiHAVUhVd4ZKYkXpiYX6daUsY@hHqtUBj6rE4XdDEZsRfVryK1spMFDiHpglDVzzH5RE5PibofPYThGZwxxG38VUqhHm1rfwtewb@ZG2GTR9o9Hv/Hs/F2dP5TS5OIXNIcN3KFj06VBwN/qgfnwBiOeFes5ZgQGMNXoQym4KnWpMS/Iy5avMXYQZwJCx7pvuQ1TojFng7YTMT/wUjb6lZ2iEXDhHhDerxobDpQVVWjqPqAA16WZdWLuqwqYd/eKCnzsoF5iZMelOcten/6S7kDDT6g@/atNTiC@/b6eP0rF6K/uzgWcIzHKEhaRdLk8O5ubV9vY5HtG3T4Dw" rel="nofollow noreferrer" title="C# (.NET Core) – Try It Online">Try it online!</a> - test cases<br />
-<a href="https://regex101.com/r/7HgncJ/9" rel="nofollow noreferrer">Try it on regex101</a> - try it on your own</p>
-<p>This uses a completely different algorithm than my <a href="https://codegolf.stackexchange.com/a/250689/17216">other answer which includes a <strong>70 byte</strong> .NET version</a>. Like it, this takes the input strings delimited by newline, and works even with zero-length words.</p>
-<p>Simply put, it pushes each letter of the first word onto a stack, then goes through each letter of the second word, removing a matching letter from the stack. Iff that completes successfully, and the stack ends up empty, then the two words are anagrams of each other.</p>
-<p>What complicates this is that it's a stack, not a random-access array, so to find a matching letter in it, the letters above it need to be moved to a temporary stack, then moved back after the matching letter has been removed.</p>
-<p>When interpreting the explanation below, remember that lookbehinds in .NET are evaluated from right to left – so read those from bottom to top, one quantified token at a time. When entering a lookahead inside a lookbehind, go back to reading from top to bottom.</p>
-<pre><code>^                         # Go to beginning of first word
-(.)*                      # Push each letter of first word onto \1 stack
-\n                        # Go to beginning of second word
-(                         # Begin main loop
-    (.)                   # \3 = next letter from second word
-    (?&lt;=                  # Lookbehind
-        (?=               # Lookahead
-            \3            # Assert that the last letter popped from the \1
-                          # stack matches \3 (which may make the (?&lt;-1&gt;...)
-                          # loop backtrack), and skip it
-            # Transfer \4 stack back onto \1 stack in original order
-            (?&lt;-4&gt;        # Pop a letter from the \4 stack as many times as
-                          # can be done, each time doing the following:
-                .*?       # Skip letters that have already been removed from
-                          # the stack in this pass or previous passes
-                (?&lt;1&gt;\4)  # Push the letter from \4 back onto the \1 stack
-            )*
-        )
-        (?&lt;-1&gt;            # Pop a letter from the \1 stack as many times as
-                          # can be done, each time doing the following:
-            \1            # Match and consume the letter from the \1 stack
-            .*            # Skip letters that have already been removed from
-                          # the stack in previous passes
-            (?=(.)?)      # Push the last letter removed from the \1 stack
-                          # onto the \4 stack
-        )*
-        \n.*              # Skip back to the end of the first word
-    )
-)*                        # End main loop
-$                         # Assert end of second word has been reached
-(?(1)^)                   # Assert \1 stack has been emptied
-</code></pre>
-</div>
-<div id="pu1" class="pu"><h1>Regex (PCRE), 65 bytes</h1>
+<div id="pu0" class="pu"><h1>Regex (PCRE), 65 bytes</h1>
 <pre><code>^((?=(.))(?!(.*?\2(?=.*
 (\4?+.*?\2)))*+.*\2)(?=.*
 (\5?+.)).)*
@@ -302,13 +258,13 @@ $                         # Assert end of second word has been reached
 </code></pre>
 <p><a href="https://tio.run/##fZFRb5swEMff@RTuFRWbUUiq7SUM8bJ0qjS1E@1b6SxDTaFyAGHyAFM/e3YmaVMl0ZAQ5/v97393pi3bzfe4LVtidyQiEADxSdvJF97JVolcUifw3ZjzUqie582qrZTsUpqyME0C7XjEwbfAJH@RRlD3su415fz65teSc@aROUNLCNYQWkXTUbuKZqGtogL1mt4//Li5ZSH7S6qC2upR952SNUbscv4URZDWwFCs1xkSTHsz73LOwkldMZmXjZGEBF3noUUwT@je4@ICLWfo44CDLexVNK22En1eUrvzXpuqpsbAe9VNzZ9l3jxLCo/gH1zBue8GjoeroqkPT8AYzmC6b@9KCd1z2XW4HjuLfifLn/z2ji@T5C6JYWnyCwILaq9ieOjWckHwBNdCaQwBnd5w8skNbAXh28FtUxZu/lAaR9RnjMZnFH9IeoVn37Vo@jX@Mp1xJBcjDN7JNySM@cy1MLQ3G8ga0YNHtl/y8ZyTHoeyoG9E9h@MdKqeZMdYGCbEJ7LDhdnTgnEcjWLcPXDEh2EYd6JtNA6wt9dKynYwsB2k0kfl7YQOu7@XW2DwEd3bT6PBCbyzr0/Xf3AhdneXZQJO8QwF@aTITQyf2/8D" rel="nofollow noreferrer" title="PHP – Try It Online">Try it online!</a> - test cases<br />
 <a href="https://regex101.com/r/7HgncJ/6" rel="nofollow noreferrer">Try it on regex101</a> - try it on your own</p>
-<h1>Regex (.NET), 70 bytes</h1>
+<h1>Regex (.NET), <s>70</s> 66 bytes</h1>
 <pre><code>^(((.))(?=((?&lt;2&gt;\2)|.)*)(?=.*
-(?(\2)(?&lt;-2&gt;.)|.)*$(?(2)^)))*
+((?&lt;-2&gt;\2)|.)*$(?(2)^)))*
 (?&lt;-3&gt;.)*$
 </code></pre>
-<p><a href="https://tio.run/##fZFRb9owEMff@RTeFbU2ChZk2gtpoFK1SZNaTVo77aEUyQkOjWQcKzYdScpnZ7aTtmyw3Uuc@/3v7n92qodpUfK9ZGuuFUs5uqu04etmo3O5Qvd8a@h3vtoIVn7eqpJrnRdSR6lgWqN1ow0zeYqei3yJblkuESbNMyuRjq9gv8AYU0LwLMZ4dhlO5yF5oWTgEnTQwzNsExYMwyn1oG9TIVkQQhy9HH6cuuQeItexjCX/hawVvsWa3m0SbUrrEI8DTW@4XJmnYUgCz78p40zS62KtcsGXxDdQBw2uAMB6mszn9OVhAfBoXQGgQYAGp4FNndEBmQGJ2rlIRFlR4lwalMWjCIv42o4sBLe3xZY3ueSYkA@x3AgrjMekyTOcTUfkVfWzzA1vZVEPoTxDWHR7TD@h83MkHkaPcXwBF8RiH3@UYmhGu2a8g6CkX/UtM@kTbl@O/uPNqF@d/pBcp0xxrGxCCfviWATQH89lPwR79TO4Lzd8ghBM4AsT2h4hEN4kt38nXHi8s7GHpGAGAtR@0VucIWN79sAULPkPttRXe9kxZo4xdkA6nDmbPajr2inqLuCIV1VVd6L2VFfw3l4LzlXloKrspkflyqO/p7@W98DhI/re3luDE7hrL0/Xv3HGurtLEganeGIFqVek7gyH438D" rel="nofollow noreferrer" title="C# (.NET Core) – Try It Online">Try it online!</a> - test cases<br />
-<a href="https://regex101.com/r/7HgncJ/3" rel="nofollow noreferrer">Try it on regex101</a> - try it on your own</p>
+<p><a href="https://tio.run/##fZFRb9owEMff@RTeFbU2ChZQ7YUsUKnapEmtJq2d@lCK5ASHWjJOFJuOJOWzM9tJoSts9xLnfv/73/mc6H6SFXyn2IrrnCUc3ZXa8FW91kIt0T3fGPqTL9eSFV83ecG1FpnSYSKZ1mhVa8OMSNBLJhbolgmFMKlfWIF0dAW7OcaYEoKnEcbTL6PJbEReKem5BO11XK6/T3bxFI/InBBiiQWXE5fcQejcikjx38iOwTdY07t1rE1hp8PDQNMbrpbmuT8igec/cuMGpNfZKheSL4g3yN8ZXAGA7T2ezejr4xzgyU4EgHoB6p0GNnVGe2QKJGz6IhmmWYGFMiiNBiGW0bVtmUluN8UWN0JxTMinSK2lFUZDUosUp5MBeVM9FMLwRhZ2EBIpwrK9x@QzOj9H8nHwFEUXcEEs9vFXKYZ6sK2HWwgK@l3fMpM84@bV6D/ei/qr01@K64TlHOc2kUv72lgG0B3OVHcEdvVTuC/WfIwQjOEbk9oeIZB@SG7/Tkzh8dbGDuKMGQhQ80X7OEPGenbAZCz@D7bUV3vZMWaOMfaOtDh1Y3agqiqnqNqAI16WZdWKmlNVwsFeS87z0sG8tDc9Ks89@tj9rbwDDh/Rg70fDU7g1l6drt9zxtrdxTGDUzy2gsQrEneGD7s1bb2JWXYwaPAf" rel="nofollow noreferrer" title="C# (.NET Core) – Try It Online">Try it online!</a> - test cases<br />
+<a href="https://regex101.com/r/7HgncJ/10" rel="nofollow noreferrer">Try it on regex101</a> - try it on your own</p>
 <p>This asserts that both:</p>
 <ul>
 <li>For each character in the first string, the second string contains that character at least as many times as it occurs in the first string</li>
@@ -339,11 +295,10 @@ $                         # Assert end of second word has been reached
     # of \2 as were counted above.
     (?=
         .*¶           # Skip to the second word.
-        (?(\2)        # For each character in the second word, if it
-                      # matches \2, match the following:
-            (?&lt;-2&gt;.)  # Pop that capture off the \2 stack, and consume the
-                      # character.
-        |             # Else, match the following:
+        (             # For each character in the second word:
+            (?&lt;-2&gt;\2) # If it matches \2, pop it off the \2 stack, and consume
+                      # the character.
+        |             # Else:
             .         # Consume the character.
         )*$           # Iterate the above until reaching end of string.
         (?(2)^)
@@ -400,6 +355,50 @@ $                         # Assert end of second word has been reached
 <p>This is a rather interesting challenge for writing a regex polyglot.</p>
 <p>Supporting both Perl and Ruby/.NET is rather difficult. The problem is finding a way to erase the capture group that is created inside a negative lookahead in the PCRE version. Erasing capture groups in situations like this <a href="https://stackoverflow.com/questions/54047542/is-it-possible-to-erase-a-capture-group-that-has-already-matched-making-it-non">can be a challenge</a>, and to support this combination of regex engines, we can't use negative lookahead (Perl doesn't erase it), a subroutine call (because Ruby's syntax is incompatible with Perl, and .NET doesn't have them), a branch reset group (neither Ruby nor .NET support them), or capture group aliasing or explicit erasure (only .NET has those).</p>
 <p>So we must signal to the place where the capture is normally made, to erase it when it needs to be erased. The method I settled upon here is rather convoluted, but it works. (It would be shorter with a lookaround conditional, but we can't use one, as Ruby doesn't have them, and .NET's syntax for them is different.) This post is already pretty long, so <a href="https://kingbird.myphotos.cc/regex%20for%20matching%20anagram%20pairs%2C%20with%20Perl%20or%20PCRE%20or%20Ruby%20or%20.NET%20%28version%201b%29.txt" rel="nofollow noreferrer">here's a link to the commented version</a>.</p>
+</div>
+<div id="pu1" class="pu"><h1>Regex (.NET), <s>74</s> 73 bytes</h1>
+<pre><code>^(.)*
+((.)(?&lt;=(?=\3(?&lt;-4&gt;.*?(?&lt;1&gt;\4))*)(?&lt;-1&gt;\1.*(?=(.)?))*
+.*))*$(?(1)^)
+</code></pre>
+<p><a href="https://tio.run/##fZFvT9swEMbf51N4RwV2lFoNY2@apUFCmzQJNGkw7QWlkpO6JZLrRLHLmoR@9u7yB8pot3vhXPx77vycnZhhkhVyp8VKmlwkktyWxspVvTapXpI7ubH8h1yulSi@bPJCGpNm2gSJEsaQVW2ssGlCnrJ0Tm5Eqgll9ZMoiAkvYTejnLkOxZVGn0MahdOPmAwvJtyNMPEn0wvG3AYOMfe5ixIUR7jpcBfXAY2oz2ZsB0HTtAi1/E3QjdxQw2/XsbEFmqS@Z/i11Ev7ODxnXsu/57bxya@yVZ4qOWdtg/xNg0sAoDQaT6f8@X4G8IBOAIjrEfc4wK0TdBUBC7pziQoWWUFTbckiHAVUhVd4ZKYkXpiYX6daUsY@hHqtUBj6rE4XdDEZsRfVryK1spMFDiHpglDVzzH5RE5PibofPYThGZwxxG38VUqhHm1rfwtewb@ZG2GTR9o9Hv/Hs/F2dP5TS5OIXNIcN3KFj06VBwN/qgfnwBiOeFes5ZgQGMNXoQym4KnWpMS/Iy5avMXYQZwJCx7pvuQ1TojFng7YTMT/wUjb6lZ2iEXDhHhDerxobDpQVVWjqPqAA16WZdWLuqwqYd/eKCnzsoF5iZMelOcten/6S7kDDT6g@/atNTiC@/b6eP0rF6K/uzgWcIzHKEhaRdLk8O5ubV9vY5HtG3T4Dw" rel="nofollow noreferrer" title="C# (.NET Core) – Try It Online">Try it online!</a> - test cases<br />
+<a href="https://regex101.com/r/7HgncJ/9" rel="nofollow noreferrer">Try it on regex101</a> - try it on your own</p>
+<p>This uses a completely different algorithm than my <a href="https://codegolf.stackexchange.com/a/250689/17216">other answer which includes a <strong>70 byte</strong> .NET version</a>. Like it, this takes the input strings delimited by newline, and works even with zero-length words.</p>
+<p>Simply put, it pushes each letter of the first word onto a stack, then goes through each letter of the second word, removing a matching letter from the stack. Iff that completes successfully, and the stack ends up empty, then the two words are anagrams of each other.</p>
+<p>What complicates this is that it's a stack, not a random-access array, so to find a matching letter in it, the letters above it need to be moved to a temporary stack, then moved back after the matching letter has been removed.</p>
+<p>When interpreting the explanation below, remember that lookbehinds in .NET are evaluated from right to left – so read those from bottom to top, one quantified token at a time. When entering a lookahead inside a lookbehind, go back to reading from top to bottom.</p>
+<pre><code>^                         # Go to beginning of first word
+(.)*                      # Push each letter of first word onto \1 stack
+\n                        # Go to beginning of second word
+(                         # Begin main loop
+    (.)                   # \3 = next letter from second word
+    (?&lt;=                  # Lookbehind
+        (?=               # Lookahead
+            \3            # Assert that the last letter popped from the \1
+                          # stack matches \3 (which may make the (?&lt;-1&gt;...)
+                          # loop backtrack), and skip it
+            # Transfer \4 stack back onto \1 stack in original order
+            (?&lt;-4&gt;        # Pop a letter from the \4 stack as many times as
+                          # can be done, each time doing the following:
+                .*?       # Skip letters that have already been removed from
+                          # the stack in this pass or previous passes
+                (?&lt;1&gt;\4)  # Push the letter from \4 back onto the \1 stack
+            )*
+        )
+        (?&lt;-1&gt;            # Pop a letter from the \1 stack as many times as
+                          # can be done, each time doing the following:
+            \1            # Match and consume the letter from the \1 stack
+            .*            # Skip letters that have already been removed from
+                          # the stack in previous passes
+            (?=(.)?)      # Push the last letter removed from the \1 stack
+                          # onto the \4 stack
+        )*
+        \n.*              # Skip back to the end of the first word
+    )
+)*                        # End main loop
+$                         # Assert end of second word has been reached
+(?(1)^)                   # Assert \1 stack has been emptied
+</code></pre>
 </div>
 <div id="pu2" class="pu"><h1>TinyAPL, 3 bytes</h1>
 <pre><code>≡⍥⊵
