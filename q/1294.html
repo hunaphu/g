@@ -282,17 +282,19 @@
     # occurrence, the count of subsequent occurrences will be one fewer than
     # before) but for golf reasons, it's harmless to do it for every occurrence.
     
-    # Step 1: Push every subsequent occurrence of \2 onto the \2 stack.
     (?=               # Atomic lookahead
+        # Step 1: Push every subsequent occurrence of \2 onto the \2 stack.
         (?&gt;           # Atomic group - prevent backtracking from changing what's
-                      # done inside it one it's been done.
+                      # done inside it once it's been done.
                       # For each subsequent character in the first word:
             (?&lt;2&gt;\2)  # If it matches \2, push another copy of it onto the
                       # \2 stack, and consume the character.
         |        # or
             .         # Consume the character.
         )*            # Iterate the above as many times as possible.
-        ¶             # Consume the newline to begin reading the second word.
+        ¶             # Consume the newline to begin reading the second word,
+                      # preventing the number of loop iterations in the above
+                      # loop from being backtracked.
     
         # Step 2: Assert that the second word has at least as many occurrences
         # of \2 as were counted above.
