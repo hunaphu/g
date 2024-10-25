@@ -621,7 +621,24 @@ Output is in the form of &quot;match&quot; (prime) or &quot;no match&quot; (non-
     (.)*            # allow C2 to have fewer digits than the input;
                     # C15 += number digits skipped
 </code></pre>
-<p>*regex101 is actually throwing an error where my reasoning says it should if the <code>(?&lt;5-1&gt;\1)</code> is used, so this version is 4 bytes longer to avoid that. Whether that's due to it running the latest version of .NET, or evaluating the regex in a stricter manner, I have not yet determined.</p>
+<p>*regex101 is actually throwing an error where my reasoning says it should if the <code>(?&lt;5-1&gt;\1)</code> is used. Whether that's due to it running the latest version of .NET, or evaluating the regex in a stricter manner (perhaps due to reading the values of captures that normal use of the regex wouldn't), I have not yet determined. Here is commented view of the section modified to avoid this error (making it 4 bytes longer):</p>
+<pre><code>                    # mutually align C1 with C3: C5 = reverse(C1), giving it its
+                    # least-significant portion with no C3 digits to subtract
+                    (?&gt;
+                        (?&lt;-1&gt;)                # C1: pop separator
+                        (.)                    # C5: push separator
+                        (?=
+                            .*$
+                            (
+                                (?&lt;-1&gt;\1)
+                                (?&lt;5&gt;)
+                            |
+                            ){9}
+                        )
+                    )*
+
+                    # \9 = borrow flag = unset = 0 (clear)
+</code></pre>
 <h2>Regex (.NET), <s>692</s> <s>449</s> <s>396</s> 325 bytes</h2>
 <p><code>^((?=(0|)).){2,}$(?&lt;!(?=(?=((?&lt;=(?=(?=(?&lt;-3&gt;(?=((?=.*$\3)|.)).)+(?(3)^))(?&lt;-2&gt;(?=((?=.*$\2)|.)).)*(?&lt;-2&gt;.(?&lt;=(?=(?=(\2\4^|(?!\2^|\4^)|.))(?=(?&lt;5&gt;\7\6^|(?!\7|\6^)|.))(?(7)\2^(?!\4^)(?&lt;-7&gt;)|(?!\2^)\4^())?(?&lt;3&gt;\4^|.))^.*)(?&lt;-4&gt;))+$(?!\7)(?(4)^)(?&lt;=(?&lt;-5&gt;(?=(?&lt;2&gt;(?=.*$\5)|.)).)+)|)^.*).)*)(?&lt;-2&gt;\2)+$)^(\B(?&lt;3&gt;.)|.(?&lt;3&gt;)){2,}.+)</code></p>
 <p><a href="https://tio.run/##bZJRb4IwEMe/Cpom9gQaRB2JCJjteU/bm0hCXNUmXTFY56Lw2d21YOLDkj5c//e7/91Bj9WF16cDl/JO6mRd8z3/3SwWil/oanQvKM0SGjQADG6h1xKaLQdGwoNh0ofZ0p@mnZawMcmn0DBT4tKMTqEAMET4TIQ9Me4y7MksD/NZ0dBskIdFg6Eluy7zNI/yly4ZNRj1ORoBwkZF3DhGKfQOgBIFyFCdpsYYCwo2ttQsBXCJNTMmM7DFdp152nW0Q5uB54@VoLH1OHq/Fe7iEiho/mp7MARtAPaLMRfuo5U3fKu@j0LyryHE5JoE8a6qebk9UCIdoRwi1PGs4UbKhEj/dJRCD/1hLHaUlGxbnZX2pXZCA7gJKdfBpkUDSlSyFkpvrBIT5Uv@uE/M3XXhZjxq9l7q7YGf6HpbqR9ea/zFn9WHroXao4sXAnTkFW6XWmjuH6qTdnxV4UOQQnFn5DmjFiefxP/niWrb9h748yD4Aw" rel="nofollow noreferrer" title="PowerShell – Try It Online">Try it online!</a><br />
