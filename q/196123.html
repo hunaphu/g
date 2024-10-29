@@ -33,20 +33,53 @@
 <tr d-ix="4"><td>168</td><td>Perl 5</td><td>191120T133547Z</td><td><a href="https://codegolf.stackexchange.com/questions/196123/flag-mashup-generator/196136#196136">Kjetil S</a></td></tr>
 <tr d-ix="5"><td>159</td><td>JavaScript Node.js</td><td>191120T101515Z</td><td><a href="https://codegolf.stackexchange.com/questions/196123/flag-mashup-generator/196130#196130">Arnauld</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.rust-lang.org/" rel="nofollow noreferrer">Rust</a> + <code>rand</code>, <del>740</del> 674 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.rust-lang.org/" rel="nofollow noreferrer">Rust</a> + <code>rand</code>, <del>740</del> 680 bytes</h1>
 <p>Golfed version.</p>
 <pre class="lang-rust prettyprint-override"><code>use rand::seq::SliceRandom;
 use rand::thread_rng;
 use std::collections::{HashMap,HashSet};
-let h:HashSet&lt;i32&gt;=input.0.iter().flatten().cloned().collect();let a:Vec&lt;i32&gt;=h.into_iter().collect();let s:HashSet&lt;String&gt;=input.1.iter().flatten().cloned().collect();let mut b:Vec&lt;String&gt;=s.into_iter().collect();let mut r=thread_rng();let mut m=HashMap::new();m.insert(0,String::from(&quot;0&quot;));loop{let mut v=1&lt;2;let mut n=HashMap::new();for &amp;x in &amp;a{b.shuffle(&amp;mut r);n.insert(x,b[0].clone());if let Ok(l)=n[&amp;x].parse::&lt;i32&gt;(){if l==x{v=1&gt;2;break;}}}if v{m=n;break;}}let o:Vec&lt;Vec&lt;String&gt;&gt;=input.0.iter().map(|w|w.iter().map(|&amp;x|m[&amp;x].clone()).collect()).collect();println!(&quot;{:?}&quot;,o);
+fn f(y:&amp;(Vec&lt;Vec&lt;i32&gt;&gt;,Vec&lt;Vec&lt;String&gt;&gt;))-&gt;Vec&lt;Vec&lt;String&gt;&gt;{let h:HashSet&lt;i32&gt;=y.0.iter().flatten().cloned().collect();let a:Vec&lt;i32&gt;=h.into_iter().collect();let s:HashSet&lt;String&gt;=y.1.iter().flatten().cloned().collect();let mut b:Vec&lt;String&gt;=s.into_iter().collect();let mut r=thread_rng();let mut m=HashMap::new();m.insert(0,String::from(&quot;0&quot;));loop{let mut v=1&lt;2;let mut n=HashMap::new();for &amp;x in &amp;a{b.shuffle(&amp;mut r);n.insert(x,b[0].clone());if let Ok(l)=n[&amp;x].parse::&lt;i32&gt;(){if l==x{v=1&gt;2;break;}}}if v{m=n;break;}}y.0.iter().map(|w|w.iter().map(|&amp;x|m[&amp;x].clone()).collect()).collect()}
 </code></pre>
-<p>Ungolfed version. <a href="https://play.rust-lang.org/?version=stable&amp;mode=debug&amp;edition=2021&amp;gist=041d0d085fa29b93a7066ef2a1094e6e" rel="nofollow noreferrer">Run it on RustPlayground!</a></p>
+<p>Ungolfed version. <a href="https://play.rust-lang.org/?version=stable&amp;mode=debug&amp;edition=2021&amp;gist=138e4a82a2a02a8efb4dcd1d21799b13" rel="nofollow noreferrer">Run it on RustPlayground!</a></p>
 <pre class="lang-rust prettyprint-override"><code>use rand::seq::SliceRandom;
 use rand::thread_rng;
 use std::collections::{HashMap, HashSet};
 
+fn process_input(input: &amp;(Vec&lt;Vec&lt;i32&gt;&gt;, Vec&lt;Vec&lt;String&gt;&gt;) ) -&gt; Vec&lt;Vec&lt;String&gt;&gt; {
+    // Extract unique elements from first part of input
+    let h: HashSet&lt;i32&gt; = input.0.iter().flatten().cloned().collect();
+    let a: Vec&lt;i32&gt; = h.into_iter().collect();
+    let s: HashSet&lt;String&gt; = input.1.iter().flatten().cloned().collect();
+    let mut b: Vec&lt;String&gt; = s.into_iter().collect();
+    let mut r = thread_rng();
+    let mut m = HashMap::new();
+    m.insert(0, String::from(&quot;0&quot;));
+
+    loop {
+        let mut v = 1 &lt; 2;
+        let mut n = HashMap::new();
+        for &amp;x in &amp;a {
+            b.shuffle(&amp;mut r);
+            n.insert(x, b[0].clone());
+            if let Ok(l) = n[&amp;x].parse::&lt;i32&gt;() {
+                if l == x {
+                    v = 1 &gt; 2;
+                    break;
+                }
+            }
+        }
+        if v {
+            m = n;
+            break;
+        }
+    }
+
+    input.0.iter()
+        .map(|w| w.iter().map(|&amp;x| m[&amp;x].clone()).collect())
+        .collect()
+}
+
 fn main() {
-    // Sample input represented as nested vectors
     let input = (
         vec![
             vec![0, 0, 0, 0],
@@ -67,62 +100,8 @@ fn main() {
         ],
     );
 
-    // Extract unique elements from first part of input
-    let i: HashSet&lt;i32&gt; = input.0
-        .iter()
-        .flatten()
-        .cloned()
-        .collect();
-    let i: Vec&lt;i32&gt; = i.into_iter().collect();
-
-    // Extract unique elements from second part of input
-    let j: HashSet&lt;String&gt; = input.1
-        .iter()
-        .flatten()
-        .cloned()
-        .collect();
-    let mut j: Vec&lt;String&gt; = j.into_iter().collect();
-
-    let mut rng = thread_rng();
-    let mut mapping = HashMap::new();
-    mapping.insert(0, String::from(&quot;0&quot;));
-
-    // Keep generating mappings until we find one where no element maps to itself
-    // (when converted to numeric form)
-    loop {
-        let mut valid_mapping = true;
-        let mut new_mapping = HashMap::new();
-
-        for &amp;num in &amp;i {
-            j.shuffle(&amp;mut rng);
-            new_mapping.insert(num, j[0].clone());
-            
-            // Check if numeric value maps to itself
-            if let Ok(val) = new_mapping[&amp;num].parse::&lt;i32&gt;() {
-                if val == num {
-                    valid_mapping = false;
-                    break;
-                }
-            }
-        }
-
-        if valid_mapping {
-            mapping = new_mapping;
-            break;
-        }
-    }
-
-    // Create and print the result
-    let result: Vec&lt;Vec&lt;String&gt;&gt; = input.0
-        .iter()
-        .map(|row| {
-            row.iter()
-                .map(|&amp;num| mapping[&amp;num].clone())
-                .collect()
-        })
-        .collect();
-
-    println!(&quot;{:?}&quot;, result);
+    let o = process_input(&amp;input);
+    println!(&quot;{:?}&quot;, o);
 }
 </code></pre>
 </div>
