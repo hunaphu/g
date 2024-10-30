@@ -101,34 +101,32 @@
                          # would have if simply adding N instead of abs(N-1)+1
 </code></pre>
 <p>Molecular lookahead <code>(?*</code>...<code>)</code> is used for convenience. It would be possible to port to flavors that don't have it, but the regex would be much longer – it would still need to emulate arithmetic in the range <span class="math-container">\$[0,2n]\$</span>, but would need to do so within just <span class="math-container">\$[0,n/4]\$</span> or perhaps <span class="math-container">\$[0,n/3]\$</span>, instead of <span class="math-container">\$[0,n]\$</span> as this version does.</p>
-<p>Without returning the correct value for <span class="math-container">\$0\$</span>, this would be <strong>72 bytes</strong>.</p>
-<h1>Regex <code>🐘</code> (.NET), <s>79</s> 77 bytes</h1>
-<pre><code>(?=(x)*)(?&lt;1&gt;x)+?(x*$)(?&lt;!(?=(?=\5*(x+))\4\3(?&lt;=^\2\5*))(^x+)(x+x))|(?&lt;1&gt;){2}
+<p>Without returning the correct value for <span class="math-container">\$0\$</span>, this would be <strong>67 bytes</strong>.</p>
+<h1>Regex <code>🐘</code> (.NET), <s>79</s> <s>77</s> 71 bytes</h1>
+<pre><code>(?=(x|^)+)(?&lt;1&gt;x|^)+?(x*$)(?&lt;!(?=(?=\5*(x+))\4\3(?&lt;=^\2\5*))(^x+)(x+x))
 </code></pre>
-<p><a href="https://tio.run/##RZBBboMwEEWv4qKR8EBBJGk3oS6Ruu4JQiIh6gRLjo2MEVYo2x6gR@xFqElUdfn@n/nzNa0euOkaLuUMhu0NP3N32G4VH@gunGnBqMMIafGyenUYF9RFsNDD4hSsfI6oixHLp3LjVXYs115CpEeveschft52cVxPc7h7DN70pRWSfwSYw5Vl@UkbXtUNBUmEIiBU21scoWIgk66VwgZJkIsThSqtda9sIi1ZLwMxg2qfHSYfQEGxvVD2cFNyUInkf7xaOI5xXDIuDEz6Xtm64R0NXRiBwrtzxXEwwvKk0Z2dfLNV/s8kUdo/RArFSQCK/Hx9E/Bp6dnovu38jbSuWtsb3t1LYjBN05wlmyz7BQ" rel="nofollow noreferrer" title="PowerShell – Try It Online">Try it online!</a></p>
+<p><a href="https://tio.run/##RZBBboMwEEWv4qKR8ECNSNJuQl0idd0ThCAh6gRLjo2MESgp2x6gR@xFqElUdTf//dGfr2nNIGzXCKVmsHxvxUmMh@1Wi4HuwpnmnI6fJcZI85fV623M6RjBoh8WN@fFc0THGLF4Kjae8rJYe4RIS0@9MyLO4e4xeDPnVirxEWAGF55mR2NFVTcUFJGagNRt7/AKFQfFulZJF7Agk0cKVVKbXjumHFkvCzGHap8eJh9AQfO91O5wIxlopsSfXi06jvG6ZJw52OS9cnUjOhqOYQQa784Fr4OVTrDGdG7yzVbZvyZMG/8KJbUgAWjy8/VNwKclJ2v6tvM3krpqXW9Fdy@JwTRNc8o2afoL" rel="nofollow noreferrer" title="PowerShell – Try It Online">Try it online!</a></p>
 <p>Returns its output as the capture count of group <code>\1</code>.</p>
-<pre><code>                           # tail = N = input number
-    (?=(x)*)               # \1.captureCount = N
-    (?&lt;1&gt;x)+?              # Assert N &gt; 0; \1.captureCount += N - P
-    (x*$)                  # \2 = N - (N - P) = 2*N - P
-    (?&lt;!                   # Right-to-left negative lookbehind
-        (?=                # Atomic lookahead
-            (?=            # Atomic lookahead
-                \5*(x+)    # \3 = N % \5, giving \5 instead of 0
-            )
-            \4             # head = \4
-            \3             # head += \3
-            (?&lt;=           # Right-to-left atomic lookbehind
-                ^\2\5*     # Assert head-\2, that is, \4+\3-\2, is divisible by \5
-            )
+<pre><code>                       # tail = N = input number
+(?=(x|^)+)             # \1.captureCount = {N, if N&gt;0, else 1}
+(?&lt;1&gt;x|^)+?            # Assert N &gt; 0; \1.captureCount += {N - P, if N&gt;0, else 1}
+(x*$)                  # \2 = N - (N - P) = 2*N - P
+(?&lt;!                   # Right-to-left negative lookbehind
+    (?=                # Atomic lookahead
+        (?=            # Atomic lookahead
+            \5*(x+)    # \3 = N % \5, giving \5 instead of 0
         )
-        (^x+)              # \4 = N - \5; assert \5 &lt; N
-        (x+x)              # \5 = try all numbers from 2 through N-1
+        \4             # head = \4
+        \3             # head += \3
+        (?&lt;=           # Right-to-left atomic lookbehind
+            ^\2\5*     # Assert head-\2, that is, \4+\3-\2, is divisible by \5
+        )
     )
-|
-    (?&lt;1&gt;){2}              # if N == 0, \1.captureCount = 2
+    (^x+)              # \4 = N - \5; assert \5 &lt; N
+    (x+x)              # \5 = try all numbers from 2 through N-1
+)
 </code></pre>
-<p>Without returning a value for <span class="math-container">\$0\$</span>, this would be <strong>67 bytes</strong>.</p>
+<p>Without returning a value for <span class="math-container">\$0\$</span>, this would be <a href="https://tio.run/##RZBBasMwEEWvopoBa@zK2Em7ias60HVPECdgXCUWKJKRZSISvO0BesRexJUbSpfv/eHPML25CDt0QqkZLN9ZcRJ@v9locaHbeKYVpx4TpNVL8eoxrahPYKGHJal4/ZxQnyLWT/U6WH6oV0Eh0kOwIfGIc7x9jN7MuZdKfERYwpXn5dFY0bQdBUWkJiB1Pzq8QcNBsaFX0kUsKuWRQpO1ZtSOKUdWy0DKodnl@ykUUNB8J7Xb/5oSNFPij4uF0xRvS8eZg83eG9d2YqCxjxPQeE@ueLtY6QTrzOCmcFlR/jNh2oQ3KKkFiUCT788vAqEtO1kz9kPYkbVN70YrhvuRGE3TNBdsnec/" rel="nofollow noreferrer" title="PowerShell – Try It Online"><strong>67 bytes</strong></a>.</p>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://github.com/Thunno/Thunno2" rel="nofollow noreferrer">Thunno 2</a>, 3 <a href="https://github.com/Thunno/Thunno2/blob/main/docs/codepage.md" rel="nofollow noreferrer">bytes</a></h1>
 <pre><code>µƘP
