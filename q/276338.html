@@ -120,33 +120,24 @@ fn main() {
         let (coeffs, num_matrices) = make_coeffs(n);
 
         let mut ranks = vec![0u8; num_matrices];
-
-        for matrix_code in (coeffs[0]..num_matrices).rev() {
-            let matrix = decode(n, &amp;coeffs, matrix_code);
-            let row = matrix &gt;&gt; (SIZE * (n - 1));
-            let rank = if row == 0 {
-                0
-            } else {
-                let column = (matrix &gt;&gt; row.trailing_zeros()) &amp; COLUMN_MASK;
-                ranks[encode(n, &amp;coeffs, matrix ^ (column * row))] + 1
-            };
-            ranks[matrix_code] = rank;
-        }
-        let (square_ranks, rectangle_ranks) = ranks.split_at_mut(coeffs[0]);
-        square_ranks
-            .par_iter_mut()
-            .enumerate()
-            .for_each(|(matrix_code, square_rank)| {
-                let matrix = decode(n, &amp;coeffs, matrix_code);
-                let row = matrix &gt;&gt; (SIZE * (n - 1));
-                let rank = if row == 0 {
-                    0
-                } else {
+        let mut split = num_matrices - 1;
+        for i in (0..n).rev() {
+            let new_split = split - coeffs[i &lt;&lt; n];
+            let (new_ranks, old_ranks) = ranks.split_at_mut(split);
+            new_ranks[new_split..]
+                .par_iter_mut()
+                .enumerate()
+                .for_each(|(index, square_rank)| {
+                    let matrix_code = new_split + index;
+                    let matrix = decode(n, &amp;coeffs, matrix_code);
+                    let row = matrix &gt;&gt; (SIZE * (n - 1));
+                    assert!(row != 0);
                     let column = (matrix &gt;&gt; row.trailing_zeros()) &amp; COLUMN_MASK;
-                    rectangle_ranks[encode(n, &amp;coeffs, matrix ^ (column * row)) - coeffs[0]] + 1
-                };
-                *square_rank = rank;
-            });
+                    *square_rank =
+                        old_ranks[encode(n, &amp;coeffs, matrix ^ (column * row)) - split] + 1;
+                });
+            split = new_split;
+        }
 
         let mut flood: Vec&lt;Row&gt; = ranks
             .iter()
