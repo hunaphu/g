@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::276338</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>044</td><td>Rust</td><td>241101T023824Z</td><td><a href="https://codegolf.stackexchange.com/questions/276338/fill-in-matrices-for-matrix-bit-flipping-as-quickly-as-possible/276442#276442">Anders K</a></td></tr>
+<tr d-ix="1"><td>nan</td><td></td><td>241029T121711Z</td><td><a href="https://codegolf.stackexchange.com/questions/276338/fill-in-matrices-for-matrix-bit-flipping-as-quickly-as-possible/276384#276384">jdt</a></td></tr>
+<tr d-ix="2"><td>nan</td><td></td><td>241028T152332Z</td><td><a href="https://codegolf.stackexchange.com/questions/276338/fill-in-matrices-for-matrix-bit-flipping-as-quickly-as-possible/276370#276370">ovs</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>Rust, score ≈ 44</h1>
+<p>This uses a different output format because for each <span class="math-container">\$n\$</span> it computes the nontrivial values in ascending order by value rather than positionally (which is allowed by the rules):</p>
+<pre><code>2 1 0: 4
+2 2 0: 3
+2 2 1: 1
+…
+</code></pre>
+<p>On my system, this completes <span class="math-container">\$n ≤ 5\$</span> in 0.3 seconds, prints 10 additional entries from <span class="math-container">\$n = 6\$</span> in a minute, and completes <span class="math-container">\$n ≤ 6\$</span> in 4½ minutes. The complete values for <span class="math-container">\$n = 6\$</span>, converted back to the sample output format, are</p>
+<pre><code>n = 6:
+
+0
+36 0
+35 12 0
+34 14 8 0
+33 14 9 4 0
+32 14 8 6 3 0
+31 14 8 5 3 1 0
+</code></pre>
+<p>Build with <code>cargo build --release</code> and run with <code>target/release/rank</code>.</p>
+<h3><code>Cargo.toml</code></h3>
+<pre class="lang-none prettyprint-override"><code>[package]
+name = &quot;rank&quot;
+version = &quot;0.1.0&quot;
+edition = &quot;2021&quot;
+
+[dependencies]
+rayon = &quot;1.10.0&quot;
+</code></pre>
+<h3><code>src/main.rs</code></h3>
+<pre class="lang-rust prettyprint-override"><code>use rayon::prelude::*;
+use std::cmp::Reverse;
+
+type Matrix = u64;
+type Row = u8;
+const SIZE: usize = 8;
+const COLUMN_MASK: Matrix = Matrix::MAX / !(!0 &lt;&lt; SIZE);
+
+fn matrix_rows(matrix: Matrix) -&gt; [Row; SIZE] {
+    matrix.to_le_bytes()
+}
+
+fn rows_matrix(rows: [Row; SIZE]) -&gt; Matrix {
+    Matrix::from_le_bytes(rows)
+}
+
+fn make_coeffs(n: usize) -&gt; (Vec&lt;usize&gt;, usize) {
+    let mut coeffs = vec![0; n &lt;&lt; n];
+    for row in (0..!(!0 &lt;&lt; n)).rev() {
+        coeffs[(n - 1) &lt;&lt; n | row] = !(!0 &lt;&lt; n) - row;
+        for i in (0..n - 1).rev() {
+            coeffs[i &lt;&lt; n | row] = coeffs[(i + 1) &lt;&lt; n | row] + coeffs[i &lt;&lt; n | (row + 1)];
+        }
+    }
+    let num_matrices = (0..n).map(|i| coeffs[i &lt;&lt; n as usize]).sum::&lt;usize&gt;() + 1;
+    (coeffs, num_matrices)
+}
+
+fn encode(n: usize, coeffs: &amp;[usize], matrix: Matrix) -&gt; usize {
+    let mut rows = matrix_rows(matrix);
+    rows[0..n].sort();
+    rows[0..n]
+        .iter()
+        .enumerate()
+        .map(|(i, &amp;row)| coeffs[i &lt;&lt; n | row as usize])
+        .sum()
+}
+
+fn decode(n: usize, coeffs: &amp;[usize], mut matrix_code: usize) -&gt; Matrix {
+    let mut rows = [0; SIZE];
+    for i in 0..n {
+        let row = coeffs[i &lt;&lt; n..i + 1 &lt;&lt; n]
+            .binary_search_by_key(&amp;Reverse(&amp;matrix_code), Reverse)
+            .unwrap_or_else(|coeff| coeff);
+        rows[i] = row as Row;
+        matrix_code -= coeffs[i &lt;&lt; n | row];
+    }
+    return rows_matrix(rows);
+}
+
+fn main() {
+    for n in 2..=6 {
+        for i in 1..=n {
+            // Trivial: matrix of all 1s except i - 1 diagonal 0s
+            println!(&quot;{n} {i} 0: {}&quot;, n * n - i + 1);
+        }
+
+        let (coeffs, num_matrices) = make_coeffs(n);
+
+        let mut ranks = vec![0u8; num_matrices];
+
+        for matrix_code in (coeffs[0]..num_matrices).rev() {
+            let matrix = decode(n, &amp;coeffs, matrix_code);
+            let row = matrix &gt;&gt; (SIZE * (n - 1));
+            let rank = if row == 0 {
+                0
+            } else {
+                let column = (matrix &gt;&gt; row.trailing_zeros()) &amp; COLUMN_MASK;
+                ranks[encode(n, &amp;coeffs, matrix ^ (column * row))] + 1
+            };
+            ranks[matrix_code] = rank;
+        }
+        let (square_ranks, rectangle_ranks) = ranks.split_at_mut(coeffs[0]);
+        square_ranks
+            .par_iter_mut()
+            .enumerate()
+            .for_each(|(matrix_code, square_rank)| {
+                let matrix = decode(n, &amp;coeffs, matrix_code);
+                let row = matrix &gt;&gt; (SIZE * (n - 1));
+                let rank = if row == 0 {
+                    0
+                } else {
+                    let column = (matrix &gt;&gt; row.trailing_zeros()) &amp; COLUMN_MASK;
+                    rectangle_ranks[encode(n, &amp;coeffs, matrix ^ (column * row)) - coeffs[0]] + 1
+                };
+                *square_rank = rank;
+            });
+
+        let mut flood: Vec&lt;Row&gt; = ranks
+            .iter()
+            .map(|&amp;rank| if rank == n as u8 { 0 } else { 1 &lt;&lt; rank })
+            .collect();
+
+        let mut reached = [0; SIZE + 1];
+        let mut flips = 0;
+        while {
+            let mut new_reached = [!0; SIZE + 1];
+            for (&amp;b, &amp;rank) in flood.iter().zip(&amp;ranks) {
+                new_reached[rank as usize] &amp;= b;
+            }
+            let mut unfinished = false;
+            for i in 0..=n {
+                for j in 1..i {
+                    if (new_reached[i] &gt;&gt; j) &amp; 1 == 0 {
+                        unfinished = true;
+                    } else if (reached[i] &gt;&gt; j) &amp; 1 == 0 {
+                        println!(&quot;{n} {i} {j}: {flips}&quot;);
+                    }
+                }
+                reached[i] = new_reached[i];
+            }
+            unfinished
+        } {
+            flood = flood
+                .par_iter()
+                .copied()
+                .enumerate()
+                .map(|(matrix_code, mut b)| {
+                    let matrix = decode(n, &amp;coeffs, matrix_code);
+                    for i in 0..n {
+                        for j in 0..n {
+                            b |= flood[encode(n, &amp;coeffs, matrix ^ (1 &lt;&lt; (SIZE * i + j)))];
+                        }
+                    }
+                    b
+                })
+                .collect();
+            flips += 1;
+        }
+    }
+}
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="http://clang.llvm.org/" rel="nofollow noreferrer">C++ (clang)</a></h1>
+<p>Direct port of ovs's answer with some parallelization thrown in.</p>
+
+<pre class="lang-cpp prettyprint-override"><code>#include &lt;iostream&gt;
+#include &lt;vector&gt;
+#include &lt;cstring&gt;
+
+void flips(int n) {
+    int N = 1 &lt;&lt; (n * n);
+    std::vector&lt;char&gt; ranks(N), X(N), Y(N);
+
+    // Compute ranks of all 2^(n*n) matrices
+    ranks[0] = 0;
+    int mask = (N - 1) / ((1 &lt;&lt; n) - 1);
+    for (int x = 1; x &lt; N; ++x) {
+        int matrix = x;
+        int pivot = matrix % (1 &lt;&lt; n);
+        int lsb = pivot &amp; -pivot;
+        matrix &gt;&gt;= n;
+        ranks[x] = lsb ? ranks[matrix ^ (matrix / lsb &amp; mask) * pivot] + 1 : ranks[matrix];
+    }
+
+    // Result table
+    std::vector&lt;std::vector&lt;int&gt;&gt; results(n + 1, std::vector&lt;int&gt;(n + 1, 0));
+    for (int i = 1; i &lt;= n; ++i) results[i][0] = n * n - i + 1; // First column
+
+    // For each j, spread js until j is the maximum value.
+    // The maximum number of flips needed for rank i -&gt; j is equivalent
+    // to the number of iterations where `X` contained i.
+    for (int j = 1; j &lt; n; ++j) {
+        std::memcpy(Y.data(), ranks.data(), N);
+        int w;
+        do {
+            w = 0;
+            std::memcpy(X.data(), Y.data(), N);
+
+            #pragma omp parallel for
+            for (int x = 0; x &lt; N; ++x) {
+                if (X[x] == j) {
+                    for (int b = 1; b &lt; N; b *= 2) Y[x ^ b] = j;
+                } else if (X[x] &gt; j) {
+                    w |= 1 &lt;&lt; X[x];
+                }
+            }
+            for (int i = j + 1; i &lt;= n; ++i) results[i][j] += (w &gt;&gt; i) &amp; 1;
+        } while (w);
+    }
+
+    // Print results
+    for (int i = 0; i &lt;= n; ++i) {
+        for (int j = 0; j &lt;= i; ++j)
+            std::cout &lt;&lt; results[i][j] &lt;&lt; ' ';
+        std::cout &lt;&lt; '\n';
+    }
+}
+
+int main() {
+    for (int n = 2; n &lt;= 5; ++n) {
+        std::cout &lt;&lt; "n=" &lt;&lt; n &lt;&lt; '\n';
+        flips(n);
+    }
+    return 0;
+}
+
+</code></pre>
+<p><a href="https://tio.run/##dVVNc9owEL37V@w002AnIRBmeonBPXQmR9rp9ACTkolsC5Ajy64lA502f710JfkD88EB7NXT27ertyLK837EiVjt91dMRLyMKYxZJlVBSRo4bWxDI5UVh5EIQUysAsfZZCyGJWe5dJlQIDz44wB@9MsUJvAA4zG4Am5wyTcrUsWPj5ZyHK1JEUBBxJt0p94dzMz3HL99x4AHA/iSpXmpqEVBtgTCOYxeXHGDyVKCQiIqDdggnocLTDv0GxUpkW8YcafQhwcPBuC6RhTu1gELXGYFmAJ2WrOPP2OY@nB7u6sLaukwo0bt/E48Z5tMYbha/wh1li6MyxBBFnwNffPQIqrNQTAB0UZtXTtdl97@uQpU4Bdwq6eBWb42FXvYcUO@gFs8hMfOnoXlfm96/J3KkitQJOT05JAOn7GEAA/MwCUeK3LfwTGgjg@94@4y210GY10gtpd5NdkzW9ijM17Bo2GaxNfqnlghFUQZL1PRSH5CTkqiNSQoIEfLxpBIKIViHBJgEtSaYid2LC1T2BBe0vt664@DFVGmIS20rYyJQVAa09go1h1DFf3A8tFfJUMeKlTNozKTpKVgihZEsUxI2K5pQeF19oq6hSJMICm773Yjsd1I0GumGcmh10xTU5pG@W93fh8TRVwcDXOKzdv0yFzb9jXODrj0Z9tOxbkUs4Z03qHvbLjKC7JKCeBEQk4KHETKdTkdUGeUhpdGqZG9BHdmvD2B5BygQxnajoWWMoSbCYw8mD/rKQi1eRL/hOAdKJe0TRRczrOFv9WNpZFnqJzLbx2PJ9a7l3ye4FDijbTFQQdcuUas08rdrhmnuOodT@m3QvNXPKeDNTxK2NbYcdzQOG4CzFru1BFRVirdg65gDPSg5ztnob2folerRb32nmTCrUU0AgQKGPn4gwI@aQHixPM15wcx@WBu0G4CQ2f@b0TTIHNJUlUWQlv83dnv/0VLTlZy3/862veXWU5Fmv8H" rel="nofollow noreferrer" title="C++ (clang) – Try It Online">Try it online!</a></p>
+</div>
+<div id="pu2" class="pu"><h1>C (clang <code>-O2</code>)</h1>
+<p>Locally this takes 15 seconds for <code>n=5</code>. For computing further results, some of the <code>int</code>s have to be changed to <code>long</code>, but it won't be to close to completing <code>n=6</code> within a minute.</p>
+
+<pre class="lang-c prettyprint-override"><code>#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;
+
+
+void flips(int n) {
+  int N = 1 &lt;&lt; n*n;
+  char *ranks = malloc(sizeof *ranks * N),
+       *X = malloc(sizeof *X * N),
+       *Y = malloc(sizeof *Y * N);
+
+  // compute ranks of all 2^(n*n) matrices
+  ranks[0] = 0;
+  int mask = (N - 1) / ((1&lt;&lt;n) - 1);
+  for (int x=1; x&lt;N; x++) {
+    int matrix = x,
+        pivot = matrix%(1&lt;&lt;n),
+        lsb = pivot&amp;-pivot;
+    matrix &gt;&gt;= n;
+    ranks[x] = lsb ? ranks[matrix ^ (matrix/lsb &amp; mask) * pivot]+1 : ranks[matrix];
+  }
+
+  // result table
+  int results[n+1][n+1];
+  memset(results, 0, sizeof results);
+  for(int i=1;i&lt;=n;i++) results[i][0] = n*n-i+1; // first column
+
+  // for each j, spread js until j is the maximum value.
+  // the maximum number of flips needed for rank i -&gt; j is equivalent
+  // to the number of iterations where `X` contained i.
+  for (int j=1; j&lt;n; j++) {
+    memcpy(Y, ranks, N);
+    int w;
+    do {
+      w=0, memcpy(X, Y, N);
+      for(int x=0; x&lt;N; x++) {
+        if (X[x]==j)
+          for (int b=1;b&lt;N;b*=2) Y[x^b] = j;
+        else if (X[x]&gt;j)
+          w|=1&lt;&lt;X[x];
+      }
+      for(int i=j+1;i&lt;=n;i++) results[i][j] += w&gt;&gt;i&amp;1;
+    } while (w);
+  }
+
+  // print results
+  for (int i=0; i&lt;=n; i++) {
+    for (int j=0; j&lt;=i; j++)
+      printf("%d ", results[i][j]);
+    printf("\n");
+  }
+  free(ranks), free(X), free(Y);
+}
+
+int main() {
+  for(int n=2;n&lt;=5;n++)
+    printf("n=%d\n", n),
+    flips(n);
+  return 0;
+}
+</code></pre>
+<p><a href="https://tio.run/##dVTJctswDL37KzDpJCPZcrzM9FKJ7h@4V3tSZ6KFjqFQlCtSsbrk1@uCi7wk0xwUCnh4fHiAlY9zkcrn4/ETyly0BYdE6QLr@91icBUSmL2PNSifTWwweK2xgK3AvQpQapAh/B4AmOMSGMwgSUAOZUyxfJc2MGxS@aIoU6VC1Hmg8Bevt314CMswIqj9G64@wlbvIOuPkLWFxAPCTCaQ19W@1RwcP@UJDPPHgDSFVEmN5FwR1OYfphvim8a@gSpVL/QeLGEMsxAmEASzJKE682pA27oB23XHZjF0yZIeo5FzoKegGzoi6U6aYY@vtba6Te7WcZ7TQmWUtKC7sf0X25ynWiwYSBdxmjuj2RR99QEPfITAnSYmeWe7CckbS7kZzeDLFX5jON@8aw1XrdCg00xwb4YLqQc5mm3sw@ArXimuA5@LYBqBH4MP9TZZl5BcwoTJGI1JPSFunO00kTGOyEe6f4uN0jQ70VbSSzJe8zTfQUl37BueFlAqaKVGASWgAr3j1GOHVVvBaypafu8KL@OyrTLemDWwGwuS84IXltt4AQjjhWPjP1okFi61Z6kt0ZkANW9SjbVUcNjxhsPT6okUS52iJEq8v9yP0uxHmUh6nPeDzMv3P4N15OYQ2a3tF@fgjkXtwQAHRu76mlUE6zP@7HDHph/30FJuIVjRqjBWhqfghcCMBGZUlw3ZPIT1Q/eYmZmU8QnMheInmsUVy@EPox028R7@9k4XsnL0n9mXGxgxOCwWeDdz5W9kKAoOwSG83Ml9c7GGl@aiadpyA567vvB@arxn6Mz3yizbNri5LeAmutbjXe0R3@WN10GkDeeBnVYYuZdVf1gTiKS6Hz3KwOnoDZBsHsuEfY5lL6Gnl@y2oCsi6L8B7lsq7Z0N120jzRfp7Xj8m29F@qyO42/zfw" rel="nofollow noreferrer" title="C (clang) – Try It Online">Try it online!</a></p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/276338/">276338</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
