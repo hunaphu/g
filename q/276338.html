@@ -38,7 +38,7 @@
 2 2 1: 1
 …
 </code></pre>
-<p>On my system, this completes <span class="math-container">\$n ≤ 5\$</span> in 0.3 seconds, prints 10 additional entries from <span class="math-container">\$n = 6\$</span> within the 1 minute time limit, and completes <span class="math-container">\$n ≤ 6\$</span> in 4½ minutes. The complete values for <span class="math-container">\$n = 6\$</span>, converted back to the sample output format, are</p>
+<p>On my system, this completes <span class="math-container">\$n ≤ 5\$</span> in 0.2 seconds, prints 10 additional entries from <span class="math-container">\$n = 6\$</span> within the 1 minute time limit, and completes <span class="math-container">\$n ≤ 6\$</span> in 4 minutes. The complete values for <span class="math-container">\$n = 6\$</span>, converted back to the sample output format, are</p>
 <pre><code>n = 6:
 
 0
@@ -126,12 +126,10 @@ fn main() {
             let (new_ranks, old_ranks) = ranks.split_at_mut(split);
             new_ranks[new_split..]
                 .par_iter_mut()
-                .enumerate()
-                .for_each(|(index, square_rank)| {
-                    let matrix_code = new_split + index;
+                .zip(new_split..split)
+                .for_each(|(square_rank, matrix_code)| {
                     let matrix = decode(n, &amp;coeffs, matrix_code);
                     let row = matrix &gt;&gt; (SIZE * (n - 1));
-                    assert!(row != 0);
                     let column = (matrix &gt;&gt; row.trailing_zeros()) &amp; COLUMN_MASK;
                     *square_rank =
                         old_ranks[encode(n, &amp;coeffs, matrix ^ (column * row)) - split] + 1;
