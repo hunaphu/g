@@ -35,6 +35,40 @@
 <pre class="lang-none prettyprint-override"><code>for(n=9;a=[];o&lt;n&amp;&amp;print(n))for(++n;a.push(1)&lt;n;g(a))g=(a,p)=&gt;a[i=1]&lt;n&amp;&amp;g([p,...a]=a.map(v=&gt;(v+=~-p-~a[p=v,i++])-n?v:o=n))&amp;a.pop(g(a))&amp;g(a)&amp;g([p,...a])
 </code></pre>
 <p><a href="https://tio.run/##Tcy7CsMwDIXhtzESjg3Z2jpKH8R4EIWmLlQWuXjMq7tJpy5n@Tnfmysvjznr6uqltWeZQegamGIKZRBjdM6ygiCeyVoJ7HVbXtDjIGECRpwIuFOkkWOmPp2nCaJ23ntOxP7DCpVGqJZ2p27nqFS7bG1CJ/d6K3To5mCLwg805/4Z2NoX" rel="nofollow noreferrer" title="JavaScript (V8) – Try It Online">Try it online!</a></p>
+<h3>Commented</h3>
+<pre class="lang-none prettyprint-override"><code>for(                // outer loop:
+  n = 9;            //   start with n = 9
+  a = [];           //   start each iteration with a = []
+  o &lt; n &amp;&amp; print(n) //   if o &lt; n, n is unstackable -&gt; print it
+)                   //
+  for(              //   inner loop:
+    ++n;            //     increment n
+    a.push(1) &lt; n;  //     push 1 in a[], stop if a[] has n elements
+    g(a)            //     invoke g with a[]
+  )                 //
+    g = (           //     g is a recursive function taking:
+      a,            //       a[] = current row
+      p             //       p = variable required in the scope of g,
+    ) =&gt;            //           initially undefined
+    a[i = 1] &lt; n &amp;&amp; //     stop if a[1] &gt;= n or a[1] is undefined
+    g(              //     otherwise, do a 1st recursive call:
+      [p, ...a] =   //       save the result of map() in p and a[]
+      a.map(v =&gt;    //       for each value v in a[]:
+        ( v +=      //         compute the sum of the boxes
+          ~-p - ~a[ //         below the current box: v + p + a[i]
+            p = v,  //         update p to v
+            i++     //         increment i
+          ]         //
+        ) - n ?     //         if the result is not n:
+          v         //           just yield v
+        :           //         else:
+          o = n     //           update o to n
+      )             //       end of map()
+    )               //     end of recursive call()
+    &amp; a.pop(g(a))   //     2nd call without the 1st term
+    &amp; g(a)          //     3rd call without the 1st and last terms
+    &amp; g([p, ...a])  //     4th call without the last term
+</code></pre>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 85 bytes</h1>
 <pre><code>ＮθＷ‹Ｌυθ«→≔…¹Ｘ³ⅈυ≔Ｅ⊕⊗ⅈＥ⊕κ¹ηＦη«≔⁻υκυ≔ＥκΣ✂κ∧μ⊖μ⁺²μ¹κＦＥ²✂κλＦＥ²✂⮌λμ¿∧μ∧‹⌊μＸ³ⅈ¬№ημ⊞ημ»»Ｉ…υθ
