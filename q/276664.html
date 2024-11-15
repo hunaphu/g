@@ -26,10 +26,32 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>493</td><td>openssl req</td><td>241115T112306Z</td><td><a href="https://codegolf.stackexchange.com/questions/276664/shortest-possible-valid-pem-encoded-ca-certificate/276677#276677">Themooni</a></td></tr>
-<tr d-ix="1"><td>497</td><td>openssl req</td><td>241113T233840Z</td><td><a href="https://codegolf.stackexchange.com/questions/276664/shortest-possible-valid-pem-encoded-ca-certificate/276665#276665">user7610</a></td></tr>
+<tr d-ix="0"><td>392</td><td>openssl req</td><td>241113T233840Z</td><td><a href="https://codegolf.stackexchange.com/questions/276664/shortest-possible-valid-pem-encoded-ca-certificate/276665#276665">user7610</a></td></tr>
+<tr d-ix="1"><td>493</td><td>openssl req</td><td>241115T112306Z</td><td><a href="https://codegolf.stackexchange.com/questions/276664/shortest-possible-valid-pem-encoded-ca-certificate/276677#276677">Themooni</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><code>openssl req</code>, <s>518</s> 493 bytes</h1>
+<div id="pu0" class="pu"><h2><code>openssl req</code>, <s>737</s> <s>558</s> <s>526</s> <s>497</s> 392 bytes</h2>
+<pre><code>% openssl ecparam -name secp112r1 &gt; ec.params                                          
+% openssl req -nodes -x509 -newkey ec:ec.params -days 1 -set_serial 1 -out ca-cert.pem -subj &quot;/&quot;
+</code></pre>
+<pre><code>-----BEGIN CERTIFICATE-----
+MIH2MIHBoAMCAQICAQEwCgYIKoZIzj0EAwIwADAeFw0yNDExMTUxODMzMjFaFw0y
+NDExMTYxODMzMjFaMAAwMjAQBgcqhkjOPQIBBgUrgQQABgMeAAQ5m1Yk+0ZvpZWY
+rCwQ4VBB54eR+XUcHcqsHfEmo1MwUTAdBgNVHQ4EFgQUI3lNljOTV7EyOCeIadTV
+9dmqMx0wHwYDVR0jBBgwFoAUI3lNljOTV7EyOCeIadTV9dmqMx0wDwYDVR0TAQH/
+BAUwAwEB/zAKBggqhkjOPQQDAgMkADAhAg4UpmaNZ5cNCi8I9JkAswIPAM25KTiV
+t33Lue3ZYVo/
+-----END CERTIFICATE-----
+</code></pre>
+<h3>changelog</h3>
+<ul>
+<li><code>-newkey rsa:512</code>, use smallest possible private key size</li>
+<li><code>-subj &quot;/&quot;</code>, the <code>/</code> seems to be the shortest possible accepted argument for <code>-subj</code></li>
+<li><code>-set_serial 1</code>, the default is a large random number that takes up bytes</li>
+<li><code>-newkey ec:ec.params</code>, picked an elliptic curve from the list <code>openssl ecparam -list_curves</code> that is giving me the smallest key, after trying them all</li>
+<li><code>-days 1</code>, does not seem to have impact, but smaller numbers are usually better</li>
+</ul>
+</div>
+<div id="pu1" class="pu"><h1><code>openssl req</code>, <s>518</s> 493 bytes</h1>
 <p>-25 bytes: <code>--set-serial 1</code> by user7610</p>
 <pre><code>-----BEGIN CERTIFICATE-----
 MIIBUTCB/qADAgECAhRuvWYi4YQN7neCssfB+Rsq+yMv5TANBgkqhkiG9w0BAQsF
@@ -51,26 +73,6 @@ pubkey,privkey = rsa.newkeys(int(sys.argv[1]))
 print(privkey.save_pkcs1('PEM').decode('UTF-8'))
 </code></pre>
 <p>While 512 bits is the smallest openssl will allow you to generate, an RSA key can be as small as 16 bits (!). However, as the key gets smaller, you can encrypt less and less data with it, and openssl is not happy about that. I performed a manual binary search between 16 and 512 to find that 490 bits is the smallest possible key using this technique.</p>
-</div>
-<div id="pu1" class="pu"><h2><code>openssl req</code>, <s>737</s> <s>558</s> <s>526</s> 497 bytes</h2>
-<pre><code>openssl req -nodes -x509 -newkey rsa:512 -days 365 -set_serial 1 -out ca-cert.pem -subj &quot;/&quot;
-</code></pre>
-<pre><code>-----BEGIN CERTIFICATE-----
-MIIBQzCB7qADAgECAgEBMA0GCSqGSIb3DQEBCwUAMAAwHhcNMjQxMTE1MTIyOTU2
-WhcNMjUxMTE1MTIyOTU2WjAAMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBALkPt93s
-7uLhENHYuUpP/mc0g6LRRagPM+UzW+kdWfih4SAXmOAeiVMuIFSeaCUoJv5/SKDo
-kkGEvDZpsQdY9pcCAwEAAaNTMFEwHQYDVR0OBBYEFLLFYRt2GtCTef5qs8UNZAfQ
-VVGvMB8GA1UdIwQYMBaAFLLFYRt2GtCTef5qs8UNZAfQVVGvMA8GA1UdEwEB/wQF
-MAMBAf8wDQYJKoZIhvcNAQELBQADQQAF2OpHbWKKni4kCRvmcC4LWmkVfNqt1zC0
-jmUHTeaKM4oC0O9VsRgNMhb0iw9/WpMojg4pI9reiOenUI9Eyh/x
------END CERTIFICATE-----
-</code></pre>
-<h3>changelog</h3>
-<ul>
-<li><code>-newkey rsa:512</code>, use smallest possible private key size</li>
-<li><code>-subj &quot;/&quot;</code>, the <code>/</code> seems to be the shortest possible accepted argument for <code>-subj</code></li>
-<li><code>-set_serial 1</code>, the default is a large random number that takes up bytes</li>
-</ul>
 </div>
 
 <table id="st">
