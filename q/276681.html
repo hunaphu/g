@@ -26,14 +26,76 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>097</td><td>Retina</td><td>241115T170507Z</td><td><a href="https://codegolf.stackexchange.com/questions/276681/count-the-fish-in-a-school/276683#276683">Neil</a></td></tr>
-<tr d-ix="1"><td>035</td><td>Charcoal</td><td>241115T170848Z</td><td><a href="https://codegolf.stackexchange.com/questions/276681/count-the-fish-in-a-school/276684#276684">Neil</a></td></tr>
-<tr d-ix="2"><td>1416</td><td>Jelly</td><td>241115T171040Z</td><td><a href="https://codegolf.stackexchange.com/questions/276681/count-the-fish-in-a-school/276685#276685">Jonathan</a></td></tr>
+<tr d-ix="0"><td>1416</td><td>Jelly</td><td>241115T171040Z</td><td><a href="https://codegolf.stackexchange.com/questions/276681/count-the-fish-in-a-school/276685#276685">Jonathan</a></td></tr>
+<tr d-ix="1"><td>097</td><td>Retina</td><td>241115T170507Z</td><td><a href="https://codegolf.stackexchange.com/questions/276681/count-the-fish-in-a-school/276683#276683">Neil</a></td></tr>
+<tr d-ix="2"><td>035</td><td>Charcoal</td><td>241115T170848Z</td><td><a href="https://codegolf.stackexchange.com/questions/276681/count-the-fish-in-a-school/276684#276684">Neil</a></td></tr>
 <tr d-ix="3"><td>142</td><td>Python</td><td>241115T181150Z</td><td><a href="https://codegolf.stackexchange.com/questions/276681/count-the-fish-in-a-school/276690#276690">movatica</a></td></tr>
 <tr d-ix="4"><td>021</td><td>Japt</td><td>241115T173018Z</td><td><a href="https://codegolf.stackexchange.com/questions/276681/count-the-fish-in-a-school/276688#276688">Shaggy</a></td></tr>
 <tr d-ix="5"><td>094</td><td>Ruby</td><td>241115T172048Z</td><td><a href="https://codegolf.stackexchange.com/questions/276681/count-the-fish-in-a-school/276686#276686">Jordan</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/m-ender/retina/wiki/The-Language" rel="nofollow noreferrer">Retina</a>, 97 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, <s> 17 </s> 14? 16 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
+<p>14 bytes if we may accept a list of lines (remove the leading <code>Ỵµ</code> <a href="https://tio.run/##y0rNyan8/9/uUeO2wy3GD3f0Zj9q3HFkwaOmNW62RprB/x/u3nK4/f9/BQU7GzsFKEAw4SxkBpeNnQ2ICaXQdEFFQeowtQNpJF1ANkQCKMYFV4bkEJhahNFc2N2JYgNChAvMA2pDWAoTwTAG7GBs5mBhIhyCkEPyF5wJNxkA" rel="nofollow noreferrer">TIO</a>)</p>
+<pre><code>Ỵµ&gt;⁶Ä3ḍk⁸Ġ€F=2)S
+</code></pre>
+<p>A monadic Link that accepts a list of <code>\n &lt;&gt;</code> characters and yields a list of the column-wise tail counts.</p>
+<p><strong><a href="https://tio.run/##y0rNyan8///h7i2Htto9atx2uMX44Y7e7EeNO44seNS0xs3WSDP4////Cgp2NnYKUIBgwlnIDC4bOxsQE0qh6YKKgtRhagfSSLqAbIgEUIwLrgzJITC1CKO5sLsTxQaECBeYB9SGsBQmgmEM2MHYzMHCRDgEIYfkLzgTbjIA" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></strong></p>
+<h4>How?</h4>
+<p>Partition each row after either the right-hand side of each fish (whether a head or a tail) or a space character like so:</p>
+<pre><code>  &gt;&lt;&gt;   &gt;&lt;&gt;&gt;&lt;&gt;
+00111000111111    &lt;- greater than space?
+00123333456789    &lt;- cumulative sums
+11001111001001    &lt;- is divisible by three?
+ww[f]www[f][f][]  &lt;- identified &quot;parts&quot; (by partitioning after 1s) 
+                        shown here as: water (w);
+                                       fish ([f]); and
+                                       a trailing empty list ([])
+</code></pre>
+<p>Then identify the &quot;tails&quot; of each &quot;part&quot; using the group-indices-by-value monad, <code>Ġ</code>:</p>
+<div class="s-table-container"><table class="s-table">
+<thead>
+<tr>
+<th style="text-align: center;">Part</th>
+<th style="text-align: center;">Ġ(Part)</th>
+<th style="text-align: center;">flatten(Ġ(Part))=2?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;"><code>&quot;&lt;&gt;&lt;&quot;</code></td>
+<td style="text-align: center;"><code>[[1,3],[2]]</code></td>
+<td style="text-align: center;"><code>[0,0,1]</code></td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>&quot;&gt;&lt;&gt;&quot;</code></td>
+<td style="text-align: center;"><code>[[2],[1,3]]</code></td>
+<td style="text-align: center;"><code>[1,0,0]</code></td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>&quot; &quot;</code></td>
+<td style="text-align: center;"><code>[[1]]</code></td>
+<td style="text-align: center;"><code>[0]</code></td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>[]</code></td>
+<td style="text-align: center;"><code>[]</code></td>
+<td style="text-align: center;"><code>[]</code></td>
+</tr>
+</tbody>
+</table></div>
+<pre><code>Ỵµ&gt;⁶Ä3ḍk⁸Ġ€F=2)S - Link: list of characters, School
+Ỵ                - split {School} at newline characters
+ µ            )  - for each (Row):
+  &gt;⁶             -    {Row} greater than the space character? (vectorises)
+    Ä            -    cumulative sums of {that}
+     3ḍ          -    three divides {that}? (vectorises)
+       k⁸        -    partition the Row at truthy indices of {that}
+         Ġ€      -    group the indices of each of {those} by their values
+           F     -    flatten
+            =2   -    equals two? (i.e. is the odd one out of a fish)
+               S - sum (column-wise)
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/m-ender/retina/wiki/The-Language" rel="nofollow noreferrer">Retina</a>, 97 bytes</h1>
 <pre><code>N$^`
 $.&amp;
 (\S)(\S)\1
@@ -75,7 +137,7 @@ $.(_$2*)$3
 </code></pre>
 <p>Keep just the totals.</p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, <s>40</s> 35 bytes</h1>
+<div id="pu2" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, <s>40</s> 35 bytes</h1>
 <pre><code>ＷＳ«Ｆ⪫Ｅ⪪ι ⭆⪪κ³◧Ｉ∨‹μ=¹⁰⁰¦³ Ｉ⁺ΣκΣＫＫＦι←
 </code></pre>
 <p><a href="https://tio.run/##bU/BjoIwFDzbr3jx9Jqwicabi1w8rZFIwhc0WteGCgQKe9j47fVVK2VXeuBNpzPzhuNFNMdKaGt/LkpLwK@y7kxuGlV@I@fwy2bnqgHcVarEVNSY11oZVBHMYc4jeCrDQxHBiuhMnPbybHArWoOHBveybfFKpo0zLRcLzp3QfV0Oh4xivDzTXYt5d8XC5dPMpCyoC51P30ZxSKte4totIfZmLUASJ@BPgAMaAxYnsYN@/HN51une7TRHLsLPB@LYIBsVeWlDNJvu@WdDYNjjRraw9MW8xTwKT@VMwFAkvI3@a4Ah2X70@g4" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code. Takes input as a list of newline-terminated strings. Explanation:</p>
@@ -91,26 +153,6 @@ $.(_$2*)$3
 <pre><code>Ｆι←
 </code></pre>
 <p>Move back to the left column.</p>
-</div>
-<div id="pu2" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, <s> 17 </s> 14? 16 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
-<p>14 bytes if we may accept a list of lines (remove the leading <code>Ỵµ</code> <a href="https://tio.run/##y0rNyan8/9/uUeO2wy3GD3f0Zj9q3HFkwaOmNW62RprB/x/u3nK4/f9/BQU7GzsFKEAw4SxkBpeNnQ2ICaXQdEFFQeowtQNpJF1ANkQCKMYFV4bkEJhahNFc2N2JYgNChAvMA2pDWAoTwTAG7GBs5mBhIhyCkEPyF5wJNxkA" rel="nofollow noreferrer">TIO</a>)</p>
-<pre><code>Ỵµ&gt;⁶Ä3ḍk⁸Ġ€F=2)S
-</code></pre>
-<p>A monadic Link that accepts a list of <code>\n &lt;&gt;</code> characters and yields a list of the column-wise tail counts.</p>
-<p><strong><a href="https://tio.run/##y0rNyan8///h7i2Htto9atx2uMX44Y7e7EeNO44seNS0xs3WSDP4////Cgp2NnYKUIBgwlnIDC4bOxsQE0qh6YKKgtRhagfSSLqAbIgEUIwLrgzJITC1CKO5sLsTxQaECBeYB9SGsBQmgmEM2MHYzMHCRDgEIYfkLzgTbjIA" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></strong></p>
-<h4>How?</h4>
-<pre><code>Ỵµ&gt;⁶Ä3ḍk⁸Ġ€F=2)S - Link: list of characters, School
-Ỵ                - split {School} at newline characters
- µ            )  - for each (Row):
-  &gt;⁶             -    {Row} greater than the space character? (vectorises)
-    Ä            -    cumulative sums of {that}
-     3ḍ          -    three divides {that}? (vectorises)
-       k⁸        -    partition the Row at truthy indices of {that}
-         Ġ€      -    group the indices of each of {those} by their values
-           F     -    flatten
-            =2   -    equals two? (i.e. is the odd one out of a fish)
-               S - sum (column-wise)
-</code></pre>
 </div>
 <div id="pu3" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 142 bytes</h1>
 <pre class="lang-python prettyprint-override"><code>lambda s:(p:=[m.start()+2*(m[0]&lt;'&gt;')for r in s.split('\n')for m in re.finditer('&gt;&lt;&gt;|&lt;&gt;&lt;',r)])and[p.count(i)for i in range(max(p)+1)]
