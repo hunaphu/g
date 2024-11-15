@@ -26,10 +26,30 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>518</td><td>openssl req</td><td>241115T112306Z</td><td><a href="https://codegolf.stackexchange.com/questions/276664/shortest-possible-valid-pem-encoded-ca-certificate/276677#276677">Themooni</a></td></tr>
-<tr d-ix="1"><td>526</td><td>openssl req</td><td>241113T233840Z</td><td><a href="https://codegolf.stackexchange.com/questions/276664/shortest-possible-valid-pem-encoded-ca-certificate/276665#276665">user7610</a></td></tr>
+<tr d-ix="0"><td>497</td><td>openssl req</td><td>241113T233840Z</td><td><a href="https://codegolf.stackexchange.com/questions/276664/shortest-possible-valid-pem-encoded-ca-certificate/276665#276665">user7610</a></td></tr>
+<tr d-ix="1"><td>518</td><td>openssl req</td><td>241115T112306Z</td><td><a href="https://codegolf.stackexchange.com/questions/276664/shortest-possible-valid-pem-encoded-ca-certificate/276677#276677">Themooni</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><code>openssl req</code>, 518 bytes</h1>
+<div id="pu0" class="pu"><h2><code>openssl req</code>, <s>737</s> <s>558</s> <s>526</s> 497 bytes</h2>
+<pre><code>openssl req -nodes -x509 -newkey rsa:512 -days 365 -set_serial 1 -out ca-cert.pem -subj &quot;/&quot;
+</code></pre>
+<pre><code>-----BEGIN CERTIFICATE-----
+MIIBQzCB7qADAgECAgEBMA0GCSqGSIb3DQEBCwUAMAAwHhcNMjQxMTE1MTIyOTU2
+WhcNMjUxMTE1MTIyOTU2WjAAMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBALkPt93s
+7uLhENHYuUpP/mc0g6LRRagPM+UzW+kdWfih4SAXmOAeiVMuIFSeaCUoJv5/SKDo
+kkGEvDZpsQdY9pcCAwEAAaNTMFEwHQYDVR0OBBYEFLLFYRt2GtCTef5qs8UNZAfQ
+VVGvMB8GA1UdIwQYMBaAFLLFYRt2GtCTef5qs8UNZAfQVVGvMA8GA1UdEwEB/wQF
+MAMBAf8wDQYJKoZIhvcNAQELBQADQQAF2OpHbWKKni4kCRvmcC4LWmkVfNqt1zC0
+jmUHTeaKM4oC0O9VsRgNMhb0iw9/WpMojg4pI9reiOenUI9Eyh/x
+-----END CERTIFICATE-----
+</code></pre>
+<h3>changelog</h3>
+<ul>
+<li><code>-newkey rsa:512</code>, use smallest possible private key size</li>
+<li><code>-subj &quot;/&quot;</code>, the <code>/</code> seems to be the shortest possible accepted argument for <code>-subj</code></li>
+<li><code>-set_serial 1</code>, the default is a large random number that takes up bytes</li>
+</ul>
+</div>
+<div id="pu1" class="pu"><h1><code>openssl req</code>, 518 bytes</h1>
 <pre><code>-----BEGIN CERTIFICATE-----
 MIIBUTCB/qADAgECAhRuvWYi4YQN7neCssfB+Rsq+yMv5TANBgkqhkiG9w0BAQsF
 ADAAMB4XDTI0MTExNTExMTQxNVoXDTI0MTExNjExMTQxNVowADBZMA0GCSqGSIb3
@@ -50,26 +70,6 @@ pubkey,privkey = rsa.newkeys(int(sys.argv[1]))
 print(privkey.save_pkcs1('PEM').decode('UTF-8'))
 </code></pre>
 <p>While 512 bits is the smallest openssl will allow you to generate, an RSA key can be as small as 16 bits (!). However, as the key gets smaller, you can encrypt less and less data with it, and openssl is not happy about that. I performed a manual binary search between 16 and 512 to find that 490 bits is the smallest possible key using this technique.</p>
-</div>
-<div id="pu1" class="pu"><h2><code>openssl req</code>, <s>737</s> <s>558</s> 526 bytes</h2>
-<pre><code>openssl req -nodes -x509 -newkey rsa:512 -days 365 -out ca-cert.pem -subj &quot;/&quot;
-</code></pre>
-<pre><code>-----BEGIN CERTIFICATE-----
-MIIBVzCCAQGgAwIBAgIURdaM/J/J3vVV676CbPykDKM0ME0wDQYJKoZIhvcNAQEL
-BQAwADAeFw0yNDExMTUwOTM2NDZaFw0yNTExMTUwOTM2NDZaMAAwXDANBgkqhkiG
-9w0BAQEFAANLADBIAkEAv1bQAMsRWO69vJ3nir6SU5sA3xLb1fm7SnBPXq1HmQKb
-JuMWEE9drgbgv2ZTkgTpCTllOPSJzLAxwjFqeeiKdQIDAQABo1MwUTAdBgNVHQ4E
-FgQUpp5FDK1vE+ETrm+hq7kY9Hgy+L0wHwYDVR0jBBgwFoAUpp5FDK1vE+ETrm+h
-q7kY9Hgy+L0wDwYDVR0TAQH/BAUwAwEB/zANBgkqhkiG9w0BAQsFAANBAGf2X6tR
-HhGxRm0ZOdOeKQk9uydXVXHer4hyzJZ50mWtBY/dyYxewmLhq14tu3D7GamRztk2
-/mu2wEPLe6Z2TCs=
------END CERTIFICATE-----
-</code></pre>
-<h3>changelog</h3>
-<ul>
-<li><code>-newkey rsa:512</code>, use smallest possible private key size</li>
-<li><code>-subj &quot;/&quot;</code>, the <code>/</code> seems to be the shortest possible accepted argument for <code>-subj</code></li>
-</ul>
 </div>
 
 <table id="st">
