@@ -38,7 +38,34 @@
 <pre><code>ṢU;S$⁹¡ż`ṫḊṢḢṖạƊṭ@ɗƒ¥ƤḣɗṪ€€ḟƝ
 </code></pre>
 <p><a href="https://tio.run/##y0rNyan8///hzkWh1sEqjxp3Hlp4dE/Cw52rH@7oAgo@3LHo4c5pD3ctPAbkrXU4Of3YpENLjy15uGPxyekPd6561LQGiB7umH9s7v/Dy/Uf7uo7Ounhzhmakf//R3NFR5vqmOgY6xjF6iiYxOqA@AY6JgY6xgY6RgY6hoY4hHUMkTQYosnoGBqY4ZQ1BsnqmBqAjDMEihsBJYDChmZAjYYgOQsdkKVAA7hiAQ" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></p>
-<p>A &quot;&quot;&quot;simple&quot;&quot;&quot; iterative approach which reduces with the in-progress downloads as the accumulator state.</p>
+<p><i>-9 by directly tracking the original identity of each in-progress download instead of inferring it afterwards. That's what took me the most time to get working in the first place 😭😭😭</i></p>
+<p>Takes the list on the left, and the max parallelism <span class="math-container">\$p\$</span> on the right. A &quot;&quot;&quot;simple&quot;&quot;&quot; iterative approach which reduces with the in-progress downloads as the accumulator state.</p>
+<pre><code>ṢU                                Sort the list descending,
+  ;S$                             then append the sum of the list
+     ⁹¡                           p times.
+  ;S$⁹¡                           The sums represent idle threads.
+       ż`                         Pair every element with itself.
+                     Ƥ            For every nonempty prefix of
+         ṫ                        the p'th element onwards,
+          Ḋ                       remove the first element
+         ṫḊ           ḣ           (so there's no overlap with the starting set,
+          Ḋ        ƒ Ƥ            and so the first reduce is a no-op)
+                    ¥             then
+                      ḣ           starting with the first p downloads,
+                  ɗƒ              reduce the prefix by:
+           Ṣ                      Sort the current downloads ascending,
+            Ḣ                     take the first element (= maximum),
+             Ṗ                    remove its last element,
+              ạ                   and subtract that from
+             Ṗ                    the first elements of
+            Ḣ  Ɗ                  every other element
+             Ṗạ                   without affecting their last elements;
+                ṭ@                append the next largest download to start.
+                         Ṫ        Take the last element of
+                          €       each pair
+                           €      in each download set,
+                            ḟƝ    and return the one missing in each next step.
+</code></pre>
 </div>
 <div id="pu1" class="pu"><h1><a href="http://clang.llvm.org/" rel="nofollow noreferrer">C (clang)</a>, 163 bytes</h1>
 
