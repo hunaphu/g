@@ -26,11 +26,38 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>290</td><td>Python's cryptography</td><td>241116T103212Z</td><td><a href="https://codegolf.stackexchange.com/questions/276664/shortest-possible-valid-pem-encoded-ca-certificate/276703#276703">user7610</a></td></tr>
-<tr d-ix="1"><td>392</td><td>openssl req</td><td>241113T233840Z</td><td><a href="https://codegolf.stackexchange.com/questions/276664/shortest-possible-valid-pem-encoded-ca-certificate/276665#276665">user7610</a></td></tr>
-<tr d-ix="2"><td>493</td><td>openssl req</td><td>241115T112306Z</td><td><a href="https://codegolf.stackexchange.com/questions/276664/shortest-possible-valid-pem-encoded-ca-certificate/276677#276677">Themooni</a></td></tr>
+<tr d-ix="0"><td>166</td><td>166 bytes</td><td>241117T212148Z</td><td><a href="https://codegolf.stackexchange.com/questions/276664/shortest-possible-valid-pem-encoded-ca-certificate/276722#276722">Anders K</a></td></tr>
+<tr d-ix="1"><td>290</td><td>Python's cryptography</td><td>241116T103212Z</td><td><a href="https://codegolf.stackexchange.com/questions/276664/shortest-possible-valid-pem-encoded-ca-certificate/276703#276703">user7610</a></td></tr>
+<tr d-ix="2"><td>392</td><td>openssl req</td><td>241113T233840Z</td><td><a href="https://codegolf.stackexchange.com/questions/276664/shortest-possible-valid-pem-encoded-ca-certificate/276665#276665">user7610</a></td></tr>
+<tr d-ix="3"><td>493</td><td>openssl req</td><td>241115T112306Z</td><td><a href="https://codegolf.stackexchange.com/questions/276664/shortest-possible-valid-pem-encoded-ca-certificate/276677#276677">Themooni</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h2>Python's <code>cryptography</code>, 290 bytes</h2>
+<div id="pu0" class="pu"><h1>166 bytes</h1>
+<pre><code>-----BEGIN CERTIFICATE-----
+MFAwRgIBADADBgEAMAAwHhcNNTAwMTAxMDAwMDAwWhcNNDkxMjMxMjM1OTU5WjAAMBgwCwYJKoZIhvcNAQEBAwkAMAYCAQACAQAwAwYBAAMBAA==
+-----END CERTIFICATE-----
+</code></pre>
+<p>This “certificate” has an empty issuer, empty subject, 0-bit RSA public key, no extensions, and empty signature with algorithm null, but <code>openssl x509</code> does load it:</p>
+<pre><code>Certificate:
+    Data:
+        Version: 1 (0x0)
+        Serial Number: 0 (0x0)
+        Signature Algorithm: 0.0
+        Issuer: 
+        Validity
+            Not Before: Jan  1 00:00:00 1950 GMT
+            Not After : Dec 31 23:59:59 2049 GMT
+        Subject: 
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (0 bit)
+                Modulus: 0
+                Exponent: 0
+    Signature Algorithm: 0.0
+    Signature Value:
+</code></pre>
+<p>(I think we need much more clarification about what “valid” means. After such clarification is provided, I’m happy to delete or revise this.)</p>
+</div>
+<div id="pu1" class="pu"><h2>Python's <code>cryptography</code>, 290 bytes</h2>
 <p>I could not beat my previous result using <code>openssl req</code>, so I switched to Python's <code>cryptography</code> module, which is somehow able to produce even shorter certs. I again used elliptic curve-based certs because the curves are smaller than RSA. <code>openssl</code> is still happy to load such certificate.</p>
 <pre class="lang-python prettyprint-override"><code>from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ed25519
@@ -73,7 +100,7 @@ WMQ1+3T+/pkhU612HR0vFd3vyFhmB4yqFoNV8RML
 -----END CERTIFICATE-----
 </code></pre>
 </div>
-<div id="pu1" class="pu"><h2><code>openssl req</code>, <s>737</s> <s>558</s> <s>526</s> <s>497</s> 392 bytes</h2>
+<div id="pu2" class="pu"><h2><code>openssl req</code>, <s>737</s> <s>558</s> <s>526</s> <s>497</s> 392 bytes</h2>
 <pre><code>% openssl ecparam -name secp112r1 &gt; ec.params                                          
 % openssl req -nodes -x509 -newkey ec:ec.params -days 1 -set_serial 1 -out ca-cert.pem -subj &quot;/&quot;
 </code></pre>
@@ -96,7 +123,7 @@ t33Lue3ZYVo/
 <li><code>-days 1</code>, does not seem to have impact, but smaller numbers are usually better, copied from Themoonisacheese's answer</li>
 </ul>
 </div>
-<div id="pu2" class="pu"><h1><code>openssl req</code>, <s>518</s> 493 bytes</h1>
+<div id="pu3" class="pu"><h1><code>openssl req</code>, <s>518</s> 493 bytes</h1>
 <p>-25 bytes: <code>--set-serial 1</code> by user7610</p>
 <pre><code>-----BEGIN CERTIFICATE-----
 MIIBUTCB/qADAgECAhRuvWYi4YQN7neCssfB+Rsq+yMv5TANBgkqhkiG9w0BAQsF
