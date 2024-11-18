@@ -26,7 +26,7 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>032</td><td>C#</td><td>241118T201101Z</td><td><a href="https://codegolf.stackexchange.com/questions/276681/count-the-fish-in-a-school/276737#276737">Pepik</a></td></tr>
+<tr d-ix="0"><td>540</td><td>C#</td><td>241118T201101Z</td><td><a href="https://codegolf.stackexchange.com/questions/276681/count-the-fish-in-a-school/276737#276737">Pepik</a></td></tr>
 <tr d-ix="1"><td>065</td><td>C++ clang</td><td>241118T182557Z</td><td><a href="https://codegolf.stackexchange.com/questions/276681/count-the-fish-in-a-school/276735#276735">ioveri</a></td></tr>
 <tr d-ix="2"><td>050</td><td>Perl 5 F</td><td>241115T210837Z</td><td><a href="https://codegolf.stackexchange.com/questions/276681/count-the-fish-in-a-school/276695#276695">Xcali</a></td></tr>
 <tr d-ix="3"><td>012</td><td>05AB1E</td><td>241118T085917Z</td><td><a href="https://codegolf.stackexchange.com/questions/276681/count-the-fish-in-a-school/276729#276729">Kevin Cr</a></td></tr>
@@ -44,19 +44,29 @@
 <tr d-ix="15"><td>014</td><td>Jelly</td><td>241115T171040Z</td><td><a href="https://codegolf.stackexchange.com/questions/276681/count-the-fish-in-a-school/276685#276685">Jonathan</a></td></tr>
 <tr d-ix="16"><td>097</td><td>Retina</td><td>241115T170507Z</td><td><a href="https://codegolf.stackexchange.com/questions/276681/count-the-fish-in-a-school/276683#276683">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://dotnet.microsoft.com/en-us/languages/csharp" rel="nofollow noreferrer">C#</a>, 32 bytes</h1>
-<p>There are few assumptions, but in general:</p>
-<ol>
-<li>remove all non fish element - you get fish only</li>
-<li>the removal will not destroy any fish ( create a fish cuts )</li>
-<li>variable length is not mentioned; in this particular case we assume the fish is always length of 3, aka standard size</li>
-<li>we dont care where the tail is; direction was not listed as condition</li>
-</ol>
-<pre><code>int count = 
-    @&quot;
-      &lt;&gt;&lt; &gt;&lt;&gt; &gt;&lt;&gt;&gt;&lt;&gt;
-      &lt;&gt;&lt; &lt;&gt;&lt;     &gt;&lt;&gt;
-     &quot;.Trim().replace(&quot; &quot;,&quot;&quot;).length/3 
+<div id="pu0" class="pu"><h1><a href="https://dotnet.microsoft.com/en-us/languages/csharp" rel="nofollow noreferrer">C#</a>, 540 bytes</h1>
+<pre><code>        string fishTank = &quot;&lt;&gt;&lt; &gt;&lt;&gt; &gt;&lt;&gt;&gt;&lt;&gt;&quot; + Environment.NewLine +
+                          &quot;  &lt;&gt;&lt; &lt;&gt;&lt;     &gt;&lt;&gt;    &gt;&lt;&gt;&quot; + Environment.NewLine +
+                          &quot; &lt;&gt;&lt; &lt;&gt;&lt;&quot; + Environment.NewLine;
+
+        var partsOfFishTank = fishTank.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+        int maxLengthOfpartOfFishTank = 0;
+
+        foreach (var partOfFishTank in partsOfFishTank)
+            maxLengthOfpartOfFishTank = Math.Max(maxLengthOfpartOfFishTank, partOfFishTank.Length);
+
+        var tailsCountInEachColumn = new int[maxLengthOfpartOfFishTank];
+
+        foreach (var partOfFishTank in partsOfFishTank)
+        {
+            foreach (Match m in Regex.Matches(partOfFishTank, &quot;&lt;&gt;&lt;&quot;))
+                tailsCountInEachColumn[m.Index + 2]++;
+            foreach (Match m in Regex.Matches(partOfFishTank, &quot;&gt;&lt;&gt;&quot;))
+                tailsCountInEachColumn[m.Index]++;
+        }
+
+        Console.WriteLine(string.Join(&quot;,&quot;, tailsCountInEachColumn));
+
 </code></pre>
 </div>
 <div id="pu1" class="pu"><h1><a href="http://clang.llvm.org/" rel="nofollow noreferrer">C++ (clang)</a>, 65 bytes</h1>
