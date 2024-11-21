@@ -26,201 +26,207 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>7564</td><td>Haskell</td><td>230125T213724Z</td><td><a href="https://codegolf.stackexchange.com/questions/43150/build-a-fewest-moves-freecell-solver/257073#257073">nimi</a></td></tr>
+<tr d-ix="0"><td>7827</td><td>Haskell</td><td>230125T213724Z</td><td><a href="https://codegolf.stackexchange.com/questions/43150/build-a-fewest-moves-freecell-solver/257073#257073">nimi</a></td></tr>
 <tr d-ix="1"><td>643</td><td>C 64</td><td>170820T234928Z</td><td><a href="https://codegolf.stackexchange.com/questions/43150/build-a-fewest-moves-freecell-solver/139783#139783">user6318</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Haskell, Score: 4.98M, 7564 Bytes</h1>
+<div id="pu0" class="pu"><h1>Haskell, Score: 3.70M, 7827 Bytes</h1>
+<p><s>Score: 4.98M, 7564 Bytes</s></p>
 <pre class="lang-hs prettyprint-override"><code>{-# LANGUAGE BangPatterns #-}
 
-import Control.Concurrent.Async (race)
-import Control.Concurrent.Async.Extra (sequenceConcurrently)
+import Control.Concurrent.Async (mapConcurrently)
+import Control.Monad (foldM)
+import Data.Maybe (mapMaybe)
+import Data.Vector ((//),(!))
 import qualified Data.Vector as V
 import qualified Data.List   as L
 import qualified Data.IntSet as S
 
-type Deck     = String           -- a line of the input, s.th. like
-                                 -- JD 2D 9H JC 5D 7H 7C...
+type Deck     = String           -- a line of the input, eg. JD 2D 9H JC 5D ...
 type Card     = (Int , Int)      -- (Suit, Rank)
 type Cascade  = [Card]           -- bottom up, i.e. head is the accessible card
 type Board    = V.Vector Cascade -- the whole Board: 16 lots of cascades
                                  -- 0..7:tableau, 8..11:cells, 12..15:foundation
 type Move     = (Int , Int)      -- 'from' and 'to' board index
 type Game     = (Board, [Move])  -- a Board and the Moves to get there
+type Solution = (Deck, [Move])   -- a deck and its solving moves
 type Strategy = Int
 
-idxTbl, idxFnd, idxTblR, idxFrom :: [Int]
+idxTbl, idxTblR, idxFnd, idxCell, idxFrom :: [Int]
 idxTbl  = [ 0.. 7]               -- indices of tableau cascades
 idxTblR = [7,6..0]               -- indices of tableau in reverse order
 idxFnd  = [12..15]               -- indices of foundations
-idxFrom = [ 0..11]               -- all indices where a card can be moved from
-
-(@@) :: Board -&gt; Int -&gt; Cascade  -- return cascade at index i
-(@@) = (V.!)
+idxCell = [ 8..11]               -- indices of freecells
+idxFrom = [ 0..11]               -- indices where a card can be moved from
 
 (@!) :: Board -&gt; Int -&gt; Int      -- return the rank of the top card at index i
-brd @! i = snd $ head $ brd@@i
+brd @! i = snd $ head $ brd!i
 
-(//) :: Board -&gt; [(Int, Cascade)] -&gt; Board
-(//) = (V.//)                    -- update from Data.Vector
-
-solved :: Board -&gt; Bool
-solved brd = all ((==13).(brd@!)) idxFnd
+mvCard :: Board -&gt; Move -&gt; Board -- move a card in a board, return new board
+mvCard b (f,t) | c:cs &lt;- b!f = b // [(t,c:if t&lt;8 then b!t else []) , (f,cs)]
+mvCard _ _     = error &quot;mvCard: move from empty cascade&quot;
 
 --
 --
 --
 
 main :: IO ()
-main = print . sum =&lt;&lt; mapM solveDeck . lines =&lt;&lt; getContents
+main = announce =&lt;&lt; mapConcurrently solveDeck . lines =&lt;&lt; getContents
 
--- applies different strategies and hash functions to a given deck
--- does all the concurreny stuff
-solveDeck :: Deck -&gt; IO Int
-solveDeck deck = do
-  putStrLn $ &quot;Playing Deck: &quot; ++ deck
+-- accumulate total # of moves, print it and output game solutions along the way
+announce :: [Solution] -&gt; IO ()
+announce sols = print =&lt;&lt; foldM accumTotal 0 sols
+  where
+  accumTotal acc (deck, mvs) = do 
+    let l = length mvs
+    putStrLn $ &quot;Playing Deck: &quot; ++ deck
+    putStrLn $ &quot;# of moves: &quot; ++ show l
+    putStrLn $ &quot;Solution: &quot; ++ show mvs
+    return $ acc+l
 
-  mvs &lt;- sequenceConcurrently            -- try fast hash funtions concurrently
-         [dfs hsh S.empty s startGame | hsh&lt;-[hashCLS, hashCL], s&lt;-[1..4]]
-  let scores = [(length m, reverse m) | m &lt;- mvs, not $ null m]
-
-  if null scores
-  then do   -- unsolvable by fast hash functions, retry with slow hash function
-    mvs2 &lt;- race' (race' (dfs hashC S.empty 1 startGame)
-                         (dfs hashC S.empty 4 startGame))
-                  (race' (dfs hashC S.empty 2 startGame)
-                         (dfs hashC S.empty 3 startGame))
-    let score2 = length mvs2
-    putStrLn $ &quot;Solution: &quot; ++ show (score2, reverse mvs2)
-    return score2
-  else do   -- at least one slow hash function succeeded, return best result
-    let winner = minimum scores
-    putStrLn $ &quot;Solution: &quot; ++ show winner
-    return $ fst winner
+-- find solutions by applying different strategies, hash functions and/or
+-- forcing moves to foundation with a dfs in a given deck; pick best; optimize
+solveDeck :: Deck -&gt; IO Solution
+solveDeck deck
+  | not $ null first  = let !win = bestOf first  in return (deck, win)
+  | not $ null second = let !win = bestOf second in return (deck, win)
+  | otherwise         = return (deck, [])
 
   where
-  !startGame = [(deal deck, [])]
-  race' one two = race one two &gt;&gt;= either return return
+  first  = doDFS True  [hashA1, hashA2]
+  second = doDFS False [hashC]
 
--- depth first search with a given strategy and hash function
-dfs :: (Board -&gt; Int) -&gt; S.IntSet -&gt; Strategy -&gt; [Game] -&gt; IO [Move]
-dfs _ _ _ [] = return []
-dfs hashFn seen strat ((brd,mvs):games)
-  | S.member hBrd seen = dfs hashFn seen strat games --skip board if seen before
-  | solved brd = return mvs                          --solution found
-  | otherwise = dfs hashFn (S.insert hBrd seen) strat (newGames++games)
-                                                     --descend the search space 
+  startBrd = deal deck
+  startGame = [(startBrd, [])]
+  doDFS ff hshFn = filter (not.null) [dfs ff h s startGame | h&lt;-hshFn,s&lt;-[0..7]]
+  bestOf = optimize . reverse . bfs startBrd . reverse
+           . snd . minimum . map ((,)=&lt;&lt;length)
+
+-- replace: i-&gt;j, [... !=j, !=k ...], j-&gt;k  with  (i-&gt;k|[]) : middle part 
+optimize :: [Move] -&gt; [Move]
+optimize [] = [] 
+optimize (m1@(f1,t1):mvs)
+  | t1 &lt; 12,
+    (hd, (_,t2):tl) &lt;- span ((/= t1).fst) mvs,
+    all (\(f3,t3) -&gt; f3 /= t2 &amp;&amp; t3 /=t2 &amp;&amp; f3/=t1 &amp;&amp; t3/=t1) hd
+    = if t2==f1 then optimize (hd ++ tl) else (f1,t2) : optimize (hd ++ tl)
+  | otherwise = m1 : optimize mvs
+
+-- breadth-first search with search space limited to boards found by dfs
+bfs :: Board -&gt; [Move] -&gt; [Move]
+bfs startBrd mvs = search bfOrder False hashB 0 [(startBrd,[])]
+  where 
+  bfOrder = \new old -&gt; old ++ filter (\(b,_) -&gt; S.member (hashB b) space) new
+  space   = S.fromList $ map hashB $ scanl mvCard startBrd mvs
+
+-- depth-first search with a given hash function and strategy
+dfs :: Bool -&gt; (Board -&gt; Int) -&gt; Strategy -&gt; [Game] -&gt; [Move]
+dfs = search (++)
+
+-- generic search function - search order is given via argument as a function
+search :: ([Game]-&gt;[Game]-&gt;[Game]) -&gt; Bool -&gt; (Board-&gt;Int) -&gt; Strategy -&gt; [Game] -&gt; [Move]
+search order ff hashFn strat = search' S.empty
   where
-  hBrd = hashFn brd
-  newGames = nextGames mvs brd strat
+  search' _ [] = []
+  search' seen ((brd,mvs):games)
+    | S.member hBrd seen = search' seen games                  --skip if seen
+    | all ((==13).(brd@!)) idxFnd = mvs                        --solution found
+    | otherwise = search' (S.insert hBrd seen) (order newGames games) --descend
+    where
+    hBrd = hashFn brd
+    newGames = nextGames ff mvs brd strat
 
--- one step in search
-nextGames :: [Move] -&gt; Board -&gt; Strategy -&gt; [Game]
-nextGames moves brd strategy
-  | mv:_ &lt;- autoMoves = doAuto mv
-  | otherwise         = checkMoves $ allMoves strategy 
+-- one step in search, return all valid games reachable within one step
+nextGames :: Bool -&gt; [Move] -&gt; Board -&gt; Strategy -&gt; [Game]
+nextGames ff mvs brd strat
+  | ff, mv:_ &lt;- fndMoves = [(mvCard brd mv, mv:mvs)]
+  | otherwise            = mapMaybe checkMove allMoves
 
   where
 
   -- all possible from/to combinations except between freecells and only to
-  -- first empty freecell. Based on strategy.
-  allMoves 1 = [(f,t) | f&lt;-fList, t&lt;-tList idxTbl,  f&lt;8||f&gt;11||t&lt;8||t&gt;11]
-  allMoves 2 = [(f,t) | f&lt;-fList, t&lt;-tList idxTblR, f&lt;8||f&gt;11||t&lt;8||t&gt;11]
-  allMoves 3 = [(f,t) | t&lt;-tList idxTbl, f&lt;-fList,  f&lt;8||f&gt;11||t&lt;8||t&gt;11]
-  allMoves 4 = [(f,t) | t&lt;-tList idxTblR, f&lt;-fList, f&lt;8||f&gt;11||t&lt;8||t&gt;11]
-  allMoves _ = error &quot;allMoves: strategy out of range&quot;
+  -- first empty freecell
+  allMoves = case (strat `mod` 4) of
+    0 -&gt; [(f,t) | f&lt;-fList, t&lt;-tList idxTbl,  f&lt;8 || t&lt;8 || t&gt;11]
+    1 -&gt; [(f,t) | f&lt;-fList, t&lt;-tList idxTblR, f&lt;8 || t&lt;8 || t&gt;11]
+    2 -&gt; [(f,t) | t&lt;-tList idxTbl, f&lt;-fList,  f&lt;8 || t&lt;8 || t&gt;11]
+    3 -&gt; [(f,t) | t&lt;-tList idxTblR, f&lt;-fList, f&lt;8 || t&lt;8 || t&gt;11]
+    _ -&gt; undefined
 
-  -- &quot;from&quot; indices are always ordered by minimum rank in respective cascade 
-  fList = L.sortOn (minimum.map snd.(brd@@)) $ filter (not.null.(brd@@)) idxFrom
-
+  -- two different strategies for &quot;from&quot; indices
+  -- * first by minimum rank in cascade and then by length of cascade
+  -- * by minimum rank only
+  fList
+    | strat&gt;3 = L.sortOn ((\c-&gt;(minimum$map snd c,length c)).(brd!)) nonEmptyIdx
+    | otherwise = L.sortOn (minimum . map snd . (brd!)) nonEmptyIdx
+                               
   -- order of &quot;to&quot; indices is foundation before freecell before tableau
-  -- * only tableau is subject to strategy
+  -- * foundation only if moves to there are not forced 
+  -- * foundation index is &quot;12&quot; for all suits, we'll unravel that later
   -- * only first empty freecell (if any)
-  -- * foundation is &quot;12&quot; for all suits, we'll unravel that later
-  tList idxs
-    | null $ brd@@ 8 = 12: 8:idxs
-    | null $ brd@@ 9 = 12: 9:idxs
-    | null $ brd@@10 = 12:10:idxs
-    | null $ brd@@11 = 12:11:idxs
-    | otherwise      = 12:   idxs
+  tList idxs = [12|not ff] ++ take 1 [i | i&lt;-idxCell, null$brd!i] ++ idxs
 
-  -- checks which moves from 'allMoves' are actually legal and executes
-  -- them returning a list of games
-  checkMoves [] = []
-  checkMoves (mv@(f,t):mvs)
-    | t == 12   = if fitsFnd then doFnd else checkRest  -- to foundation
-    | t  &lt;  8   = if fitsTbl then doTbl else checkRest  -- to tableau
-    | otherwise = doCell                                -- to cell (alway empty)
+  nonEmptyIdx = filter (not.null.(brd!)) idxFrom
+
+  -- check whether a move is valid and if so play it and return the new game
+  -- (wrapped in 'Just'). Otherwise return 'Nothing'.
+  checkMove mv@(f,t)
+    | t &lt;=  7, fitsTbl = Just doTbl   -- to tableau
+    | t &gt;=  8, t &lt;= 11 = Just doCell  -- to cell (always empty)
+    | t == 12, fitsFnd = Just doFnd   -- to foundation
+    | otherwise        = Nothing      -- invalid move
 
     where
-    !cscdT = brd@@t
-    !cscdF = brd@@f
-    !cardF@(suitF,rankF) = head cscdF
-    (suitT,rankT) = head cscdT
+    !cscdT = brd!t
+    !(cardF@(suitF,rankF):cscdFs) = brd!f
 
-    fitsTbl = null cscdT || rankT==rankF+1 &amp;&amp; odd (suitF+suitT)
-    fitsFnd = rankF-1 == brd@!(12+suitF)
+    fitsTbl = case cscdT of
+      []              -&gt; True
+      (suitT,rankT):_ -&gt; rankT == rankF+1 &amp;&amp; odd (suitF+suitT)
 
-    doTbl  = (brd // [(t, cardF:cscdT),  (f, tail cscdF)], mv:moves) : checkRest
-    doCell = (brd // [(t, [cardF]),      (f, tail cscdF)], mv:moves) : checkRest
-    doFnd  = (brd // [(t+suitF, [cardF]),(f, tail cscdF)], (f,t+suitF):moves)
-                                                                     : checkRest
-    checkRest = checkMoves mvs
+    fitsFnd = rankF == brd@!(12+suitF) + 1
 
-  -- a list of all greedy automoves
-  autoMoves =
-    [(f,12+s) | f &lt;- idxFrom,                -- keep all 'from' indices
-                let cascade = brd@@f,
-                not $ null cascade,          -- if there's a card in the cascade
-                let (s,r) = head cascade,
-                r-1 == brd@!(12+s),          -- and it fits on its foundation
-                let (j,k) = if even s then (13,15) else (12,14),
-                r-4 &lt;= min(brd@!j)(brd@!k) ] -- and it's not too greedy
+    doTbl  = (brd // [(t,  cardF:cscdT), (f, cscdFs)], mv:mvs)
+    doCell = (brd // [(t,  [cardF]),     (f, cscdFs)], mv:mvs)
+    doFnd  = (brd // [(t', [cardF]), (f, cscdFs)], (f,t'):mvs)
+      where t' = t+suitF  -- 'to' index needs to be adjusted when moving to fnd
 
-  doAuto mv@(f,t)
-    | fCrd:fCrds &lt;- brd@@f = [(brd // [(t,[fCrd]),(f,fCrds)], mv:moves)]
-    | otherwise            = error &quot;nextGames: automove from empty cascade&quot;
-  
+  -- a list of all valid moves to the foundation
+  fndMoves =[(f,12+s) | f&lt;-nonEmptyIdx, let (s,r)=head$brd!f, r-1==brd@!(12+s)]
+ 
 --
 -- parsing and dealing decks
 --
 
 deal :: Deck -&gt; Board
-deal = foldl putCard emptyBoard . zip (cycle idxTbl) . parse
+deal = foldl putCard emptyBoard . zip (cycle idxTbl) . map readCard . words
+  where
+  putCard brd (i,crd) = brd // [(i, crd : brd!i)]
+  emptyBoard = -- init foundation with cards of rank 0 so that aces fit on them
+    foldl (\b i -&gt; putCard b (i+12, (i,0))) (V.replicate 16 []) [0..3]
 
-emptyBoard :: Board            -- foundation is initialised with dummy cards
-emptyBoard =                   -- of rank 0, so that aces fit on them nicely 
-  foldl (\b i -&gt; putCard b (i+12, (i,0))) (V.replicate 16 []) [0..3]
-
-putCard :: Board -&gt; (Int,Card) -&gt; Board
-putCard brd (i,crd) = brd // [(i, crd : brd@@i)]
-
-parse :: Deck -&gt; [Card]
-parse [] = []
-parse (' ':cs)       = parse cs
-parse ('1':'0':s:cs) = (chrToSuit s , 10) : parse cs
-parse (r:s:cs) | Just i &lt;- L.elemIndex r &quot; A23456789 JQK&quot;
-                     = (chrToSuit s, i) : parse cs
-parse _              = error &quot;parse: invalid deck&quot;
-
-chrToSuit :: Char -&gt; Int       -- parity important: reds are even, blacks odd
-chrToSuit c | Just i &lt;- L.elemIndex c &quot;DSHC&quot; = i
-chrToSuit _ = error &quot;chrToSuit: invalid char&quot;
+readCard :: String -&gt; Card
+readCard ['1','0',s] | Just j &lt;- L.elemIndex s &quot;DSHC&quot;           = (j,10)
+readCard [r,s]       | Just i &lt;- L.elemIndex r &quot; A23456789 JQK&quot;
+                     , Just j &lt;- L.elemIndex s &quot;DSHC&quot;           = (j,i)
+readCard _ = error &quot;parse: invalid deck&quot;
 
 --
 -- hash functions
 --
 
-hashCLS, hashCL, hashC :: Board -&gt; Int
+hashA1, hashA2, hashC, hashB :: Board -&gt; Int
 
-hashCLS brd = foldl (\h r -&gt; h*16+r)  c $ map (brd@!) idxFnd
-  where c   = foldl (\h l -&gt; h*32+l)  0 $ L.sort $ map (length.(brd@@)) idxTbl
+hashA1  b = foldl (\h r -&gt; h*16+r)  c $ map (b@!) idxFnd
+  where c = foldl (\h l -&gt; h*32+l)  0 $ L.sort $ map (length.(b!)) idxTbl
 
-hashCL  brd = foldl (\h r -&gt; h*16+r)  c $ map (brd@!) idxFnd
-  where c   = foldl (\h l -&gt; h*32+l)  0 $          map (length.(brd@@)) idxTbl
+hashA2  b = foldl (\h r -&gt; h*16+r)  c $ map (b@!) idxFnd
+  where c = foldl (\h l -&gt; h*32+l)  0 $ map (length.(b!)) idxTbl
 
-hashC   brd = foldl (\h r -&gt; h*16+r)  c $ map (brd@!) idxFnd
-  where c   = foldl (\h s-&gt;h*26633+s) 0 $ L.sort $ map (hCscd.(brd@@)) idxTbl
-        hCscd cList = foldl (\v (s,r) -&gt; (v*26633+s)*94291+r) 0 cList
+hashC   b = foldl (\h s-&gt;h*26633+s) 1 $ L.sort $ map (hCscd.(b!)) $ idxTbl++idxFnd
+  where hCscd = foldl (\v (s,r) -&gt; (v*26633+s)*94291+r) 1
+
+hashB = snd . V.foldl (\(i,h) c -&gt; (i+1, (h*94291+hCscd c)*26633+i)) (2,1)
+  where hCscd = foldl (\v (i,(s,r)) -&gt; ((v*26633+s)*94291+r)*i) 1 . zip [2..]
 </code></pre>
 <p>The list of games is read via stdin. For each game the output is a pair of the number of moves and a list of moves as (from,to) pairs, where both 'from' and 'to' are indices of board positions. 0 to 7 are the eight cascades, 8 to 11 the four free cells and 12 to 15 the four foundations. E.g.</p>
 <pre><code>Playing Deck: KS 8S 3C 9D QS 4D JD QH 5C 10H 5D 10C 4H 3D 7H AD KC 6S 2S 8D AH 7C QD 6C 7S KH 8C 6H 2C 9C JH KD 4S 5S AC 10S JS 3S 9S 5H AS 4C 8H QC 6D 2H JC 10D 7D 2D 3H 9H
@@ -251,6 +257,20 @@ Solution: (85,[(0,8),(0,13),(2,9),(2,10),(2,15),(4,11),(7,6),(2,3),(2,13),(9,0),
 <li>If I let all 12 variants (3 hash functions with 4 strategies each) race agains each other and pick the fastest result I get 7.25M moves in 250 sec.</li>
 <li>The source code is not golfed at all. Removing unnecessary things like comments, types, type annotations, whitespace, error handling and switching to single letter names easily brings the byte count to a third and then we can still apply the usual golfing tricks.</li>
 </ul>
+<h3>Update</h3>
+<p>Yet another strategy (sorting 'from' indices by length of cascade as a second criterion after minimal rank) - now a total of 16 variants per deck - brings the score down by 600k. Replacing greedy autoplay by forcing moves to the foundation whenever possible saves only 30k moves but also reduces the running time, so I take it. This leaves us with 10 unsolvable decks. However, all, except of course #11982, can be solved with a different hash function and autoplay/forcing disabled. No need for letting strategies race against each other anymore.</p>
+<p>So far we've found a solution for each deck, but they have a lot of unnecessary moves. We can optimize a given solution by</p>
+<ul>
+<li>running a bfs with the search space restricted to the boards visited by the solution. Bfs need a fourth hash function that prevents collisions, so it runs over the whole board and includes cascade and card indices.</li>
+<li>replacing move patterns with indices i,j,k  <code>i -&gt; j,  ... moves not involving j,k ...,  j -&gt; k</code> by <code>i -&gt; k,  middle part</code> (or just the middle part if i == k).
+This saves 700k moves.</li>
+</ul>
+<p>The overall running time went down to 1:20h despite of twice as much strategies mostly because of making better use of parallelism and to a lesser extend because of removing autoplay.</p>
+<p>The output format changed to</p>
+<pre><code>Playing Deck: 7C 5C 10S 8C 9H 7H 5S 4D 2C 5D 4C 10C 3D 2D AD JS 3H 9C 8D QS 6D 8S QC KS 2S 10H JC 6C 9S 6S JH AS AH 8H JD KH 7D KC QH QD 10D 3C 4S 9D 5H 3S 6H 4H AC 7S 2H KD
+# of moves: 72
+Solution: [(0,15),(0,8),(0,14),(2,14),(6,9),(6,10),(6,11),(6,3),(6,12),(7,6),(5,6),(7,5),(7,13),(0,13),(0,14),(0,15),(6,13),(2,13),(6,14),(4,14),(6,13),(9,14),(5,9),(5,6),(5,13),(1,13),(1,15),(5,13),(5,12),(5,14),(1,14),(4,5),(4,13),(4,0),(4,12),(4,14),(1,14),(11,14),(10,14),(2,10),(2,11),(2,4),(2,15),(2,13),(7,2),(7,13),(7,12),(1,7),(1,12),(0,12),(1,15),(5,12),(4,12),(3,5),(3,4),(3,12),(3,14),(3,15),(0,15),(3,13),(2,13),(8,12),(10,12),(9,12),(4,12),(3,8),(3,15),(7,15),(8,15),(11,15),(5,15),(6,15)]
+</code></pre>
 </div>
 <div id="pu1" class="pu"><h1>C 64,643 bytes, Score: ~6.5 million</h1>
 <p>The following Stack Snippet (courtesy of Mego) outputs all of the code as a single standalone C file:</p>
