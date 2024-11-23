@@ -3,7 +3,7 @@
 <head>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
 <script src="../g.js"></script>
-    <title>cg::275527</title>
+    <title>cg::QNNN</title>
     <link rel="stylesheet" href="../c.css">
 </head>
 <body>
@@ -26,109 +26,4 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>095</td><td>C clang</td><td>240914T090748Z</td><td><a href="https://codegolf.stackexchange.com/questions/275527/branchless-median-of-5/275530#275530">Neil</a></td></tr>
-<tr d-ix="1"><td>065</td><td>Assembly nasm</td><td>240915T121602Z</td><td><a href="https://codegolf.stackexchange.com/questions/275527/branchless-median-of-5/275545#275545">Neil</a></td></tr>
-<tr d-ix="2"><td>014</td><td>Google Sheets</td><td>240915T071159Z</td><td><a href="https://codegolf.stackexchange.com/questions/275527/branchless-median-of-5/275543#275543">doubleun</a></td></tr>
-<tr d-ix="3"><td>061</td><td>Python 3</td><td>240914T073427Z</td><td><a href="https://codegolf.stackexchange.com/questions/275527/branchless-median-of-5/275528#275528">Redz</a></td></tr>
-</table>
-<div id="pu0" class="pu"><h1><a href="http://clang.llvm.org/" rel="nofollow noreferrer">C (clang)</a>, <s>105</s> <s>102</s> 95 bytes</h1>
-<pre class="lang-c prettyprint-override"><code>#define s(x,y)x&gt;y?y^=x^=y^=x:y;
-m(a,b,c,d,e){s(a,b)s(d,e)s(a,d)s(b,e)s(b,c)s(c,d)return s(b,c)}
-</code></pre>
-<p><a href="https://tio.run/##VZFhb4IwEIY/y6@4aJaA3hYRnGyI@yGMD9AWbeLqArhADL@dXY9pWELbu@e9vukd4lmcc3McFtqI81Uq2NeN1JeX08HRphkWUpXaKKjdFjuvPXQfZdJim3TYJeV7FztlTGXw5eZYoECJyrvVNvFq1yY2lrQXHFMJ7VTmVaq5VgZG1A/Wo1F1U6dZus0ggZszu4UIW/5eEYIeibxRgEB7hLBhErG6Yegz2VGAsGO4ZTKa/N1l4rM6VkZMKA2ZkNuOScBqMPrffUJOo/t7/Pt7KAh7p48dHkaujWuDvDoKBHHKq@XSJj@e7au8VMCypj7XMR178O25WrE@46ukjQPRWbrO4j9cTLH/wGKKNw8spzh4YDXFIePvioTSnadPEuH/ymh9mjlCjlBQNwiEFfIvnwDPIx8awfAL" rel="nofollow noreferrer" title="C (clang) – Try It Online">Try it online!</a> Link includes test suite. Explanation: This is not a full sorting network (it would need to end with <code>s(a,b)s(d,e)</code>) but <code>c</code> is always the median by this point. Edit: Saved 3 bytes thanks to @l4m2. Saved 7 bytes thanks to @ceilingcat.</p>
-<p><code>clang</code> is able to optimise all of the swaps to a series of compares and <code>cmov</code> instructions:</p>
-<pre><code>    cmp     edi, esi ; s(a,b) edi = a esi = b
-    mov     eax, esi
-    cmovg   eax, edi ; eax = b = max(a, b)
-    cmovl   esi, edi ; esi = a = min(a, b)
-    cmp     ecx, r8d ; s(d,e) ecx = d r8d = e
-    mov     edi, r8d
-    cmovl   edi, ecx ; edi = d = min(d, e)
-    cmovg   r8d, ecx ; r8d = e = max(d, e)
-    cmp     esi, edi ; s(a,d) esi = a edi = d
-    cmovg   edi, esi ; edi = d = max(a, d)
-    cmp     eax, r8d ; s(b,e) eax = b r8d = e
-    cmovge  eax, r8d ; eax = b = min(b, e)
-    cmp     eax, edx ; s(b,c) eax = b edx = c
-    mov     ecx, edx
-    cmovl   ecx, eax ; ecx = b = min(b, c)
-    cmovle  eax, edx ; eax = c = max(b, c)
-    cmp     eax, edi ; s(c,d) eax = c edi = d
-    cmovge  eax, edi ; eax = c = min(c, d)
-    cmp     ecx, eax ; s(b,c) ecx = b eax = c
-    cmovg   eax, ecx ; eax = c = max(b, c)
-    ret              ; return c
-</code></pre>
-<p>Note that clang optimises away the obviously useless last assignments to each of <code>a</code>, <code>e</code>, <code>d</code> and <code>b</code> which is why those swaps are only two lines and not four.</p>
-</div>
-<div id="pu1" class="pu"><h1><a href="http://www.nasm.us/" rel="nofollow noreferrer">Assembly (nasm, x64, Linux)</a>, 65 bytes</h1>
-<pre><code>0:  39 f7                   cmp     edi, esi
-2:  41 89 f1                mov     r9d, esi
-5:  44 0f 4c cf             cmovl   r9d, edi
-9:  0f 4f f7                cmovg   esi, edi
-c:  44 39 c1                cmp     ecx, r8d
-f:  44 89 c0                mov     eax, r8d
-12: 0f 4c c1                cmovl   eax, ecx
-15: 44 0f 4f c1             cmovg   r8d, ecx
-19: 41 39 c1                cmp     r9d, eax
-1c: 41 0f 4f c1             cmovg   eax, r9d
-20: 44 39 c6                cmp     esi, r8d
-23: 44 0f 4c c6             cmovl   r8d, esi
-27: 41 39 d0                cmp     r8d, edx
-2a: 89 d1                   mov     ecx, edx
-2c: 41 0f 4c c8             cmovl   ecx, r8d
-30: 44 0f 4e c2             cmovle  r8d, edx
-34: 41 39 c0                cmp     r8d, eax
-37: 41 0f 4c c0             cmovl   eax, r8d
-3b: 39 c1                   cmp     ecx, eax
-3d: 0f 4f c1                cmovg   eax, ecx
-40: c3                      ret             
-</code></pre>
-<p><a href="https://tio.run/##ZVPLboMwELzzFXssEq3SG0nEsd9R@aXUEo8Iu5H79dS7Xhw7cDEaz@7OzIJwzkxy/HufhZs2Z5S3ywwf3gTfQHxu4yLFCN/Oi9U36bjQzbQ88IBVhA4@a0hG6ESQnT1B/emHTrjCV7C@mYy2Yr5sCKnpTlcR6sA4GznuTXSyRQQGEAQOIOshZ03sJrVYHmMGNbaIr1Q7wGTn2A5km6k3nObsTuX2SBWhorIwFf2svSZhujMtIpGtCRzAVMKMSOxKGIFYdcVXqk3CUG8tLJbuVG7PwkrqvchABE5Mt9k1D6kdk7CzrjUkx/rFMYazO5bkmDMqHefUe70vLl1LNiePiomqAzdWba5AcABVR4nBx4s6yuc20hqKaeoZ5WiqaWmMYscltRTGUSqKkiteoxyLHecoFWtQxyjJgygc76q58rij8js5Kl5N@qXyc0Xod51Bbds/" rel="nofollow noreferrer" title="Assembly (nasm, x64, Linux) – Try It Online">Try it online!</a> No test harness yet, but it does assemble.</p>
-</div>
-<div id="pu2" class="pu"><h1>Google Sheets, 14 bytes (non-competing)</h1>
-<pre><code>=median(A1:E1)
-</code></pre>
-<p>Put five positive 32-bit integers in cells <code>A1:E1</code> and the formula in <code>F1</code>.</p>
-<p><img src="https://i.sstatic.net/Lz7iRRdr.png" alt="screenshot" /></p>
-<p>The rules specify <em>&quot;any programming language of your choosing&quot;</em> and say nothing about built-ins, which kind of defeats the purpose.</p>
-<p>It is unclear how to verify <em>&quot;no if statements or jumps in your code or anything that would translate to an if statement or jump at the cpu level.&quot;</em> There are no branches in the &quot;code&quot; above, but I would welcome an attempt to check the code output by V8 or any other Google Sheets runtime environment in any web browser.</p>
-</div>
-<div id="pu3" class="pu"><h1>Python 3, 61 bytes</h1>
-<pre><code>x=[]
-for i in[0]*5:x.append(int(input()))
-print(sorted(x)[2])
-</code></pre>
-<p><a href="https://tio.run/##K6gsycjPM/7/v8I2OpYrLb9IIVMhMy/aIFbL1KpCL7GgIDUvRSMzrwSIC0pLNDQ1NbkKikD84vyiktQUjQrNaKNYzf//DbmMuIy5TLhMAQ" rel="nofollow noreferrer" title="Python 3 – Try It Online">Try it online!</a></p>
-<p>Expects input as one integer per line. No input rules were specified, so I'm pretty sure this is ok.</p>
-<p>Python is also interpreted, not compiled, so there is nothing being translated into the CPU level.</p>
-</div>
-
-<table id="st">
-<!-- Popups content will be added here -->
-</table>
-
-<table id="at">
-<!-- Popups content will be added here -->
-</table>
-
-</div>
-
-
-
-
-
-  <div class="footer">
-      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/275527/">275527</a></b>
-  </div>
-<div class="footer-space">&nbsp;</div>
-
-
-
-<script src="../c.js"> </script>
-</body>
-</html>
-
-
-
-
+  <!-- TXXX -->
