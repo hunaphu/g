@@ -26,6 +26,151 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
+<tr d-ix="0"><td>nan</td><td>Vyxal M</td><td>240906T124643Z</td><td><a href="https://codegolf.stackexchange.com/questions/268852/bloons-td-6-ordered-upgrade-paths/275389#275389">pacman25</a></td></tr>
+<tr d-ix="1"><td>119</td><td>Python 3</td><td>240104T191423Z</td><td><a href="https://codegolf.stackexchange.com/questions/268852/bloons-td-6-ordered-upgrade-paths/268995#268995">Jonathan</a></td></tr>
+<tr d-ix="2"><td>234</td><td>Python 3.8 prerelease</td><td>240104T140547Z</td><td><a href="https://codegolf.stackexchange.com/questions/268852/bloons-td-6-ordered-upgrade-paths/268989#268989">G&#225;b</a></td></tr>
+<tr d-ix="3"><td>018</td><td>Jelly</td><td>231230T004016Z</td><td><a href="https://codegolf.stackexchange.com/questions/268852/bloons-td-6-ordered-upgrade-paths/268857#268857">Nick Ken</a></td></tr>
+<tr d-ix="4"><td>114</td><td>R</td><td>231230T232954Z</td><td><a href="https://codegolf.stackexchange.com/questions/268852/bloons-td-6-ordered-upgrade-paths/268877#268877">Nick Ken</a></td></tr>
+<tr d-ix="5"><td>154</td><td>Haskell</td><td>231230T105858Z</td><td><a href="https://codegolf.stackexchange.com/questions/268852/bloons-td-6-ordered-upgrade-paths/268872#268872">matteo_c</a></td></tr>
+<tr d-ix="6"><td>057</td><td>Charcoal</td><td>231230T014256Z</td><td><a href="https://codegolf.stackexchange.com/questions/268852/bloons-td-6-ordered-upgrade-paths/268861#268861">Neil</a></td></tr>
+<tr d-ix="7"><td>097</td><td>Retina 0.8.2</td><td>231230T012544Z</td><td><a href="https://codegolf.stackexchange.com/questions/268852/bloons-td-6-ordered-upgrade-paths/268859#268859">Neil</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1><a href="https://github.com/Vyxal/Vyxal/tree/version-2" rel="nofollow noreferrer">Vyxal</a> <code>M</code>, 143 <a href="https://github.com/Vyxal/Vyncode/blob/main/README.md" rel="nofollow noreferrer">bits<sup>v2</a></sup>, 17.875 bytes</h1>
+<pre><code>502fʀΠvṖÞfUµ₍G≬GḟN;Ṙ
+</code></pre>
+<p><a href="https://vyxal.pythonanywhere.com/?v=2&amp;c=1#WyJQTT0iLCIiLCI1MDJmyoDOoHbhuZbDnmZVwrXigo1H4omsR+G4n0474bmYIiwiIiwiIl0=" rel="nofollow noreferrer">Try it Online!</a></p>
+<p>Bitstring:</p>
+<pre><code>01001100010111011101100111110101010001010111110111001010000001010001111111000110110110011111110101010001101001110000010110110000011010100111111
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a>, 119 bytes</h1>
+
+<pre class="lang-python prettyprint-override"><code>t=(0,1,2)
+print(*{(*(x*(i==j)+y*(i==k)for i in t),):0for x in(5,4,3,2,1,0)for j in t for y in(2,1,0)for k in t if j-k})
+</code></pre>
+<p>A full program that takes no input and prints the ordered upgrade paths as Python tuples with a space separator.</p>
+<p><strong><a href="https://tio.run/##RYxBCsMgEEX3PcUsZ8wUbNJACXgdySgYERdK6dlNtIvs3uc9fqx5P8Lyiam1bFDzi2d6xCQho/qiwqJQjHE01QGe7JFAQAJkYtp0n@WauPKbF56vAz0aNxroWLu/jf8bseCe/ketnQ" rel="nofollow noreferrer" title="Python 3.8 (pre-release) – Try It Online">Try it online!</a></strong></p>
+<h3>How?</h3>
+<p>Go through from a &quot;big choice&quot; of five through to zero placing this digit left-right, placing a &quot;small choice&quot; of two through to zero in each of the other positions in turn, each time placing a zero in the remaining position, then deduplicate the results while maintaining order.</p>
+<pre class="lang-python prettyprint-override"><code>  t=(0,1,2)                                # create &quot;indices&quot; tuple t = (0,1,2)
+  for x in(5,4,3,2,1,0)                    # for &quot;big choice&quot; x=5..0
+    for j in t                             # for index j (where we want to try to place x)
+      for y in(2,1,0)                      # for &quot;small choice&quot; y=2..0
+        for k in t                         # for index k (where we want to try to place y)
+          if j-k                           # if these indices differ
+            for i in t                     # go through the indices, i
+              x*(i==j)+y*(i==k)            # and assign a value (x, y or 0)
+           (                   )           # each triple (across i) as a generator
+         (*                     ,)         # ...splat to a tuple
+        {                         :0 ...}  # ...as the keys of a dictionary (to deduplicate keys)
+ print(*                                 ) # ...splat to print function
+</code></pre>
+<p><sup>Perhaps the <code>print(*{...})</code> could be <code>print({...})</code> it will then print the <code>dict</code> representation, which is in order of its keys (the upgrade path triples), but will also show the dummy values <code>: 0</code> along with each key.</sup></p>
+</div>
+<div id="pu2" class="pu"><h1><a href="https://docs.python.org/3.8/" rel="nofollow noreferrer">Python 3.8 (pre-release)</a>, 234 bytes</h1>
+
+<pre class="lang-python prettyprint-override"><code>from itertools import*
+s,r=sorted,range;[print('-'.join(map(str,p)))for p in s(set(chain.from_iterable(permutations(list(x)+[0])for x in s(product(r(6),r(3))))),key=lambda x:(max(x),-x.index(max(x)),sum(x),x,-x.index(s(x)[1])))[::-1]]
+</code></pre>
+<p><a href="https://tio.run/##RY3RasMwDEXf9xV@q7w5oaVQRka/JITiNm7rLbaEpID79anTDaYn3SvOET30jnn/SbwsV8ZkogZWxElMTISs72/i@Ch1C6Njn2/hqyeOWWHTbNpvjBmSJxBlR9baK7IhE7MRkKBwufuY21V8WsX@PAWgwGlWrxGzwBRFodiPfju82PLLEuM4XxQYDtYx7O067ic8jpNP59Gb0tW3pZKuKW3MYyh/2TqZ09qX/4vU3O@Gqui7rtkNw7I8AQ" rel="nofollow noreferrer" title="Python 3.8 (pre-release) – Try It Online">Try it online!</a></p>
+</div>
+<div id="pu3" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 18 bytes</h1>
+<pre><code>6p3’Ż€Œ!€ẎQMNṭṀƲÞṚ
+</code></pre>
+<ul>
+<li><a href="https://tio.run/##AS0A0v9qZWxsef//NnAz4oCZxbvigqzFkiHigqzhuo5RTU7hua3huYDGssOe4bma//8" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></li>
+</ul>
+<ul>
+<li><a href="https://tio.run/##PdExTsNAEIXhfm@B@5V2dia5BUg03IAGpaClMzkABR1IUEAbGkRjQgUK91hfZJn9vUGy3jx5xl/jq8vN5qbW9bXO48NhP293h/sTz/J5d356Vqa3Mo2/7z/PZXqsZf9RpldfzuNTvGjTn9uv75dah2FYxRxTWMUUs6f0LmQKOfoMyTMH@e9Ctq1P737l26UL2bohG7IhG7J12dAM@diFXGRDNmRDNmQLiqzIiqzI2mVFU@RjF3KRFVmRFVmR1be532RP6V3IxFfNzL0LmXAyTsZpN9LfC5nYCpm4ETL5H/gD" rel="nofollow noreferrer" title="Jelly – Try It Online">Test against supplied answers</a></li>
+</ul>
+<p>A niladic link taking no arguments and returning a list of triples.</p>
+<h2>Explanation</h2>
+<pre><code>6p3                | Cartesian product of 1..6 and 1..3
+   ’               | Subtract 1
+    Ż€             | Prefix each with zero
+      Œ!€          | Permutations of each
+         Ẏ         | Join outer lists
+          Q        | Uniquify
+           MNṭṀƲÞ  | Sort by negated maximal indices tagged onto maximum
+                 Ṛ | Reverse
+</code></pre>
+</div>
+<div id="pu4" class="pu"><h1><a href="https://www.r-project.org" rel="nofollow noreferrer">R</a>, 114 bytes</h1>
+<pre class="lang-r prettyprint-override"><code>r=rowSums
+a=apply
+(b=(x=expand.grid(0:5,0:5,0:5))[r(x&gt;2)&lt;2&amp;r(x&gt;0)&lt;3,])[order(-a(b,1,max),a(b,1,which.max),-r(b)),]
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=VZJBTsMwEEUlljmFlQWyJTvy2I6EUMMJ2LFsu0jTQCulSeS2NJyFTVlwKDgNcX4MYhE9_8l43sLz_uGv18_z6VndfXlf-O7ydD4ck7Io-755S_im4ENRD33ZbrMXv99yfZ_L-RNi6fnwYMTC3IaDFgsr12LZ-W3tuSr5RpI8lIOQOF52-2qXTQXl-UYIuYb5-4Yf9m3NFoplj-XxlL2WzblOqs77ujqFcporo_SqzZVWJoBiImBMRuUBesTYQn-JgKllPIRkAigmAqbkIHIQOYgcRC6KHEY7iH4TAbPIQeQgchA5iEZYiCxEFiILkY0ii9EWot9EwCyyEFmILEQWIhtaTOw0ARQTARrXJ4OJiQCNmQYzDWZOnRT_EaDRQoBGJwE6TfrxWWs-LdX01pKRZFNRsqprmrI_1qxgqUrF_8KqTQUrCjYvAxYmruwP" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<p>A full program that prints a data frame with the relevant triples in rows. It also prints some redundant row and column names - hopefully that’s permissible.</p>
+<p>The footer verifies that the data frame is correct when compared to the canonical answer.</p>
+</div>
+<div id="pu5" class="pu"><h1><a href="https://www.haskell.org/" rel="nofollow noreferrer">Haskell</a>, 154 bytes</h1>
+
+<pre class="lang-hs prettyprint-override"><code>import Data.List
+x=unlines[intersperse '-'s|s&lt;-reverse$sortOn(\x-&gt;(maximum$zip x[1,0..],sort x))$mapM id$['0'..'5']&lt;$[1..3],elem '0's,sum[1|x&lt;-s,x&gt;'2']&lt;2]
+</code></pre>
+<p><a href="https://tio.run/##Vc7BaoQwFAXQvV8RBsEpGMlLMrtxVl229AOsC6FCQ40jRkso8@82w6g3sxBvrnnP8924n7brlsXY4TpO7LWZmuLNuCnx5dx3pm9dZfqpHd0QnpZlPHM3d@Zj@3s/py4MffTHT88vR9t4Y2eb/pmB@YpyURR1fr/A/MtLapvhnZmvtMpEVhTZKavPaUVFoeq87VrLQu1yN9uKbv7MXe4vmQx3ZL3YxvSsZMMYICxlnpUlu87TME9J8niHryuWVQljhxOXXBzyRxRcbpHilhDXVvLTFkWI6xg9t4S4j4XD1sotUtwS4t5qIDWQGkgNpI6RGhwN5FNLiBFSA6mB1EBqINeogFRAKiAVkCpGKnAUkE8tIUZIBaQCUgGpgFTbmIw3yC1S3BKiwC92mYxbQhQwSBgkDPsGiu8SosAYIQpsIERxqJPlHw" rel="nofollow noreferrer" title="Haskell – Try It Online">Try it online!</a></p>
+</div>
+<div id="pu6" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 57 bytes</h1>
+<pre><code>≔ＥΦＥφ﹪%03dι∧№ι0∧›6⌈ι›²ΣＥι‹2λ⟦⌈ι±⌕ι⌈ι⁻ΣιΣ⌈ιι⟧θＷ⁻θυ⊞υ⌈ιＥυ⊟ι
+</code></pre>
+<p><a href="https://tio.run/##VY@xCsIwEIZ3n@IICBeIEBVcOomgi5WCozgEG@xB2mhj1LeP11ZRM4Rw//99XE6VaU/euJSWIdC5wdxccE3uZtv@OdVaK8h9GZ1HMdbzUiggKRUsmxJXPjY3JAVCi/do01rTwWLBxdw8qY419sAnmSnY86yzM7m1IaCYcdnJ4Sg4fDkFO3tmjHdiOf0pOcypiQH37@qg/c3pyNdVZqNHRc4CDv2rgiglFDFUGP@U2ahoib/ULcdJ4S@9KEspTe7uBQ" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code. Explanation: Based on my answer to the linked question.</p>
+<pre><code>≔ＥΦＥφ﹪%03dι∧№ι0∧›6⌈ι›²ΣＥι‹2λ⟦⌈ι±⌕ι⌈ι⁻ΣιΣ⌈ιι⟧θ
+</code></pre>
+<p>Generate all the valid triples, but then create a sort key of the maximum digit, the negated index of that digit in the triple, the other non-zero digit if any, and the triple.</p>
+<pre><code>Ｗ⁻θυ⊞υ⌈ι
+</code></pre>
+<p>Sort the triples in descending order by the keys.</p>
+<pre><code>Ｅυ⊟ι
+</code></pre>
+<p>Output just the triples. (This could be <code>Ｅυ⪫⊟ι-</code> to prettify the output at a cost of 2 bytes.)</p>
+</div>
+<div id="pu7" class="pu"><h1><a href="https://github.com/m-ender/retina/wiki/The-Language/a950ad7d925ec9316e3e2fb2cf5d49fd15d23e3d" rel="nofollow noreferrer">Retina 0.8.2</a>, 97 bytes</h1>
+<pre><code>
+520$*¶
+
+00$.`
+.*(...)
+$1,$1
+%O^`\G\d
+(.)(..,.*?\1(.)*)
+$1$#3$2
+O^`
+.+,
+
+G`0
+A`[3-5].*[3-5]|[6-9]
+</code></pre>
+<p><a href="https://tio.run/##K0otycxL/P@fy9TIQEXr0DYuLgMDFb0ELj0tDT09PU0uFUMdFUMuVf@4hBj3mBQuDT1NoLiOnpZ9jCGQrQVSoKJsrGLEBVTBpaetw8XlnmDA5ZgQbaxrGqunBaZqos10LWP/xzhx6f4HAA" rel="nofollow noreferrer" title="Retina 0.8.2 – Try It Online">Try it online!</a> Link includes footer that prettifies the output. Explanation: Based on my answer to the linked question.</p>
+<pre><code>
+520$*¶
+
+00$.`
+.*(...)
+$1,$1
+</code></pre>
+<p>List all the integers from <code>0</code> to <code>520</code> inclusive, padded to <code>3</code> digits, with each integer duplicated, the duplicates separated with a comma.</p>
+<pre><code>%O^`\G\d
+</code></pre>
+<p>Sort the first duplicate of each integer in descending order of digit.</p>
+<pre><code>(.)(..,.*?\1(.)*)
+$1$#3$2
+</code></pre>
+<p>For each integer, after the largest digit in the sorted digits, insert another digit that is the number of digits appearing after the first occurrence of that digit in the original integer.</p>
+<pre><code>O^`
+</code></pre>
+<p>Sort the integers in reverse by this sort key.</p>
+<pre><code>.+,
+
+</code></pre>
+<p>Delete the sort key.</p>
+<pre><code>G`0
+</code></pre>
+<p>Only keep those integers with at least one <code>0</code> digit.</p>
+<pre><code>A`[3-5].*[3-5]|[6-9]
+</code></pre>
+<p>Discard those with more than one digit greater than <code>2</code> or with a digit greater than <code>5</code>.</p>
+</div>
 
 <table id="st">
 <!-- Popups content will be added here -->
