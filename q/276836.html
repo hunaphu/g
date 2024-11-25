@@ -140,15 +140,14 @@
 </tr>
 </tbody>
 </table></div>
-<pre>import sys
-
-import sys
+<p>...if repeats were allowed there is a <span class="math-container">\$17\$</span> for <span class="math-container">\$N=7\$</span> (<code>[cb][lr][au][is][hs][ee][ds]</code>: clashes classed cruised crushes blushed bruises cruises brushed brasses crushed blushes clashed bruised classes crashed brushes crashes)</p>
+<pre class="lang-none prettyprint-override"><code>import sys
 
 LETTERS = 'abcdefghijklmnopqrstuvwxyz'
 
 
 def find(word_length, words, floor=1, i=0):
-    if i >= word_length:
+    if i &gt;= word_length:
         if all(len(set(column)) == 2 for column in zip(*tuple(words))):
             yield words
     else:
@@ -156,7 +155,35 @@ def find(word_length, words, floor=1, i=0):
         for n, left in enumerate(allowed_letters, 1):
             for right in allowed_letters[n:]:
                 filtered_words = {w for w in words if w[i] == left or w[i] == right}
-                if len(filtered_words) </pre>
+                if len(filtered_words) &lt; floor:
+                    continue
+                for result in find(word_length, filtered_words, floor, i + 1):
+                    floor = len(result)
+                    yield result
+
+
+def main():
+    word_length = int(sys.argv[1])
+    if sys.argv[2:]:
+        words_filepath = sys.argv[2]
+        word_file = open(words_filepath, mode='r', encoding=&quot;utf8&quot;)
+    else:
+        word_file = sys.stdin
+    words = set()
+    for line in word_file.readlines():
+        if line.startswith(&quot;#&quot;):
+            continue
+        word = line.strip('\n')
+        if len(word) == word_length and all(c in LETTERS for c in word):
+            words.add(word)
+    for found in find(word_length, words):
+        print(len(found), found)
+    print(&quot;Done.&quot;)
+
+
+if __name__ == &quot;__main__&quot;:
+    main()
+</code></pre>
 <p><strong><a href="https://tio.run/##bdhLj9xIdobhPX9FQrOQyiM03DObwcDyyrPzyp5duyFkJa@ZZAQrIkgW0/Bvlx9WqVu3buCDKhnX7z3nBIM976WP4a@fPg3THFM55T1X1X/@45///Md//ffpw@nt@fFSN23XD9fbOIU4P6VclnV73u9vq6rSdGqHUL/bYqo/jk3oSv/@dPzI70/tGGP68PP70/DhXx/@Xp38N7Sn4fTvH05fdX9t@Nx4Hsd3Hr/LTXl3ieMyhYeH04cPp7@c2phOr09OQzjdh/ndv5RlHpuXlfPDw8OXeY7/9qEZ69eNvDxvxtx86WGZuDXHDkppUubzda5j2e2X4deX1bZjoc@z/z7yaAjvT2PTlqO5CcvUpHNp3n035fvTz9/t6BiZhq5/Gfdd71/C33/9tvfLiGHUqNfLJmzyf7fvNnYge9kvRC9bOlo//35Z6/9@mNSIA/C3cz@c/u01Wj9u4vjvEkMZwtL8uMPDU5OX8cXUj4nw7SqfM0I@nP78A57fpzy6nD68bPJ16oc/7Pca4NcenxNxOg/h3edpv9qGyYZQ3knsn86pW3/5@deH33Lx92d/@Zr/y2Y/2nszn1@Gf@n26zedXvpoj7PNfjvq/WmKdfPhbXr7XpJcYj2E7sObpbR/e/PwBwn59WzHarkY8LuRI/ZHar6OPKCPQ2h@y4KXcT@l5lwfT/O7h28q6nhmunMqeRtK/@7Nn958R/6H6B6THhF4HZmU2tv/CW8fqu9S6Oj2Upxfsz6H@qWIL8fufjtGXmr3t@1@t/qLv5/O9WvmfHHYxsVUf5hVryn7ZZo5HfF9yepj0MP718Gvc702vvmPyAz0VWX3Hz@G89R8/Hhs/s3Hj0fefPz45nXC1ySqPn06n0N1vlyooZ4ilcpW6Up@12t1bvRrUnVuW9Le6d8NpL0/k78HYwbPh5EmMmYw5qbPbanOo36j9lH7mMk8k2fTI3k@mWPSN3gWzBU8Cx15HswVjjbjgnFhr87R37M@s9/JmMRH8jsZk25kD8n6SXvWnvnL5sra8kzGZ23FmOLfhbfFOovny/H7uTqv2jZjt@Nf@960PzfV47mmjnoaKVCiTIX26rG5kH6N/o2@zUA30r@ZyBhMHxv9G/2HR9J/0He4kn4YPg7mHPTB7nE0x6jveK8e45mMicZEY6K5ozHRmGjeaEzc6JmMwehx0XfRd7E@r4@Lfvw@8vu46LM31eX8SDWNNFGgmRJlKrTRXl14ufBx4ePSaOPlIh8uvXnkxKWP1YWPy3D8q42Hiz07K6gjfez5Eq1j35eoX7RWfCJzivGFj0tcyJp8XOK9uojzJRmbPE@eFf0W8/J3UeWXRdtyJXPzeuH1spiX38ty9DXnRmJ5eR6qmuea5/rcUEc9Hc@vdKOJAiXKVGih3al8puY4ncnYxlixrsW6xqcW6xqjGqMaoxqjutnIWJzqwfjhQtYfjt/mGIxVQ8cBWWNXDzMZLxdqHOvB2sNzVeNZx0PGYFhjWGNYY1djV2NXY1aLfZ08x6rGqV6sh1MtF2p8anzqRTs@NT41PvVuP/Kh4b3hu@G74bvhu3l8rBrnRXN5rhoeG/4a/hr@Gv68pqum6yhWDY8NH429Nzd/jzUd/7Y00I3MMVrHudBM5ncGNM6AxhngQCTtar9R@024Vw1vzWwsX969pE86fltPzTfyolHzTdaWjc2eq/kmP5Gx6r4p2suF9Cm8yCE3FdqrBpsGlwaLBovGWdA4CxrnQINJez7ThWrqKFCiTIV2ulet@m/lRotRKw9anFqcWozaZqGN9JMDrfpvxb8V/1b8vfFIf3FvsWvFvRXzFr/WGdCqo1YdteLfin8bexrIODXkBUPWUP8tTi0@bTIfRi0@rVxoi368tuqlVSstz61caOVBy3vLe8drpz46Xjv10Z1b6migkQLNlCjTMWalne5V1xiLQacuOhw6HDocOhw6HFy7SV8MOgw6DLrBGjh0zsEOiw6Hjv9O3neDueVPJ3c6/jv@O3nfyftOvne8dnKi8w7onAcdTx1P3eHFGdep956fXvx6nnqeep56nnp135@P9okCzZQoU6GV9qrnqRfbnq9e3fe89bz1vPW89bz1aqHnr2@MEee@Ocbdq16t92q959MXBxnDX6/Ge7HuxbrntRffPurLY89jH60jzr0Y92Lcq3dfNRTJWDXRx2PcQtZT9z0WffJczffi3Kv3frFXTHpMenHul6PduN0zH0YD78PjmQYK1eBuMKj14eL35UZ7NbgXDL1@vfb@@DtVw6Dd3ocrqXMXNvJMfQ/qexj1U9@@wapBfQ/hQjXpF1rqSF/v@kGtu9JUA38DHwMfg5gOanvwHh@ytdX0oJYHtTyo5UEdu/yRNYs29Tyo2WE1fvf77u97qa5ifxXrqzhfne1Xfq9ifPVOu4rt1Rl@ba4UKJMxavUqN69y8ipmV7G5isUV8yvmV8yv9nnF94rrFdMrpjdr3Mx/k0s3OXQz/838N3Pfmpn8lgs38b@J@U1@33C7ie2N95u43sx9M@dtWapRLY7ydpS3Iw@j@UceRmuM1hjl68jLaK1Rvo48jedn2qvx0TPvqtG9ZJS7o9wd7WX0rnKvJOOao49xjTH2Njq7R3U58j7K29Fex@F41pJ1nVGu0GRdsR95GNXn6G4yYjTK31H@jnJ3xGuUuyNfvn/IGGfUiOGIoY/FahTHUa6O6naUryOeo7Np9C73WUzGek@N@I74js7lUU2Py70ancvjbh05POE04TThNKnvCatJbbv40pVuNNJEgWZKdIwttNBGezVhNuE14TVhNanzSZ1PmE1NJONwm3Cb5Mmk1qfOmN6/2E24TbhNuE3yZ5I/E24TbpN3@6TmJ@wm7Cbn@@QuPGHn24qOv62J2YTXhNeE14TXJC8mzCbn@yT3JrUwLdbDbsJtwm3CbMJsUufTcrQbJ48mzKY9VEEtBIwCRgGjgFHAKGDj84GOPpFmylRor0J9roI8CrgEXIIzMGAT1E1w7wkYBYwCRgEfn2xkLD4Bn@AcDBiF4ZB58An4BFwCLkE@BUwCJgGTgEXAIsihgEdw1w3OwKBOAjZBPgVsAjYBm4BNwOb44gs4BO@2gEXAIsifgEfAI@ARdnuQO2EvVZQXUR5EPqN6ic696MyLvod86lbR9090t4neWdHeo31He45iGO03XmMVvZ@jGo7Ovuj7JjrjfJiR3841X6K0V5GXyEfkIfIQxTfyEO3fxzb57dyL6ZHM4fyL3t3R90x0t4nuNtHdJop7VDdR3COvkbfIW@Qtrp47A@Pq@abd/SX6jom@YyLP8Z6rWa3McmAW/5n/WexncZ/FfMZiPh99Ci200TPtdK9mtTE7Q2bxnsV6FutZrGexnsV6FusZq9k7YvaOn8V6FudZHcziPGM2i/Hs3JsxmzGbx@Nv49xxZnGfxXsW6xmjGaMZo1mcZ5xmuT9jNGPjI5g8d6@ZnSGzO@6sDmYxn8V8dv@fsZmxmbF54ufJOfd0m6ondfMkV57we9I34ZHwSFgkdZDwSHgkLBIWCYeEQZL/Se4nDJL8T3I@4ZCc7QmHhEPy/k/WSc7T5BxNGCR5kzBI3v2@3cmacj7hkfBIw71KzoDk/EwYJLmfcEg4JBwS/4n/JMeTvSd@k/0nfpM8TzwnPhOfSZyzGGfnYeYrn4/fHfU00I1GCjRTokILbbRXWZyzes/8ZvWe3Xcyv1ncM8@Z59w8kbF8Z76z@Gfxz7xn3rN3SZYHWR5ktZNxyDhk@ZCxyOoo45HxyFhkNZXxyHhkZ0C@mu9mnLtFvln7Zh45knHKGGWMMkY5Xslc6ipjlZ0NWd5keZNxy7hl50PGLjs386zPrG329xMPaim7Q@Sij2@BjG/GN6uvjHF2f8ryJDtTMtYZ6yxnsvzK8ivjnnHPztm8eu6@mXd9nbd5X2mvihgUMSj4F/wL/kWeFTEoztsiDkUcinwrYlHUXBGHIg5FDIoYFGdtwb/gX/Av2BfsC@bFN3jBu6i9gnnBvGBeMC@YF8wL3gXrIvcK3gXvgnfBu6jHoh5LPGSfuBZMC6YF04JpwbRgWvAseBY8C55FPRb1WNRjcV4V9Vh8exX3s4JlwbIsx9/mXXjHsGBYsCvYFezKpt9mrG/QxT10cfYuvC5dXy32d/z/0MXZuky5WtwlF2fs4oxd3CEX5@wSIh1tS7U4R5fZ3/a0@P5ZnJ2Ls3Nxf1zyVi32tYj3Yv3F@bh4D6zqZBWbVVxWMVnFYhWLVSxW@1nFYG2Of7Xjv@K/ugusYrCKwSr/V/m/yv3Vu27t9MN/xX11d1rdldfheGasGKxisOK/4r/yt8r31Rmwjl218rfys4rBKgarGKxisGK/yucV/xX71Vm44r9G4zBfeVyXQ1fK1cbTJuc2njaeNp628/G80ELPtFebb5uNv02Obc61Ta1vfG58bnxuPG48bjxu8myTX5v82uTVxt/G36aeN/ecjceNv423jbeNt839cJNXGz8bPxsvm3za@Nn42eTSxs/Gw6bmNjmyic12eJAbm7veppaeMXw21zNWz94bz6O/veeenw/5@/m52tXU7vtlr3O1q52dp52fnY@dj705nhfa6F7t9rnb426@3b52e9ntZVfzd@zuavWO3x2zu7nu@Nzlwd08d/Pc@b/zfuf9zvddXd3Nd1dDd/Pd@byb8y7n7zzd9/Dpr/8P" rel="nofollow noreferrer" title="Python 3 – Try It Online">Try it online!</a></strong> - you may want to collapse the &quot;Input&quot; section. This is for <span class="math-container">\$N=3\$</span> as TIO is too slow to do much more.</p>
 </div>
 <div id="pu1" class="pu"><h1>N=4</h1>
