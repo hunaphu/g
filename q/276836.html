@@ -26,10 +26,80 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>003</td><td>Python</td><td>241125T222134Z</td><td><a href="https://codegolf.stackexchange.com/questions/276836/2n-different-words-with-n-characters-matching-a-regex-of-the-form-abcd/276843#276843">Jonathan</a></td></tr>
-<tr d-ix="1"><td>nan</td><td></td><td>241125T183455Z</td><td><a href="https://codegolf.stackexchange.com/questions/276836/2n-different-words-with-n-characters-matching-a-regex-of-the-form-abcd/276838#276838">Arnauld</a></td></tr>
+<tr d-ix="0"><td>nan</td><td></td><td>241125T183455Z</td><td><a href="https://codegolf.stackexchange.com/questions/276836/2n-different-words-with-n-characters-matching-a-regex-of-the-form-abcd/276838#276838">Arnauld</a></td></tr>
+<tr d-ix="1"><td>003</td><td>Python</td><td>241125T222134Z</td><td><a href="https://codegolf.stackexchange.com/questions/276836/2n-different-words-with-n-characters-matching-a-regex-of-the-form-abcd/276843#276843">Jonathan</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a></h1>
+<div id="pu0" class="pu"><h1>N=4</h1>
+<h3>Regex</h3>
+<pre><code>/^[ct][ao][np][es]$/
+</code></pre>
+<h3>Words</h3>
+<pre><code>cane, cans, cape, caps,
+cone, cons, cope, cops,
+tane, tans, tape, taps,
+tone, tons, tope, tops
+</code></pre>
+<h3>Search code</h3>
+<p>This is the one and only solution found by this code.</p>
+<pre class="lang-none prettyprint-override"><code>const fs = require(&quot;fs&quot;);
+const data = fs.readFileSync(&quot;words.txt&quot;).toString().split(&quot;\n&quot;);
+const alpha = [ ...&quot;abcdefghijklmnopqrstuvwxyz&quot; ];
+
+const SHOW_ALL = false;
+
+function search(N) {
+  const re = RegExp(`^[a-z]{${N}}$`),
+        dict = [ ...new Set(data.filter(w =&gt; re.test(w))) ];
+
+  let best = SHOW_ALL ? 1 : 2 ** N;
+
+  recursiveSearch(dict, N);
+
+  function recursiveSearch(list, N, chars = alpha, pos = 0, path = []) {
+    if(pos == N) {
+      if(list.length &gt;= best) {
+        best = list.length;
+        console.log(best);
+        console.log(`/^${path.join(&quot;&quot;)}$/`);
+        console.log(list.sort().join(&quot;, &quot;) + &quot;\n&quot;);
+      }
+      return;
+    }
+
+    chars.forEach(x =&gt; {
+      chars.forEach(y =&gt; {
+        if(y &gt; x) {
+          let newList = list.filter(w =&gt; w[pos] == x || w[pos] == y);
+
+          if(newList.length &gt;= best) {
+            let newChars = [ ...new Set(newList.map(w =&gt; w[pos + 1])) ];
+
+            recursiveSearch(newList, N, newChars, pos + 1, [...path, `[${x + y}]`]);
+          }
+        }
+      });
+    });
+  }
+}
+
+search(4);
+</code></pre>
+<p><a href="https://tio.run/##fZtLryQ3eqb3@hUHBS2qbFk9HszKjW7DMAx40ZAB92IWGtliBBkMZjBIFi8RGSnrt9vPG1WSysbYajSq6pzMSPK7vJePzIc5TJtrKP2vUrbu3@ecWn@zppu3P7y966vpZ@jrag631Lz3NbTTVddXdzUT7ORcOkOM/Hs/V5f2XF1IPV951JP38v7U8u4OV69RcsopXj3sLoZNz0i7sa6Ned1H65kX7fx9S/n0OVubT57X@mx2N/OM3Wwu5uTPXDceyHvTdboYY1jc6VKfzLw1XhtN653XrqzzwXNNbNmc5vLhcCzHuss1LaiY2qNbes95y2l2zszrYmZ3ruxTz2VBqzN2CclOua89Rxt57c6/t@TOxt6tuVriM21ObhkxeuLUck6nSb0F63iU68THZtf6msfEH4uLnT3Y0Zy1hCe5J@tozeZcC/9v7KXmvK8mLptzZePzllz3QkyTY9HraBd/VtbW63An@1@DXxtrsfycPRCzprXXhfesuRDj6vgjLc6Rz7Z61utDjauLlv@XpTp35NGi0V7tRW7cbGJkyZX3xMq6S@T35GNzpS/EknX52VS3hOp2Z9Ic@sXeopmiS469sb54x7zalgdZqLwvERPiaPgMttPJcVvzubBWa@pGsrZCXZm6K3xmIt7EeSes85zLtbN@S0wiz2lhXolBrLmR87MV8p7YA0XGivUzssizZj7vCO5cTKg890q5u4W98fpWMwUYiT6pXPm9Z2GU7ToFl0o0lw3O9jyIWbSNRXietbPOifWe5IVacHb0y1Z3sty4m9CWnPtgZ5X17dRgDKVNcVBf7Wor/@jUIq@fck1r72XKV/PUx8neZ@LrjqDnJJ5jT4JwOrdN2fRGrdCX7jSh96r8UOfslXcUlePCv3kGcV56pY4jNUauCZZJlT8r76U5HfFNJ88@@LOY6CJ5ovvKSXCsG0/wgM9Sr7UW3ajkh@derZWsXiw7fUEse6GmmllcqDnVEXmu13vIi0/NmV6Io6GftURiRRwo8nV08qk8R5Ls1pE8oWzkcvP00RLoyJysrYY2jMQpnyv9M5m0kYfWQKftxhviw374Nx/C7@kZMzn6Y95W1l/zTMyqS3leY2h9ivks1OfpzFaquar2nh312NbE2irQx7O8V3x5H/llr3Gnr/tOndBLPYEPFNdZWYuz2uuwu3qdDEy0ZAsvl8Ks@FafLcFj7aP2FFx/5JB26qGbtpHXWMhzUx84317hkaZQ1eO0tneWz6NW@kzO6a29UgOVXjsVKBLYcgBntP8QV8UgdLcTt4l42prZXhUezRY86mCLZ79UOJ9H/HgO/dzaoIaAW0CInmmOfCj2cWZtln4GT9lub8QiNRP7xI8rPUGYaDn11kbPRHovLxP/ttm3fhWtY9sVO6EwALHQhOS7@bD0JRK1kRq8ESc@izXwaK0bTE7EyyTab95saNsWWvOutzqIGz28EoNJNQMO87kLr6VPiQ01R30W6nvb2QN9dZHXfck8myZcibOlBhJ50kvBU@K2O29e4ocMBxjqcpg92IfwNYQ0mema2feumqDHqUPnvAdbWZs5eX/dJyMaGc86rGPx4JKJB9h9ksdCHidiw37PRjwO8GYNrnawpA4QgKxX5ZI6gobaxh5ZS5tX9yqhuDjgMT7zyKFO1P9ihmjUg3tgGRUHZNJjaycmFDp4Emolrt2pF0yd@ZNo0Z@BNac0C0NXUjS5C6yPM@l9UYuRXi6qEfIBWiXKbQWbKp9ALcaNcKheGhhvd7fWE/zrIRGbQY0lPxEu2Kjt5AoO7vBZLW50mNolo1p1dqEHdv5e6G9qwV88a/h41Ux8@D051BZcPsFZYhLSvIK14BuCxInHUw@rcIb6HPWah7gmJOquS6MUcO51xz48C9DCQsrhAOuxuTmOiXw4K9zJobeR4O5oC1hmKM/Cu8G8tpmUqmKHcAFj1D7Gs27qxS6DxIAH8ESlv7aTuv9I76hBT3jwIV4MaaNSqNvkhMYnmAGmLjP1ARWeM3ErMfOezvJyeuSNjhkRTPQroEV9g4WJGjCFWHY0VJ9ZTLtjDlfXsBf1t7OtiuPBLLCBnIV4gDdnXiM4Crgnhy5xPF91u9Eupqgf6CmXjqvnHRgE61m@N@lFH7bEXswcyPeIeWX1sEQUl4NXsDhwovV11aKd4cNC/a4gfhdGVtPIeQPk4aSKNqI/1G/UlncJTqNQwXc0SycELzDaFvE2@VpvfeDqBDl8HDdYEE9X6McNXIOvZkfJwE3gurXNjn0CkweYdi0DfqB2wQM1ALgd6oPagCgKGAbWJE8vWP1qVr2vpjzGXmglch73PdwcaSRN2at4L7E3qxQJSOhvNgWfS0sSB6QmGO7XBY5GRxBz5cJVOMo3ioTetQeEAges1AgaSlqy8j7yT39NxJuuXNmrJe7egIvgA5xwNZH3Sb7oMTB2wCNx4xlppR8RES5sG/qOugbiJ/rzpLY/jhxmmmYi/ywb3RjAG7dMlPpMfcJp3VMME9hFG7kpn3FU1gkUo59qGzs9De@Z4@J3aKB2nTkuK5gG96xo0DiPAt1HrasdxlCbLDgDIXCNp0IQGMVn6R0SJ/2X0wZ@IczvPbEKEg31N9W/SIMah3@QImeK5nXNIX2kFuiVHAnYBd7Rsw2OL9KwQAVvZ23EMe7wIxzfwWg0En0oHCAPiIrd8m80EH21T/AWvRMa/VLQ0vtOPlFfLCgpr2Diyzn0CPR8fyR43AqdjZ5TVMBO1ojQoZ7hRjQicWcdvoDb5LITd2sE/kN4XqUtaTqzz9QAtbk3@gxplGbWvtML2B3xiLCUUmlrR/1HeBL/ZIET9ul4T@jgsFYm0ZE2ij4/KV4w4CA0YFe/1M/FoctJrF5LEfgBvQytucrKTCVT35Qjmq7hn/RM@gXdpX3TX@AYGHm2idfAS9JYHTLaH9IQ4OYD/Yym3nbpOJpiplY8OGzDg@w9TAe3enbUJf5HuvXa02HqBW5Tf3ND37girRgDOtmyppAIwwkWgNetoR862JOItyMu8Fh3lBPSJiOj9oj/E3bvcEslH3waqB52hFd2M@vDKyxgEHnkYacht0A6uAB4Sd/wWTw0i4XjRX4vaIy4m/0gRQcrp2KRuLPoz2Cf1ggeNPCJ@CYQqR3Ud1H/k@8XmGRJZAkezTvoXLegzcD4hVqa4bcoLQX5AQQXmoYGmsk38Wn5kG5shnIWMvSJcBT4DRKC5xBAxPCgh7rqBx/Mh8xda6Sn6KWOdthqmFgrPZhBF@pjS7yXfMA7UaTkKZuJ/dMzGR2J/kDPUz9d5EDQeRdeeMOrwF/k4gXAwfkLeJbIwfJxGBeaPq9IZghr2kL8WWBXlvn9DhfFMhwSFl8r/J5V78gBG6/BeuAXlAhqbETkv4UDXmg/PetEOGwZLIS7AQdylXmwgVat1mpeg1Zm/@ALu09ZXGKN1djArLsHAymCONXgJ8odH0NcGzyV6GUWDM/BD@jXuqB5/Cx/gF6hGIjgYbICaZTrS2/y1LinOPxJbuB4/FDayCl4cuK18MR8QjYbuG6lBcgJvo680nbSPtIc@tMU6iUKB/CzmMH0oH@nYcFRdoFQoVZd42V4J/gNTo07vn7ICzzx0hQufZjHcyWm@J5ebv3g8JIJhg17Dw8rVUFPmQn4WdC3u/olCNviRa2Uh5P7l/rpYHrCU6KBKLRCX0zUCd5KvB03M3YPZs/1DmAnQw78e8Jb8UWO8NQ7iIcHbyvcCRdJt1D7gzI/ERDP0GXKfJg6nLpje9BShrp19URD0AsWXQbXg7V4iKgJEnaCPfIa0AI3sdTs6WnNbdiOQVPjrcAd46Xd5AFL90gwCmenbaU96cEGRpDlUzx25@N64IeWKroJlnjhVTK@Lgmj4YUZRSBf0p0oHZyuS0jhAQ2pkeE3tBBViMRt8nVwFvqRHgJ/RoUvErxptisr77a9gMmI/jCTNI8wPNcFS1nkV6h9S6@jxzq1ue8X0PtUWsk9KDah2b14wUnyAGzCZrh/PSj7R27okn2hUOhha563H25o4bSMlQzlfRav8h4nB5@l6WkJ8GsGh/abp@hH9IrEeIHz4pB@rgZNUl8i3IRXW@ES@AMcfs5gDtql4dlKCeiocc/s8JOOvVzUS8XXeJ6bNGeB51OnXqQXF@p2mSAozOxOfhNhwwMTHfY34/dbwFfowfwfyp/2oOlQtuixnRwneAvNhT7hwaxsosATip88Gvz3bZvRk6m/EPvoY7igbtRXSeQcinddPpgYPPJEnBoa28pRCKvg8JNecPg/dCg6Aq@Avj3l69CUE56gLuyzgmGXV@JZCyRORj3GK/ZdoxN5Vz6P9bCYvNPPfpY/JofPEAILRHce2DtXV7TcLAysYCL4BXZTAcbDYfITYIqLD9ZIIT4dPQ/Yrbs0q7wZ5Ex11yh8dQO9u6uZpFfbLowKFj9GA3llfUXXvF583oZ32idisEuodHHogRbBX7Me4IyWQarDyyv@juRloAUP1t0Wbj7cVvoxah001RRM24cek9DQyVXwB@RGA5gnwILGqJkdhj5yWsOLaqLINLihT/CGBS7b7ChIOQCQTR5ooyJjIZpXYVIncGz2t36sfPa9eeVvQUIntAc6gjUFQXcG80wk52Ma4DN7F9BO8j9wsK8DeTLMyqLQbzYOcdml2YBb4e65jo7Ov6dsEDncWHjGhc6l78nfHlBlY7piXvrBq6ARjauRZerLjrMHM8Ej9NFkjiAdQW8neRuNfuU5M3AuXbjAw/Q/npO8ggk2@xQ2SoXFEGttEby5ve1I/Ns86Ek/5AJDwdOJo/bl9hd4YjjqIMrEvPSx8DF4E0APnUv/k7LingVBwufZVd6MF0TlBU034VmhK/l2l0E5HwaYNqT5pFvvN0NOlnqPZiwaBUg8n@CbsM3OiMKV@gHCT@oy5KrkGfhH/QLuIkYr9Qgu1HlE1qZaw/NDQ@BuQLATS7k9i1QBxNFOFIc1iEnt4JFjaDnl1e3QULzAVBEwHu5Ey2pGS/@5YF@sF0zUAElYxtN5La/k47cVjIvC6hEE2RWiCqw9EQc08ql6ny50I24IHunwrnSyNISw0Qb6HxkR5WkCnLF41BcxL15@4ErS6bgfchY9ULyNgp5epSkC3RN0REF4WEubEaLqEz5rG/WFLjLO0yRYDfiL56QNr4pmJs/g1sXnzpQIfpxSU85wOsLZrDMD9MElvExwMDrEAJQjTvhb6Z8MP3fee6Jr5g6RUHPpRLfuBlUWh2cfxdK76EVwgDphGVh0i7zSGNrY4Il6tacONG49RBIziXfQP@IEfCXQpr4u5QD8ydKORDNrhi0tZ1FMcHhw6u6tg43ozQtFR/2ZCT934QPLy3l8gplOvGIDjycDmdFNT4ASzD7hYp6ECs2aqwJvUdM0elRDEpcGe9Ak/qBmCARASEDgh@0BTpFq6SA874J3NZ78SQlmND@cYJ4azJOck624GhaHPtS862zDWTAvoGXkKfYWJsWvyg2/qGGKAZ@BSJJo3hBO0owsZ6ORA4VA5PwEnFFfaPk0eOYAG70sJtKFNVU8U9WziMsU2IpRETYzUSiaL0FEcMUCf5JCtGdwQXnIMPE95xzPBcwzYTNFcy5MHy1bWfM6oQFIS9AYt7Kx6Z5rIaG7poMOf24sOakto0xxPuwJzpFWs5rN9KjOZ8uCqa4@zajTsVNXXUOuHRVqxATol@bx@Q/NnEZl6@hq/DXSEw2SwT3pgQA7TQBkR8bLbEiv1vbSTHvVfLLJFyjXx6R5m3w1yS0sqlKEiT2yVUCigW3OQPloSKoE6Slr/AqPftTwAE/8xCKQeqy9aH7A/wJx1kyVYFp7@aD9aObpuo8Ei30Wet9eG9apam5hMSN@CxV909u1Eenw1AyK6ljkAdvE@72sCcIDKE7mrNdFraHtdJ5G8QdPGOgbnValPMeA3AnSTSwYf0Jngnk7IBqT5qJnhrN4bp5N5oMkdtogFq76Qs4qvUQNRnTT1OWbkQuFGvYuSl8aADrRAegkdEtWzIt7GcN6XIG/6XSNXqtmApj8XXPKl9E5Dd5YThUMgyontOtYqjRWEIgNuBW0HWhoeRHlIHggJCpOhrfo8AAukX/ARw56dmCGoEu4At1xayt8Efrn1mdjw7xUtC32oWltiV5DElHfbmbLUed@8GGDV3Lf0CXIH4OOR2OBz8OBYxk@22gSoVgL@GHf75kUmpgs4ALWrvnW0OyDNhHZA33U2jzLE0InUKKDcPHOE3rhgNJunY72eqH1XX3Ag56aRQ/Cr@isoNOvYT0aZacejoFPZ6/oPyzCi1bCVcEf9Bs0v/RZ84U0JnTY0yM34MtwuqmBlenldAS04e17B9/5udPsFTz2DSlCvXqd45KMsEmSsHV4OiHEnPwNiKWzL7iIqka0Y89DT6wZ/eLJ5qKORSyZZeg00G0CKskpsMehs@iYgJ49NWrv@EvFWWc5ZgcXyccEriJXAj2NrmdnVDm4B2KMg1VRK7xuy7d8QCfrWEGeSYPGthIf/GESJLMfOB7ogY@llzdzuVe57tkd692JQSK@yv/u8FfWw2NYLPkQzbmweMojIoZ/roe0KLWmuRCxcF7DYhrcaWa1uwwQPNA@5DA9IXRPiaxu4CvXFIMGC0NCfMEjbe4e7wc5VvpZerfp/Jh8XiygNE1YgTbo@aIhnc754Fewis7pt0aDM2l36hhvS8hblh9GdWikEoyn/1gGzQ/b4D3x7BkMBNIvk/klOl8HUB3xmpCYmntFakpcsx0s9UHNbOy5EmcsPvrILUTFyIplxDA/18DhJHfwOgW0o3UryTSrnIFHE4ly8Xs7fJ4009vhWXQCmpv1FDRRvNKT/eDP0N6HQMAL2fGauMPq8Tg0qHy4DtOpHSkIOs3hR8smD3H7oaWDNQUPHjw@8wB66f00aUSzdN3fWGfdQHCDeA/NeDCfM5wv1Z8bi7zQcx1WsJvuU@CBdFCy3NzbZdwKeXRani5W2DxvO/mgHsJJ8ZHPfQMPi0bjmpewP15LDuG8LHV08qOAn4Ohxkb8pozmW878GrMOxtgDz5SvRNPsDR7Y8XdolryA/TqPRWuRdohpO/DA8Cu4tlMicA/6O4u7o3H7zeqsrxawycM/@dCMN7BmnVqSj00H9A0wduJGcJGFkUrp3h2eXL3@PqSbBvVw6811yk73SzpaB5hfL2R3PtA3LAjOa5umwPgbEPCRTNXYJMyLMGzc8wm8SV@bAu3wGliVySEjaB3Cgcde6OfqJDPg2gpGd3ogjW3LqICqSSA@m4bIupqSNd3AcuAp04YTKLqJAncOPtOeRnhCP8C5fdUUQTOfQcPjf3WyYdG6Q8M8txJjaSDWVBFQDzC/6vwRTOBVmq9oeMveGzoSuqkbnA0We2Tx9EQYLCPrAK@OgfZGnu3SJcAduLlH1e@AK6lxayYqGD@54idQqjyV7jtRbJp6mm0dE9oZzVR0/SWf1ICH3YghBeHGSWBlV3V2hN9yAX0J10E62GnynxfNQHVupnsR6IcmbWCkvyl6jRZ7LrTs5TQJ0DwZTEcq6y4K3pukILIf8BNyFDxhl/jTj2OAXeGJyDpZmwnTrV1Bo4EhhOSVM4gDDNNZ1Mbn73QeflNcvlHH9LeLO7ZSfXwtyFFKLjUk7IUGNWDvxlasvCyIB39vUBD6XNc6tlywVpGcwCNEKYWdngE/WF1C7u94mST0WnbWPWddiYqaq@tQQOdx1NbYs85gzMxzWklZRyhV5h4tPPz9oa1ch@ac9CbxxTLMGjNkieETzkBb0LuIdkQzNaiTcJ2PqXW6ugqRSgVIgCQfs@qfGvWaogazsdZ033nQDaxZPhb9YSKpQ7pQZ/RLlTAGWw@J31UeinoMYCF6B9FsgeS5sUE@E14cboDUOuic8SYrNXpSY55eOa@@ogH3SdcY@qtv@Op9aBYCBtDfFY1owzPDW3s@EMbu6dawwQm639M1NqZW8es4KDSa7gbh/XRoILGB3NHwO@UJz7Nbign88Oyd3tPZhG/tHDpcnW14oBd0xynZgpi7dEcigGVGM6BkkZBVByPwU6JWdbkFpIjgSLrHtxs@rBgSiEGXWp4gO7S7Bjtge0ZhmUgl7PhxzXZtuvu1rW0M3b9D5w2deeArKiVX2qHfUwRtTOgyN@Nrsi5dIPUkaU8UW1w0W9NdnhNiRAZoFF@M1dEHqFMnNBw9IkayZv40d9TsGs0FqCPeF7TZajQI1fm5Zi2aXSU6hg1gqfGRuuZjNA3mmRU@4LNHWrJmQQgDp7PNU2f4NAHemVqYjU7WTJvBXnAYvUbOAv2neQ2ICp8EH@hlM05wCLt7Pau59ewkubXqroWBetJSIxWPVb6HHa3UKywVNeCqpuXoIzCUAMLa4K6O78MuTZ/zztJ0FvawWf1enI48aGVzGo/@tD3e/aBzVfRw0e54P56yD83npdPwqTqXYVvIQ7zwnHlWIgYZREvgtC7/RZyUfdx@QXVjnrOGQHwItZDqfQYEAMQJ0tGZxGU6ydudZidR1/20Z6IrA6zbO4F1655PoSSjphJXx9LoIHW5@IwF5KOV@DV4wkKIBPv2wOxG7XhIG/4YlbrRLGVDjy2kEa@UWyNWxB9L3fo9wie3/G2BKK3XuSzRuC3ewH/S19aMKYI9ug2SdR40Qjp0XIWdp5zRPw2fPcvsGMla5LT4ooIq4u7rYS7NijZ8Hn5Eo2Tf8J0Bb7IehuAQC3i9v4jFrKqNunAVXiD7cuiMEh7VDZ/mLtvQjtMFJ5KinYVPFIRGtLQp2qE7OakHGLirFvicG5GlRQZxxEmAdfRo1j0FdOUVDyg2QTMysxQS/QE8ON0Yik1G/JGHl3SzrAqcol6efc8vqqg28rSdaASgoYGrXeSL/k/HfQYsD0PhD7PDgQfezx3RbOZJo@XbD9wE2Q1Bxex6syzWvCRteP5J8wohQphfBMbIcWLac4gPapLcUX8RL6oZlW7eUk@rsTOfh3M0QE3X7V@4FB@k@x8BHYjbXi/N@9EQTQK0z@h7uIx3bWiUoRqukUA@8oaKQqCwukP3J3XvUxMpfA8@eZPNbqx6fdzXxHSmxjNeIHcdJOEiTtsWxgMaqQ/y1mUKfNax0XbhP2joRF3hOZE2OU9d7ocmdprrS8LLREJACziCbESn4LcRz/dhGRob3Axy/1CcdgJlvVAip@YzBQ2TQO5MXROzuPAMXlB19wwtQZ1emsmg6Z46/68goQGTHH2SxqLLBGN6dM3l7/m87j5i3DCXOrGHoioxM9lilgz2udITwsaULifPg/5GE/UTfXheL0h5gL26lvy6GiIZVwYODU06jK4XJ@lplvDSOXodT0EOOpPYJA@26Ipi11TEP3V3Dvgrw4Dcuu@SNAaI9wRdClEXRMa2XkZCxEILedFlVXEaz0pg1Tlu2wxYruj2BbS75xEdGoOvdN5RddiNfijkhErS@Sq1dJrnFbEsUsHVHUM3mGB0vD48GHPFT5ktoLWJ1aE7XnRc5VUdnPdZdxwrGEA/Ea8DI191Vvj5dpLn19TnC4e0wuGOqMJFkVpcWrsnkLE3KHMaGAQouF9o4GmgAeYNJkAvvHQrW4fctZDDLZkT7gfPh07bQ9F9zEsTKP0g6hC8TBTXLM32EKncl1x3ElGIO9h56ty26dYD5a3DILZ@Nl27rp9YD2jdcPZxWNbldVbBL0fS/MRK@bnsfRgaURvBM/xNPZJbEGV0uKI2FaUOoHXbFmG2AQ9mqmHFk5aMtXyNuCDpMIsXeCkvnR3E7e67v5ky0q0sJ3FiqZOQdQCF9z7RgovOMMw9J8WZAiQIFvycpqF8LB7OSaXX/a5ktN8Bik7CTBP8Li0Gy1hNvchS5H07zzHy3o8cjG6qmHrANRKtuku0ObyEyp@tyWPbfjUNLwOvS/Ata9J11w3O@vgRPPeElfdd1G8QfDhy5Te0Id7/sPQN/UK963DB6@xCVU2fa3pBWBEF69CYn5of4jPN4lHuWTMYvBNZYU@6FouyQIcguCc8KhJDPACSJeGAm@ixOYfFDum0MLdLOpTgXjpGqhWAxStq/1BF193vpjtrO/Cq7wEY9MhCQ8sHbLACejcGrJDRTW98mbRHEzHST2Ex@gqGKeT/NQ/1dNKdG90skKYPRAoJMOg9TxRf9Oa8wUE2sk@UxfM2gygzXkvcdF9NV5uJD2hDuKRwCi1MkW5k16LVNPcG5cAIeJLYEFMg7dTIkJJAm@tQFFzMuq@HxHiAj8/L37odwaWrikfw2F0StzkdcdI2oA9dqANSYleCzrJ6W0aVjaP/YSZqqd/pVUXpmwItrITp5PN0I3@lytT46ClQxJyYPA1cWpW@gcUn@UNxnOZPEFC6yFG8L3PxG8XZt8kY/Iqu7ut7AOoCr5vtZTcjntSQJe6bpgP008nf0bu62e3gZ/zdYRaaZ@V16H3d1YCCXkbXrVluXyrixs26FxzprvvwAx8lCU@nB2pNoh4taHTE/gBzgi5ng5WaOkv9uIqQwb4HWkVQo5PEVXfX4ZkAMswBHSBdPqFU2zaO@2R31uEumk5fTzjw5n2gDMDJZCperma0NPr/BVXgyKKx9@gaK7iJUXXgp5kM/LTmB6pwJt9VX4DRnKR7UrKDXQBRKgJu8n/KO2moqPkOq2a9OtikynViE6n7GY9t8TZu34KMK8BHLfeR0ZAUQgxPfJa@a5B1pZFaSrta3IRF1LLQ@Q@CRpy6H3UMHS9XnU@Ya9b9e3eiUjXfK23wbDx4Pq/m2NuEv6QfqJCxwCTURwTPQF@kLHwIke0U3ZCq1/dTkjgbH3vh8dQjIc/ScM8QyTO1vxNfGJp4HagY9Lmbhej8DCYKD7iUPHdd1LHynKpKlLm@fUSCNeFCYVR9@2QpA4GRNcj07Cb1ItEb5O6pS51poL2Jl66uF/inoJPXgsYcRNeGe07oMeMbNSslFOYR1Kd4bghsHPIa0s5kmK7kTe1CC4CRDle0VJKdZuypZ@8lszf0r@a0Zn9KG65BMxHb0YgHgbLZJE0q6TudnWjmkPqos9edA/az6bJ0uM@cN@qFFcWob@PokAItayQ10SNmu1izLgbdZ1oAuc6/4UPUvwQJOnpVLRwPbHrN1ErMG1q0Pe7zLLeRvvTQmbH0ows6YTLsEd8BBrNPa6aG5vHh/hqGviC0GV1s8KxRRxlgpE3KH2TPtnS3d9Ba6ax93YXv@Z7ldE3jXpr3gsoCeCxOpN@p34YGAKWxQhZV9umbY1UXYCuatlGqV8FfFDqTVGTKSBc59TW2jr7m95dmd9bn0@rIT6z2yJfu/BT2gpdYB35Cc7o68WiUeWsQOR21pduBFGpuDRr1Lved14LXQoNd4ApLQAjrbuX9tbMHvQTQQOMxLGFir0EDtVXVsgQdk9CJuA9KMLxOg1/ULV1dVdrNRPeD45CiLliLh@Jgn34O2DkJfDQ4OeZVl@4Q1i3o7AqRiI9BSun@bs76wh3KbtbABm0EvxH/@7sdzsjvWp3B4JRksPA5aH/37lsqeF7f/@5b/vud//D7z981NLGs@rLh92/8/B1YZ90CmTy2uKdcPlYI4Dif1@vd2w@//@rTW/78j//0f//17/70J9616ID59199tegknZW@yeryKd99ePvpq7e3T6@vjlf@s/P/8Czvf/yX781fvX746eufvvv5569//PANr/r0n5r7l3Ugut/@7Pp7fcngWxCK4nx/vv3hjzzqW30x4f354cMHLYh3g4Vv@mIf7/11YX/79tdvf/P2v9/@4i/evrtfpNPcqiO7P39anz7sm7fvPty//HXx//VV@u4Sr/rmTYP/xgfcwfrmDc3HP/4Xf6H@tOYfPm337S0s7@9f/uHtu19@dP9QT/o20i28/o9/uNf72@/ffln/F6/6/a@/UwzR@N9S1O/v9/3/f/Xj7/7l65@0nm/1baf37959@Pnr3/3437z4/iB9I/D9h88v/@bt3Ye3v3x79//Su1/f8/PnPyGDUdOnn/781f3HHZBv4a5/ADrfP5WaX3bzn391ffmrOxTX2x/fnl9u/lMKSfmfwm9R@DLp5/fE9AcF9fn2b//2xT@vT/n74uGfn/I/hPqLz/v7z1n9TyX3yxN2U774dELz1z/8WnK//fdfK@bzu@@i@eUTPtULD/jm7Xs@SDn65u3H77/@6ckPr59/@PGHL7L0W9R/@9vPn3//6c@fvyIHn9vs/9DG//4f" rel="nofollow noreferrer">Try it online!</a> (adapted version for TIO)</p>
+<hr />
+<h1>N=5 (no solution)</h1>
+<p>Out of curiosity, I've tried to search <span class="math-container">\$N=5\$</span> (and beyond).</p>
+<p>The best score is 19 words, which is -- unsurprisingly -- pretty far from 32.</p>
+<pre><code>/^[ch][ao][lr][dt][es]$/
+cards, carte, carts, colde, colds, colts, corde, cords, corte, halte, halts, harde, harte, harts, holde, holds, holte, horde, horte
+
+/^[cp][ao][rs][et][es]$/
+cares, carte, carts, cases, caste, casts, cores, corte, costs, parte, parts, paste, pores, porte, ports, posee, poses, poste, posts
+
+/^[cp][ao][rs][st][ae]$/
+carta, carte, casse, caste, corse, corta, corte, costa, parse, parte, passa, passe, paste, porta, porte, possa, posse, posta, poste
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a></h1>
 <p>A full program that accepts an integer and a file path (without a path uses stdin, only implemented for the TIO suite really) and prints sets of words that equal or beat the maximal cardinality found so far.</p>
 <p>The <code>find</code> function could be passed a <code>floor</code> of <code>2 ** word_length</code> to not search for smaller than full sets (or could do that by default), this is just so we can see the best when no sets are &quot;full&quot; ones.</p>
 <p>Here are the record breakers it finds for <span class="math-container">\$N \in [4,10]\$</span> (there are <span class="math-container">\$7965\$</span> length eight sets for <span class="math-container">\$N=3\$</span>):</p>
@@ -184,61 +254,6 @@ if __name__ == &quot;__main__&quot;:
     main()
 </code></pre>
 <p><strong><a href="https://tio.run/##bdhLj9xIdobhPX9FQrOQyiM03DObwcDyyrPzyp5duyFkJa@ZZAQrIkgW0/Bvlx9WqVu3buCDKhnX7z3nBIM976WP4a@fPg3THFM55T1X1X/@45///Md//ffpw@nt@fFSN23XD9fbOIU4P6VclnV73u9vq6rSdGqHUL/bYqo/jk3oSv/@dPzI70/tGGP68PP70/DhXx/@Xp38N7Sn4fTvH05fdX9t@Nx4Hsd3Hr/LTXl3ieMyhYeH04cPp7@c2phOr09OQzjdh/ndv5RlHpuXlfPDw8OXeY7/9qEZ69eNvDxvxtx86WGZuDXHDkppUubzda5j2e2X4deX1bZjoc@z/z7yaAjvT2PTlqO5CcvUpHNp3n035fvTz9/t6BiZhq5/Gfdd71/C33/9tvfLiGHUqNfLJmzyf7fvNnYge9kvRC9bOlo//35Z6/9@mNSIA/C3cz@c/u01Wj9u4vjvEkMZwtL8uMPDU5OX8cXUj4nw7SqfM0I@nP78A57fpzy6nD68bPJ16oc/7Pca4NcenxNxOg/h3edpv9qGyYZQ3knsn86pW3/5@deH33Lx92d/@Zr/y2Y/2nszn1@Gf@n26zedXvpoj7PNfjvq/WmKdfPhbXr7XpJcYj2E7sObpbR/e/PwBwn59WzHarkY8LuRI/ZHar6OPKCPQ2h@y4KXcT@l5lwfT/O7h28q6nhmunMqeRtK/@7Nn958R/6H6B6THhF4HZmU2tv/CW8fqu9S6Oj2Upxfsz6H@qWIL8fufjtGXmr3t@1@t/qLv5/O9WvmfHHYxsVUf5hVryn7ZZo5HfF9yepj0MP718Gvc702vvmPyAz0VWX3Hz@G89R8/Hhs/s3Hj0fefPz45nXC1ySqPn06n0N1vlyooZ4ilcpW6Up@12t1bvRrUnVuW9Le6d8NpL0/k78HYwbPh5EmMmYw5qbPbanOo36j9lH7mMk8k2fTI3k@mWPSN3gWzBU8Cx15HswVjjbjgnFhr87R37M@s9/JmMRH8jsZk25kD8n6SXvWnvnL5sra8kzGZ23FmOLfhbfFOovny/H7uTqv2jZjt@Nf@960PzfV47mmjnoaKVCiTIX26rG5kH6N/o2@zUA30r@ZyBhMHxv9G/2HR9J/0He4kn4YPg7mHPTB7nE0x6jveK8e45mMicZEY6K5ozHRmGjeaEzc6JmMwehx0XfRd7E@r4@Lfvw@8vu46LM31eX8SDWNNFGgmRJlKrTRXl14ufBx4ePSaOPlIh8uvXnkxKWP1YWPy3D8q42Hiz07K6gjfez5Eq1j35eoX7RWfCJzivGFj0tcyJp8XOK9uojzJRmbPE@eFf0W8/J3UeWXRdtyJXPzeuH1spiX38ty9DXnRmJ5eR6qmuea5/rcUEc9Hc@vdKOJAiXKVGih3al8puY4ncnYxlixrsW6xqcW6xqjGqMaoxqjutnIWJzqwfjhQtYfjt/mGIxVQ8cBWWNXDzMZLxdqHOvB2sNzVeNZx0PGYFhjWGNYY1djV2NXY1aLfZ08x6rGqV6sh1MtF2p8anzqRTs@NT41PvVuP/Kh4b3hu@G74bvhu3l8rBrnRXN5rhoeG/4a/hr@Gv68pqum6yhWDY8NH429Nzd/jzUd/7Y00I3MMVrHudBM5ncGNM6AxhngQCTtar9R@024Vw1vzWwsX969pE86fltPzTfyolHzTdaWjc2eq/kmP5Gx6r4p2suF9Cm8yCE3FdqrBpsGlwaLBovGWdA4CxrnQINJez7ThWrqKFCiTIV2ulet@m/lRotRKw9anFqcWozaZqGN9JMDrfpvxb8V/1b8vfFIf3FvsWvFvRXzFr/WGdCqo1YdteLfin8bexrIODXkBUPWUP8tTi0@bTIfRi0@rVxoi368tuqlVSstz61caOVBy3vLe8drpz46Xjv10Z1b6migkQLNlCjTMWalne5V1xiLQacuOhw6HDocOhw6HFy7SV8MOgw6DLrBGjh0zsEOiw6Hjv9O3neDueVPJ3c6/jv@O3nfyftOvne8dnKi8w7onAcdTx1P3eHFGdep956fXvx6nnqeep56nnp135@P9okCzZQoU6GV9qrnqRfbnq9e3fe89bz1vPW89bz1aqHnr2@MEee@Ocbdq16t92q959MXBxnDX6/Ge7HuxbrntRffPurLY89jH60jzr0Y92Lcq3dfNRTJWDXRx2PcQtZT9z0WffJczffi3Kv3frFXTHpMenHul6PduN0zH0YD78PjmQYK1eBuMKj14eL35UZ7NbgXDL1@vfb@@DtVw6Dd3ocrqXMXNvJMfQ/qexj1U9@@wapBfQ/hQjXpF1rqSF/v@kGtu9JUA38DHwMfg5gOanvwHh@ytdX0oJYHtTyo5UEdu/yRNYs29Tyo2WE1fvf77u97qa5ifxXrqzhfne1Xfq9ifPVOu4rt1Rl@ba4UKJMxavUqN69y8ipmV7G5isUV8yvmV8yv9nnF94rrFdMrpjdr3Mx/k0s3OXQz/838N3Pfmpn8lgs38b@J@U1@33C7ie2N95u43sx9M@dtWapRLY7ydpS3Iw@j@UceRmuM1hjl68jLaK1Rvo48jedn2qvx0TPvqtG9ZJS7o9wd7WX0rnKvJOOao49xjTH2Njq7R3U58j7K29Fex@F41pJ1nVGu0GRdsR95GNXn6G4yYjTK31H@jnJ3xGuUuyNfvn/IGGfUiOGIoY/FahTHUa6O6naUryOeo7Np9C73WUzGek@N@I74js7lUU2Py70ancvjbh05POE04TThNKnvCatJbbv40pVuNNJEgWZKdIwttNBGezVhNuE14TVhNanzSZ1PmE1NJONwm3Cb5Mmk1qfOmN6/2E24TbhNuE3yZ5I/E24TbpN3@6TmJ@wm7Cbn@@QuPGHn24qOv62J2YTXhNeE14TXJC8mzCbn@yT3JrUwLdbDbsJtwm3CbMJsUufTcrQbJ48mzKY9VEEtBIwCRgGjgFHAKGDj84GOPpFmylRor0J9roI8CrgEXIIzMGAT1E1w7wkYBYwCRgEfn2xkLD4Bn@AcDBiF4ZB58An4BFwCLkE@BUwCJgGTgEXAIsihgEdw1w3OwKBOAjZBPgVsAjYBm4BNwOb44gs4BO@2gEXAIsifgEfAI@ARdnuQO2EvVZQXUR5EPqN6ic696MyLvod86lbR9090t4neWdHeo31He45iGO03XmMVvZ@jGo7Ovuj7JjrjfJiR3841X6K0V5GXyEfkIfIQxTfyEO3fxzb57dyL6ZHM4fyL3t3R90x0t4nuNtHdJop7VDdR3COvkbfIW@Qtrp47A@Pq@abd/SX6jom@YyLP8Z6rWa3McmAW/5n/WexncZ/FfMZiPh99Ci200TPtdK9mtTE7Q2bxnsV6FutZrGexnsV6FusZq9k7YvaOn8V6FudZHcziPGM2i/Hs3JsxmzGbx@Nv49xxZnGfxXsW6xmjGaMZo1mcZ5xmuT9jNGPjI5g8d6@ZnSGzO@6sDmYxn8V8dv@fsZmxmbF54ufJOfd0m6ondfMkV57we9I34ZHwSFgkdZDwSHgkLBIWCYeEQZL/Se4nDJL8T3I@4ZCc7QmHhEPy/k/WSc7T5BxNGCR5kzBI3v2@3cmacj7hkfBIw71KzoDk/EwYJLmfcEg4JBwS/4n/JMeTvSd@k/0nfpM8TzwnPhOfSZyzGGfnYeYrn4/fHfU00I1GCjRTokILbbRXWZyzes/8ZvWe3Xcyv1ncM8@Z59w8kbF8Z76z@Gfxz7xn3rN3SZYHWR5ktZNxyDhk@ZCxyOoo45HxyFhkNZXxyHhkZ0C@mu9mnLtFvln7Zh45knHKGGWMMkY5Xslc6ipjlZ0NWd5keZNxy7hl50PGLjs386zPrG329xMPaim7Q@Sij2@BjG/GN6uvjHF2f8ryJDtTMtYZ6yxnsvzK8ivjnnHPztm8eu6@mXd9nbd5X2mvihgUMSj4F/wL/kWeFTEoztsiDkUcinwrYlHUXBGHIg5FDIoYFGdtwb/gX/Av2BfsC@bFN3jBu6i9gnnBvGBeMC@YF8wL3gXrIvcK3gXvgnfBu6jHoh5LPGSfuBZMC6YF04JpwbRgWvAseBY8C55FPRb1WNRjcV4V9Vh8exX3s4JlwbIsx9/mXXjHsGBYsCvYFezKpt9mrG/QxT10cfYuvC5dXy32d/z/0MXZuky5WtwlF2fs4oxd3CEX5@wSIh1tS7U4R5fZ3/a0@P5ZnJ2Ls3Nxf1zyVi32tYj3Yv3F@bh4D6zqZBWbVVxWMVnFYhWLVSxW@1nFYG2Of7Xjv@K/ugusYrCKwSr/V/m/yv3Vu27t9MN/xX11d1rdldfheGasGKxisOK/4r/yt8r31Rmwjl218rfys4rBKgarGKxisGK/yucV/xX71Vm44r9G4zBfeVyXQ1fK1cbTJuc2njaeNp628/G80ELPtFebb5uNv02Obc61Ta1vfG58bnxuPG48bjxu8myTX5v82uTVxt/G36aeN/ecjceNv423jbeNt839cJNXGz8bPxsvm3za@Nn42eTSxs/Gw6bmNjmyic12eJAbm7veppaeMXw21zNWz94bz6O/veeenw/5@/m52tXU7vtlr3O1q52dp52fnY@dj705nhfa6F7t9rnb426@3b52e9ntZVfzd@zuavWO3x2zu7nu@Nzlwd08d/Pc@b/zfuf9zvddXd3Nd1dDd/Pd@byb8y7n7zzd9/Dpr/8P" rel="nofollow noreferrer" title="Python 3 – Try It Online">Try it online!</a></strong> - you may want to collapse the &quot;Input&quot; section. This is for <span class="math-container">\$N=3\$</span> as TIO is too slow to do much more.</p>
-</div>
-<div id="pu1" class="pu"><h1>N=4</h1>
-<h3>Regex</h3>
-<pre><code>/^[ct][ao][np][es]$/
-</code></pre>
-<h3>Words</h3>
-<pre><code>cane, cans, cape, caps,
-cone, cons, cope, cops,
-tane, tans, tape, taps,
-tone, tons, tope, tops
-</code></pre>
-<h3>Search code</h3>
-<p>This is the one and only solution found by this code.</p>
-<pre class="lang-none prettyprint-override"><code>const fs = require(&quot;fs&quot;);
-const data = fs.readFileSync(&quot;words.txt&quot;).toString().split(&quot;\n&quot;);
-const dict = [ ...new Set(data.filter(w =&gt; /^[a-z]{4}$/.test(w))) ];
-const alpha = [ ...&quot;abcdefghijklmnopqrstuvwxyz&quot; ];
-
-function search(list, pos = 0, path = []) {
-  if(pos == 4) {
-    if(list.length == 16) {
-      console.log(`/^${path.join(&quot;&quot;)}$/`);
-      console.log(list.sort().join(&quot;, &quot;) + &quot;\n&quot;);
-    }
-    return;
-  }
-
-  alpha.forEach(x =&gt; {
-    alpha.forEach(y =&gt; {
-      if(y &gt; x) {
-        let newList = list.filter(w =&gt; w[pos] == x || w[pos] == y);
-
-        if(newList.length &gt;= 16) {
-          search(newList, pos + 1, [...path, `[${x + y}]`]);
-        }
-      }
-    });
-  });
-}
-
-search(dict);
-</code></pre>
-<hr />
-<h1>N=5 (no solution)</h1>
-<p>Out of curiosity, I used a slightly optimized version of the above code to search <span class="math-container">\$N=5\$</span>.</p>
-<p>The best score is 19 words, which is -- unsurprisingly -- pretty far from 32.</p>
-<pre><code>/^[ch][ao][lr][dt][es]$/
-cards, carte, carts, colde, colds, colts, corde, cords, corte, halte, halts, harde, harte, harts, holde, holds, holte, horde, horte
-
-/^[cp][ao][rs][et][es]$/
-cares, carte, carts, cases, caste, casts, cores, corte, costs, parte, parts, paste, pores, porte, ports, posee, poses, poste, posts
-
-/^[cp][ao][rs][st][ae]$/
-carta, carte, casse, caste, corse, corta, corte, costa, parse, parte, passa, passe, paste, porta, porte, possa, posse, posta, poste
-</code></pre>
 </div>
 
 <table id="st">
