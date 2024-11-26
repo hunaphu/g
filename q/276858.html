@@ -26,12 +26,32 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>240</td><td>Haskell</td><td>241126T154839Z</td><td><a href="https://codegolf.stackexchange.com/questions/276858/frogs-on-lily-pads-want-to-make-a-party/276865#276865">colossus</a></td></tr>
-<tr d-ix="1"><td>215</td><td>JavaScript V8</td><td>241126T143307Z</td><td><a href="https://codegolf.stackexchange.com/questions/276858/frogs-on-lily-pads-want-to-make-a-party/276861#276861">Arnauld</a></td></tr>
+<tr d-ix="0"><td>215</td><td>JavaScript V8</td><td>241126T143307Z</td><td><a href="https://codegolf.stackexchange.com/questions/276858/frogs-on-lily-pads-want-to-make-a-party/276861#276861">Arnauld</a></td></tr>
+<tr d-ix="1"><td>240</td><td>Haskell</td><td>241126T154839Z</td><td><a href="https://codegolf.stackexchange.com/questions/276858/frogs-on-lily-pads-want-to-make-a-party/276865#276865">colossus</a></td></tr>
 <tr d-ix="2"><td>369</td><td>Python3</td><td>241126T143701Z</td><td><a href="https://codegolf.stackexchange.com/questions/276858/frogs-on-lily-pads-want-to-make-a-party/276862#276862">Ajax1234</a></td></tr>
 <tr d-ix="3"><td>085</td><td>Charcoal</td><td>241126T135018Z</td><td><a href="https://codegolf.stackexchange.com/questions/276858/frogs-on-lily-pads-want-to-make-a-party/276859#276859">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.haskell.org/" rel="nofollow noreferrer">Haskell</a>, 240 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://v8.dev/" rel="nofollow noreferrer">JavaScript (V8)</a>, 215 bytes</h1>
+<p>Quite long, but fast (to some extent).</p>
+<pre class="lang-none prettyprint-override"><code>n=&gt;(F=(a,g=a[n*n]=n,i=-1,k=a.find(x=&gt;x&gt;!!++i))=&gt;k?(g=j=&gt;--j+k&amp;&amp;g(j,a[i+j]||F(b=[...a],b[b[i+j]=j*=j&gt;0||-1,i]-=j)))(k):F[s=/1(.*1)?/.exec(a.join``)[0]]||print(F[s]=F[[...s].reverse().join``]=s))(Array(n*n*2).fill(0))
+</code></pre>
+<p><a href="https://tio.run/##TY7LasMwFET3/QoFSrjXDyXOopSm16EbL/sDQmDZlY1kIwfZGJc43@6qoYuuBmYOh7FqVmPtzXVK59etoc1RDgWBSlpSwkVOkksMpVnSkeKNcV@wUL7ku10cG0TKuwu0ZClPUxt3@30LNlHCxFauawEVCc65kkklqkdJNiKbH9c1CI1MySIidPhWiJEOGfAow8uB60XXoLgdjCtLFEcZZFdv3ASBk1SIX@soudez9qMG/EMljUH34b36hnA9OmF43PdwRNyawUOvJ@YYsewc4p3YS8g4RnZ7Yqwe3Dj0mvdDC@VngJ5v7l7iOUwNuEf@R0Jx334A" rel="nofollow noreferrer" title="JavaScript (V8) – Try It Online">Try it online!</a></p>
+<h3>Method</h3>
+<p>As illustrated on the <a href="https://oeis.org/A378004" rel="nofollow noreferrer">OEIS page</a>, we start with all frogs in a single place and make a tree of all possible reverse moves with a breadth-first search:</p>
+<pre><code>                     _____________4____
+                    /             |    \
+               ___3001___        202    13
+              /   |  |   \      /   \    |
+        201001 12001 2101 1021 1102 112 121
+       /   |     |         |    |
+1101001 111001 11101      1111 11011
+</code></pre>
+<h3>Implementation</h3>
+<p>We start with an array of size <span class="math-container">\$2n^2\$</span> filled with 0's, except the entry at position <span class="math-container">\$n^2\$</span> (0-indexed) which is set to <span class="math-container">\$n\$</span>.</p>
+<p>At each iteration, we look for the first value <span class="math-container">\$k&gt;1\$</span> in the array and try to move <span class="math-container">\$1\$</span> to <span class="math-container">\$k-1\$</span> frogs from there in both directions.</p>
+<p>Once there are only 0's and 1's remaining in the array, we trim the leading and trailing 0's and check whether the resulting pattern was already encountered. If not, we print the pattern and save it along with its reversed counterpart.</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.haskell.org/" rel="nofollow noreferrer">Haskell</a>, 240 bytes</h1>
 
 <pre class="lang-hs prettyprint-override"><code>g.h.pure
 h l|all(&lt;2)l=[show=&lt;&lt;l]|m&lt;-length l-1=[r|(i,k)&lt;-zip[0..]l,k&gt;1,j&lt;-[1..k-1],d&lt;-[i+j,i-j],d&lt;0||d&gt;m||l!!d&lt;1,r&lt;-h[last$0:[l!!x|elem x[0..m]]++[k-j|x==i]++[j|x==d]|x&lt;-[min 0 d..max d m]]]
@@ -42,13 +62,6 @@ g e=e
 <p>Starts with a party and backtracks to find all possible starting positions.</p>
 <p>The <code>h</code> function takes a list of frog counts and returns a list of starting positions that can lead to that position. First we check if all the frogs are alone; if so we simply return the input as binary string in a singleton list. Otherwise we iterate over each position that has <code>k</code> frogs (where <code>k</code> is at least 2) and send <code>j</code> of them <code>j</code> positions left or right (where <code>j</code> is at most <code>k-1</code> so we always leave at least one frog behind) as long as the landing spot is empty. Then we recur with that new position.</p>
 <p>Finally all we have to do is filter out all the repetitions.</p>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://v8.dev/" rel="nofollow noreferrer">JavaScript (V8)</a>, 215 bytes</h1>
-<p>Quite long, but fast.</p>
-
-<pre class="lang-none prettyprint-override"><code>n=&gt;(F=(a,g=a[n*n]=n,i=-1,k=a.find(x=&gt;x&gt;!!++i))=&gt;k?(g=j=&gt;--j+k&amp;&amp;g(j,a[i+j]||F(b=[...a],b[b[i+j]=j*=j&gt;0||-1,i]-=j)))(k):F[s=/1(.*1)?/.exec(a.join``)[0]]||print(F[s]=F[[...s].reverse().join``]=s))(Array(n*n*2).fill(0))
-</code></pre>
-<p><a href="https://tio.run/##TY7LasMwFET3/QoFSrjXDyXOopSm16EbL/sDQmDZlY1kIwfZGJc43@6qoYuuBmYOh7FqVmPtzXVK59etoc1RDgWBSlpSwkVOkksMpVnSkeKNcV@wUL7ku10cG0TKuwu0ZClPUxt3@30LNlHCxFauawEVCc65kkklqkdJNiKbH9c1CI1MySIidPhWiJEOGfAow8uB60XXoLgdjCtLFEcZZFdv3ASBk1SIX@soudez9qMG/EMljUH34b36hnA9OmF43PdwRNyawUOvJ@YYsewc4p3YS8g4RnZ7Yqwe3Dj0mvdDC@VngJ5v7l7iOUwNuEf@R0Jx334A" rel="nofollow noreferrer" title="JavaScript (V8) – Try It Online">Try it online!</a></p>
 </div>
 <div id="pu2" class="pu"><h1>Python3, 369 bytes</h1>
 <pre class="lang-py prettyprint-override"><code>def f(n):
