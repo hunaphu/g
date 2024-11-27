@@ -26,18 +26,45 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>024</td><td>Jelly</td><td>241127T195630Z</td><td><a href="https://codegolf.stackexchange.com/questions/276876/counting-birds-outside-my-house/276905#276905">Jonathan</a></td></tr>
+<tr d-ix="0"><td>023</td><td>Jelly</td><td>241127T195630Z</td><td><a href="https://codegolf.stackexchange.com/questions/276876/counting-birds-outside-my-house/276905#276905">Jonathan</a></td></tr>
 <tr d-ix="1"><td>105</td><td>JavaScript Node.js</td><td>241127T192216Z</td><td><a href="https://codegolf.stackexchange.com/questions/276876/counting-birds-outside-my-house/276903#276903">l4m2</a></td></tr>
 <tr d-ix="2"><td>057</td><td>Charcoal</td><td>241127T133301Z</td><td><a href="https://codegolf.stackexchange.com/questions/276876/counting-birds-outside-my-house/276885#276885">Neil</a></td></tr>
 <tr d-ix="3"><td>115</td><td>JavaScript Node.js</td><td>241127T032524Z</td><td><a href="https://codegolf.stackexchange.com/questions/276876/counting-birds-outside-my-house/276877#276877">tsh</a></td></tr>
 <tr d-ix="4"><td>324</td><td>Python3</td><td>241127T034326Z</td><td><a href="https://codegolf.stackexchange.com/questions/276876/counting-birds-outside-my-house/276878#276878">Ajax1234</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 24 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
-<pre><code>ṫS‘$,NSS¬ȧƊ
+<div id="pu0" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 23 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
+<pre><code>ṫS‘$+NS¬ȧƊ
 ṂŻ€ŒpÇ€+Ʋe@Ṁ
 </code></pre>
 <p>A monadic Link that accepts a pair of lists of birds per pole and yields <code>1</code> if a flock of <span class="math-container">\$k \ge 0\$</span> birds could have moved in tandem by <span class="math-container">\$k\$</span> steps each to transition from one state to the other.</p>
-<p><strong><a href="https://tio.run/##y0rNyan8///hztXBjxpmqOj4BQcfWnNi@bEuroc7m47uftS05uikgsPtQFr72KZUh4c7G/7//x8dbaxjrGMExCaxOgrRJjqmQA4QxsYCAA" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></strong> Or see the <a href="https://tio.run/##y0rNyan8///hztXBjxpmqOj4BQcfWnNi@bEuroc7m47uftS05uikgsPtQFr72KZUh4c7G/6Def//R0dHG@oY6BgCoUGsjkK0AZRjGBurw6UAkjRCg4YgZUYYwgZIGgxgyhAciKSRjjFIMUjKGKIPKmEMljDWMQFJmeiYokgagaWw6DJESADtAHGgEhY6liAIkrCEMiESIM8ZIHxqgORsGB8hBXF2LAA" rel="nofollow noreferrer" title="Jelly – Try It Online">test-suite</a>.</p>
+<p><strong><a href="https://tio.run/##y0rNyan8///hztXBjxpmqGj7BR9ac2L5sS6uhzubju5@1LTm6KSCw@1AWvvYplSHhzsb/v//Hx1trGOsYwTEJrE6CtEmOqZADhDGxgIA" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></strong> Or see the <a href="https://tio.run/##y0rNyan8///hztXBjxpmqGj7BR9ac2L5sS6uhzubju5@1LTm6KSCw@1AWvvYplSHhzsb/oN5//9HR0cb6hjoGAKhQayOQrQBlGMYG6vDpQCSNEKDhiBlRhjCBkgaDGDKEByIpJGOMUgxSMoYog8qYQyWMNYxAUmZ6JiiSBqBpbDoMkRIAO0AcaASFjqWIAiSsIQyIRIgzxkgfGqA5GwYHyEFcXYsAA" rel="nofollow noreferrer" title="Jelly – Try It Online">test-suite</a>.</p>
+<h4>How?</h4>
+<p>If a flock could have moved then it could have moved <em>left</em> from the minimum of the two states to the maximum of the two states.</p>
+<p>If any flock movement would take any birds farther left than any of the poles that state change should not be considered.</p>
+<pre><code>ṫS‘$+NS¬ȧƊ - Link 1, Get Delta: Flock (same format as a State)
+   $       - last two links as a monad - f(Flock):
+ S         -   sum {Flock} -&gt; FlockSize
+  ‘        -   increment
+ṫ          - tail {Flock} from {that} index
+     N     - negate {Flock}
+    +      - add these together -&gt; PoleDeltas
+         Ɗ - last three links as a monad - f(PoleDeltas):
+      S    -   sum {PoleDeltas} -&gt; 0 if birds stayed within range
+       ¬   -   logical NOT
+        ȧ  -   logical AND {PoleDeltas}
+
+ṂŻ€ŒpÇ€+Ʋe@Ṁ - Main Link: States
+Ṃ            - minimum {States} -&gt; MinState
+        Ʋ    - last four links as a monad - f(MinState):
+ Ż€          -   zero-range each
+   Œp        -   Cartesian product
+                 -&gt; all potential flocks (including [0,0,...])
+     Ç€      -   call Link 1 for each -&gt; ValidDeltas
+       +     -   add {MinState} (vectorises)
+                 -&gt; PossibleNewStates
+           Ṁ - maximum {States} -&gt; MaxState
+         e@  - {MaxState} exists in {PossibleNewStates}
+</code></pre>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 105 bytes</h1>
 
