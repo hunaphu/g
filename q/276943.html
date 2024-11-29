@@ -26,9 +26,83 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>003</td><td>Python</td><td>241129T040850Z</td><td><a href="https://codegolf.stackexchange.com/questions/276943/run-a-board-game-tournament/276949#276949">tsh</a></td></tr>
+<tr d-ix="0"><td>nan</td><td></td><td>241129T114407Z</td><td><a href="https://codegolf.stackexchange.com/questions/276943/run-a-board-game-tournament/276954#276954">Themooni</a></td></tr>
+<tr d-ix="1"><td>003</td><td>Python</td><td>241129T040850Z</td><td><a href="https://codegolf.stackexchange.com/questions/276943/run-a-board-game-tournament/276949#276949">tsh</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a></h1>
+<div id="pu0" class="pu"><h1>Other language helper</h1>
+<p>put the following code in a file named <code>helper/__init__.py</code>:</p>
+<pre class="lang-python prettyprint-override"><code>from subprocess import Popen, PIPE
+import sys
+from time import sleep
+
+sleeptime = 0
+def run_tournament(contestants, games, play_game):
+    # contestants: an array of contestant names
+    # games: a number - this is the maximum number of games you're allowed to play
+    # play_game: a function which takes an array of contestants and returns the outcome of a game which they all play
+    # returns a single string, expected to be the name of one of the competitors
+    process = Popen([arg for arg in sys.argv[2:]], stdout=PIPE, stdin=PIPE, text=True, universal_newlines=True, bufsize=1)
+    process.stdin.write(str(len(contestants)) + &quot;\n&quot;)
+    for c in contestants:
+        process.stdin.write(c + &quot;\n&quot;)
+    process.stdin.write(str(games) + &quot;\n&quot;)
+    i=0
+    while i&lt;games:
+        #sleep(sleeptime)
+        line = process.stdout.readline().strip()
+        if line == &quot;run&quot;:
+            #sleep(sleeptime)
+            numplayers = int(process.stdout.readline())
+            players = []
+            for j in range(numplayers):
+                #sleep(sleeptime)
+                players.append(process.stdout.readline().strip())
+            res = play_game(players)
+            for p in res:
+                process.stdin.write(p+&quot;\n&quot;)
+            i+=1
+        elif line == &quot;ret&quot;:
+            #sleep(sleeptime)
+            return process.stdout.readline().strip()
+        else:
+            raise ChildProcessError(&quot;Command not in [run, ret] recieved&quot;)
+    raise ChildProcessError(&quot;No games are left, but never returned&quot;)
+</code></pre>
+<p>run using <code>python3 main.py helper $(which &lt;program&gt;) [additional args passed to program...]</code></p>
+<p>From the perspective of your program, the protocol looks like:</p>
+<pre><code>STDIN                                    STDOUT
+                     init phase:
+&lt;number of contestants&gt;
+&lt;name of contestant 1&gt;
+... repeat n times
+&lt;number of games&gt;
+                    -&gt;goto loop
+                     loop phase:
+                                          run
+                                          -&gt;goto &quot;run&quot;
+                                          (or)
+                                          ret
+                                          -&gt;goto &quot;ret&quot;
+                    &quot;run&quot; phase:
+                                          &lt;number of contestants in that game&gt;
+                                          &lt;name of contestant 1&gt;
+                                          ...repeat n times
+&lt;name of winner&gt;
+...additional contestants, sorted
+                    -&gt;goto loop
+                    &quot;ret&quot; phase:
+                                          &lt;name of overall winner&gt;
+             program is expected to terminate here.
+</code></pre>
+<p>Notes:</p>
+<ul>
+<li>If you exceed the max number of games, an exception will be raised and no points will be awarded</li>
+<li>If you output something not in [run,ret] during the loop phase, an exception will be raised and no points will be awarded</li>
+<li>This is considerably slower than equivalent python implementations. a <a href="https://gist.github.com/themoonisacheese/05f3d98d59deeec6728d6dcfd9e20cb6" rel="nofollow noreferrer">very basic bash implementation</a> only runs at 240 it/s on my computer, taking 7 minutes to finish a run.</li>
+<li>If you find the code hanging, it's probably because the python wrapper is too fast for your program. Set <code>sleeptime</code> to a low value like <code>0.0005</code> and uncomment all the <code>sleep()</code> calls. This will make it run even slower, but sometimes you need it to run at all.</li>
+</ul>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a></h1>
 
 <pre class="lang-none prettyprint-override"><code>A, B, C, D, E = 10000.0, 100.0, 1.003, 50.0, 0.95
 
