@@ -26,10 +26,68 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>037</td><td>C gcc</td><td>240707T113941Z</td><td><a href="https://codegolf.stackexchange.com/questions/273950/non-decreasing-fibonacci-sequence-modulo-m/273979#273979">emanresu</a></td></tr>
-<tr d-ix="1"><td>015</td><td>Node.js 20.10.0</td><td>240707T110138Z</td><td><a href="https://codegolf.stackexchange.com/questions/273950/non-decreasing-fibonacci-sequence-modulo-m/273978#273978">Arnauld</a></td></tr>
+<tr d-ix="0"><td>089</td><td>Rust</td><td>241130T134802Z</td><td><a href="https://codegolf.stackexchange.com/questions/273950/non-decreasing-fibonacci-sequence-modulo-m/276968#276968">138 Aspe</a></td></tr>
+<tr d-ix="1"><td>037</td><td>C gcc</td><td>240707T113941Z</td><td><a href="https://codegolf.stackexchange.com/questions/273950/non-decreasing-fibonacci-sequence-modulo-m/273979#273979">emanresu</a></td></tr>
+<tr d-ix="2"><td>015</td><td>Node.js 20.10.0</td><td>240707T110138Z</td><td><a href="https://codegolf.stackexchange.com/questions/273950/non-decreasing-fibonacci-sequence-modulo-m/273978#273978">Arnauld</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C (gcc)</a>, ~3.7ms</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.rust-lang.org/" rel="nofollow noreferrer">Rust</a>, ~89ms</h1>
+<p>Port of @emanresu A's C code in Rust.</p>
+<p><a href="https://tio.run/##jZPbbqMwEIbv@xTTSo1CC41tDIYcerMP0AeoohXJwtYK0IhAWm2VV9/sjEPKIURaEwV7Dt/8Hpui2pXHY5JDMo6mUO30n9iG1fcsa2ZVCZspaF/akKPVlxY4zycvfN0AjjQuTdiewwKiWdcm0Lbq2tbR@i1G8z5e374yJM8gm8/58hRlvK/REh4XwNum1dnUgWmjCWniFPvxptMYNMwhr@Wdo8tsS0XrOBpG3Bj/H1G7BfeQtXy0GUypy9HQibHiHmE0Msm4tVaRRuqeL8H5lt8WkaZxjmANzpA3q1J05jAxcZf@Is6M/772dwKS9wL2UQo6h1HT5q48Gg8U9LAwxaIdnWy30OES@5Og7OmJ6l8Ch5v7P02@bHbfU/dTtK9DI7S9WhVxtGkCGuc1hG6tD71L9esTBbH2jdrAM1ro4Mk5h3YjNnTYpzLoXLZKYOhFETLi6d8c6PPLIp2PrZq1LXRepvnt@O7rcGfjp8ltoB@zIaCXZc1gMoGXqtxW5RS84SQMFRjt2aBs8N1ekhhOEjyUVENIjslS4ASLeoIjIyRjD@MGHguuiGZChqRABPggRSEONREUly7CpOrhfO6pK8okJqIW5eODWpQM8OWqQAolqSlGq@zL81ylhnke44IIKCZEXhgEBnvmqUGe5zN2RR/nhhe6J54MhIubZQyBvpkNAjFcBXgF/q6TNPq9Ozo/3relk8b7OF24R@flHw" rel="nofollow noreferrer">Try it online!</a></p>
+<pre class="lang-rust prettyprint-override"><code>fn f(a: usize, b: usize, m: usize, mut k: i64, n: u64) -&gt; usize {
+    let mut v1 = a;
+    let mut v2 = b;
+    let mut cache = vec![0i64; m&lt;&lt;1];
+    cache[a] += 1;
+    cache[b] += 1;
+
+    let mut i: u64 = 2;
+    while i &lt; n {
+        let tmp = v2;
+        v2 = (v2 + v1) % m;
+        v1 = tmp;
+
+        if v1 == a &amp;&amp; v2 == b {
+            cache[v1] -= 1;
+            let llen = i - 1;
+            let mul = n / llen;
+            let rem = n % llen;
+
+            for val in &amp;mut cache {
+                *val *= mul as i64;
+            }
+
+            for _ in 0..rem {
+                let tmp = v2;
+                v2 = (v2 + v1) % m;
+                v1 = tmp;
+                cache[v2] += 1;
+            }
+            break;
+        }
+        cache[v2] += 1;
+        i += 1;
+    }
+
+    let mut idx = 0;
+    while k &gt;= 0 &amp;&amp; idx &lt; m {
+        k -= cache[idx];
+        idx += 1;
+    }
+
+    idx - 1
+}
+fn main() {
+    println!(&quot;{}&quot;, f(1, 1, 10, 8, 10)); // Output: 5
+    println!(&quot;{}&quot;, f(8, 2, 15, 7, 63)); // Output: 2
+    println!(&quot;{}&quot;, f(21948, 12412, 42124, 85217, 92412)); // Output: 38508
+    println!(&quot;{}&quot;, f(102492, 128282, 87421, 242122, 341247)); // Output: 61572
+    println!(&quot;{}&quot;, f(42424, 76767, 97487, 3784274, 10421244)); // Output: 35377
+    println!(&quot;{}&quot;, f(50127, 31229, 99887, 9784274, 17421244)); // Output: 56002
+    println!(&quot;{}&quot;, f(11127, 93229, 94823, 20084263, 20421244)); // Output: 93278
+}
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C (gcc)</a>, ~3.7ms</h1>
 
 <pre class="lang-c prettyprint-override"><code>#include&lt;stdlib.h&gt;
 #include&lt;stdio.h&gt;
@@ -115,7 +173,7 @@ int f(int a, int b, int m, int k, int n) {
 <p><a href="https://tio.run/##jVLdspowEL73KfbmnGKBSgIIDLUzfYhedbxAGioVghOittP67PZLgmfUMz1TcUzY3e9nd/1RHauxVu1eh3L4Ji6X5iBr3Q6SGq8KaBNQH9AuIDmn3zOiTmg6MloRckeOc1POpnBd1VuBiBQn@tJKHfPPSlW/vH5eosJmv1Zr3y@n@8bcDbgZlGcIWoB5ieMjSRy@7ySJFot6kOPQiQ/d8N1roczmNqH7PTBHXto3R2tdefj1TRk9UW91TIE1Dox7axuUIYJe6PnZdoN2oAk9Ool3SlArkeuGYT@zCNdn1wkJnpZCYqWpDcmIMdqIujqMgvbDqMNW1kr0QuobZH/ozHxo4Tj@UFTeZFFus082W14lp67YOgzL@xC/CWGG9DLEyA2xn4boyts1vV8ZCy/MsK6EOkjS2FvTqtF50EL1Iw2NDZvmSQ/g0PWWxM9ajOMbksDfbe71kv5rUa@XRXSezo0S1c4FTehsunEOzO20bTtB3o4@ITKnHYWra/@@v7YlSuiDktP@ZufL7X@r8VhA5hsFlJuD/vGZz8340tk9GBAOVBpQFtAyfhvMH8CcFYnR5AkDScJxgYmUM3AVJngLjvM0yh8IWMSTwujzHA@wGUjgyFDhNQZFkl0JlizNHh0kKIVmtsQDzSzJccRZnvAsMcOwnpKrgzTOsgeCNGLcQKBXgKDIc8tzJcjuCNJlFD06YMwSFLEjSHIeo4EoAsPS3hyDI0BVll/@Ag" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a> Thanks to Arnauld for the idea of using a <code>Uint32Array</code>, speeding this up almost tenfold.</p>
 <p>Based on Arnauld's answer, but tracks the number of times each value has occured to speed things up substantially and avoid a costly <code>sort</code> call. Arnauld's answer takes about 270-280ms on my machine.</p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://nodejs.org/fr/blog/release/v20.10.0" rel="nofollow noreferrer">Node.js 20.10.0</a>, ~1.5 sec.</h1>
+<div id="pu2" class="pu"><h1><a href="https://nodejs.org/fr/blog/release/v20.10.0" rel="nofollow noreferrer">Node.js 20.10.0</a>, ~1.5 sec.</h1>
 
 <pre class="lang-javascript prettyprint-override"><code>function f(a, b, m, k, n) {
   let A = [ a, b ];
