@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::258173</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>003</td><td>Python</td><td>241202T113525Z</td><td><a href="https://codegolf.stackexchange.com/questions/258173/simultaneously-solve-n-queens-and-no-3-in-line/276979#276979">138 Aspe</a></td></tr>
+<tr d-ix="1"><td>128</td><td>Rust</td><td>230402T120904Z</td><td><a href="https://codegolf.stackexchange.com/questions/258173/simultaneously-solve-n-queens-and-no-3-in-line/259664#259664">138 Aspe</a></td></tr>
+<tr d-ix="2"><td>565</td><td>Python 3 PyPy</td><td>230306T040329Z</td><td><a href="https://codegolf.stackexchange.com/questions/258173/simultaneously-solve-n-queens-and-no-3-in-line/258854#258854">gsitcia</a></td></tr>
+<tr d-ix="3"><td>020</td><td>Wolfram Language Mathematica</td><td>230223T174948Z</td><td><a href="https://codegolf.stackexchange.com/questions/258173/simultaneously-solve-n-queens-and-no-3-in-line/258177#258177">ZaMoC</a></td></tr>
+<tr d-ix="4"><td>070</td><td>MiniZinc</td><td>230223T181746Z</td><td><a href="https://codegolf.stackexchange.com/questions/258173/simultaneously-solve-n-queens-and-no-3-in-line/258179#258179">matteo_c</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>Python, with <a href="https://ericpony.github.io/z3py-tutorial/guide-examples.htm" rel="nofollow noreferrer">Z3Py</a></h1>
+<pre class="lang-python prettyprint-override"><code># !pip install z3-solver
+from z3 import *
+
+# Set the value of n
+n = Int('n')  # Or you can set a specific value, e.g., n = 8
+n_value = 8  # Example with n = 8
+
+# Create an array q[1..n] of integer variables ranging from 1 to n
+q = [Int('q_%i' % i) for i in range(1, n_value + 1)]
+
+# Initialize the solver
+s = Solver()
+
+# Add constraints that each q[i] is between 1 and n
+for i in range(n_value):
+    s.add(q[i] &gt;= 1, q[i] &lt;= n_value)
+
+# Define the noattack predicate constraints
+for i in range(1, n_value + 1):
+    for j in range(i + 1, n_value + 1):
+        qi = q[i - 1]
+        qj = q[j - 1]
+        s.add(qi != qj)               # Not in the same row
+        s.add(qi + i != qj + j)       # Not in the same major diagonal
+        s.add(qi - i != qj - j)       # Not in the same minor diagonal
+
+# Define the no3inline predicate constraints
+for i in range(1, n_value + 1):
+    for j in range(i + 1, n_value + 1):
+        for k in range(j + 1, n_value + 1):
+            qi = q[i - 1]
+            qj = q[j - 1]
+            qk = q[k - 1]
+            s.add(i * (qk - qj) + j * (qi - qk) + k * (qj - qi) != 0)
+
+# Solve the constraints
+if s.check() == sat:
+    m = s.model()
+    solution = [m.evaluate(q[i]) for i in range(n_value)]
+    print(&quot;Solution:&quot;, solution)
+else:
+    print(&quot;No solution found.&quot;)
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>Rust, N=128</h1>
+<p>Adapted from <a href="https://codegolf.stackexchange.com/a/258854/110802">@gsitcia's answer</a></p>
+<p><a href="https://play.rust-lang.org/?version=stable&amp;mode=debug&amp;edition=2021&amp;gist=c78b3818766bbd155bb3e8d4db99dbf5" rel="nofollow noreferrer">Try it online!(N=128)</a></p>
+<pre class="lang-rust prettyprint-override"><code>use std::collections::HashSet;
+// use std::env;
+use std::iter;
+use std::sync::mpsc;
+use std::thread;
+use rand::rngs::StdRng;
+
+fn gcd(a: i32, b: i32) -&gt; i32 {
+    if b == 0 {
+        a.abs()
+    } else {
+        gcd(b, a % b)
+    }
+}
+
+fn line(x0: usize, y0: usize, x1: usize, y1: usize) -&gt; (i32, i32) {
+    let mut a = (y0 as i32) - (y1 as i32);
+    let mut b = (x1 as i32) - (x0 as i32);
+    let gcd_val = gcd(a, b);
+    a /= gcd_val;
+    b /= gcd_val;
+    if a &lt; 0 {
+        (-a, -b)
+    } else if a == 0 {
+        if b &lt; 0 {
+            (0, -b)
+        } else {
+            (0, b)
+        }
+    } else {
+        (a, b)
+    }
+}
+
+fn num_conflicts(l: &amp;[usize], x: usize, y: usize) -&gt; usize {
+    let mut lines = HashSet::new();
+    let mut n = 0;
+    for (x1, &amp;y1) in l.iter().enumerate() {
+        if x1 == x {
+            continue;
+        }
+        let l1 = line(x, y, x1, y1);
+        if lines.contains(&amp;l1) {
+            n += 1;
+        } else {
+            lines.insert(l1);
+        }
+    }
+    n
+}
+
+fn greedy(n: usize) -&gt; Vec&lt;usize&gt; {
+    let mut l = Vec::with_capacity(n);
+    for x in 0..n {
+        let z: Vec&lt;usize&gt; = (0..n).map(|y| num_conflicts(&amp;l, x, y)).collect();
+        let v = *z.iter().min().unwrap();
+        let options: Vec&lt;usize&gt; = z
+            .iter()
+            .enumerate()
+            .filter_map(|(y, &amp;k)| if k == v { Some(y) } else { None })
+            .collect();
+        let y = options[rand::random::&lt;usize&gt;() % options.len()];
+        l.push(y);
+    }
+    l
+}
+
+fn fix_row(n: usize, l: &amp;mut [usize], x: usize) -&gt; Option&lt;bool&gt; {
+    let y0 = l[x];
+    let nc = num_conflicts(l, x, y0);
+    if nc == 0 {
+        return Some(true);
+    }
+    let z: Vec&lt;usize&gt; = (0..n).map(|y| if y != y0 { num_conflicts(l, x, y) } else { nc }).collect();
+    let v = *z.iter().min().unwrap();
+    let options: Vec&lt;usize&gt; = z.iter().enumerate().filter_map(|(y, &amp;k)| if k == v { Some(y) } else { None }).collect();
+    if options == [y0] {
+        return Some(false);
+    }
+    let y = options[rand::random::&lt;usize&gt;() % options.len()];
+    l[x] = y;
+    None
+}
+
+fn solve(t: (usize, usize)) -&gt; Option&lt;Vec&lt;usize&gt;&gt; {
+    let (s, n) = t;
+    let _rng: StdRng = rand::SeedableRng::seed_from_u64(s as u64);
+    let mut l = greedy(n);
+    for _ in 0..3 * n {
+        let outcomes: HashSet&lt;Option&lt;bool&gt;&gt; = (0..n).map(|x| fix_row(n, &amp;mut l, x)).collect();
+        let all_true = outcomes.iter().all(|outcome| outcome == &amp;Some(true));
+        if all_true {
+            return Some(l);
+        }
+        if !outcomes.contains(&amp;None) {
+            break;
+        }
+    }
+    None
+}
+
+fn full(n: usize) -&gt; Vec&lt;usize&gt; {
+    iter::repeat(n)
+        .enumerate()
+        .filter_map(solve)
+        .next()
+        .unwrap()
+}
+
+fn full_mp(n: usize, p: usize) -&gt; Vec&lt;usize&gt; {
+    let (tx, rx) = mpsc::channel();
+    let tasks = iter::repeat(n).take(p).enumerate();
+    for task in tasks {
+        let tx = tx.clone();
+        thread::spawn(move || {
+            let result = solve(task);
+            if let Some(solution) = result {
+                tx.send(solution).unwrap();
+            }
+        });
+    }
+    rx.recv().unwrap()
+}
+
+fn main() {
+    // let args: Vec&lt;String&gt; = env::args().collect();
+    // if args.len() &lt; 2 {
+    //     eprintln!(&quot;Usage: {} n [-j processes]&quot;, args[0]);
+    //     std::process::exit(1);
+    // }
+    // let n: usize = args[1].parse().expect(&quot;n must be an integer&quot;);
+    // let processes: usize = if args.len() &gt;= 4 &amp;&amp; args[2] == &quot;-j&quot; {
+    //     args[3].parse().expect(&quot;processes must be an integer&quot;)
+    // } else {
+    //     1
+    // };
+
+    
+    let n: usize = 128;
+    let processes: usize =1;
+    let l = if processes &gt; 1 {
+        full_mp(n, processes)
+    } else {
+        full(n)
+    };
+
+    println!(
+        &quot;{}&quot;,
+        l.iter()
+            .enumerate()
+            .all(|(x, &amp;y)| num_conflicts(&amp;l, x, y) == 0)
+    );
+    println!(&quot;{:?}&quot;, l);
+}
+
+</code></pre>
+</div>
+<div id="pu2" class="pu"><h1><a href="http://pypy.org/" rel="nofollow noreferrer">Python 3 (PyPy)</a>, N = 565</h1>
+
+<pre class="lang-python prettyprint-override"><code>import math
+import random
+import multiprocessing
+import itertools
+import argparse
+
+def line(x0, y0, x1, y1):
+    a = y0 - y1
+    b = x1 - x0
+    gcd = math.gcd(a, b)
+    a //= gcd
+    b //= gcd
+    if a &lt; 0:
+        return -a, -b
+    elif a == 0:
+        if b &lt; 0:
+            return 0, -b
+        return 0, b
+    return a, b
+
+def num_conflicts(l, x, y):
+    lines = {(1,1),(1,-1),(1,0),(0,1)}
+    n = 0
+    for x1, y1 in enumerate(l):
+        if x1 == x: continue
+        l1 = line(x, y, x1, y1)
+        if l1 in lines:
+            n += 1
+        else:
+            lines.add(l1)
+    return n
+
+def greedy(n):
+    l = []
+    for x in range(n):
+        z = [num_conflicts(l, x, y) for y in range(n)]
+        v = min(z)
+        y = random.choice([y for y, k in enumerate(z) if k == v])
+        l.append(y)
+    return l
+
+def fix_row(n, l, x):
+    y0 = l[x]
+    nc = num_conflicts(l, x, y0)
+    if nc == 0: return 1
+    z = [num_conflicts(l, x, y) if y != y0 else nc for y in range(n)]
+    v = min(z)
+    options = [y for y, k in enumerate(z) if k == v]
+    if options == [y0]: return -1
+    y = random.choice(options)
+    l[x] = y
+
+def solve(t):
+    s, n = t
+    random.seed(s)
+    l = greedy(n)
+    for i in range(3*n):
+        outcomes = {fix_row(n, l, x) for x in range(n)}
+        if outcomes == {1}:
+            return l
+        if None not in outcomes:
+            break
+
+def full(n):
+    return next(filter(None, map(solve, enumerate(itertools.repeat(n)))))
+
+def full_mp(n, p):
+    with multiprocessing.Pool(p) as p:
+        return next(filter(None, p.imap_unordered(solve, enumerate(itertools.repeat(n)))))
+
+def main():
+    parser = argparse.ArgumentParser(
+        prog = &quot;queensthree&quot;,
+        description = &quot;Finds solution for the no-three-in-a-line n-queens problem&quot;
+    )
+    parser.add_argument('n', help='number of rows/columns', type=int)
+    parser.add_argument('-j', default=1, help='number of processes to use (defaults to 1)', type=int)
+
+    args = parser.parse_args()
+    if args.j &gt; 1:
+        l = full_mp(args.n, args.j)
+    else:
+        l = full(args.n)
+    print(all(num_conflicts(l, x, l[x]) == 0 for x in range(args.n)))
+    print(l)
+
+if __name__ == '__main__':
+    main()
+</code></pre>
+<p><a href="https://tio.run/##lVXBbts4EL37K7i5mGolxWoOBYK6wF72uOg9CARaom02FMmSVGplkW/3zpCULMXZYivAljmceZx58zg2gz9qdVeYwQzns@iMtp50zB9X6bdlqtXduOp66YWxuuHOCXUYzcJz67WWbjQwezDMOr5atXxPpFCcnjY5GeBzquBdZfcrAg8jWzCSAixhvYP1qYL1aRPWh6YFC@ZTwk/KcrLLUuDt7Ra3U9h8Jfaw/YVs4hH4WO57q0gB8cUuWLkMXtvt3A1Mu2XgLHgzxS6N0ZbWmGCsWfVd3Wi1l6LxjkqoG8pOVSMfDur6h1Z5leXwXcTXBr43YHoNbgpcIg17bRNvRCjCAZtb5jmV2SJ5YA4KOt0TONgL1fNpU8JOagOgTE2YB8uAHVJb1q/Ixy2pJhOXji8dQkzJ2pbKBJnYUJGKg@W8Hagaq4dUHh4vdeGxoLIDnzzweUGv90kMYcM87HEKe0a5CEVfLrUNYIoqLpujFg2nD0OEyMnTks@XDJl4QhafHy8IsmTGcNXSYVGejOXtxam2@idVOcEMUw2gamD84RRTUw2s3q1mk42aRR@U4wgfKf8VDxA0kD/CDcKuIMJ/UPOGFm280Aol@P@oGFOc4jBw8zilWsRcr5lOAfFUZAPve6TNafnMqU90uTzI3Ud@I4YD2dAxFjYnHU3aEZdK7z7M1aN73@guXrK3/blW3ev8HlxCIbZ6fXcWyHnA31oB9doj4hi8jNpZzp6SWHopJ52P14SfPN0LCUOUIlgOA8/QwE8@68g0ZEvLDWceYPC54NadwSJNQv8p/PHtwC6/AQA1GWGOmKv5eJ2IKQXkUvdK25ZbbMdvZdUx0FxKJ/wfWGjI@N9Q/mkPgKL8t7BDp2wg3QP43fzoOVfOH6HtN/m023LXWBF0hU5/CdU6FFMfLNhbf8R@FCGwEKpgBU4ooooIiPg7ybubAJnNksMZVrOUFV2rdU6OXJrtGqrdQe56T0BI7raB0zrlYNsPhm@F8r9AKb6DH5DBoBPb6hoxNQcE5zXp4RbT5BwMVbY4Jf732QMKO50WXnieo9MowVX5nXwl1aXHeINGlYR9kEr0y1bXc330Tq6pPgtJUIYKfmcg4fXOwgh7e8MSRjZHkVAMZFrXinW8rjFuXdcomLpexzyies7n892nz/8C" rel="nofollow noreferrer" title="Python 3 (PyPy) – Try It Online">Try it online! (N=327)</a></p>
+<p>Uses the <a href="https://en.wikipedia.org/wiki/Min-conflicts_algorithm" rel="nofollow noreferrer">Min-conflicts algorithm</a>. The gist of the algorithm is to start with a random arrangement of the queens, and repeat the step of choosing a random queen that is in conflict (in check or in a line with two other queens), and move it to a square in the same row with the least conflicts. After a number of steps, if a solution hasn't been found, start over with a different random arrangement.</p>
+<p>Because of how the algorithm works, it occasionally gets lucky and finds a solution on the first try (which is what happened with N=565, the previous solution that could be found in 2 minutes was for N=532).</p>
+</div>
+<div id="pu3" class="pu"><h1><a href="https://www.wolfram.com/wolframscript/" rel="nofollow noreferrer">Wolfram Language (Mathematica)</a>, N=20</h1>
+<p>N=20 in less than a min on my old laptop</p>
+<pre><code>queens=20;
+put[n_,m_,q_]:=(pl={n,m};s[[n,m]]="X";{i,j}=pl;
+While[i&gt;1&amp;&amp;j&gt;1,i--;j--;s[[i,j]]++];
+{i,j}=pl;
+While[i&lt;q&amp;&amp;j&lt;q,i++;j++;s[[i,j]]++];
+{i,j}=pl;
+While[i&lt;q&amp;&amp;j&gt;1,i++;j--;s[[i,j]]++];
+{i,j}=pl;
+While[i&gt;1&amp;&amp;j&lt;q,i--;j++;s[[i,j]]++];
+{i,j}=pl;
+While[i&lt;q,i++;s[[i,j]]++];
+{i,j}=pl;
+While[i&gt;1,i--;s[[i,j]]++];
+{i,j}=pl;
+While[j&lt;q,j++;s[[i,j]]++];
+{i,j}=pl;
+While[j&gt;1,j--;s[[i,j]]++];)
+
+
+While[(t=0;
+qu=queens;
+While[t!=qu,s=Table[0,{i,qu},{j,qu}];
+put[RandomInteger[{1,qu}],RandomInteger[{1,qu}],qu];
+t=1;
+While[!FreeQ[s,0],
+pos=Position[s,0];
+put[First@#,Last@#,qu]&amp;[RandomChoice@pos];t++];];
+posi=Position[s,"X"];
+Select[(Last@#/First@#&amp;[First@Differences[#]])&amp;/@#&amp;/@(Partition[#,2,1]&amp;/@Subsets[posi,{3}]),SameQ@@#&amp;])!={}]
+
+
+s=s/. a_/;IntegerQ@a:&gt;".";
+</code></pre>
+<p><a href="https://tio.run/##jZLfa8IwEMff@1f4A4rF09oN9mCMFDYGgz3oHGwQgkQXZ4ptbZM@lf7t3aVWGNuYPoQjd9/7fHNJYmH2MhZGbUWdFVImmgZ3pD4WhiVriNeQrfmUDo4HWiYQV0QzhpFz2nvvkVJBVNHjgThve3WQTM0D143mAajRiES4UI0SzodDTpxf6lmG6lkGajgkEa4r1JZt1RfZzUks257kCnaDvYRsaP@KrOVFOzvFzwk8x2mrA0MnxMkKenqOc5PpYgI0fRUb3E0AoVlRQRnZgCb2xV5E8pHGT4mRnzJnZdCU4O9sVmCTocGZ333MpVwyDRMOzjHVdJFqZVSaNKkT/1Hl2oR9eBZNQITbet7vU7WVIfZxYuw8tgMB3yn4YzC7kge5NWxwYvgt0m3ZD2q3k7lMtlKzPuee62PNDwcLkZsTpw83EHDMrYqNlkYzawPlbcU9WIlYLkPs4F6XlhXHO9VU@@OOWPukvYBlKKbz3rhH6kWuEtPxQ13XXw" rel="nofollow noreferrer" title="Wolfram Language (Mathematica) – Try It Online">Try it online!</a></p>
+</div>
+<div id="pu4" class="pu"><h1><a href="https://www.minizinc.org/" rel="noreferrer">MiniZinc</a>, N = 70</h1>
+<pre><code>int: n;
+
+array [1..n] of var 1..n: q;
+
+predicate 
+    noattack(int: i, int: j, var int: qi, var int: qj) =
+    qi     != qj     /\
+    qi + i != qj + j /\
+    qi - i != qj - j;
+
+constraint
+    forall (i in 1..n, j in i+1..n) (
+        noattack(i, j, q[i], q[j])
+    );
+
+predicate
+    no3inline(int: i, int: j, int: k, var int: qi, var int: qj, var int: qk) =
+    i * (qk - qj) + j * (qi - qk) + k * (qj - qi) != 0;
+
+constraint
+    forall (i in 1..n, j in i+1..n, k in j+1..n) (
+        no3inline(i, j, k, q[i], q[j], q[k])
+    );
+
+solve :: int_search(q, first_fail, indomain_random)
+    satisfy;
+</code></pre>
+<p>Adapted from <a href="https://github.com/MiniZinc/minizinc-benchmarks/blob/master/queens/queens.mzn" rel="noreferrer">https://github.com/MiniZinc/minizinc-benchmarks/blob/master/queens/queens.mzn</a>.</p>
+<p>Solution for <span class="math-container">\$N = 70\$</span> in less than 9s on i5-6300U.</p>
+<p>It is worth noting that the time required does not always increase when increasing <span class="math-container">\$N\$</span>. For example, for <span class="math-container">\$N = 69\$</span>, 2 minutes were not enough.</p>
+<hr />
+<p>The goal of this answer is not to show off my skills, but the power of MiniZinc and <a href="https://en.wikipedia.org/wiki/Constraint_programming" rel="noreferrer">constraint programming</a> in general.</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/258173/">258173</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
