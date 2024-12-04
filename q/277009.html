@@ -26,11 +26,109 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>040</td><td>05AB1E</td><td>241204T094734Z</td><td><a href="https://codegolf.stackexchange.com/questions/277009/tracing-light-through-a-house-of-mirrors/277012#277012">Kevin Cr</a></td></tr>
-<tr d-ix="1"><td>172</td><td>Ruby</td><td>241204T091626Z</td><td><a href="https://codegolf.stackexchange.com/questions/277009/tracing-light-through-a-house-of-mirrors/277010#277010">Doorknob</a></td></tr>
+<tr d-ix="0"><td>164</td><td>Ruby</td><td>241204T091626Z</td><td><a href="https://codegolf.stackexchange.com/questions/277009/tracing-light-through-a-house-of-mirrors/277010#277010">Doorknob</a></td></tr>
+<tr d-ix="1"><td>040</td><td>05AB1E</td><td>241204T094734Z</td><td><a href="https://codegolf.stackexchange.com/questions/277009/tracing-light-through-a-house-of-mirrors/277012#277012">Kevin Cr</a></td></tr>
 <tr d-ix="2"><td>101</td><td>Charcoal</td><td>241204T092831Z</td><td><a href="https://codegolf.stackexchange.com/questions/277009/tracing-light-through-a-house-of-mirrors/277011#277011">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, 40 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
+<div id="pu0" class="pu"><h2>Ruby, <s>172</s> 164 bytes</h2>
+
+<pre class="lang-none prettyprint-override"><code>-&gt;s,r{a=[s]
+(s.size**9).times{a.map{|s|s.sub! /(.)\1/,'';r.map{|x,n|a+=s.gsub(/#{(x*=n)[0...n]+?|+x[1..n]}/).map{$`+$&amp;.tr(x[1..2],x)+$'}}}}
+a.min_by{|s|[s.size,s]}}
+</code></pre>
+<p>It is hard to exaggerate how comically slow this is.
+It would use about <span class="math-container">\$2^{10,000,000}\$</span> gigabytes of memory
+for the smallest test case.
+But you can <a href="https://tio.run/##hY1BbsIwEEX3OUUqrDjB7gTHIBYo5SDuqLUjQFkQoRikQOyzp46puukCWdY8zfyn39/MfTrW0/uH5f2oa2Ux2cC1PR/sqOGsL6OzzoK9mbe0zKH4FCWndKdZbeEUtnm5GPtnbuCdy4dl3RVqBQAdsr1jgxIz@uXe@bKIQfLNSAbXPieZEhhYrZCTrGCEeu@T0Np2X@Y@F6vQ3D4O3KL30yU9KqrN/ChP1cxhSkRM4qkx/45rDEx1E7CKaJpXyvaFUolKhv804pQxJuSfUclfY/oB" rel="nofollow noreferrer">Try it online!</a>
+if you replace <code>(s.size**9)</code> with a hardcoded number that works for the test cases.
+(It appears the second test case has a mistake,
+so I also included what I assume the intended test case was.)</p>
+<p>The general idea is to initialize an array containing just the input,
+then repeatedly apply all* possible transformations
+to all elements of the array,
+and append the new results.
+If it takes <span class="math-container">\$n\$</span> transformations to get to the fully reduced form,
+then as long as we have done this at least <span class="math-container">\$n\$</span> times,
+the array will contain the answer somewhere,
+and we can take the <code>min_by</code> length (tiebreaking alphabetically) to get it.</p>
+<p>Of course,
+since we never throw away the previous results,
+every single string we have ever seen gets processed again
+on each iteration.
+This means the size of the array grows exponentially,
+which makes this solution totally impractical for any nontrivial input.
+But that's okay,
+this is code golf.</p>
+<p>The first line (initialize the array)
+and the last line (take the winner)
+are self-explanatory --
+the meat of the solution is line 2.
+Let's start with the regex:</p>
+<pre class="lang-none prettyprint-override"><code>/#{(x*=n)[0...n]+?|+x[1..n]}/
+</code></pre>
+<p><code>x</code> is the two characters in a braid and <code>n</code> is the reducible braid length.
+We build this pattern that matches any possible substring of the two characters in <code>x</code>
+(modifying <code>x</code> in place!)
+that can be transformed.
+Note that if there is a braid longer than the corresponding relation,
+there are several overlapping matches,
+but we only get some.
+This is fine, though:
+making the first substitution yields an adjacent pair of same symbols,
+which after removal has the net effect of shortening the braid
+until it is at most as long as the corresponding relation.</p>
+<pre class="lang-none prettyprint-override"><code>.gsub( - ).map{$`+$&amp;.tr(x[1..2],x)+$'}
+</code></pre>
+<p>This is a pretty neat bit of Ruby flair.
+We call <code>gsub</code>,
+the global regex replace function,
+on that regex,
+but decline to give a replacement.
+This makes <code>gsub</code> instead return an enumerator over each match.
+We ignore the value of the enumerator
+and instead refer to some magic globals:
+<code>$`</code> is the string before the match,
+<code>$&amp;</code> is the match,
+and <code>$'</code> is the string after the match.
+So we map over each match,
+and for each one return the original string
+with the matched substring replaced with <code>$&amp;.tr(x[1..2],x)</code>,
+swapping the relevant characters.
+<code>x</code> used to be two characters,
+but <code>x[1..2]</code> now exists because we modified <code>x</code> in place in the previous step,
+which is delightfully gross.</p>
+<pre class="lang-none prettyprint-override"><code>a.map{|s|s.sub! /(.)\1/,'';r.map{|x,n|a+=s.gsub - }}
+</code></pre>
+<p>The main body of the loop first deletes a single adjacent pair, if any,
+in each string.
+We unfortunately have to do this outside the <code>gsub</code>
+because the input might be something like <code>aabc</code> with no relevant relations,
+where the only thing to do is delete the <code>aa</code>
+(and all the <code>gsub.map</code>s return an empty array).
+Obviously,
+this is worse than writing <code>s.gsub!</code> instead,
+to delete all adjacent pairs instead of only one.
+But that's okay,
+this is code golf.</p>
+<pre class="lang-none prettyprint-override"><code>(s.size**9).times{ - }
+</code></pre>
+<p>Finally,
+we do that whole thing <span class="math-container">\$|s|^9\$</span> times.
+Why?
+Well,
+we need an upper bound on how many steps it might take to reduce.
+I'm pretty sure <span class="math-container">\$|s|^2\$</span> is actually such a bound:
+there can be at most <span class="math-container">\$|s|\$</span> deletion steps,
+and between each deletion step
+there can be at most <span class="math-container">\$|s|-1\$</span> useful braid-swapping steps
+(because a step is only useful if it brings the two symbols involved in the next deletion closer together).
+I put a 9 instead of a 2 just to be safe.
+Naturally,
+this makes the runtime even more hilariously impractical.
+But that's okay,
+this is code golf.</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, 40 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
 <pre><code>ε`∍ÐÙÂ‡‚}Dí«sÙSºõδ‚«U¸ΔDεVXεYs`:}}«˜êé}н
 </code></pre>
 <p>Inputs in reversed order, with the braid relations as a list of <span class="math-container">\$[string,length]\$</span>-pairs.</p>
@@ -44,7 +142,7 @@
    Ð       #  Triplicate this string
     Ù      #  Uniquify the top copy
      Â     #  Bifurcate it; short for Duplicate &amp; Reverse copy
-      ‡    #  Transliterate (e.g. &quot;ababa&quot;,&quot;ab&quot;,&quot;ba&quot; becomes &quot;bababa&quot;)
+      ‡    #  Transliterate (e.g. &quot;ababa&quot;,&quot;ab&quot;,&quot;ba&quot; becomes &quot;babab&quot;)
        ‚   #  Pair the two 'mirrored' strings together
 }D         # After the map: duplicate the list of pairs
   í        # Reverse each pair in the copy
@@ -83,99 +181,6 @@ s          # Swap to get the second (implicit) input-string
 <pre class="lang-none prettyprint-override"><code>н          # Pop and keep just the first/shortest item
            # (which is output implicitly as result)
 </code></pre>
-</div>
-<div id="pu1" class="pu"><h2>Ruby, 172 bytes</h2>
-
-<pre class="lang-none prettyprint-override"><code>-&gt;s,r{a=[s]
-(s.size**9).times{a.map{|s|s.sub! /(.)\1/,'';a+=s.gsub(/#{r.map{|x,n|(x*=n)[0...n]+?|+x[1..n]}*?|}/).map{$`+$&amp;.tr($&amp;[1]+$&amp;[0],$&amp;)+$'}}}
-a.min_by{|s|[s.size,s]}}
-</code></pre>
-<p>It is hard to exaggerate how comically slow this is.
-It would use about <span class="math-container">\$2^{10,000,000}\$</span> gigabytes of memory
-for the smallest test case.
-But you can <a href="https://tio.run/##hY1BbsIwEEX3OUUqrDjB7gTHIBYo5SDuqLUjQFkQoRikQOyzp46puukCWdY8zfyn39/MfTrW0/uH5f2oa2Ux2cC1PR/sqOGsL6OzzoK9mbe0zKH4FCWndKdZbeEUtnm5GPtnbuCdy4dl3RVqBQAdsr1jgxIz@uXe@bKIQfLNSAbXPieZEhhYrZCTrGCEeu@T0Np2X@Y@F6vQ3D4O3KL30yU9KqrN/ChP1cxhSkRM4qkx/45rDEx1E7CKaJpXyvaFUolKhv804pQxJuSfUclfY/oB" rel="nofollow noreferrer">Try it online!</a>
-if you replace <code>(s.size**9)</code> with a hardcoded number that works for the test cases.
-(It appears the second test case has a mistake,
-so I also included what I assume the intended test case was.)</p>
-<p>The general idea is to initialize an array containing just the input,
-then repeatedly apply all* possible transformations
-to all elements of the array,
-and append the new results.
-If it takes <span class="math-container">\$n\$</span> transformations to get to the fully reduced form,
-then as long as we have done this at least <span class="math-container">\$n\$</span> times,
-the array will contain the answer somewhere,
-and we can take the <code>min_by</code> length (tiebreaking alphabetically) to get it.</p>
-<p>Of course,
-since we never throw away the previous results,
-every single string we have ever seen gets processed again
-on each iteration.
-This means the size of the array grows exponentially,
-which makes this solution totally impractical for any nontrivial input.
-But that's okay,
-this is code golf.</p>
-<p>The first line (initialize the array)
-and the last line (take the winner)
-are self-explanatory --
-the meat of the solution is line 2.
-Let's start with the regex:</p>
-<pre class="lang-none prettyprint-override"><code>/#{r.map{|x,n|(x*=n)[0...n]+?|+x[1..n]}*?|}/
-</code></pre>
-<p>We build this pattern that matches any possible substring
-that can be transformed.
-Note that if there is a braid longer than the corresponding relation,
-there are several overlapping matches,
-but we only get some.
-This is fine, though:
-making the first substitution yields an adjacent pair of same symbols,
-which after removal has the net effect of shortening the braid
-until it is at most as long as the corresponding relation.</p>
-<pre class="lang-none prettyprint-override"><code>.gsub( - ).map{$`+$&amp;.tr($&amp;[1]+$&amp;[0],$&amp;)+$'}
-</code></pre>
-<p>This is a pretty neat bit of Ruby flair.
-We call <code>gsub</code>,
-the global regex replace function,
-on that regex,
-but decline to give a replacement.
-This makes <code>gsub</code> instead return an enumerator over each match.
-We ignore the value of the enumerator
-and instead refer to some magic globals:
-<code>$`</code> is the string before the match,
-<code>$&amp;</code> is the match,
-and <code>$'</code> is the string after the match.
-So we map over each match,
-and for each one return the original string
-with the matched substring replaced with <code>$&amp;.tr($&amp;[1]+$&amp;[0],$&amp;)</code>,
-swapping the relevant characters.</p>
-<pre class="lang-none prettyprint-override"><code>a.map{|s|s.sub! /(.)\1/,'';a+=s.gsub -}
-</code></pre>
-<p>The main body of the loop first deletes a single adjacent pair, if any,
-in each string.
-We unfortunately have to do this outside the <code>gsub</code>
-because the input might be something like <code>aabc</code> with no relevant relations,
-where the only thing to do is delete the <code>aa</code>
-(and the <code>gsub.map</code> returns an empty array).
-Obviously,
-this is worse than writing <code>s.gsub!</code> instead,
-and delete all adjacent pairs instead of only one.
-But that's okay,
-this is code golf.</p>
-<pre class="lang-none prettyprint-override"><code>(s.size**9).times{ - }
-</code></pre>
-<p>Finally,
-we do that whole thing <span class="math-container">\$|s|^9\$</span> times.
-Why?
-Well,
-we need an upper bound on how many steps it might take to reduce.
-I'm pretty sure <span class="math-container">\$|s|^2\$</span> is actually such a bound:
-there can be at most <span class="math-container">\$|s|\$</span> deletion steps,
-and between each deletion step
-there can be at most <span class="math-container">\$|s|-1\$</span> useful braid-swapping steps
-(because a step is only useful if it brings the two symbols involved in the next deletion closer together).
-I put a 9 instead of a 2 just to be safe.
-Naturally,
-this makes the runtime even more hilariously impractical.
-But that's okay,
-this is code golf.</p>
 </div>
 <div id="pu2" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 101 bytes</h1>
 <pre><code>≔⦃⦄ζＦＥη…κ⊕ι«≔⮌Φ⮌ιλε§≔ζΦιλε§≔ζε✂ι¹»⊞υθＦυＦζＦＥ⌕Ａι§ζκ⁺⁺…ιλκ✂ι⁺λＬκＬι¹«ＷΦλ№λ×²ν≔⁻λ×²⌊μλ¿¬№υλ⊞υλ»⌊Φυ⁼Ｌι⌊ＥυＬλ
