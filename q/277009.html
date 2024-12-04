@@ -34,9 +34,14 @@
 </table>
 <div id="pu0" class="pu"><h2>Ruby, <s>172</s> <s>164</s> <s>157</s> 133 bytes</h2>
 
-<pre class="lang-none prettyprint-override"><code>-&gt;r,*a{(r*a[0].size**2).map{|x,n|x*=n;a.map{a+=[_1.sub(/(.)\1/,'').gsub(q=x[0...n],w=x[1..n]),_1.gsub(w,q)]}}
+<pre class="lang-none prettyprint-override"><code>-&gt;r,*a{(r*a[0].size**9).map{|x,n|x*=n;a.map{a+=[_1.sub(/(.)\1/,'').gsub(q=x[0...n],w=x[1..n]),_1.gsub(w,q)]}}
 a.min_by{[_1.size,_1]}}
 </code></pre>
+<p>It is hard to exaggerate how comically slow this is.
+It would use about <span class="math-container">\$2^{10,000,000}\$</span> gigabytes of memory
+for the smallest test case.
+But you can <a href="https://ato.pxeger.com/run?1=lU9NisIwGN17irpKk4nRpAMKQ71IJkhSrHQxoa1T2lp7hDmBmyJ6KA_gPfwapYgrhxDyvry_5HDKC1N3xzg8F7_xZHH5myxzSnTj50TLmWLbZLcmRGD2o9NmX1G7r0hov7Sb9UcoV5xtC-NPfYa_-ZQihNmmv8jCSs4YY1bREiDvEaagdmxJM6xaiClsko3bEeQldmXqxuVBJyhV2z4edU29WEqJtEHUC5SiHsB-ITV6pj6BARgBFA6aaDBE5tXChSN7HQ8GiwgGi-AigP2PEv1oebHM37LcP9t19_MG" rel="nofollow noreferrer">try it here</a>
+with some slight modifications so it can run on a sensible machine.</p>
 <p>-24 from stealing lots of improvements from <a href="https://codegolf.stackexchange.com/a/277014/3808">tsh's python answer</a>, thanks!
 Will update the explanation below when I have time,
 but for now it refers to the previous version:</p>
@@ -44,13 +49,6 @@ but for now it refers to the previous version:</p>
 (r*s.size**9).map{|x,n|x*=n;a.map{|s|s.sub! /(.)\1/,'';a+=s.gsub(/#{x[0...n]+?|+x[1..n]}/).map{$`+$&amp;.tr(x[1..2],x)+$'}}}
 a.min_by{|s|[s.size,s]}}
 </code></pre>
-<p>It is hard to exaggerate how comically slow this is.
-It would use about <span class="math-container">\$2^{10,000,000}\$</span> gigabytes of memory
-for the smallest test case.
-But you can <a href="https://tio.run/##hY1BbsIwEEX3OUUqrDjB7gTHIBYo5SDuqLUjQFkQoRikQOyzp46puukCWdY8zfyn39/MfTrW0/uH5f2oa2Ux2cC1PR/sqOGsL6OzzoK9mbe0zKH4FCWndKdZbeEUtnm5GPtnbuCdy4dl3RVqBQAdsr1jgxIz@uXe@bKIQfLNSAbXPieZEhhYrZCTrGCEeu@T0Np2X@Y@F6vQ3D4O3KL30yU9KqrN/ChP1cxhSkRM4qkx/45rDEx1E7CKaJpXyvaFUolKhv804pQxJuSfUclfY/oB" rel="nofollow noreferrer">Try it online!</a>
-if you replace <code>(s.size**9)</code> with a hardcoded number that works for the test cases.
-(It appears the second test case has a mistake,
-so I also included what I assume the intended test case was.)</p>
 <p>The general idea is to initialize an array containing just the input,
 then repeatedly apply all* possible transformations
 to all elements of the array,
