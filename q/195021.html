@@ -26,8 +26,8 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>102</td><td>JavaScript Node.js</td><td>241204T005250Z</td><td><a href="https://codegolf.stackexchange.com/questions/195021/find-the-shortest-route-on-an-ascii-road/277003#277003">l4m2</a></td></tr>
-<tr d-ix="1"><td>286</td><td>GNU AWK F ''</td><td>241112T180526Z</td><td><a href="https://codegolf.stackexchange.com/questions/195021/find-the-shortest-route-on-an-ascii-road/276647#276647">wobtax</a></td></tr>
+<tr d-ix="0"><td>285</td><td>GNU AWK F ''</td><td>241112T180526Z</td><td><a href="https://codegolf.stackexchange.com/questions/195021/find-the-shortest-route-on-an-ascii-road/276647#276647">wobtax</a></td></tr>
+<tr d-ix="1"><td>102</td><td>JavaScript Node.js</td><td>241204T005250Z</td><td><a href="https://codegolf.stackexchange.com/questions/195021/find-the-shortest-route-on-an-ascii-road/277003#277003">l4m2</a></td></tr>
 <tr d-ix="2"><td>268</td><td>Python3</td><td>240808T175753Z</td><td><a href="https://codegolf.stackexchange.com/questions/195021/find-the-shortest-route-on-an-ascii-road/274814#274814">Ajax1234</a></td></tr>
 <tr d-ix="3"><td>146</td><td>Python 3</td><td>191029T151352Z</td><td><a href="https://codegolf.stackexchange.com/questions/195021/find-the-shortest-route-on-an-ascii-road/195042#195042">Jitse</a></td></tr>
 <tr d-ix="4"><td>027</td><td>Jelly</td><td>211013T114501Z</td><td><a href="https://codegolf.stackexchange.com/questions/195021/find-the-shortest-route-on-an-ascii-road/236243#236243">ovs</a></td></tr>
@@ -36,29 +36,46 @@
 <tr d-ix="7"><td>183</td><td>Python 3 + numpy</td><td>191029T210133Z</td><td><a href="https://codegolf.stackexchange.com/questions/195021/find-the-shortest-route-on-an-ascii-road/195052#195052">Uri Gran</a></td></tr>
 <tr d-ix="8"><td>130</td><td>JavaScript ES7</td><td>191030T091658Z</td><td><a href="https://codegolf.stackexchange.com/questions/195021/find-the-shortest-route-on-an-ascii-road/195067#195067">Arnauld</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 102 bytes</h1>
+<div id="pu0" class="pu"><h1>GNU <a href="https://www.gnu.org/software/gawk/" rel="nofollow noreferrer">AWK</a> <a href="https://codegolf.meta.stackexchange.com/questions/14337/command-line-flags-on-front-ends/14339#14339">-F ''</a>, <strike>299</strike> <strike>294</strike> <strike>286</strike> 285 bytes</h1>
+<pre><code>NF&gt;w{w=NF}{for(i=0;++i&lt;=NF;){if(!r&amp;&amp;$i~/#/){$i=0;r=1}a[NR,i]=$i}h=NR}END{k=0;while(1){for(y=0;++y&lt;=h;){for(x=0;++x&lt;=w;){if(a[y,x]==&quot;&quot;k){for(z=y-1;z&lt;=y+1&amp;&amp;z&lt;=h;z++){for(t=x-1;t&lt;=x+1&amp;&amp;t&lt;=w;t++){if(t&gt;0&amp;&amp;z&gt;0&amp;&amp;(t==x||z==y)){if(a[z,t]~/#/){print k;exit}if(a[z,t]==&quot;+&quot;){a[z,t]=k+1}}}}}}}k++}}
+</code></pre>
+<p>This can be run with <code>awk -F '' -f ./route.awk ./road_map.txt</code>.</p>
+<p><a href="https://tio.run/##TY4/a8MwEMX3forUMcbiXBLP0mUojUsXDekYPHhIsFBpixHoX9SvrkpWKD2QkN7v3bubtIzx@fj6xv3wjlUV@HDQXiMfgr9@La3APQUQLAmUeHFtH5emqcXPbrsjvs50wT5MZ37qxIi1CDPyUzjyFy8T07P4uLQ9WaPsGmUZzrQIZhUMQ12ip7PtzIhpC1kMDu1TTx1DC33TuNzpAApTaBJTDE1mKoeozFKOOuyTO1/JheZ2c4iW3Ee4To1l@@9FfKqNpBcjVPhjaTxUxN8/EvpQSgKEECOk2qbzAJu1/j@yDhDjLw" rel="nofollow noreferrer" title="AWK – Try It Online">Try it online!</a> I wasn't able to figure out how to pass <code>-F ''</code> to the interpreter, so I just added <code>BEGIN{FS=&quot;&quot;}</code> to the beginning.</p>
+<p>Explanation:</p>
+<pre><code>NF&gt;w{w=NF}             # Let w be the width of the largest line.
+{for(i=0;++i&lt;=NF;){    # On each line, for each field...
+ if(!r &amp;&amp; $i~/#/){     #   If we haven't already found the first #...
+  $i=0;r=1}            #     Change that # to a 0 and set r (&quot;found&quot;) to 1.
+ a[NR,i]=$i}           #   In any case, load this field into an array a.
+h=NR}                  # Let h be the height.
+END{k=0;while(1){      # Now let's process the array using k as a counter.
+ for(y=0;++y&lt;=h;){     # For each y coordinate...
+ for(x=0;++x&lt;=w;){     # For each x coordinate...
+  if(a[y,x]==&quot;&quot;k){     #   If the cell at row y, column x is k (as a string)...
+   for(z=y-1;          #   .
+       z&lt;=y+1&amp;&amp;z&lt;=h;   #   .
+       z++){           #   .   
+   for(t=x-1;          #   .
+       t&lt;=x+1&amp;&amp;t&lt;=w;   #   .
+       t++){           #   .
+    if(t&gt;0&amp;&amp;           #   .
+       z&gt;0&amp;&amp;           #   .
+       (t==x||         #   .
+        z==y)){        #   Iterate over potential neighbors a[z,t].
+      if(a[z,t]~/#/){  #     Does a[z,t] mark the end?
+       print k;exit}   #       Wow, we found it!
+      if(a[z,t]==&quot;+&quot;){ #     If not, if the neighbor is '+'...
+       a[z,t]=k+1}     #       Set the neighbor to k+1.
+        }}}}}}         #   Pay our debt.
+    k++}}              # Go to the next iteration.
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 102 bytes</h1>
 
 <pre class="lang-none prettyprint-override"><code>f=A=&gt;-/7/.test(A)||f(A.map((r,y)=&gt;r.map((c,x)=&gt;c|2&amp;(+c&amp;&amp;r[x-1]|r[x+1]|A[y-!!y][x]|(A[y+1]||0)[x]))))+1
 </code></pre>
 <p><a href="https://tio.run/##pZDBCoJAEIbvPsV20RV1TVmpDgo@x7IH2TQKU1EJhX13G63IraxDw8Lwf/zMvzOn5JI0oj5WrVOU@3TIQnhxGDnuxiVt2rQ4NqXMcEzOSYVxbfdmGNU3IewOhJC@ji2h6zXrHI9LaBa0mPXOatVz1nGJQYxMrk2QJpTlDaIsmjJPSV4ecIYZQsh1kachxAghRkB9g2vg1T76gocPZECRwe0HoEBUMNUMTAakAn8Ey3Hb@bBAHTcGjiN/IOrf/7GcQp/Lqwlv8uttds@9wKosCqeiL5v/c6zhCg" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
 <p>Spread <code>2</code> till cover <code>5</code></p>
-</div>
-<div id="pu1" class="pu"><h1>GNU <a href="https://www.gnu.org/software/gawk/" rel="nofollow noreferrer">AWK</a> <a href="https://codegolf.meta.stackexchange.com/questions/14337/command-line-flags-on-front-ends/14339#14339">-F ''</a>, <strike>299</strike> <strike>294</strike> 286 bytes</h1>
-<pre><code>NF&gt;w{w=NF}{for(i=0;++i&lt;=NF;){if(!r&amp;&amp;$i~/#/){$i=0;r=1}a[NR,i]=$i}h=NR}END{k=0;while(1){for(y=0;++y&lt;=h;){for(x=0;++x&lt;=w;){if(a[y,x]==&quot;&quot;k){for(z=y-1;z&lt;=y+1&amp;&amp;z&lt;=h;z++){for(t=x-1;t&lt;=x+1&amp;&amp;t&lt;=w;t++){if(t&gt;0&amp;&amp;z&gt;0&amp;&amp;(t==x||z==y)){if(a[z,t]~/#/){print k
-exit}if(a[z,t]==&quot;+&quot;){a[z,t]=k+1}}}}}}};k++}}
-</code></pre>
-<p>This can be run with <code>awk -F '' -f ./route.awk ./road_map.txt</code>.</p>
-<p>Here's a <a href="https://tio.run/##TY7LasMwEEX3@YrUMcZmXBKv5ckiNC7daJEugxdeJFgotMEI9Ir666oeoXRAQrrnzp2ZJPf@cHz/oHb4xKJwdNhLK5EOzl6/l5rhjgCwPgiksexavyxVVbKf7Wbb2DLSBTs3nempZSOWzM1IT@5I3ywPTM7sdqm7JkXpFKV7nEkWVBJUjzJHT2fdqhHDFjwbDOrXjpgeNXRVZWKnAchMoApM9KgiEzFERBZyxH4X3PEKLlSPh0HUzXOEacWYt78v7Eus@eqimHB/LIyHorHPD4fO5SIcwDnvIdQmnBWsU/1/JADg/S8" rel="nofollow noreferrer" title="AWK – Try It Online">Try it online!</a> link—unfortunately, I wasn't able to figure out how to pass <code>-F ''</code> to the interpreter, so I just added <code>BEGIN{FS=&quot;&quot;}</code> to the beginning.</p>
-<p>Pseudocode:</p>
-<ul>
-<li>Load the input into a 2D array <code>a</code> of characters, set <code>w</code> and <code>h</code> to the width and height, and replace the first <code>#</code> with <code>0</code>.</li>
-<li>After processing the input: pass over the array in multiple steps. On the <code>k</code>th step, if you find a cell with value <code>k</code>, check its neighbors.
-<ul>
-<li>If one of its neighbors is <code>#</code>, print <code>k</code> and exit.</li>
-<li>Replace each adjacent <code>+</code> with <code>k+1</code>.</li>
-</ul>
-</li>
-</ul>
 </div>
 <div id="pu2" class="pu"><h1>Python3, 268 bytes</h1>
 <pre class="lang-py prettyprint-override"><code>E=enumerate
