@@ -26,14 +26,14 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>164</td><td>Ruby</td><td>241204T091626Z</td><td><a href="https://codegolf.stackexchange.com/questions/277009/tracing-light-through-a-house-of-mirrors/277010#277010">Doorknob</a></td></tr>
+<tr d-ix="0"><td>157</td><td>Ruby</td><td>241204T091626Z</td><td><a href="https://codegolf.stackexchange.com/questions/277009/tracing-light-through-a-house-of-mirrors/277010#277010">Doorknob</a></td></tr>
 <tr d-ix="1"><td>040</td><td>05AB1E</td><td>241204T094734Z</td><td><a href="https://codegolf.stackexchange.com/questions/277009/tracing-light-through-a-house-of-mirrors/277012#277012">Kevin Cr</a></td></tr>
 <tr d-ix="2"><td>101</td><td>Charcoal</td><td>241204T092831Z</td><td><a href="https://codegolf.stackexchange.com/questions/277009/tracing-light-through-a-house-of-mirrors/277011#277011">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h2>Ruby, <s>172</s> 164 bytes</h2>
+<div id="pu0" class="pu"><h2>Ruby, <s>172</s> <s>164</s> 157 bytes</h2>
 
 <pre class="lang-none prettyprint-override"><code>-&gt;s,r{a=[s]
-(s.size**9).times{a.map{|s|s.sub! /(.)\1/,'';r.map{|x,n|a+=s.gsub(/#{(x*=n)[0...n]+?|+x[1..n]}/).map{$`+$&amp;.tr(x[1..2],x)+$'}}}}
+(r*s.size**9).map{|x,n|x*=n;a.map{|s|s.sub! /(.)\1/,'';a+=s.gsub(/#{x[0...n]+?|+x[1..n]}/).map{$`+$&amp;.tr(x[1..2],x)+$'}}}
 a.min_by{|s|[s.size,s]}}
 </code></pre>
 <p>It is hard to exaggerate how comically slow this is.
@@ -64,11 +64,12 @@ and the last line (take the winner)
 are self-explanatory --
 the meat of the solution is line 2.
 Let's start with the regex:</p>
-<pre class="lang-none prettyprint-override"><code>/#{(x*=n)[0...n]+?|+x[1..n]}/
+<pre class="lang-none prettyprint-override"><code>x*=n; [...] /#{x[0...n]+?|+x[1..n]}/
 </code></pre>
 <p><code>x</code> is the two characters in a braid and <code>n</code> is the reducible braid length.
-We build this pattern that matches any possible substring of the two characters in <code>x</code>
-(modifying <code>x</code> in place!)
+We build this pattern
+(by modifying <code>x</code> in place!)
+that matches any possible substring of the two characters in <code>x</code>
 that can be transformed.
 Note that if there is a braid longer than the corresponding relation,
 there are several overlapping matches,
@@ -97,7 +98,7 @@ swapping the relevant characters.
 <code>x</code> used to be two characters,
 but <code>x[1..2]</code> now exists because we modified <code>x</code> in place in the previous step,
 which is delightfully gross.</p>
-<pre class="lang-none prettyprint-override"><code>a.map{|s|s.sub! /(.)\1/,'';r.map{|x,n|a+=s.gsub - }}
+<pre class="lang-none prettyprint-override"><code>a.map{|s|s.sub! /(.)\1/,'';a+=s.gsub - }
 </code></pre>
 <p>The main body of the loop first deletes a single adjacent pair, if any,
 in each string.
@@ -110,7 +111,7 @@ this is worse than writing <code>s.gsub!</code> instead,
 to delete all adjacent pairs instead of only one.
 But that's okay,
 this is code golf.</p>
-<pre class="lang-none prettyprint-override"><code>(s.size**9).times{ - }
+<pre class="lang-none prettyprint-override"><code>(r*s.size**9).map{|x,n| - }
 </code></pre>
 <p>Finally,
 we do that whole thing <span class="math-container">\$|s|^9\$</span> times.
