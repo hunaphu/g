@@ -37,9 +37,36 @@
 <p>Expects <code>(array)(string)</code>, where <em>array</em> is of the form <code>[ [ &quot;x&quot;,&quot;y&quot;,n ], ... ]</code>. Returns a string.</p>
 <p>The symbols used are non-zero decimal digits.</p>
 
-<pre class="lang-none prettyprint-override"><code>b=&gt;m=g=s=&gt;b.map(g[s]=([x,y,n])=&gt;(h=(p,q)=&gt;g[s=s.replace(p,[q])]?s&gt;+m?0:m=s:g(s))(x+x)&amp;h(y+y)&amp;h(x=x.padEnd(n,y+x),y+=x/10|0)&amp;h(y,x))&amp;&amp;m
+<pre class="lang-none prettyprint-override"><code>a=&gt;m=g=s=&gt;a.map(g[s]=([x,y,n])=&gt;(h=(p,q)=&gt;g[s=s.replace(p,[q])]?s&gt;+m?0:m=s:g(s))(x+x)&amp;h(y+y)&amp;h(x=x.padEnd(n,y+x),y+=x/10|0)&amp;h(y,x))&amp;&amp;m
 </code></pre>
-<p><a href="https://tio.run/##nZJLTsMwEIb3PcUoi8ZWTGhiEFIrp6tuWMCCZeRFHk5alFfjCCUCboDEhiXcg/P0AhwhOGkgElSiQpbG/sf/fB5bvvXuPBmUm6I6yfJQtBFrfeakLGaSOb6ZegWKXckZcmvSkIxj5qA1QwXZqpXaYdIsRZF4gVA5d8sxX0rHSJezecrkPEYSY1QbNZ6uUWM03VSz2iy8cJWFKCON2lKB1afW7GHWu0iN8XSatgt3AuCCZtnd0Ihad0ojmhIUOHACmqbi3kbtg8azzjZIqhF7kPZefmEsOoIUgx488BhOVzqirKGpf/VE7T9BF0debigecZ2ktM/TA9zzX6Afx/Tc7@r@uYBP@MSM8nLlBWuEXJAEfAKiLkRQiRA4BubAvWogERWUQgKDCPlY/ZCFSgZ5JvNEmEkeo8ub6ytTVuUmizdRg5QXgwGaGgagvpKN3CXoH@/Pu9cXFXWYg757e9KxYj7iRfsJ" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<p><a href="https://tio.run/##nZI/TsMwFMb3nuLJQ2MrJrQxCKmV06kLAwyMkYc0cdKi/GscoUTADZBYGOEenKcX4AjBSQORoBIVsvTs7/l7Pz9bvvXuPOUXm7w8SbNANiFvPO4kPOKKO56VeDmOXCU4dita01QQ7uA1xznd6pXe4coqZB57vtQ5dyuIWCjHTBaTWcLVLMKKEFyZFRmvcW3W7VTxysq9YJkGOKW13tKBV6fTycOkc9GKkPE4aebuCMAFNLXbgahetwpRpAUDAYICQjrubcw@aDxrbb1kiNq9tPfyCzNlA0gz2MEDj@G0pQNq2jf1r56Y/Sfo4sjL9cUDrpWMdXl2gHv@C/TjmI77Xd09F4iRGFlhViw9f42xC4rCioKscumXMgBBgDtwrxuIZQmFVMAhxCuif8hcJ/0sVVksrTiL8OXN9ZWlymKTRpuwxtpLwASkhwm4q@QDdwHGx/vz7vVFRwNmYOzengyimY9k3nwC" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<h3>Commented</h3>
+<pre class="lang-none prettyprint-override"><code>a =&gt;                        // outer function taking the array a[]
+m =                         // m = best answer so far, initially NaN'ish
+g = s =&gt;                    // g is a recursive function taking the string s
+a.map(g[s] =                // eventually mark g[s] as encountered
+([x, y, n]) =&gt;              // for each triplet (x, y, n) in a[]:
+  ( h = (p, q) =&gt;           //   h is a helper function taking (p, q):
+    g[                      //     test g[s] ...
+      s = s.replace(p, [q]) //     ... where s is updated by replacing the
+                            //     first occurrence of p with q
+    ] ?                     //     if g[s] is defined:
+      s &gt; +m ?              //       if s is greater than m:
+        0                   //         do nothing
+      :                     //       else:
+        m = s               //         update m to s
+    :                       //     else:
+      g(s)                  //       do a recursive call
+  )(x + x) &amp;                //   invoke h to replace x+x with an empty string
+  h(y + y) &amp;                //   invoke h to replace y+y with an empty string
+  h(                        //   invoke h to replace:
+    x = x.padEnd(n, y + x), //     the string &quot;xyxy..&quot; of length n
+    y += x / 10 | 0         //     with the string &quot;yxyx..&quot; of length n
+  ) &amp;                       //
+  h(y, x)                   //   invoke h to replace &quot;yxyx..&quot; with &quot;xyxy..&quot;
+)                           // end of map()
+&amp;&amp; m                        // return the best answer
+</code></pre>
 </div>
 <div id="pu1" class="pu"><h2>Ruby, <s>172</s> <s>164</s> <s>157</s> <s>133</s> <s>131</s> 128 bytes</h2>
 
