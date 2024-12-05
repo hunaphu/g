@@ -26,9 +26,9 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>059</td><td>JavaScript</td><td>230308T090820Z</td><td><a href="https://codegolf.stackexchange.com/questions/694/last-non-zero-digit-of-n/258925#258925">EzioMerc</a></td></tr>
-<tr d-ix="1"><td>056</td><td>PowerShell Core</td><td>230403T212203Z</td><td><a href="https://codegolf.stackexchange.com/questions/694/last-non-zero-digit-of-n/259702#259702">Julian</a></td></tr>
-<tr d-ix="2"><td>135</td><td>C</td><td>160516T180225Z</td><td><a href="https://codegolf.stackexchange.com/questions/694/last-non-zero-digit-of-n/80029#80029">Toby Spe</a></td></tr>
+<tr d-ix="0"><td>135</td><td>C</td><td>160516T180225Z</td><td><a href="https://codegolf.stackexchange.com/questions/694/last-non-zero-digit-of-n/80029#80029">Toby Spe</a></td></tr>
+<tr d-ix="1"><td>059</td><td>JavaScript</td><td>230308T090820Z</td><td><a href="https://codegolf.stackexchange.com/questions/694/last-non-zero-digit-of-n/258925#258925">EzioMerc</a></td></tr>
+<tr d-ix="2"><td>056</td><td>PowerShell Core</td><td>230403T212203Z</td><td><a href="https://codegolf.stackexchange.com/questions/694/last-non-zero-digit-of-n/259702#259702">Julian</a></td></tr>
 <tr d-ix="3"><td>064</td><td>Attache</td><td>180118T181736Z</td><td><a href="https://codegolf.stackexchange.com/questions/694/last-non-zero-digit-of-n/153525#153525">Conor O&</a></td></tr>
 <tr d-ix="4"><td>072</td><td>C gcc</td><td>190111T000529Z</td><td><a href="https://codegolf.stackexchange.com/questions/694/last-non-zero-digit-of-n/178635#178635">gastropn</a></td></tr>
 <tr d-ix="5"><td>057</td><td>AWK</td><td>180118T191223Z</td><td><a href="https://codegolf.stackexchange.com/questions/694/last-non-zero-digit-of-n/153531#153531">Robert B</a></td></tr>
@@ -46,7 +46,110 @@
 <tr d-ix="17"><td>239</td><td>Python3 239 Chars</td><td>110208T103720Z</td><td><a href="https://codegolf.stackexchange.com/questions/694/last-non-zero-digit-of-n/697#697">st0le</a></td></tr>
 <tr d-ix="18"><td>105</td><td>PHP</td><td>110208T104831Z</td><td><a href="https://codegolf.stackexchange.com/questions/694/last-non-zero-digit-of-n/699#699">Arnaud L</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>JavaScript, 59 bytes</h1>
+<div id="pu0" class="pu"><h1>C, <s>150</s> <s>140</s> 135 bytes</h1>
+<pre class="lang-c prettyprint-override"><code>r,d;f(k,x){r=x&lt;5?3:f(k+1,x/5);return(d=x%5)?r*&quot;33436&quot;[d]*(1&lt;&lt;d*k%4)%5:r;}main(int c,char**v){c=atoi(*++v);printf(&quot;%d&quot;,c&lt;2?1:2*f(0,c));}
+</code></pre>
+<p>This is the version for ASCII systems; replace the string <code>33436</code> with <code>11214</code> for an EBCDIC system, or with <code>\1\1\2\1\4</code> for a portable program.</p>
+<p>C solutions are a bit hampered by the requirement to provide a full program; however, this does answer the question fully.</p>
+<p>Try it online (requires Javascript):</p>
+<ul>
+<li><a href="https://tio.run/##HcnRCoIwFIDhV4nB4Jy5yLnWhZv4INGFnGWJZHEwGYjPvqT/7uOn44MoZ9bR9zDqhCs3KbjW1jsLo9PJoef7/OUJYpOkw5aVsPZsL@IabwpMCFGN8ozS1ey3VzdMMEzzgTQ9O1ZqwZWabn4PoIpiQf/h/fYgZBSaQtWaulI9lJoQ/ZZzNuW/Hw" rel="nofollow noreferrer" title="C (gcc) – Try It Online">1000000 only</a></li>
+<li><a href="https://tio.run/##VUztboMwDPzPU1hMSEnINsJHt0EoD9L1B0tKG7ULU0YnpIpn9wLtVM2yffbd2epxrxSi47rqyJGP9OLqURZNVvo1Fnx8LmjldsPZWaLrMSpo41iYZXm2Cjd6y4iQUrNjlNOoKF014YOx6nTWO5Dfgzb902Ed/KNO5mPmPltjibEDtG6vOKhD6xiblx8aXALw0fUOFoeBGkQFHuXi9mMcGwpX2xKzzdbt0Bsyv9iYLa3u6pfzekfCSEO9hki/25CD9SnTRpQp60jCLb1dTMGEKDDFDHMscIUv@IpvKBKfS13brf9B8gs" rel="nofollow noreferrer" title="C (gcc) – Try It Online">Loop with all testcases</a></li>
+</ul>
+<h2>Explanation</h2>
+<p>It's based on the algorithm outlined in <a href="http://www.mathpages.com/home/kmath489.htm" rel="nofollow noreferrer">Least Significant Non-Zero Digit of n!</a>, turned around so that we recurse in to find the highest power of five, and do the calculation on the way out.  The tables of constants were too big, so I reduced them by finding a relationship between the previous residue <code>r</code>, the current digit <code>d</code> and the recursion depth <code>k</code>:</p>
+<div class="s-table-container"><table class="s-table">
+<thead>
+<tr>
+<th style="text-align: right;">r</th>
+<th style="text-align: center;">d=0</th>
+<th style="text-align: center;">d=1</th>
+<th style="text-align: center;">d=2</th>
+<th style="text-align: center;">d=3</th>
+<th style="text-align: center;">d=4</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">3×2ᵏ</td>
+<td style="text-align: center;">1×2²ᵏ</td>
+<td style="text-align: center;">3×2³ᵏ</td>
+<td style="text-align: center;">2</td>
+</tr>
+<tr>
+<td style="text-align: right;">1</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">1×2ᵏ</td>
+<td style="text-align: center;">2×2²ᵏ</td>
+<td style="text-align: center;">1×2³ᵏ</td>
+<td style="text-align: center;">4</td>
+</tr>
+<tr>
+<td style="text-align: right;">2</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">2×2ᵏ</td>
+<td style="text-align: center;">4×2²ᵏ</td>
+<td style="text-align: center;">2×2³ᵏ</td>
+<td style="text-align: center;">3</td>
+</tr>
+<tr>
+<td style="text-align: right;">3</td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">3×2ᵏ</td>
+<td style="text-align: center;">3×2²ᵏ</td>
+<td style="text-align: center;">3×2³ᵏ</td>
+<td style="text-align: center;">2</td>
+</tr>
+<tr>
+<td style="text-align: right;">4</td>
+<td style="text-align: center;">4</td>
+<td style="text-align: center;">4×2ᵏ</td>
+<td style="text-align: center;">4×2²ᵏ</td>
+<td style="text-align: center;">4×2³ᵏ</td>
+<td style="text-align: center;">1</td>
+</tr>
+</tbody>
+</table></div>
+<p>For <code>r&gt;0</code>, this resolves to a constant times <code>r</code> times <code>2ᵈᵏ</code> (mod 5); the constants are in <code>a[]</code> below (inlined in the golfed code).  We also observe that <code>(2⁴)%5</code> is 1, so we can reduce the exponent to avoid overflowing the range of <code>int</code>.</p>
+<pre class="lang-c prettyprint-override"><code>const int a[] = { 1, 1, 2, 1, 4 };
+int f(int k, int x)
+{
+    int r = x&lt;5 ? 3 : f(k+1,x/5); /* residue - from recursing to higher-order quinary digits */
+    int d = x%5;
+    if (!d)
+        return r;
+    return r * a[d] * (1 &lt;&lt; d*k%4) % 5;
+}
+
+int main(int c, char **v)
+{
+    c = atoi(*++v);
+    printf(&quot;%d&quot;,
+           c&lt;2
+           ? 1                  /* special-case 0 &amp; 1 */
+           : 2*f(0,c));         /* otherwise, it's 2 times r */
+}
+</code></pre>
+<h2>Tests:</h2>
+<pre><code>$ for i in 100 1000 10000 100000; do echo $i: `./694 $i`; done
+100: 4
+1000: 2
+10000: 8
+100000: 6
+1000000: 4
+</code></pre>
+<p>Performance is respectable, too.  Here's a maximum input for a system with 32-bit <code>int</code>:</p>
+<pre><code>$ time ./694 2147483647
+8
+real    0m0.001s
+user    0m0.000s
+sys     0m0.000s
+</code></pre>
+<p>I got the same timings with a maximal 64-bit <code>int</code>, too.</p>
+</div>
+<div id="pu1" class="pu"><h1>JavaScript, 59 bytes</h1>
 <p>Based on <a href="https://math.stackexchange.com/a/130389/1156907">this answer</a></p>
 <pre><code>f=n=&gt;n&gt;9?'6248'[(a=n/5|0)%4]*f(a)*f(n%5)%10:'1126422428'[n]
 </code></pre>
@@ -132,7 +235,7 @@ else return [6, 2, 4, 8][k % 4];
 <p><code>k % 4 == 0</code> when <code>k is one of [0, 4, 8, 12, 16, ...]</code> but we need to consider cases when <code>k is one of [0, 4, 8]</code> because for bigger values we will run recursion. The second multiplier in our formula is <span class="math-container">\$D(k)\$</span> and for <code>k is on of [0, 4, 8]</code> we get <code>[1, 4, 2]</code> respectively. We had to multiply these values by <code>1</code> but instead of this we will multiply them by <code>6</code> so we will get <code>[1, 24, 12]</code>, the last digits of these values are <code>[1, 4, 2]</code>. Now we can see that it doesn't matter to multiply them by <code>1</code> or <code>6</code> the last digits will be the same</p>
 <p>The last thing we need it is to prove that <span class="math-container">\$[n / 5] = \lfloor n / 5 \rfloor\$</span> for <span class="math-container">\$n \ge 0\$</span>. I think it is obvious</p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://github.com/PowerShell/PowerShell" rel="nofollow noreferrer">PowerShell Core</a>, 56 bytes</h1>
+<div id="pu2" class="pu"><h1><a href="https://github.com/PowerShell/PowerShell" rel="nofollow noreferrer">PowerShell Core</a>, 56 bytes</h1>
 
 <pre class="lang-powershell prettyprint-override"><code>($s=1)..&quot;$args&quot;|%{$s=+(&quot;$(($s%1e5)*$_)&quot;.Trim(48))}
 $s%10
@@ -140,111 +243,6 @@ $s%10
 <p><a href="https://tio.run/##XZFBb4JAEIXP7q/YkNWwLRKwaq2JCUlrj7Yp3owxFEelgULZNbRRfjudXSqhzmnem2/eJLtZWkAuDhDH/TDNoWK72akymZi53LYNFuR7YZy7JzRuTYOZOOm6MOI3bMMNe5lHiTmccF4S5TtVSQjb0xk9kQ4TBTYr/0dISOynKNh/pkJGobB9mWZFIMPDejr1ZZDLBRQmJ6TTYzvqqYtEr2sQB7qfx0EmYEvwAvFMQrEsz3Qt6vKLGFh00Ig7i44bMbTosBGjNjZui/s2NmlPHiw6aYTr/FdOew2l095U@prXzvjKqVM4PdPnNJ8H4aH/8v4BocS3VByTIKRFGXxnaMIW35Zt6kkO4hirmYwSQL@HX6BxPV69@o9HIdOkjlt7dZ4q/xiGIISKamL78HVJbLglZimoyVT1phll/9EdY4n3DQ1io8GSlNUv" rel="nofollow noreferrer" title="PowerShell Core – Try It Online">Try it online!</a></p>
 <p>Naive implementation, takes under 5 seconds on my local, 25 seconds on TIO<br />
 I'll rework it when I get a chance</p>
-</div>
-<div id="pu2" class="pu"><h1>C, <s>150</s> <s>140</s> 135 bytes</h1>
-<pre class="lang-c prettyprint-override"><code>r,d;f(k,x){r=x&lt;5?3:f(k+1,x/5);return(d=x%5)?r*&quot;33436&quot;[d]*(1&lt;&lt;d*k%4)%5:r;}main(int c,char**v){c=atoi(*++v);printf(&quot;%d&quot;,c&lt;2?1:2*f(0,c));}
-</code></pre>
-<p>This is the version for ASCII systems; replace the string <code>33436</code> with <code>11214</code> for an EBCDIC system, or with <code>\1\1\2\1\4</code> for a portable program.</p>
-<p>C solutions are a bit hampered by the requirement to provide a full program; however, this does answer the question fully.</p>
-<p>Try it online (requires Javascript):</p>
-<ul>
-<li><a href="https://tio.run/##HcnRCoIwFIDhV4nB4Jy5yLnWhZv4INGFnGWJZHEwGYjPvqT/7uOn44MoZ9bR9zDqhCs3KbjW1jsLo9PJoef7/OUJYpOkw5aVsPZsL@IabwpMCFGN8ozS1ey3VzdMMEzzgTQ9O1ZqwZWabn4PoIpiQf/h/fYgZBSaQtWaulI9lJoQ/ZZzNuW/Hw" rel="nofollow noreferrer" title="C (gcc) – Try It Online">1000000 only</a></li>
-<li><a href="https://tio.run/##VUztboMwDPzPU1hMSEnINsJHt0EoD9L1B0tKG7ULU0YnpIpn9wLtVM2yffbd2epxrxSi47rqyJGP9OLqURZNVvo1Fnx8LmjldsPZWaLrMSpo41iYZXm2Cjd6y4iQUrNjlNOoKF014YOx6nTWO5Dfgzb902Ed/KNO5mPmPltjibEDtG6vOKhD6xiblx8aXALw0fUOFoeBGkQFHuXi9mMcGwpX2xKzzdbt0Bsyv9iYLa3u6pfzekfCSEO9hki/25CD9SnTRpQp60jCLb1dTMGEKDDFDHMscIUv@IpvKBKfS13brf9B8gs" rel="nofollow noreferrer" title="C (gcc) – Try It Online">Loop with all testcases</a></li>
-</ul>
-<h2>Explanation</h2>
-<p>It's based on the algorithm outlined in <a href="http://www.mathpages.com/home/kmath489.htm" rel="nofollow noreferrer">Least Significant Non-Zero Digit of n!</a>, turned around so that we recurse in to find the highest power of five, and do the calculation on the way out.  The tables of constants were too big, so I reduced them by finding a relationship between the previous residue <code>r</code>, the current digit <code>d</code> and the recursion depth <code>k</code>:</p>
-<div class="s-table-container">
-<table class="s-table">
-<thead>
-<tr>
-<th style="text-align: right;">r</th>
-<th style="text-align: center;">d=0</th>
-<th style="text-align: center;">d=1</th>
-<th style="text-align: center;">d=2</th>
-<th style="text-align: center;">d=3</th>
-<th style="text-align: center;">d=4</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: right;">0</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">3×2^k</td>
-<td style="text-align: center;">1×2^2k</td>
-<td style="text-align: center;">3×2^3k</td>
-<td style="text-align: center;">2</td>
-</tr>
-<tr>
-<td style="text-align: right;">1</td>
-<td style="text-align: center;">1</td>
-<td style="text-align: center;">1×2^k</td>
-<td style="text-align: center;">2×2^2k</td>
-<td style="text-align: center;">1×2^3k</td>
-<td style="text-align: center;">4</td>
-</tr>
-<tr>
-<td style="text-align: right;">2</td>
-<td style="text-align: center;">2</td>
-<td style="text-align: center;">2×2^k</td>
-<td style="text-align: center;">4×2^2k</td>
-<td style="text-align: center;">2×2^3k</td>
-<td style="text-align: center;">3</td>
-</tr>
-<tr>
-<td style="text-align: right;">3</td>
-<td style="text-align: center;">3</td>
-<td style="text-align: center;">3×2^k</td>
-<td style="text-align: center;">3×2^2k</td>
-<td style="text-align: center;">3×2^3k</td>
-<td style="text-align: center;">2</td>
-</tr>
-<tr>
-<td style="text-align: right;">4</td>
-<td style="text-align: center;">4</td>
-<td style="text-align: center;">4×2^k</td>
-<td style="text-align: center;">4×2^2k</td>
-<td style="text-align: center;">4×2^3k</td>
-<td style="text-align: center;">1</td>
-</tr>
-</tbody>
-</table>
-</div>
-<p>For <code>r&gt;0</code>, this resolves to a constant times <code>r</code> times <code>2^dk</code> (mod 5); the constants are in <code>a[]</code> below (inlined in the golfed code).  We also observe that <code>(2^4)%5</code> is 1, so we can reduce the exponent to avoid overflowing the range of <code>int</code>.</p>
-<pre class="lang-c prettyprint-override"><code>const int a[] = { 1, 1, 2, 1, 4 };
-int f(int k, int x)
-{
-    int r = x&lt;5 ? 3 : f(k+1,x/5); /* residue - from recursing to higher-order quinary digits */
-    int d = x%5;
-    if (!d)
-        return r;
-    return r * a[d] * (1 &lt;&lt; d*k%4) % 5;
-}
-
-int main(int c, char **v)
-{
-    c = atoi(*++v);
-    printf(&quot;%d&quot;,
-           c&lt;2
-           ? 1                  /* special-case 0 &amp; 1 */
-           : 2*f(0,c));         /* otherwise, it's 2 times r */
-}
-</code></pre>
-<h2>Tests:</h2>
-<pre><code>$ for i in 100 1000 10000 100000; do echo $i: `./694 $i`; done
-100: 4
-1000: 2
-10000: 8
-100000: 6
-1000000: 4
-</code></pre>
-<p>Performance is respectable, too.  Here's a maximum input for a system with 32-bit <code>int</code>:</p>
-<pre><code>$ time ./694 2147483647
-8
-real    0m0.001s
-user    0m0.000s
-sys     0m0.000s
-</code></pre>
-<p>I got the same timings with a maximal 64-bit <code>int</code>, too.</p>
 </div>
 <div id="pu3" class="pu"><h1><a href="https://github.com/ConorOBrien-Foxx/Attache" rel="nofollow noreferrer">Attache</a>, 64 bytes</h1>
 <pre><code>{k.=Floor[_/5]If[_&lt;2,1,6*Digits@$`U1sTny@(_%10)*3^(k%4)*$@k%10]}
