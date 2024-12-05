@@ -26,73 +26,21 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>101</td><td>Ruby</td><td>241205T101649Z</td><td><a href="https://codegolf.stackexchange.com/questions/277037/climbing-through-the-mountains-on-all-paths/277066#277066">Doorknob</a></td></tr>
-<tr d-ix="1"><td>106</td><td>Python 3</td><td>241205T100906Z</td><td><a href="https://codegolf.stackexchange.com/questions/277037/climbing-through-the-mountains-on-all-paths/277065#277065">tsh</a></td></tr>
-<tr d-ix="2"><td>089</td><td>JavaScript V8</td><td>241205T081953Z</td><td><a href="https://codegolf.stackexchange.com/questions/277037/climbing-through-the-mountains-on-all-paths/277057#277057">l4m2</a></td></tr>
-<tr d-ix="3"><td>259</td><td>Python</td><td>241205T090829Z</td><td><a href="https://codegolf.stackexchange.com/questions/277037/climbing-through-the-mountains-on-all-paths/277059#277059">138 Aspe</a></td></tr>
+<tr d-ix="0"><td>nan</td><td>Python</td><td>241205T090829Z</td><td><a href="https://codegolf.stackexchange.com/questions/277037/climbing-through-the-mountains-on-all-paths/277059#277059">138 Aspe</a></td></tr>
+<tr d-ix="1"><td>101</td><td>Ruby</td><td>241205T101649Z</td><td><a href="https://codegolf.stackexchange.com/questions/277037/climbing-through-the-mountains-on-all-paths/277066#277066">Doorknob</a></td></tr>
+<tr d-ix="2"><td>106</td><td>Python 3</td><td>241205T100906Z</td><td><a href="https://codegolf.stackexchange.com/questions/277037/climbing-through-the-mountains-on-all-paths/277065#277065">tsh</a></td></tr>
+<tr d-ix="3"><td>089</td><td>JavaScript V8</td><td>241205T081953Z</td><td><a href="https://codegolf.stackexchange.com/questions/277037/climbing-through-the-mountains-on-all-paths/277057#277057">l4m2</a></td></tr>
 <tr d-ix="4"><td>033</td><td>05AB1E</td><td>241205T080054Z</td><td><a href="https://codegolf.stackexchange.com/questions/277037/climbing-through-the-mountains-on-all-paths/277055#277055">Kevin Cr</a></td></tr>
 <tr d-ix="5"><td>100</td><td>APL+WIN</td><td>241205T085408Z</td><td><a href="https://codegolf.stackexchange.com/questions/277037/climbing-through-the-mountains-on-all-paths/277058#277058">Graham</a></td></tr>
 <tr d-ix="6"><td>046</td><td>Charcoal</td><td>241204T234459Z</td><td><a href="https://codegolf.stackexchange.com/questions/277037/climbing-through-the-mountains-on-all-paths/277039#277039">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h2>Ruby, 101 bytes</h2>
-
-<pre class="lang-none prettyprint-override"><code>-&gt;n{((a=?E*-~n)..?E+a).map{|x|x[0,n]if/^((N\g&lt;1&gt;S?|E*W*)+)(?&lt;=S)$/=~x&amp;&amp;x.count(?W)==x.count(?E)}-[p]}
-</code></pre>
-<p>This is very slow, but it manages to finish for <code>n=4</code> eventually on my machine.</p>
-<p>Whoever said regex can't find matching parentheses? :D</p>
-<p>Explanation:</p>
-<ul>
-<li><p><code>((a=?E*-~n)..?E+a)</code> generates the list of strings <code>['EEEEE', 'EEEEF', 'EEEEG', ..., 'EEEEEC', 'EEEEED', 'EEEEEE']</code> (for n=4). This is obviously extreme overkill but does contain all of the 5-length strings with alphabet NSEW, and then some. (Why 5? You'll see later.)</p>
-</li>
-<li><p>We map over that list and test for two conditions.</p>
-<ul>
-<li><p>The first is the regex <code>/^((N\g&lt;1&gt;S?|E*W*)+)(?&lt;=S)$/</code>. This is a recursive regex that tests the N/S part. It does this by matching 1 or more of the following: <code>N</code> followed by a recursive call to itself (<code>\g&lt;1&gt;</code>, technically a recursive call to the first capture group because we want to omit the <code>^</code> and <code>$</code>) followed by an optional <code>S</code>, or any number of <code>E</code> and <code>W</code>.</p>
-<p>We also tack on a positive lookbehind <code>(?&lt;=S)</code> at the end to make sure the string ends with <code>S</code>. Instead of generating 4-length strings that end at 1 or higher, we generate 5-length strings that end at 0 or higher and then chop off the <code>S</code> at the end.</p>
-</li>
-<li><p>The second is just <code>x.count(?W)==x.count(?E)</code>. It feels like this should be shorter but I can't find anything.</p>
-</li>
-</ul>
-<p>Note that the original list contained a few unwanted 6-length strings, but all of them have at least one non-NSEW character except for <code>EEEEEE</code>, which doesn't pass either condition.</p>
-</li>
-<li><p>If both conditions hold, evaluate to <code>x[0,n]</code> (take the first <code>n</code> characters, i.e. remove the extraneous <code>S</code>). Otherwise, implicitly evaluate to <code>nil</code>.</p>
-</li>
-<li><p>Remove the <code>nil</code> elements by performing <code>-[p]</code>. <code>p</code> is a function that prints and returns its argument. In this case the argument is nil, so it prints nothing and returns nil.</p>
-</li>
-</ul>
-<p>A bonus solution, which I think is super slick but is sadly much longer:</p>
-<pre class="lang-none prettyprint-override"><code>-&gt;n{(i=4**n).upto(2*i){puts$&amp;.chop.tr'0-3','NSEW'if/^((0\g&lt;1&gt;1?|2*3*)+)$/=~_1.digits(4)*''&amp;&amp;$&amp;.count(?2)==$&amp;.count(?3)}}
-</code></pre>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a>, 106 bytes</h1>
-
-<pre class="lang-none prettyprint-override"><code>f=lambda n,N=0,E=0,*p:sum([f(n-1,i%2*i+N,~i%2*~-i+E,*p,'WNES'[i])for i in[-1,0,1,2]if~N*n],(1&gt;E==n&lt;N)*[p])
-</code></pre>
-<p><a href="https://tio.run/##JYqxCsIwFAB3vyKLNC99haY6iXHLmsXBIWSoaPBB@xpqHVzy67HS4eAOLn2X18SHUqIZ@vH@6AWjMy3aFZVO788ofZTcaKR9p6h2mP@SG6rtOmB1c/ZaeQoQp1mQIPbr26LGLlDMTnFAqS/WGD47UD4FKGkmXmSUR4Dd5sOTt4byAw" rel="nofollow noreferrer" title="Python 3 – Try It Online">Try it online!</a></p>
-</div>
-<div id="pu2" class="pu"><h1><a href="https://v8.dev/" rel="nofollow noreferrer">JavaScript (V8)</a>, 89 bytes</h1>
-
-<pre class="lang-none prettyprint-override"><code>f=(n,y=1,x=0,s='',i=2)=&gt;y*n--?[...'ENWS'].map(c=&gt;f(n,i--%2+y,i%2+x,s+c)):y&gt;1&amp;!x&amp;&amp;print(s)
-</code></pre>
-<p><a href="https://tio.run/##Hc2xCsIwFEDRb3EwyTMvoS0OYnlxcnVxcBCHEmyJ1LQ0pSRfH4PLmS7cT7d1wS5uXtV2yvPi/EqRjJ18mMa3HqdBRJTS@hXaAlVt7kl4TFRjpAoDcY6OGiCTDl6py1Nrza@3x52/9LebhSXTl94ptW9kQleMGKQFOCdTs11k7H8VAXIvjpB/" rel="nofollow noreferrer" title="JavaScript (V8) – Try It Online">Try it online!</a></p>
-<p>From my Nice</p>
-<p><a href="https://tio.run/##DcuxDsIgEADQb3FQOHsQ2zg1OTo56uLg0HQgWBoMgUYaA1@PXd72Pvqnk/m6dRMhvudaLfGAhVrMdMFEjKGjDkiVcxBiGKWU7PZ4PdkkrdfbXa/ckLL7cUIcu6ag282YGgPQF9WeDnlI/ThVE0OKfpY@LtzyK0D9Aw" rel="nofollow noreferrer">88 by returning</a></p>
-</div>
-<div id="pu3" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 259 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, <del>259</del> 96 bytes</h1>
 <p>Python port of @l4m2's JavaScript answer.</p>
+<p>Saved 163 bytes thanks to @Unrelated String</p>
 <hr />
-<p>Golfed version. <a href="https://ato.pxeger.com/run?1=bVC9asNADCZ0y1NoKWfHMvhChxBQllLI1KWQDqGD47N9BiMb92LSvEoXD23fqXmani8_piECIX3fpx-kz5_6w-iKu9_HhA0QRGOVZlB7dWy0Px-DtbysNnEJVnfQxoCkS-umYONKsaf9763JwtlhdNfPyL09tiRRU4QJCYGKprcnFhm0kz1RdFTP1EJCzAr0P8Gt9RL_QjSp2TbsYFY1sIOCYS2eBIpn66_WX8Tb0M-kQnlBKqQBrEj2exnuYQpp-Z7aZ5y1JUVX2tBnDw0lroIWlxCAxiTYIZ9-8ZV7D6e0647xDw" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<p>Golfed version. <a href="https://ato.pxeger.com/run?1=m72soLIkIz9vwYKlpSVpuhY3E1JS0xTSNap0ymwNdTJsDXSSbdXVdVJsjTStuBTS8osUKhQy89Rd_cKD1bU0quw0DO0ybG2rFG0LijLzSjSSNTU1rVJ0bQ2tgUboGuqUaaeoGulkaNeBqGTtCp0UTYg9G9M1TDS5IJo0udI1TKHiMHcAAA" rel="nofollow noreferrer">Attempt This Online!</a></p>
 <pre class="lang-python prettyprint-override"><code>def g(z,v=1,h=0,c='',d=2):
-    global cnt
-    if v*z==0:
-        if v&gt;1 and h==0:
-            p(c)
-        return
-    for x in ['E','N','W','S']:
-        n=d-1
-        d-=1
-        V=1 if n % 2 else 0
-        H=0 if n % 2 else 1
-        g(z-1,V+v,H + h,c+x,n)
+ for x in'ENWS'*(z&gt;(1&gt;h==z!=print(c))):d-=1;g(z-1,v+d%2,h+~d%2,c+x,d)
 </code></pre>
 <p>Ungolfed version. <a href="https://ato.pxeger.com/run?1=fVTNjtMwED5xyVOMVKFsaaptqj2gSkGCpdwoEgX1gFDlTZzWImtH_mlVXoXLXuCheBpmnP9uiw9WPBl_M_PN5_n1pzzZvZJPT7-dzaev_75wI7hXTlquIVcarGbpDyF3UGqBxgxKZvcmSKWFBGZBMIIPTqZWKAlWVU7eBZjMQMhU80eOprSCDDKeV05bcrqhbbwIANeuUA-sAAT2RwowSSD2B3_DO0f0Y0xhPzIhQfPUaSMOHPJeFrnA2AdWiCZbikpGH9TcFFzuCOrAtRUpK7alMkkcwV5p8VNJW1tmGMxpzetkkzCMIBMYkuIk88t5j-AdMxxS3BYgcjjyELNzBpljRQHG8tJ4R_zXjw-voEoLEuS1gq7wPsniVBNb4WkODElWRviCb-YRzMbthXPcNxD7XgyLO4vSkly1pV92h6y5dVoGdZlf9MlXlCunO1rMApbM2AhWShPFG06HtXJ27--RpNAZlQHfwiUSGq5o29C2Dr_3675nReoKZjlIfmzLNfDAiEwsvA3aXkLHbWtFfXbf01pJtFrrNIkHV1veHhX2DMVHZA4xX8IceIENnlGKsa9ndbsewPSYroFm_wGKO6Dl7SboEfC5FXdKRB8FisOVGfOvsKGj9e_pe9DWWlVIQATX1gjec3ypJFx8r_iw6MF3Ur3O0WSgtchDrbBbjbXN8xnOOUmTM4FGDVRnvgzW1yqiIMPP6xzB2yzrqYEmFasVeVk713j66vnvQTWDrXHxs2ltmbZg97wahdQaYtR3sO7HXdBr2N24mr71EG6G8T8" rel="nofollow noreferrer">Attempt This Online!</a></p>
 <pre class="lang-python prettyprint-override"><code># Counter for tracking printed paths
@@ -134,6 +82,49 @@ def find_paths(length, vertical_pos=1, horizontal_pos=0, current_path='', direct
 # Start the path finding with length 4
 find_paths(4)
 </code></pre>
+</div>
+<div id="pu1" class="pu"><h2>Ruby, 101 bytes</h2>
+
+<pre class="lang-none prettyprint-override"><code>-&gt;n{((a=?E*-~n)..?E+a).map{|x|x[0,n]if/^((N\g&lt;1&gt;S?|E*W*)+)(?&lt;=S)$/=~x&amp;&amp;x.count(?W)==x.count(?E)}-[p]}
+</code></pre>
+<p>This is very slow, but it manages to finish for <code>n=4</code> eventually on my machine. <a href="https://ato.pxeger.com/run?1=m72kqDSpcsGiNNulpSVpuhY3U3Xt8qo1NBJt7V21dOvyNPX07F21EzX1chMLqmsqaiqiDXTyYjPT9OM0NPxi0m0M7YLta1y1wrU0tTU17G1sgzVV9G3rKtTUKvSS80vzSjTswzVtbeEcV81a3eiC2FqIZcsKFNKijWMhnAULIDQA" rel="nofollow noreferrer">Try it for n=3</a> (it times out for n=4, lol)</p>
+<p>Whoever said regex can't find matching parentheses? :D</p>
+<p>Explanation:</p>
+<ul>
+<li><p><code>((a=?E*-~n)..?E+a)</code> generates the list of strings <code>['EEEEE', 'EEEEF', 'EEEEG', ..., 'EEEEEC', 'EEEEED', 'EEEEEE']</code> (for n=4). This is obviously extreme overkill but does contain all of the 5-length strings with alphabet NSEW, and then some. (Why 5? You'll see later.)</p>
+</li>
+<li><p>We map over that list and test for two conditions.</p>
+<ul>
+<li><p>The first is the regex <code>/^((N\g&lt;1&gt;S?|E*W*)+)(?&lt;=S)$/</code>. This is a recursive regex that tests the N/S part. It does this by matching 1 or more of the following: <code>N</code> followed by a recursive call to itself (<code>\g&lt;1&gt;</code>, technically a recursive call to the first capture group because we want to omit the <code>^</code> and <code>$</code>) followed by an optional <code>S</code>, or any number of <code>E</code> and <code>W</code>.</p>
+<p>We also tack on a positive lookbehind <code>(?&lt;=S)</code> at the end to make sure the string ends with <code>S</code>. Instead of generating 4-length strings that end at 1 or higher, we generate 5-length strings that end at 0 or higher and then chop off the <code>S</code> at the end.</p>
+</li>
+<li><p>The second is just <code>x.count(?W)==x.count(?E)</code>. It feels like this should be shorter but I can't find anything.</p>
+</li>
+</ul>
+<p>Note that the original list contained a few unwanted 6-length strings, but all of them have at least one non-NSEW character except for <code>EEEEEE</code>, which doesn't pass either condition.</p>
+</li>
+<li><p>If both conditions hold, evaluate to <code>x[0,n]</code> (take the first <code>n</code> characters, i.e. remove the extraneous <code>S</code>). Otherwise, implicitly evaluate to <code>nil</code>.</p>
+</li>
+<li><p>Remove the <code>nil</code> elements by performing <code>-[p]</code>. <code>p</code> is a function that prints and returns its argument. In this case the argument is nil, so it prints nothing and returns nil.</p>
+</li>
+</ul>
+<p>A bonus solution, which I think is super slick but is sadly much longer:</p>
+<pre class="lang-none prettyprint-override"><code>-&gt;n{(i=4**n).upto(2*i){puts$&amp;.chop.tr'0-3','NSEW'if/^((0\g&lt;1&gt;1?|2*3*)+)$/=~_1.digits(4)*''&amp;&amp;$&amp;.count(?2)==$&amp;.count(?3)}}
+</code></pre>
+</div>
+<div id="pu2" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a>, 106 bytes</h1>
+
+<pre class="lang-none prettyprint-override"><code>f=lambda n,N=0,E=0,*p:sum([f(n-1,i%2*i+N,~i%2*~-i+E,*p,'WNES'[i])for i in[-1,0,1,2]if~N*n],(1&gt;E==n&lt;N)*[p])
+</code></pre>
+<p><a href="https://tio.run/##JYqxCsIwFAB3vyKLNC99haY6iXHLmsXBIWSoaPBB@xpqHVzy67HS4eAOLn2X18SHUqIZ@vH@6AWjMy3aFZVO788ofZTcaKR9p6h2mP@SG6rtOmB1c/ZaeQoQp1mQIPbr26LGLlDMTnFAqS/WGD47UD4FKGkmXmSUR4Dd5sOTt4byAw" rel="nofollow noreferrer" title="Python 3 – Try It Online">Try it online!</a></p>
+</div>
+<div id="pu3" class="pu"><h1><a href="https://v8.dev/" rel="nofollow noreferrer">JavaScript (V8)</a>, 89 bytes</h1>
+
+<pre class="lang-none prettyprint-override"><code>f=(n,y=1,x=0,s='',i=2)=&gt;y*n--?[...'ENWS'].map(c=&gt;f(n,i--%2+y,i%2+x,s+c)):y&gt;1&amp;!x&amp;&amp;print(s)
+</code></pre>
+<p><a href="https://tio.run/##Hc2xCsIwFEDRb3EwyTMvoS0OYnlxcnVxcBCHEmyJ1LQ0pSRfH4PLmS7cT7d1wS5uXtV2yvPi/EqRjJ18mMa3HqdBRJTS@hXaAlVt7kl4TFRjpAoDcY6OGiCTDl6py1Nrza@3x52/9LebhSXTl94ptW9kQleMGKQFOCdTs11k7H8VAXIvjpB/" rel="nofollow noreferrer" title="JavaScript (V8) – Try It Online">Try it online!</a></p>
+<p>From my Nice</p>
+<p><a href="https://tio.run/##DcuxDsIgEADQb3FQOHsQ2zg1OTo56uLg0HQgWBoMgUYaA1@PXd72Pvqnk/m6dRMhvudaLfGAhVrMdMFEjKGjDkiVcxBiGKWU7PZ4PdkkrdfbXa/ckLL7cUIcu6ag282YGgPQF9WeDnlI/ThVE0OKfpY@LtzyK0D9Aw" rel="nofollow noreferrer">88 by returning</a></p>
 </div>
 <div id="pu4" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, <s>35</s> 33 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
 <pre><code>'€Ã©Iãʒ®À2ôδÃÇ`È·&lt;ηO¤0›sd`r6b-O_P
