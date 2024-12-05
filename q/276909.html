@@ -26,9 +26,9 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>022</td><td>05AB1E</td><td>241128T101604Z</td><td><a href="https://codegolf.stackexchange.com/questions/276909/walks-in-nice-nizza/276934#276934">Kevin Cr</a></td></tr>
-<tr d-ix="1"><td>016</td><td>Nekomata</td><td>241205T034859Z</td><td><a href="https://codegolf.stackexchange.com/questions/276909/walks-in-nice-nizza/277047#277047">alephalp</a></td></tr>
-<tr d-ix="2"><td>nan</td><td>R</td><td>241204T015329Z</td><td><a href="https://codegolf.stackexchange.com/questions/276909/walks-in-nice-nizza/277005#277005">Eonema</a></td></tr>
+<tr d-ix="0"><td>092</td><td>R</td><td>241204T015329Z</td><td><a href="https://codegolf.stackexchange.com/questions/276909/walks-in-nice-nizza/277005#277005">Eonema</a></td></tr>
+<tr d-ix="1"><td>022</td><td>05AB1E</td><td>241128T101604Z</td><td><a href="https://codegolf.stackexchange.com/questions/276909/walks-in-nice-nizza/276934#276934">Kevin Cr</a></td></tr>
+<tr d-ix="2"><td>016</td><td>Nekomata</td><td>241205T034859Z</td><td><a href="https://codegolf.stackexchange.com/questions/276909/walks-in-nice-nizza/277047#277047">alephalp</a></td></tr>
 <tr d-ix="3"><td>116</td><td>R</td><td>241204T023158Z</td><td><a href="https://codegolf.stackexchange.com/questions/276909/walks-in-nice-nizza/277006#277006">Eonema</a></td></tr>
 <tr d-ix="4"><td>015</td><td>Jelly</td><td>241129T135823Z</td><td><a href="https://codegolf.stackexchange.com/questions/276909/walks-in-nice-nizza/276955#276955">Jonathan</a></td></tr>
 <tr d-ix="5"><td>156</td><td>Python3</td><td>241128T153833Z</td><td><a href="https://codegolf.stackexchange.com/questions/276909/walks-in-nice-nizza/276939#276939">Ajax1234</a></td></tr>
@@ -36,7 +36,60 @@
 <tr d-ix="7"><td>086</td><td>JavaScript V8</td><td>241127T213129Z</td><td><a href="https://codegolf.stackexchange.com/questions/276909/walks-in-nice-nizza/276910#276910">Arnauld</a></td></tr>
 <tr d-ix="8"><td>076</td><td>JavaScript V8</td><td>241128T053927Z</td><td><a href="https://codegolf.stackexchange.com/questions/276909/walks-in-nice-nizza/276928#276928">l4m2</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, <s>25</s> 22 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
+<div id="pu0" class="pu"><h1><a href="https://www.r-project.org/" rel="nofollow noreferrer">R</a>, <s>121</s> <s>116</s> 92 bytes</h1>
+<p><em>-5 thanks to @pajonk:</em></p>
+<ul>
+<li><em>-3:</em> <code>lapply</code> -&gt; <code>Map</code></li>
+<li><em>-1:</em> <code>\n</code> -&gt; literal newline</li>
+<li><em>-1:</em> <code>sum(w==&quot;N&quot;)-sum(w==&quot;S&quot;)</code> -&gt; <code>sum((w==&quot;N&quot;)-(w==&quot;S&quot;))</code></li>
+</ul>
+<p><em>Additional -24 thanks to @pajonk by using <code>0123</code> for <code>NEWS</code></em></p>
+<pre class="lang-r prettyprint-override"><code>f=\(n,w={}){q=sum(Re(1i^w))
+if(!n&amp;!q)cat(w,&quot;
+&quot;,sep=&quot;&quot;)
+if(n&amp;q&gt;=0)Map(\(d)f(n-1,c(w,d)),0:3)}
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=m72waMGCpaUlaboWN2PSbGM08nTKbatrNasLbYtLczWCUjUMM-PKNTW5MtM0FPPUFAs1kxNLNMp1lLiUdIpTC2yVlMBSeWqFdrYGmr6JBRoxGimaQAFdQ51koLoUTU0dAytjzVqIHfsz88oyizOTclI10jRMQMYi8U01NSGqYC4CAA" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<p>Expanded:</p>
+<pre><code># recursive function
+f &lt;- function(n, w=integer()) {
+  # calculate net N-S position: 1i^w converts to complex, Re takes 
+  #   N-S component
+  q &lt;- sum(Re(1i^w))
+  # if at end of walk and at 0 N-S position
+  if(!n &amp; !q)
+    # then print out the walk
+    cat(w,&quot;\n&quot;,sep=&quot;&quot;)
+  # if not at end of walk and not in the ocean
+  if(n&amp;q&gt;=0)
+    # try walking in each direction (recursive case)
+    Map(
+      function(d) {
+        f(n - 1, c(w, d))
+      },
+      0:3
+    )
+  }
+
+# recursive function:
+f &lt;- function(n, w={}) {
+  # net N-S position
+  q &lt;- sum(w==&quot;N&quot;)-sum(w==&quot;S&quot;)
+  # if at end of walk and at 0 N-S position
+  if(!n &amp; !q)
+    # then print out the walk
+    cat(w, &quot;\n&quot;, sep=&quot;&quot;)
+  # if not at end of walk and not in the ocean
+  if(n &amp; q &gt;= 0)
+    # then for each direction
+    lapply(c(&quot;E&quot;,&quot;N&quot;,&quot;S&quot;,&quot;W&quot;),
+      # try walking that way
+      function(d) f(n - 1, c(w, d))
+    )
+}
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, <s>25</s> 22 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
 <pre><code>'€ÃIãʒ„ewмÇÈ·&lt;ηO¤_sd`P
 </code></pre>
 <p>Outputs in lowercase.</p>
@@ -64,7 +117,7 @@
 </code></pre>
 <p><a href="https://codegolf.stackexchange.com/a/166851/52210">See this 05AB1E tip of mine (section <em>How to use the dictionary?</em>)</a> to understand why <code>'€Ã</code> is <code>&quot;news&quot;</code>.</p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://github.com/AlephAlpha/Nekomata" rel="nofollow noreferrer">Nekomata</a>, 16 bytes</h1>
+<div id="pu2" class="pu"><h1><a href="https://github.com/AlephAlpha/Nekomata" rel="nofollow noreferrer">Nekomata</a>, 16 bytes</h1>
 <pre><code>ᵐįŋᵖ{∫ŤlƆž≥}→ᵐɗH
 </code></pre>
 <p><a href="https://ato.pxeger.com/run?1=m70iLzU7PzexJHHBgqWlJWm6FjeVHm6dcGT90e6HW6dVP-pYfXRJzrG2o_sedS6tfdQ2CSh3crrHkuKk5GKo-gULTSAMAA" rel="nofollow noreferrer">Attempt This Online!</a></p>
@@ -103,39 +156,6 @@
 <p><a href="https://ato.pxeger.com/run?1=m70iLzU7PzexJHHBgqWlJWm6Fjsebp1wZP3R7odbp1U_6lh9dEnOsbaj-x51Ll1SnJRcDFW0YKEJhAEA" rel="nofollow noreferrer">Attempt This Online!</a></p>
 <hr />
 <p>Another interesting approach is to find all strings of matching parentheses with length <code>2n+2</code>, remove the first and last parentheses, and replace each pair of parentheses with a direction. I can't find a short way to do this in Nekomata, but this may be helpful for some other languages.</p>
-</div>
-<div id="pu2" class="pu"><h1><a href="https://www.r-project.org/" rel="nofollow noreferrer">R</a>, <s>121</s> bytes</h1>
-<p><em>-5 thanks to @pajonk:</em></p>
-<ul>
-<li><em>-3:</em> <code>lapply</code> -&gt; <code>Map</code></li>
-<li><em>-1:</em> <code>\n</code> -&gt; literal newline</li>
-<li><em>-1:</em> <code>sum(w==&quot;N&quot;)-sum(w==&quot;S&quot;)</code> -&gt; <code>sum((w==&quot;N&quot;)-(w==&quot;S&quot;))</code></li>
-</ul>
-
-<pre class="lang-r prettyprint-override"><code>f=\(n,w={}){q=sum((w==&quot;N&quot;)-(w==&quot;S&quot;))
-if(!n&amp;!q)cat(w,&quot;
-&quot;,sep=&quot;&quot;)
-if(n&amp;q&gt;=0)Map(\(d)f(n-1,c(w,d)),c(&quot;E&quot;,&quot;N&quot;,&quot;S&quot;,&quot;W&quot;))}
-</code></pre>
-<p><a href="https://tio.run/##TY2xDsIwDET3/kU9VLbkSiDBaDZGWBiYS9tIkcA0pCVD1W8PpgNiuvOd9e6VsxM3aTv6p6JyknmhOUicHohJBM5A9WouQFR4h6VWZaC2GTExFMCxHwRgrbQKB9nQqRnwh@zI8nrLrb13RKZwBDYsG5HhatQle3376G/3Hh3uvjN/954ofwA" rel="nofollow noreferrer">Try it online!</a> (Note- TIO doesn't yet support <code>\</code> for <code>function</code>.)</p>
-<p>Expanded:</p>
-<pre class="lang-r prettyprint-override"><code># recursive function:
-f &lt;- function(n, w={}) {
-  # net N-S position
-  q &lt;- sum(w==&quot;N&quot;)-sum(w==&quot;S&quot;)
-  # if at end of walk and at 0 N-S position
-  if(!n &amp; !q)
-    # then print out the walk
-    cat(w, &quot;\n&quot;, sep=&quot;&quot;)
-  # if not at end of walk and not in the ocean
-  if(n &amp; q &gt;= 0)
-    # then for each direction
-    lapply(c(&quot;E&quot;,&quot;N&quot;,&quot;S&quot;,&quot;W&quot;),
-      # try walking that way
-      function(d) f(n - 1, c(w, d))
-    )
-}
-</code></pre>
 </div>
 <div id="pu3" class="pu"><h1><a href="https://www.r-project.org/" rel="nofollow noreferrer">R</a>, <s>121</s> 116 bytes</h1>
 <p><em>-5 thanks to @pajonk:</em></p>
