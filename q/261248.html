@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::261248</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>005</td><td>C++ GCC</td><td>241206T130831Z</td><td><a href="https://codegolf.stackexchange.com/questions/261248/how-many-sorting-networks/277097#277097">138 Aspe</a></td></tr>
+<tr d-ix="1"><td>005</td><td>Scala</td><td>230608T115156Z</td><td><a href="https://codegolf.stackexchange.com/questions/261248/how-many-sorting-networks/261654#261654">138 Aspe</a></td></tr>
+<tr d-ix="2"><td>061</td><td>Rust</td><td>230531T172525Z</td><td><a href="https://codegolf.stackexchange.com/questions/261248/how-many-sorting-networks/261442#261442">gsitcia</a></td></tr>
+<tr d-ix="3"><td>623</td><td>Rust</td><td>230528T185939Z</td><td><a href="https://codegolf.stackexchange.com/questions/261248/how-many-sorting-networks/261300#261300">isaacg</a></td></tr>
+<tr d-ix="4"><td>005</td><td>Haskell</td><td>230529T163627Z</td><td><a href="https://codegolf.stackexchange.com/questions/261248/how-many-sorting-networks/261333#261333">Roman Cz</a></td></tr>
+<tr d-ix="5"><td>659</td><td>Rust</td><td>230526T205734Z</td><td><a href="https://codegolf.stackexchange.com/questions/261248/how-many-sorting-networks/261259#261259">Anders K</a></td></tr>
+<tr d-ix="6"><td>004</td><td>Haskell</td><td>230526T203459Z</td><td><a href="https://codegolf.stackexchange.com/questions/261248/how-many-sorting-networks/261258#261258">Roman Cz</a></td></tr>
+<tr d-ix="7"><td>005</td><td>JavaScript Node.js</td><td>230526T170241Z</td><td><a href="https://codegolf.stackexchange.com/questions/261248/how-many-sorting-networks/261252#261252">Arnauld</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1><a href="https://gcc.gnu.org" rel="nofollow noreferrer">C++ (GCC)</a>, <span class="math-container">\$n\leq 5\$</span></h1>
+<p>C++ port of <a href="https://codegolf.stackexchange.com/a/261252/110802">@Arnauld's Javascript answer</a>.</p>
+<pre class="lang-cpp prettyprint-override"><code>#include &lt;algorithm&gt;
+#include &lt;iostream&gt;
+#include &lt;map&gt;
+#include &lt;set&gt;
+#include &lt;vector&gt;
+#include &lt;string&gt;
+#include &lt;functional&gt;
+
+// Generate all permutations of the vector [0, 1, 2, ..., n-1]
+static std::vector&lt;std::vector&lt;int&gt;&gt; getPermutations(int n) {
+    std::vector&lt;int&gt; base(n);
+    for (int i = 0; i &lt; n; ++i) {
+        base[i] = i;
+    }
+
+    std::vector&lt;std::vector&lt;int&gt;&gt; perms;
+    do {
+        perms.push_back(base);
+    } while (std::next_permutation(base.begin(), base.end()));
+    return perms;
+}
+
+int solve(int n) {
+    // Build connector pairs: all pairs (i,j) with i&lt;j
+    std::vector&lt;std::pair&lt;int,int&gt;&gt; connector;
+    for (int i = 0; i &lt; n; i++) {
+        for (int j = i + 1; j &lt; n; j++) {
+            connector.push_back(std::make_pair(i,j));
+        }
+    }
+
+    // Get all permutations of length n
+    auto perm = getPermutations(n);
+
+    // Build a lookup from permutation to index
+    // We'll use a map&lt;vector&lt;int&gt;, int&gt; for lookup
+    std::map&lt;std::vector&lt;int&gt;, int&gt; lookup;
+    for (int i = 0; i &lt; (int)perm.size(); ++i) {
+        lookup[perm[i]] = i;
+    }
+
+    // transform is essentially a list of transformations for each connector pair
+    // For each pair (i, j), we build a vector&lt;int&gt; that maps each perm index to a new perm index
+    std::vector&lt;std::vector&lt;int&gt;&gt; transform;
+    for (auto &amp;c : connector) {
+        int ci = c.first;
+        int cj = c.second;
+        std::vector&lt;int&gt; t;
+        t.reserve(perm.size());
+        for (auto p : perm) {
+            // If p[ci] &gt; p[cj], swap them
+            if (p[ci] &gt; p[cj]) {
+                int temp = p[ci];
+                p[ci] = p[cj];
+                p[cj] = temp;
+            }
+            t.push_back(lookup[p]);
+        }
+        transform.push_back(t);
+    }
+
+    // We'll do a DFS over states (list of permutation indices)
+    // Initial state is [0,1,2,...] same length as perm
+    std::vector&lt;int&gt; initialState(perm.size());
+    for (int i = 0; i &lt; (int)perm.size(); i++) {
+        initialState[i] = i;
+    }
+
+    // We'll keep a set of visited states
+    std::set&lt;std::vector&lt;int&gt;&gt; visited;
+
+    std::function&lt;void(const std::vector&lt;int&gt;&amp;)&gt; search = [&amp;](const std::vector&lt;int&gt; &amp;list) {
+        if (visited.find(list) != visited.end()) return;
+        visited.insert(list);
+
+        for (auto &amp;t : transform) {
+            bool update = false;
+            std::vector&lt;int&gt; newList(list.size());
+            for (size_t idx = 0; idx &lt; list.size(); idx++) {
+                int permNdx = list[idx];
+                int newNdx = t[permNdx];
+                if (newNdx != permNdx) update = true;
+                newList[idx] = newNdx;
+            }
+            if (update) {
+                search(newList);
+            }
+        }
+    };
+
+    search(initialState);
+
+    return (int)visited.size();
+}
+
+int main() {
+    for (int n = 1; n &lt;= 5; n++) {
+        std::cout &lt;&lt; n &lt;&lt; &quot; &quot; &lt;&lt; solve(n) &lt;&lt; std::endl;
+    }
+    return 0;
+}
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=jVbNiuNGEL47L1FJYCJhrXdmIRDGsg8hbFgIIbCHHIwxbalst0duCXXLniTMk-SylxzzQnmaVPWP3bI8y3oYJHV_VV311Vfd_fe_RVN1mv9X26L49Omfzmze_PDfV_tvpSqqrkTIRbWtW2l2h_noMihrbVoUvbGDaOJPjSb-PGJh6rYHMK1U23hk06nCyFqJaj4avX0LP6PCVhgEUVXQYHvojOB5DfUGzA7BOYXFfQYPGbzLYDKZZKDePCxHmqEFaFM-PjpYHr9LZeZz2KL5LXKb0CioFP4aAf2u4bAWGhOVTu3shta1eAkzuJ_SIwc1hfFYBnv-sclCLgkindnLaOB7GBanqh2-rCNvdnzSdHq3WoviKWHvPpwXOO1khZBYbwqfzSoizCIna9xKlaSZjWqCqkzS1Ju3aLpWhYUpSM5M19UR-5xQUX7sZFVCUSvlyG-EbPWjKxG_EivZPoUTSQZkvr-dLiM52cwlfPb2WW7leBxze0btmV4Yw8OUXi1y30fy77xExJ8N5SCecMXx2Lg9H65UUcGsGs1NIVaotpSrsjjRmdoiKKZrdbF0-iwKqOr6qWtg09aH2DGQF6lKfA743_E7WrrT1AtAjZZHesnAqpPpcN4ulDPyWl4e7qCv883fKUc00fJPTNKBtJ2DBUNI4UOJU9CmFUqT8wNIDag1KiOJwT84b6mN7eIA8XxyKCiK3ZXAgsf3YZoHWWmwJz2fENaez7hfzU4YJkt7E66KJZXZFaDwFI19QVueY41Ys_W-K-DxEnBMEpNaMKvFZEO9Yab9mb2d0Ui25WVqsPFEZmbSosaW-jKqTSTaS1ANxcSY60YgFj9soFkUtC3N-blfZqBPouEd9dCDyg0kPeC1r5CIwUNDqVjsdIBwLmbOxc3pPU-zk_7sS-_LRJ0bxLcc9KtFhkJFFia9VqdrqZKl8NP7j1AfsQU-NZC2sCDPuCVJJrJAnQb7D0qynJ0NK5yOoYfsXUZn0BK0OGDYGYS2fm4fKtJ5-chObtT0y1rzameMfd46fc7JPyE2lD4d1ZzsUWppsPQkXMKl6Rvd4NHT6EAL53d-rGWZkKiJxGvDu3RO64mWGnIGi7vlKzC44xL0kiIx-jWpl-jwcoCvZyESf6L5s-yiizAtFTWOcWY-6jPDro0NtcxZO9daX9c1bcBNycWewUZUGvtqHaRAG8wvtJhdcdip57V5ZkUFLp99ieklh8jIDg1PNFdpY7X1qzVmmwVhbzSZPcXx5HBm4W1uAYlmDyRqPS69JG7aDodWPlW7OIGcg881My_jfN5Kywkk8V7T1xz5EzpI0BnF4g919tcb2zhBDp7bcNk5CL4b-VjOXacoGbpWKMhn8D09-1WwFS_qzkCeMyaHb-iPHu7mRLcmfmcQSbMKLRgFdE_Luyu3v3mHG_j_" rel="nofollow noreferrer">Attempt This Online!</a></p>
+</div>
+<div id="pu1" class="pu"><h1><a href="http://www.scala-lang.org/" rel="nofollow noreferrer">Scala</a>, <span class="math-container">\$n \leq 5\$</span></h1>
+<p>Port of <a href="https://codegolf.stackexchange.com/a/261252/110802">@Arnauld's Javascript answer</a> in Scala.</p>
+<p>Naive brute force.</p>
+<p><a href="https://tio.run/##dVQ9b9swEN35Ky5GBrJxhWboYtRBm6kBmqJAUHQIMjAyldCmSEGk0nxUv929kyiGatzBsnT37t27D9KX0sj9XteNawN4@ipKZ4wqg3a2qLsgb40qvmkfzruqUi2bQaW1LsgBGqQ2rSoZc7dbjIZLqS2ox6DsxsOXpoEXBlC5FriFT@/hFIKDj2KwAjSttsFY7hfHFo5fvDMPilvRLwS6e/xtVAWVLINrtTTcruBc313YIKYXWEemz5MO@phFfVWmUe1r7BJkWXZ1ZyT6/08IoKtB8xpORR4Svcp49TYJYIVLsPAujxBDSM@GvzchS@Rn0U3CYxNWMMrKNT3IFkpnrSIKtHLqa5JL7f0AnQ3agI3GLRk1nGDfc0cPT1qZDXC9hK0QRXA0aRaTGEBhNfFznggnkCjI2Y3T9yl0ijTO7boGYwlVPOvmlw73F3ajHhF5KZvXHKGV1mMBlCgVVdQSNwZKic0dxcH6LNYyMI7@5tU6ksWF/UGJMVHc2QlBk5wQXAs4S3iO1acOJmWqpgqyiAyQ86xznkMYkj/QJWef3sZOJV1Te1mO61mau1e0B1cqXF8FPDV3N1ywtOxeyba85wYJVkA017g2N7g9P63OV5qq26kntBC0qHcjF18sF5FtbNYRZsP7wOKhsp5jxKxLJOVkTUQs2dI0C3woWd7jlEI@pbGKrtnIoDB/JfH8sH8ab9VvEp/kjbPGsX/fPM65En7wQOARJWaYmO0PbnKEHq3hIHJ0Z6Y@e6eOjFTzXYGp71G3OBjfH5poDEzHK7vj6EjR0Z8tBM3D62c1XBQ92@//Ag" rel="nofollow noreferrer">Try it online!</a></p>
+<pre class="lang-scala prettyprint-override"><code>import scala.collection.mutable.ListBuffer
+import scala.annotation.tailrec
+
+object Main extends App {
+  for (n &lt;- 1 to 5) {
+    println(s&quot;$n ${solve(n)}&quot;)
+  }
+  def factorial(n: BigInt): BigInt = {
+    @tailrec
+    def factorialHelper(n: BigInt, accumulator: BigInt): BigInt = {
+      if (n &lt;= 1) accumulator
+      else factorialHelper(n - 1, n * accumulator)
+    }
+
+    factorialHelper(n, 1)
+  }
+
+  def solve(n: Int): Int = {
+    var connector = (for {
+      i &lt;- 0 until n
+      j &lt;- i + 1 until n
+    } yield (i, j)).toList
+
+    val perm = (((0 until n).toList).permutations).toList
+    val lookup = perm.zipWithIndex.toMap
+
+    val transform = connector.map { case (i, j) =&gt;
+      perm.map { p =&gt;
+        val mutableP = p.toBuffer
+        if (mutableP(i) &gt; mutableP(j)) {
+          val temp = mutableP(i)
+          mutableP(i) = mutableP(j)
+          mutableP(j) = temp
+        }
+        lookup(mutableP.toList)
+      }
+    }
+
+    var set = Set[String]()
+
+    def search(list: List[Int]): Unit = {
+      val key = list.mkString(&quot;,&quot;)
+
+      if (!set.contains(key)) {
+        set += key
+
+        transform.foreach { t =&gt;
+          var update = false
+
+          val newList = list.map { permNdx =&gt;
+            val newNdx = t(permNdx)
+            update |= (newNdx != permNdx)
+            newNdx
+          }
+          if (update) {
+            search(newList)
+          }
+        }
+      }
+    }
+
+    search((0 until factorial(n).toInt).toList)
+    set.size
+  }
+}
+</code></pre>
+</div>
+<div id="pu2" class="pu"><h1>Rust, n=6 in ~<s>12</s> 1 second</h1>
+<p>This answer is based on @Anders Kaseorg's solution and uses some of @isaacg's improvements.</p>
+<p>I got the answer 1,530,608,978,810 for n=7 in about 12 hours using more than 100 gigabytes of ram. (I'm not completely sure it's correct, since I don't know how to prove the conjectures this relies on).</p>
+<p>The basic strategy is to count the total number of networks using the principle of inclusion-exclusion (splitting into groups based on the first swap).</p>
+<p><strong><code>Cargo.toml</code></strong></p>
+<pre><code>cargo-features = [&quot;profile-rustflags&quot;]
+
+[package]
+name = &quot;sorting_networks&quot;
+version = &quot;0.1.0&quot;
+edition = &quot;2021&quot;
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+hashbrown = &quot;0.13.2&quot;
+rustc-hash = &quot;1.1.0&quot;
+nohash-hasher = &quot;0.2.0&quot;
+
+[profile.release]
+rustflags = [&quot;-C&quot;, &quot;target-feature=+crt-static&quot;]
+</code></pre>
+<p><strong><code>main.rs</code></strong></p>
+<pre class="lang-rust prettyprint-override"><code>use std::{
+    cmp::min,
+    iter::repeat,
+    mem::{replace, swap},
+    time::{Duration, Instant},
+};
+
+use rustc_hash::FxHasher;
+use std::hash::BuildHasherDefault;
+type HashSet&lt;V&gt; = hashbrown::HashSet&lt;V, BuildHasherDefault&lt;FxHasher&gt;&gt;;
+type HashMap&lt;K, V&gt; = hashbrown::HashMap&lt;K, V, BuildHasherDefault&lt;FxHasher&gt;&gt;;
+
+macro_rules! networks {
+    ($n:expr) =&gt; {
+        networks::&lt;{ $n }, { ($n * $n - $n) / 2 }&gt;()
+    };
+}
+
+type Item = u64;
+
+fn main() {
+    let then = Instant::now();
+    networks!(1);
+    networks!(2);
+    networks!(3);
+    networks!(4);
+    networks!(5);
+    networks!(6);
+    // networks!(7);
+    println!(&quot;Total time: {:?}&quot;, Instant::now().duration_since(then));
+}
+
+/**
+ * Calculates number of networks
+ */
+fn networks&lt;const N: usize, const N2: usize&gt;() -&gt; i64 {
+    let then = Instant::now();
+    let v: Vec&lt;(i64, i64, Duration, Vec&lt;u64&gt;)&gt; = counter(N)
+        .into_iter()
+        .map(|(sizes, multiplier)| {
+            let then = Instant::now();
+            let a = count_specific::&lt;N, N2&gt;(&amp;sizes);
+            (a, multiplier, Instant::now().duration_since(then), sizes)
+        })
+        .collect();
+    let o = v.iter().map(|(a, m, _, _)| a * m).sum::&lt;i64&gt;() + 1;
+    println!(
+        &quot;n={}: {} (took {:?})&quot;,
+        N,
+        o,
+        Instant::now().duration_since(then)
+    );
+    v.iter().for_each(|(a, m, duration, sizes)| {
+        println!(
+            &quot;  {:?}: {} = {} * {} (took {:?})&quot;,
+            sizes,
+            a * m,
+            a,
+            m,
+            duration
+        );
+    });
+    o
+}
+
+/**
+ * Calculate multipliers for PIE
+ */
+fn counter(n: usize) -&gt; HashMap&lt;Vec&lt;Item&gt;, i64&gt; {
+    let mut counts = HashMap::default();
+    if n == 1 {
+        return counts;
+    }
+    let mut uf = UnionFind::new(n);
+    counter_(&amp;mut uf, n, 0, 1, 1, &amp;mut counts);
+    counts
+}
+
+fn counter_(
+    uf: &amp;mut UnionFind,
+    n: usize,
+    i: usize,
+    j: usize,
+    m: i64,
+    counts: &amp;mut HashMap&lt;Vec&lt;Item&gt;, i64&gt;,
+) {
+    let mut j1 = j + 1;
+    let i1 = if j1 == n {
+        j1 = i + 2;
+        i + 1
+    } else {
+        i
+    };
+    uf.save();
+    uf.join(i, j);
+    *counts.entry(uf.get_sizes()).or_insert(0) += m;
+    if j1 &lt; n {
+        counter_(uf, n, i1, j1, -m, counts);
+    }
+    uf.rollback();
+    if j1 &lt; n {
+        counter_(uf, n, i1, j1, m, counts);
+    }
+}
+
+/**
+ * Counts number of networks that start with sorts that have given sizes
+ */
+fn count_specific&lt;const N: usize, const N2: usize&gt;(sizes: &amp;Vec&lt;Item&gt;) -&gt; i64 {
+    let mut base_state = [0; N];
+    let mut num_bits = 0;
+    if sizes.iter().filter(|&amp;v| v &amp; 1 == 1).count() &gt; (N &amp; 1) {
+        // no symmetric starting states
+        let filter: Vec&lt;_&gt; = sizes
+            .iter()
+            .copied()
+            .scan(0, |state, i| {
+                let offset = *state;
+                *state += i;
+                Some(((1 &lt;&lt; i) - 1, offset))
+            })
+            .collect();
+        (1..1 &lt;&lt; N)
+            .filter(|&amp;v| {
+                // filter out states that aren't sorted in given ranges
+                filter.iter().all(|&amp;(mask, offset)| {
+                    let n = (v &gt;&gt; offset) &amp; mask;
+                    n &amp; (n + 1) == 0
+                })
+            })
+            .filter(|&amp;v: &amp;Item| v &amp; (v + 1) != 0) // filter out states that are completely sorted
+            .for_each(|v| {
+                // convert to state
+                (0..N).rev().fold(v, |acc, i| {
+                    base_state[i] = (base_state[i] &lt;&lt; 1) | (acc &amp; 1);
+                    acc &gt;&gt; 1
+                });
+                num_bits += 1;
+            });
+        if num_bits &gt; Item::BITS {
+            panic!(&quot;Too big? {} &gt; {} {:?}&quot;, num_bits, Item::BITS, sizes);
+        }
+
+        let mut states: HashSet&lt;[Item; N]&gt; = HashSet::default();
+
+        visit_notree::&lt;N, N2&gt;(&amp;mut base_state, &amp;mut states); // populate states
+        states.len() as i64
+    } else {
+        let mut state_to_idx: HashMap&lt;[Item; N], usize&gt; = HashMap::default();
+        let mut tree: Vec&lt;[usize; N2]&gt; = Vec::new();
+        let filter: Vec&lt;_&gt; = sizes
+            .iter()
+            .copied()
+            .scan(0, |state, i| {
+                // filter divides range so [3,2] =&gt; 0b1001001, 0b0100010
+                let w = i / 2;
+                let mask = (1 &lt;&lt; w) - 1;
+                let offset0 = *state;
+                let mask0 = mask &lt;&lt; offset0;
+                let offset1 = N as Item / 2;
+                let mask1 = (i &amp; 1) &lt;&lt; offset1;
+                let offset2 = N as Item - (w + offset0);
+                let mask2 = mask &lt;&lt; offset2;
+                *state += w;
+                Some((
+                    mask0,
+                    offset0,
+                    mask1,
+                    offset1 - w,
+                    mask2,
+                    offset2 - w - (i &amp; 1),
+                ))
+            })
+            .collect();
+        (1..1 &lt;&lt; N)
+            .filter(|v: &amp;Item| {
+                // filter out states that aren't sorted in given ranges
+                filter.iter().all(|&amp;(m0, o0, m1, o1, m2, o2)| {
+                    let n = (v &amp; m0) &gt;&gt; o0 | (v &amp; m1) &gt;&gt; o1 | (v &amp; m2) &gt;&gt; o2;
+                    n &amp; (n + 1) == 0
+                })
+            })
+            .filter(|&amp;v: &amp;Item| {
+                // filter out states that are completely sorted or states that have a smaller dual state
+                (0..=N / 2).contains(&amp;(v.count_ones() as usize)) &amp;&amp; (v &amp; (v + 1) != 0)
+            })
+            .map(|v| {
+                // convert states to smaller states (this one is for situations like 010011 vs 001101)
+                min(
+                    v,
+                    (((1 &lt;&lt; N) - 1) - v).reverse_bits() &gt;&gt; (Item::BITS as usize - N),
+                )
+            })
+            .collect::&lt;HashSet&lt;Item&gt;&gt;() //remove duplicates
+            .into_iter()
+            .for_each(|v| {
+                // convert to state
+                (0..N).rev().fold(v, |acc, i| {
+                    base_state[i] = (base_state[i] &lt;&lt; 1) | (acc &amp; 1);
+                    acc &gt;&gt; 1
+                });
+                num_bits += 1;
+            });
+        if num_bits &gt; Item::BITS {
+            panic!(&quot;Too big? {} &gt; {} {:?}&quot;, num_bits, Item::BITS, sizes);
+        } // currently, the largest this gets (for sizes=[2] and N=7) is 44
+
+        let r = visit(&amp;mut base_state, &amp;mut tree, &amp;mut state_to_idx); // build tree (&quot;tree&quot;)
+
+        double::&lt;N, N2&gt;(tree, r) as i64 // doubles (more like squares) tree
+    }
+}
+
+/**
+ * Finds all states that are descendants of the input state and maps them to numbers in topological order.
+ * &quot;tree&quot; is an adjacency list on the numbers
+ */
+fn visit&lt;const N: usize, const N2: usize&gt;(
+    state: &amp;mut [Item; N],
+    tree: &amp;mut Vec&lt;[usize; N2]&gt;,
+    state_to_idx: &amp;mut HashMap&lt;[Item; N], usize&gt;,
+) -&gt; usize {
+    if let Some(&amp;idx) = state_to_idx.get(state) {
+        idx
+    } else {
+        let mut l: Vec&lt;Option&lt;usize&gt;&gt; = vec![];
+        for a in 0..N - 1 {
+            let p = state[a];
+            for b in a + 1..N {
+                let q = state[b];
+                if p &amp; !q == 0 {
+                    // self loop
+                    l.push(None);
+                } else {
+                    state[a] = p &amp; q;
+                    state[b] = p | q;
+                    l.push(Some(visit::&lt;N, N2&gt;(state, tree, state_to_idx)));
+                    state[a] = p;
+                    state[b] = q;
+                }
+            }
+        }
+        let v = state_to_idx.len();
+        state_to_idx.insert(*state, v);
+        tree.push(
+            l.iter()
+                .copied()
+                .map(|x| x.unwrap_or(v))
+                .collect::&lt;Vec&lt;usize&gt;&gt;()
+                .try_into()
+                .unwrap(),
+        );
+        v
+    }
+}
+
+/**
+ * Finds all descendant states from input_state
+ */
+fn visit_notree&lt;const N: usize, const N2: usize&gt;(
+    state: &amp;mut [Item; N],
+    states: &amp;mut HashSet&lt;[Item; N]&gt;,
+) {
+    if !states.contains(state) {
+        for a in 0..N - 1 {
+            let p = state[a];
+            for b in a + 1..N {
+                let q = state[b];
+                if p &amp; !q != 0 {
+                    state[a] = p &amp; q;
+                    state[b] = p | q;
+                    visit_notree::&lt;N, N2&gt;(state, states);
+                    state[a] = p;
+                    state[b] = q;
+                }
+            }
+        }
+        states.insert(*state);
+    }
+}
+
+/**
+ * Combines a graph with the reverse of the graph
+ */
+fn double&lt;const N: usize, const N2: usize&gt;(tree: Vec&lt;[usize; N2]&gt;, r: usize) -&gt; usize {
+    // does bfs on the graph, because visit returns in topological order, we can discard states with smaller rank, which saves memory
+    let choices: Vec&lt;(usize, usize)&gt; = (0..N - 1).flat_map(|a| repeat(a).zip(a + 1..N)).collect();
+    let choices_idx: HashMap&lt;(usize, usize), usize&gt; = choices
+        .iter()
+        .copied()
+        .enumerate()
+        .map(|(a, b)| (b, a))
+        .collect();
+    let rev: Vec&lt;usize&gt; = choices
+        .iter()
+        .copied()
+        .map(|(a, b)| *choices_idx.get(&amp;(N - 1 - b, N - 1 - a)).unwrap())
+        .collect();
+    let tree_rev: Vec&lt;[usize; N2]&gt; = tree
+        .iter()
+        .map(|t| {
+            rev.iter()
+                .map(|&amp;v| t[v])
+                .collect::&lt;Vec&lt;usize&gt;&gt;()
+                .try_into()
+                .unwrap()
+        })
+        .collect();
+    let tl = tree.len();
+    let mut queues: Vec&lt;HashSet&lt;usize&gt;&gt; = (0..2 * tl - 1).map(|_| HashSet::default()).collect();
+    queues[2 * r].insert(r);
+    let mut center = 0;
+    let mut num_seen = 0;
+    let mut rank = 2 * tl - 1;
+    while !queues.is_empty() {
+        rank -= 1;
+        queues.pop().unwrap().drain().for_each(|a| {
+            let b = rank - a;
+            if a == b {
+                center += 1;
+            }
+            num_seen += 1;
+            for (&amp;a1, &amp;b1) in tree[a].iter().zip(tree_rev[b].iter()) {
+                if a1 &gt; b1 {
+                    if a != b &amp;&amp; (a != b1 || b != a1) {
+                        queues[b1 + a1].insert(b1);
+                    }
+                } else if a != a1 || b != b1 {
+                    queues[a1 + b1].insert(a1);
+                }
+            }
+        });
+    }
+    2 * num_seen - center
+}
+
+// union-find with backtracking whatever
+struct BacktrackArray&lt;T&gt; {
+    data: Vec&lt;T&gt;,
+    history: Vec&lt;(usize, T)&gt;,
+    checkpoints: Vec&lt;usize&gt;,
+}
+
+impl&lt;T: Copy&gt; BacktrackArray&lt;T&gt; {
+    pub fn new(data: Vec&lt;T&gt;) -&gt; BacktrackArray&lt;T&gt; {
+        BacktrackArray {
+            data,
+            history: vec![],
+            checkpoints: vec![],
+        }
+    }
+    pub fn rollback(&amp;mut self) {
+        self.history
+            .drain(self.checkpoints.pop().unwrap_or(0)..)
+            .rev()
+            .for_each(|(idx, v)| self.data[idx] = v);
+    }
+    pub fn save(&amp;mut self) {
+        self.checkpoints.push(self.history.len());
+    }
+    pub fn set(&amp;mut self, idx: usize, value: T) {
+        self.history
+            .push((idx, replace(&amp;mut self.data[idx], value)));
+    }
+    pub fn get(&amp;self, idx: usize) -&gt; T {
+        self.data[idx]
+    }
+}
+
+impl&lt;V: Copy&gt; FromIterator&lt;V&gt; for BacktrackArray&lt;V&gt; {
+    fn from_iter&lt;T: IntoIterator&lt;Item = V&gt;&gt;(iter: T) -&gt; Self {
+        BacktrackArray::new(Vec::from_iter(iter))
+    }
+}
+
+impl&lt;V: Copy&gt; From&lt;Vec&lt;V&gt;&gt; for BacktrackArray&lt;V&gt; {
+    fn from(val: Vec&lt;V&gt;) -&gt; Self {
+        BacktrackArray::new(val)
+    }
+}
+
+struct UnionFind {
+    num_unions: BacktrackArray&lt;usize&gt;,
+    parent: BacktrackArray&lt;usize&gt;,
+    size: BacktrackArray&lt;Item&gt;,
+    representatives: BacktrackArray&lt;usize&gt;,
+    rep_ptrs: BacktrackArray&lt;usize&gt;,
+}
+
+impl UnionFind {
+    pub fn new(n: usize) -&gt; UnionFind {
+        UnionFind {
+            num_unions: vec![n].into(),
+            parent: (0..n).collect(),
+            size: repeat(1).take(n).collect(),
+            representatives: (0..n).collect(),
+            rep_ptrs: (0..n).collect(),
+        }
+    }
+    pub fn save(&amp;mut self) {
+        self.num_unions.save();
+        self.parent.save();
+        self.size.save();
+        self.representatives.save();
+        self.rep_ptrs.save();
+    }
+    pub fn rollback(&amp;mut self) {
+        self.num_unions.rollback();
+        self.parent.rollback();
+        self.size.rollback();
+        self.representatives.rollback();
+        self.rep_ptrs.rollback();
+    }
+    pub fn get_sizes(&amp;self) -&gt; Vec&lt;Item&gt; {
+        let n = self.num_unions.get(0);
+        let mut v: Vec&lt;Item&gt; = self
+            .representatives
+            .data
+            .iter()
+            .take(n)
+            .map(|&amp;i| self.size.get(i))
+            .filter(|&amp;v| v &gt; 1)
+            .collect();
+        v.sort_unstable();
+        v
+    }
+    pub fn join(&amp;mut self, i: usize, j: usize) {
+        let mut i = self.find(i);
+        let mut j = self.find(j);
+        if i != j {
+            let mut s_i = self.size.get(i);
+            let mut s_j = self.size.get(j);
+            if s_i &lt; s_j {
+                swap(&amp;mut s_i, &amp;mut s_j);
+                swap(&amp;mut i, &amp;mut j);
+            }
+            self.parent.set(j, i);
+            self.size.set(i, s_i + s_j);
+            let n = self.num_unions.get(0) - 1;
+            self.num_unions.set(0, n);
+            let r = self.representatives.get(n);
+            let r_idx = self.rep_ptrs.get(j);
+            self.representatives.set(r_idx, r);
+            self.rep_ptrs.set(r, r_idx);
+        }
+    }
+    pub fn find(&amp;mut self, i: usize) -&gt; usize {
+        let i1 = self.parent.get(i);
+        if i1 == i {
+            i
+        } else {
+            let i2 = self.find(i1);
+            self.parent.set(i, i2);
+            i2
+        }
+    }
+}
+</code></pre>
+<p><strong><code>Output:</code></strong></p>
+<pre><code>n=1: 1
+n=2: 2
+  [2]: 1 = 1 * 1 (took 7.73µs)
+n=3: 11
+  [2]: 12 = 4 * 3 (took 9.617µs)
+  [3]: -2 = 1 * -2 (took 783ns)
+n=4: 261
+  [2]: 366 = 61 * 6 (took 17.105µs)
+  [2, 2]: -48 = 16 * -3 (took 3.853µs)
+  [3]: -64 = 8 * -8 (took 2.727µs)
+  [4]: 6 = 1 * 6 (took 1.088µs)
+n=5: 43337
+  [2]: 62480 = 6248 * 10 (took 440.742µs)
+  [2, 2]: -14100 = 940 * -15 (took 76.582µs)
+  [5]: -24 = 1 * -24 (took 1.818µs)
+  [2, 3]: 1280 = 64 * 20 (took 9.063µs)
+  [3]: -6780 = 339 * -20 (took 35.228µs)
+  [4]: 480 = 16 * 30 (took 3.91µs)
+n=6: 72462128
+  [2, 3]: 1741440 = 14512 * 120 (took 3.553571ms)
+  [4]: 169650 = 1885 * 90 (took 164.134µs)
+  [2, 2, 2]: 831870 = 55458 * 15 (took 3.841656ms)
+  [2]: 103912905 = 6927527 * 15 (took 553.271018ms)
+  [2, 2]: -28154610 = 625658 * -45 (took 43.410737ms)
+  [3, 3]: -20480 = 512 * -40 (took 67.739µs)
+  [5]: -4608 = 32 * -144 (took 4.743µs)
+  [6]: 120 = 1 * 120 (took 2.899µs)
+  [3]: -5991120 = 149778 * -40 (took 33.794472ms)
+  [2, 4]: -23040 = 256 * -90 (took 49.235µs)
+n=7: 1530608978810
+  [2, 2]: -701933448825 = 6685080465 * -105 (took 1777.016031993s)
+  [7]: -720 = 1 * -720 (took 22.07µs)
+  [2, 2, 3]: -684133800 = 3257780 * -210 (took 424.2515ms)
+  [2, 3]: 26000250360 = 61905358 * 420 (took 7.892396883s)
+  [4]: 754063170 = 3590777 * 210 (took 282.065867ms)
+  [2, 2, 2]: 39011470995 = 371537819 * 105 (took 67.801355981s)
+  [2]: 2244447515625 = 106878453125 * 21 (took 40712.141796623s)
+  [3, 4]: 1720320 = 4096 * 420 (took 431.995µs)
+  [2, 5]: 516096 = 1024 * 504 (took 93.822µs)
+  [5]: -5283432 = 10483 * -504 (took 809.017µs)
+  [6]: 53760 = 64 * 840 (took 13.258µs)
+  [3]: -76668548810 = 1095264983 * -70 (took 215.344123884s)
+  [3, 3]: -174011040 = 621468 * -280 (took 176.875932ms)
+  [2, 4]: -141184890 = 224103 * -630 (took 93.090671ms)
+Total time: 42782.049221178s
+</code></pre>
+<p>The correctness of this solution relies on two conjectures.</p>
+<p>Before that, notation.</p>
+<p>There are <span class="math-container">\$N\$</span> wires, <span class="math-container">\$1\$</span> through <span class="math-container">\$N\$</span> (the set of them is denoted by <span class="math-container">\$[N]\$</span>).</p>
+<p><span class="math-container">\$U\$</span> is the set of all possible networks over the <span class="math-container">\$N\$</span> wires. <span class="math-container">\$2^U\$</span> is the powerset of <span class="math-container">\$U\$</span> (that is, the set of all subsets of <span class="math-container">\$U\$</span>).</p>
+<p>We'll let <span class="math-container">\$G=\ (U, E)\$</span> be a directed graph with vertices <span class="math-container">\$U\$</span> and an edge from <span class="math-container">\$a\$</span> to <span class="math-container">\$b\$</span> iff <span class="math-container">\$b\$</span> can be expressed by appending a single vertical wire to the right of <span class="math-container">\$a\$</span>. We also denote by <span class="math-container">\$G_x\$</span> (for network <span class="math-container">\$x\$</span>) the set of networks reachable from <span class="math-container">\$x\$</span>.</p>
+<p>Define <span class="math-container">\$S(A):\ 2^{[N]}\rightarrow U\$</span> to mean the network that sorts the wires in <span class="math-container">\$A\$</span>.</p>
+<p>This is sort of an abuse of notation, but for <span class="math-container">\$A\subseteq[N]\$</span>, we will write <span class="math-container">\$G_{S(A)}\$</span> as <span class="math-container">\$G_A\$</span></p>
+<p>Define <span class="math-container">\$F(\{A_1, ..., A_k\}): 2^{\left(2^{[N]}\right)}\rightarrow 2^U\$</span> (where <span class="math-container">\$A_i \subseteq [N]\$</span> and the <span class="math-container">\$A_i\$</span> are pairwise disjoint) to mean <span class="math-container">\$G_{A_1}\cap G_{A_2}\cap\ ...\cap\ G_{A_k}\$</span>.</p>
+<p><br><br></p>
+<p>The first conjecture is that <span class="math-container">\$\|F(\{A_1,...,A_k\})\|=\|F(\{B_1,...,B_k\})\|\$</span> if <span class="math-container">\$\|A_i\|=\|B_i\|\$</span> for <span class="math-container">\$1\le i\le k\$</span>.</p>
+<p>The second conjecture is that given <span class="math-container">\$X_1, X_2, ..., X_m \subseteq [N]\$</span> (possibly overlapping),  <span class="math-container">\$G_{X_1}\cap G_{X_2}\cap ...\cap\ G_{X_m}=F({A_1,A_2,...,A_k})\$</span> for some pairwise disjoint <span class="math-container">\$A_i\$</span> with <span class="math-container">\$k\le m\$</span>.</p>
+<p>To be more specific, if we make a graph with vertices in <span class="math-container">\$[N]\$</span> and an edge between vertices <span class="math-container">\$a\$</span> and <span class="math-container">\$b\$</span> if there is some <span class="math-container">\$i\$</span> for which <span class="math-container">\$a,b \in X_i\$</span>, then the <span class="math-container">\$A_j\$</span> are the connected components of that graph.</p>
+</div>
+<div id="pu3" class="pu"><h1>Rust, <span class="math-container">\$n=6\$</span> in roughly <s>50</s> <s>48</s> <s>43</s> <s>41</s> 23 seconds.</h1>
+<p><em>Thanks to @AnttiP for a 44% speedup!</em></p>
+<p>My solution is based off of @AndersKaseorg's solution. I originally posted my changes as comments there, but with the number of changes I've made, I thought it'd be better to post as a separate answer.</p>
+<p><strong><code>Cargo.toml</code></strong></p>
+<pre class="lang-toml prettyprint-override"><code>cargo-features = [&quot;profile-rustflags&quot;]
+
+[package]
+name = &quot;sorting&quot;
+version = &quot;0.1.0&quot;
+edition = &quot;2021&quot;
+
+[dependencies]
+hashbrown = &quot;0.13.2&quot;
+rustc-hash = &quot;1.1.0&quot;
+
+[profile.release]
+rustflags = [&quot;-C&quot;, &quot;target-cpu=native&quot;]
+</code></pre>
+<p><strong><code>src/main.rs</code></strong></p>
+<pre class="lang-rust prettyprint-override"><code>use rustc_hash::FxHasher;
+use std::hash::BuildHasherDefault;
+type HashSet&lt;V&gt; = hashbrown::HashSet&lt;V, BuildHasherDefault&lt;FxHasher&gt;&gt;;
+
+type Item = u64;
+const LOG_BITS: usize = Item::BITS.trailing_zeros() as usize;
+
+/*
+    Extract just the nontrivial bits that can actually change:
+    0..57 from state[0]
+    0..57 from state[1]
+    0..57 from state[2]
+   11..57 from state[3]
+   26..57 from state[4]
+     none from state[5]
+
+    A bit position is either trivial or can't change
+    if in the input, all wires after that position were 1s.
+    That position is either forced to be a 1,
+    or reconstructible from the other earlier wires.
+
+    It turns out to be safe to just treat trivial bits as if
+    they're already zeroed out, rather than zeroing them manually.
+    Empirically, this causes no collisions.
+    I wasn't sure that this would work, but it does,
+    and that's good enough for me.
+*/
+type CompactState = [Item; 4];
+const fn compact(state: &amp;[Item; LOG_BITS]) -&gt; CompactState {
+    let out_0 = state[0] ^ (state[1] &lt;&lt; 57);
+    let out_1 = (state[1] &gt;&gt; 7) ^ (state[2] &lt;&lt; 50);
+    let out_2 = (state[2] &gt;&gt; 14) ^ (state[3] &lt;&lt; (43 - 11));
+    let out_3 = (state[3] &gt;&gt; (21 + 11)) ^ state[4];
+    [out_0, out_1, out_2, out_3]
+}
+
+fn search&lt;'a&gt;(
+    found: &amp;mut HashSet&lt;CompactState&gt;,
+    state: &amp;mut [Item; LOG_BITS],
+    last_i: usize,
+    last_j: usize,
+) {
+    for i in 0..LOG_BITS - 1 {
+        let p = state[i];
+        for j in i + 1..LOG_BITS {
+            if i &lt; last_i &amp;&amp; j != last_i &amp;&amp; j != last_j {
+                continue;
+            }
+            let q = state[j];
+            if p &amp; !q != 0 {
+                state[i] = p &amp; q;
+                state[j] = p | q;
+                let compact_state = compact(state);
+                let inserted = found.insert(compact_state);
+                if inserted {
+                    search(found, state, i, j);
+                }
+                state[i] = p;
+                state[j] = q;
+            }
+        }
+    }
+}
+// Inputs that are already sorted are removed.
+fn initial_state(n: usize) -&gt; [Item; LOG_BITS] {
+    // Remove inputs that are already sorted
+    let inputs: Vec&lt;u64&gt; = (0..1 &lt;&lt; n)
+        .rev()
+        .filter(|i| (0..n - 1).any(|b| i &amp; (1 &lt;&lt; b) &gt; 0 &amp;&amp; i &amp; (1 &lt;&lt; (b + 1)) == 0))
+        .collect();
+    let mut state = [0; LOG_BITS];
+    for (wire_index, wire_mut) in state.iter_mut().enumerate() {
+        if wire_index &lt; n {
+            for (bit_index, input) in inputs.iter().enumerate() {
+                if input &amp; 1 &lt;&lt; wire_index &gt; 0 {
+                    *wire_mut |= 1 &lt;&lt; bit_index;
+                }
+            }
+        } else {
+            // If n &lt; LOG_BITS, pad with all-ones wires.
+            *wire_mut = !0;
+        }
+    }
+    // Debugging printout
+    if false {
+        for wire in state {
+            println!(&quot;{wire:#066b}&quot;);
+        }
+    }
+    state
+}
+fn count_networks(n: usize) -&gt; usize {
+    assert!(n &lt;= LOG_BITS);
+    let mut state = initial_state(n);
+    let mut found: HashSet&lt;CompactState&gt; = HashSet::default();
+    let compact_state = compact(&amp;state);
+    found.insert(compact_state);
+    search(&amp;mut found, &amp;mut state, 0, 0);
+    found.len()
+}
+
+fn main() {
+    for n in 1..=LOG_BITS {
+        println!(&quot;{}&quot;, count_networks(n));
+    }
+}
+</code></pre>
+<p>The basic idea of this program, and of @AndersKaesorg's solution, is to maintain a state consisting of the effect of a sorting network on all possible inputs of <span class="math-container">\$n\$</span> bits, from <code>000000</code> to <code>111111</code>. The state is internally represented as a vector of <span class="math-container">\$n\$</span> 64-bit integers, where each of the first <span class="math-container">\$2^n\$</span> bit indexes represents one possible input. All possible comparisons are performed, and a hash table is used to check if any comparisons give a new result. If so, it's added to the hash table and the comparison function is called recursively.</p>
+<p>The changes I've made, starting from @AndersKaesorg's solution, are:</p>
+<ul>
+<li><p>Track the last pair of wires that were compared in order to reach the current state. If that pair doesn't overlap with the current comparison being considered, and the current comparison is earlier lexicographically that the last comparison, skip the current comparison. In other words, we shouldn't consider both comparing <code>[1, 2]</code> then <code>[3, 4]</code> and also comparing <code>[3, 4]</code> then <code>[1, 2]</code> - both orderings give the same result.</p>
+</li>
+<li><p>When inserting a state into the HashSet to check if it's a new state, leave out the final wire of the state. Because a comparison doesn't change the total number of 0s and 1s, the contents of the last wire are implicit in the other wires.</p>
+</li>
+<li><p>Change the hash function from ahash, Rust's default hashing function, to FxHash, which is what the rust compiler uses. It's less collision-resistant, but much faster, and the tradeoff is worth it.</p>
+</li>
+<li><p>Store the hash table values as fixed-width arrays, rather than variable-width slices. This communicates more information about the hash values to the compiler, allowing it to produce more optimized code.</p>
+</li>
+<li><p>Enable optimizations for my specific machine: <code>rustflags = [&quot;-C&quot;, &quot;target-cpu=native&quot;]</code>.</p>
+</li>
+<li><p>When generating the initial state with all possible inputs, remove the <span class="math-container">\$n+1\$</span> inputs that are already in sorted order, as these inputs don't distinguish anything. Move the remaining inputs to the low-order bits of the 64-bit integers in the state. This helps because FxHash is asymmetrical: It makes more use of entropy in the low-order bits than the high-order bits, because it performs a multiplication by a large constant and discards the overflow.</p>
+</li>
+<li><p>Extract just the nontrivial bits from the state, and use those as the HashSet value. This amounts to only 4 u64s, rather than 5 previously. This isn't a huge time saving, only 1-2 seconds, because of the extra work that needs to be done to generate the smaller value. However, this change dramatically shrinks the peak memory usage, from about 70% of my machine's RAM to about 40% of it.</p>
+</li>
+<li><p>Simplify the hash value extraction with some arcane magic.</p>
+</li>
+<li><p>Store the HashSet values directly in the HashSet, rather than in a separate allocation. This is slightly less memory efficient, but much faster. It only became possible because of the previous memory efficiency improvements.</p>
+</li>
+</ul>
+<p>In my timing on my machine, these changes brought the runtime down from ~75 seconds to ~23 seconds.</p>
+</div>
+<div id="pu4" class="pu"><h1><a href="https://www.haskell.org/" rel="nofollow noreferrer">Haskell</a>, n≤5</h1>
+
+<pre class="lang-hs prettyprint-override"><code>import Data.Array
+import Data.Bits
+import Data.List
+import qualified Data.Set as S
+
+b n = S.size$visit 1 2 ini (S.singleton$hash ini)
+ where
+  ini = listArray(1,n)$map((sum::[Integer]-&gt;Integer).zipWith(*)(iterate(2*)1))$transpose$sequence$replicate n[0,1]
+
+  hash = id
+
+  visit i j s visited
+   |i&gt;n =visited
+   |j&gt;n =visit(i+1)(i+2)s visited
+   |s!i.&amp;.complement(s!j)&gt;0&amp;&amp;S.notMember (hash newState) visited
+        =visit i(j+1)s$visit 1 2 newState(S.insert (hash newState) visited)
+   |0&lt;1 =visit i(j+1)s visited
+         where newState=s//[(i,s!i.&amp;.s!j),(j,s!i.|.s!j)]
+
+main=mapM_(print.b)[1..5]
+</code></pre>
+<p><a href="https://tio.run/##dVHBTsMwDL33K4xUTck2wjrEZaKTQFyQQBx64FBNKNu81aVNS5yBmPbtlKxlaIDIyX6x33u2M83PWBRNQ2VdWQc32ml1Za1@D46Ra3L8A7gjdgfgZaMLWhEuu68EHWiGJAjmYCCGRDFtMXwlJgcRjIEMgdijZl2gq0yYac72qAzgLUOLAbQ1MRRepTUjoqGRYalrIXhTTibprXG4Rjs7nX5FUm2pfiSXib4U5NBqh2Lcl5GUobPacF0xhowvGzQLDC3WBS18DZh0NIxmgddsbcRAy33S2SXIgbsYlx6FHU39TMdA/g0IGkReezCWP1v4hFRPLaqyLrBE4wSf5HI66vUSZSp3j@UcLYhW3eBb4rwreUzQvvjLkMi9CB9t89DiN0qG0d/jHyrZmhldRr@4/kh1R/gmiPnsLBU07MbYex@KvM12beZ3V2oysb/O/ZOoLRmn5jKNlLqYNc3HYlXoNTenD@ef" rel="nofollow noreferrer" title="Haskell – Try It Online">Try it online!</a></p>
+</div>
+<div id="pu5" class="pu"><h1>Rust, <span class="math-container">\$n = 6\$</span> in ≈ 59  seconds</h1>
+<p>The main simplifying observation here is that we don’t need to run the network on all <span class="math-container">\$n!\$</span> permutations; it suffices to run it on all <span class="math-container">\$2^n\$</span> binary strings. We can do this efficiently on all strings simultaneously using bitwise operations.</p>
+<p><strong><code>Cargo.toml</code></strong></p>
+<pre class="lang-toml prettyprint-override"><code>[package]
+name = &quot;sorting&quot;
+version = &quot;0.1.0&quot;
+edition = &quot;2021&quot;
+
+[dependencies]
+hashbrown = &quot;0.13.2&quot;
+typed-arena = &quot;2.0.2&quot;
+</code></pre>
+<p><strong><code>src/main.rs</code></strong></p>
+<pre class="lang-rust prettyprint-override"><code>use hashbrown::HashSet;
+use typed_arena::Arena;
+
+type Item = u64;
+const LOG_BITS: usize = Item::BITS.trailing_zeros() as usize;
+
+fn search&lt;'a&gt;(arena: &amp;'a Arena&lt;Item&gt;, found: &amp;mut HashSet&lt;&amp;'a [Item]&gt;, state: &amp;mut [Item]) {
+    let n = state.len();
+    for i in 0..n - 1 {
+        let p = state[i];
+        for j in i + 1..n {
+            let q = state[j];
+            if p &amp; !q != 0 {
+                state[i] = p &amp; q;
+                state[j] = p | q;
+                let mut inserted = false;
+                found.get_or_insert_with(state, |state| {
+                    inserted = true;
+                    arena.alloc_extend(state.iter().copied())
+                });
+                if inserted {
+                    search(arena, found, state);
+                }
+                state[i] = p;
+                state[j] = q;
+            }
+        }
+    }
+}
+
+fn count_networks(n: usize) -&gt; usize {
+    assert!(n &lt;= LOG_BITS);
+    let mut state = Vec::from_iter((0..n).map(|i| !0 / (1 &lt;&lt; (1 &lt;&lt; i) | 1)));
+    let arena = Arena::new();
+    let mut found = HashSet::new();
+    found.insert(&amp;*arena.alloc_extend(state.iter().copied()));
+    search(&amp;arena, &amp;mut found, &amp;mut state);
+    found.len()
+}
+
+fn main() {
+    for n in 1..=LOG_BITS {
+        println!(&quot;{}&quot;, count_networks(n));
+    }
+}
+</code></pre>
+</div>
+<div id="pu6" class="pu"><h1><a href="https://www.haskell.org/" rel="nofollow noreferrer">Haskell</a>, n≤4</h1>
+
+<pre class="lang-hs prettyprint-override"><code>import Data.List
+import Data.List.Ordered
+pairs[]=[]
+pairs(i:k)=[[i,j]|j&lt;-k]++pairs k
+end(a:b:c)=last$end(b:c):[a|a==b]
+b n=length$end$iterate behave[permutations[1..n]]where
+ gate[i,j]z=last$z:[[z!!last(l:[i+j-l|l==i||l==j])|l&lt;-[0..n-1]]|z!!i&gt;z!!j]
+ behave bs=nubSort$bs++[map(gate[i,j])b|b&lt;-bs,[i,j]&lt;-pairs[0..n-1]]
+</code></pre>
+<p><a href="https://tio.run/##XVCxboQwDN3zFTmJAcQF9aROiNzUsVKHjlYGp0RHIORQkmsllH@nCbQdulh@fvZ7tgf0kzJm2/S83F2gLxiwedU@kP@F5s31yqmeLKidB8FBHGmp26niAPo8ijh2bBJ1vRN0Isr2Jbay/ai4QR@KjDNqASNyLgWR1HKj7C0MmSx0UA6DolIN@KlgUW5@BAz6bj1cmsYK8TWkLQi9pa7dcj2U1xZgPZ1yXpoWdD0yEw3nOuY4iiqajsFTkmAXIWJq1dcURkF@vKj03D7kezq6kL6uYcal/HOpZJQdk/68o44dT/iV22bUli9O2zTbFddMPIvtGw" rel="nofollow noreferrer" title="Haskell – Try It Online">Try it online!</a></p>
+</div>
+<div id="pu7" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, <span class="math-container">\$n=5\$</span></h1>
+<p>Naive brute force.</p>
+
+<pre class="lang-javascript prettyprint-override"><code>for(let n = 1; n &lt;= 5; n++) {
+  console.log(n, solve(n));
+}
+
+function getPermutations(a) {
+  let list = [];
+
+  (function P(a, ...p) {
+    if(a.length) {
+      a.forEach((v, i) =&gt; P(a.filter(_ =&gt; i--), ...p, v));
+    }
+    else {
+      list.push(p);
+    }
+  })(a);
+
+  return list;
+}
+
+function solve(n) {
+  let connector = [];
+
+  for(let i = 0; i &lt; n; i++) {
+    for(let j = i + 1; j &lt; n; j++) {
+      connector.push([i, j]);
+    }
+  }
+
+  let perm = getPermutations([...Array(n)].map((_, n) =&gt; n)),
+      lookup = {};
+
+  perm.forEach((p, i) =&gt; lookup[p] = i);
+
+  let transform = connector.map(([ i, j ]) =&gt;
+    perm.map(([...p]) =&gt; {
+      if(p[i] &gt; p[j]) {
+        [ p[i], p[j] ] = [ p[j], p[i] ];
+      }
+      return lookup[p];
+    })
+  );
+
+  let set = new Set();
+
+  (function search(list) {
+    let key = JSON.stringify(list);
+
+    if(!set.has(key)) {
+      set.add(key);
+
+      transform.forEach(t =&gt; {
+        let update = 0;
+
+        let newList = list.map(permNdx =&gt; {
+          let newNdx = t[permNdx];
+          update |= newNdx != permNdx;
+          return newNdx;
+        });
+        if(update) {
+          search(newList);
+        }
+      });
+    }
+  })(perm.map((_, n) =&gt; n));
+
+  return set.size;
+}
+</code></pre>
+<p><a href="https://tio.run/##XVPBbtswDL37K9ibhDjGdtgpTYEedhmGrkCPhlEIiZwodWVBkrNlnb89IyXZcppDJJOP5OMjdRJn4XZWGb/W/V5er21vWSc9aNjC1w0e91v4hudqxeGjANj12vWdrLr@wHQJeD9LpjnfFGNRtIPeedVrOEj/LO374AV9OiZiMCXulPOYu242BVrYHPLMRAlVVZkIBVAtE1Un9cEfJxOAqJDgd7E7MnYuQXHYPlBk1arOS8te6Vut1zymKuFMzChwDP@yc3LORUwqM7gjMwvQyJFt4GalH6wOsNvupqbnnlAULXe@t7mxSUeFpi8bPO5B4zHJmAEnBChYkdinCDplEOTUkWmtSjg1S7pF4mBQb0z1WfkadXi0VlyQb1O9C8PYawk6CIdjKyct@v5tMBj/MQb6lC1LbSapI6w2DZGOKlFtb4V2iCYCmXAoVgMxhobCQ62QObpoRMExd4szN7Vq4AFMjW3OdoAayFEGO1D5OlzLYIZmk4BjOqfZTXyTYByPTNtJ2kQtf8OL9Ix/WkgnhcXmafwTEQp6kxcM@vHy66ly3ip9UO0lgkJ86OEOM1dH4RiCee6CrGK/D9YEhqzdLLdfKhKLDmYvvAyrVNw4kPzP@KDCNpOuJPDT/s9tkhkdPODrhJqFo1@q8m87Ae@2kHBLWNI2YrJj5PmOGsRk/IZDkjSRXuCnsY23DzHvynJnl4@TJHXqr8QHer3@Bw" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/261248/">261248</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
