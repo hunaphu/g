@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::89015</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>311</td><td>Python 3</td><td>160811T040148Z</td><td><a href="https://codegolf.stackexchange.com/questions/89015/a-tiny-adventure/89476#89476">RootTwo</a></td></tr>
+<tr d-ix="1"><td>323</td><td>Haskell</td><td>160808T223102Z</td><td><a href="https://codegolf.stackexchange.com/questions/89015/a-tiny-adventure/89184#89184">nimi</a></td></tr>
+<tr d-ix="2"><td>338</td><td>C</td><td>160809T192457Z</td><td><a href="https://codegolf.stackexchange.com/questions/89015/a-tiny-adventure/89268#89268">Dave</a></td></tr>
+<tr d-ix="3"><td>244</td><td>JavaScript ES6</td><td>160807T001919Z</td><td><a href="https://codegolf.stackexchange.com/questions/89015/a-tiny-adventure/89039#89039">edc65</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>Python 3, <s>321</s> 311 bytes</h1>
+
+<p>-10, thanks Dave</p>
+
+<pre class="lang-py prettyprint-override"><code>S,F=set,frozenset
+def f(r,c,i,m):
+ w,v,r,c=0,S(),list(map(S,r)),{F(k):S(x)for*k,x in c}
+ for a,*q in m:
+  p=F(q)
+  if a&lt;'D'and p in c and p&lt;=v:v-=p;v|=c[p]
+  elif a=='D'and p&lt;=v:r[w]|=p;v-=p
+  elif a=='G'and F(chr(65+int(q[0])))&lt;=v:w=int(q[0])
+  elif a&gt;'G'and p&lt;=r[w]and len(v)&lt;i:r[w]-=p;v|=p
+  if w==9:return 1
+</code></pre>
+
+<p>Rooms (r), combinations (c) and moves (m) are all lists of strings. Max inventory (i) is an int.</p>
+
+<p>Fairly straight forward implementation.  Used set()s for the room contents and inventory to make updating easy. Used frozensets to key a dictionary of the combinations, so that the order of the 2 input items is irrelevant.</p>
+</div>
+<div id="pu1" class="pu"><h2>Haskell, <s>354</s> <s>325</s> 323 bytes</h2>
+
+<pre><code>(#)=elem
+(#)=elem
+(%)=filter.(/=)
+m!s=g""0.zip[0..]where g _ p _[]=p&gt;8;g i p r(c:d)|p&gt;8=1&lt;2|'P':[k]&lt;-c,k#x,length i&lt;s=g(k:i)p((p,k%x):r)d|'D':[k]&lt;-c,k#i=g(k%i)p((p,k:x):r)d|'C':q@[k,l]&lt;-c,k#i,l#i,[y]&lt;-[f|[d,e,f]&lt;-m,q==[d,e]||q==[e,d]]=g(y:k%(l%i))p r d|'G':n&lt;-c,y&lt;-read n,['A'..]!!y#i=g i y r d|1&lt;2=g i p r d where Just x=lookup p r
+</code></pre>
+
+<p>Defines a function <code>!</code> which takes in order</p>
+
+<ul>
+<li>the possible combinations as a list of 3 letter strings</li>
+<li>the maximum size of the inventory</li>
+<li>the rooms as a list of 9 strings</li>
+<li>the player commands as a list of strings</li>
+</ul>
+
+<p>Returns <code>True</code> or <code>False</code>. Example call:</p>
+
+<pre><code>*Main&gt; (!) ["YZW"] 2 ["YZJ","","","","","","","","",""] ["PY","PZ","CYZ","PJ","CWJ","G9"]
+True
+</code></pre>
+
+<p><a href="http://ideone.com/YTw4b7" rel="nofollow">All test cases</a>.</p>
+
+<p>Many bytes are spent in carrying the game state around. Haskell cannot destructively update data structures like the rooms and inventory.</p>
+
+<p>The work is done by function <code>g</code> which takes 4 parameters: the inventory (String), the current room (Integer), the rooms (Assoc-List, with key: room number and value: items) and the commands left (List of String).</p>
+
+<pre><code>g _ p _[] = p&gt;8                     -- base case. if no commands left, return
+                                    -- True if we are in room 9
+g i p r(c:d)
+  | p&gt;8 =   1&lt;2                     -- reached room 9
+  | 'P':[k]&lt;-c,                     -- 'Pickup', if
+        k#x,                        --   key is in room and
+        length i&lt;s                  --   inventory not full
+        = g(k:i)p((p,k%x):r)d       --   adjust inventory and room
+  | 'D':[k]&lt;-c,                     -- 'Drop', if
+        k#i                         --   key is in inventory
+        = g(k%i)p((p,k:x):r)d       --   adjust inventory and room
+  | 'C':q@[k,l]&lt;-c,                 -- 'Combine', if
+        k#i,l#i,                    --   both keys are in inventory and
+        [y]&lt;-[f|[d,e,f]&lt;-m,q==[d,e]||q==[e,d]]
+                                    --   combination is possible
+        = g(y:k%(l%i))p r d         --   adjust inventory
+  | 'G':n&lt;-c, y&lt;-read[n],           -- 'Goto', convert digit to integer  
+        ['A'..]!!y#i                --   key for room is in inventory
+        = g i y r t                 --   go to room
+  | 1&lt;2                             -- impossible command
+        = g i p r d                 --   ignore it
+</code></pre>
+
+<p>Maybe the following things can save some bytes</p>
+
+<ul>
+<li>State Monad for the game state</li>
+<li><s>A single Assoc-List for the keys (key: letter of key, value: room number with <code>-1</code> for inventory) instead of rooms/inventory</s> No, constructing such an initial Assoc-List and the check for max inventory size costs more than it saves dealing with one less parameter. </li>
+</ul>
+</div>
+<div id="pu2" class="pu"><h1>C, 338 bytes</h1>
+
+<p>I had a go at minifying my own test program. I think it went quite well, even if it is the longest answer so far!</p>
+
+<pre class="lang-c prettyprint-override"><code>#define P c[(i&lt;j?i:j)*25+i+j]
+#define F for(q=atoi(*++v);r
+#define X c[r*91+i]
+r,i,j,c[2405];main(q,v)char**v;{for(r=10;--r;)for(++v;i=**v;++*v)++X;++v;F&lt;q;++r)i=**++v,j=1[*v],P=2[*v];r=9;F&amp;&amp;*++v;c[i=1[*v]]&amp;&amp;j==68?c[i]=!++X,++q:j&gt;79&amp;&amp;q*X?c[i]=!--X,--q:j==71&amp;&amp;c[i+17]?r=57-i:j&lt;68&amp;&amp;c[i]*c[j=2[*v]]&amp;&amp;P?c[i]=c[j]=0,c[P]=++q:0)j=**v;return r;}
+</code></pre>
+
+<p>This uses a few tricks to save space:</p>
+
+<ul>
+<li>Rooms are loaded in reverse so that checking for room 9 becomes checking for room 0, which is cheaper</li>
+<li>Room 9's contents never matter, so it is skipped when reading the input and used to store the inventory instead</li>
+<li>The room contents and item combinations are stored in the same array. Because items are stored at their ascii values, they never overlap.</li>
+</ul>
+
+<p>Breakdown:</p>
+
+<pre class="lang-c prettyprint-override"><code>#define P c[(i&lt;j?i:j)*25+i+j]       // item combination lookup (input: i,j)
+#define X c[r*91+i]                 // room item lookup (input: r,i)
+r,i,j,c[2405];                      // globals default to 0
+main(q,v)char**v;{                  // K&amp;R syntax to save bytes
+    for(r=10;--r;)                  // Load rooms 0-8, store as 9-1
+        for(++v;i=**v;++*v)
+            ++X;
+    ++v;                            // Skip room 9
+    for(q=atoi(*++v);r&lt;q;++r)       // For each combination
+        i=**++v,
+        j=1[*v],                    // Use index[array] syntax to avoid (brackets)
+        P=2[*v];                    // Record combination
+    r=9;                            // Begin in room 0 (9 in memory)
+    for(q=atoi(*++v);               // Load inventory size
+                     r              // While not in room 9 (0 in memory)...
+                      &amp;&amp;*++v;       // ...and still have user commands
+                                    // (ISO C promises a NULL at the end of argv)
+        c[i=1[*v]]&amp;&amp;j==68?          // If 'D'rop, and we have the item:
+            c[i]=!++X,              //  Drop it
+            ++q:                    //  Increase our inventory capacity
+        j&gt;79&amp;&amp;                      // If 'P'ick up, and...
+              q                     // ...we have capacity in our inventory and...
+               *X?                  // ...the item is in the room:
+            c[i]=!--X,              //  Pick it up
+            --q:                    //  Decrease our inventory capacity
+        j==71&amp;&amp;c[i+17]?             // If 'G'o to room, and we have the key:
+            r=57-i:                 //  Go to the room
+        j&lt;68&amp;&amp;                      // If 'C'ombine, and...
+              c[i]*c[j=2[*v]]       // ...we have the items and...
+                             &amp;&amp;P?   // ...they can be combined
+            c[i]=c[j]=0,            //  Remove the items
+            c[P]=++q:               //  Add the combined item and increase capacity
+        0                           // Unrecognised or invalid command
+    )
+        j=**v;                      // 'j' is the command letter (happens first)
+    return r;                       // Return the final room (0 = truthy in shell)
+}
+</code></pre>
+
+<p>Partially inspired by @edc65's answer.</p>
+
+<hr>
+
+<p>I was so close to getting <code>;*++*v;</code> and <code>c[P][c]</code> into the code for ultimate confusion, but unfortunately other options turned out to be shorter :(</p>
+</div>
+<div id="pu3" class="pu"><h1>JavaScript (ES6), 244 <s>249 267 280</s></h1>
+<p><strong>Edit</strong> Saved 18 (!) bytes thx @Neil</p>
+<p>A function with input:</p>
+<ul>
+<li>r = room content (array of 10 strings)</li>
+<li>k = combinations (array of string of 3 chars - source1, source2, result)</li>
+<li>s = inventory max size (number)</li>
+<li>c = commands (array of strings)</li>
+</ul>
+<p>Returns true or false</p>
+<pre class="lang-js prettyprint-override"><code>(r,k,s,c,p=0,j={})=&gt;c.some(([c,a,b])=&gt;c&lt;'D'?j[a]&gt;0&amp;j[b]&gt;0&amp;&amp;!k.map(([t,u,v])=&gt;u+t==a+b|u+t==b+a?j[j[a]=j[b]=v]=++s:0):c&lt;'G'?j[a]&gt;0&amp;&amp;!(j[++s,a]=~p):c&gt;'G'?s&amp;&amp;j[a]==~p&amp;&amp;!(j[a]=s--):j['ABCDEFGHIJ'[a]]&gt;0&amp;&amp;(p=a)&gt;8,r.map((o,n)=&gt;[...o].map(c=&gt;j[c]=~n)))
+</code></pre>
+<p>See the test snippet below for a newline separated version</p>
+<p><strong>Test</strong></p>
+<p><div class="snippet" data-lang="js" data-hide="false" data-console="true" data-babel="false">
+<div class="snippet-code">
+<pre class="snippet-code-js lang-js prettyprint-override"><code>Exec=
+(r,k,s,c,p=0,j={})=&gt;
+c.some(
+  ([c,a,b])=&gt;
+   c&lt;'D'?j[a]&gt;0&amp;j[b]&gt;0&amp;&amp;!k.map(([t,u,v])=&gt;u+t==a+b|u+t==b+a?j[j[a]=j[b]=v]=++s:0)
+   :c&lt;'G'?j[a]&gt;0&amp;&amp;!(j[++s,a]=~p)
+   :c&gt;'G'?s&amp;&amp;j[a]==~p&amp;&amp;!(j[a]=s--)
+   :j['ABCDEFGHIJ'[a]]&gt;0&amp;&amp;(p=a)&gt;8
+  ,r.map((o,n)=&gt;[...o].map(c=&gt;j[c]=~n))
+)
+
+console.log = (...x) =&gt; O.textContent += x + '\n';
+
+;`pass J   ''  ''  ''  ''  ''  ''  ''  ''  ''  0      9  PJ G9;
+fail ''  J   ''  ''  ''  ''  ''  ''  ''  ''  0      9  PJ G9;
+pass J   ''  ''  ''  ''  ''  ''  ''  ''  ''  0      9  PJ PJ G9;
+fail J   ''  ''  ''  ''  ''  ''  ''  ''  ''  0      9  PJ;
+fail J   ''  ''  ''  ''  ''  ''  ''  ''  ''  0      9  G9;
+pass J   ''  ''  ''  ''  ''  ''  ''  ''  ''  0      9  G9 PJ G9;
+pass J   ''  ''  ''  ''  ''  ''  ''  ''  ''  0      1  PJ G9;
+fail J   ''  ''  ''  ''  ''  ''  ''  ''  ''  0      0  PJ G9;
+fail J   ''  ''  ''  ''  ''  ''  ''  ''  ''  0      9  PJ DJ G9;
+fail J   ''  ''  ''  ''  ''  ''  ''  ''  ''  0      9  PJ PJ DJ G9;
+pass J   ''  ''  ''  ''  ''  ''  ''  ''  ''  0      9  PJ DJ PJ G9;
+pass J   ''  ''  ''  ''  ''  ''  ''  ''  ''  0      9  PJ DJ PJ G9;
+pass B   CJ  ''  ''  ''  ''  ''  ''  ''  ''  0      2  PB G1 DB PC PJ G9;
+fail B   CJ  ''  ''  ''  ''  ''  ''  ''  ''  0      2  PB G1 DB PB PC PJ G9;
+pass AJ  ''  ''  ''  ''  ''  ''  ''  ''  ''  0      2  PA PJ G9;
+pass B   D   ''  J   ''  ''  ''  ''  ''  ''  0      2  PB G1 PD G3 DB PJ G9;
+fail B   D   ''  J   ''  ''  ''  ''  ''  ''  0      2  PB G1 PD G2 DB PJ G9;
+fail B   D   ''  J   ''  ''  ''  ''  ''  ''  0      2  PB G1 PD G3 PJ G9;
+fail B   D   J   C   ''  ''  ''  ''  ''  ''  0      2  PB G1 PD G3 PJ G9;
+pass AJ  ''  ''  ''  ''  ''  ''  ''  ''  ''  0      2  PA PJ G9 G0;
+fail ADJ ''  ''  ''  ''  ''  ''  ''  ''  ''  0      3  PA PD PJ G3 DJ G0 PJ G9;
+pass ADJ ''  ''  ''  ''  ''  ''  ''  ''  ''  0      3  PA PD PJ G3 DJ G0 G3 PJ G9;
+fail ADJ ''  ''  ''  ''  ''  ''  ''  ''  ''  0      3  PA PD PJ G3 DJ G0 DD G3 PJ G9;
+pass ADJ ''  ''  ''  ''  ''  ''  ''  ''  ''  0      3  PA PD PJ DD G3 DJ G0 DD G3 PJ G9;
+fail ADJ ''  ''  ''  ''  ''  ''  ''  ''  ''  0      1  PA DA DA PD PJ G9;
+pass ADJ ''  ''  ''  ''  ''  ''  ''  ''  ''  0      1  PA DA DA PJ G9;
+fail ABCDEFGHIKLMNOPQRSTUVWXYZ  J  '' '' '' '' '' '' '' '' 0 26 PA PB PC PD PE PF PG PH PI PJ PK PL PM PN PO PP PQ PR PS PT PU PV PW PX PY PZ G9;
+pass ABCDEFGHIJKLMNOPQRSTUVWXYZ '' '' '' '' '' '' '' '' '' 0 26 PA PB PC PD PE PF PG PH PI PJ PK PL PM PN PO PP PQ PR PS PT PU PV PW PX PY PZ G9;
+fail YZJ ''  ''  ''  ''  ''  ''  ''  ''  ''  0      2  PY PZ CYZ PJ G9;
+pass YZJ ''  ''  ''  ''  ''  ''  ''  ''  ''  1 YZW  2  PY PZ CYZ PJ G9;
+pass YZJ ''  ''  ''  ''  ''  ''  ''  ''  ''  1 YZW  2  PY PZ CYZ PJ CWJ G9;
+fail XYZJ '' ''  ''  ''  ''  ''  ''  ''  ''  1 YZW  2  PY PZ CYZ PX PJ G9;
+fail XYZJ '' ''  ''  ''  ''  ''  ''  ''  ''  1 YZW  2  PY PZ CYZ PX DY DZ PJ G9;
+pass XYZJ '' ''  ''  ''  ''  ''  ''  ''  ''  1 YZW  2  PY PZ CYZ PX DW PJ G9;
+pass YZ  ''  ''  ''  ''  ''  ''  ''  ''  ''  1 YZJ  2  PY PZ CYZ G9;
+fail YZ  ''  ''  ''  ''  ''  ''  ''  ''  ''  1 YZJ  2  CYZ G9;
+pass YZ  ''  ''  ''  ''  ''  ''  ''  ''  ''  1 YZJ  2  PY PZ CYZ CYZ G9;
+fail YZ  ''  ''  ''  ''  ''  ''  ''  ''  ''  1 YZJ  2  PY PZ CYZ DJ CYZ G9;
+fail YZ  ''  ''  ''  ''  ''  ''  ''  ''  ''  1 YZJ  2  PY PZ CYZ DJ PY PZ CYZ G9;
+fail WZ  ''  ''  ''  ''  ''  ''  ''  ''  ''  1 YZJ  2  PW PZ CYZ G9;
+fail WZ  ''  ''  ''  ''  ''  ''  ''  ''  ''  1 YZJ  2  PY PZ CYZ G9;
+pass YZ  ''  ''  ''  ''  ''  ''  ''  ''  ''  1 YZJ  2  PY PZ CZY G9;
+pass YZ  ''  ''  ''  ''  ''  ''  ''  ''  ''  1 ZYJ  2  PY PZ CYZ G9;
+fail YZ  ''  ''  ''  ''  ''  ''  ''  ''  ''  1 YZJ  1  PY PZ CYZ G9;
+fail YZ  ''  ''  ''  ''  ''  ''  ''  ''  ''  1 YZJ  1  PY PZ CYZ PY PZ CYZ G9;
+fail YZ  ''  ''  ''  ''  ''  ''  ''  ''  ''  1 YZJ  1  PY PZ CYZ PJ G9;
+fail YZ  ''  ''  ''  ''  ''  ''  ''  ''  ''  1 YZJ  1  PJ G9;
+pass BW  UV  ''  ''  ''  ''  ''  ''  ''  ''  3 BUR WVS RSJ  2  PB PW G1 DW PU CBU DR PW PV CVW PR CRS G9;
+fail BW  AUV ''  ''  ''  ''  ''  ''  ''  ''  3 BUR WVS RSJ  2  PB G1 PU CBU DR PA PB G0 DA PW G1 PV CVW PR CRS G9;
+pass BCW AUV ''  ''  ''  ''  ''  ''  ''  ''  3 CUR WVS RSJ  2  PB PC G1 DB PU CCU DR PC PA PB G0 DA PW G1 DB PV CVW PR CRS G9;
+fail BCW UV  ''  ''  ''  ''  ''  ''  ''  ''  3 CUR WVS RSJ  2  PB PC G1 DB PU CCU DR PC PA PB G0 DA PW G1 DB PV CVW PR CRS G9;
+fail BCW AUV ''  ''  ''  ''  ''  ''  ''  ''  3 CUR WVS RSJ  2  PB PC G1 DB PU CCU PA PB G0 DA PW G1 DB PV CVW PR CRS G9;
+fail BCW AUV ''  ''  ''  ''  ''  ''  ''  ''  3 CUR WVS RSJ  2  PB PC G1 DB PU CCU DR PA G0 DA PW G1 DB PV CVW PR CRS G9;
+fail BCW AUV ''  ''  ''  ''  ''  ''  ''  ''  3 CUR WVS RSJ  2  PB PC G1 DB PU CCU DR PB G0 DA PW G1 DB PV CVW PR CRS G9;
+fail BCW AUV ''  ''  ''  ''  ''  ''  ''  ''  3 CUR WVS RSJ  2  PB PC G1 DB PU CCU DR PA PB G0 DA G1 DB PV CVW PR CRS G9;
+fail BCW AUV ''  ''  ''  ''  ''  ''  ''  ''  3 CUR WVS RSJ  2  PB PC G1 DB PU CCU DR PA PB G0 DA PW G1 DB CVW PR CRS G9;
+pass BFK LG  M   N   O   CDE PQR U   W   ''  10 BPT CQS TSH HUI IWV VFA GRX MXZ ANY YZJ 5 PB PF PK G1 PL PG G6 DB DK DL G5 PC PD PE G6 DF G2 PM G6 DM DC G3 PN G4 PO G6 DN DO DD DE PB PP CBP PC PQ CCQ CTS G7 PU CUH G8 PW CWI G6 PF CVF PR PM PN CGR CMX CAN CYZ G9
+fail BFK LG  M   N   O   CDE PQR U   W   ''  10 BPT CQS TSH HUI IWV VFA GRX MXZ ANY YZJ 5 PB PF PK G1 PL PG G6 DB DK DL G5 PC PD PE G6 DF G6 DM DC G3 PN G4 PO PM G6 DN DO DD DE PB PP CBP PC PQ CCQ CTS G7 PU CUH G8 PW CWI G6 PF CVF PR PM PN CGR CMX CAN CYZ G9`
+.split(/;*\n/).map((srow,i)=&gt;{
+  var row=srow.split(/\s+/),
+  rooms=row.slice(1,11).map(x=&gt;x=="''"?"":x),
+  ncomb=+row[11],
+  comb=row.slice(12,12+ncomb),
+  isize=+row[12+ncomb],
+  commands=row.slice(13+ncomb),
+  start='['+rooms+'] ['+comb+'] '+isize+' ['+commands+']';
+  var result=Exec(rooms,comb,isize,commands),
+     ok = row[0] == ['fail','pass'][~~result]
+  console.log(i, ok ? 'ok':'ko', start, row[0], result)
+})</code></pre>
+<pre class="snippet-code-html lang-html prettyprint-override"><code>&lt;pre id=O&gt;&lt;/pre&gt;</code></pre>
+</div>
+</div>
+</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/89015/">89015</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
