@@ -26,7 +26,7 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>064</td><td>Python 3</td><td>241206T231433Z</td><td><a href="https://codegolf.stackexchange.com/questions/107193/exit-code-golfing/277109#277109">whirling</a></td></tr>
+<tr d-ix="0"><td>139</td><td>Python 3</td><td>241206T231433Z</td><td><a href="https://codegolf.stackexchange.com/questions/107193/exit-code-golfing/277109#277109">whirling</a></td></tr>
 <tr d-ix="1"><td>024</td><td>Bash 4.2 + extras</td><td>170118T013152Z</td><td><a href="https://codegolf.stackexchange.com/questions/107193/exit-code-golfing/107205#107205">Dennis</a></td></tr>
 <tr d-ix="2"><td>014</td><td>Excel VBA</td><td>170118T034853Z</td><td><a href="https://codegolf.stackexchange.com/questions/107193/exit-code-golfing/107216#107216">Taylor R</a></td></tr>
 <tr d-ix="3"><td>052</td><td>ZX81 BASIC >255 exit codes</td><td>170321T081505Z</td><td><a href="https://codegolf.stackexchange.com/questions/107193/exit-code-golfing/113442#113442">Shaun Be</a></td></tr>
@@ -48,24 +48,29 @@
 <tr d-ix="19"><td>004</td><td>Turtlèd</td><td>170118T010429Z</td><td><a href="https://codegolf.stackexchange.com/questions/107193/exit-code-golfing/107199#107199">Destruct</a></td></tr>
 <tr d-ix="20"><td>011</td><td>Python 2</td><td>170118T012255Z</td><td><a href="https://codegolf.stackexchange.com/questions/107193/exit-code-golfing/107203#107203">xnor</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Python 3, 64 bytes, 3 exit codes</h1>
+<div id="pu0" class="pu"><h1>Python 3, <s>64</s> 52 bytes, 3 exit codes <sub>(0, 1, 139)</sub></h1>
+<h5>-12 from emanresu A</h5>
 <pre class="lang-none prettyprint-override"><code>from ctypes import*
-1/(V:=int(input())-1)
-if V==138:string_at(0)
+1//~-int(input())or string_at(0)
 </code></pre>
+<p>Try it out <a href="https://tio.run/##lYy7CsIwFIZ3n@InOCSCtqWTFPRRSo3RnKE5ITlCA@Krx6G66/xdLlP2tTrrGeqWeIaVEl0GzZGT7IauaV57CqIpxIdoYzghS6JwHyfRrVE4QVyWQyyb9dIqPBGLeA79Fw1YmVtIYPnqsD2rj9/96/fHX4ta3w" rel="nofollow noreferrer">here!</a> <em>(The TIO version uses a semicolon instead of newline, but it functions the same)</em></p>
 <p>This works similarly to <a href="https://codegolf.stackexchange.com/a/107197/126194">this Python 2 answer</a>, but a few things are added:</p>
 <ul>
 <li>We first import everything from ctypes, since we need <code>string_at</code> later.</li>
 <li>Since we are in Python 3, we need to cast the input to an int.</li>
-<li>We also save the result to <code>V</code> using the walrus operator.</li>
-<li>If <code>V</code> is 138, we try to get the string at address 0. This causes a segmentation fault, which returns exit code 139. (<code>V</code> is off by 1 due to the -1 in the division by 0 attempt, so we check 138 and not 139)</li>
+<li>Then we decrement it, using <code>~-</code> which negates it then bitwise NOTs the value.</li>
+<li>Then, we do floor division on it with 1:
+<ul>
+<li>If it is 0, <code>1//-1</code> will resolve to -1, so we exit successfully, since -1 is truthy</li>
+<li>If it is 1, we error out trying to do floor division with 1.</li>
+<li>If it is 3 or higher, <code>1//-x</code> will return 0, which is falsy, therefore we run the string_at function from ctypes. Targeted at an address of 0, this causes it to segfault.
+<ul>
+<li>Since we segfault, this means that for an input of 139, we return the correct exit code.</li>
 </ul>
-<h3>Non-minified version:</h3>
-<pre class="lang-none prettyprint-override"><code>import ctypes
-1 / (code_minus_one := int(input()) - 1)
-if code_minus_one == 138:
-    ctypes.string_at(0)
-</code></pre>
+</li>
+</ul>
+</li>
+</ul>
 </div>
 <div id="pu1" class="pu"><h1>Bash 4.2 + extras, 24 exit codes</h1>
 
