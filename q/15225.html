@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::15225</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>nan</td><td></td><td>241208T110350Z</td><td><a href="https://codegolf.stackexchange.com/questions/15225/enumerate-all-number-that-are-palindromic-in-at-least-two-of-base-2-8-10-16-o/277120#277120">138 Aspe</a></td></tr>
+<tr d-ix="1"><td>094</td><td>GolfScript</td><td>140107T050419Z</td><td><a href="https://codegolf.stackexchange.com/questions/15225/enumerate-all-number-that-are-palindromic-in-at-least-two-of-base-2-8-10-16-o/17860#17860">Ben Reic</a></td></tr>
+<tr d-ix="2"><td>nan</td><td></td><td>140107T002548Z</td><td><a href="https://codegolf.stackexchange.com/questions/15225/enumerate-all-number-that-are-palindromic-in-at-least-two-of-base-2-8-10-16-o/17836#17836">mleise</a></td></tr>
+<tr d-ix="3"><td>nan</td><td></td><td>131120T163931Z</td><td><a href="https://codegolf.stackexchange.com/questions/15225/enumerate-all-number-that-are-palindromic-in-at-least-two-of-base-2-8-10-16-o/15349#15349">MtnViewM</a></td></tr>
+<tr d-ix="4"><td>nan</td><td></td><td>131120T002304Z</td><td><a href="https://codegolf.stackexchange.com/questions/15225/enumerate-all-number-that-are-palindromic-in-at-least-two-of-base-2-8-10-16-o/15340#15340">F. Hauri</a></td></tr>
+<tr d-ix="5"><td>nan</td><td></td><td>131113T063030Z</td><td><a href="https://codegolf.stackexchange.com/questions/15225/enumerate-all-number-that-are-palindromic-in-at-least-two-of-base-2-8-10-16-o/15238#15238">Dom Hast</a></td></tr>
+<tr d-ix="6"><td>nan</td><td></td><td>131113T044506Z</td><td><a href="https://codegolf.stackexchange.com/questions/15225/enumerate-all-number-that-are-palindromic-in-at-least-two-of-base-2-8-10-16-o/15235#15235">DavidC</a></td></tr>
+<tr d-ix="7"><td>nan</td><td></td><td>131113T005404Z</td><td><a href="https://codegolf.stackexchange.com/questions/15225/enumerate-all-number-that-are-palindromic-in-at-least-two-of-base-2-8-10-16-o/15232#15232">Reinstat</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1><a href="https://www.rust-lang.org" rel="nofollow noreferrer">Rust</a></h1>
+<p>Rust port of @Reinstate Monica's Python code.</p>
+<pre class="lang-rust prettyprint-override"><code>use std::collections::HashMap;
+
+fn main() {
+    let mindigits = 2;
+    let minpalins = 3;
+    println!(&quot;Count Base64 Hexa   Decimal  Octal    Binary&quot;);
+
+    // Build the oct_to_64 mapping
+    let base64_chars: Vec&lt;char&gt; = &quot;0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ@_&quot;
+        .chars()
+        .collect();
+    let mut oct_to_64 = HashMap::new();
+    for i in 0..64 {
+        let key = format!(&quot;{:02o}&quot;, i);
+        oct_to_64.insert(key, base64_chars[i]);
+    }
+
+    // Define the base64 function
+    fn base64(i: u64, oct_to_64: &amp;HashMap&lt;String, char&gt;) -&gt; String {
+        let mut octalstring = format!(&quot;{:o}&quot;, i);
+        if octalstring.len() % 2 != 0 {
+            octalstring = format!(&quot;0{}&quot;, octalstring);
+        }
+        let mut result = String::new();
+        let chars: Vec&lt;char&gt; = octalstring.chars().collect();
+        for chunk in chars.chunks(2) {
+            let key: String = chunk.iter().collect();
+            if let Some(&amp;val) = oct_to_64.get(&amp;key) {
+                result.push(val);
+            }
+        }
+        result
+    }
+
+    // Create a reference to oct_to_64 that lives long enough
+    let oct_to_64_ref = &amp;oct_to_64;
+
+    // Use Box to store the closures and move to capture the reference
+    let encoders: Vec&lt;Box&lt;dyn Fn(u64) -&gt; String&gt;&gt; = vec![
+        Box::new(move |i| base64(i, oct_to_64_ref)), // Custom base64
+        Box::new(|i| format!(&quot;{:x}&quot;, i)),            // Hexadecimal
+        Box::new(|i| format!(&quot;{}&quot;, i)),              // Decimal
+        Box::new(|i| format!(&quot;{:o}&quot;, i)),            // Octal
+        Box::new(|i| format!(&quot;{:b}&quot;, i)),            // Binary
+    ];
+
+    let mut i = 8u64.pow((mindigits - 1) as u32);
+    loop {
+        let encodeds: Vec&lt;String&gt; = encoders.iter().map(|encoder| encoder(i)).collect();
+        let palindromes: Vec&lt;&amp;String&gt; = encodeds
+            .iter()
+            .filter(|encoded| {
+                let rev: String = encoded.chars().rev().collect();
+                *encoded == &amp;rev &amp;&amp; encoded.len() &gt;= mindigits
+            })
+            .collect();
+        let num_palins = palindromes.len();
+        if num_palins &gt;= minpalins {
+            println!(
+                &quot;{:&lt;5} {:&lt;6} {:&lt;6} {:&lt;8} {:&lt;8} {}&quot;,
+                num_palins,
+                encodeds[0],
+                encodeds[1],
+                encodeds[2],
+                encodeds[3],
+                encodeds[4]
+            );
+        }
+        i += 1;
+    }
+}
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=jVZbc-M0FH6mv-I0M2RsSL1p2i3F23QgLUu5LAuUXS6dTka15UTUlowlpS1Jfgkv-wB_il_DkSU7dpJ20YMTn8t37kf-6-9CS_Xu3T9aJXvH_34w15KCVHEYRiJNaaSY4DIML4icviL5i52dhENGGPd8mO8AnpQqyBiP2YQpCUMYvGiSc5IybsgHlpwXjKuU73qdM6G5ghGR9OgQLug9Qe45jVhGUoDXkTI_ACPGSfHQ8dGweX32DEaapTGoKQURqbESY1TPSJ4zPqkN35So42hKChnCWxqdmL-n6Eanvz84OHx-9Mnxp-QmimkymbLfb9OMi_yPQio9u7t_-PPz0dn5Fy-_vPjq62--ffXd6-9_-PHypzdvf_7l198-G3dKI-YEJbznNwg2Y57fSIFWDT-H4PIYhpzeVXKJKIAB49APAhSa14AG4JY-oBqKZERh1uZhfyCWnR4wp2xObSDAXNNCeajUayXhil07-WWdyHOaME7LTFpRSDQv62294o7ssRD00WFvZSaErovj5FJhQSc9KPPrw94pWMpaFC4NJJWW24poIx6WNIWDlJpu-xAGsDuEfgPZxb4NtT83oA1mA3654VpBpU4V6lvnW9Wp5LY0U9NJ1wzrPVDVN5pqfmtqXMoF5av0Bv5aNK7iYZXFoVUMmKLFdnCXL6N4KTLqdWck9a1vricmVHldBF23ZY4NPMi1nHpGsY273JIyq7HWSmcFJYoCQW5CC8ojbCvR6Hs1JQpSNqMSUoFhUS70ZFoPSS04Rn30vVsTVmP_BtfSSNwbXKlEYfs2SoXU6BEQHkMmZqXZiORKO4Han9oWvoiYVpVExJP4gcNL7mGLN_r31NR3RqPdqzpylLWNURpasEU9H712BL7fK5OCe1VkTmgTxQA0huDeDgGqNg6imM0Y27X4PoxtCG7S_5d-NYgbPpTb-L3aN49o2xVeql-7elZzxzDJx5j4IBd3nre6RfZg3wciQR8Mql0qRL62U2wlY1dJVzYErCpcDQ1eDt7CERcV10NHt42TAS7vrLjAaXLY3XXwWLbmxFlq0xKWGqqzHC-2TJ8xVtBZY9qdcL1NkPv42JvzkdOAIY4NSkO3W4PYvXk6XF3P7elec_iRbHCdjetbvJEaC99a2g1Ra9W9tCOvPwE2gsEmOnm-BHweNZ7H9RMbbENnZXOTVxXrqn_9BHP_KebgKebBU8zD6xZv6_3D4OMh7FcX89J-g7lPseqT7D8" rel="nofollow noreferrer">Attempt This Online!</a></p>
+</div>
+<div id="pu1" class="pu"><h2>GolfScript 94</h2>
+
+<p>Didn't do the formatting really, but this works in GolfScript.  Doing the formatting would probably add 20-30 characters.</p>
+
+<pre><code>~:j;:i;
+10 5?,
+{[2 8 10 16 64]\{\base}+%}%
+{{.,i(&gt;\{.,2&lt;{;1.(}{(\)@=}if}do`1`=&amp;}%{+}*j(&gt;},
+{p}%
+</code></pre>
+
+<p>This also limits the numbers to 10000 (in decimal).  That number can be changed, of course, to the maximum integer, but this runs pretty quickly as is.</p>
+
+<p>Example call:  <code>echo '3 2' | ruby golfscript.rb h.gs</code></p>
+
+<p>Output:</p>
+
+<pre><code>[[1 0 0 0 0 0 0 0 0 1] [1 0 0 1] [5 1 3] [2 0 1] [8 1]]
+[[1 0 0 1 0 0 1 0 0 1] [1 1 1 1] [5 8 5] [2 4 9] [9 9]]
+[[1 1 0 0 0 0 0 0 0 1 1] [3 0 0 3] [1 5 3 9] [6 0 3] [24 3]]
+[[1 1 0 1 1 0 1 1 0 1 1] [3 3 3 3] [1 7 5 5] [6 13 11] [27 27]]
+[[1 0 1 0 0 0 0 0 0 1 0 1] [5 0 0 5] [2 5 6 5] [10 0 5] [40 5]]
+[[1 0 1 0 1 0 0 1 0 1 0 1] [5 2 2 5] [2 7 0 9] [10 9 5] [42 21]]
+...
+</code></pre>
+</div>
+<div id="pu2" class="pu"><h2>D (thinking outside the box solution)</h2>
+
+<p>With the defaults (palindrome length >= 2, in bases >= 2) and the range 1..20_000_000 this takes ~8 ms on my 2 Ghz notebook. Most of the time (~6 ms) is spent for formatting and printing (to /dev/null). The actual result generation takes about 2 ms.</p>
+
+<p>It works by first generating a list of all palindromes for each of the 5 bases at compile-time. The generator skips directly from one palindrome to the next by adding e.g. 110 to the number 7557 -> 7667. It's a bit like manually implementing a very weird <em>increment</em> instruction, but avoids checking ALL numbers by converting them to the respective base. (Only a tiny fraction of the numbers in the range 1..2³¹ are actually palindromes.)</p>
+
+<p>At runtime these 5 lists are processed by finding the lowest value amongst them and counting the occurrences. The number of occurrences maps to the 'Count' field in the output and the value is the number that is a palindrome in one ore more representations. The value is then removed from the front of all the lists that had it.</p>
+
+<p>All the occurrence counts and values that match the filter criteria are added to a result set and afterwards printed.</p>
+
+<p>Lines of code: 280</p>
+
+<pre><code>import std.stdio, std.string, core.time, std.range, core.bitop, std.traits, 
+       std.getopt, std.algorithm;
+
+int main(string[] args) {
+    // Process command line
+    uint palindromeLength = 2;
+    uint numPalindromes = 2;
+    uint rangeLow = 1;
+    uint rangeHigh = 2^^31;
+    bool showHelp = false;
+
+    getopt(args,
+           "length", &amp;palindromeLength,
+           "num",    &amp;numPalindromes,
+           "low",    &amp;rangeLow,
+           "high",   &amp;rangeHigh,
+           "help",   &amp;showHelp);
+
+    if (showHelp) {
+        writeln("Finds numbers that are palindromes in one or more bases.");
+        writeln("The compared bases are 2, 8, 10, 16 and 64.");
+        writeln("The following options are available (default values are given):");
+        writeln("  --length=2  Filter palindromes below a certain length.");
+        writeln("  --num=2     Only show numbers that are palindromes in as many bases.");
+        writeln("  --low=1     The first number to check (in decimal).");
+        writeln("  --high=2³¹  The last number to check (in decimal).");
+        writeln("  --help      Show this help screen.");
+        return 0;
+    }
+
+    if (palindromeLength == 0) {
+        stderr.writeln("--length must be at least 1!");
+        return 1;
+    }
+    if (numPalindromes &lt; 1 || numPalindromes &gt; 5) {
+        stderr.writeln("--num must be in the range 1 to 5!");
+        return 1;
+    }
+    if (rangeLow &gt; rangeHigh) {
+        stderr.writeln("--low must be less than --high!");
+        return 1;
+    }
+
+    // We check the --length and --low option here
+    auto restrictRange(immutable uint[] values, immutable size_t[] index) {
+        immutable(uint)[] result;
+        if (palindromeLength &lt; index.length)
+            result = values[index[palindromeLength] .. $];
+        if (rangeLow &lt; 2)
+            return result[rangeLow .. $];
+        return result.assumeSorted.upperBound(rangeLow - 1).release();
+    }
+
+    // Start of timing...
+    auto t1 = TickDuration.currSystemTick;
+
+    alias base2 = Palindromes!2.data;
+    alias base8 = Palindromes!8.data;
+    alias base10 = Palindromes!10.data;
+    alias base16 = Palindromes!16.data;
+    alias base64 = Palindromes!64.data;
+
+    // Use all palindrome lists that have at least one number in range.
+    auto use = [
+        restrictRange(base2.values, base2.lengthIndex),
+        restrictRange(base8.values, base8.lengthIndex),
+        restrictRange(base10.values, base10.lengthIndex),
+        restrictRange(base16.values, base16.lengthIndex),
+        restrictRange(base64.values, base64.lengthIndex),
+    ].filter!(a =&gt; a.length &gt; 0 &amp;&amp; a[0] &lt;= rangeHigh).array();
+
+    // This section will filter by --num and --high
+    struct Group {
+        uint count;
+        uint value;
+    }
+    Group[] groups;
+    groups.reserve (use.map!"a.length".reduce!"a + b"());
+
+    do {
+        // Find the lowest value and how often it occurs
+        uint low = uint.max;
+        uint lowCnt = 0;
+        foreach (u; use) {
+            if (u[0] &lt; low) {
+                low = u[0];
+                lowCnt = 1;
+            } else if (u[0] == low) {
+                lowCnt++;
+            }
+        }
+        if (lowCnt &gt;= numPalindromes)
+            groups ~= Group(lowCnt, low);
+
+        // Remove the value and dead lists
+        for (size_t i = 0; i &lt; use.length;) {
+            if (use[i][0] == low) {
+                if (use[i].length == 1 || use[i][1] &gt; rangeHigh) {
+                    use[i] = use[$-1];
+                    use.length--;
+                    continue;
+                } else {
+                    use[i] = use[i][1 .. $];
+                }
+            }
+            i++;
+        }
+    } while (use.length);
+    auto t2 = TickDuration.currSystemTick;
+
+    // Print the result
+    writefln("Lookup took %.2f ms", 0.000001 * (t2-t1).nsecs);
+    writeln("Count Base64 Hexa     Decimal    Octal       Binary");
+    foreach (grp; groups)
+        writefln("%s     %-6s %-8x %3$-10s %3$-11o %3$-32b",
+                 grp.count, grp.value.toBase64, grp.value);
+
+    return 0;
+}
+
+char[] toBase64(uint value) {
+    string tab = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ@_";
+    char[6] result = "      ";
+    size_t pos = 6;
+    do {
+        result[--pos] = tab[value % 64];
+        value /= 64;
+    } while (value);
+    return result[pos .. $].dup;
+}
+
+/**
+ * Finds all palindromes for a given number base in the range 2 to 256 within
+ * the limits given by data type ℕ, which can be either ubyte, ushort or uint.
+ */
+template Palindromes(uint base, ℕ = uint)
+    if (isUnsigned!ℕ &amp;&amp; ℕ.sizeof &lt;= 4 &amp;&amp; base &gt; 1 &amp;&amp; base &lt;= 256)
+{
+    // The maximum number of digits for this base that can be represented in ℕ.
+    enum digits = {
+        uint result = 1;
+        ℕ power = 1;
+        while (ℕ.max / base &gt;= power) {
+            result++;
+            power *= base;
+        }
+        return result;
+    }();
+
+    // Number of ways we can add a value to 0, keeping it a palindrome.
+    enum options = (digits + 1) / 2 * (digits / 2 + 1);
+
+    /* Number of ways to increment a number of `length` digits, keeping it a
+     * palindrome.
+     */
+    enum optionsForLength(size_t length) { return (length + 1) / 2; }
+
+    /* Lookup array for the sum of the values of the digits at positions n
+     * and 0, used to increment one palindrome in this base to the next one.
+     */
+    immutable increments = {
+        ℕ[options] result;
+        size_t idx = 0;
+        ℕ high = 1, low = 1;
+        foreach (length; 0 .. digits) {
+            ℕ h = high, l = low;
+            do {
+                result[idx++] = (h == l) ? h : cast(ℕ) (h + l);
+                h *= base;
+                l /= base;
+            } while (l);
+
+            if (length &amp; 1)
+                low *= base;
+            else
+                high *= base;
+        }
+        return result;
+    }();
+
+    /* When a slot in a palindrome overflows, this array is used to reset
+     * the slot and all lesser slots much like when you do 999+1=1000.
+     */
+    immutable resets = {
+        ℕ[options] result = 0;
+        uint idx = 0;
+        foreach (length; 1 .. digits + 1) {
+            foreach (i; 0 .. optionsForLength(length)) {
+                immutable prev = i ? result[idx - 1] : 0;
+                immutable curr = (base - 1) * increments[idx];
+                result[idx++] = cast(ℕ) (prev + curr);
+            }
+        }
+        return result;
+    }();
+
+    // The count of palindromes in this base for a given number of digits.
+    enum numPalindromesOfLengthUpTo(size_t digits) {
+        return base ^^ (digits / 2) - 1 + base ^^ ((digits + 1) / 2);
+    }
+
+    // The real number of palindromes in this base that fit into ℕ.
+    enum numPalindromes = {
+        static if (bsr(base) == bsf(base) &amp;&amp; ℕ.sizeof * 8 % bsf(base) == 0) {
+            // All digits of this base fit evenly into ℕ.
+            return numPalindromesOfLengthUpTo(digits);
+        } else {
+            // Some palindromes with the most significant digit != 0
+            // cannot be represented and must be droped.
+            enum options = optionsForLength(digits);
+
+            auto remainder = ℕ.max;
+            size_t result = numPalindromesOfLengthUpTo(digits - 1);
+            foreach_reverse(i; 0 .. options) {
+                immutable increment = increments[$ - options + i];
+                auto n = remainder / increment;
+                remainder -= n * increment;
+                if (i == options - 1) n--;
+                if (i == 0) n++;
+                result += n * (base ^^ i);
+            }
+            return result;
+        }
+    }();
+
+    /* Structure that iterates over the palindromes in this base.
+     * To avoid overflow, an external check is required.
+     */
+    struct PalindromeRange
+    {
+    private:
+        ubyte[(digits + 1) / 2] slots = 0;
+        uint offset = 0;
+
+    public:
+        uint width = 1;
+        ℕ front = 0;
+
+        void popFront() {
+            // Highest digit value in this base.
+            enum max = cast(ubyte) (base - 1);
+
+            size_t si = 0;
+            if (slots[0] &gt;= max) {
+                do {
+                    si++;
+                } while (si &lt; slots.length &amp;&amp; slots[si] &gt;= max);
+                front -= resets[offset + si - 1];
+                slots[0 .. si] = 0;
+                if (si == optionsForLength(width)) {
+                    offset += optionsForLength(width);
+                    if (width++ == digits) return;
+                    si = optionsForLength(width) - 1;
+                }
+            }
+            slots[si]++;
+            front += increments[offset + si];
+        }
+    }
+
+    struct PalindromeData {
+        ℕ[numPalindromes] values;
+        size_t[digits+1] lengthIndex;
+    }
+
+    immutable data = {
+        PalindromeData result;
+        uint width;
+        auto pr = PalindromeRange();
+        foreach (i; 0 .. numPalindromes) {
+            result.values[i] = pr.front;
+            if (width != pr.width) {
+                width = pr.width;
+                result.lengthIndex[width] = i;
+            }
+            pr.popFront();
+        }
+        return result;
+    }();
+}
+</code></pre>
+</div>
+<div id="pu3" class="pu"><h2>Haskell</h2>
+
+<p>Total rewrite; complete new algorithm:</p>
+
+<pre><code>module Main where
+
+import Data.List (foldl', group, unfoldr)
+import qualified Data.Vector.Unboxed as V
+import System.Environment (getArgs)
+import System.Exit (exitFailure)
+import System.IO (hPutStrLn, stderr)
+
+bases :: [Integer]
+bases = [64, 16, 10, 8, 2]
+
+alphabet :: V.Vector Char
+alphabet = V.fromList
+    "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ@_"
+
+fromBase :: Integer -&gt; [Integer] -&gt; Integer
+fromBase base = foldl' ((+).(*base)) 0
+
+toBase :: Integer -&gt; Integer -&gt; [Integer]
+n `toBase` b = unfoldr digit n
+  where
+    digit 0 = Nothing
+    digit m = let (q,r) = m `divMod` b in Just (r,q)
+
+formatPalindromic :: (Integer,Int) -&gt; String
+formatPalindromic (n,count) =
+    show count ++ concatMap (showDigits . (n `toBase`)) bases
+  where
+    showDigits = (' ':) . map digit . reverse
+    digit = (alphabet V.!) . fromInteger
+
+genEvenPalendromes :: Integer -&gt; [[Integer]]
+genEvenPalendromes base = [1..] &gt;&gt;= sequence . flip replicate digits &gt;&gt;= asPal
+  where
+    digits = [0..base-1]
+    asPal (0:_) = []
+    asPal s = [s ++ reverse s]
+
+genOddPalendromes :: Integer -&gt; [[Integer]]
+genOddPalendromes base = [1..] &gt;&gt;= sequence . flip replicate digits &gt;&gt;= makePals
+  where
+    digits = [0..base-1]
+    makePals (0:_) = []
+    makePals s = let r = reverse s in [ s ++ d : r | d &lt;- digits ]
+
+merge :: (Ord a) =&gt; [a] -&gt; [a] -&gt; [a]
+merge as [] = as
+merge [] bs = bs
+merge as@(a:at) bs@(b:bt) | a &lt;= b    = a : merge at bs
+                          | otherwise = b : merge as bt
+
+allPalendromes :: Int -&gt; Integer -&gt; [Integer]
+allPalendromes minLength base = merge (limit evens) (limit odds)
+  where
+    limit =  map (fromBase base) . dropWhile ((&lt; minLength) . length)
+    evens = genEvenPalendromes base
+    odds = genOddPalendromes base
+
+allPalendromics :: Int -&gt; Int -&gt; [(Integer,Int)]
+allPalendromics minRequired minLength =
+    onlyMultis $ countEm $ mergeEm $ genEm
+  where
+    genEm = map (allPalendromes minLength) bases
+    mergeEm = foldl' merge []
+    countEm = map (\s -&gt; (head s, length s)) . group
+    onlyMultis = filter ((&gt;= minRequired) . snd)
+
+parseArgs :: IO (Int, Int, Maybe Integer)
+parseArgs = do
+    args &lt;- getArgs
+    case args of
+        [] -&gt; return (2, 2, Nothing)
+        [r] -&gt; return (read r, 2, Nothing)
+        [r,l] -&gt; return (read r, read l, Nothing)
+        [r,l,m] -&gt; return (read r, read l, Just $ read m)
+        _ -&gt; do
+            hPutStrLn stderr "usage: multiple-palindromes-needed min-length max-value"
+            hPutStrLn stderr "-or- defaults to 2, 2, no-limit"
+            exitFailure
+
+main :: IO ()
+main = do
+    (minRequired, minLength, maxValue) &lt;- parseArgs
+    let result = allPalendromics minRequired minLength
+        limit = maybe id (\v -&gt; takeWhile ((&lt;= v) . fst)) maxValue
+    mapM_ (putStrLn . formatPalindromic) $ limit result
+</code></pre>
+
+<p>Runs on my system (1.8 GHz Intel Core i7) in under 0.1s:</p>
+
+<pre><code>&amp; ghc -o /tmp/palin -O -fforce-recomp -outputdir /tmp -Wall 15225-Palindromic.hs
+&amp; time ( /tmp/palin 2 2 20000000 | tee &gt;(tail -n3 &gt;/dev/fd/3) | wc -l ) 3&gt;&amp;1
+2 19119 1241049 19140681 111010111 1001001000001000001001001
+2 19899 1248249 19169865 111101111 1001001001000001001001001
+2 19999 1249249 19173961 111111111 1001001001001001001001001
+    1149
+
+real    0m0.071s
+user    0m0.067s
+sys     0m0.010s
+</code></pre>
+
+<p>Generates all solutions to 2, 3, 99 999 999 999 quickly:</p>
+
+<pre><code>&amp; time ( /tmp/palin 2 3 99999999999 | tee &gt;(tail -n3 &gt;/dev/fd/3) | wc -l ) 3&gt;&amp;1
+2 1nADADh 15e49e49d1 94029892049 1274447444721 1010111100100100111100100100111010001
+2 1n@FK_h 15fea6efd1 94466666449 1277651567721 1010111111110101001101110111111010001
+2 1rIGIr1 16ecaac6c1 98459895489 1335452543301 1011011101100101010101100011011000001
+   12495
+
+real    0m7.866s
+user    0m7.687s
+sys     0m0.170s
+</code></pre>
+
+<p>Note: Unlike my last solution, this code has not been hand optimized at all: It is straight forward idiomatic Haskell (with the exception of <code>alphabet</code> being a <code>Vector</code>).</p>
+</div>
+<div id="pu4" class="pu"><h2>Not an answer.</h2>
+
+<h3>This is not an answer to the question, but to other answers...</h3>
+
+<p>This is not regular on SE, but I think this could be usefull in the meaning of <em>PPCG</em>.</p>
+
+<h3>First</h3>
+
+<p>I've found <strong>12 495</strong> numbers which are palindrome in at least two of all five representations and containing at least three characters, between <code>1</code> and <code>99 999 999 999</code></p>
+
+<p>Some samples:</p>
+
+<pre><code>printf "%o\n" 94466666449
+1277651567721
+
+echo $(( 64#1rIGIr1 ))
+98459895489
+
+printf "%o\n" 0x1557557551
+1252725272521
+</code></pre>
+
+<p>My modified (<a href="/questions/tagged/perl" class="post-tag" title="show questions tagged &#39;perl&#39;" rel="tag">perl</a>) version of <a href="https://codegolf.stackexchange.com/a/15238/9424">Dom Hastings's answer</a> took ~90 seconds on my desktop...</p>
+
+<p>Of course <em>original</em> version of same script is able to browse approx from <code>1</code> to <code>60 000</code> by using the same time, on same pc.</p>
+
+<p><strong>Here is a need to think <em>out of the box...</em></strong></p>
+
+<h3>My point of view:</h3>
+
+<p>My system is not so small:</p>
+
+<pre><code>CPU Intel(R) Core(TM)2 Duo CPU     E8400  @ 3.00GHz
+Dual core run on 64 bits GNU/Linux
+With 4Gb RAM.
+</code></pre>
+
+<h3>Comparissions.</h3>
+
+<p>For making this something <em>equitable</em>, I will render outputs there to be able to make some comparissions.</p>
+
+<p>For rendering output, I will use the following command:</p>
+
+<pre><code>time ( /tmp/palin-XXX.YY 20000000 2 2 | tee &gt;(tail -n3 &gt;/dev/fd/3) | wc -l ) 3&gt;&amp;1
+</code></pre>
+
+<p>I will try to respect publication order.</p>
+
+<strong>First:</strong> <a href="https://codegolf.stackexchange.com/a/15232/9424">WolframH's Python answer</a>
+
+<pre><code>@@ -1 +1,3 @@
+-mindigits, minpalins = 2, 3
++mindigits, minpalins, maxint = 2, 2, 20000000
+@@ -4 +6 @@
+-from itertools import count
+@@ -15 +17 @@
+-for i in count(8**(mindigits-1)):
++for i in range(8**(mindigits-1), maxint ):
+</code></pre>
+
+<p>Than:</p>
+
+<pre><code>time ( ./palin.py 20000000 2 2 | tee &gt;(tail -n3 &gt;/dev/fd/3) | wc -l ) 3&gt;&amp;1
+2     19119  1241049 19140681 111010111 1001001000001000001001001
+2     19899  1248249 19169865 111101111 1001001001000001001001001
+2     19999  1249249 19173961 111111111 1001001001001001001001001
+1150
+
+real    3m0.768s
+user    2m48.895s
+sys     0m0.560s
+</code></pre>
+
+<strong>Second:</strong> <a href="https://codegolf.stackexchange.com/a/15238/9424">Dom Hastings's perl answer</a>
+
+<pre><code>@@ -15 +15 @@
+-while (++$i) {
++while (++$i&lt;20000000) {
+</code></pre>
+
+<p>Give:</p>
+
+<pre><code>time ( perl ./palin-dom-b.pl | tee &gt;(tail -n3 &gt;/dev/fd/3) | wc -l ) 3&gt;&amp;1
+2 19119 1241049 19140681 111010111 1001001000001000001001001
+2 19899 1248249 19169865 111101111 1001001001000001001001001
+2 19999 1249249 19173961 111111111 1001001001001001001001001
+1149
+
+real    14m58.174s
+user    14m54.512s
+sys     0m0.412s
+</code></pre>
+
+<strong>Third:</strong> <a href="https://codegolf.stackexchange.com/a/15235/9424">David Carraher's Mathematica</a>
+
+<p>Unfortunely, I don't know how to test this, but as I could read, there seem not to be different algorithm...</p>
+
+<p>That's little a surprise, becaud David warned my about <strong>maximum</strong> and this is an important notion in this question.</p>
+
+<strong>Fourth:</strong> <a href="https://codegolf.stackexchange.com/a/15349/9424">MtnViewMark's Haskell</a>
+
+<p>Whithout any modification and after compilation conforming to answer indication:</p>
+
+<pre><code>time ( ./palin.haskel | tee &gt;(tail -n3 &gt;/dev/fd/3) | wc -l ) 3&gt;&amp;1
+2 19119 1241049 19140681 111010111 1001001000001000001001001
+2 19899 1248249 19169865 111101111 1001001001000001001001001
+2 19999 1249249 19173961 111111111 1001001001001001001001001
+1149
+
+real    0m26.631s
+user    0m24.802s
+sys     0m0.124s
+</code></pre>
+
+<p>Hmm, this seem to be very interesting, in that: <em>I didn't know <code>haskell</code> before</em>.</p>
+
+<p>But this miss something in them of <strong>operation/output</strong> </p>
+
+<h3>My results:</h3>
+
+<p>I've wrote two versions. The first prototype was bash (<strong>yes I could be quicker using bash than a python version</strong>;-):</p>
+
+<pre><code>time ( ./palin.sh 20000000 2 2 | tee &gt;(tail -n3 &gt;/dev/fd/3) | wc -l ) 3&gt;&amp;1
+2     (19899) (1248249) (19169865) 111101111 1001001001000001001001001
+2     (19999) (1249249) (19173961) 111111111 1001001001001001001001001
+List len: 46572, Output len: 1149, Operations: 173548: ratio: 151.04
+1150
+
+real    1m40.052s
+user    1m9.588s
+sys     0m13.249s
+</code></pre>
+
+<p>... and this version is penalized by an operation counter: I count <strong>173 548</strong> operation for computing all values under all 5 base, from <code>1</code> to <code>20 000 000</code> <strong>!!!</strong></p>
+
+<p>And there is same work with a perl version:</p>
+
+<pre><code>time ( perl ./palin-d-shrink.pl 20000000 2 2 | tee &gt;(tail -n3 &gt;/dev/fd/3) | wc -l ) 3&gt;&amp;1
+2     (19119) (1241049) (19140681) 111010111 1001001000001000001001001
+2     (19899) (1248249) (19169865) 111101111 1001001001000001001001001
+2     (19999) (1249249) (19173961) 111111111 1001001001001001001001001
+1149
+
+real        0m0.631s
+user        0m0.612s
+sys         0m0.016s
+</code></pre>
+
+<h3>Recap:</h3>
+
+<pre><code>First python          3m0.768s
+First perl           14m58.174s
+Mathematica          -- unknow (but seem not having less oper/lines ) --
+Haskel                0m26.631s (this is compiled)
+My bash prototyp      1m40.052s  -&gt; 1m16.067s see Nota under bash explanation
+My perl (shrinked)    0m0.631s
+</code></pre>
+
+<p><strong>I insist: here is a need to think <em>out of the box</em>!!</strong></p>
+
+<h3>End of BOUNTY: Bravo <a href="https://codegolf.stackexchange.com/a/15349/9424">MtnViewMark's Haskell</a></h3>
+
+<p>You was the first to rewrite your code to build all possible values in a <em>drawing fashion</em>  first before searching for values that <em>match requirement</em>.</p>
+
+<p>There is my <a href="/questions/tagged/perl" class="post-tag" title="show questions tagged &#39;perl&#39;" rel="tag">perl</a> shrinked version:</p>
+
+<pre><code>#!/usr/bin/perl -w
+use strict;my%vars;my$maxr=999999;my$minn=3;my$minl=3;$maxr=$1if$ARGV[0]&amp;&amp;$ARGV
+[0]=~/^(\d+)$/;$minn=$1if$ARGV[1]&amp;&amp;$ARGV[1]=~/^(\d+)$/;my%value;$minl=$1if$ARGV
+[2]&amp;&amp;$ARGV[2]=~/^(\d+)$/;my@digits=("0".."9","a".."z","A".."Z","@","_");my$i=0;
+map{$value{$_}=$i++}@digits;sub base{my($n,$base)=@_;my$str='';do{$str=$digits[
+$n%$base].$str}while$n=int($n/$base);$str}sub rbase{my($num,$base)=@_;my$out=0;
+$out = $out * $base + $value{$1} while $num =~ s /^(.)//;$out}sub ebase{defined
+($vars{$_[1]}{$_[0]})?$vars{$_[1]}{$_[0]}:"(".base(@_).")"}sub palinlst{my$base
+=pop;my$maxst=base($maxr,$base);my$half=int(length($maxst)/2+.5);my($lasteven,$
+lastodd)=do{length($maxst)%2? (rbase($digits[$base-1]x ($half-1), $base),rbase(
+substr($maxst,0,$half), $base)): (rbase(substr($maxst, 0,$half),$base), rbase($
+digits[$base-1]x$half, $base))}; foreach my$p($lasteven+1..$lastodd){ my$part1=
+base($p,$base); my$part2=reverse $part1; my$str=$part1.substr($part2,1);my$val=
+rbase($str,$base);if(length($str)&gt;=$minl){$vars{$base}{$val}=$str;$vars{'count'
+}{$val}++}};foreach my$p(1..$lasteven){my$part1=base($p,$base);my$part2=reverse
+$part1;my$str=$part1.$part2; my$val=rbase($str,$base);if(length($str)&gt;=$minl){$
+vars{$base}{$val}=$str;$vars{'count'}{$val}++};$part2=reverse$part1;$str=$part1
+.substr($part2,1);$val=rbase($str,$base);if(length($str)&gt;=$minl){$vars{$base}{$
+val}=$str;$vars{'count'}{$val}++;}}};for my$b(qw(2 8 10 16 64)){palinlst$b;}map
+{printf"%-5s %-6s %-6s %-8s %-8s %s\n",$vars{'count'}{$_},ebase($_,64),ebase($_
+,16),ebase($_,10),ebase($_,8),ebase($_,2);}grep{$vars{'count'}{$_}&gt;=$minn}sort{
+$a&lt;=&gt;$b}keys$vars{'count'};  #  (C)  2013  -  LGPL v2  -  palindrome@F-Hauri.ch
+</code></pre>
+
+<p>This is <em>shrinked</em>, not <em>obfuscated</em>! You could make them readable by running <code>perltidy</code>. I use this form to make <em>cut'n paste</em> easier.</p>
+
+<pre><code>perltidy &lt; ./palin-shrinked.pl
+</code></pre>
+
+<p>I think this become readable.</p>
+
+<h3>Explanation (using <a href="/questions/tagged/bash" class="post-tag" title="show questions tagged &#39;bash&#39;" rel="tag">bash</a> for readabilty;-) <s> 1m40.052s </s> 1m16.067s</h3>
+
+<p>As the <em>final</em> version is 139 lines long, I will split them there in order to explain each part:</p>
+
+<pre><code>#!/bin/bash
+
+printf -v RANGEND "%u" ${1:-1000} # Max decimal value of palin to compute 
+MINCNT=${2:-2} # Minimum number of palindrome by output line default:2
+MINLEN=${3:-2} # Minimum length of palindrome  default:2
+OUTFMT="%-5s %-6s %-6s %-8s %-8s %s\n"
+opcount=0
+shopt -s extglob
+
+int2b64 () { local _i _func='{ local _lt=({0..9} {a..z} {A..Z} @ _) _var _out;
+                                printf -v _var "%022o" $1 ;_out="'
+    for ((_i=0; _i&lt;22; _i+=2)) ;do
+        printf -v _func '%s${_lt[8#${_var:%d:2}]}' "$_func" $_i
+    done
+    _func+='";printf ${2:+-v} $2 "%s" ${_out##*(0)}; }'
+    eval "${FUNCNAME}()" $_func
+    $FUNCNAME $@ ; }
+int2bin () { local _fmt="" _i
+        for _i in {0..7}
+        do
+            fmt+="_var=\${_var//$_i/%s};"
+        done
+        printf -v fmt "$fmt\n" 000 001 010 011 100 101 110 111
+        eval "${FUNCNAME}()"'{ local _var;printf -v _var "%o" $1;
+                           '${fmt}'printf ${2+-v} $2 "%s" ${_var##*(0)}; }'
+        $FUNCNAME $@ ; }
+</code></pre>
+
+<p>There is the first functions, I use the <em>trick</em> to re-define <code>$FUNCNAME</code> before first use.</p>
+
+<pre><code>rev() { local _func='{ printf ${2+-v} $2 "%s" ' _i
+    for ((_i=64;_i--;)) do _func+='${1:'$_i':1}' ; done
+    eval "rev()" $_func ';}'; rev $@ ; }
+int2hex() { printf ${2+-v} $2 "%x" $1 ; }
+int2oct() { printf ${2+-v} $2 "%o" $1 ; }
+int2dec() { printf ${2+-v} $2 "%u" $1 ; }
+</code></pre>
+
+<p>Some more function, easy to understand, The <strong>hard</strong> part is comming now:</p>
+
+<pre><code>makePalinList() {
+    local max=${1:-1000} vmax palin
+    local forms=('' '' bin '' '' '' '' '' oct '' dec '' '' '' '' '' hex
+        ''{,,,}{,,}{,,}{,}b64)
+    local digmax=('' '' 1 '' '' '' '' '' 7 '' 9 '' '' '' '' '' f
+        ''{,,,}{,,}{,,}{,}_)    
+    local cmd=${forms[$2]}
+((opcount+=5))
+    int2$cmd $max vmax
+</code></pre>
+
+<p>with this, I make that <code>int$form[64]</code> will be expanded before execution to <code>intb64</code> (under bash, there is no need to use <code>eval</code> there).</p>
+
+<p><code>vmax</code> is the max value to render. So now we have to compute each case (even and odd string length):</p>
+
+<pre><code>    local vpart=$((5*${#vmax}+5))
+    local vpskel=${vmax:0:${vpart%?}}
+    local lasteven lastodd
+    if ((${#vmax}%2)) ;then
+        lastodd=$(($2#$vpskel))
+        vpskel=${vpskel:1}
+        lasteven=$(($2#${vpskel//?/${digmax[$2]}}))
+    else
+        lasteven=$(($2#$vpskel))
+        lastodd=$(($2#${vpskel//?/${digmax[$2]}}))
+    fi
+</code></pre>
+
+<p>I will let you think about all this... Now we have to compute <em>start of ranges</em></p>
+
+<pre><code>    local firsteven=$(((MINLEN+1)/2)) firstodd=$((MINLEN/2+1))
+    printf -v firsteven "%${firsteven}s" ""
+    printf -v firstodd   "%${firstodd}s" ""
+    firsteven=${firsteven// /0}
+    firsteven=${firsteven/0/1}
+    firsteven=$(($2#$firsteven))
+    firstodd=${firstodd// /0}
+    firstodd=${firstodd/0/1}
+    firstodd=$(($2#$firstodd))
+</code></pre>
+
+<p>Wow.</p>
+
+<p><strong>Nota:</strong> My previous (not published) version was not using <code>firsteven</code> and <code>firstodd</code> but simply <code>1..</code> and a <em>in loop</em> condition: <code>${#palin} -ge $MAXLEN</code> before each <code>printf -v lst$cmd[...</code>.</p>
+
+<p>Adding this and the following <code>if</code> at end  of next part improved my script a lot: from ~100 seconds, my script only take 76 seconds now for computing previous test <code>20000000 2 2</code></p>
+
+<p>Now there could be an issue where next <code>if</code> could <em>not</em> match:</p>
+
+<pre><code>    if [ $firstodd -lt $lasteven  ] ;then 
+        for ((i=firsteven;i&lt;firstodd;i++)) ;do
+            int2$cmd $i b
+            rev $b r
+            palin=$b$r
+            printf -v lst$cmd[$(($2#$palin))] $palin
+            ((counts[$(($2#$palin))]++))
+            ((opcount+=3))
+        done
+        for ((i=firstodd;i&lt;=lasteven;i++)) ;do
+            int2$cmd $i b
+            rev $b r
+            palin=$b$r
+            printf -v lst$cmd[$(($2#$palin))] $palin
+            ((counts[$(($2#$palin))]++))
+            palin=$b${r:1}
+            printf -v lst$cmd[$(($2#$palin))] $palin
+            ((counts[$(($2#$palin))]++))
+            ((opcount+=4))
+        done
+        for ((i=lasteven+1;i&lt;=lastodd;i++)) ;do
+            int2$cmd $i b
+            rev $b r
+            palin=$b${r:1}
+            printf -v lst$cmd[$(($2#$palin))] $palin
+            ((counts[$(($2#$palin))]++))
+            ((opcount+=4))
+        done
+</code></pre>
+
+<p>And if <em>else</em>:</p>
+
+<pre><code>    else
+
+        for ((i=firsteven;i&lt;=lasteven;i++)) ;do
+            int2$cmd $i b
+            rev $b r
+            palin=$b$r
+            printf -v lst$cmd[$(($2#$palin))] $palin
+            ((counts[$(($2#$palin))]++))
+            ((opcount+=3))
+        done
+
+        for ((i=firstodd;i&lt;=lastodd;i++)) ;do
+            int2$cmd $i b
+            rev $b r
+            palin=$b${r:1}
+            printf -v lst$cmd[$(($2#$palin))] $palin
+            ((counts[$(($2#$palin))]++))
+        done
+
+    fi
+</code></pre>
+
+<p>That's all (for now)...</p>
+
+<pre><code>}
+for base in 2 8 10 16 64; do makePalinList $RANGEND $base ;done
+</code></pre>
+
+<p>Now we just have to print all values (adding parenthesis if value have to be computer -> ie not already exist -> ie not match requirement.)...</p>
+
+<pre><code>lines=0;for i in ${!counts[@]};do
+    [ ${counts[i]} -ge $MINCNT ] &amp;&amp; \
+        printf "%-5s %-6s %-6s %-8s %-8s %s\n" ${counts[i]} \
+        ${lstb64[i]:-($(int2b64 $i))} \
+        ${lsthex[i]:-($(int2hex $i))} \
+        ${lstdec[i]:-($i)} \
+        ${lstoct[i]:-($(int2oct $i))} \
+        ${lstbin[i]:-($(int2bin $i))} &amp;&amp; ((lines++))
+  done
+
+if [ $lines -gt 0 ] ;then ratio=000$((opcount*1000/lines))
+    printf "List len: %s, Output len: %d, Operations: %d: ratio: %.2f\n" \
+    ${#counts[@]} $lines $opcount ${ratio:0:${#ratio}-3}.${ratio:${#ratio}-3}
+else echo no output; fi
+</code></pre>
+
+<p>Ok, there is a zipped version of this bash script, to make <em>cut'n paste</em> easy:</p>
+
+<pre><code>#!/usr/bin/perl -w
+my$u="";open my$st,"|gunzip";sub d{my$l=pack("c",32+.75*length($_[0]));print$st
+unpack("u",$l.$_[0]);"";};while(&lt;DATA&gt;){tr#A-Za-z0-9+/##cd; tr#A-Za-z0-9+/# -_#
+;$u.=$_;while($u=~s/(.{80})/d($1)/egx){};};d($u);__DATA__
+H4sIAHg8jlICA9VX227bRhB9Fr9iQq1C0jLFiy9xxBCx0TpFgdgpCueltiBQ0soiwosgUoJbYv+9s7u8
+iZbjh6JFKkgid3fmzMzZ4XC2/8aahYk1C7KVoqw3YZIvwdzB71e3v1zf/gzqYKsCKZyx6di2zaAPN8ET
+LOg8jIMIdkG0pZAuYR1EYQJ5CvM0Xm9zCsrNr7c/3d75pHDHpiv0wiSMtzEk23hGN7XSYpPGFGZ/QrrN
+URNwiiL+MthG+djlMJ+vbxHmpAMT0eQxX3VgWopfvt59urnz1YF5lsHAPK//Lqq/7CFRlXQ9T7dJ7ttK
+tkrXOZgZ0Kf8MUpnioJcuLPzU9ANKCBK5xjwNITpcpvMfa2eiXJfL+zR6D2DIhiN/sLL1Wj0B4NLmBow
+3QUbmGJsngKvfBryhZI6sF03RfId8DiAr2oCYpluQNenoW976M4H1+WXoe8aBniLVDmAxh0GbZCRAp29
+v+jjFQ2MB4uxyyZMA5UIETQ1DYX+Ik2ouBHzQ19TvRKOb+fQ3DEgLjqY8dTgvvX7R7ptMA+Y9JFiYiBs
+8ekrJsHVzTXTDY7O0cQ6qRaAXAJqSaoxg9pUL2OMWcXglB6PGalHAc70O6b0WpEKUuJ86Ks8LP9BhmdZ
+GI01yJincmkMqNdQguLoHv5jCgDmNf4csB28Og5gouMPrzh2HEfpHYqm2X+05T3bOrFv391yjRRon2kN
+sV1eEanNa+8ZacqG7vYIKxPzBUgNyu2tM+j81JuGpulh6izSerP5064hedrYweTwmmyQPAij1W6C5jHN
+A5xr7+SKPgm/DjnyJDO6lEzn+YuS6Z4klpwXJbe1pBIH3+hvvCB8DjMBLTyXBMXBk98qZTscy+LRkkFu
+4szXNQ3wyzNS3tVfdJhf0JvuCgat9DStOD4+ZkX9Y1hAjBb+InzkbpQGnC7IO/73vju7PASMxQU/Leh5
+vMDwRAD3xJ0wRdfL6jb0zwzpBGeSoCAQHjxnQGkh7NbBJveJrp8dkaLPV9mw0qwksm80QjN8cWyP8Ybr
+DD4y1pKKgiynO5qIm3SxkKaXmHQV7ECUq3xFE6VXCnG7xO0TaQKt9hpj4gbTUQpz6Eq6XLOsjxYpJLki
+eFa6TaOMPtdqbHSMvwa3lE9QO2HCTYOty9fV0DEsHqBYK9HliuXimoRqVaMKAlMZN7AaMXxmVfWQLELi
+ZC2Mw5Zsy6EGy7LAstl31m3LebYsKaknagqqoGrrXfTO6j52i+1qXCJXaXIP9QqYUQ6kzieYyKQBpSdf
+Croe+rWDXvih0vPC4bB8Ifb28z6EmZwSNWsGGzkSdcAnM1KNa8ajLOea96XPQtAwJiDvpLSui+cs6wpx
+JyqJ+lk84XPyjdQJQjj+wa/C7Qbxg4RS4xcb8Uj+y3SdHqKromjoVIT9o03/7yNpatPhRH4xCf53mfwj
+bkxrE7CiM4X7jicgyjtMFy6Ad37ngO0R74v2Wgog1cmICAVPQCn81JJhR86BRJ9KijelA5cTVvXlWNiK
+cjacMDAfKRB5TsLC9vYtPNQ96ivHln0cVCMFkoKtBo7Hpk706uhCQsNoBLBFaQvgsCOAbU0pELZmsedp
+q/EWaF8N+6Q9wzx+IYAx6brgRvBeniwUWePFPJKQg13X9U2Qh6mP7Rmp0+yId2uWEN5/c6piP/AcOEZS
+juFLeX4U4wWO11SgJRkfjyU03o7cJWfwQR5Ein6zTZVLpLSMq1KJ9zl9ccvMEzaqptuTCn+Ygc5XKSRp
+eZb1eHL9DRLsWT9gDwAA
+</code></pre>
+
+<p>You could simply run: </p>
+
+<pre><code>perl &gt;/tmp/palin-bash.sh
+</code></pre>
+
+<p>than paste previous script into your console.</p>
+</div>
+<div id="pu5" class="pu"><h2>Perl</h2>
+<p>So I don't think this is necessarily efficient, but I guess it'll at least provide a benchmark for other Perl scripts! I originally got distracted by making the shortest code (should have RTFQ...). I imagine I could improve this more by replacing the manual base conversions &lt;64 with sprintf so I might look at that later on.</p>
+<pre class="lang-perl prettyprint-override"><code># length of palindrome
+$length = 2;
+# minimum number of palindromes
+$number = 2;
+
+sub base {
+    ($-, $base, $n) = @_;
+    do {
+        $n = (0..9,a..z,A..Z,'@',_)[$- % $base].$n
+    } while $- = $- / $base;
+
+    $n
+}
+
+while (++$i) {
+    @nums = map {
+        base($i, $_)
+    } (64, 16, 10, 8, 2);
+
+    $count = scalar grep { length &gt;= $length &amp;&amp; $_ eq scalar reverse $_ } @nums;
+
+    print &quot;$count @nums\n&quot;x($count &gt;= $number)
+}
+</code></pre>
+<p>Output:</p>
+<pre><code>2 9 9 9 11 1001
+2 h 11 17 21 10001
+2 r 1b 27 33 11011
+2 x 21 33 41 100001
+2 J 2d 45 55 101101
+2 P 33 51 63 110011
+2 _ 3f 63 77 111111
+3 11 41 65 101 1000001
+2 19 49 73 111 1001001
+2 1l 55 85 125 1010101
+2 1z 63 99 143 1100011
+2 1T 77 119 167 1110111
+2 1V 79 121 171 1111001
+2 22 82 130 202 10000010
+2 2p 99 153 231 10011001
+2 2G aa 170 252 10101010
+</code></pre>
+</div>
+<div id="pu6" class="pu"><h1>Mathematica</h1>
+<p><code>f[number,minPalindromeLength,minCount]</code>works as follows If <code>number</code> is a palindrome with <code>minPalindromeLength</code> in at least <code>minCount</code> bases, <code>f</code> returns the information about that number.</p>
+<p><code>g[max,minPalindromeLength,minCount]</code> makes an table of &quot;palindrome numbers&quot; from 1 through <code>max</code>.</p>
+<pre><code>f[number_,minPalindromeLength_:2,minCount_:2]:=Module[{print,palindromeQ,count, 
+convert64=Thread[Range[0,63]-&gt;Characters[&quot;0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ@_&quot;]],
+digits=IntegerDigits[number,#]&amp;/@(bases={64,16,10,8,2})},
+palindromeQ[dig_]:=(dig==Reverse[dig]);
+count = Total@Boole[palindromeQ/@ Cases[digits,x_/;Length[x]&gt;minPalindromeLength-1]];
+If[count&gt;minCount-1,Join[{count,Subscript[StringJoin[IntegerDigits[number,64]/.convert64],64]},BaseForm[number,#]&amp;/@Rest[bases]],Sequence[]]];
+
+g[max_,minPalindromeLength_:2,minCount_:2]:=
+(Print[&quot;\nPalindromes: minPalindromeLength = &quot;,minPalindromeLength &quot;\tand minCount &quot;, minCount ]; 
+DeleteCases[Table[f[z,minPalindromeLength,minCount],{z,9,max}],Null]//Grid);
+
+g[5000,2,3]
+g[5000,3,3]
+g[5000,4,2]
+</code></pre>
+<p><img src="https://i.sstatic.net/8pl4t.png" alt="variables added" /></p>
+</div>
+<div id="pu7" class="pu"><h2>Python</h2>
+
+<p>Rather straightforward; could be optimized somewhat. For example, the octal representation is calculated twice. (Still, I hope that's much faster than creating a base 64 representation in pure python.)</p>
+
+<p>Also, all representations are calculated, even if after, say, 3 representations it is clear that there will not be enough palindromes. However, i feel that the code is much cleaner as it is.</p>
+
+<pre class="lang-py prettyprint-override"><code>mindigits, minpalins = 2, 3
+print("Count Base64 Hexa   Decimal  Octal    Binary")
+
+from itertools import count
+
+oct_to_64={"%02o"%i:"0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ@_"[i] for i in range(64)}
+
+def base64(i):
+    octalstring="{0:o}".format(i)
+    if len(octalstring) % 2:
+        octalstring = "0" + octalstring
+    return "".join(oct_to_64[octalstring[i:i+2]] for i in range(0,len(octalstring), 2))
+
+encoders=[base64, "{0:x}".format, str, "{0:o}".format, "{0:b}".format]
+for i in count(8**(mindigits-1)):
+    encodeds = [encoder(i) for encoder in encoders]
+    palindromes = [encoded for encoded in encodeds if encoded[::-1]==encoded and len(encoded)&gt;=mindigits]
+    num_palins = len(palindromes)
+    if num_palins &gt;= minpalins:
+        print("%-5s %-6s %-6s %-8s %-8s %s" % tuple([num_palins] + encodeds))
+</code></pre>
+
+<p>Output:</p>
+
+<pre><code>Count Base64 Hexa   Decimal  Octal    Binary
+3     11     41     65       101      1000001
+3     33     c3     195      303      11000011
+3     55     145    325      505      101000101
+3     77     1c7    455      707      111000111
+4     99     249    585      1111     1001001001
+3     ll     555    1365     2525     10101010101
+3     rr     6db    1755     3333     11011011011
+3     JJ     b6d    2925     5555     101101101101
+3     ZL     f6f    3951     7557     111101101111
+4     __     fff    4095     7777     111111111111
+4     101    1001   4097     10001    1000000000001
+3     111    1041   4161     10101    1000001000001
+3     202    2002   8194     20002    10000000000010
+4     303    3003   12291    30003    11000000000011
+3     333    30c3   12483    30303    11000011000011
+3     404    4004   16388    40004    100000000000100
+</code></pre>
+
+<p>and so on...</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/15225/">15225</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
