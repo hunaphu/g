@@ -26,8 +26,8 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>000</td><td>C 30</td><td>240731T044900Z</td><td><a href="https://codegolf.stackexchange.com/questions/26739/super-speedy-totient-range/274588#274588">qwr</a></td></tr>
-<tr d-ix="1"><td>nan</td><td>Rust</td><td>241130T135626Z</td><td><a href="https://codegolf.stackexchange.com/questions/26739/super-speedy-totient-range/276969#276969">138 Aspe</a></td></tr>
+<tr d-ix="0"><td>nan</td><td>Rust</td><td>241130T135626Z</td><td><a href="https://codegolf.stackexchange.com/questions/26739/super-speedy-totient-range/276969#276969">138 Aspe</a></td></tr>
+<tr d-ix="1"><td>000</td><td>C 30</td><td>240731T044900Z</td><td><a href="https://codegolf.stackexchange.com/questions/26739/super-speedy-totient-range/274588#274588">qwr</a></td></tr>
 <tr d-ix="2"><td>nan</td><td></td><td>160402T002944Z</td><td><a href="https://codegolf.stackexchange.com/questions/26739/super-speedy-totient-range/76859#76859">will.fis</a></td></tr>
 <tr d-ix="3"><td>nan</td><td></td><td>160611T135516Z</td><td><a href="https://codegolf.stackexchange.com/questions/26739/super-speedy-totient-range/82680#82680">P_P</a></td></tr>
 <tr d-ix="4"><td>nan</td><td></td><td>150116T133549Z</td><td><a href="https://codegolf.stackexchange.com/questions/26739/super-speedy-totient-range/44614#44614">AlexPnt</a></td></tr>
@@ -38,56 +38,9 @@
 <tr d-ix="9"><td>nan</td><td>Matlab 1464  = 26355867/</td><td>140507T125113Z</td><td><a href="https://codegolf.stackexchange.com/questions/26739/super-speedy-totient-range/26757#26757">Dennis J</a></td></tr>
 <tr d-ix="10"><td>001</td><td>φ2n = 2n −</td><td>140507T150121Z</td><td><a href="https://codegolf.stackexchange.com/questions/26739/super-speedy-totient-range/26761#26761">Ry-</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>C: 30,000 = 600,000,000 / 20,000 (basic sieve)</h1>
-<p>This is a decade-old question of mine I forgot I wrote until I found it on google again. Nevertheless, I wanted to post a simple solution that is reasonably competitive and about the same length as my naive code. This is a small modification of the Sieve of Eratosthenes to use Euler's product formula that also runs in <span class="math-container">\$O(n \log \log n)\$</span> time. The only other easy optimization I did was only sieve and store the odd index values, since it's easy to get the even values.</p>
-<p>For reference, this is the original python/pseudocode algorithm in 5 lines of computation:</p>
-<pre class="lang-python prettyprint-override"><code>def totient_range(n):
-    tots = list(range(n+1))
-    for p in range(2, n+1):
-        if p == tots[p]:
-            for k in range(p, n+1, p):
-                tots[k] -= tots[k] // p
-
-    return tots
-</code></pre>
-<pre class="lang-c prettyprint-override"><code>#include &quot;stdio.h&quot;
-
-#define N 600000000       
-
-unsigned t[(N+1)/2];    
-
-unsigned tots(unsigned i)         
-{
-    unsigned ih = i / 2;
-    if (i % 2) 
-        return t[ih];
-    else
-        return (ih % 2) ? t[ih/2] : 2 * tots(ih);
-}
-
-int main(void) 
-{
-    for (unsigned i = 1; i &lt;= N; i += 2)     
-        t[i/2] = i;
-
-    for (unsigned p = 3; p &lt;= N; p += 2) {    
-        if (p == t[p/2]) {
-            for (unsigned k = p; k &lt;= N; k += 2*p) 
-                t[k/2] -= t[k/2] / p;
-        }
-    }
-
-    unsigned long long s = 0;
-    for (unsigned i = 1; i &lt;= N; ++i)    
-        s += tots(i);
-
-    printf(&quot;%lld\n&quot;, s);
-}
-</code></pre>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://www.rust-lang.org/" rel="nofollow noreferrer">Rust</a>, ~606.325(72981656485/120367240)</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.rust-lang.org/" rel="nofollow noreferrer">Rust</a>, ~270(5400000/20000)</h1>
 <p>Port of @will.fiset's Python 2 code in Rust.</p>
-<p>Run it on <a href="https://play.rust-lang.org/?version=stable&amp;mode=debug&amp;edition=2021&amp;gist=a79185121fd9030b7a71ca50ec829066" rel="nofollow noreferrer">Rust Playground</a>!</p>
+<p>Run it on <a href="https://play.rust-lang.org/?version=stable&amp;mode=release&amp;edition=2021&amp;gist=32fc3a79380bed33b3533cef36a34fd0" rel="nofollow noreferrer">Rust Playground</a>!</p>
 <pre class="lang-rust prettyprint-override"><code>use std::collections::{VecDeque, HashSet};
 use rand::Rng;
 
@@ -208,12 +161,59 @@ fn main() {
     let mut n = 1u64;
     let mut s = 0u64;
 
-    while n &lt; 60000 {
+    while n &lt; 5400000{
         n += 1;
         s += phi(n);
     }
 
     println!(&quot;{}&quot;, s);
+}
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>C: 30,000 = 600,000,000 / 20,000 (basic sieve)</h1>
+<p>This is a decade-old question of mine I forgot I wrote until I found it on google again. Nevertheless, I wanted to post a simple solution that is reasonably competitive and about the same length as my naive code. This is a small modification of the Sieve of Eratosthenes to use Euler's product formula that also runs in <span class="math-container">\$O(n \log \log n)\$</span> time. The only other easy optimization I did was only sieve and store the odd index values, since it's easy to get the even values.</p>
+<p>For reference, this is the original python/pseudocode algorithm in 5 lines of computation:</p>
+<pre class="lang-python prettyprint-override"><code>def totient_range(n):
+    tots = list(range(n+1))
+    for p in range(2, n+1):
+        if p == tots[p]:
+            for k in range(p, n+1, p):
+                tots[k] -= tots[k] // p
+
+    return tots
+</code></pre>
+<pre class="lang-c prettyprint-override"><code>#include &quot;stdio.h&quot;
+
+#define N 600000000       
+
+unsigned t[(N+1)/2];    
+
+unsigned tots(unsigned i)         
+{
+    unsigned ih = i / 2;
+    if (i % 2) 
+        return t[ih];
+    else
+        return (ih % 2) ? t[ih/2] : 2 * tots(ih);
+}
+
+int main(void) 
+{
+    for (unsigned i = 1; i &lt;= N; i += 2)     
+        t[i/2] = i;
+
+    for (unsigned p = 3; p &lt;= N; p += 2) {    
+        if (p == t[p/2]) {
+            for (unsigned k = p; k &lt;= N; k += 2*p) 
+                t[k/2] -= t[k/2] / p;
+        }
+    }
+
+    unsigned long long s = 0;
+    for (unsigned i = 1; i &lt;= N; ++i)    
+        s += tots(i);
+
+    printf(&quot;%lld\n&quot;, s);
 }
 </code></pre>
 </div>
