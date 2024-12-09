@@ -66,7 +66,7 @@
 <tr d-ix="37"><td>001</td><td>In a lot of cases</td><td>170717T214734Z</td><td><a href="https://codegolf.stackexchange.com/questions/132981/tips-for-golfing-in-x86-x64-machine-code/132983#132983">Govind P</a></td></tr>
 </table>
 <div id="pu0" class="pu"><h1><code>lea</code> for multiplications by particular small constants</h1>
-<p>This is probably one of the first things one learns about x86, but I leave it here as a reminder. <code>lea</code> can be used to do multiplication by 2, 3, 5, or 9 (and store in a new register) in 3 bytes, optionally adding an offset for 1 additional byte. All examples assume 32-bit mode.</p>
+<p>A well-known trick is that <code>lea</code> can be used to do multiplication by 2, 3, 5, or 9 (and store in a new register) in 3 bytes, optionally adding a displacement register for 1 additional byte. All examples assume 32-bit mode.</p>
 <p>For example, to calculate <code>ebx = 9 * eax</code> in 3 bytes:</p>
 <pre><code>8d 1c c0                lea    ebx, [eax, 8*eax]
 </code></pre>
@@ -79,14 +79,14 @@
 89 c3                   mov    ebx, eax
 d1 e3                   shl    ebx, 1
 </code></pre>
-<p>Of course, if you can overwrite the original register, you only need <code>shl</code>.</p>
-<p>Interestingly, <code>lea</code> multiplication by 4 or 8 isn't size efficient at all because it ends up using 0x00000000 as an absolute displacement.</p>
+<p>Of course, if you shift in-place, you only need <code>shl</code>.</p>
+<p>Interestingly, <code>lea</code> multiplication by 4 or 8 isn't size efficient at all because it ends up using 0x00000000 as an absolute displacement. Another difference is that <code>lea</code> doesn't affect flags at all, which may or may not be a good thing depending on the flags use-case.</p>
 <pre><code>8d 1c 85 00 00 00 00    lea     ebx, [4*eax]
 
 89 c3                   mov     ebx, eax
 c1 e3 02                shl     ebx, 2
 </code></pre>
-<p>If you are using eax and okay with clobbering your original register, maybe you can use <code>xchg</code> with eax which is a single byte.</p>
+<p>(GCC <code>-Oz</code> showed me if you are returning or starting in eax and are ok with clobbering the original register, you can save a byte over <code>mov</code> with <code>xchg</code>. That has nothing to do with <code>shl</code>.)</p>
 <p>More info on x86's addressing modes:
 <a href="https://blog.yossarian.net/2020/06/13/How-x86_64-addresses-memory" rel="nofollow noreferrer">https://blog.yossarian.net/2020/06/13/How-x86_64-addresses-memory</a></p>
 </div>
