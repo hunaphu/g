@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::35473</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>nan</td><td></td><td>241210T083523Z</td><td><a href="https://codegolf.stackexchange.com/questions/35473/2nd-byte-bias-of-rc4/277145#277145">138 Aspe</a></td></tr>
+<tr d-ix="1"><td>725</td><td>C 1</td><td>140810T042732Z</td><td><a href="https://codegolf.stackexchange.com/questions/35473/2nd-byte-bias-of-rc4/36009#36009">Dennis</a></td></tr>
+<tr d-ix="2"><td>nan</td><td></td><td>140809T151436Z</td><td><a href="https://codegolf.stackexchange.com/questions/35473/2nd-byte-bias-of-rc4/35971#35971">Vectoriz</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>Rust</h1>
+<p>Rust port of @Vectorized's C code.</p>
+<hr />
+<p>Takes about 38 secs to run on Rust Playground for 2^24 = 16777216 trials.</p>
+<p><a href="https://play.rust-lang.org/?version=stable&amp;mode=release&amp;edition=2021&amp;gist=f6d0da9501c2b17a4a27a6410431f629" rel="nofollow noreferrer">Run it on Rust Playground.</a></p>
+<pre class="lang-rust prettyprint-override"><code>extern crate rand;
+
+use rand::Rng;
+use std::time::Instant;
+
+const KEY_LENGTH: usize = 16;
+const ITERATIONS: usize = 16_777_216;
+
+fn ksa(state: &amp;mut [u8; 256], key: &amp;[u8; KEY_LENGTH]) {
+    let mut j = 0;
+    for i in 0..256 {
+        state[i] = i as u8;
+    }
+    for i in 0..256 {
+        j = (j + state[i] as usize + key[i % KEY_LENGTH] as usize) % 256;
+        state.swap(i, j);
+    }
+}
+
+fn prga(state: &amp;mut [u8; 256], out: &amp;mut [u8; 256]) {
+    let mut i = 0;
+    let mut j = 0;
+    for x in 0..256 {
+        i = (i + 1) % 256;
+        j = (j + state[i] as usize) % 256;
+        state.swap(i, j);
+        out[x] = state[(state[i] as usize + state[j] as usize) % 256];
+    }
+}
+
+fn make_random_key(key: &amp;mut [u8; KEY_LENGTH]) {
+    let mut rng = rand::thread_rng();
+    for byte in key.iter_mut() {
+        *byte = rng.gen_range(0..=255);
+    }
+}
+
+fn main() {
+    let time_started = Instant::now();
+
+    let mut state = [0u8; 256];
+    let mut out = [0u8; 256];
+    let mut key = [0u8; KEY_LENGTH];
+    let mut occurrences = [[0usize; 256]; 256];
+
+    for _ in 0..ITERATIONS {
+        make_random_key(&amp;mut key);
+        ksa(&amp;mut state, &amp;key);
+        prga(&amp;mut state, &amp;mut out);
+
+        for j in 0..256 {
+            occurrences[j][out[j] as usize] += 1;
+        }
+    }
+
+    for byte_position in 0..256 {
+        print!(&quot;{},&quot;, byte_position);
+    }
+    println!();
+
+    for char_occurrence in 0..256 {
+        for byte_position in 0..256 {
+            print!(&quot;{},&quot;, occurrences[char_occurrence][byte_position]);
+        }
+        println!();
+    }
+
+    let time_taken = time_started.elapsed();
+    println!(
+        &quot;Time taken, {}.{:06} s&quot;,
+        time_taken.as_secs(),
+        time_taken.subsec_micros()
+    );
+}
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>C (1,432,725 keys / second)</h1>
+
+<pre><code>#include &lt;stdint.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;
+#include &lt;time.h&gt;
+
+#define RAND_64() *Ks = rand(), Ks++, *Ks = rand(), Ks++, *Ks = rand(), Ks++, *Ks = rand()
+#define KSA_1()   t = *s, j += t + *k, *s = S[j], S[j] = t, s++
+#define KSA_4()   KSA_1(); k++; KSA_1(); k++; KSA_1(); k++; KSA_1()
+#define KSA_16()  KSA_4(); k++; KSA_4(); k++; KSA_4(); k++; KSA_4(); k = K
+#define KSA_64()  KSA_16(); KSA_16(); KSA_16(); KSA_16()
+
+int main(int argc, char *argv[])
+{
+        int i, m = atoi(argv[1]), r = 0;
+        uint8_t j, K[16], *k = K, S[256], *s, S0[256], t;
+        uint16_t *Ks;
+        for(i = 0; i &lt; 256; i++) S0[i] = i;
+        srand(time(NULL));
+
+        for(i = 0; i &lt; m; i++)
+        {
+                Ks = (uint16_t *) K, RAND_64(), Ks++, RAND_64();
+                memcpy(S, S0, 256); s = S, j = 0;
+                KSA_64(); KSA_64(); KSA_64(); KSA_64();
+                j = S[1], S[1] = S[j], S[j] = j;
+                t = S[2], j += t, S[2] = S[j], S[j] = t, t += S[2];
+                r += (S[t] == 0);
+        }
+        printf("%u\n", r);
+}
+</code></pre>
+
+<h3>Benchmarking</h3>
+
+<pre><code>$ gcc -Ofast rc4bias-rand.c &amp;&amp; time ./a.out $[2**24]
+130924
+Real    11.71
+User    11.71
+Sys     0.00
+$ bc &lt;&lt;&lt; '2^24 / 11.71'
+1432725
+</code></pre>
+
+<p>Tested on an Intel i7-3770 running Fedora 20.</p>
+</div>
+<div id="pu2" class="pu"><h2>C</h2>
+
+<p>Takes about 111 secs to run on my Macbook Air for 2^24 = 16777216 trials.</p>
+
+<p>To compile: <code>gcc -o rc4 rc4.c</code></p>
+
+<p>To pipe the output to a csv: <code>./rc4 &gt; rc4out.csv</code></p>
+
+<pre class="lang-c prettyprint-override"><code>#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;time.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;sys/time.h&gt;
+
+#define KEY_LENGTH 16
+#define ITERATIONS 16777216
+
+void ksa(unsigned char state[], unsigned char key[]) {
+    int i,j=0,t; 
+    for (i=0; i&lt;256; ++i)
+        state[i] = i; 
+    for (i=0; i&lt;256; ++i) {
+        j = (j + state[i] + key[i % KEY_LENGTH]) % 256; 
+        t = state[i]; 
+        state[i] = state[j]; 
+        state[j] = t; 
+    }
+}
+
+void prga(unsigned char state[], unsigned char out[]) {  
+    int i=0,j=0,x,t; 
+    unsigned char key; 
+    for (x=0; x&lt;256; ++x) {
+        i = (i + 1) % 256; 
+        j = (j + state[i]) % 256; 
+        t = state[i];
+        state[i] = state[j];
+        state[j] = t;
+        out[x] = state[(state[i] + state[j]) % 256];
+    }
+}
+
+void makeRandomKey(unsigned char key[]) {
+    int i;
+    for (i=0; i&lt;KEY_LENGTH; ++i) 
+        key[i] = rand() % 256;
+} 
+
+int main(int argc, char *argv[]) {
+
+    struct timeval time_started, time_now, time_diff;
+    gettimeofday(&amp;time_started, NULL);
+
+    unsigned char state[256];
+    unsigned char out[256];
+    unsigned char key[KEY_LENGTH];
+    int occurances[256][256];
+    int i,j,bytePosition,charOccurance;
+
+    for (i=0; i&lt;256; ++i) 
+        for (j=0; j&lt;256; ++j)
+            occurances[i][j] = 0;
+
+    srand(time(NULL));
+    for (i=0; i&lt;ITERATIONS; ++i) {
+        makeRandomKey(key);
+        ksa(state, key);
+        prga(state, out);
+
+        for (j=0; j&lt;256; ++j)
+            ++occurances[j][out[j]];
+    }
+
+    for (bytePosition=0; bytePosition&lt;256; ++bytePosition) {
+        printf("%d,", bytePosition);
+    }
+    printf("\n");
+    for (charOccurance=0; charOccurance&lt;256; ++charOccurance) {
+        for (bytePosition=0; bytePosition&lt;256; ++bytePosition) {
+            printf("%d,", occurances[charOccurance][bytePosition]);
+        }
+        printf("\n");
+    }
+
+    gettimeofday(&amp;time_now, NULL);
+    timersub(&amp;time_now, &amp;time_started, &amp;time_diff);
+    printf("Time taken,%ld.%.6ld s\n", time_diff.tv_sec, time_diff.tv_usec);
+
+    return 0;
+}
+</code></pre>
+
+<p>Results for 16777216 trials.</p>
+
+<p><img src="https://i.sstatic.net/yJioS.png" alt="enter image description here"></p>
+
+<p>Multithreaded version <a href="http://pastebin.com/YLcTyXrS" rel="nofollow noreferrer">here</a>. Compile with <code>gcc -o rc4 rc4.c -pthreads</code>.</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/35473/">35473</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
