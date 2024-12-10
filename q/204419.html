@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::204419</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>nan</td><td></td><td>241210T004346Z</td><td><a href="https://codegolf.stackexchange.com/questions/204419/triangles-in-a-tetrahedron/277136#277136">138 Aspe</a></td></tr>
+<tr d-ix="1"><td>nan</td><td>Rust</td><td>200508T000724Z</td><td><a href="https://codegolf.stackexchange.com/questions/204419/triangles-in-a-tetrahedron/204453#204453">Anders K</a></td></tr>
+<tr d-ix="2"><td>nan</td><td>JavaScript ES7</td><td>200507T143132Z</td><td><a href="https://codegolf.stackexchange.com/questions/204419/triangles-in-a-tetrahedron/204425#204425">Arnauld</a></td></tr>
+<tr d-ix="3"><td>040</td><td>C++</td><td>200507T140937Z</td><td><a href="https://codegolf.stackexchange.com/questions/204419/triangles-in-a-tetrahedron/204424#204424">the defa</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a></h1>
+<p>Python port of @Anders Kaseorg's Rust code.</p>
+<pre class="lang-python prettyprint-override"><code>import sys
+import math
+from multiprocessing import Pool
+
+def get_counts(args):
+    &quot;&quot;&quot;
+    Compute the count vector for a given a0.
+
+    Args:
+        args (tuple): A tuple containing n and a0.
+
+    Returns:
+        list: A list of counts corresponding to each t value.
+    &quot;&quot;&quot;
+    n, a0 = args
+    c = [0] * n
+    a0a0 = a0 * a0
+
+    # Determine the range for a1 based on the value of a0
+    if a0 == 0:
+        a1_range = range(1, n)
+    else:
+        a1_range = range(-n + 1, n)
+
+    for a1 in a1_range:
+        base_d = a0a0 + a1 * a1
+        m = n - abs(a0) - abs(a1)
+
+        # Determine the range for a2 based on the value of m
+        if m &gt; 0:
+            a2_start = -n + 2 - (m &amp; 1)
+            a2_end = n
+        else:
+            a2_start = -n - m + 2
+            a2_end = n + m
+
+        a2_iter = range(a2_start, a2_end, 2)
+
+        for a2 in a2_iter:
+            d = base_d + a2 * a2
+            r = 2 * (a0a0 - d)
+
+            if r == 0:
+                continue
+
+            for b0 in range(a0, n):
+                pp = d * (3 * d - 4 * (a0a0 + b0 * (b0 - a0)))
+
+                if pp &lt; 0:
+                    break
+
+                p = int(math.isqrt(pp)) if hasattr(math, 'isqrt') else int(math.sqrt(pp))
+
+                if p * p != pp:
+                    continue
+
+                q = 2 * a0 * b0 - d
+
+                # Check for p
+                b1r = p * a2 + q * a1
+                if b1r % r == 0:
+                    b1 = b1r // r
+                    b2r = -p * a1 + q * a2
+                    if b2r % r == 0:
+                        b2 = b2r // r
+                        if (b0, b1, b2) &gt; (a0, a1, a2):
+                            if (b0 + b1 + b2) % 2 == 0:
+                                t1 = max(0, a0 + a1 + a2, b0 + b1 + b2)
+                                t2 = max(0, -a0 - a1 + a2, -b0 - b1 + b2)
+                                t3 = max(0, -a0 + a1 - a2, -b0 + b1 - b2)
+                                t4 = max(0, a0 - a1 - a2, b0 - b1 - b2)
+                                t = t1 + t2 + t3 + t4
+                                if t &lt; 2 * n:
+                                    c[t // 2] += 1
+
+                # Check for -p if p is not zero
+                if p != 0:
+                    b1r = -p * a2 + q * a1
+                    if b1r % r == 0:
+                        b1 = b1r // r
+                        b2r = p * a1 + q * a2
+                        if b2r % r == 0:
+                            b2 = b2r // r
+                            if (b0, b1, b2) &gt; (a0, a1, a2):
+                                if (b0 + b1 + b2) % 2 == 0:
+                                    t1 = max(0, a0 + a1 + a2, b0 + b1 + b2)
+                                    t2 = max(0, -a0 - a1 + a2, -b0 - b1 + b2)
+                                    t3 = max(0, -a0 + a1 - a2, -b0 + b1 - b2)
+                                    t4 = max(0, a0 - a1 - a2, b0 - b1 - b2)
+                                    t = t1 + t2 + t3 + t4
+                                    if t &lt; 2 * n:
+                                        c[t // 2] += 1
+
+    return c
+
+def add_vectors(v1, v2):
+    &quot;&quot;&quot;
+    Add two vectors element-wise.
+
+    Args:
+        v1 (list): The first vector.
+        v2 (list): The second vector.
+
+    Returns:
+        list: The element-wise sum of v1 and v2.
+    &quot;&quot;&quot;
+    return [x + y for x, y in zip(v1, v2)]
+
+def main():
+    &quot;&quot;&quot;
+    Main function to execute the counting logic and output the results.
+    &quot;&quot;&quot;
+    if len(sys.argv) &lt; 2:
+        print(&quot;Usage: python script.py &lt;n&gt;&quot;)
+        sys.exit(1)
+
+    try:
+        n = int(sys.argv[1])
+    except ValueError:
+        print(&quot;Error: The argument must be an integer.&quot;)
+        sys.exit(1)
+
+    # Prepare arguments for parallel processing
+    args = [(n, a0) for a0 in range(n)]
+
+    # Use multiprocessing to parallelize the get_counts function
+    with Pool() as pool:
+        counts_list = pool.map(get_counts, args)
+
+    # Initialize the total counts vector
+    total_counts = [0] * n
+
+    # Sum all counts element-wise
+    for counts in counts_list:
+        for i in range(n):
+            total_counts[i] += counts[i]
+
+    # Initialize accumulators
+    d0 = d1 = d2 = d3 = 0
+
+    # Perform the cumulative summation and print the results
+    for i, x in enumerate(total_counts, start=1):
+        d3 += x
+        d2 += d3
+        d1 += d2
+        d0 += d1
+        print(f&quot;{i} {d0}&quot;)
+
+if __name__ == &quot;__main__&quot;:
+    main()
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=rVjNjttGDL771jdgHLSRurYjKTkUQRwgSHvooUDQNr0sFsJYGtuDWCNlZux4E-RJesklfag-TUmOfm3H3gYrYNfSDPnxI4eUSf_9T3Xr1qX-_PnL1i2nP_373SNVVKVxYG_tqL4thFuPlqYsoNhunKpMmUlrlV5BLfC6LDejUS6XsJIuzcqtdjYQZmXDZyPAazwe8-ersqi2ToJbS2Ap2MnMlQaW-CdgpXZSg4hmI5Z-iQBeny6Cg8Btq40Mn8FL4DtE0U4oTVxQU-ed9u_SbY3uAWyUdaRIn1AuPQGLH8ZIW5U6JxBXghTZGpCZ2GzlbEBfTxAe5kyFFzJ8uI5u4EfQ_Cwivx_hiog8j4fws3TSFEp7v43QK-kdjmEhrMyh1LzDFokZqpKmWrK5OUS9KMSpB5h7oCCegA55W26sPCM41XAFXpqFagZKt6KdMtFKc_YEGVyRHDoUt_sFbmmYgljgMUdhcxfX0BfcTr7idtEqo-cFvOj7zS4lqXUC020O7EyCdoMCfoA4PJSTmtjrdnkYm2OwKdpDwK_A4FbReYbrCj1rA9sgTWqNCSS9ONQeU5i93pAG4dfRviI5DPOQBdmh5YCPYgp5D7sOlTnIkeai2lB6K4cKRGgREaGafkQ5caxdVWg5J8tP8F-Opp-2NK4IAR8WxAgTIDwgVRNDiOeniNG1MFK8PdYio0q7gF45M2XfGRdUVRgS2lpY4ZzhrQk84s1HIR9tp9JqnCaEpCt4MEdmp1mdDhld7-pz4Npmv_NjoYfwai2ztxzj6mh3EdNhVnzGGMJ3w5rq0STB7796rB6K8gbFHj8Gc1oiIWNTthY31pKTomQxuWTRY5LV5IzVGg4TY4L08C8JsY45x0RMBXIi0Y51Kb-IM2l_j1E_z6q5HMWkEPsg4tf0lfdbJBMYIF7GSTqcKddcCzTlg7870pMhElOatkjMaXo3pKcD36YdUMPojjgI44i-owxEfvjv6UUtPBWHlUzpry-fA13ZtaMkSW7gag7x-ULBHOXSVBZ06eCDNOXp2n1wphy6ZD9TWjXS5fLymJdKjKWStqYvVFlj_E6V5qHvUm017DdXXKf_bVVH131VHmPdW_Ux2r1VIKPdUxUy1jdVIl3_vxrpOlWRhltkyHzrLvI89e24DXaYOrvkoHt_mefg3pd1z27xm1cWUrvpe2XlyZZ9F0NA3Tb2639io7dUxjYd_6wTSgZCVuJ3cN5KnWvlSbzPAey2oD4SzdIksEuG3Xvt7fUeQ33Lb579BG-wEfqgqsbjGx-LAmeK4MD933ANlludOUWdKw4Ke5kNphkaIDblSmVsv9w6HHZ88ystDk52yAfPcSN1gHPWDAeKXUhn2rlYGeppxm-swMYc_JAGNjOqcrPqFp7rF-Mu0QhD7pULmg7cmdsOStc9VWPpOr6pJ4Z9JisHf1ED_osxpTky71c50qi5pVDjDIinuMAFTahyJc3sHJWH8NrISpgOwfr-SBix2cgNdOOkn6FozsOxKuBpK_QNdK9f1XRGHvgNnvnhRIrn0iCrD_5supm0PT4GeK_cmkfXIARhocK7LgBeIeVhcc57s0JUQYc1Yaatk79q5ZRobbrSiU0zYvpk9gdD6w2bbnisQf7ABEbqjV4_uduZrd7DePQodrxJRPWjNXxF9O1fK34ZtA8nXBFZtsUIC6p33s1pvs3pfZ_Tizqn92s76L6WBs0XviC8Hk70VJbYm1PRUFlwZvWrovVMTWBPzKXGNDHCyaDPdgI8Zc3jnkdoHh3Yd88JPedPuoWYF7pvZORPC_FBoi_HH9Un-JhHnzCVR1iZaapFIdOUvgXHaUrvgzQde8v-5eB_L6l_NvlyHUfRTf3wHw" rel="nofollow noreferrer">Attempt This Online!</a></p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.rust-lang.org/" rel="noreferrer">Rust</a>, <span class="math-container">\$A(1), \dotsc, A(1375)\$</span> in 10 minutes</h1>
+
+<p>Unofficial score on Ryzen 7 1800X (8 cores/16 threads).  Build with <code>cargo build --release</code> and run with <code>time target/release/tetrahedron n</code> to compute <span class="math-container">\$A(1), \dotsc, A(n)\$</span>.</p>
+
+<p>This runs in <span class="math-container">\$O(n^4)\$</span> time.  (So to estimate a good value of <span class="math-container">\$n\$</span> for your CPU, first time it for some smaller <span class="math-container">\$n\$</span>, then multiply that <span class="math-container">\$n\$</span> by a factor of <span class="math-container">\$\left(\frac{600\,\mathrm{s}}{t}\right)^{1/4}\$</span>.)</p>
+
+<h3>How it works</h3>
+
+<p>Any triangle that fits inside a tetrahedron of minimal side <span class="math-container">\$k \le n\$</span> may be translated inside a tetrahedron of side <span class="math-container">\$n\$</span> in exactly <span class="math-container">\$\binom{n - k + 3}{3}\$</span> ways.  This means we only need to find it in one position, leaving six free parameters.  Two of these parameters may be computed from the other four (up to a sign choice) if the triangle is to be equilateral, so we only need to loop over an <span class="math-container">\$O(n^4)\$</span> space.</p>
+
+<h3><code>src/main.rs</code></h3>
+
+<pre class="lang-rust prettyprint-override"><code>use rayon::prelude::*;
+
+fn get_counts(n: i64, a0: i64) -&gt; Vec&lt;i64&gt; {
+    let mut c = vec![0; n as usize];
+    let a0a0 = a0 * a0;
+    for a1 in if a0 == 0 { 1 } else { -n + 1 }..n {
+        let d = a0a0 + a1 * a1;
+        let m = n - a0.abs() - a1.abs();
+        for a2 in if m &gt; 0 {
+            -n + 2 - (m &amp; 1)..n
+        } else {
+            -n - m + 2..n + m
+        }
+        .step_by(2)
+        {
+            let d = d + a2 * a2;
+            let r = 2 * (a0a0 - d);
+            if r == 0 {
+                continue;
+            }
+            for b0 in a0..n {
+                let pp = d * (3 * d - 4 * (a0a0 + b0 * (b0 - a0)));
+                if pp &lt; 0 {
+                    break;
+                }
+                let p = (pp as f64).sqrt() as i64;
+                if p * p != pp {
+                    continue;
+                }
+                let q = 2 * a0 * b0 - d;
+                let mut check = |p: i64| {
+                    let b1r = p * a2 + q * a1;
+                    if b1r % r != 0 {
+                        return;
+                    }
+                    let b1 = b1r / r;
+                    let b2r = -p * a1 + q * a2;
+                    if b2r % r != 0 {
+                        return;
+                    }
+                    let b2 = b2r / r;
+                    if (b0, b1, b2) &lt;= (a0, a1, a2) || b0 + b1 + b2 &amp; 1 != 0 {
+                        return;
+                    }
+                    let t = 0.max(a0 + a1 + a2).max(b0 + b1 + b2)
+                        + 0.max(-a0 - a1 + a2).max(-b0 - b1 + b2)
+                        + 0.max(-a0 + a1 - a2).max(-b0 + b1 - b2)
+                        + 0.max(a0 - a1 - a2).max(b0 - b1 - b2);
+                    if t &gt;= 2 * n {
+                        return;
+                    }
+                    c[t as usize / 2] += 1;
+                };
+                check(p);
+                if p != 0 {
+                    check(-p);
+                }
+            }
+        }
+    }
+    c
+}
+
+fn add_vec(c0: Vec&lt;i64&gt;, c1: Vec&lt;i64&gt;) -&gt; Vec&lt;i64&gt; {
+    c0.into_iter().zip(c1).map(|(x0, x1)| x0 + x1).collect()
+}
+
+fn main() {
+    let n = std::env::args().skip(1).next().expect("missing argument");
+    let n = n.parse().expect("not an integer");
+    let counts = (0..n)
+        .into_par_iter()
+        .map(|a0| get_counts(n, a0))
+        .reduce(|| vec![0; n as usize], add_vec);
+    let (mut d0, mut d1, mut d2, mut d3) = (0, 0, 0, 0);
+    for (i, x) in (1..).zip(counts) {
+        d3 += x;
+        d2 += d3;
+        d1 += d2;
+        d0 += d1;
+        println!("{} {}", i, d0);
+    }
+}
+</code></pre>
+
+<h3><code>Cargo.toml</code></h3>
+
+<pre class="lang-toml prettyprint-override"><code>[package]
+name = "tetrahedron"
+version = "0.1.0"
+authors = ["Anders Kaseorg &lt;andersk@mit.edu&gt;"]
+edition = "2018"
+
+[dependencies]
+rayon = "1.3.0"
+</code></pre>
+
+<p><a href="https://tio.run/##tVZtb5swEP7eX3GttMleAgNS7UPS5GfsS1VVBJwMNTgUnCprw2/PnnOAQArVJq1WAvb57vzci@/Id4U5Hlea1so8RtudNoXQU0p@3I4p9OxEkrOgnyq6w3xBb1eEsVGG0p2hiOb0oqLre29GmsKCdkXyqh5mDVPohR548PiGx4m@2uYU@pRoSla8M5@TR2/kU0lqUyhMHU0jXruurg6s9cVWGYRGrAI6/VlnP8W@Jgc8brgshOSpf5qeGS2AoAKQ0oKPbzZ52PMDyIqUvpIvgaPZr0FeCjjQBCGGPKL0zN7M3MKo7HH5WwSyoXW11AbGbF3A1gWzdww5GHhPWDc4FMsuD0zKK5d26DyirTaJ3qmuRNlZsXOWHjsHPuz4v40iyyxOwJjgEQPHbYNpxPJYLD0bCCkvEFYooeKuFyWPZa7Cp/diZT8YYBFQh/xbIV/d4jk3CD2WSNn@s4Evo@s5g@gH0O@qYQzPVVhsplvL41kvo702v1T0BIFDZm/YYQADsy99DnhmkwGefb7I@Qu7mPsL4n89H/Qsj1yZXa77tZQfQAESPuE75bNhroABOxaxXyMOhhEHn4k4YMTBB4iBAHk6hln4B5Lu5pzEqH1Yh1gfDhzMEds@YnWoBp8D1QCp56bhXtTFjWuAtJQ2Ajl47qiSd2xZ6ChwbEL@kwYLwelosBicv9JQQ3DaNjiN/GAsDC1O10j/VwdH96ZpTsiF4IFGc@q5ReV7kr2qIhsoYR/lwknS6RMtB@rvaXZ6Rlfl1RUacxjHj2ixIkI3rrvwmCL/vOpr0JHnJtpsHxOjciHd1yQTkc@RyMRB7JHge18eaM9BxcyNtpuNilA0q0PTMNGooOdmr5GehYmnU6VfptMwX6OhusUT1EJaqz1EXbXPWMdNmhRFotcErl2qtLmRs44e7WZhXqiWhN4iPujG2qi1ytv8p08Sru/cjM6Jd7Ik9A6dD5exbTdnptV2E4ue75Nx7dXWSYILcwzP2LdfvYPqPZEWw5iqnzx/yogE3pTcMIXvupWvLSDZyox4wjm3P@dCHDAhnrQovqW0amXsWUorU7McTtroa3HzVtJbeTMmnB7XcEqE73g8@p73Bw" rel="noreferrer" title="Rust – Try It Online">Try it online!</a>  (Parallelism removed for TIO.)</p>
+</div>
+<div id="pu2" class="pu"><h1>JavaScript (ES7), a(30) in ~50 seconds<sup>1</sup></h1>
+<p><sup><em>1: when run locally on my laptop</em></sup></p>
+<p>A very simple algorithm.</p>
+
+<pre class="lang-javascript prettyprint-override"><code>function count(n) {
+  const r0 = (8 / 3) ** 0.5, r1 = 2 / 3, r2 = 3 ** 0.5;
+  let cnt = 0;
+
+  for(let z1 = 0; z1 &lt; n; z1++)
+  for(let Z1 = z1 * r0,
+          y1 = 0; y1 &lt;= z1; y1++)
+  for(let Y1 = (y1 - z1 * r1) * r2,
+          x1 = 0; x1 &lt;= y1; x1++)
+  for(let X1 = 2 * x1 - y1,
+          z2 = z1; z2 &lt; n; z2++)
+  for(let Z2 = z2 * r0,
+          y2 = z2 &gt; z1 ? 0 : y1; y2 &lt;= z2; y2++)
+  for(let Y2 = (y2 - z2 * r1) * r2,
+          x2 = z2 &gt; z1 || y2 &gt; y1 ? 0 : x1 + 1; x2 &lt;= y2; x2++)
+  for(let X2 = 2 * x2 - y2,
+          S1 = (X1 - X2) ** 2 + (Y1 - Y2) ** 2 + (Z1 - Z2) ** 2,
+          z3 = z2; z3 &lt; n; z3++)
+  for(let Z3 = z3 * r0,
+          y3 = z3 &gt; z2 ? 0 : y2; y3 &lt;= z3; y3++)
+  for(let Y3 = (y3 - z3 * r1) * r2,
+          x3 = z3 &gt; z2 || y3 &gt; y2 ? 0 : x2 + 1; x3 &lt;= y3; x3++) {
+    let X3 = 2 * x3 - y3,
+        S2 = (X1 - X3) ** 2 + (Y1 - Y3) ** 2 + (Z1 - Z3) ** 2;
+
+    if(Math.abs(S1 - S2) &lt; 1e-9) {
+      let S3 = (X2 - X3) ** 2 + (Y2 - Y3) ** 2 + (Z2 - Z3) ** 2;
+
+      if(Math.abs(S1 - S3) &lt; 1e-9) {
+        cnt++;
+      }
+    }
+  }
+  return cnt;
+}
+</code></pre>
+<p><a href="https://tio.run/##dVTBbptAEL37K@YQKYuJXTOrSGlx3S/oiQv2KYTi1pW1VLCuTBx/uztv2VUwbiyZHd7MvjfzYPld/C3astn9sTNT/6gu94e2otY2u9Lep5ftwZR2Vxsq64OxykR0mpDcmNZSs6CvpJ7oE@mIplNazB8fqEkEZGASs8Tap1LZt68slcYKukgncr@tGwXsNXEQ1iUZrHEcDfIb5CU5Fc0HwcOv8/tkXaIA0fXONSqU5Gd@fxLhykOWo2c5OpYuQXTNkvdDTVEyk4rh7lemXlqCvnkeNe8K@LZ5j6/Q2Tda0BenLTBmYUSjWdjNwpiFP5plSPr2BrYV7On5pf2YMJ/T6BjRaFIOk0Kmu@LOnJc5LMjZPXEWOrUGsB4AGwAbD1xZpamfTILeKj2yyhXoW6s8vsJo3ioYpJ1VGtHIKu2s0rBKf2TVkBRWIewC/5G9VU6j04hEw73@/Yuc62AVZDr9zp3xu1F6bJQeG@UBdyCIdlv1vbC/5sVLqzLkMzFySUk1@xzEe/nMjZjzWITHInwr8j8ZfStDOKxxnPrb8yRc8W8qe2gMKtLJ@RKMN9KUuGZgGsuZMsEzfDLqfTXf1z/Vc6HuTuYcSe3dKXxYzs@R8PwD" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+</div>
+<div id="pu3" class="pu"><h1>C++, all up to 40 in ten minutes</h1>
+<p>Runs in <span class="math-container">\$O(n^9)\$</span> time complexity (fortunately, it seems to be divided by at least 36 and it's also multi-threaded). I tested on Ubuntu 19.10 on AMD Ryzen 5 2600 (12 threads), tested with <code>clang++ -Ofast -march=native -flto -no-pie -fopenmp</code> and ran with <code>timeout 600 ./a.out</code>.</p>
+<p>Code:</p>
+<pre><code>//#define _GLIBCXX_DEBUG
+#include &lt;iostream&gt;
+#include &lt;cstring&gt;
+#include &lt;complex&gt;
+#include &lt;streambuf&gt;
+#include &lt;bitset&gt;
+#include &lt;cstdio&gt;
+#include &lt;vector&gt;
+#include &lt;algorithm&gt;
+#include &lt;cmath&gt;
+#include &lt;climits&gt;
+#include &lt;random&gt;
+#include &lt;set&gt;
+#include &lt;list&gt;
+#include &lt;map&gt;
+#include &lt;deque&gt;
+#include &lt;stack&gt;
+#include &lt;queue&gt;
+#include &lt;string&gt;
+#include &lt;iomanip&gt;
+#include &lt;unordered_set&gt;
+#include &lt;thread&gt;
+
+struct pt3
+{
+    short x, y, z;
+    bool operator &lt; (const pt3&amp; rhs) const
+    {
+        return std::tie(x, y, z) &lt; std::tie(rhs.x, rhs.y, rhs.z);
+    }
+    pt3 operator - (const pt3&amp; rhs) const
+    {
+        return {short(x - rhs.x), short(y - rhs.y), short(z - rhs.z)};
+    }
+    int sqdist() const
+    {
+        return int(x)*int(x) + int(y)*int(y) + int(z)*int(z);
+    }
+};
+int solve(int n)
+{
+    //the several lines below took a lot of tinkering-until-it-works
+    std::set&lt;pt3&gt; pt3s;
+    for(int i = 0; i &lt; n; i++)
+    for(int j = 0; j &lt; n; j++)
+    for(int k = 0; k &lt; n; k++)
+    {
+        if(i+j+k &gt;= n) continue;
+        pt3 pt { short(i+j), short(j+k), short(i+k) };
+        pt3s.insert(pt);
+    }
+    std::vector&lt;pt3&gt; points; //copy into a vector, they're much faster for this
+    for(pt3 el : pt3s) points.push_back(el);
+
+    //printf(&quot;n=%d, ps=%d\n&quot;, n, points.size());
+    int64_t ans = 0;
+#pragma omp parallel for schedule(guided) reduction(+:ans)
+    for(int i = 0; i &lt; points.size(); i++)
+    for(int j = i + 1; j &lt; points.size(); j++)
+    for(int k = j + 1; k &lt; points.size(); k++)
+    {
+        pt3 a = points[i], b = points[j], c = points[k];
+        //consider pairwise distances
+        pt3 p1 = a-b, p2 = a-c, p3 = b-c; //33% of all time
+        int d1 = p1.sqdist(), d2 = p2.sqdist(), d3 = p3.sqdist(); //another 33% of all time
+        if(d1 != d2 || d1 != d3) continue;
+        ans++;
+        //printf(&quot;%d %d %d; %d %d %d; %d %d %d\n&quot;, p1.x, p1.y, p1.z, p2.x, p2.y, p2.z, p3.x, p3.y, p3.z);
+    }
+    return ans;
+}
+int main()
+{
+    for(int i = 1;; i++)
+    {
+        int ans = solve(i);
+        printf(&quot;n=%d: %d\n&quot;, i, ans);
+    }
+}
+</code></pre>
+<p>Output:</p>
+<pre><code>n=1: 0
+n=2: 4
+n=3: 24
+n=4: 84
+n=5: 224
+n=6: 516
+n=7: 1068
+n=8: 2016
+n=9: 3528
+n=10: 5832
+n=11: 9256
+n=12: 14208
+n=13: 21180
+n=14: 30728
+n=15: 43488
+n=16: 60192
+n=17: 81660
+n=18: 108828
+n=19: 142764
+n=20: 184708
+n=21: 236088
+n=22: 298476
+n=23: 373652
+n=24: 463524
+n=25: 570228
+n=26: 696012
+n=27: 843312
+n=28: 1014720
+n=29: 1213096
+n=30: 1441512
+n=31: 1703352
+n=32: 2002196
+n=33: 2341848
+n=34: 2726400
+n=35: 3160272
+n=36: 3648180
+n=37: 4195164
+n=38: 4806496
+n=39: 5487792
+n=40: 6244992
+</code></pre>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/204419/">204419</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
