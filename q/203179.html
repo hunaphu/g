@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::203179</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>nan</td><td></td><td>241210T081646Z</td><td><a href="https://codegolf.stackexchange.com/questions/203179/spanning-paths-in-a-tournament-on-n-nodes/277144#277144">138 Aspe</a></td></tr>
+<tr d-ix="1"><td>010</td><td>C++ gcc</td><td>200409T040551Z</td><td><a href="https://codegolf.stackexchange.com/questions/203179/spanning-paths-in-a-tournament-on-n-nodes/203216#203216">newbie</a></td></tr>
+<tr d-ix="2"><td>008</td><td>JavaScript Node.js</td><td>200408T191959Z</td><td><a href="https://codegolf.stackexchange.com/questions/203179/spanning-paths-in-a-tournament-on-n-nodes/203208#203208">Arnauld</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1><a href="https://www.rust-lang.org" rel="nofollow noreferrer">Rust</a></h1>
+<p>Brute force.</p>
+<p>Rust port of @Arnauld's JavaScript code.</p>
+<pre class="lang-rust prettyprint-override"><code>fn main() {
+    for n in 3..=7 {
+        println!(&quot;a({}) = {}&quot;, n, search(n));
+    }
+}
+
+fn search(n: usize) -&gt; u32 {
+    let mut m = vec![0u32; n];
+    let mut max = 0u32;
+    build(n, &amp;mut m, 1, 0, &amp;mut max);
+    max
+}
+
+fn build(n: usize, m: &amp;mut Vec&lt;u32&gt;, x: usize, y: usize, max: &amp;mut u32) {
+    if y == n - 1 {
+        let c = count(n, m);
+        if c &gt; *max {
+            *max = c;
+        }
+    } else {
+        let start_j = if x == y + 1 { 1 } else { 0 };
+        let end_j = if x == n - 1 &amp;&amp; y == 0 { 0 } else { 1 };
+
+        for j in start_j..=end_j {
+            m[y] = (m[y] &amp; !(1 &lt;&lt; x)) | (j &lt;&lt; x);
+            m[x] = (m[x] &amp; !(1 &lt;&lt; y)) | ((j ^ 1) &lt;&lt; y);
+            if x + 1 &lt; n {
+                build(n, m, x + 1, y, max);
+            } else {
+                build(n, m, y + 2, y + 1, max);
+            }
+        }
+    }
+}
+
+fn count(n: usize, m: &amp;Vec&lt;u32&gt;) -&gt; u32 {
+    let mut res = 0u32;
+    for y in 0..n {
+        path(n, m, y, 0, &amp;mut res);
+    }
+    res
+}
+
+fn path(n: usize, m: &amp;Vec&lt;u32&gt;, y: usize, visited: u32, res: &amp;mut u32) {
+    let visited = visited | (1 &lt;&lt; y);
+    if visited == (1 &lt;&lt; n) - 1 {
+        *res += 1;
+        return;
+    }
+    let mut msk = m[y] &amp; !visited;
+    while msk != 0 {
+        let b = msk &amp; msk.wrapping_neg();
+        msk ^= b;
+        let next_y = b.trailing_zeros() as usize;
+        path(n, m, next_y, visited, res);
+    }
+}
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=dVRLcuIwEF3NhlM0WVA2MS6cLGYKY46RTSqhhBFBjBGULCd2iE8ymyxmLjWnmW5LNhZhXOWf9F7rdfeTfv1WRa4_P_8UejP58fcb30jYMyE9H04DwGtzUCBBSLgPw-S7HaTrqITUmRx6N8w71T4kcKpvApAB5JypdOtJ348bdD2oBwOM247PoMjFO_dhsoDi_s7GzLiGfYE3Rnrl6fBxinMxyKfYnWYlApq5ZnxViGzt4aqjZjaAKIBp-8dKKwG_rAiLtxoC2M8M9oGncwy6CKDs5qozipUWh5i2NGIDFSQJlmcCUa8yJDVFkemhkJqk7a0KS0phAWPK40yha2xSS8_Y2pQPeJbzi_i5Zkovd4jHgCWpqOCWVODdEmAKdeywuFw7HKN8NDJ5TA2lZUfE7ujkgx35wK6MbjDR3CT2j9UTLuA17xEMvQjmcyh9Hz7A25nv-IJRWkbZY1SGgZRniHwz4vKaHCjlOabhinB8gZZocNjOoOeIrsaX1b0WgGp7Z17R1SCXLbNmsw5wzNYa7T_2Vzx3_E11r6ju0zDs53lketuqOzse2d2moyf-WykGf1VJ3-ivIhear2ekLCD6V9uTUgujrWq_sFlRv03Yng6U2DnpX-yUMWV7m0B0LqfiulCyn0O38_OfuF5rLBvcAN-2IuMNYNjY2DH9ilg4NaJn-KbY8Sjky1LyF6_XRkI8J7ByN4zkpV7i5oBVqBUTGRHfuTrkeD6y3BQtvtYTQ-zqGTidqc1paw_d9vD9Bw" rel="nofollow noreferrer">Attempt This Online!</a></p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C++ (gcc)</a>, <span class="math-container">\$N=10\$</span></h1>
+
+
+
+<pre class="lang-cpp prettyprint-override"><code>#include &lt;algorithm&gt;
+#include &lt;iostream&gt;
+#include &lt;vector&gt;
+#include &lt;cstring&gt;
+#include &lt;ctime&gt;
+//a rewrite for vector&lt;int&gt;
+struct vi
+{
+&#9;int l,a[9];
+&#9;const int&amp; operator[](int u) const {return a[u];}
+&#9;int&amp; operator[](int u) {return a[u];}
+};
+bool operator &lt; (const vi&amp;a,const vi&amp;b)
+{
+&#9;for(int i=0;i&lt;a.l;++i) if(a[i]!=b[i]) return a[i]&lt;b[i];
+&#9;return 0;
+}
+bool operator == (const vi&amp;a,const vi&amp;b)
+{
+&#9;for(int i=0;i&lt;a.l;++i) if(a[i]!=b[i]) return 0;
+&#9;return 1;
+}
+std::vector&lt;vi&gt; g[13];
+void dfs(int x,int u,const vi&amp;c,int*w)
+{
+&#9;++w[u];
+&#9;if(c[x]&amp;u)
+&#9;&#9;for(int o=c[x]&amp;u;o;o^=o&amp;-o)
+&#9;&#9;&#9;dfs(__builtin_ctz(o),u^(o&amp;-o),c,w);
+}
+void dfsf(int x,int u,const vi&amp;c,int*w)
+{
+&#9;++w[u];
+&#9;if((~c[x])&amp;u)
+&#9;&#9;for(int o=(~c[x])&amp;u;o;o^=o&amp;-o)
+&#9;&#9;&#9;dfsf(__builtin_ctz(o),u^(o&amp;-o),c,w);
+}
+int main()
+{
+&#9;g[0].push_back(vi());
+&#9;for(int i=0;i&lt;9;++i)
+&#9;{
+&#9;&#9;for(auto t:g[i])
+&#9;&#9;{
+&#9;&#9;&#9;int m1=0,m=0;
+&#9;&#9;&#9;for(int j=0,r;j&lt;i;++j)
+&#9;&#9;&#9;{
+&#9;&#9;&#9;&#9;if((r=__builtin_popcount(t[j]))&gt;m1) m=0,m1=r;
+&#9;&#9;&#9;&#9;if(r==m1) m|=1&lt;&lt;j;
+&#9;&#9;&#9;}
+&#9;&#9;&#9;for(int e=0;e&lt;(1&lt;&lt;i);++e) if(__builtin_popcount(e)&gt;m1
+&#9;&#9;&#9;||(__builtin_popcount(e)==m1&amp;&amp;((e&amp;m)==m))) //ensure the node has the highest degree
+&#9;&#9;&#9;{
+&#9;&#9;&#9;&#9;vi u; u.l=i+1;
+&#9;&#9;&#9;&#9;for(int p=0;p&lt;=i;++p) //enumerate position
+&#9;&#9;&#9;&#9;{
+&#9;&#9;&#9;&#9;&#9;bool s=(p==0); int x;
+&#9;&#9;&#9;&#9;&#9;#define yield(l,c) do{if((x=(c))&gt;u[l]&amp;&amp;!s) goto skip; else s|=x&lt;u[l],u[l]=x;}while(0)
+&#9;&#9;&#9;&#9;&#9;for(int a=0;a&lt;p;++a)
+&#9;&#9;&#9;&#9;&#9;&#9;yield(a,((t[a]&gt;&gt;p)&lt;&lt;(p+1))|(t[a]&amp;((1&lt;&lt;p)-1))|((!((e&gt;&gt;a)&amp;1))&lt;&lt;p));
+&#9;&#9;&#9;&#9;&#9;yield(p,((e&gt;&gt;p)&lt;&lt;(p+1))|(e&amp;((1&lt;&lt;p)-1)));
+&#9;&#9;&#9;&#9;&#9;for(int a=p;a&lt;i;++a)
+&#9;&#9;&#9;&#9;&#9;&#9;yield(a+1,((t[a]&gt;&gt;p)&lt;&lt;(p+1))|(t[a]&amp;((1&lt;&lt;p)-1))|((!((e&gt;&gt;a)&amp;1))&lt;&lt;p));
+&#9;&#9;&#9;&#9;&#9;skip:;
+&#9;&#9;&#9;&#9;&#9;#undef yield
+&#9;&#9;&#9;&#9;}
+&#9;&#9;&#9;&#9;g[i+1].push_back(u);
+&#9;&#9;&#9;}
+&#9;&#9;}
+&#9;&#9;std::sort(g[i+1].begin(),g[i+1].end());
+&#9;&#9;g[i+1].erase(std::unique(g[i+1].begin(),g[i+1].end()),g[i+1].end());
+&#9;&#9;int sz=g[i+1].size();
+&#9;&#9;std::vector&lt;vi&gt; h(sz);
+&#9;&#9;#pragma omp parallel for
+&#9;&#9;for(int w=0;w&lt;sz;++w)
+&#9;&#9;{
+&#9;&#9;&#9;vi u=g[i+1][w],v;
+&#9;&#9;&#9;auto sw=[&amp;](int x,int y) {
+&#9;&#9;&#9;&#9;std::swap(v[x],v[y]);
+&#9;&#9;&#9;&#9;for(int s=0;s&lt;v.l;++s)
+&#9;&#9;&#9;&#9;{
+&#9;&#9;&#9;&#9;&#9;int&amp;o=v[s];
+&#9;&#9;&#9;&#9;&#9;if(((o&gt;&gt;x)^(o&gt;&gt;y))&amp;1) o^=(1&lt;&lt;x)|(1&lt;&lt;y);
+&#9;&#9;&#9;&#9;}
+&#9;&#9;&#9;};
+&#9;&#9;&#9;for(int x=0;x&lt;=i;++x)
+&#9;&#9;&#9;&#9;for(int y=x+1;y&lt;=i;++y)
+&#9;&#9;&#9;&#9;{
+&#9;&#9;&#9;&#9;&#9;{v=u;sw(x,y);u=std::min(u,v);}
+&#9;&#9;&#9;&#9;&#9;for(int z=y+1;z&lt;=i;++z)
+&#9;&#9;&#9;&#9;&#9;{
+&#9;&#9;&#9;&#9;&#9;&#9;{v=u;sw(x,y);sw(y,z);u=std::min(u,v);}
+&#9;&#9;&#9;&#9;&#9;&#9;{v=u;sw(x,y);sw(x,z);u=std::min(u,v);}
+&#9;&#9;&#9;&#9;&#9;&#9;{v=u;sw(y,z);sw(x,z);u=std::min(u,v);}
+&#9;&#9;&#9;&#9;&#9;&#9;{v=u;sw(y,z);sw(x,y);u=std::min(u,v);}
+&#9;&#9;&#9;&#9;&#9;&#9;{v=u;sw(x,z);sw(x,y);u=std::min(u,v);}
+&#9;&#9;&#9;&#9;&#9;&#9;{v=u;sw(x,z);sw(y,z);u=std::min(u,v);}
+&#9;&#9;&#9;&#9;&#9;}
+&#9;&#9;&#9;&#9;&#9;{v=u;sw(x,y);u=std::min(u,v);}
+&#9;&#9;&#9;&#9;}
+&#9;&#9;&#9;h[w]=u;
+&#9;&#9;}
+&#9;&#9;std::sort(h.begin(),h.end());
+&#9;&#9;h.erase(std::unique(h.begin(),h.end()),h.end());
+&#9;&#9;g[i+1]=h;
+&#9;}
+&#9;std::cout&lt;&lt;"pre ("&lt;&lt;clock()*1./CLOCKS_PER_SEC&lt;&lt;"s)\n";
+&#9;for(int o=0;o&lt;=9;++o)
+&#9;{
+&#9;&#9;int mx=0;
+&#9;&#9;const int s=g[o].size();
+&#9;&#9;#pragma omp parallel for reduction(max:mx)
+&#9;&#9;for(int t=0;t&lt;s;++t)
+&#9;&#9;{
+&#9;&#9;&#9;int a[9&lt;&lt;9],b[9&lt;&lt;9];
+&#9;&#9;&#9;memset(a,0,sizeof(int)*(o&lt;&lt;o));
+&#9;&#9;&#9;memset(b,0,sizeof(int)*(o&lt;&lt;o));
+&#9;&#9;&#9;for(int i=0;i&lt;o;++i)
+&#9;&#9;&#9;&#9;dfs(i,((1&lt;&lt;o)-1)^(1&lt;&lt;i),g[o][t],a+(i&lt;&lt;o)),
+&#9;&#9;&#9;&#9;dfsf(i,((1&lt;&lt;o)-1)^(1&lt;&lt;i),g[o][t],b+(i&lt;&lt;o));
+&#9;&#9;&#9;int r[9][9],c=(1&lt;&lt;o)-1,vx[1&lt;&lt;9];
+&#9;&#9;&#9;for(int p=0;p&lt;o;++p)
+&#9;&#9;&#9;{
+&#9;&#9;&#9;&#9;int*A=a+(p&lt;&lt;o),vn=0;
+&#9;&#9;&#9;&#9;for(int x=0;x&lt;=c;++x) if(A[x]) vx[vn++]=x;
+&#9;&#9;&#9;&#9;for(int q=0;q&lt;o;++q) if(p!=q)
+&#9;&#9;&#9;&#9;{
+&#9;&#9;&#9;&#9;&#9;int*B=b+(q&lt;&lt;o),su=0;
+&#9;&#9;&#9;&#9;&#9;for(int u=0;u&lt;vn;++u)
+&#9;&#9;&#9;&#9;&#9;&#9;su+=A[vx[u]]*B[c^vx[u]];
+&#9;&#9;&#9;&#9;&#9;r[p][q]=su;
+&#9;&#9;&#9;&#9;}
+&#9;&#9;&#9;}
+&#9;&#9;&#9;int m1=0,m=0;
+&#9;&#9;&#9;for(int j=0,pc;j&lt;o;++j)
+&#9;&#9;&#9;{
+&#9;&#9;&#9;&#9;if((pc=__builtin_popcount(g[o][t][j]))&gt;m1) m=0,m1=pc;
+&#9;&#9;&#9;&#9;if(pc==m1) m|=1&lt;&lt;j;
+&#9;&#9;&#9;}
+&#9;&#9;&#9;for(int i=0;i&lt;(1&lt;&lt;o);++i) if(__builtin_popcount(i)&gt;m1
+&#9;&#9;&#9;||(__builtin_popcount(i)==m1&amp;&amp;((i&amp;m)==m)))
+&#9;&#9;&#9;{
+&#9;&#9;&#9;&#9;int tot=(o==0);
+&#9;&#9;&#9;&#9;for(int j=0;j&lt;o;++j)
+&#9;&#9;&#9;&#9;&#9;if(i&amp;(1&lt;&lt;j))
+&#9;&#9;&#9;&#9;&#9;{
+&#9;&#9;&#9;&#9;&#9;&#9;tot+=a[j&lt;&lt;o];
+&#9;&#9;&#9;&#9;&#9;&#9;for(int ii=c^i;ii;ii^=ii&amp;-ii)
+&#9;&#9;&#9;&#9;&#9;&#9;&#9;tot+=r[j][__builtin_ctz(ii)];
+&#9;&#9;&#9;&#9;&#9;}
+&#9;&#9;&#9;&#9;&#9;else tot+=b[j&lt;&lt;o];
+&#9;&#9;&#9;&#9;mx=std::max(mx,tot);
+&#9;&#9;&#9;}
+&#9;&#9;}
+&#9;&#9;std::cout&lt;&lt;"a("&lt;&lt;o+1&lt;&lt;") = "&lt;&lt;mx&lt;&lt;" ("&lt;&lt;clock()*1./CLOCKS_PER_SEC&lt;&lt;"s)\n";
+&#9;}
+}
+</code></pre>
+
+<p><a href="https://tio.run/##rVdRb9s2EH62fwWTAgYZy42NPTUSDbRFnzZgw/qoKQEt0xZTSVRESpadeD992ZGSbMlxs3QbkFjy8e67j3e84znMssk6DJ@f34k0jIslRx6L1zIXOkrmw6NQSKVzznqykoda5l1JCEoiXfdEWiR8Pry@ZijnG8DlaCVzVNt6ItXzIRgVoUalGD4OByBBscP8D4E7HIQyVRqBaIRkxnMGJn6AjUpBUL34mHNd5ClifhG4e2t/TvlEbe8OF1LGB0XkIVzjlWLEnMPrghhOQNjiCDp1hcfex@54LAgSK8x8EVzQBXwSdPAgAs9IgH8jmrrD/Yk/Sv83h9Ojo5lxpPTy5qaJbynmaO3PfgIypRRLtFwpC1w5Ni5Hv6ERXG2s9/F4Y6IEsVzh0K@CUUGGgwMnSWuZK115S@VoIs3qwCDf3S0KEWuR3oV6hyVxiltsFZzQ2RDDrSWx@jEW@E/jk5wSOYhfclm9gYwBSZhIsfW39qfB@6xQ0d2Chd9wKTABrZNUfLCJGA4eGx6s0BLpm7XJB4iM2J7gZEanTkJNao6E70GWu/eeAJB7S9Tq2w3m9Mg3k1koi1Rj7d8HhMyTGUGJwZvR3G0tckqt/InOPO/eivddZxyccw/DoiDgj9vTc8YHN/jG8Onp/LLxMxphzEeJeSeEoOtrnqoi50hHHKUSyjxiyn6JxDrikMslX@ecH7dYClS4qHgfUzGe1XtoiWZANPOoCUpWQxeJKRKOMqmEFjK16jXOwFaRojijdEpcZE9RjTd4t@QrkXK0FTxe4tgJCVrKRxPciuIQ4lj4cTAaXSiC1hLSpr6JzEU8VhypJ1p5ZtkxH7Ry95tIxBxPSQ3dcmXAlXkZUGXNyqD2xhwM2WLBfJ4Rz8PZeEbIk5VA5CAHGZlYCb6AQM7njIzgqxGThnwNkzl2uYvBuwCt9pFPBnzEGT7j2X9lZMJz04a2SCG4dWStxB41KBnIZrdoCnI4iObfdiIlc40bzQVfm3Jzmq88XdZF1iJB3hXH1qxIxUPBXzV8CWNiona0kSux49jKT1tihNXOLrzLcrZOGJJJhjKWszjmsbmfOm1mAznfeGoHQd4catyc58aNvwmc0m7bNgO1of4o6LS3LVw@Nlp1NDYswyV0Laf0twHpl4ICV8orbbtXpHvsza0maemroMmIOdZYzucVuTWPLTH5Q9AETW4ryCs8tg28Tda@14oq8FTVRVeRHoctraBCt/XatkfisaSFqza4cgC5oHY/CaSlcEri7vsnc0e3ALOrYXbN4Wxw@kDw3Dq77wK@UK7eomwRf1x5@xYa/0L5tQ3u3xxc@xnBeQPNFxUWHWok6hREdKakXmr2TOpTTSN4Bw/WEK4C7XmXGXR8fOl5YSyh1snV7P31519@/fzz17vfvvx@9/XLZ9BR5I/0snNtSjho0qPm3pTNvWnvx6q@Gw8DHpz9tS@7Nfu90oSxZwnjItwLOGHVTVJ1ZwINsNpT4E337mOYJz3vQ@As6qethYQnimto3VPHeJV2JiFXWHqebLpgo7J4RaU/H8hmPmgGIuHYXitNr72t72LHbNPXgcPGWFgYp1Vfvaq/aPXddlM5DMnw54S0NXLKyp8dNti/YaW9YDtTB0xaHymwyIytU6bNtHLaI0LbI8z08NEMWwhclOl4bG7JnvoDqD9YLw9WO7ugD6c97OoThW08WIeqaB0eIIyk8MoUMIr2PlPFmH70wWkRBFef/PC2fm0scz8L/IeAqqLb6v5xCstCGMPkmTEsC8/NYU0KXkxjANNaguHr81h9PupEHab5M77E6/OYOMxj4jCP9XKKtNQUSzse9fID@@5t2tIWI8Ponpw0aMAYU@bfA9k20seNCBreCleYv1sqxGgiRJus2jCHQPn98RtUWqCm39m5y6ovun6gMdStj1U4qRxQODNSNP2ImWYkx7CBS4Iogi9JBe9v7lHwM/D5@a9wFbO1ep78umJKP09WRZrLOJ5Av5nEUmawskrlRGmYbyZZLrWdIkBo1CcJ09EzfOZhRFOmRclhBX7kpUkGL5tIxtwYrXOW/A0" rel="nofollow noreferrer" title="C++ (gcc) – Try It Online">Try it online!</a></p>
+
+<p>Compile with <code>g++</code> and <code>-Ofast -funroll-all-loops -ffast-math -fno-stack-protector -march=native -fopenmp</code>. Note that OpenMP is used for parallelism.</p>
+
+<p>Output on my modest computer:</p>
+
+<pre class="lang-cpp prettyprint-override"><code>pre (5.217s)
+a(1) = 1 (5.218s)
+a(2) = 1 (5.218s)
+a(3) = 3 (5.219s)
+a(4) = 5 (5.221s)
+a(5) = 15 (5.221s)
+a(6) = 45 (5.222s)
+a(7) = 189 (5.223s)
+a(8) = 661 (5.225s)
+a(9) = 3357 (5.318s)
+a(10) = 15745 (18.634s)
+</code></pre>
+
+<p>The run time may differ a lot because of the use of OpenMP parallelism.</p>
+
+<hr>
+
+<p>Explanation for <span class="math-container">\$N=9\$</span> version:</p>
+
+<p>This code is two-fold. First, it will try to generate all tournament graphs up to isomorphism. Then, it will count the number of hamilton paths on these generated graphs. Adjacency matrices of graphs are stored as arrays of bitmasks (i.e. arrays of uint) for performance reasons.</p>
+
+<p>The second part is relatively easier. We can just use depth-first-search to search for all possible paths and use bitmasks to speed up. The time complexity is <span class="math-container">\$O(\text{no. of paths in all graphs})\$</span>. It's also possible to use bitmask dynamic programming to do it, with <span class="math-container">\$O(2^NN^2)\$</span>. The above code used the former while the latter one should be faster when N goes higher. OpenMP parallelization is used to speed it up.</p>
+
+<p>The first part is harder. My approach is incremental: first generating all tournament graphs of <span class="math-container">\$t\$</span> nodes, then add one node to be tournament graphs of <span class="math-container">\$t+1\$</span> nodes. The trick here is to find an order for adding nodes. Here, instead of adding any node, we restrict the added node to have the greatest degree in the result graph. Therefore, a graph won't be generated too many times.</p>
+
+<p>Graph-isomorphism isn't a easy thing to check too. Therefore we're not really trying to make every graph unique, but to have some degree of tolerance. I have two strategies used here. First, the newest <span class="math-container">\$t+1\$</span>-th node won't be directly assigned number <span class="math-container">\$t\$</span>. Instead, we try all the possible numbers from <span class="math-container">\$0\$</span> to <span class="math-container">\$t\$</span> and take the result graph with the smallest lexicographic order (you can use early-stopping when comparing lexicographic order, so not much overhead). After generating all <span class="math-container">\$t+1\$</span>-node graphs in this way, we remove the found duplicates by sorting and making them unique. This alone can cut down the number of found graphs for <span class="math-container">\$N=9\$</span> to around <span class="math-container">\$3\times 10^6\$</span>.</p>
+
+<p>The second strategy is that, after found such candidates, we further try to remove duplicates by trying to swap every two nodes and see if we can get a graph with smaller lexicographic order. We then proceed by sorting and making them unique. These two strategies cut down the number of found graphs for <span class="math-container">\$N=9\$</span> to around <span class="math-container">\$10^6\$</span>. (This strategy alone is more powerful than I thought, cutting down to around <span class="math-container">\$1.1\times 10^6\$</span>)</p>
+
+<hr>
+
+<p>Explanation for <span class="math-container">\$N=10\$</span> version:</p>
+
+<p>Some improvements are made upon the <span class="math-container">\$N=9\$</span> version. First, instead of swapping two positions, three positions are swapped to achieve a better result. This successfully cut the number of graphs generated at <span class="math-container">\$N=9\$</span> to less than <span class="math-container">\$5 \times 10^5\$</span> (~50% improvement). OpenMP parallelization is also introduced here to speed up.</p>
+
+<p>Generating all graphs for <span class="math-container">\$N=10\$</span> sounds unfeasible, so instead I try to expand the last step. We still try to add one node for graphs with <span class="math-container">\$9\$</span> nodes, but instead of actually generating these new graphs, we can actually count the hamilton paths in them directly!</p>
+
+<p>Consider the relationship between a hamilton path and the new node. The new node can be the first end of the path so we need to find an edge from the new node and continue the path from that node. The new node can also be the second end so we can find an edge to the new node and trace back the path starting from that node.</p>
+
+<p>Of course, the new node can be in the middle of the path. In this case, we can enumerate the two nodes in front and on the back of it. We can then enumerate the subset of nodes both halves of the path contain and then multiply them to get the result.</p>
+
+<p>Notice that the contribution is the same for every pair of nodes adjacent to the new node regardless of other edges to the new node, so we can get that precalculated for every two nodes.</p>
+
+<p>In order to get the number of paths starting and ending on each node covering a certain subset of nodes, we can use depth-first-search from each starting and ending point. (A bitmask dynamic programming could work too, but I guess it's slower)</p>
+</div>
+<div id="pu2" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, <span class="math-container">\$N=8\$</span></h1>
+
+<p>Simple brute-force. Finds <span class="math-container">\$a(8)=661\$</span> in approximately 45 seconds on my laptop. Computing <span class="math-container">\$a(9)\$</span> with this code would take several hours.</p>
+
+
+
+<pre class="lang-javascript prettyprint-override"><code>function search(n) {
+  let m = Array(n).fill(0),
+      max = 0;
+
+  function count(m) {
+    let res = 0;
+
+    for(let y = 0; y &lt; n; y++) {
+      (function path(y, visited) {
+        if((visited |= 1 &lt;&lt; y) == (1 &lt;&lt; n) - 1) {
+          res++;
+          return;
+        }
+        for(let msk = m[y] &amp; ~visited, b; msk; msk ^= b) {
+          path(31 - Math.clz32(b = msk &amp; -msk), visited);
+        }
+      })(y);
+    }
+    return res;
+  }
+
+  (function build(x, y) {
+    if(y == n - 1) {
+      max = Math.max(max, count(m));
+    }
+    else {
+      for(let j = (x == y + 1 ? 1 : 0); j &lt;= (x == n - 1 &amp;&amp; !y ? 0 : 1); j++) {
+        m[y] = m[y] &amp; ~(1 &lt;&lt; x) | j &lt;&lt; x;
+        m[x] = m[x] &amp; ~(1 &lt;&lt; y) | (j ^ 1) &lt;&lt; y;
+        x + 1 &lt; n ? build(x + 1, y) : build(y + 2, y + 1);
+      }
+    }
+  })(1, 0);
+
+  return max;
+}
+</code></pre>
+
+<p><a href="https://tio.run/##ZVNbbqNAEPz3KSpS5AwCW3b8sVIwWuUAOcEqUTDGG7wwRDwiZh1ydaea4WErSDBNdU13dQ0cw4@wjIrkvVrofB@f7@oyRlkVSVTd@edDraMqyTXKOCyiN6UdnGZAGlfIEOCxKEJDcHlI0lStHI85ubKwYXblz/g@lojyWlcqsxVsjSIuRx6ZeaEENR3GZQvNxXWHLYAaq72H1ZsyHj6SMqni/UQBkoNSPYzPAGtstzAOggCqiznEAuvLHRAlrutfAVVd6Alpx2iQmZX/KDT7Y54xx1ff0MPOl0z3wEuA3XWfTvZmTQFPjJZR@n9zr3ZSh/Q5Flycaaif7VtHmR62kNUp@gVtxcnJpF2dpHvVeDK@VUFvjDihry2wB9ZJYqh4e@N5XbWLU34ew67BiSP3qkbKGrj0@zfvB6wcn5ntkOo6Yj7HjSFhRcJaCJenC@vmZKo9r8bBp1Ri5F8wG8tsLphGmOqIF5lN3id@0ynj4bN5b4sgnTUPPSLq7z07xOh9O05P78nnWGJy7zud8mfteXBCU9LG58Kxf3EdpotyXeZpvEzzv@o1VLcn3fKDxO1p/K/aV0cKfQM" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/203179/">203179</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
