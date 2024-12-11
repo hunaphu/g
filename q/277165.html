@@ -26,20 +26,74 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>098</td><td>JavaScript Node.js</td><td>241211T004627Z</td><td><a href="https://codegolf.stackexchange.com/questions/277165/find-all-unique-quintuplets-in-an-array-that-sum-to-a-given-target/277171#277171">l4m2</a></td></tr>
-<tr d-ix="1"><td>011</td><td>Uiua</td><td>241210T232939Z</td><td><a href="https://codegolf.stackexchange.com/questions/277165/find-all-unique-quintuplets-in-an-array-that-sum-to-a-given-target/277170#277170">nyxbird</a></td></tr>
-<tr d-ix="2"><td>008</td><td>Vyxal</td><td>241210T222948Z</td><td><a href="https://codegolf.stackexchange.com/questions/277165/find-all-unique-quintuplets-in-an-array-that-sum-to-a-given-target/277168#277168">lyxal</a></td></tr>
-<tr d-ix="3"><td>011</td><td>Japt</td><td>241210T214951Z</td><td><a href="https://codegolf.stackexchange.com/questions/277165/find-all-unique-quintuplets-in-an-array-that-sum-to-a-given-target/277166#277166">Shaggy</a></td></tr>
-<tr d-ix="4"><td>020</td><td>Vyxal</td><td>241210T220058Z</td><td><a href="https://codegolf.stackexchange.com/questions/277165/find-all-unique-quintuplets-in-an-array-that-sum-to-a-given-target/277167#277167">ATaco</a></td></tr>
+<tr d-ix="0"><td>755</td><td>Python 3</td><td>241211T012134Z</td><td><a href="https://codegolf.stackexchange.com/questions/277165/find-all-unique-quintuplets-in-an-array-that-sum-to-a-given-target/277172#277172">CrSb0001</a></td></tr>
+<tr d-ix="1"><td>098</td><td>JavaScript Node.js</td><td>241211T004627Z</td><td><a href="https://codegolf.stackexchange.com/questions/277165/find-all-unique-quintuplets-in-an-array-that-sum-to-a-given-target/277171#277171">l4m2</a></td></tr>
+<tr d-ix="2"><td>011</td><td>Uiua</td><td>241210T232939Z</td><td><a href="https://codegolf.stackexchange.com/questions/277165/find-all-unique-quintuplets-in-an-array-that-sum-to-a-given-target/277170#277170">nyxbird</a></td></tr>
+<tr d-ix="3"><td>008</td><td>Vyxal</td><td>241210T222948Z</td><td><a href="https://codegolf.stackexchange.com/questions/277165/find-all-unique-quintuplets-in-an-array-that-sum-to-a-given-target/277168#277168">lyxal</a></td></tr>
+<tr d-ix="4"><td>011</td><td>Japt</td><td>241210T214951Z</td><td><a href="https://codegolf.stackexchange.com/questions/277165/find-all-unique-quintuplets-in-an-array-that-sum-to-a-given-target/277166#277166">Shaggy</a></td></tr>
+<tr d-ix="5"><td>020</td><td>Vyxal</td><td>241210T220058Z</td><td><a href="https://codegolf.stackexchange.com/questions/277165/find-all-unique-quintuplets-in-an-array-that-sum-to-a-given-target/277167#277167">ATaco</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 98 bytes</h1>
+<div id="pu0" class="pu"><h1>Python 3, 755 bytes</h1>
+<pre class="lang-python prettyprint-override"><code>def fiveSum (nums,target):
+    nums.sort()
+    s=[]
+    for i in range(len(nums)-4):
+        if i&gt;0 and nums[i]==nums[i-1]:
+            continue
+        for j in range(i+1,len(nums)-3):
+            for k in range(j+1,len(nums)-2):
+                l,m=k+1,len(nums)-1
+                while l&lt;m:
+                    a=nums[i]+nums[j]+nums[k]+nums[l]+nums[m]
+                    if a&lt;target:
+                        l+=1
+                    elif a&gt;target:
+                        m-=1
+                    else:
+                        s.append((nums[i],nums[j],nums[k],nums[l],nums[m]))
+                        l+=1
+                        while nums[l]==nums[l-1] and l&lt;m:
+                            l+=1
+    k=[]
+    for b in list(set(s)):
+        k.append(list(b))
+    return k
+</code></pre>
+<p>Explanation:</p>
+<pre class="lang-python prettyprint-override"><code>def fiveSum (nums,target):
+    nums.sort()                                                             # does NOT return all 4 solutions for the last case if removed, unsure why
+    s=[]                                                                    # ^ (only returns two/four arrays)
+    for i in range(len(nums)-4):                                            # i &lt; j &lt; k &lt; l &lt; m
+        if i&gt;0 and nums[i]==nums[i-1]:                                      # later loops will cover all of the
+            continue                                                        # other cases, so no need to recurse through them again
+        for j in range(i+1,len(nums)-3):                                    # for j in range
+            for k in range(j+1,len(nums)-2):                                # for k in range
+                l,m=k+1,len(nums)-1                                         # No more &quot;_ in range&quot; needed anymore
+                while l&lt;m:                                                  # i &lt; j &lt; k &lt; l &lt; m
+                    a=nums[i]+nums[j]+nums[k]+nums[l]+nums[m]               # The sum
+                    if a&lt;target:                                            # check if nums[0]+nums[1]+...+nums[4] == target
+                        l+=1                                                # it probably doesn't, so increment l by 1
+                    elif a&gt;target:                                          # if overshoot
+                        m-=1                                                # if it does, decrement m by 1
+                    else:
+                        s.append((nums[i],nums[j],nums[k],nums[l],nums[m])) # append to list
+                        l+=1
+                        while nums[l]==nums[l-1] and l&lt;m:                   # More incrementation! (Yay?)
+                            l+=1
+    k=[]                                                                    # The final list
+    for b in list(set(s)):
+        k.append(list(b))
+    return k                                                                # return List[List[str]]
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 98 bytes</h1>
 
 <pre class="lang-none prettyprint-override"><code>f=(x,s,i=R={},...n)=&gt;1/n[R[n.sort()]||4]?s?[]:[R[n]=n]:x.flatMap((e,j)=&gt;i&lt;=j?[]:f(x,s-e,j,...n,e))
 </code></pre>
 <p><a href="https://tio.run/##HYxBCsMgEAC/o7DaGtIeQm1e0Euu4kFSLUpYQ5QSaPp2q70OMxPM26R582tmGJ@2FCfJDgm8nOTnC5xzpPIuTqgmhTzFLROqj6PXYxqVHhrVEvWwc7eY/DArIRZCTfxNhma4tmOV/V9gKS1zxBQXy5f4Io4odgHWA@vgDAI6uGoQVfoB" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
 <p>Dedup</p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://uiua.org" rel="nofollow noreferrer">Uiua</a>, 11 bytes</h1>
+<div id="pu2" class="pu"><h1><a href="https://uiua.org" rel="nofollow noreferrer">Uiua</a>, 11 bytes</h1>
 <pre><code>◴▽=⤚≡/+⧅&lt;5⍆
 </code></pre>
 <p><a href="https://www.uiua.org/pad?src=0_14_0-dev_7__IyBFeHBlcmltZW50YWwhCmYg4oaQIOKXtOKWvT3ipJriiaEvK-KnhTw14o2GCmZbwq81IMKvMiDCrzIgMSAzIDQgNl0gMApmW8KvNSDCrzQgwq8yIDAgMSAyIDZdIDEKZlswIMKvMSAyIDNdIDQKZlswIDEgwq85IDYgN10gNgpmWzAgMSA5IDkgNV0gNDUKZlsxIDQgNiA5IMKvNF0gMTYKZlsxIDAgOSA2IDUgMF0gMjEKZlsxIDAgOSA2IDUgNCA3XSAyMQpmWzEgMCA5IDYgNSA0IDQgN10gMjEK" rel="nofollow noreferrer">Try it!</a></p>
@@ -50,7 +104,7 @@
 ◴             # and deduplicate
 </code></pre>
 </div>
-<div id="pu2" class="pu"><h1><a href="https://github.com/Vyxal/Vyxal/tree/version-2" rel="nofollow noreferrer">Vyxal</a>, 8 bytes</h1>
+<div id="pu3" class="pu"><h1><a href="https://github.com/Vyxal/Vyxal/tree/version-2" rel="nofollow noreferrer">Vyxal</a>, 8 bytes</h1>
 <pre><code>s5ḋU'∑⁰=
 </code></pre>
 <p><a href="https://vyxal.pythonanywhere.com/?v=2&amp;c=1#WyIiLCIiLCJzNeG4i1Un4oiR4oGwPSIsIiIsIlsxLDAsOSw2LDUsNCw3XVxuMjEiXQ==" rel="nofollow noreferrer">Try it Online!</a></p>
@@ -68,7 +122,7 @@ s         # ‎⁡Sort the input. This helps with uniquification later
 </code></pre>
 <p>Created with the help of <a href="https://vyxal.github.io/Luminespire" rel="nofollow noreferrer">Luminespire</a>.</p>
 </div>
-<div id="pu3" class="pu"><h1><a href="https://github.com/ETHproductions/japt" rel="nofollow noreferrer">Japt</a>, 11 <a href="https://en.wikipedia.org/wiki/ISO/IEC_8859-1" rel="nofollow noreferrer">bytes</a></h1>
+<div id="pu4" class="pu"><h1><a href="https://github.com/ETHproductions/japt" rel="nofollow noreferrer">Japt</a>, 11 <a href="https://en.wikipedia.org/wiki/ISO/IEC_8859-1" rel="nofollow noreferrer">bytes</a></h1>
 <p>Outputs an empty array if no solution is possible.</p>
 <pre><code>à5 â fÈx ¶V
 </code></pre>
@@ -82,7 +136,7 @@ s         # ‎⁡Sort the input. This helps with uniquification later
          ¶V     :  Equal to V?
 </code></pre>
 </div>
-<div id="pu4" class="pu"><h1><a href="https://github.com/Vyxal/Vyxal/tree/version-2" rel="nofollow noreferrer">Vyxal</a>, 20 bytes</h1>
+<div id="pu5" class="pu"><h1><a href="https://github.com/Vyxal/Vyxal/tree/version-2" rel="nofollow noreferrer">Vyxal</a>, 20 bytes</h1>
 <pre><code>→tṖƛ5Þİ_;'∑←t=;λsS;ε
 </code></pre>
 <p>First Vyxal submission 🎉
