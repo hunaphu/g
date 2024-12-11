@@ -26,11 +26,52 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>044</td><td>Charcoal</td><td>241210T192243Z</td><td><a href="https://codegolf.stackexchange.com/questions/277137/implement-any-rotation-invariant-function-on-colored-dodecahedrons/277163#277163">Neil</a></td></tr>
-<tr d-ix="1"><td>982</td><td>JavaScript Node.js</td><td>241210T031004Z</td><td><a href="https://codegolf.stackexchange.com/questions/277137/implement-any-rotation-invariant-function-on-colored-dodecahedrons/277138#277138">l4m2</a></td></tr>
-<tr d-ix="2"><td>322</td><td>Ruby</td><td>241210T152157Z</td><td><a href="https://codegolf.stackexchange.com/questions/277137/implement-any-rotation-invariant-function-on-colored-dodecahedrons/277155#277155">Level Ri</a></td></tr>
+<tr d-ix="0"><td>992</td><td>Ruby</td><td>241210T152157Z</td><td><a href="https://codegolf.stackexchange.com/questions/277137/implement-any-rotation-invariant-function-on-colored-dodecahedrons/277155#277155">Level Ri</a></td></tr>
+<tr d-ix="1"><td>044</td><td>Charcoal</td><td>241210T192243Z</td><td><a href="https://codegolf.stackexchange.com/questions/277137/implement-any-rotation-invariant-function-on-colored-dodecahedrons/277163#277163">Neil</a></td></tr>
+<tr d-ix="2"><td>982</td><td>JavaScript Node.js</td><td>241210T031004Z</td><td><a href="https://codegolf.stackexchange.com/questions/277137/implement-any-rotation-invariant-function-on-colored-dodecahedrons/277138#277138">l4m2</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 44 bytes, 2 outputs</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a>, 99 bytes + 2 possible outputs</h1>
+
+<pre class="lang-none prettyprint-override"><code>-&gt;n{z=1
+30.times{|i|j=&quot;2%+@kgvv=#&quot;[i%10].ord
+z&amp;&amp;=n!=((65|1&lt;&lt;j/12|1&lt;&lt;j%12)*4097&gt;&gt;i%3*4+i%2)&amp;4095}
+z}
+</code></pre>
+<p><a href="https://tio.run/##RY1LDoIwFAD3PQViSvgotuVjTPqI9yAsSgTzMKIBJbGUs1fixtVkZjPDu/7YFuy@6GcNnCQsfuG9GWeDpgNX0Oh8u04TbN0SKWdV/BguRHse9Bvw/TwzXMruwMWPlIsgTNnpWBRIkzCNkIrAW0O2EL1YBWVFVsv/i7bEyhglJS7k6ah4RN3sHGW/" rel="nofollow noreferrer" title="Ruby – Try It Online">Try it online!</a></p>
+<p>Revised answer based on criteria without reflectional symmetry. If the  input corresponds to a set of four <code>1</code> bits on the faces of the dodecahedron arranged in a Z pattern, returns false. Otherwise returns 1, a truthy value.</p>
+<p>The Z pattern has 2 fold rotational symmetry, therefore there are only 30 possible orientations of this pattern on the dodecahedron, and hence 30 possible combinations in the input that return falsy. If we were to test for each oriantation separately, then for each orientation of the Z pattern, there would be a 2-fold rotation of the inputs that leaves the output unchanged. Hence there are 60 possible rotations of the inputs that leave the output unchanged.</p>
+<p>Explanation and golfing to follow</p>
+<h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a>, 32 bytes + 2 possible outputs, Invalid</h1>
+<p>The test used in this answer has reflectional symmetry and will therefore give the same output for a reflection of the inputs. Hence it is not valid.</p>
+
+<pre class="lang-none prettyprint-override"><code>-&gt;n{n&amp;n*64&gt;0&amp;&amp;(&quot;%b&quot;%n).sum%48&gt;2}
+</code></pre>
+<p><a href="https://tio.run/##KypNqvyfZvtf1y6vOk8tT8vMxM5ATU1DSTVJSTVPU6@4NFfVxMLOqPZ/hq0xV6JtdCyXiYGlmV5JZm5qcXVNZk1adGYsTH0mTL2tbYaaWqKNTWYtV4FCol5xZlWqjkLifwA" rel="nofollow noreferrer" title="Ruby – Try It Online">Try it online!</a></p>
+<p>A function taking a 12-bit binary number as input and returning a boolean</p>
+<p>Similar to l4m2's answer, this checks for a particular configuration of 1's on three faces, however a different set of three faces is used: an opposite pair of faces, plus one additional face. Any system of face labelling in which opposite faces have indices 6 apart will do. An example face labelling which I used in a previous challenge is given at the bottom of this answer.</p>
+<p>There are 6 ways of choosing a pair of opposite faces, and after that there are 10 ways of choosing the 3rd face, showing that this configuration has 60 possible orientations corresponding to 60 rotations. It has a plane of symmetry (note that configurations without a plane of symmetry have 120 possible orientations if reflections are included.)</p>
+<p>The code first checks if a pair of opposite faces have 1's</p>
+<pre class="lang-none prettyprint-override"><code>n&amp;n*64&gt;0
+</code></pre>
+<p>It then converts the number to a binary representation in text and checks if more than 2 bits are set by summing the ascii values and taking the result mod 48</p>
+<pre class="lang-none prettyprint-override"><code>(&quot;%b&quot;%n).sum%48&gt;2
+</code></pre>
+<p>The TIO link shows that there 60 possible inputs with exactly three <code>1</code> bits set that return <code>true</code>. The code as written will return true if additional faces with <code>1</code> bits are present, provided the minimum configuration is met. For cases with more than three <code>1</code> bits analysis becomes complicated as there may be several configurations with different symmetry classes that return <code>true</code>. For an additional byte, <code>&gt;2</code> can be changed to <code>==3</code> and the code will then only return <code>true</code> for the 60 inputs that contain exactly the specified configuration of three faces. Another possibility is to change it to <code>&lt;4</code>. This version gives <code>true</code> in 66 cases (the additional 6 being cases where only a pair of opposite faces are selected.)</p>
+<p>See below one possible system of face labelling in which opposite faces have indices 6 apart. This particular system also has a 6 fold symmetry which made it useful for my answer to <a href="https://codegolf.stackexchange.com/a/273833/15599">this Steiner system question</a></p>
+<pre class="lang-none prettyprint-override"><code>   *       *       *
+  / \     / \     / \
+ *   * * *   * * *   * *   
+ |11 |/ \| 7 |/ \| 3 |/ \
+ *---*   *---*   *---*   *
+ |10 | 8 | 6 | 4 | 2 | 0 |
+ *   *---*   *---*   *---*
+  \ /| 9 |\ /| 5 |\ /| 1 |
+   * *   * * *   * * *   *
+      \ /     \ /     \ / 
+       *       *       *
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 44 bytes, 2 outputs</h1>
 <pre><code>⊞υθＦυＦＥ⪪”&amp;＆L+gχa⟧«～¤j⧴”¹²⭆κ§ι℅μＦ¬№υκ⊞υκ⌊…⌈υ⁴
 </code></pre>
 <p><a href="https://tio.run/##NY5BCsMgFET3PYV09QULTekuq5JVF2kDOYHRJBqNplZLenqrCR0@fBiYmccEdcxSHWMT3gICQS9cHgbrEASMtl/TBdpFSw/HjvFeUyEnNYx8kL1mdFLdKI4EFRdMUOudNGMOKIJu/m54v4Ik6Om4NFTDjLP22of1UNlgfB5V2f4TqETQpCIPtTRyDjNUX6b7StglwaybE9LaNYXKGM9JxX5FPH30Dw" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code. Takes input as a string of 12 <code>0</code>s and <code>1</code>s. Explanation:</p>
@@ -59,7 +100,7 @@
        *       *       *
 </code></pre>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 98 bytes + 2 possible outputs</h1>
+<div id="pu2" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 98 bytes + 2 possible outputs</h1>
 <p>Now incorrect. Waiting for a non-mirror color pattern</p>
 
 <pre class="lang-none prettyprint-override"><code>f=(x,i=0,g=s=&gt;f([...s+90].map(c=&gt;x['0x'+c-0]),i))=&gt;x&gt;'1,1,1,1'||++i&lt;9&amp;&amp;g`1728a5b643`|g`4a1b532786`
@@ -68,35 +109,6 @@
 <p>Detects if some rotation cover [0,1,2]</p>
 <p><a href="https://i.sstatic.net/YvB1HFx7.png" rel="nofollow noreferrer"><img src="https://i.sstatic.net/YvB1HFx7.png" alt="enter image description here" /></a></p>
 <p>Image outdated but 2&lt;-&gt;7, 3&lt;-&gt;6</p>
-</div>
-<div id="pu2" class="pu"><h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a>, 32 bytes + 2 possible outputs</h1>
-
-<pre class="lang-none prettyprint-override"><code>-&gt;n{n&amp;n*64&gt;0&amp;&amp;(&quot;%b&quot;%n).sum%48&gt;2}
-</code></pre>
-<p><a href="https://tio.run/##KypNqvyfZvtf1y6vOk8tT8vMxM5ATU1DSTVJSTVPU6@4NFfVxMLOqPZ/hq0xV6JtdCyXiYGlmV5JZm5qcXVNZk1adGYsTH0mTL2tbYaaWqKNTWYtV4FCol5xZlWqjkLifwA" rel="nofollow noreferrer" title="Ruby – Try It Online">Try it online!</a></p>
-<p>A function taking a 12-bit binary number as input and returning a boolean</p>
-<p>Similar to l4m2's answer, this checks for a particular configuration of 1's on three faces, however a different set of three faces is used: an opposite pair of faces, plus one additional face. Any system of face labelling in which opposite faces have indices 6 apart will do. An example face labelling which I used in a previous challenge is given at the bottom of this answer.</p>
-<p>There are 6 ways of choosing a pair of opposite faces, and after that there are 10 ways of choosing the 3rd face, showing that this configuration has 60 possible orientations corresponding to 60 rotations. It has a plane of symmetry (note that configurations without a plane of symmetry have 120 possible orientations if reflections are included.)</p>
-<p>The code first checks if a pair of opposite faces have 1's</p>
-<pre class="lang-none prettyprint-override"><code>n&amp;n*64&gt;0
-</code></pre>
-<p>It then converts the number to a binary representation in text and checks if more than 2 bits are set by summing the ascii values and taking the result mod 48</p>
-<pre class="lang-none prettyprint-override"><code>(&quot;%b&quot;%n).sum%48&gt;2
-</code></pre>
-<p>The TIO link shows that there 60 possible inputs with exactly three <code>1</code> bits set that return <code>true</code>. The code as written will return true if additional faces with <code>1</code> bits are present, provided the minimum configuration is met. For cases with more than three <code>1</code> bits analysis becomes complicated as there may be several configurations with different symmetry classes that return <code>true</code>. For an additional byte, <code>&gt;2</code> can be changed to <code>==3</code> and the code will then only return <code>true</code> for the 60 inputs that contain exactly the specified configuration of three faces. Another possibility is to change it to <code>&lt;4</code>. This version gives <code>true</code> in 66 cases (the additional 6 being cases where only a pair of opposite faces are selected.)</p>
-<p>See below one possible system of face labelling in which opposite faces have indices 6 apart. This particular system also has a 6 fold symmetry which made it useful for my answer to <a href="https://codegolf.stackexchange.com/a/273833/15599">this Steiner system question</a></p>
-<pre class="lang-none prettyprint-override"><code>   *       *       *
-  / \     / \     / \
- *   * * *   * * *   * *   
- |11 |/ \| 7 |/ \| 3 |/ \
- *---*   *---*   *---*   *
- |10 | 8 | 6 | 4 | 2 | 0 |
- *   *---*   *---*   *---*
-  \ /| 9 |\ /| 5 |\ /| 1 |
-   * *   * * *   * * *   *
-      \ /     \ /     \ / 
-       *       *       *
-</code></pre>
 </div>
 
 <table id="st">
