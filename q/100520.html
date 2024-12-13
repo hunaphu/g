@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::100520</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>nan</td><td></td><td>241213T085645Z</td><td><a href="https://codegolf.stackexchange.com/questions/100520/comment-free-polyglot-with-different-nontrivial-behaviour-per-language/277234#277234">پخش تزیی</a></td></tr>
+<tr d-ix="1"><td>005</td><td>Perl + Lua + JavaScript Rhino + Ruby + Python 3</td><td>161121T063355Z</td><td><a href="https://codegolf.stackexchange.com/questions/100520/comment-free-polyglot-with-different-nontrivial-behaviour-per-language/100600#100600">user6213</a></td></tr>
+</table>
+<div id="pu0" class="pu"><p><strong>ارتودنسی متحرک | دکتر علی ممتازی</strong>
+<a href="https://drmomtazi.com/services/beauty-services/orthodontics-movable/" rel="nofollow noreferrer">https://drmomtazi.com/services/beauty-services/orthodontics-movable/</a></p>
+</div>
+<div id="pu1" class="pu"><h1>Perl + Lua + JavaScript (Rhino) + Ruby + Python (3), 5 languages</h1>
+
+<pre>
+m=[[']|^$=;eval($n=q@sub t {(chr 39)=~//&&"["=~//&&0!~//||die; 690 == length $n.$_[0][0][0] and print "Perl: A004442$/1$/"; print 1^++$.,$/ while 1;}@);t([ [q 9)',
+    ']] n=[[function t(p) if #(m..n..p)-1==688 then print("Lua: A000045") a=1 b=1 while true do print(a) print(b) a=a+b b=b+a end end end]] loadstring(n)() t([['],
+   '\x3044',
+   'if((""+m).length == 640) print("JavaScript: A000217"); for(i=1;;i++)print(i*(i+1)/2)',
+   'm.inspect.length == 700 and print("Ruby: A000027\n"); $i=0; print(++$i, "\n") while $i=$i+1',
+   'exec(m[5])',
+   'print("Python: A000012" if len(repr(m)) == 676 else ""); exec(m[6])',
+   'while True: print(1)',
+   'eval(m[eval(m[1][2])])',
+   'eval(m[([22]+[7])[1] ])',
+   8];eval(m[m[9]])
+</pre>
+
+<p>I used Rhino, an offline (non-browser-dependent) JavaScript implementation, because it makes local testing easier; it produces output using <code>print</code> instead of <code>alert</code>. You can change each occurrence of <code>print</code> to <code>alert</code> in the fourth line to get a program that will work in a browser.</p>
+
+<p>This program uses the technique of storing most of the strings used for the various languages in data structures and <code>eval</code>uating them. We can determine if a character was deleted via checking the size of the resulting structure. That might sound easy, but it's surprisingly hard to ensure that for each language, every character of the program is either inside a string somewhere or else will break the syntax if deleted.</p>
+
+<p>The program works in three different ways, depending on what language is in use.</p>
+
+<h2>Lua</h2>
+
+<p>The Lua interpretation of the program is one of the simplest and shows off the general techniques in use, so it's a good place to start. Because <code>[[...]]</code> is a string literal in Lua, the program parses like this:</p>
+
+<pre><code>m=[[...]] n=[[...]] loadstring(n)() t([[...]])
+</code></pre>
+
+<p>Here, <code>m</code> and the argument to <code>t()</code> are used to capture the parts of the program used by "other languages" in order to check them for modification; <code>n</code> contains the majority of the Lua code (it defines a function <code>t</code> when evaluated via <code>loadstring</code>). It should be fairly obvious that every byte that isn't inside a string literal will break the program if deleted; deleting one of <code>=()[]</code>, the first use of <code>m</code> and <code>n</code>, or the final <code>t</code> will cause a syntax error; and deleting the argument to <code>loadstring</code>, or corrupting the name of the function itself, will make it impossible for the program to do anything useful as the content of <code>n</code> is never run. (Note that the trick of defining and then calling a function allows us to read the rest of the program "from the left", meaning that we don't need to write any Lua code physically to the right of the final <code>]])</code> in order to continue executing Lua after the entire program has been read.)</p>
+
+<p>The implementation of <code>t</code> is fairly simple; it checks to ensure that <code>m</code>, <code>n</code> and <code>p</code> have the expected total length, then prints out the required information (the language's name, sequence number, and the Fibonacci sequence). One slight subtlety here is that I subtract 1 from the length and compare it to 688, rather than comparing to 689 directly; this is to avoid putting a literal <code>9</code> digit in the source code (the reason for this will become clear later).</p>
+
+<h2>JavaScript, Ruby, Python</h2>
+
+<p>All three of these languages parse the program the same way: as a definition of a nested data structure <code>m</code>, followed by <code>eval(m[m[9]])</code>. The definition of <code>m</code> looks like this:</p>
+
+<pre><code>m=[['...','...'],'...','...','...','...','...','...','...','...',8];
+</code></pre>
+
+<p>In other words, <code>m</code> is a nested list here, and we can index it to get at various strings within the list. The <code>eval(m[m[9]])</code> check ensures that <code>m</code> has the expected number of elements; the program will therefore do nothing useful if one of the commas gets deleted (other than the first), even if the language can parse it. This ensures that all the strings from <code>m[1]</code> onwards are either intact or have one character deleted. We can observe that deleting any character outside a string literal here will break the program; without the initial <code>m</code> or an intact <code>eval</code> it can't run anything, without the <code>=</code> or <code>;</code> or a parenthesis or square bracket it won't parse, deleting an apostrophe will cause an unterminated string (all the apostrophes in the program are used as string delimiters and none are escaped), and it won't find the right string to run without the final <code>m</code>s and <code>9</code> intact.</p>
+
+<p>Assuming that everything is fine except for possibly the contents of the strings inside <code>m</code>, we then try to determine which entry to run. This uses fragments of code that are written in the common subset of the languages' <em>syntaxes</em>, but have different <em>meanings</em> in the languages in question. To distinguish between JavaScript and the other languages, we run <code>([22]+[7])[1]</code>; this collapses to <code>[22, 7][1]</code> (i.e. <code>7</code>) in Ruby and Python, but <code>"227"[1]</code> (i.e. <code>"2"</code>, which JavaScript is happy to treat as <code>2</code> for the purpose of list indexing) in JavaScript. Then to distinguish between Ruby and Python, we take the third character of the string <code>'\x3044'</code>; Python expands <code>\x</code> escapes in both <code>''</code> and <code>""</code> strings, thus seeing this as <code>4</code>, whereas Ruby does not expand escapes in strings if they're delimited using <code>''</code>, and thus sees the third character as <code>3</code>. (We convert these strings to integers in a portable way by using <code>eval</code> yet again. It's not a recommended method of converting a string to an integer, but it does work in more languages than most other methods do.)</p>
+
+<p>This means that a different string gets executed in each language, so we can start using language-specific syntax. All three programs basically do the same thing; they convert the entire data structure <code>m</code> to a string, measure its length, and compare it to an expected value. If it's wrong, they refuse to print the language name and sequence number, thus failing to comply with the spec (as required). Then they print an appropriate sequence. Ruby prints the consecutive integers, whereas JavaScript prints the triangular numbers (this is mostly because I'm more experienced with Java than I am with Ruby). Python is a bit more complex, because <code>eval</code> in Python only runs expressions, and you need <code>exec</code> for statements; additionally, Python isn't hugely fond of semicolons, and thus I needed to split the Python program over two <code>exec</code>s to make it work. Because I'm not very experienced at Python one-liners, I chose to print the sequence of all-1s; boring, I know, but based on the tiebreak we've selected I wanted to get this submitted.</p>
+
+<h2>Perl</h2>
+
+<p>Saving the best for last. People who have any experience with Perl will know that variable names have to start with a punctuation mark (with <code>$</code> being by far the most common; other names are used for special cases like lists and dictionaries). Some of the languages I'm using don't like dollars in variable names (Ruby is OK with it, but one other language besides Perl isn't so useful…), which means that I can't start the program with a variable assignment. What Perl <em>does</em> have is a fairly wide range of interesting quoting operators, so it would be trivial to hide the start of the program from Perl by capturing it in a string literal with <code>q= ... =</code> (which is one of the many, many ways to write a string in Perl). However, hiding the text from Perl is something we can't do; in order to make the quine comment-free, we need to be able to see everything!</p>
+
+<p>The obvious approach is to read the string entirely from the right, but I couldn't think of a way to do that while writing the program, so I had to take a different approach. It's possible to match a regex against <code>$_</code> (Perl's "variable used by default") via writing the regex as an expression by itself; something like <code>/:(.):/</code> would look for a character between two colons in <code>$_</code> and store it in <code>$1</code>. We can change the quote marks used for regexes by preceding the first with <code>m</code>; thus, as our program starts with <code>m=[[']|^$=</code>, Perl will parse this as <code>/[[']|^$/</code>. Matching that regex against <code>$_</code> might seem fairly useless; however, Perl has a convenience feature that allows the use of the notation <code>//</code> to repeat the last successfully matched regex. It matches (<code>$_</code> is the empty string, thus it matches the <code>^$</code> branch of the regex), meaning that we can determine if any characters got deleted from the regex by testing it on various strings to see if it matches! Some characters being deleted from the regex (such as the <code>]</code>) will cause a parse failure. For the others, we match it against <code>chr 39</code> (i.e. an apostrophe, written as a character code so as not to alarm Python), against <code>"["</code>, and against <code>0</code> (which Perl stringifies to <code>"0"</code>, expecting two matches and a non-match:</p>
+
+<ul>
+<li>If the <code>|</code> is deleted, the original regex won't match, and thus the <code>//</code> will match anything.</li>
+<li>Conversely, if the <code>^</code> or <code>$</code> is deleted, the original regex will match, but it still matches anything (as all strings have a start and and end, just not necessarily both together).</li>
+<li>If either <code>[</code> is deleted, the regex won't match <code>"["</code>.</li>
+<li>If the <code>'</code> is deleted, the regex won't match <code>'</code>.</li>
+</ul>
+
+<p>Apart from the regex experimentation, everything works much the same way as in Lua. The program is arranged slightly differently:</p>
+
+<pre><code>m= ... =;eval($n=q@ ... @);t([ [q 9 ... 9]])
+</code></pre>
+
+<p>but it still comes down to basically the same thing (just with weirder quote marks; <code>q</code> can make basically anything into a quote mark, including in this case the digit <code>9</code>, which is why we couldn't use it in the rest of the program). Likewise, deleting any of these characters will break the parse for the same reason it does in the corresponding Lua. The code that's assigned to <code>$n</code> (and evaluated) defines <code>t</code> to ensure that the regex is intact, then check to ensure that <code>$n</code> and its own argument are intact, then print the required output (I chose sequence A004442 this time, because I was feeling a bit quirky and creative). Note that we can safely use a 9 in <code>690</code>, the expected total lengths of <code>$n</code> and <code>$_[0][0][0]</code> ("the first element of the first element of the first argument"), as it appears to the left of the <code>q 9</code> open-quote in the program.</p>
+
+<h2>Extensions?</h2>
+
+<p>I think this program is close to its limit in terms of languages. You'd either need to find a new creative way to quote strings that doesn't clash with the existing constructions, or else to find another language with syntax close enough to JavaScript/Ruby/Python that the define-lists-and-<code>eval</code> trick works. (I tried looking into esolangs, but they tend to be worse with respect to string literals than more exoteric languages do, and the rules against reading the source make it hard to cheat with them.)</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/100520/">100520</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
