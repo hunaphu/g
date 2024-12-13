@@ -26,11 +26,69 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>080</td><td>Python 3 + SymPy</td><td>241213T074721Z</td><td><a href="https://codegolf.stackexchange.com/questions/277229/interval-placement/277232#277232">tsh</a></td></tr>
-<tr d-ix="1"><td>024</td><td>Charcoal</td><td>241213T091100Z</td><td><a href="https://codegolf.stackexchange.com/questions/277229/interval-placement/277235#277235">Neil</a></td></tr>
-<tr d-ix="2"><td>050</td><td>Retina 0.8.2</td><td>241213T063214Z</td><td><a href="https://codegolf.stackexchange.com/questions/277229/interval-placement/277230#277230">Neil</a></td></tr>
+<tr d-ix="0"><td>017</td><td>05AB1E</td><td>241213T080739Z</td><td><a href="https://codegolf.stackexchange.com/questions/277229/interval-placement/277233#277233">Kevin Cr</a></td></tr>
+<tr d-ix="1"><td>080</td><td>Python 3 + SymPy</td><td>241213T074721Z</td><td><a href="https://codegolf.stackexchange.com/questions/277229/interval-placement/277232#277232">tsh</a></td></tr>
+<tr d-ix="2"><td>024</td><td>Charcoal</td><td>241213T091100Z</td><td><a href="https://codegolf.stackexchange.com/questions/277229/interval-placement/277235#277235">Neil</a></td></tr>
+<tr d-ix="3"><td>050</td><td>Retina 0.8.2</td><td>241213T063214Z</td><td><a href="https://codegolf.stackexchange.com/questions/277229/interval-placement/277230#277230">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a> + <a href="https://www.sympy.org/en/index.html" rel="nofollow noreferrer">SymPy</a>, 80 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, 17 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
+<pre><code>ÆD`‹sËIËI`ßs_~~*~
+</code></pre>
+<p>Two separated inputs: the first is a pair of reversed pairs of integers. And the second is a pair of pairs of bits (in either order), where <code>1</code> indicates inclusive and <code>0</code> indicates exclusive (e.g. <code>(8,9], [1,2)</code> would have inputs <code>[[9,8],[2,1]]</code> and <code>[&quot;01&quot;,&quot;10&quot;]</code>/<code>[&quot;10&quot;,&quot;01&quot;]</code>).</p>
+<p><a href="https://tio.run/##yy9OTMpM/f//cJtLwqOGncWHuz2BKOHw/OL4ujqtuv//o6MtdSxidaKNdAxjY7milQwNlHSUDAyVYgE" rel="nofollow noreferrer">Try it online</a> or <a href="https://tio.run/##yy9OTMpM/V9TphRQlFpSUqlbUJSZV5KaopCZV1BaYqWgZF@pw6XkmFxSmpiDJKZ3aOHRfaXFh5fWJhzed3i90eEth9e62CspJOalAKWLQXLZJg5AYa/Da21DuZT8S0ugWv8fbnNJeNSws/hwdwQQJRyeXxxfV6dV91/n0Db7/9GGOkaxOgpAyjiWC8rRAHI0YZxoCx1LoAyQ1AQrM9LkAsqDOGAKpMwEpMxYxzSWSwOkGK7MHK4HboAGmINQZqwJAA" rel="nofollow noreferrer">verify all test cases</a>.</p>
+<p>Inspired by <a href="https://codegolf.stackexchange.com/a/277230/52210"><em>@Neil</em>'s Retina answer</a>, so make sure to upvote that answer as well!</p>
+<p><strong>Explanation:</strong></p>
+<p>In pseudo-code:</p>
+<ol>
+<li>Get the amount of items in both ranges if we would parse it as a regular <code>[a,b)</code>-range (inclusive start, exclusive end).</li>
+<li>The result is now truthy if any of these four options is truthy:
+<ol>
+<li>The amount of items of the second range is larger than the first</li>
+<li>OR the amount of items are the same, and the inclusiveness/exclusiveness of both ranges are matching (e.g. <code>(a,b),(c,d)</code> / <code>(a,b],(c,d]</code> / <code>[a,b),[c,d)</code> / <code>[a,b],[c,d]</code>)</li>
+<li>OR the amount of items are the same, and the second range is inclusive on both ends (e.g. <code>(a,b),[c,d]</code> / <code>(a,b],[c,d]</code> / <code>[a,b),[c,d]</code> / <code>[a,b],[c,d]</code>)</li>
+<li>OR the amount of items are the same, and the first range is exclusive on both ends (e.g. <code>(a,b),(c,d)</code> / <code>(a,b),(c,d]</code> / <code>(a,b),[c,d)</code> / <code>(a,b),[c,d]</code>)</li>
+</ol>
+</li>
+</ol>
+
+<pre class="lang-none prettyprint-override"><code>Æ          # Reduce the inner pairs of the first (implicit) input by subtracting
+           #  e.g. [[9,8],[2,1]] → [1,1]
+ D`‹       # Option 1:
+ D         #  Duplicate it
+  `        #  Pop and push both values separated to the stack
+           #   → 1,1
+   ‹       #  Check if the second is larger than the first
+           #   → 0 (falsey)
+ s         # Swap so the duplicated pair is at the top again
+  Ë        # Check if both integers in this pair are the same
+           #  → 1 (truthy)
+   IË      # Option 2:
+   I       #  Push the second input-pair of bit-strings
+    Ë      #  Check if both are the same
+           #   e.g. [&quot;01&quot;,&quot;10&quot;] → 0 (falsey)
+   I`ß     # Option 3:
+   I       #  Push the second input-pair of bit-strings again
+    `      #  Pop and push both separated to the stack
+           #   → &quot;01&quot;,&quot;10&quot;
+     ß     #  Pop the second one, and push its minimum
+           #  (1 if it was 11; 0 if it was 00/01/10)
+           #   &quot;10&quot; → 0 (falsey)
+    s_     # Option 4:
+    s      #  Swap so the first one is at the top now
+     _     #  Pop and check whether it is 0
+           #  (1 if it was 00; 0 if it was 01/10/11)
+           #   &quot;01&quot; → 0 (falsey)
+      ~~*~ # Or,Or,And,Or to combine all checks:
+      ~~   #  Options 2, 3, OR 4
+           #   0,0,0 → 0 (falsey)
+        *  #  AND both items were the same
+           #   1,0 → 0 (falsey)
+         ~ #  Or option 1
+           #   0,0 → 0 (falsey)
+           # (after which the result is output implicitly)
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a> + <a href="https://www.sympy.org/en/index.html" rel="nofollow noreferrer">SymPy</a>, 80 bytes</h1>
 
 <pre class="lang-none prettyprint-override"><code>lambda a,b:a.measure&lt;b.measure+a.xreplace({a.inf:b.inf,a.sup:b.sup}).issubset(b)
 </code></pre>
@@ -45,7 +103,7 @@
 <p>Input 8 parameters as <code>(start_a: int, end_a: int, left_open_a: bool, right_open_a: bool, start_b: int, end_b: int, left_open_b: bool, right_open_b: bool)</code>...</p>
 <p>-3 bytes by <a href="https://codegolf.stackexchange.com/users/101374/albert-lang">Albert.Lang</a></p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 24 bytes</h1>
+<div id="pu2" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 24 bytes</h1>
 <pre><code>≔Ｅη⁻ι§θκυ‹⊖⊙()№υι⁻§υ²§υ¹
 </code></pre>
 <p><a href="https://tio.run/##RYwxC8IwEEZ3f8Vx0x2cQ3XsVHQRLLiHDKUNNljT2jSivz4eFnH8Hu97bd/M7dgMOVcx@mugupmoF6h9SJG8QLWcQude9BC4MbNA4nJzmX1Y6OxipKNrZ3d3YXEdVeFNSIwChzGpkAT897PWfinFO/6XdRZqcZmzMWj0XagggBatgEFayV4Jo7V5@xw@" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code. Takes input as a pair of lists <code>[char_lower, int_lower, int_upper, char_upper]</code>. Explanation:</p>
@@ -69,7 +127,7 @@
 </code></pre>
 <p>Check that the resulting range length is non-negative unless there was an open range matched with a closed range in which case the range length needs to be positive.</p>
 </div>
-<div id="pu2" class="pu"><h1><a href="https://github.com/m-ender/retina/wiki/The-Language/a950ad7d925ec9316e3e2fb2cf5d49fd15d23e3d" rel="nofollow noreferrer">Retina 0.8.2</a>, 50 bytes</h1>
+<div id="pu3" class="pu"><h1><a href="https://github.com/m-ender/retina/wiki/The-Language/a950ad7d925ec9316e3e2fb2cf5d49fd15d23e3d" rel="nofollow noreferrer">Retina 0.8.2</a>, 50 bytes</h1>
 <pre><code>\d+
 $*
 (1+),\1
