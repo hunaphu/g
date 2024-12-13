@@ -26,18 +26,63 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>090</td><td>Python 2</td><td>241212T120359Z</td><td><a href="https://codegolf.stackexchange.com/questions/277200/longest-bitonic-subarray/277206#277206">tsh</a></td></tr>
-<tr d-ix="1"><td>050</td><td>Charcoal</td><td>241212T171908Z</td><td><a href="https://codegolf.stackexchange.com/questions/277200/longest-bitonic-subarray/277212#277212">Neil</a></td></tr>
-<tr d-ix="2"><td>101</td><td>JavaScript ES6</td><td>241212T170125Z</td><td><a href="https://codegolf.stackexchange.com/questions/277200/longest-bitonic-subarray/277210#277210">Arnauld</a></td></tr>
-<tr d-ix="3"><td>015</td><td>05AB1E</td><td>241212T084928Z</td><td><a href="https://codegolf.stackexchange.com/questions/277200/longest-bitonic-subarray/277201#277201">Kevin Cr</a></td></tr>
+<tr d-ix="0"><td>150</td><td>R</td><td>241213T024108Z</td><td><a href="https://codegolf.stackexchange.com/questions/277200/longest-bitonic-subarray/277223#277223">Eonema</a></td></tr>
+<tr d-ix="1"><td>090</td><td>Python 2</td><td>241212T120359Z</td><td><a href="https://codegolf.stackexchange.com/questions/277200/longest-bitonic-subarray/277206#277206">tsh</a></td></tr>
+<tr d-ix="2"><td>050</td><td>Charcoal</td><td>241212T171908Z</td><td><a href="https://codegolf.stackexchange.com/questions/277200/longest-bitonic-subarray/277212#277212">Neil</a></td></tr>
+<tr d-ix="3"><td>101</td><td>JavaScript ES6</td><td>241212T170125Z</td><td><a href="https://codegolf.stackexchange.com/questions/277200/longest-bitonic-subarray/277210#277210">Arnauld</a></td></tr>
+<tr d-ix="4"><td>015</td><td>05AB1E</td><td>241212T084928Z</td><td><a href="https://codegolf.stackexchange.com/questions/277200/longest-bitonic-subarray/277201#277201">Kevin Cr</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://docs.python.org/2/" rel="nofollow noreferrer">Python 2</a>, 90 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.r-project.org" rel="nofollow noreferrer">R</a>, 150 bytes</h1>
+<pre class="lang-r prettyprint-override"><code>\(x)`if`(length(x)-1,{y=rle(x)
+p=rle(cumsum(c(T,diff(diff(y$v)&gt;0))&gt;0))
+q=which.max(p$l)
+r=cumsum(p$l)[q]+1
+inverse.rle(lapply(y,`[`,(r-p$l[q]):r))},x)
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=jZBBTsMwEEXF1qewRBe26lQ1qRFCpKdgFyylCnETyalStymJENdgwyYseig4DWO7TQgbqmjiGc_7Mz_5-DTdUeGHAB_rvQruvt6fSEOTQiVEZ5v1Pocq4Oy1jYzOIEeVS9K63NUlSckjey6UIu7VTg50Oacu0DZ6yYs0n5WrhlQTTZGJTiJbxVs55ajYHDKzy2Z2ol5VlW5Jy5I4YcQEQAFE7w2lb6yh3t33Va1gKacUX-NoiWMukb0AhzeMsxBiASHYQPiWx0JIQyAECx0vbN2To57E2Em4k1wu60WC3Z7w-ZANvsfE2Z4t7Tw7ceGm-ufc4W773_3_KOSvDwFg5MHdeEBA6uz0QH8j_d_vOn_-AA" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<p>Two things I couldn't figure out (and would love if someone has ideas for):</p>
+<ul>
+<li>It failed for the first test case, so I added 20 bytes to handle the case where x is length 1. Is there a way to avoid having to handle this case specially?</li>
+<li>It failed when there were repeated values at the end of the answer, which I solved by run-length encoding the input and converting back at the end. But converting back takes 27 bytes (on top of the 9 to encode). Is there a shorter way to un-encode it?</li>
+</ul>
+<p>Commented:</p>
+<pre class="lang-r prettyprint-override"><code>\(x) `if`( # if statement to handle case where length(x) == 1
+  length(x)-1, # F if length 1, T otherwise
+  {
+    # run-length encoding to avoid problems with repeated values
+    y = rle(x) 
+    # get lengths of bitonic stretches
+    p = rle(
+      # give a unique number to each potential bitonic stretch
+      # i.e., increment group number whenever it starts increasing
+      cumsum(c(T, diff(
+        diff(y$v) &gt; 0
+      )) &gt; 0)
+    )
+    # index of longest bitonic stretch in p
+    q = which.max(p$l)
+    # index of end of longest bitonic stretch in y
+    r = cumsum(p$l)[q] + 1
+    # inverse of run-length encoding
+    inverse.rle(
+      # lapply is needed to subset both the $length and $values of y
+      lapply(y, `[`, 
+        # indices of longest bitonic subarray in y
+        (r-p$l[q]):r
+      )
+    )
+  },
+  x
+)
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://docs.python.org/2/" rel="nofollow noreferrer">Python 2</a>, 90 bytes</h1>
 
 <pre class="lang-none prettyprint-override"><code>f=lambda a,*p:a*(lambda i:(-1in i)&gt;(1in i))(iter(map(cmp,a[1:],a)))or f(*p+(a[:-1],a[1:]))
 </code></pre>
 <p><a href="https://tio.run/##jVFBboQwDLzzCt8S07BqlmUPSOEjlEO6DWokYCOIKvX11EmgiFOrKLKdGY8d2337z@d0XddeDXp8/9CgRe5qnfMttDUvpJ3AYsOTRW69mfmoHX@MTuhW1p3QiPicoee5e@G6rQvZJQRx9WbxD72YBRQwxrJWdqAaIJO1hRRXIUVJ90a3EhuW3olQki0Jq0QZmVWIE@cEdAAkHMn/TEj0Stw34uvhbf2d4dhM8INMELpFsXR2RMaKp5p/0Lu9bUKPuinM2ors9r8AHWFGk7wsfraO42Vxg/WcvU0Ms57W4IE29Tv2OgOwAgyNPyzNfOlBgN@TVMMQieFmO3laoEVQCoyI7voD" rel="nofollow noreferrer" title="Python 2 – Try It Online">Try it online!</a></p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 50 bytes</h1>
+<div id="pu2" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 50 bytes</h1>
 <pre><code>≔⟦⟧θＦＡ«⊞θιＷ№⭆ＥΦθμ⁻λ§θμ⎇λ‹λ⁰ω10≔Φθμθ¿›ＬθＬυ≔⮌⮌θυ»⭆¹υ
 </code></pre>
 <p><a href="https://tio.run/##VU7LasMwEDzbXyFyWoEKcdOecgqFlEACoe3N@CDSjS1Q5FiPpKX029VdN32EQaw0MzuaXaf9rtc250UIpnVQN0oMcl7uey9g5Y4pgpTioyy2KXQwKGFILM6dsSjgoU8uwnP0xrUbfQQ@S2MjenYepBIb41IAq8Qirtwrvn3zkpQX9E77d9bWGEbPlOgza5NqOqFfL5WuE7lcYfYCHj1q5tfo2kjVJAeN1yT/lp/whD7g7xw4P1HGZ7ml2v/bVyzIec51PVMzdUvgeTfi/oIfpSLwmzxNk29O9gs" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code. Explanation:</p>
@@ -67,13 +112,13 @@
 </code></pre>
 <p><a href="https://tio.run/##TU7LasMwEDzbX6HjClRokvaUkwmkBBIITW/GB@GsbYEi23okKaXfrq6ctA3DstLM7DB1J23dSx1j4ZxqDZSVYCNf5k1vGWzMEDxwzr7ybB9cB6NgisTs0imNDAqt4TBo5WElnSd7bfGExuMRGs4Fm9Os@mA8HLxVpt3JAdKslfZoU9qVHDtlggMjWOE35ojXG5/uP9AaaT@TtkU3eZ6JviRNk4PdS//nnfitfqYaBm8WZeK3aFpP5XmKmZ7h4fgdz2gd/u0xpQfK@M73VPqx@ywJfBljWS7EQswJab9MeL3jV5kR0p88VRWfzvoH" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code. Explanation: As above but allows either an increasing pair followed by a decreasing pair or a decreasing pair followed by an increasing pair but not both.</p>
 </div>
-<div id="pu2" class="pu"><h1>JavaScript (ES6), 101 bytes</h1>
+<div id="pu3" class="pu"><h1>JavaScript (ES6), 101 bytes</h1>
 
 <pre class="lang-none prettyprint-override"><code>a=&gt;(g=n=&gt;a.some((m,i)=&gt;!(b=a.slice(i,i+n)).some(p=v=&gt;(m=p&lt;m?m:p)&gt;p&amp;p&lt;(p=v)))/b[--n]?b:g(n))(a.length)
 </code></pre>
 <p><a href="https://tio.run/##lZHNboMwDIDvewp2mWItwDKaHaqGPkjFIbCUZSI/KlVfnzqkazW6tQUUKbHzfTbmWx5k3@y036fWfaphKwYpStIKK0qZ9c4oQgzVIMpnUguMdLpRRFP9agFi3osDEkb4lVmbpYfSv/hViAJAXm/S1FbretkSBIjMOmXb/RcMjbO961TWuZZsyYZVyYwHIMnzBKGniSZl9J0yWuBa4OL0pvekidCVq8BogRpOi1HKw7m64/qFXCnZqHxU@7CS04@T7O2yu6WcQH98esiEwqH0Yiwf358MGzuPvZ/7vAP8Mw68W8356WdoquMYjUOaobtAwxE" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
 </div>
-<div id="pu3" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, 15 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
+<div id="pu4" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, 15 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
 <pre><code>ŒRéR.ΔÔ¬š¥dÔJR!
 </code></pre>
 <p><a href="https://tio.run/##yy9OTMpM/f//6KSgwyuD9M5NOTzl0JqjCw8tTTk8xStI8f//aGMdIx1jHRMdUx0QyxBIA/mxAA" rel="nofollow noreferrer">(Don't) try it online</a> (it's too slow to even handle the example test case).<br />
