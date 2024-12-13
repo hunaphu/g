@@ -47,6 +47,30 @@
 <p><span class="math-container">$$[a_0;a_1,a_2,\dots,a_k-1]$$</span></p>
 <p>The function builds the continued fraction of the input <span class="math-container">\$n/d\$</span> during its <em>recurse</em> phase and then generates a new rational <span class="math-container">\$n'/d'\$</span> during its <em>decurse</em> phase using almost the same continued fraction, only with the last term decremented.</p>
 <p>This algorithm is, quite surprisingly, very suitable for golfing.</p>
+<h3>Commented</h3>
+<pre class="lang-none prettyprint-override"><code>f = (          // f is recursive function taking:
+  n,           //   n = numerator
+  d            //   d = denominator
+) =&gt;           //
+n % d ?        // if d is not a divisor of n:
+  [N] = [      //   save in N the new numerator
+               //   which is obtained by:
+    f(         //     doing a recursive call with:
+      d,       //       d as the numerator
+      n % d    //       n % d as the denominator
+    )[1] +     //     taking the denominator returned by f
+    n / d * N, //     adding floor(n / d) * N
+    N          //   use N as the denominator
+  ]            //   NB: the variable N, which is defined in
+               //       the global scope, is first set by
+               //       the last call and updated during the
+               //       'decurse' phase, up to the root call
+:              // else (end of recursion):
+  [            //
+    N = ~-n,   //   use N = n - 1 as the numerator
+    d          //   use d = 1 as the denominator
+  ]            //
+</code></pre>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://www.wolfram.com/wolframscript/" rel="nofollow noreferrer">Wolfram Language (Mathematica)</a>, 48 bytes</h1>
 <pre><code>(r=ResourceFunction@&quot;SternBrocot&quot;)@Floor[r@#/2]&amp;
