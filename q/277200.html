@@ -26,13 +26,26 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>150</td><td>R</td><td>241213T024108Z</td><td><a href="https://codegolf.stackexchange.com/questions/277200/longest-bitonic-subarray/277223#277223">Eonema</a></td></tr>
-<tr d-ix="1"><td>090</td><td>Python 2</td><td>241212T120359Z</td><td><a href="https://codegolf.stackexchange.com/questions/277200/longest-bitonic-subarray/277206#277206">tsh</a></td></tr>
+<tr d-ix="0"><td>090</td><td>Python 2</td><td>241212T120359Z</td><td><a href="https://codegolf.stackexchange.com/questions/277200/longest-bitonic-subarray/277206#277206">tsh</a></td></tr>
+<tr d-ix="1"><td>150</td><td>R</td><td>241213T024108Z</td><td><a href="https://codegolf.stackexchange.com/questions/277200/longest-bitonic-subarray/277223#277223">Eonema</a></td></tr>
 <tr d-ix="2"><td>050</td><td>Charcoal</td><td>241212T171908Z</td><td><a href="https://codegolf.stackexchange.com/questions/277200/longest-bitonic-subarray/277212#277212">Neil</a></td></tr>
 <tr d-ix="3"><td>101</td><td>JavaScript ES6</td><td>241212T170125Z</td><td><a href="https://codegolf.stackexchange.com/questions/277200/longest-bitonic-subarray/277210#277210">Arnauld</a></td></tr>
 <tr d-ix="4"><td>015</td><td>05AB1E</td><td>241212T084928Z</td><td><a href="https://codegolf.stackexchange.com/questions/277200/longest-bitonic-subarray/277201#277201">Kevin Cr</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.r-project.org" rel="nofollow noreferrer">R</a>, 150 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://docs.python.org/2/" rel="nofollow noreferrer">Python 2</a>, 90 bytes</h1>
+
+<pre class="lang-none prettyprint-override"><code>f=lambda a,*p:a*(lambda i:(-1in i)&gt;(1in i))(iter(map(cmp,a[1:],a)))or f(*p+(a[:-1],a[1:]))
+</code></pre>
+<p><a href="https://tio.run/##jVFBboQwDLzzCt8S07BqlmUPSOEjlEO6DWokYCOIKvX11EmgiFOrKLKdGY8d2337z@d0XddeDXp8/9CgRe5qnfMttDUvpJ3AYsOTRW69mfmoHX@MTuhW1p3QiPicoee5e@G6rQvZJQRx9WbxD72YBRQwxrJWdqAaIJO1hRRXIUVJ90a3EhuW3olQki0Jq0QZmVWIE@cEdAAkHMn/TEj0Stw34uvhbf2d4dhM8INMELpFsXR2RMaKp5p/0Lu9bUKPuinM2ors9r8AHWFGk7wsfraO42Vxg/WcvU0Ms57W4IE29Tv2OgOwAgyNPyzNfOlBgN@TVMMQieFmO3laoEVQCoyI7voD" rel="nofollow noreferrer" title="Python 2 – Try It Online">Try it online!</a></p>
+<p>Notice that this answer is in Python 2 instead of Python 3. They have several different:</p>
+<ul>
+<li><code>cmp</code> is available in Python 2, but not in Python 3. Using <code>cmp</code>, it return <code>-1</code>, <code>0</code>, <code>1</code> based on its two operand. When both operand are <code>int</code>, it compare them, and return <code>-1</code> for less than, <code>1</code> for greater than. When one is <code>int</code> while the other is <code>None</code>, <code>None</code> is considered less than <code>int</code>.</li>
+<li><code>map</code> is different in Python 2 and Python 3. Use <code>map(lambda *p:p, [2], [1, 2])</code> in Python 2, you will get <code>[(2, 1), (None, 2)]</code>. However, <code>list(map(lambda *p:p, [2], [1, 2]))</code> in Python 3 returns <code>[(2, 1)]</code>. Python 2 will padding extra None at end of the shorter one.</li>
+<li>Then, <code>map(cmp, a[1:], a)</code> will return an array that compare each number with its next one, and always have an extra <code>-1</code> at the end of the return value. Since there is always a <code>-1</code>, an output is valid iff it contains no <code>1</code> after first <code>-1</code> occurred. Convert it to <code>iter</code> and <code>-1 in i</code> will consume the iter until first <code>-1</code> find (which will always be True as discussed above). And we try to find <code>1 in i</code>. Notice that here <code>i</code> is the part followed by <code>-1</code>, not the whole compare result. The array <code>a</code> is valid if no <code>1</code> found in the following part. So <code>1 in i</code> should be <code>False</code>. So <code>(-1 in i) &gt; (1 in i)</code> could be used to test if given array is valid.</li>
+<li>If the given array is valid, <code>a*(...)(...)</code> returns <code>a</code>, and otherwise it return something falsy, and fallback to following searching. <code>f(*p+(a[:-1],a[1:]))</code> loop following possible substrings first by length, then by first occurrence. Sadly, you cannot use <code>f(*a,a[:-1],a[1:])</code> in Python 2, which is valid in Python 3.</li>
+</ul>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.r-project.org" rel="nofollow noreferrer">R</a>, 150 bytes</h1>
 <pre class="lang-r prettyprint-override"><code>\(x)`if`(length(x)-1,{y=rle(x)
 p=rle(cumsum(c(T,diff(diff(y$v)&gt;0))&gt;0))
 q=which.max(p$l)
@@ -75,12 +88,6 @@ inverse.rle(lapply(y,`[`,(r-p$l[q]):r))},x)
   x
 )
 </code></pre>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://docs.python.org/2/" rel="nofollow noreferrer">Python 2</a>, 90 bytes</h1>
-
-<pre class="lang-none prettyprint-override"><code>f=lambda a,*p:a*(lambda i:(-1in i)&gt;(1in i))(iter(map(cmp,a[1:],a)))or f(*p+(a[:-1],a[1:]))
-</code></pre>
-<p><a href="https://tio.run/##jVFBboQwDLzzCt8S07BqlmUPSOEjlEO6DWokYCOIKvX11EmgiFOrKLKdGY8d2337z@d0XddeDXp8/9CgRe5qnfMttDUvpJ3AYsOTRW69mfmoHX@MTuhW1p3QiPicoee5e@G6rQvZJQRx9WbxD72YBRQwxrJWdqAaIJO1hRRXIUVJ90a3EhuW3olQki0Jq0QZmVWIE@cEdAAkHMn/TEj0Stw34uvhbf2d4dhM8INMELpFsXR2RMaKp5p/0Lu9bUKPuinM2ors9r8AHWFGk7wsfraO42Vxg/WcvU0Ms57W4IE29Tv2OgOwAgyNPyzNfOlBgN@TVMMQieFmO3laoEVQCoyI7voD" rel="nofollow noreferrer" title="Python 2 – Try It Online">Try it online!</a></p>
 </div>
 <div id="pu2" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 50 bytes</h1>
 <pre><code>≔⟦⟧θＦＡ«⊞θιＷ№⭆ＥΦθμ⁻λ§θμ⎇λ‹λ⁰ω10≔Φθμθ¿›ＬθＬυ≔⮌⮌θυ»⭆¹υ
