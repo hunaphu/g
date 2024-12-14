@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::3191</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>002</td><td>Python</td><td>241214T071705Z</td><td><a href="https://codegolf.stackexchange.com/questions/3191/write-the-fastest-fibonacci/277263#277263">138 Aspe</a></td></tr>
+<tr d-ix="1"><td>018</td><td>Java 8 seconds to compute</td><td>141120T042350Z</td><td><a href="https://codegolf.stackexchange.com/questions/3191/write-the-fastest-fibonacci/41677#41677">averykho</a></td></tr>
+<tr d-ix="2"><td>nan</td><td></td><td>140112T173841Z</td><td><a href="https://codegolf.stackexchange.com/questions/3191/write-the-fastest-fibonacci/18319#18319">Timtech</a></td></tr>
+<tr d-ix="3"><td>136</td><td>I implemented the matrix multiplication method from sicp</td><td>130112T235147Z</td><td><a href="https://codegolf.stackexchange.com/questions/3191/write-the-fastest-fibonacci/9444#9444">Erik Hal</a></td></tr>
+<tr d-ix="4"><td>856</td><td>Ocaml</td><td>121012T122854Z</td><td><a href="https://codegolf.stackexchange.com/questions/3191/write-the-fastest-fibonacci/8694#8694">ReyCharl</a></td></tr>
+<tr d-ix="5"><td>nan</td><td></td><td>121012T103117Z</td><td><a href="https://codegolf.stackexchange.com/questions/3191/write-the-fastest-fibonacci/8693#8693">ReyCharl</a></td></tr>
+<tr d-ix="6"><td>nan</td><td>C</td><td>121012T045623Z</td><td><a href="https://codegolf.stackexchange.com/questions/3191/write-the-fastest-fibonacci/8692#8692">baby-rab</a></td></tr>
+<tr d-ix="7"><td>nan</td><td></td><td>110716T195258Z</td><td><a href="https://codegolf.stackexchange.com/questions/3191/write-the-fastest-fibonacci/3193#3193">FUZxxl</a></td></tr>
+<tr d-ix="8"><td>nan</td><td></td><td>110727T062402Z</td><td><a href="https://codegolf.stackexchange.com/questions/3191/write-the-fastest-fibonacci/3244#3244">Joey Ada</a></td></tr>
+<tr d-ix="9"><td>036</td><td>C with GMP</td><td>110719T203010Z</td><td><a href="https://codegolf.stackexchange.com/questions/3191/write-the-fastest-fibonacci/3220#3220">boothby</a></td></tr>
+<tr d-ix="10"><td>nan</td><td></td><td>110716T181546Z</td><td><a href="https://codegolf.stackexchange.com/questions/3191/write-the-fastest-fibonacci/3192#3192">boothby</a></td></tr>
+<tr d-ix="11"><td>nan</td><td>Mathematica</td><td>110718T042818Z</td><td><a href="https://codegolf.stackexchange.com/questions/3191/write-the-fastest-fibonacci/3202#3202">Dr. beli</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>Python, with <a href="https://gmpy2.readthedocs.io/en/latest/overview.html" rel="nofollow noreferrer">gmpy2</a></h1>
+<pre class="lang-python prettyprint-override"><code>import gmpy2
+
+n = 20000000
+
+a = gmpy2.mpz(1)
+b = gmpy2.mpz(0)
+p = gmpy2.mpz(0)
+q = gmpy2.mpz(1)
+
+count = n
+
+while count &gt; 0:
+    if count % 2 == 0:
+        psq = p * p
+        qsq = q * q
+        twopq = 2 * p * q
+
+        p = psq + qsq    # p -&gt; (p * p) + (q * q)
+        q = twopq + qsq  # q -&gt; (2 * p * q) + (q * q)
+
+        count //= 2
+    else:
+        bq = b * q
+        aq = a * q
+        ap = a * p
+        bp = b * p
+
+        a = bq + aq      # a -&gt; (b * q) + (a * q)
+        a += ap          #              + (a * p)
+
+        b = bp + aq      # b -&gt; (b * p) + (a * q)
+
+        count -= 1
+
+print(b)
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h2>Java: 8 seconds to compute, 18 seconds to write</h2>
+<pre><code>public static BigInteger fibonacci1(int n) {
+    if (n &lt; 0) explode(&quot;non-negative please&quot;);
+    short charPos = 32;
+    boolean[] buf = new boolean[32];
+    do {
+        buf[--charPos] = (n &amp; 1) == 1;
+        n &gt;&gt;&gt;= 1;
+    } while (n != 0);
+    BigInteger a = BigInteger.ZERO;
+    BigInteger b = BigInteger.ONE;
+    BigInteger temp;
+    do {
+        if (buf[charPos++]) {
+            temp = b.multiply(b).add(a.multiply(a));
+            b = b.multiply(a.shiftLeft(1).add(b));
+            a = temp;
+        } else {
+            temp = b.multiply(b).add(a.multiply(a));
+            a = a.multiply(b.shiftLeft(1).subtract(a));
+            b = temp;
+        }
+    } while (charPos &lt; 32);
+    return a;
+}
+
+public static void main(String[] args) {
+    BigInteger f;
+    f = fibonacci1(20000000);
+    // about 8 seconds
+    System.out.println(f.toString());
+    // about 18 seconds
+}
+</code></pre>
+</div>
+<div id="pu2" class="pu"><h2><a href="http://esolangs.org/wiki/COW" rel="nofollow">COW</a></h2>
+
+<pre><code> MoO moO MoO mOo MOO OOM MMM moO moO
+ MMM mOo mOo moO MMM mOo MMM moO moO
+ MOO MOo mOo MoO moO moo mOo mOo moo
+</code></pre>
+
+<p>Moo! (Takes a while. Drink some milk...)</p>
+</div>
+<div id="pu3" class="pu"><p>I implemented the matrix multiplication method (from sicp, <a href="http://sicp.org.ua/sicp/Exercise1-19" rel="nofollow">http://sicp.org.ua/sicp/Exercise1-19</a>) in SBCL but it takes about 30 seconds to finish.  I ported it to C using GMP, and it returns the correct result in about 1.36 seconds on my machine.  It's about as fast as boothby's answer.</p>
+
+<pre><code>#include &lt;gmp.h&gt;
+#include &lt;stdio.h&gt;
+
+int main()
+{
+  int n = 20000000;
+
+  mpz_t a, b, p, q, psq, qsq, twopq, bq, aq, ap, bp;
+  int count = n;
+
+  mpz_init_set_si(a, 1);
+  mpz_init_set_si(b, 0);
+  mpz_init_set_si(p, 0);
+  mpz_init_set_si(q, 1);
+  mpz_init(psq);
+  mpz_init(qsq);
+  mpz_init(twopq);
+  mpz_init(bq);
+  mpz_init(aq);
+  mpz_init(ap);
+  mpz_init(bp);
+
+  while(count &gt; 0)
+    {
+      if ((count % 2) == 0)
+        {
+          mpz_mul(psq, p, p);
+          mpz_mul(qsq, q, q);
+          mpz_mul(twopq, p, q);
+          mpz_mul_si(twopq, twopq, 2);
+
+          mpz_add(p, psq, qsq);    // p -&gt; (p * p) + (q * q)
+          mpz_add(q, twopq, qsq);  // q -&gt; (2 * p * q) + (q * q) 
+          count/=2;
+        }
+
+      else
+       {
+          mpz_mul(bq, b, q);
+          mpz_mul(aq, a, q);
+          mpz_mul(ap, a, p);
+          mpz_mul(bp, b, p);
+
+          mpz_add(a, bq, aq);      // a -&gt; (b * q) + (a * q)
+          mpz_add(a, a, ap);       //              + (a * p)
+
+          mpz_add(b, bp, aq);      // b -&gt; (b * p) + (a * q)
+
+          count--;
+       }
+
+    }
+
+  gmp_printf("%Zd\n", b);
+  return 0;
+}
+</code></pre>
+</div>
+<div id="pu4" class="pu"><h1>Ocaml, 0.856s on my laptop</h1>
+
+<p>Requires the zarith library. I used  Big_int but it's dog slow compared to zarith. It took 10 minutes with the same code! Most of the time was spent <em>printing</em> the damn number (9½ minutes or so)!</p>
+
+<pre><code>module M = Map.Make
+  (struct
+    type t = int
+    let compare = compare
+   end)
+
+let double b = Z.shift_left b 1
+let ( +. ) b1 b2 = Z.add b1 b2
+let ( *. ) b1 b2 = Z.mul b1 b2
+
+let cache = ref M.empty 
+let rec fib_log n =
+  if n = 0
+  then Z.zero
+  else if n = 1
+  then Z.one
+  else if n mod 2 = 0
+  then
+    let f_n_half = fib_log_cached (n/2)
+    and f_n_half_minus_one = fib_log_cached (n/2-1)
+    in f_n_half *. (f_n_half +. double f_n_half_minus_one)
+  else
+    let f_n_half = fib_log_cached (n/2)
+    and f_n_half_plus_one = fib_log_cached (n/2+1)
+    in (f_n_half *. f_n_half) +.
+    (f_n_half_plus_one *. f_n_half_plus_one)
+and fib_log_cached n =
+    try M.find n !cache
+    with Not_found -&gt;
+      let res = fib_log n
+      in cache := M.add n res !cache;
+      res
+
+let () =
+  let res = fib_log 20_000_000 in
+  Z.print res; print_newline ()
+</code></pre>
+
+<p>I can't believe how much a difference the library made!</p>
+</div>
+<div id="pu5" class="pu"><h1>Go</h1>
+
+<p>It's embarrasingly slow. On my computer it takes a little less than 3 minutes. It's only 120 recursive calls, though (after adding the cache). Note that this may use a lot of memory (like 1.4 GiB)!</p>
+
+<pre><code>package main
+
+import (
+    "math/big"
+    "fmt"
+)
+
+var cache = make(map[int64] *big.Int)
+
+func fib_log_cache(n int64) *big.Int {
+    if res, ok := cache[n]; ok {
+        return res
+    }
+    res := fib_log(n)
+    cache[n] = res
+    return res
+}
+
+func fib_log(n int64) *big.Int {
+    if n &lt;= 1 {
+        return big.NewInt(n)
+    }
+
+    if n % 2 == 0 {
+        f_n_half := fib_log_cache(n/2)
+        f_n_half_minus_one := fib_log_cache(n/2-1)
+        res := new(big.Int).Lsh(f_n_half_minus_one, 1)
+        res.Add(f_n_half, res)
+        res.Mul(f_n_half, res)
+        return res
+    }
+    f_n_half := fib_log_cache(n/2)
+    f_n_half_plus_one := fib_log_cache(n/2+1)
+    res := new(big.Int).Mul(f_n_half_plus_one, f_n_half_plus_one)
+    tmp := new(big.Int).Mul(f_n_half, f_n_half)
+    res.Add(res, tmp)
+    return res
+}
+
+func main() {
+    fmt.Println(fib_log(20000000))
+}
+</code></pre>
+</div>
+<div id="pu6" class="pu"><h2>C, naive algorithm</h2>
+
+<p>Was curious, and I hadn't used gmp before... so:</p>
+
+<pre><code>#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;gmp.h&gt;
+
+int main(int argc, char *argv[]){
+    int n = (argc&gt;1)?atoi(argv[1]):0;
+
+    mpz_t temp,prev,result;
+    mpz_init(temp);
+    mpz_init_set_ui(prev, 0);
+    mpz_init_set_ui(result, 1);
+
+    for(int i = 2; i &lt;= n; i++) {
+        mpz_add(temp, result, prev);
+        mpz_swap(temp, result);
+        mpz_swap(temp, prev);
+    }
+
+    printf("fib(%d) = %s\n", n, mpz_get_str (NULL, 10, result));
+
+    return 0;
+}
+</code></pre>
+
+<p>fib(1 million) takes about 7secs... so this algorithm won't win the race.</p>
+</div>
+<div id="pu7" class="pu"><p><strong>Haskell</strong></p>
+
+<p>This is my own try, although I did not wrote the algorithm by myself. I rather copied it from <a href="http://haskell.org/haskellwiki/The_Fibonacci_sequence#Fastest_Fib_in_the_West" rel="nofollow">haskell.org</a> and adapted it to use <code>Data.Vector</code> with its famous stream fusion:</p>
+
+<pre><code>import Data.Vector as V
+import Data.Bits
+
+main :: IO ()
+main = print $ fib 20000000
+
+fib :: Int -&gt; Integer
+fib n = snd . V.foldl' fib' (1,0) . V.dropWhile not $ V.map (testBit n) $ V.enumFromStepN (s-1) (-1) s
+    where
+        s = bitSize n
+        fib' (f,g) p
+            | p         = (f*(f+2*g),ss)
+            | otherwise = (ss,g*(2*f-g))
+            where ss = f*f+g*g
+</code></pre>
+
+<p>This takes around 4.5 seconds when compiled with GHC 7.0.3 and the following flags:</p>
+
+<pre>
+ghc -O3 -fllvm fib.hs
+</pre>
+</div>
+<div id="pu8" class="pu"><h2>Haskell</h2>
+
+<p>On my system, this runs almost as fast as <a href="https://codegolf.stackexchange.com/questions/3191/write-the-fastest-fibonacci/3193#3193">FUZxxl's answer</a> (~18 seconds instead of ~17 seconds).</p>
+
+<pre><code>main = print $ fst $ fib2 20000000
+
+-- | fib2: Compute (fib n, fib (n+1)).
+--
+-- Having two adjacent Fibonacci numbers lets us
+-- traverse up or down the series efficiently.
+fib2 :: Int -&gt; (Integer, Integer)
+
+-- Guard against negative n.
+fib2 n | n &lt; 0 = error "fib2: negative index"
+
+-- Start with a few base cases.
+fib2 0 = (0, 1)
+fib2 1 = (1, 1)
+fib2 2 = (1, 2)
+fib2 3 = (2, 3)
+
+-- For larger numbers, derive fib2 n from fib2 (n `div` 2)
+-- This takes advantage of the following identity:
+--
+--    fib(n) = fib(k)*fib(n-k-1) + fib(k+1)*fib(n-k)
+--             where n &gt; k
+--               and k ≥ 0.
+--
+fib2 n =
+    let (a, b) = fib2 (n `div` 2)
+     in if even n
+        then ((b-a)*a + a*b, a*a + b*b)
+        else (a*a + b*b, a*b + b*(a+b))
+</code></pre>
+</div>
+<div id="pu9" class="pu"><p><strong>C with GMP, 3.6s</strong></p>
+
+<p>Gods, but GMP makes code ugly.  With a Karatsuba-style trick, I managed to cut down to 2 multiplies per doubling step.  Now that I'm reading FUZxxl's solution, I'm not the first to have the idea.  I've got a couple more tricks up my sleeve... maybe I'll try 'em out later on.</p>
+
+<pre><code>#include &lt;gmp.h&gt;
+#include &lt;stdio.h&gt;
+
+#define DBL mpz_mul_2exp(u,a,1);mpz_mul_2exp(v,b,1);mpz_add(u,u,b);mpz_sub(v,a,v);mpz_mul(b,u,b);mpz_mul(a,v,a);mpz_add(a,b,a);
+#define ADD mpz_add(a,a,b);mpz_swap(a,b);
+
+int main(){
+    mpz_t a,b,u,v;
+    mpz_init(a);mpz_set_ui(a,0);
+    mpz_init(b);mpz_set_ui(b,1);
+    mpz_init(u);
+    mpz_init(v);
+
+    DBL
+    DBL
+    DBL ADD
+    DBL ADD
+    DBL
+    DBL
+    DBL
+    DBL ADD
+    DBL
+    DBL
+    DBL ADD
+    DBL
+    DBL ADD
+    DBL ADD
+    DBL
+    DBL ADD
+    DBL
+    DBL
+    DBL
+    DBL
+    DBL
+    DBL
+    DBL
+    DBL /*Comment this line out for F(10M)*/
+
+    mpz_out_str(stdout,10,b);
+    printf("\n");
+}
+</code></pre>
+
+<p>Built with <code>gcc -O3 m.c -o m -lgmp</code>.</p>
+</div>
+<div id="pu10" class="pu"><p><strong>Sage</strong></p>
+
+<p>Hmm, you seem to assume that the fastest is going to be a compiled program.  No binary for you!</p>
+
+<pre><code>print fibonacci(2000000)
+</code></pre>
+
+<p>On my machine, it takes 0.10 cpu seconds, 0.15 wall seconds.</p>
+
+<p>edit: timed on the console, instead of the notebook</p>
+</div>
+<div id="pu11" class="pu"><p>Mathematica, interpreted:  </p>
+
+<pre><code>First@Timing[Fibonacci[2 10^6]]
+</code></pre>
+
+<p>Timed: </p>
+
+<pre><code>0.032 secs on my poor man's laptop.
+</code></pre>
+
+<p>And of course, no binary.</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/3191/">3191</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
