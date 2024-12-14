@@ -46,8 +46,11 @@ z}
 <p>The ends of the Z shape are on opposite faces of the dodecahedron. They are therefore either both on equatorial faces or both on polar faces. These are listed below - one example for each pair of opposite faces. Note that because the opposite faces are pentagons, there are 5 possible rotations per pair of opposite faces, generating 30 possible orientations of the Z shape.</p>
 <pre class="lang-none prettyprint-override"><code>Equatorial  0,6 with 2,4    4,10 with 6,8       8,2 with 10,0
 Polar       3,9 with 4,6    7,1, with 8,10     11,5 with  0,2
-
-   *       *       *
+</code></pre>
+<p>The offsets for each possible rotation (5 for equatorial ends and 5 for polar ends) are stored in the magic string. They are decoded from the ascii code in <code>j</code> as <code>j/12</code> and <code>j%12</code> (because the order does not matter, careful selection of the encoding allows only printable characters to be used. For even iterations, the expression <code>(65|j&lt;&lt;j/12|1&lt;&lt;1%12)</code>  generates the 4 bits for the equatorial case with end faces 0 and 6. 65 in binary is <code>1000001</code> and the expressions with <code>j</code> fill in the remaining  two bits. For odd iterations a rotated version of the polar case with end faces 11 and 5 is generated.</p>
+<p>Variable <code>i</code> keeps track of iterations 0 to 29. The expression above is multiplied by 4097 to duplicate it in bits 12 to 23 to allow for wrapping. For even iterations the result is rightshifted by <code>i%3*4</code> to simulate a 1/3 rotation. For odd iteration the additional <code>+i%2</code> imparts an additional shift of 1 (changing faces 0 and 6 to 11 and 5 as mentioned above, for example.)</p>
+<p>This generates all 30 possible orientations of the Z shape in bits 0 to 11, in some cases with nonsense in higher bits. One way to clean this up would be to AND with 4095. But it is shorter to AND with the input <code>n</code>. This however means that when the result is compared with <code>n</code> matches are found not only for a complete Z shape but also for fragments of the Z shape, as described above.</p>
+<pre class="lang-none prettyprint-override"><code>   *       *       *
   / \     / \     / \
  *   * * *   * * *   * *   
  |11 |/ \| 7 |/ \| 3 |/ \
@@ -58,6 +61,17 @@ Polar       3,9 with 4,6    7,1, with 8,10     11,5 with  0,2
    * *   * * *   * * *   *
       \ /     \ /     \ / 
        *       *       *
+</code></pre>
+<p><strong>Commented code</strong></p>
+<pre class="lang-none prettyprint-override"><code>-&gt;n{z=i=0                     #take an input n. Set up a counter i. Set z to 0, a truthy value in Ruby.
+(&quot;2%+@kgvv=#&quot;*3).bytes{|j|    #triple the magic string making a string of length 30. Iterate 30 times.
+z&amp;&amp;=n!=(                      #if the following expression equal to z, set z to false.
+(65|1&lt;&lt;j/12|1&lt;&lt;j%12)          #take 65 representing the ends of the Z
+                              #and use the magic string to fill in remaining faces
+*4097&gt;&gt;i%3*4+i%2)&amp;n           #make a duplicate in upper bits and shift right. 
+                              #AND with n to remove bits beyond bit 11.
+i+=1}                         #increment i
+z}                            #return z true or false
 </code></pre>
 <h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a>, 32 bytes + 2 possible outputs, Invalid</h1>
 <p>The test used in a previous revision of this answer had reflectional symmetry and will therefore give the same output for a reflection of the inputs. Hence it is not valid. See edit history for details.</p>
