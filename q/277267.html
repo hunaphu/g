@@ -42,6 +42,39 @@
 </code></pre>
 <p>A monadic Link that accepts a list of characters and yields a list of characters.</p>
 <p><strong><a href="https://tio.run/##HYwxasMwGIV3neIfshR6kiZLx24V0g@xK0tBMiQencWQIZAcICUZWiih0NKYOCkZZOJ7SBdR5Czvg/f4XopCFCHYvS//7dbP90N3avzP93U9eXbNbtCtuoq442/7GctXd1qO2o1rvogv6yd3fG@rbmE/gjv/2cNjW708pL682NrWIVAwSTYRCDijPQkbK40GlAbMaCIMURIh1wl7K4BRg6AkRAlzYphGmgG/J6MayXRcxFkUECsOvThVmhOTx0eDHHgPnZuoI@eIhEoONP5JJW8" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></strong></p>
+<h4>How?</h4>
+<pre><code>¬⁼¡€KẹⱮŒpQṢ$ƑƇ - Helper Link 1: PlaintextAsWords; TrialWord
+   €           - for each PlaintextWord of {PlaintextAsWords}:
+  ¡            -   repeat...
+ ⁼             -   ...times: is equal to {TrialWord}
+¬              -   ...action: logical NOT
+    K          - join with space characters -&gt; RedactedPlaintext, e.g:
+                  ['a',' ','w','o','r','d',' ',0,0,' ','m','i','s','s','i','n','g']
+      Ɱ        - map across Character in {TrialWord} with:
+     ẹ         -   indices of {Character} in {RedactedPlaintext}
+       Œp      - Caterisan product -&gt; AllIndexPicksMakingTrialWord
+             Ƈ - keep those for which:
+            Ƒ  -   is invariant under?:
+           $   -     last two links as a monad:
+         Q     -       deduplicate
+          Ṣ    -       sort
+
+ḲçⱮ`ẎLÞṪ - Helper Link 2: Plaintext
+Ḳ        - split {Plaintext} at space characters -&gt; PlaintextAsWords
+  Ɱ`     - map across TrialWord in {PlaintextAsWords} with:
+ ç       -   call Link 1 asa a dyad - f(PlaintextAsWords, TrialWord} 
+    Ẏ    - tighten {that} -&gt; list of index lists
+     LÞ  - sort {those} by length
+       Ṫ - tail of {that}
+
+⁶JḟÇƊ¦ - Main Link: Plaintext
+     ¦ - sparse application to {Plaintext}...
+    Ɗ  - ...at indices: last three links as a monad:
+ J     -   indices {Plaintext} -&gt; AllIndices
+   Ç   -   call link 2 as a monad - f(Plaintext) -&gt; CharacterIndices
+  ḟ    -   {AllIndices} filter discard {CharacterIndices}
+⁶      - ...apply: space character
+</code></pre>
 </div>
 <div id="pu1" class="pu"><h1>Google Sheets, 284 bytes <strike>313 bytes</strike></h1>
 <pre><code>=let(b,&quot;(.*)&quot;,w,tocol(split(A1,&quot; &quot;)),reduce(,sort(w,len(w),0),lambda(a,t,let(l,len(t),s,substitute(A1,t,rept(&quot; &quot;,l),1),p,b&amp;join(b,regexextract(t,rept(&quot;(.)&quot;,l)))&amp;b,if(a=&quot;&quot;,let(o,join(&quot;_&quot;,regexextract(s,p)),i,sequence(len(o)),sort(ifna(join(,if(mid(o,i,1)=&quot;_&quot;,mid(s,i,1),&quot; &quot;))))),a)))))
