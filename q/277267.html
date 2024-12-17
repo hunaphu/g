@@ -47,25 +47,28 @@
 <p>A monadic Link that accepts a list of characters and yields a list of characters (trailing spaces not included, as allowed).</p>
 <p><strong><a href="https://tio.run/##y0rNyan8/9/r6KSAhzvX5D/csSmzwuFU97H2R407Hu5clfhwZ6PDoaX5jxq3/f//vzi5KDUxVyE5sShVIQXEBAA" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></strong> (although it's too slow for the longer test cases).</p>
 <h4>How?</h4>
-<p><em>Updating...</em></p>
-<pre><code>⁶µJŒP¬⁸¦}ḲċịʋƇ⁸Ṫḟ@Jµ¦ - Link: Plaintext
-                    ¦ - sparse application to {Plaintext}...
- µ                 µ  - ...at indices: monadic chain - f(Plaintext}:
-  J                   -   indices {Plaintext}
-   ŒP                 -   powerset of {that} -&gt; AllIndexSelections (from short to long)
-             Ƈ        -   keep those for which:
-            ʋ ⁸       -     last four links as a dyad - f(IndexSelection, Plaintext):
-        }             -       using the right argument:
-       ¦              -         sparse application to {Plaintext}
-      ⁸               -         ...at indices: IndexSelection
-     ¬                -         ...apply: logical NOT (vectorises) -&gt; replaces selection chars with zeros
-         Ḳ            -       split {AugmentedText} at spaces
-           ị          -       {IndexSelection} index into {Plaintext} -&gt; SelectionChars
-          ċ           -       count occurrences of {SelectionChars} in {SplitAugmentedText}
-               Ṫ      -   tail -&gt; ALongestValidIndexSelection
-                  J   -   indices {Plaintext} -&gt; AllIndices
-                ḟ@    -   {Allindices} filter discard {ALongestValidIndexSelection}
-⁶                     - ...apply: space character
+<pre><code>JŒPṬoḲix@ʋƇ⁸Ṫaṁ@¥o⁶ - Link: Plaintext
+J                   - indices of {Plaintext} -&gt; AllIndices
+ ŒP                 - powerset of {AllIndices}
+   Ṭ                - untruth -&gt; AllMasks (each with ones at the chosen indices and
+                                           zeros elsewhere up to the last chosen index)
+          Ƈ         - keep those of {AllMasks} for which:
+         ʋ ⁸        -   last four links as a dyad - f(Mask, Plaintext):
+    o               -     {Mask} logical OR {Plaintext} (vectorises) 
+                          -&gt; Masked (Plaintext with 1s in place of chosen indices)
+     Ḳ              -     split {Masked} at space characters
+       x@           -     {Plaintext} repeat {Mask} (vectorises)
+                          -&gt; Substring (i.e. the characters at the chosen indices)
+      i             -     first 1-indexed index of {Substring} in {Masked}
+                          ...or 0 if not found
+            Ṫ       - tail -&gt; ALongestValidMask
+                ¥   - last two links as a dyad - f(ALongestValidMask, Plaintext)
+              ṁ@    -   mould {Plaintext} like {ALongestValidMask} 
+                        -&gt; TruncatedPlaintext (trailing characters removed)
+             a      -   {ALongestValidMask} logical AND {TruncatedPlaintext}
+                        -&gt; X = TruncatedPlaintext with zeros where we want spaces
+                 o⁶ - {X} logical OR with a space character
+                      (replaces the zeros with spaces)
 </code></pre>
 <hr />
 <h3>Original, 28 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h3>
