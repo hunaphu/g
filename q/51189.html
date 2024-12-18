@@ -45,25 +45,28 @@
 <pre><code>“:(-rdḂe1v&amp;”yṣ”,VFṠS
 </code></pre>
 <p><a href="https://tio.run/##y0rNyan8//9RwxwrDd2ilIc7mlINy9QeNcytfLhzMZDSCXN7uHNB8P@Hu7ccbn/UtCby//@CdD0FUxMzKwVDc11DSx0FIyMgNtNRgIhbWCkYm@qamSvkp6ToKJgD5S0MdC3MFFLLUvO4QEqMTYA6uQLcgYrNTK0UjHRNdYAcYxNTK3OovLGVgqmOhY6hsYIuUA1Ypw5EBqje2AQoam6hY2EAUm1iaQQywgRsm7muJcIa8lyog8tMAA" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></p>
-<p>Eval to the rescue! Does not handle inputs where <code>even</code> or <code>odd</code> are given in uppercase; if those do have to be handled, add 2 bytes to prepend <code>Œl</code>. Also assumes problem numbers are always strictly positive, which seems like a reasonable assumption, but is never actually stated in the spec.</p>
+<p>Eval to the rescue! Like several other answers, this does not correctly handle inputs where <code>even</code> or <code>odd</code> are given in uppercase; if those do have to be handled, add 2 bytes to prepend <code>Œl</code>. Also assumes problem numbers are always strictly positive, which seems like an eminently reasonable assumption, but is never actually stated in the spec.</p>
 <pre><code>“          ”y           Transliterate:
  :(                     ':' to opening parenthesis (unparseable),
    -r                   '-' to dyadic inclusive range,
      dḂ                 'd' to mod 2,
        e1               'e' to a literal 1,
          v&amp;             and 'v' to bitwise AND.
-             ṣ”,        Split on commas
+             ṣ”,        Split that on commas
                 V       and eval each slice (vectorizing).
-                 F      Flatten
+                 F      Flatten the results together
                   ṠS    and sum signs.
 </code></pre>
-<p>The transliteration turns each sub-specification in the list into a Jelly kinda-program (evaluating to the final value of its main link un-stringified, but otherwise having self-contained program semantics w.r.t. helper links) producing as many positive elements as there are problems specified, possibly with extra zeroes. For example, breaking apart the first test case <code>pg. 546: 17-19, 22, 26, pg. 548: 35-67 odd, 79, 80-86 even</code>, which becomes <code>pg. 546( 17r19, 22, 26, pg. 548( 35r67 oḂḂ, 79, 80r86 1&amp;1n</code>:</p>
-<pre><code>pg. 546( 17r19
+<p>The transliteration turns each sub-specification in the list into a Jelly kinda-program (evaluating to the final value of its main link un-stringified, but otherwise having self-contained program semantics w.r.t. helper links) producing as many positive elements as there are problems specified, possibly with extra zeroes. For example, breaking apart the first test case:</p>
+<pre><code>&quot;pg. 546: 17-19, 22, 26, pg. 548: 35-67 odd, 79, 80-86 even&quot; becomes
+&quot;pg. 546( 17r19, 22, 26, pg. 548( 35r67 oḂḂ, 79, 80r86 1&amp;1n&quot;
+
+pg. 546( 17r19
 p                 Cartesian product of 0 with itself rangified (empty list).
  g.               GCD of all 0 elements of that with 1/2.
-    546           Unparseable nilad 546, which would be printed if this ran,
+    546           Unparseable nilad 546, which would print [] if this ran,
        (          but it doesn't run because of the unparseable token (
-pg. 546(          putting everything before it two lines up as a helper.
+pg. 546(          putting everything before it two lines up as a helper link.
                   New niladic chain:
          17       Start with 17,
            r19    and take the inclusive range from that to 19.
@@ -86,7 +89,7 @@ pg. 548(              Uncalled/ignored helper link/comment.
       1&amp;      Bitwise AND each element with 1.
         1n    For each result, is it not equal to 1?
 </code></pre>
-<p>I took care to minimize the number of transliterations needed by leveraging <code>o</code> as an almost-NOP and <code>n</code> as an actual part of my evenness test, but it doesn't seem entirely impossible that this can go shorter without a completely different approach.</p>
+<p>I took care to minimize the number of transliterations needed by leveraging <code>o</code> as an almost-NOP and <code>n</code> as an actual part of my evenness test. It seems unlikely that this can go shorter without an entirely different approach, since <code>e</code> doesn't vectorize and <code>v</code>'s concatenation of integers is highly undesired here, but maybe there's something clever that can obviate the split/flatten?</p>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, 30 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
 <pre><code>',¡ε':¡θDáU'-¡€þŸʒÉXgÉQXõQ~]˜g
