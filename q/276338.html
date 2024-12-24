@@ -26,11 +26,160 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>044</td><td>Rust</td><td>241101T023824Z</td><td><a href="https://codegolf.stackexchange.com/questions/276338/fill-in-matrices-for-matrix-bit-flipping-as-quickly-as-possible/276442#276442">Anders K</a></td></tr>
-<tr d-ix="1"><td>nan</td><td></td><td>241029T121711Z</td><td><a href="https://codegolf.stackexchange.com/questions/276338/fill-in-matrices-for-matrix-bit-flipping-as-quickly-as-possible/276384#276384">jdt</a></td></tr>
-<tr d-ix="2"><td>nan</td><td></td><td>241028T152332Z</td><td><a href="https://codegolf.stackexchange.com/questions/276338/fill-in-matrices-for-matrix-bit-flipping-as-quickly-as-possible/276370#276370">ovs</a></td></tr>
+<tr d-ix="0"><td>nan</td><td></td><td>241224T011321Z</td><td><a href="https://codegolf.stackexchange.com/questions/276338/fill-in-matrices-for-matrix-bit-flipping-as-quickly-as-possible/277372#277372">138 Aspe</a></td></tr>
+<tr d-ix="1"><td>044</td><td>Rust</td><td>241101T023824Z</td><td><a href="https://codegolf.stackexchange.com/questions/276338/fill-in-matrices-for-matrix-bit-flipping-as-quickly-as-possible/276442#276442">Anders K</a></td></tr>
+<tr d-ix="2"><td>nan</td><td></td><td>241029T121711Z</td><td><a href="https://codegolf.stackexchange.com/questions/276338/fill-in-matrices-for-matrix-bit-flipping-as-quickly-as-possible/276384#276384">jdt</a></td></tr>
+<tr d-ix="3"><td>nan</td><td></td><td>241028T152332Z</td><td><a href="https://codegolf.stackexchange.com/questions/276338/fill-in-matrices-for-matrix-bit-flipping-as-quickly-as-possible/276370#276370">ovs</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Rust, score ≈ 44</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a></h1>
+<p>Python port of @Anders Kaseorg's Rust answer.</p>
+<pre class="lang-python prettyprint-override"><code>import sys
+from typing import List, Tuple
+
+SIZE = 8
+COLUMN_MASK = 0x0101010101010101
+
+def matrix_rows(matrix: int) -&gt; List[int]:
+    &quot;&quot;&quot;Convert a 64-bit integer matrix to a list of 8 byte rows (little endian).&quot;&quot;&quot;
+    return list(matrix.to_bytes(SIZE, 'little'))
+
+def rows_matrix(rows: List[int]) -&gt; int:
+    &quot;&quot;&quot;Convert a list of 8 byte rows back to a 64-bit integer matrix (little endian).&quot;&quot;&quot;
+    return int.from_bytes(bytes(rows), 'little')
+
+def trailing_zeros(x: int, size: int = SIZE) -&gt; int:
+    &quot;&quot;&quot;Calculate the number of trailing zero bits in an integer.&quot;&quot;&quot;
+    if x == 0:
+        return size
+    return (x &amp; -x).bit_length() - 1
+
+def binary_search_desc(lst: List[int], target: int) -&gt; int:
+    &quot;&quot;&quot;
+    Perform a binary search on a descending sorted list.
+    Returns the first index where lst[index] &lt;= target.
+    If no such index exists, returns len(lst).
+    &quot;&quot;&quot;
+    low, high = 0, len(lst)
+    while low &lt; high:
+        mid = (low + high) // 2
+        if lst[mid] &gt; target:
+            low = mid + 1
+        else:
+            high = mid
+    return low
+
+def make_coeffs(n: int) -&gt; Tuple[List[int], int]:
+    &quot;&quot;&quot;
+    Generate coefficient table and number of unique matrices for a given size n.
+    &quot;&quot;&quot;
+    coeffs = [0] * (n &lt;&lt; n)  # Equivalent to n * (2^n)
+    for row in reversed(range(1 &lt;&lt; n)):
+        coeffs[(n - 1) &lt;&lt; n | row] = (1 &lt;&lt; n) - 1 - row
+        for i in reversed(range(n - 1)):
+            if row + 1 &lt; (1 &lt;&lt; n):
+                coeffs[i &lt;&lt; n | row] = coeffs[(i + 1) &lt;&lt; n | row] + coeffs[i &lt;&lt; n | (row + 1)]
+            else:
+                coeffs[i &lt;&lt; n | row] = coeffs[(i + 1) &lt;&lt; n | row]
+    num_matrices = sum(coeffs[i &lt;&lt; n] for i in range(n)) + 1
+    return coeffs, num_matrices
+
+def encode(n: int, coeffs: List[int], matrix: int) -&gt; int:
+    &quot;&quot;&quot;
+    Encode a matrix into a unique integer code based on sorted rows and coefficients.
+    &quot;&quot;&quot;
+    rows = matrix_rows(matrix)[:n]
+    sorted_rows = sorted(rows)
+    return sum(coeffs[(i &lt;&lt; n) | row] for i, row in enumerate(sorted_rows))
+
+def decode(n: int, coeffs: List[int], matrix_code: int) -&gt; int:
+    &quot;&quot;&quot;
+    Decode an integer code back into the original matrix.
+    &quot;&quot;&quot;
+    rows = [0] * SIZE
+    for i in range(n):
+        search_range = coeffs[i &lt;&lt; n : (i + 1) &lt;&lt; n]
+        row = binary_search_desc(search_range, matrix_code)
+        rows[i] = row
+        if (i &lt;&lt; n | row) &gt;= len(coeffs):
+            print(f&quot;Error: Index out of bounds during decode. i={i}, row={row}&quot;)
+            sys.exit(1)
+        matrix_code -= coeffs[(i &lt;&lt; n) | row]
+    return rows_matrix(rows)
+
+def main():
+    for n in range(2, 7):
+        # Print trivial matrices information
+        for i in range(1, n + 1):
+            print(f&quot;{n} {i} 0: {n * n - i + 1}&quot;)
+
+        coeffs, num_matrices = make_coeffs(n)
+        ranks = [0] * num_matrices
+        split = num_matrices - 1
+
+        # Assign ranks based on coefficients
+        for i in reversed(range(n)):
+            new_split = split - coeffs[i &lt;&lt; n]
+            new_ranks = ranks[:split].copy()
+            old_ranks = ranks[split:]
+            for k, matrix_code in enumerate(range(new_split, split)):
+                matrix = decode(n, coeffs, matrix_code)
+                row = (matrix &gt;&gt; (SIZE * (n - 1))) &amp; 0xFF
+                tz = trailing_zeros(row, SIZE)
+                column = (matrix &gt;&gt; tz) &amp; COLUMN_MASK
+                new_matrix = matrix ^ (column * row)
+                encoded = encode(n, coeffs, new_matrix)
+                if encoded &lt; split:
+                    print(f&quot;Error: Encoded value {encoded} is less than split {split}&quot;)
+                    sys.exit(1)
+                square_rank = old_ranks[encoded - split] + 1
+                new_ranks[k + new_split] = square_rank
+            ranks[:split] = new_ranks
+            split = new_split
+
+        # Initialize flood
+        flood = [0 if rank == n else (1 &lt;&lt; rank) for rank in ranks]
+        reached = [0] * (SIZE + 1)
+        flips = 0
+
+        # Perform flood fill
+        while True:
+            new_reached = [~0] * (SIZE + 1)
+            for b, rank in zip(flood, ranks):
+                new_reached[rank] &amp;= b
+            unfinished = False
+            for i in range(0, n + 1):
+                for j in range(1, i):
+                    if ((new_reached[i] &gt;&gt; j) &amp; 1) == 0:
+                        unfinished = True
+                    elif ((reached[i] &gt;&gt; j) &amp; 1) == 0:
+                        print(f&quot;{n} {i} {j}: {flips}&quot;)
+            reached = new_reached
+            if not unfinished:
+                break
+
+            # Update flood
+            new_flood = []
+            for matrix_code, b in enumerate(flood):
+                matrix = decode(n, coeffs, matrix_code)
+                for i_row in range(n):
+                    for j_col in range(n):
+                        bit = 1 &lt;&lt; (SIZE * i_row + j_col)
+                        flipped_matrix = matrix ^ bit
+                        encode_code = encode(n, coeffs, flipped_matrix)
+                        if encode_code &gt;= len(flood):
+                            print(f&quot;Error: Encoded value {encode_code} out of bounds for flood&quot;)
+                            sys.exit(1)
+                        b |= flood[encode_code]
+                new_flood.append(b)
+            flood = new_flood
+            flips += 1
+
+if __name__ == &quot;__main__&quot;:
+    main()
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=rVjbbttGEH3Xcz9g4AAJGdOqExRtIFgGgtQpjCZt0CQvFRSCEpfS2tRS4cWW7bg_0pe8tJ_RD-nXdGZ2Se6SdBIEZdHosjNnZudyZuQ__95eletMffz4V1UmB0_-_eYfudlmeQnFVTFK8mwD5dVWqhWYr1_IogzgTbVNxWj0-vT3E5jCk9GzX1-8fflL-PLp65_x8-Hu8JH732gUiwQ2UZnLXZhnl4Wn309AqtKHg2PGneGH-WQE-Ozt7T3L1IVAixF8_93BQpYkKlYiNzBQZniUohpkCTyBxVUpgKDBS2VZpgKEimWk_DFiMWYuyipXrGLMj8ssJL3Co5sE8EBrPvB97TDBhVrUo_eT1k12Gt8MuDvk0yJanmuPhy_zGZ9RekzJMN7qfwnYt5zWPpd5JFNMWHgt8qzwdIgDKOS14LeYH7ps3_8oXVZphA6XawGq2izQu6zFA8IDdL1ANYhUfYPGVZnADqaYfQ1peU-27dt4O7gPBzt_jGhhKtSqXHvoD5gyWUgV5VdhIaJ8uQ5jUSy9tCit2AdQRvlKlG312Bfh11ciT7J8g_HWaKDRIEPXgSAp0HipAmtaxJyyMSv-xi4WHIRE5gVlKhY7uFyLXEDKHuDnORxNjRda7zQBlUFRoQ2tIHaIWQTmzgXgPeka_tjxM80uA1jL1ZraJmiE-OxyLbEiUAKOWKSN60bGKO_R0T4f-fDtt_C4OcdUkKcoNofjOljNqbGLCISzj2GvvxVpIVw54xoKOi2UXdYdfS7CZSaSpPBUmw6mh5mVL6ex-fUnoURO1cbacikFlmYZLfDGkYqt-quUfF8J3SdLUQCmFVO4khdCFxYoN6LaG_R5djiHh-ApODoC5QPcg5P3lbyIUraUgaLTx--UDjbBYkNRbecCG7kQsZdHaiW8RxrAbwOjTcwQGmvW52P4QNpzyoqRpzP8H79t9MiGHLCgcXw38pLph9KD6a9BXRHLF9nxonZREoDr4n5PxzOG_LkD36-GrzLICJjPsEnhFPtk4zlAcys4Oia-35SmqTqtEDhYugyFWmaxMBUYGEGHMLrjpkcYJwyBlWUIGQWIrU311WzNMosIU0dMYsiDCZ6K1irlwi1KFpkODEB_NlE6QhosNJL6k6Z4OwZW4DxpCs3kgAMY1EUsMErcYJ4FXM-1WHxZvEIS-0TQfhQ6aKobIBx2HEBi0SyXK-Tg1GAOBkb3Ks2lphmdWmjL0EwFPmjLzlTjBOz6a6s5Z7YbmCs2mnNp39ZFfCpxu5WxOz27BXw4njJ7a4c6jbrNMRpesneS51k-gVMeEFnFW8Iiq1RcQFzlNI90ZsYgpzfylpM5vcF_bvd8BxCXszEOmNJ71H5veQ8HdkPaVWLXUne78WtOl8ozF6BEqDYRjwP4wbraPXhFF8MVQV7IOsHU4FLR8I1KmakB8tOsin3MqRqO1I26BYwALhNwQ0RNFMmppUh0iDjososzlaxMRuq8LTaHRZq4bnGZQhEHkBeT9s5Pi0KulEFruMDu_c8TfpfslbgMa9v69cAt7XlPvL4Nv84mrDUfL7PtlefWSpbGHWGWnbiQ5Oq50wIuixjHaz8D7Wb3Hm0dorGaZYImT4MN1qSHm9TwIhwfAy_leoTzfPRxazzcPX_e0yyvUbGz9-a0WPGiOzDB0mqjXFvlNaFbP2N6WnT15mrmzTvwDNhDJoGekh5MtKzVI6oNRgvY15NJo3qkI92PMz0dYjkxOrjk4NC6MRC3IGn9LGipRarW9XXDL11eqZ8hfmnO3ldRLrik8F5Ndc1qhw-0hbmzWdpR1OLneN6UE9GrheuoOQVOvVlDuIxYd24NabfsqZIlEhRti0maZXHboPSJKYH3Lb4SYvDqY5Yu-tLX6yEdS9P51nAR0XIt4nbj5LIlarPMyC2136HtVP0TRfuQyDRtDvXm_yavRJ8mLHN_3GWPbaLHi6Bx-lpuPbakv-pOqA76jGTmcB-HpiNWqUQqWWj7zyOMUs-mxfGHwxxfS54500AOSNFDk9azXcNZjA17Rv2Kg979wdl9HH8pnoOSImUjX2OgO69uzm5xYnG-u73VJs66TXflV1lpOd23u0C985Hz9T14u43pl5Rb2vSQoabE-3xv0XEAC5fvWe1_ZHcujbD-hdVb67qiZwiTfl6UQ8J9z71aTwxtaF-jDDMcG8I0bXE17tM6Yt6ppXlOj8ghXndR77becLyGMvvjXXG3ny9hfQa97SyZFFk2cAft18-n6L9-FvBhqsFmlsX5IKuw2DjCsKjYW3R4ytRnI9c5Jebcn9IKhgELQxVtRBhSV-6FIa2qYbino6X3Vv1nTPPXzPqvmv8B" rel="nofollow noreferrer">Attempt This Online!</a></p>
+</div>
+<div id="pu1" class="pu"><h1>Rust, score ≈ 44</h1>
 <p>The main idea here is to take advantage of symmetry by avoiding redundant processing of matrices obtained by rearranging the rows of other processed matrices.</p>
 <p>This uses a different output format because for each <span class="math-container">\$n\$</span> it computes the nontrivial values in ascending order by value rather than positionally (which is allowed by the rules):</p>
 <pre><code>2 1 0: 4
@@ -182,7 +331,7 @@ fn main() {
 }
 </code></pre>
 </div>
-<div id="pu1" class="pu"><h1><a href="http://clang.llvm.org/" rel="nofollow noreferrer">C++ (clang)</a></h1>
+<div id="pu2" class="pu"><h1><a href="http://clang.llvm.org/" rel="nofollow noreferrer">C++ (clang)</a></h1>
 <p>Direct port of ovs's answer with some parallelization thrown in.</p>
 
 <pre class="lang-cpp prettyprint-override"><code>#include &lt;iostream&gt;
@@ -249,7 +398,7 @@ int main() {
 </code></pre>
 <p><a href="https://tio.run/##dVVNc9owEL37V@w002AnIRBmeonBPXQmR9rp9ACTkolsC5Ajy64lA502f710JfkD88EB7NXT27ertyLK837EiVjt91dMRLyMKYxZJlVBSRo4bWxDI5UVh5EIQUysAsfZZCyGJWe5dJlQIDz44wB@9MsUJvAA4zG4Am5wyTcrUsWPj5ZyHK1JEUBBxJt0p94dzMz3HL99x4AHA/iSpXmpqEVBtgTCOYxeXHGDyVKCQiIqDdggnocLTDv0GxUpkW8YcafQhwcPBuC6RhTu1gELXGYFmAJ2WrOPP2OY@nB7u6sLaukwo0bt/E48Z5tMYbha/wh1li6MyxBBFnwNffPQIqrNQTAB0UZtXTtdl97@uQpU4Bdwq6eBWb42FXvYcUO@gFs8hMfOnoXlfm96/J3KkitQJOT05JAOn7GEAA/MwCUeK3LfwTGgjg@94@4y210GY10gtpd5NdkzW9ijM17Bo2GaxNfqnlghFUQZL1PRSH5CTkqiNSQoIEfLxpBIKIViHBJgEtSaYid2LC1T2BBe0vt664@DFVGmIS20rYyJQVAa09go1h1DFf3A8tFfJUMeKlTNozKTpKVgihZEsUxI2K5pQeF19oq6hSJMICm773Yjsd1I0GumGcmh10xTU5pG@W93fh8TRVwcDXOKzdv0yFzb9jXODrj0Z9tOxbkUs4Z03qHvbLjKC7JKCeBEQk4KHETKdTkdUGeUhpdGqZG9BHdmvD2B5BygQxnajoWWMoSbCYw8mD/rKQi1eRL/hOAdKJe0TRRczrOFv9WNpZFnqJzLbx2PJ9a7l3ye4FDijbTFQQdcuUas08rdrhmnuOodT@m3QvNXPKeDNTxK2NbYcdzQOG4CzFru1BFRVirdg65gDPSg5ztnob2folerRb32nmTCrUU0AgQKGPn4gwI@aQHixPM15wcx@WBu0G4CQ2f@b0TTIHNJUlUWQlv83dnv/0VLTlZy3/862veXWU5Fmv8H" rel="nofollow noreferrer" title="C++ (clang) – Try It Online">Try it online!</a></p>
 </div>
-<div id="pu2" class="pu"><h1>C (clang <code>-O2</code>)</h1>
+<div id="pu3" class="pu"><h1>C (clang <code>-O2</code>)</h1>
 <p>Locally this takes 15 seconds for <code>n=5</code>. For computing further results, some of the <code>int</code>s have to be changed to <code>long</code>, but it won't be to close to completing <code>n=6</code> within a minute.</p>
 
 <pre class="lang-c prettyprint-override"><code>#include &lt;stdio.h&gt;
