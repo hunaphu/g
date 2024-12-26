@@ -26,9 +26,184 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>059</td><td>Charcoal</td><td>241226T000519Z</td><td><a href="https://codegolf.stackexchange.com/questions/277377/find-the-busiest-unfriendly-matrix/277399#277399">Neil</a></td></tr>
+<tr d-ix="0"><td>1260</td><td>Rust</td><td>241226T010832Z</td><td><a href="https://codegolf.stackexchange.com/questions/277377/find-the-busiest-unfriendly-matrix/277400#277400">138 Aspe</a></td></tr>
+<tr d-ix="1"><td>059</td><td>Charcoal</td><td>241226T000519Z</td><td><a href="https://codegolf.stackexchange.com/questions/277377/find-the-busiest-unfriendly-matrix/277399#277399">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 59 bytes, <code>n=4</code> on ATO</h1>
+<div id="pu0" class="pu"><h1>Rust, <code>n=12</code> in less than 60 seconds on my laptop.</h1>
+<pre class="lang-rust prettyprint-override"><code>use std::time::Instant;
+
+/// Returns the Hamming distance (count of differing bits) between two bit patterns.
+fn hamming_distance(a: u64, b: u64) -&gt; u32 {
+    (a ^ b).count_ones()
+}
+
+/// Returns the count of positions where both bit patterns have a '1'.
+fn common_ones(a: u64, b: u64) -&gt; u32 {
+    (a &amp; b).count_ones()
+}
+
+/// Checks if two rows (bit patterns) are &quot;unfriendly&quot;:
+/// distance &gt; number of common ones.
+fn is_unfriendly(a: u64, b: u64) -&gt; bool {
+    hamming_distance(a, b) &gt; common_ones(a, b)
+}
+
+/// Tries to build an unfriendly matrix by picking rows in descending order of their 1-count.
+/// - `rows_sorted` is a list of all bit patterns with their 1-count sorted descending.
+/// - `n` is the matrix dimension.
+/// - `chosen` holds currently picked row bit patterns.
+fn backtrack(
+    rows_sorted: &amp;[(u64, u32)],
+    n: usize,
+    chosen: &amp;mut Vec&lt;u64&gt;,
+    start_index: usize,
+    best_solution: &amp;mut Vec&lt;u64&gt;,
+    best_ones: &amp;mut u32,
+    time_limit: std::time::Duration,
+    start_time: Instant,
+) {
+    // If time exceeded, stop searching.
+    if Instant::now().duration_since(start_time) &gt; time_limit {
+        return;
+    }
+
+    // If we already have n rows, update the best solution if better.
+    if chosen.len() == n {
+        let sum_ones: u32 = chosen
+            .iter()
+            .map(|&amp;r| r.count_ones())
+            .sum();
+        if sum_ones &gt; *best_ones {
+            *best_ones = sum_ones;
+            *best_solution = chosen.clone();
+        }
+        return;
+    }
+
+    // Prune if the maximum possible 1s from here cannot beat current best:
+    // (sum of chosen ones + sum of top row-ones in the future)
+    let chosen_sum: u32 = chosen.iter().map(|&amp;r| r.count_ones()).sum();
+    let max_possible = chosen_sum
+        + rows_sorted[start_index..]
+            .iter()
+            .take(n - chosen.len())
+            .map(|&amp;(_, ones)| ones)
+            .sum::&lt;u32&gt;();
+    if max_possible &lt;= *best_ones {
+        return;
+    }
+
+    // Try to pick rows from start_index onward.
+    for i in start_index..rows_sorted.len() {
+        // Quick check for time limit again.
+        if Instant::now().duration_since(start_time) &gt; time_limit {
+            break;
+        }
+
+        let (candidate_row, _) = rows_sorted[i];
+        // Check if candidate_row is unfriendly with all chosen rows so far.
+        let mut valid = true;
+        for &amp;prev_row in &amp;*chosen {
+            if !is_unfriendly(candidate_row, prev_row) {
+                valid = false;
+                break;
+            }
+        }
+        // If it is unfriendly with all, pick it and recurse.
+        if valid {
+            chosen.push(candidate_row);
+            backtrack(
+                rows_sorted,
+                n,
+                chosen,
+                i + 1,
+                best_solution,
+                best_ones,
+                time_limit,
+                start_time,
+            );
+            chosen.pop();
+        }
+    }
+}
+
+fn main() {
+    // Read n from command line or default to something for demonstration.
+    let args: Vec&lt;String&gt; = std::env::args().collect();
+    if args.len() &lt; 2 {
+        eprintln!(&quot;Usage: {} &lt;n&gt;&quot;, args[0]);
+        return;
+    }
+    let n: usize = args[1].parse().expect(&quot;Invalid integer for n&quot;);
+
+    // For n up to 64, we can store each row in a 64-bit integer.
+    // We will explore all possible 2^n patterns (feasible up to about n=12).
+    if n &gt; 64 {
+        eprintln!(&quot;n = {} is too large to be encoded in 64 bits.&quot;, n);
+        return;
+    }
+
+    // Generate all possible row bit patterns for n bits.
+    // Store them alongside their count of 1s for sorting.
+    let mut all_rows = Vec::new();
+    for row_pattern in 0..(1u64 &lt;&lt; n) {
+        all_rows.push((row_pattern, row_pattern.count_ones()));
+    }
+
+    // Sort patterns by descending number of 1s.
+    all_rows.sort_by(|a, b| b.1.cmp(&amp;a.1));
+
+    // We'll store the best solution found (list of row patterns),
+    // and the best sum of 1s so far.
+    let mut best_solution = Vec::new();
+    let mut best_ones = 0;
+
+    // Set a time limit (e.g., 55 seconds, giving some buffer under 60).
+    let time_limit = std::time::Duration::from_secs(55);
+    let start_time = Instant::now();
+
+    // Backtracking search.
+    let mut chosen = Vec::new();
+    backtrack(
+        &amp;all_rows,
+        n,
+        &amp;mut chosen,
+        0,
+        &amp;mut best_solution,
+        &amp;mut best_ones,
+        time_limit,
+        start_time,
+    );
+
+    // Output the resulting matrix.
+    // Each selected row bit pattern is output as '0/1' across n columns.
+    let mut matrix = vec![vec![0; n]; n];
+    for (row_index, &amp;pattern) in best_solution.iter().enumerate() {
+        for col_index in 0..n {
+            // If the col_index-th bit is set, fill with 1.
+            // Note that bit 0 is the least significant bit, so we check that carefully.
+            if (pattern &amp; (1 &lt;&lt; col_index)) != 0 {
+                matrix[row_index][col_index] = 1;
+            }
+        }
+    }
+
+    // Print the matrix row by row.
+    // If you want columns in &quot;left to right&quot; order matching bits from left to right:
+    // you can invert the indexing in the loop above.
+    for row in matrix {
+        println!(
+            &quot;{}&quot;,
+            row.iter()
+                .map(|&amp;bit| bit.to_string())
+                .collect::&lt;Vec&lt;String&gt;&gt;()
+                .join(&quot; &quot;)
+        );
+    }
+}
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 59 bytes, <code>n=4</code> on ATO</h1>
 <pre><code>Ｎθ≔ΦＥＸ²×θθ⪪﹪÷ιＸ²…⁰×θθ²θ⬤ι⬤…ιμ‹Σ×λνΣＥλ↔⁻π§νρη≔ＥηΣΣλζ⭆¹§η⌕ζ⌈ζ
 </code></pre>
 <p><a href="https://ato.pxeger.com/run?1=VZDPSsQwEMbx6lOEPU0hC7p4EPdUVhYKVhbrTTz0T2wHJknbJOvaV_GygqLP5NOYtMsuHsJkvpnfN5O8_5RN3pc6p_3-y9mX-fXv2U2iWmfvnSxED120PI-NwVrBGsl6Jc1b2OhXf1tw9ohSGOg466KIs6wltJDqypGGRNlb3GIlADk7Ag-5qgVc_CcDu4gOJjFRIEJYvZUkVo1ugyB97U4YA5mTMNHEmRrneiWs5fO4MJqcFZCicgZar9hEVWIHirM-mmY1p0cFrJkcwqGxPvj6pkdlIbM-1KHp8uTk-9eoKhg4S_MdSs8No_Py0xSlOXzk99NsvqXZ88fVlP8B" rel="nofollow noreferrer">Attempt This Online!</a> Link is to verbose version of code. Explanation: Just brute force, so although ATO can solve <code>n=4</code> in about half a minute, <code>n=5</code> would take several hours.</p>
