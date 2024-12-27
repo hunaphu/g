@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::32241</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>nan</td><td></td><td>140622T225744Z</td><td><a href="https://codegolf.stackexchange.com/questions/32241/restricted-minimum/32246#32246">Paul R</a></td></tr>
+<tr d-ix="1"><td>013</td><td>Golfscript</td><td>140623T064155Z</td><td><a href="https://codegolf.stackexchange.com/questions/32241/restricted-minimum/32263#32263">tohanov</a></td></tr>
+<tr d-ix="2"><td>042</td><td>Perl</td><td>140623T191956Z</td><td><a href="https://codegolf.stackexchange.com/questions/32241/restricted-minimum/32353#32353">Zaid</a></td></tr>
+<tr d-ix="3"><td>098</td><td>JavaScript  84 89 97</td><td>140622T222404Z</td><td><a href="https://codegolf.stackexchange.com/questions/32241/restricted-minimum/32244#32244">core1024</a></td></tr>
+<tr d-ix="4"><td>nan</td><td></td><td>140623T091109Z</td><td><a href="https://codegolf.stackexchange.com/questions/32241/restricted-minimum/32288#32288">blutoran</a></td></tr>
+<tr d-ix="5"><td>009</td><td>J</td><td>140623T060955Z</td><td><a href="https://codegolf.stackexchange.com/questions/32241/restricted-minimum/32261#32261">ɐɔıʇǝɥʇu</a></td></tr>
+<tr d-ix="6"><td>nan</td><td></td><td>140622T211519Z</td><td><a href="https://codegolf.stackexchange.com/questions/32241/restricted-minimum/32242#32242">Adam Spe</a></td></tr>
+<tr d-ix="7"><td>052</td><td>Perl</td><td>140622T222641Z</td><td><a href="https://codegolf.stackexchange.com/questions/32241/restricted-minimum/32245#32245">Heiko Ob</a></td></tr>
+<tr d-ix="8"><td>nan</td><td>APL</td><td>140622T212629Z</td><td><a href="https://codegolf.stackexchange.com/questions/32241/restricted-minimum/32243#32243">jimmy230</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h2>C/C++ with SSE intrinsics (11 instructions)</h2>
+<p>Because everything's better with SIMD...</p>
+<pre class="lang-c prettyprint-override"><code>inline int foo(const int16_t *a, const int16_t *b) 
+{
+    __m128i va = _mm_loadu_si128((__m128i *)a);
+    __m128i vb = _mm_loadu_si128((__m128i *)b);
+    __m128i vmin = _mm_min_epi16(va, vb);
+    vmin = _mm_add_epi32(_mm_unpacklo_epi16(vmin, vmin), _mm_unpackhi_epi16(vmin, vmin));
+    vmin = _mm_add_epi32(vmin, _mm_srli_si128(vmin, 4));
+    vmin = _mm_add_epi32(vmin, _mm_srli_si128(vmin, 8));
+    return _mm_cvtsi128_si32(vmin);
+}
+</code></pre>
+<p>No branches, loops or function calls. This might not be the shortest <em>source</em> code, but it compiles to just 11 SSE instructions, so I claim shortest <em>generated</em> code.</p>
+</div>
+<div id="pu1" class="pu"><h1>Golfscript, 13</h1>
+
+<pre><code>0\~zip{$0=+}/
+</code></pre>
+
+<p>The arguments have to be passed to the program as a list of the two lists (e.g. <code>[ [0 1 2] [4 2 0] ]</code>). 
+I'm really not sure if it matches the rules, though (you said you won't forbid basic list operations? - zip in this case).</p>
+
+<h3>Explanation:</h3>
+
+<ul>
+<li>Golfscript pushes the arguments it get as a string into the stack before the program runs.  </li>
+<li><code>0\</code> pushes 0 and switching top elements of the stack (will be used for the sum).</li>
+<li><code>~</code> executes the code in the string, which is just pushing the array down the stack.  </li>
+<li><code>zip</code> transposes array's rows with columns (e.g. <code>[[0 1 2][4 2 0]] -&gt; [[0 4][1 2][2 0]]</code>).  </li>
+<li><code>{...}/</code> executes a block (<code>{...}</code>) over each element of the array.  </li>
+<li><code>$0=+</code> sorts each array in the big array gets the first element and adds to the "sum".  </li>
+</ul>
+
+<p>At the end of the program only the sum is left on stack and the stack values are printed.</p>
+</div>
+<div id="pu2" class="pu"><h1>Perl, 42</h1>
+
+
+
+<pre class="lang-perl prettyprint-override"><code>$s+=($a[$_],$b[$_])[$b[$_]&lt;$a[$_]]for 0..7
+</code></pre>
+
+<p>I expect scripting/C-like languages with sigil-free syntax will fare slightly better in terms of their code-golf scores. Loops over the indices and creates a list with the element from <code>@a</code> and <code>@b</code>. The index is determined by the result of the <code>&lt;</code> comparison.</p>
+
+<p>Just for kicks, one could write the following to make the logic scale for any number of elements by selecting the upper limit for the index variable to be the larger of <code>$#a</code> or <code>$#b</code>:</p>
+
+<pre class="lang-perl prettyprint-override"><code>$s+=($a[$_],$b[$_])[$b[$_]&lt;$a[$_]]for 0..($#a,$#b)[@a&lt;@b]
+</code></pre>
+</div>
+<div id="pu3" class="pu"><h2>JavaScript - 84 <del>89</del> <del>97</del> <del>98</del></h2>
+
+<p><strong>The code:</strong></p>
+
+<pre><code>for(s=i=7;i--;s+=x*r/r|0+y*l/l|0){x=~-a[i];y=~-b[i];l=0xff&amp;1&lt;&lt;(x-y);r=0xff&amp;1&lt;&lt;(y-x)}
+</code></pre>
+
+<p><strong>49</strong> if the comparison operators are allowed in numerical context:</p>
+
+<pre><code>for(s=i=7;i--;s+=(x=~-a[i])-(x-y)*(y&lt;x))y=~-b[i];
+</code></pre>
+
+<p>The input is in the <code>a</code> and <code>b</code> arrays. The result is stored in the <code>s</code> variable.</p>
+
+<p><strong>Ungolfed version:</strong></p>
+
+<pre><code>for(s = i = 7; i--; s += x*r/r|0 + y*l/l|0, --s) {
+    // Get the last elements of the arrays
+    x = a[i];
+    y = b[i];
+
+    // Calculate which is greater
+    l = 0xff &amp; 1 &lt;&lt; (x - y);
+    r = 0xff &amp; 1 &lt;&lt; (y - x)
+}
+</code></pre>
+
+<p><strong>Sample usage:</strong></p>
+
+<pre><code>&gt; a=[1,4,3];b=[2,3,5];
+[ 2, 3, 5 ]
+&gt; for(s=i=7;i--;s+=x*r/r|0+y*l/l|0,--s){x=a[i];y=b[i];l=0xff&amp;1&lt;&lt;(x-y);r=0xff&amp;1&lt;&lt;(y-x)}
+4
+&gt; s
+7
+</code></pre>
+</div>
+<div id="pu4" class="pu">
+<h1>C, <del>81</del> 68</h1>
+<p>Not the shortest, but I found this interesting, so here's mine. Thanks to @edc65 for the improvement, which is not only shorter, but also faster.</p>
+<pre class="lang-c prettyprint-override"><code>int s,i;for(s=i=0;i&lt;7;s+=(((x[i]-y[i])&gt;&gt;31)&amp;(x[i]-y[i]))+y[i],i++);
+</code></pre>
+<p>Just &amp;, shift, multiplication and addition, no division. Replace 0x80000000 and 31 with the appropriate constants for non-4-bytes ints. Loop can be unrolled (and gcc with -O3 unrolls it for me.) Usage:</p>
+<pre class="lang-c prettyprint-override"><code>int main(void) {
+  signed int x[7] = {1,2,3,4,5,6,7};
+  signed int y[7] = {9,0,5,7,1,2,7};
+  int s,i;
+  for (s=0,i=0;i!=7;s+=(((x[i]-y[i])&amp;0x80000000)&gt;&gt;31)*(x[i]-y[i])+y[i],i++);
+  return s; 
+}
+</code></pre>
+<p>produces</p>
+<pre class="lang-c prettyprint-override"><code>gcc min_bare.c &amp;&amp; ./a.out ; echo $?
+18
+</code></pre>
+<p>Let's compare with the forked if version (b)</p>
+<pre class="lang-c prettyprint-override"><code>if x[i] &gt; y[i]
+  s+=y[i]
+else
+  s+=x[i]
+end
+</code></pre>
+<p>and with (c)</p>
+<pre class="lang-c prettyprint-override"><code>s+= ((x[i] &gt; y[i]) ? y[i] : x[i]);
+</code></pre>
+<p>Let's benchmark with (taking the arrays from stdin)</p>
+<pre class="lang-c prettyprint-override"><code>int main(void) {
+  int l,i,j,s;
+  scanf(&quot;%d&quot;,&amp;l);
+  signed int x[l], y[l];
+  for (i=0; i!=l; scanf(&quot;%d&quot;,&amp;(x[i++])));
+  for (i=0; i!=l; scanf(&quot;%d&quot;,&amp;(y[i++])));
+  for (j=0; j!=99999999;j++) {
+    for (s=0,i=0;i!=l;i++) {
+      // put code to test here
+    }
+  }
+  printf(&quot;%d\n&quot;,s);
+  return 0;
+}
+</code></pre>
+<p>The if version (b) takes ~4.3s, version (c) ~3.4s, the original <del>~5.3s</del> ~4.3s; all with -O3. So don't optimize prematurely ; )</p>
+</div>
+<div id="pu5" class="pu"><h2>J (9)</h2>
+<pre><code>v=:+/a&lt;.b
+</code></pre>
+<p>Someone is going to need to help me out on this one. Does this match the rules?</p>
+<pre><code>Single line expression
+</code></pre>
+<p>Check.</p>
+<pre><code>No function calls or method calls (except for basic operations like sum, if your language mandate this)
+</code></pre>
+<p>The things J is made of are called <code>verbs</code> (it is basically impossible to write any J without verbs), are those considered functions?</p>
+<pre><code>No if statements, including things that compile to if statements such as ternary operators or &quot;greater than&quot; operators
+</code></pre>
+<p><code>&lt;.</code> is basically equal to <code>min</code>, and <code>+/</code> is basically equal to <code>sum</code>. Are those considered to <code>compile to if statements</code>?</p>
+</div>
+<div id="pu6" class="pu"><p><strong>vb.net</strong></p>
+
+<pre><code>v = a.Zip(b,Function(p,q) Math.Min(p,q)).Sum
+v = a.Zip(b,AddressOf Math.Min).Sum 
+</code></pre>
+
+<p>Edit:
+ A no function call version. Just a single expression.</p>
+
+<pre><code>Dim v = {a(0), a(0), b(0)}(1 + ((a(0) - b(0)) / ((a(0) - b(0)) * (a(0) - b(0)) ^ (1 / 2)))) +
+        {a(1), a(1), b(1)}(1 + ((a(1) - b(1)) / ((a(1) - b(1)) * (a(1) - b(1)) ^ (1 / 2)))) +
+        {a(2), a(2), b(2)}(1 + ((a(2) - b(2)) / ((a(2) - b(2)) * (a(2) - b(2)) ^ (1 / 2)))) +
+        {a(3), a(3), b(3)}(1 + ((a(3) - b(3)) / ((a(3) - b(3)) * (a(3) - b(3)) ^ (1 / 2)))) +
+        {a(4), a(4), b(4)}(1 + ((a(4) - b(4)) / ((a(4) - b(4)) * (a(4) - b(4)) ^ (1 / 2)))) +
+        {a(5), a(5), b(5)}(1 + ((a(5) - b(5)) / ((a(5) - b(5)) * (a(5) - b(5)) ^ (1 / 2)))) +
+        {a(6), a(6), b(6)}(1 + ((a(6) - b(6)) / ((a(6) - b(6)) * (a(6) - b(6)) ^ (1 / 2)))) +
+        {a(7), a(7), b(7)}(1 + ((a(7) - b(7)) / ((a(7) - b(7)) * (a(7) - b(7)) ^ (1 / 2))))
+</code></pre>
+
+<p>Note: Above fails in a(x)=b(x) as a(x)-b(x) = 0 which results in divide by zero .</p>
+
+<pre><code>((a(0) - b(0)) / ((a(0) - b(0)) * (a(0) - b(0)) ^ (1 / 2)))
+ delta = a(x)-b(x)
+   abs = (delta * delta)^(1/2)  ; Sqr(delta^2) 
+  sign = delta / abs            ; This is where the 0/0 happens. 
+ index = sign + 1               ; Since sign in normalise to -1 to +1
+                                ; when need offset it by +1 for 0-Indexed arrays.
+</code></pre>
+
+<p>Version using &lt; in mathematical sense. (akin to @Heiko Oberdiek entry)</p>
+
+<pre><code>Dim v = {a(0),b(0)}((a(0)&lt;b(0))+1)+{a(1),b(1)}((a(1)&lt;b(1))+1)+{a(2),b(2)}((a(2)&lt;b(2))+1)+{a(3),b(3)}((a(3)&lt;b(3))+1)+
+        {a(4),b(4)}((a(4)&lt;b(4))+1)+{a(5),b(5)}((a(5)&lt;b(5))+1)+{a(6),b(6)}((a(6)&lt;b(6))+1)+{a(7),b(7)}((a(7)&lt;b(7))+1)
+</code></pre>
+</div>
+<div id="pu7" class="pu"><h1>Perl, 52 bytes</h1>
+
+<pre class="lang-perl prettyprint-override"><code>$v+=(($A=$a[$_])&lt;=($==$b[$_]))*$A+($A&gt;$=)*$=for 0..7
+</code></pre>
+
+<p>It is a single line expression without functions and if statements.</p>
+
+<p>In an updated question, loops are excluded because of the end condition. In this case the <code>for</code> operator unfolds an array. It is not clear, whether this is acceptable or not, thus it is something for the OP to decide.
+(Of course, <code>for</code> could be avoided by making the summation explicit, but such a solution would be too boring for me).</p>
+
+<p>The input numbers are expected in arrays <code>@a</code> and <code>@b</code>. The sum is stored in <code>$v</code>. (If it is used a second time, <code>$v</code> needs to be reset to zero.)</p>
+
+<p>The minimum summand for each value in the index array <code>0..7</code> is calculated and added to the result variable <code>$v</code>. As far as I have understood the question, the <code>for</code> operator is not excluded.</p>
+
+<p>The result of the comparison operators <code>&lt;=</code> and <code>&gt;</code> are not used inside an <code>if</code> condition, but in a numerical context.</p>
+
+<p><strong>Ungolfed with test:</strong></p>
+
+<pre class="lang-perl prettyprint-override"><code>@a = (1,7,3,4,5,0,3);
+@b = (3,1,4,1,5,2,6);
+$v = 0;
+
+for $_ (0..7) {
+    $A = $a[$_];
+    $B = $b[$_];
+    $v += ($A &lt;= $B) * $A
+        + ($A &gt; $B) * $B
+}
+# The use of $= instead of $B in the golfed version saves one byte.
+
+print  "Result: $v\n";
+</code></pre>
+
+<p><strong>Result:</strong> 14</p>
+</div>
+<div id="pu8" class="pu"><h1>APL, <strike>7</strike> (should be invalid)</h1>
+
+<pre><code>v←+/a⌊b
+</code></pre>
+
+<p><code>a⌊b</code> is the minimum of each corresponding pair of items.</p>
+
+<p><code>+/</code> adds everything together in the last dimension, which is the only dimension in this case.</p>
+
+<p>Thanks to Adam Speight who pointed out that these symbols are called "functions" in APL. So this answer should be invalid and not fixable...</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/32241/">32241</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
