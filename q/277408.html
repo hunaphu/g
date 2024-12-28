@@ -26,10 +26,53 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>392</td><td>Python3.10</td><td>241228T013733Z</td><td><a href="https://codegolf.stackexchange.com/questions/277408/determine-if-two-trees-are-equal-in-the-free-quandle/277421#277421">Ajax1234</a></td></tr>
-<tr d-ix="1"><td>261</td><td>Python</td><td>241227T114654Z</td><td><a href="https://codegolf.stackexchange.com/questions/277408/determine-if-two-trees-are-equal-in-the-free-quandle/277418#277418">Albert.L</a></td></tr>
+<tr d-ix="0"><td>097</td><td>Retina</td><td>241228T062450Z</td><td><a href="https://codegolf.stackexchange.com/questions/277408/determine-if-two-trees-are-equal-in-the-free-quandle/277426#277426">Neil</a></td></tr>
+<tr d-ix="1"><td>392</td><td>Python3.10</td><td>241228T013733Z</td><td><a href="https://codegolf.stackexchange.com/questions/277408/determine-if-two-trees-are-equal-in-the-free-quandle/277421#277421">Ajax1234</a></td></tr>
+<tr d-ix="2"><td>261</td><td>Python</td><td>241227T114654Z</td><td><a href="https://codegolf.stackexchange.com/questions/277408/determine-if-two-trees-are-equal-in-the-free-quandle/277418#277418">Albert.L</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Python3.10, 392 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://github.com/m-ender/retina/wiki/The-Language" rel="nofollow noreferrer">Retina</a>, 97 bytes</h1>
+<pre><code>\d+
+0$(*1)2
+{`{(\d+)&lt;(\d+)}
+$1$2$^$1
+)`{(\d+)&gt;(\d+)}
+$^$2$1$2
+¶.+
+$^
++`([02])(1+)([02])\3\2\1
+
+^¶
+</code></pre>
+<p><a href="https://tio.run/##lU/NasMwDL7rKVzwhrxAiOwQEkj8EtutaZZBd9hlh7JbyGv1AfpimSTHUHYpu5hP35/ky@fP1/cHbU94eZ3LAd5mdGZe1ncoi2MfT2UBi31et/FcQGXxhZyHZV6QZ9fru4Il6@1kCdwuxCxMLLAItyv32AmKGY@VPzmkwiU0htGPBDDdrttGlekNkuc3ODMMjIUh75SvlAckE0WPpkseQTJiUASSV@y1JECqrMXDiKkaao2GTAegVja1QlMLvpO49vvubyHuB/IMyOt7oweS3iCjGsip@W5@bEbkKSZx//SdQyM@5UR3QObAGzxQtnLokHYKGXNUSL61ybWNEE3Wm0eXHf5zmdS4Xw" rel="nofollow noreferrer" title="Retina – Try It Online">Try it online!</a> Link is to test suite that mostly converts from the given format to what the program wants, which is expressions separated by newlines, fully parenthesised using <code>{}</code>s instead of <code>()</code>s and no spaces. Explanation: Port of @Albert.Lang's Python answer.</p>
+<pre><code>\d+
+0$(*1)2
+</code></pre>
+<p>Convert integers to unary, wrapping them in markers. (Retina 1's <code>*</code> operator nominally works against us here, since it wants to consume the rest of the string by default, but this would be <code>0$&amp;$*12</code> for the same length in Retina 0.8.2 anyway.)</p>
+<pre><code>{(\d+)&lt;(\d+)}
+$1$2$^$1
+</code></pre>
+<p>Convert <code>{a&lt;b}</code> into aba⁻¹, where <code>a⁻¹</code> is just the reverse of <code>a</code>.</p>
+<pre><code>{(\d+)&gt;(\d+)}
+$^$2$1$2
+</code></pre>
+<p>Convert <code>{a&gt;b}</code> into b⁻¹ab.</p>
+<pre><code>{`
+)`
+</code></pre>
+<p>Repeat the above until all of the operators have been processed.</p>
+<pre><code>¶.+
+$^
+</code></pre>
+<p>Invert the second expression.</p>
+<pre><code>+`([02])(1+)([02])\3\2\1
+
+</code></pre>
+<p>Cancel out any <code>a⁻¹a</code> or <code>bb⁻¹</code> patterns.</p>
+<pre><code>^¶
+</code></pre>
+<p>Check that everything was eliminated.</p>
+</div>
+<div id="pu1" class="pu"><h1>Python3.10, 392 bytes</h1>
 <p>Perfect use case for <a href="https://peps.python.org/pep-0622/" rel="nofollow noreferrer">match-case</a>.</p>
 <pre class="lang-py prettyprint-override"><code>lambda a,b:f(a)in[b,f(b)]
 def f(a,p=[]):
@@ -45,7 +88,7 @@ def f(a,p=[]):
 </code></pre>
 <p><a href="https://ato.pxeger.com/run?1=lVPBjtMwEBXitP6KaS-xqXcVp6VqozqHHvYGt57SaOWkCRspTaPERYsod_6BSyUEH8XXMLaTVReEKi7pmzdvZt7Y7refzSf9eKjP3-_l9sdRF7eLX6--Vmqf7hQonoYFVays45QXNGUJ2eUFIMUbGScsJLBXOnsEhQgy1eWo83mcccHXSVIWkEq5DiuZDWmbzxKbL02nlElZ0DVDUUEz9kcb_2Wb53LD_yXdGakXeyPZ6RYbx37yssYiVF2YEc7MblAaiB-7wYUy5Q_OcG8k7RPwgIEi0Ob62NZQwYWByhjIqy6nG6TpJpRxQUtWHFoooURxgqtXgOHGhM0kVlaOh7LhGG0SxvoLef2u3DeHVuMcewGNarFth-d_00_WOAKqvKY6lPlHVVG0MWnzu-6YUm9LT1t22kan7crj0N_tU_jZo16IOg4eQ5AYECHA1Q1cGehz70v8dPehPRwbyhIOHZugkrFIgDWrcUlCNEgYj8dE-LACKgL8ThlIidgwImCW9y1PqIDI5CNYOo1BJqRTi4iptziwTabEtZwZDSKkZmRmS6cDPSViYSYtDC0WJFiacts_WA4NV31D2hvEmFAKwiWw2powoVUI1u9wQaD-mpxiFLlkv_eFwpYErs7kGTHnRrQYThBG6D8gYijEFoaxXoUrtpORRPPzYcjcEPMhP7_mc_Q_PlfWpzP6_HyLstJ5S98f6pzru66pSo0vrcanga9ScUhxoXLgzbl4jNw0bVlrek_dA1aMO5DiPOJy3q335q3P_jFHXB00uj6IuH_V-ex-fwM" rel="nofollow noreferrer">Attempt This Online!</a></p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 261 bytes</h1>
+<div id="pu2" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 261 bytes</h1>
 <pre class="lang-python prettyprint-override"><code>import re
 l=lambda a,b:f'{a} {b} {a[::-1]}'
 g=lambda b,a:f'{a[::-1]} {b} {a}'
