@@ -1,0 +1,1415 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::37270</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>002</td><td>Python</td><td>241230T075207Z</td><td><a href="https://codegolf.stackexchange.com/questions/37270/digit-sum-of-central-binomial-coefficients/277447#277447">138 Aspe</a></td></tr>
+<tr d-ix="1"><td>nan</td><td></td><td>140904T105547Z</td><td><a href="https://codegolf.stackexchange.com/questions/37270/digit-sum-of-central-binomial-coefficients/37298#37298">Peter Ta</a></td></tr>
+<tr d-ix="2"><td>nan</td><td>Java</td><td>150310T104943Z</td><td><a href="https://codegolf.stackexchange.com/questions/37270/digit-sum-of-central-binomial-coefficients/47603#47603">Peter Ta</a></td></tr>
+<tr d-ix="3"><td>nan</td><td>C++ GMP  287</td><td>140904T102744Z</td><td><a href="https://codegolf.stackexchange.com/questions/37270/digit-sum-of-central-binomial-coefficients/37297#37297">justhalf</a></td></tr>
+<tr d-ix="4"><td>nan</td><td></td><td>140904T025125Z</td><td><a href="https://codegolf.stackexchange.com/questions/37270/digit-sum-of-central-binomial-coefficients/37283#37283">qwr</a></td></tr>
+<tr d-ix="5"><td>nan</td><td>Go</td><td>140904T063041Z</td><td><a href="https://codegolf.stackexchange.com/questions/37270/digit-sum-of-central-binomial-coefficients/37293#37293">Keith Ra</a></td></tr>
+<tr d-ix="6"><td>nan</td><td></td><td>140904T050601Z</td><td><a href="https://codegolf.stackexchange.com/questions/37270/digit-sum-of-central-binomial-coefficients/37288#37288">xnor</a></td></tr>
+<tr d-ix="7"><td>nan</td><td>Java 2</td><td>140904T024536Z</td><td><a href="https://codegolf.stackexchange.com/questions/37270/digit-sum-of-central-binomial-coefficients/37282#37282">Geobits</a></td></tr>
+<tr d-ix="8"><td>nan</td><td>Python 2 PyPy</td><td>140904T043655Z</td><td><a href="https://codegolf.stackexchange.com/questions/37270/digit-sum-of-central-binomial-coefficients/37287#37287">Dennis</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>Python, with <code>gmpy2</code></h1>
+<p>Port of <a href="https://codegolf.stackexchange.com/a/37297/110802">@justhalf's C++ code</a> in Python.</p>
+<pre class="lang-python prettyprint-override"><code>import sys
+import time
+import gmpy2
+
+# Constants (mirroring those in the C++ code)
+MAX_VAL = 287000000
+PRIME_COUNT = 15700000
+
+# Global arrays/lists to match original logic
+sieve = [False] * MAX_VAL  # Will be used for the sieve of Eratosthenes
+primes = [0] * PRIME_COUNT
+count = 0
+
+
+def run_sieve():
+    &quot;&quot;&quot;
+    Replicates the run_sieve() function from the C++ code.
+    Uses a basic sieve of Eratosthenes to fill the global primes array.
+    &quot;&quot;&quot;
+    global count
+
+    # Mark index 2 as prime
+    sieve[2] = True
+    primes[0] = 2
+    count = 1
+
+    # Mark all odd numbers as potential primes initially
+    for i in range(3, MAX_VAL, 2):
+        sieve[i] = True
+
+    # Sieve out multiples for odd i up to ~17000 (sqrt(287000000) ~ 16949)
+    for i in range(3, 17000, 2):
+        if not sieve[i]:
+            continue
+        # Mark multiples of i as non-prime
+        for j in range(i * i, MAX_VAL, i):
+            sieve[j] = False
+
+    # Collect remaining primes
+    for i in range(3, MAX_VAL, 2):
+        if sieve[i]:
+            primes[count] = i
+            count += 1
+
+
+def sum_digits(n):
+    &quot;&quot;&quot;
+    Replicates the sum_digits(mpz_class n) function from the C++ code.
+    Sums the decimal digits of the gmpy2.mpz number n.
+    Prints the time taken for consistency with the original code.
+    &quot;&quot;&quot;
+    start_time = time.process_time()
+
+    # Convert n to decimal string
+    n_str = n.digits()  # gmpy2.mpz.digits() returns a string in base 10
+
+    result = 0
+    for ch in n_str:
+        # Subtract '0' by converting character to int
+        result += (ord(ch) - ord('0'))
+
+    end_time = time.process_time()
+    print(f&quot;Done summing in {end_time - start_time:.3f}s&quot;)
+    return gmpy2.mpz(result)
+
+
+def nc2_fast(x):
+    &quot;&quot;&quot;
+    Replicates nc2_fast(const mpz_class &amp;x) from the C++ code.
+    This function factors something based on prime counts and
+    does multiplications of prime powers under certain conditions.
+    &quot;&quot;&quot;
+    start_time = time.process_time()
+
+    # Convert x to an unsigned int (C++ style), then compute half
+    n = int(x)  # gmpy2.mpz -&gt; Python int
+    n2 = n // 2
+
+    # Prepare arrays for intermediate products (up to 32 as in the C++ code)
+    tmp_prods = [None] * 32
+    tmp_prime_prods = [None] * 32
+
+    result = gmpy2.mpz(1)
+    prime_prods = gmpy2.mpz(1)
+
+    # Go through collected primes (count total)
+    for i in range(count):
+        prime_val = primes[i]
+
+        # If the prime is larger than n, break
+        if prime_val &gt; n:
+            break
+
+        # If prime is greater than n2, handle separately
+        if prime_val &gt; n2:
+            # Multiply it into the tmp_prime_prods chain
+            temp_mpz = gmpy2.mpz(prime_val)
+
+            for j in range(32):
+                if tmp_prime_prods[j] is None:
+                    tmp_prime_prods[j] = temp_mpz
+                    break
+                else:
+                    temp_mpz *= tmp_prime_prods[j]
+                    tmp_prime_prods[j] = None
+            continue
+
+        # Otherwise, compute how many carries happen in base 'prime_val'
+        # when doubling digits up to n2
+        m = n2
+        carry = 0
+        carries = 0
+
+        while m &gt; 0:
+            digit = m % prime_val
+            # If 2*digit + carry &gt;= prime_val, that's a carry
+            if 2 * digit + carry &gt;= prime_val:
+                carry = 1
+            else:
+                carry = 0
+            carries += carry
+            m //= prime_val
+
+        # If carries &gt; 0, raise prime_val to that power and multiply
+        if carries &gt; 0:
+            temp_pow = prime_val ** carries  # powmod with modulus=0 -&gt; normal exponent
+            # Alternatively: temp_pow = gmpy2.mpz(prime_val) ** carries
+            for j in range(32):
+                if tmp_prods[j] is None:
+                    tmp_prods[j] = temp_pow
+                    break
+                else:
+                    temp_pow *= tmp_prods[j]
+                    tmp_prods[j] = None
+
+    # Combine all partial products
+    for j in range(32):
+        if tmp_prods[j] is not None:
+            result *= tmp_prods[j]
+        if tmp_prime_prods[j] is not None:
+            prime_prods *= tmp_prime_prods[j]
+
+    # Multiply final pieces
+    result *= prime_prods
+
+    end_time = time.process_time()
+    print(f&quot;Done calculating binom in {end_time - start_time:.3f}s&quot;)
+    return result
+
+
+def main():
+    &quot;&quot;&quot;
+    Main function to mirror the C++ code's entry point.
+    Reads n from command line argument, runs sieve, then calculates and
+    prints sum of digits of nc2_fast(n).
+    &quot;&quot;&quot;
+    if len(sys.argv) &lt; 2:
+        print(&quot;Usage: python script.py &lt;integer_value&gt;&quot;)
+        return
+
+    # Parse mpz value from argument
+    n = gmpy2.mpz(sys.argv[1])
+
+    t = time.process_time()
+    run_sieve()
+    sieving_time = time.process_time()
+    print(f&quot;Done sieving in {sieving_time - t:.3f}s&quot;)
+
+    result = nc2_fast(n)
+    digit_sum = sum_digits(result)
+
+    # Print final result
+    print(f&quot;{n}: {digit_sum}&quot;)
+
+
+if __name__ == &quot;__main__&quot;:
+    main()
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h2>Java (score 22500 / 365000 = 0.062)</h2>
+
+<p>I don't have Python on this machine, so if someone could score this I would be grateful. If not, it will have to wait.</p>
+
+<p>The basis of this implementation is<br>
+$$\binom{2n}{n} = \sum_{k=0}^n \binom{n}{k}^2$$</p>
+
+<p>The bottleneck is the addition to compute the relevant section of Pascal's triangle (90% of running time), so using a better multiplication algorithm wouldn't really help.</p>
+
+<p>Note that what the question calls <code>n</code> is what I call <code>2n</code>. The command-line argument is what the question calls <code>n</code>.</p>
+
+<pre class="lang-java prettyprint-override"><code>public class CodeGolf37270 {
+    public static void main(String[] args) {
+        if (args.length != 1) {
+            System.err.println("Usage: java CodeGolf37270 &lt;n&gt;");
+            System.exit(1);
+        }
+
+        int two_n = Integer.parseInt(args[0]);
+        // \binom{2n}{n} = \sum_{k=0}^n \binom{n}{k}^2
+        // Two cases:
+        //   n = 2m: \binom{4m}{2m} = \binom{2m}{m}^2 + 2\sum_{k=0}^{m-1} \binom{2m}{k}^2
+        //   n = 2m+1: \binom{4m+2}{2m+1} = 2\sum_{k=0}^{m} \binom{2m+1}{k}^2
+        int n = two_n / 2;
+        BigInt[] nCk = new BigInt[n/2 + 1];
+        nCk[0] = new BigInt(1);
+        for (int k = 1; k &lt; nCk.length; k++) nCk[k] = nCk[0];
+        for (int row = 2; row &lt;= n; row++) {
+            BigInt tmp = nCk[0];
+            for (int col = 1; col &lt; row &amp;&amp; col &lt; nCk.length; col++) {
+                BigInt replacement = tmp.add(nCk[col]);
+                tmp = nCk[col];
+                nCk[col] = replacement;
+            }
+        }
+
+        BigInt central = nCk[0]; // 1^2 = 1
+        int lim = (n &amp; 1) == 1 ? nCk.length : (nCk.length - 1);
+        for (int k = 1; k &lt; lim; k++) central = central.add(nCk[k].sq());
+        central = central.add(central);
+        if ((n &amp; 1) == 0) central = central.add(nCk[nCk.length - 1].sq());
+
+        System.out.println(central.digsum());
+    }
+
+    private static class BigInt {
+        static final int B = 1000000000;
+        private int[] val;
+
+        public BigInt(int x) {
+            val = new int[] { x };
+        }
+
+        private BigInt(int[] val) {
+            this.val = val;
+        }
+
+        public BigInt add(BigInt that) {
+            int[] left, right;
+            if (val.length &lt; that.val.length) {
+                left = that.val;
+                right = val;
+            }
+            else {
+                left = val;
+                right = that.val;
+            }
+
+            int[] sum = left.clone();
+            int carry = 0, k = 0;
+            for (; k &lt; right.length; k++) {
+                int a = sum[k] + right[k] + carry;
+                sum[k] = a % B;
+                carry = a / B;
+            }
+            while (carry &gt; 0 &amp;&amp; k &lt; sum.length) {
+                int a = sum[k] + carry;
+                sum[k] = a % B;
+                carry = a / B;
+                k++;
+            }
+            if (carry &gt; 0) {
+                int[] wider = new int[sum.length + 1];
+                System.arraycopy(sum, 0, wider, 0, sum.length);
+                wider[sum.length] = carry;
+                sum = wider;
+            }
+
+            return new BigInt(sum);
+        }
+
+        public BigInt sq() {
+            int[] rv = new int[2 * val.length];
+            // Naive multiplication
+            for (int i = 0; i &lt; val.length; i++) {
+                for (int j = i; j &lt; val.length; j++) {
+                    int k = i+j;
+                    long c = val[i] * (long)val[j];
+                    if (j &gt; i) c &lt;&lt;= 1;
+                    while (c &gt; 0) {
+                        c += rv[k];
+                        rv[k] = (int)(c % B);
+                        c /= B;
+                        k++;
+                    }
+                }
+            }
+
+            int len = rv.length;
+            while (len &gt; 1 &amp;&amp; rv[len - 1] == 0) len--;
+            if (len &lt; rv.length) {
+                int[] rv2 = new int[len];
+                System.arraycopy(rv, 0, rv2, 0, len);
+                rv = rv2;
+            }
+
+            return new BigInt(rv);
+        }
+
+        public long digsum() {
+            long rv = 0;
+            for (int i = 0; i &lt; val.length; i++) {
+                int x = val[i];
+                while (x &gt; 0) {
+                    rv += x % 10;
+                    x /= 10;
+                }
+            }
+            return rv;
+        }
+    }
+}
+</code></pre>
+</div>
+<div id="pu2" class="pu"><h2>Java, custom big integer class: 32.9 (120000000 / 365000)</h2>
+
+<p>The main class is pretty straightforward:</p>
+
+
+
+<pre class="lang-java prettyprint-override"><code>import java.util.*;
+
+public class PPCG37270 {
+    public static void main(String[] args) {
+        long start = System.nanoTime();
+
+        int n = 12000000;
+        if (args.length == 1) n = Integer.parseInt(args[0]);
+
+        boolean[] sieve = new boolean[n + 1];
+        int[] remaining = new int[n + 1];
+        int[] count = new int[n + 1];
+
+        for (int p = 2; p &lt;= n; p++) {
+            if (sieve[p]) continue;
+            long p2 = p * (long)p;
+            if (p2 &gt; n) continue;
+            for (int i = (int)p2; i &lt;= n; i += p) sieve[i] = true;
+        }
+
+        for (int i = 2; i &lt;= n; i++) remaining[i] = i;
+        for (int p = 2; p &lt;= n; p++) {
+            if (sieve[p]) continue;
+            for (int i = p; i &lt;= n; i += p) {
+                while (remaining[i] % p == 0) {
+                    remaining[i] /= p;
+                    count[p]++;
+                    if (i &lt;= n/2) count[p] -= 2;
+                }
+            }
+        }
+
+        count[2] -= count[5];
+        count[5] = 0;
+
+        List&lt;BigInt&gt; partialProd = new ArrayList&lt;BigInt&gt;();
+        long accum = 1;
+        for (int i = 2; i &lt;= n; i++) {
+            for (int j = count[i]; j &gt; 0; j--) {
+                long tmp = accum * i;
+                if (tmp &lt; 1000000000L) accum = tmp;
+                else {
+                    partialProd.add(new BigInt((int)accum));
+                    accum = i;
+                }
+            }
+        }
+        partialProd.add(new BigInt((int)accum));
+        System.out.println(prod(partialProd).digsum());
+        System.out.println((System.nanoTime() - start) / 1000000 + "ms");
+    }
+
+    private static BigInt prod(List&lt;BigInt&gt; vals) {
+        while (vals.size() &gt; 1) {
+            int n = vals.size();
+            List&lt;BigInt&gt; next = new ArrayList&lt;BigInt&gt;();
+            for (int i = 0; i &lt; n; i += 2) {
+                if (i == n - 1) next.add(vals.get(i));
+                else next.add(vals.get(i).mul(vals.get(i+1)));
+            }
+            vals = next;
+        }
+        return vals.get(0);
+    }
+}
+</code></pre>
+
+<p>It relies on a big integer class which is optimised for multiplication and <code>toString()</code>, both of which are significant bottlenecks in an implementation with <code>java.math.BigInteger</code>.</p>
+
+<pre class="lang-java prettyprint-override"><code>/**
+ * A big integer class which is optimised for conversion to decimal.
+ * For use in simple applications where BigInteger.toString() is a bottleneck.
+ */
+public class BigInt {
+    // The base of the representation.
+    private static final int B = 1000000000;
+    // The number of decimal digits per digit of the representation.
+    private static final int LOG10_B = 9;
+
+    public static final BigInt ZERO = new BigInt(0);
+    public static final BigInt ONE = new BigInt(1);
+
+    // We use sign-magnitude representation.
+    private final boolean negative;
+
+    // Least significant digit is at val[off]; most significant is at val[off + len - 1]
+    // Unless len == 1 we guarantee that val[off + len - 1] is non-zero.
+    private final int[] val;
+    private final int off;
+    private final int len;
+
+    // Toom-style multiplication parameters from
+    // Zuras, D. (1994). More on squaring and multiplying large integers. IEEE Transactions on Computers, 43(8), 899-908.
+    private static final int[][][] Q = new int[][][]{
+        {},
+        {},
+        {{1, -1}},
+        {{4, 2, 1}, {1, 1, 1}, {1, 2, 4}},
+        {{8, 4, 2, 1}, {-8, 4, -2, 1}, {1, 1, 1, 1}, {1, -2, 4, -8}, {1, 2, 4, 8}}
+    };
+    private static final int[][][] R = new int[][][]{
+        {},
+        {},
+        {{1, -1, 1}},
+        {{-21, 2, -12, 1, -6}, {7, -1, 10, -1, 7}, {-6, 1, -12, 2, -21}},
+        {{-180, 6, 2, -80, 1, 3, -180}, {-510, 4, 4, 0, -1, -1, 120}, {1530, -27, -7, 680, -7, -27, 1530}, {120, -1, -1, 0, 4, 4, -510}, {-180, 3, 1, -80, 2, 6, -180}}
+    };
+    private static final int[][] S = new int[][]{
+        {},
+        {},
+        {1, 1, 1},
+        {1, 6, 2, 6, 1},
+        {1, 180, 120, 360, 120, 180, 1}
+    };
+
+    /**
+     * Constructs a big version of an integer value.
+     * @param x The value to represent.
+     */
+    public BigInt(int x) {
+        this(Integer.toString(x));
+    }
+
+    /**
+     * Constructs a big version of a long value.
+     * @param x The value to represent.
+     */
+    public BigInt(long x) {
+        this(Long.toString(x));
+    }
+
+    /**
+     * Parses a decimal representation of an integer.
+     * @param str The value to represent.
+     */
+    public BigInt(String str) {
+        this(str.charAt(0) == '-', split(str));
+    }
+
+    /**
+     * Constructs a sign-magnitude representation taking the entire span of the array as the range of interest.
+     * @param neg Is the value negative?
+     * @param val The base-B digits, least significant first.
+     */
+    private BigInt(boolean neg, int[] val) {
+        this(neg, val, 0, val.length);
+    }
+
+    /**
+     * Constructs a sign-magnitude representation taking a range of an array as the magnitude.
+     * @param neg Is the value negative?
+     * @param val The base-B digits, least significant at offset off, most significant at off + val - 1.
+     * @param off The offset within the array.
+     * @param len The number of base-B digits.
+     */
+    private BigInt(boolean neg, int[] val, int off, int len) {
+        // Bounds checks
+        if (val == null) throw new IllegalArgumentException("val");
+        if (off &lt; 0 || off &gt;= val.length) throw new IllegalArgumentException("off");
+        if (len &lt; 1 || off + len &gt; val.length) throw new IllegalArgumentException("len");
+
+        this.negative = neg;
+        this.val = val;
+        this.off = off;
+        // Enforce the invariant that this.len is 1 or val[off + len - 1] is non-zero.
+        while (len &gt; 1 &amp;&amp; val[off + len - 1] == 0) len--;
+        this.len = len;
+
+        // Sanity check
+        for (int i = 0; i &lt; len; i++) {
+            if (val[off + i] &lt; 0) throw new IllegalArgumentException("val contains negative digits");
+        }
+    }
+
+    /**
+     * Splits a string into base-B digits.
+     * @param str The string to parse.
+     * @return An array which can be passed to the (boolean, int[]) constructor.
+     */
+    private static int[] split(String str) {
+        if (str.charAt(0) == '-') str = str.substring(1);
+
+        int[] arr = new int[(str.length() + LOG10_B - 1) / LOG10_B];
+        int i, off;
+        // Each element of arr represents LOG10_B characters except (probably) the last one.
+        for (i = 0, off = str.length() - LOG10_B; off &gt; 0; off -= LOG10_B) {
+            arr[i++] = Integer.parseInt(str.substring(off, off + LOG10_B));
+        }
+        arr[i] = Integer.parseInt(str.substring(0, off + LOG10_B));
+        return arr;
+    }
+
+    public boolean isZero() {
+        return len == 1 &amp;&amp; val[off] == 0;
+    }
+
+    public BigInt negate() {
+        return new BigInt(!negative, val, off, len);
+    }
+
+    public BigInt add(BigInt that) {
+        // If the signs differ, then since we use sign-magnitude representation we want to do a subtraction.
+        boolean isSubtraction = negative ^ that.negative;
+
+        BigInt left, right;
+        if (len &lt; that.len) {
+            left = that;
+            right = this;
+        }
+        else {
+            left = this;
+            right = that;
+
+            // For addition I just care about the lengths of the arrays.
+            // For subtraction I want the largest absolute value on the left.
+            if (isSubtraction &amp;&amp; len == that.len) {
+                int cmp = compareAbsolute(that);
+                if (cmp == 0) return ZERO; // Cheap special case
+                if (cmp &lt; 0) {
+                    left = that;
+                    right = this;
+                }
+            }
+        }
+
+        if (right.isZero()) return left;
+
+        BigInt result;
+        if (!isSubtraction) {
+            int[] sum = new int[left.len + 1];
+            // A copy here rather than using left.val in the main loops and copying remaining values
+            // at the end gives a small performance boost, probably due to cache locality.
+            System.arraycopy(left.val, left.off, sum, 0, left.len);
+
+            int carry = 0, k = 0;
+            for (; k &lt; right.len; k++) {
+                int a = sum[k] + right.val[right.off + k] + carry;
+                sum[k] = a % B;
+                carry = a / B;
+            }
+            for (; carry &gt; 0 &amp;&amp; k &lt; left.len; k++) {
+                int a = sum[k] + carry;
+                sum[k] = a % B;
+                carry = a / B;
+            }
+            sum[left.len] = carry;
+
+            result = new BigInt(negative, sum);
+        }
+        else {
+            int[] diff = new int[left.len];
+            System.arraycopy(left.val, left.off, diff, 0, left.len);
+
+            int carry = 0, k = 0;
+            for (; k &lt; right.len; k++) {
+                int a = diff[k] - right.val[right.off + k] + carry;
+                // Why did anyone ever think that rounding positive and negative divisions differently made sense?
+                if (a &lt; 0) {
+                    diff[k] = a + B;
+                    carry = -1;
+                }
+                else {
+                    diff[k] = a % B;
+                    carry = a / B;
+                }
+            }
+            for (; carry != 0 &amp;&amp; k &lt; left.len; k++) {
+                int a = diff[k] + carry;
+                if (a &lt; 0) {
+                    diff[k] = a + B;
+                    carry = -1;
+                }
+                else {
+                    diff[k] = a % B;
+                    carry = a / B;
+                }
+            }
+
+            result = new BigInt(left.negative, diff, 0, k &gt; left.len ? k : left.len);
+        }
+
+        return result;
+    }
+
+    private int compareAbsolute(BigInt that) {
+        if (len &gt; that.len) return 1;
+        if (len &lt; that.len) return -1;
+
+        for (int i = len - 1; i &gt;= 0; i--) {
+            if (val[off + i] &gt; that.val[that.off + i]) return 1;
+            if (val[off + i] &lt; that.val[that.off + i]) return -1;
+        }
+
+        return 0;
+    }
+
+    public BigInt mul(BigInt that) {
+        if (isZero() || that.isZero()) return ZERO;
+
+        if (len == 1) return that.mulSmall(negative ? -val[off] : val[off]);
+        if (that.len == 1) return mulSmall(that.negative ? -that.val[that.off] : that.val[that.off]);
+
+        int shorter = len &lt; that.len ? len : that.len;
+        BigInt result;
+        // Cutoffs have been hand-tuned.
+        if (shorter &gt; 300) result = mulToom(3, that);
+        else if (shorter &gt; 28) result = mulToom(2, that);
+        else result = mulNaive(that);
+
+        return result;
+    }
+
+    BigInt mulSmall(int m) {
+        if (m == 0) return ZERO;
+        if (m == 1) return this;
+        if (m == -1) return negate();
+
+        // We want to do the magnitude calculation with a positive multiplicand.
+        boolean neg = negative;
+        if (m &lt; 0) {
+            neg = !neg;
+            m = -m;
+        }
+
+        int[] pr = new int[len + 1];
+        int carry = 0;
+        for (int i = 0; i &lt; len; i++) {
+            long t = val[off + i] * (long)m + carry;
+            pr[i] = (int)(t % B);
+            carry = (int)(t / B);
+        }
+        pr[len] = carry;
+        return new BigInt(neg, pr);
+    }
+
+    // NB This truncates.
+    BigInt divSmall(int d) {
+        if (d == 0) throw new ArithmeticException();
+        if (d == 1) return this;
+        if (d == -1) return negate();
+
+        // We want to do the magnitude calculation with a positive divisor.
+        boolean neg = negative;
+        if (d &lt; 0) {
+            neg = !neg;
+            d = -d;
+        }
+
+        int[] div = new int[len];
+        int rem = 0;
+        for (int i = len - 1; i &gt;= 0; i--) {
+            long t = val[off + i] + rem * (long)B;
+            div[i] = (int)(t / d);
+            rem = (int)(t % d);
+        }
+
+        return new BigInt(neg, div);
+    }
+
+    BigInt mulNaive(BigInt that) {
+        int[] rv = new int[len + that.len];
+        // Naive multiplication
+        for (int i = 0; i &lt; len; i++) {
+            for (int j = 0; j &lt; that.len; j++) {
+                int k = i + j;
+                long c = val[off + i] * (long)that.val[that.off + j];
+                while (c &gt; 0) {
+                    c += rv[k];
+                    rv[k] = (int)(c % B);
+                    c /= B;
+                    k++;
+                }
+            }
+        }
+
+        return new BigInt(this.negative ^ that.negative, rv);
+    }
+
+    private BigInt mulToom(int k, BigInt that) {
+        // We split each number into k parts of m base-B digits each.
+        // m = ceil(longer / k)
+        int m = ((len &gt; that.len ? len : that.len) + k - 1) / k;
+
+        // Perform the splitting and evaluation steps of Toom-Cook.
+        BigInt[] f1 = this.toomFwd(k, m);
+        BigInt[] f2 = that.toomFwd(k, m);
+
+        // Pointwise multiplication.
+        for (int i = 0; i &lt; f1.length; i++) f1[i] = f1[i].mul(f2[i]);
+
+        // Inverse (or interpolation) and recomposition.
+        return toomBk(k, m, f1, negative ^ that.negative, val[off], that.val[that.off]);
+    }
+
+    // Splits a number into k parts of m base-B digits each and does the polynomial evaluation.
+    private BigInt[] toomFwd(int k, int m) {
+        // Split.
+        BigInt[] a = new BigInt[k];
+        for (int i = 0; i &lt; k; i++) {
+            int o = i * m;
+            if (o &gt;= len) a[i] = ZERO;
+            else {
+                int l = m;
+                if (o + l &gt; len) l = len - o;
+                // Ignore signs for now.
+                a[i] = new BigInt(false, val, off + o, l);
+            }
+        }
+
+        // Evaluate
+        return transform(Q[k], a);
+    }
+
+    private BigInt toomBk(int k, int m, BigInt[] f, boolean neg, int lsd1, int lsd2) {
+        // Inverse (or interpolation).
+        BigInt[] b = transform(R[k], f);
+
+        // Recomposition: add at suitable offsets, dividing by the normalisation factors
+        BigInt prod = ZERO;
+        int[] s = S[k];
+        for (int i = 0; i &lt; b.length; i++) {
+            int[] shifted = new int[i * m + b[i].len];
+            System.arraycopy(b[i].val, b[i].off, shifted, i * m, b[i].len);
+            prod = prod.add(new BigInt(neg ^ b[i].negative, shifted).divSmall(s[i]));
+        }
+
+        // Handle the remainders.
+        // In the worst case the absolute value of the sum of the remainders is s.length, so pretty small.
+        // It should be easy enough to work out whether to go up or down.
+        int lsd = (int)((lsd1 * (long)lsd2) % B);
+        int err = lsd - prod.val[prod.off];
+        if (err &gt; B / 2) err -= B / 2;
+        if (err &lt; -B / 2) err += B / 2;
+        return prod.add(new BigInt(err));
+    }
+
+    /**
+     * Multiplies a matrix of small integers and a vector of big ones.
+     * The matrix has a implicit leading row [1 0 ... 0] and an implicit trailing row [0 ... 0 1].
+     * @param m The matrix.
+     * @param v The vector.
+     * @return m v
+     */
+    private BigInt[] transform(int[][] m, BigInt[] v) {
+        BigInt[] b = new BigInt[m.length + 2];
+        b[0] = v[0];
+        for (int i = 0; i &lt; m.length; i++) {
+            BigInt s = ZERO;
+            for (int j = 0; j &lt; m[i].length; j++) s = s.add(v[j].mulSmall(m[i][j]));
+            b[i + 1] = s;
+        }
+        b[b.length - 1] = v[v.length - 1];
+
+        return b;
+    }
+
+    /**
+     * Sums the digits of this integer.
+     * @return The sum of the digits of this integer.
+     */
+    public long digsum() {
+        long rv = 0;
+        for (int i = 0; i &lt; len; i++) {
+            int x = val[off + i];
+            while (x &gt; 0) {
+                rv += x % 10;
+                x /= 10;
+            }
+        }
+        return rv;
+    }
+}
+</code></pre>
+
+<p>The big bottleneck is naïve multiplication (60%), followed by the other multiplication (37%) and the sieving (3%). The <code>digsum()</code> call is insignificant.</p>
+
+<p>Performance measured with OpenJDK 7 (64 bit).</p>
+</div>
+<div id="pu3" class="pu"><h1>C++ (GMP) - (287,000,000 / 422,000) = 680.09</h1>
+
+<p>Shamelessly combine Kummer's Theorem by xnor and GMP by qwr.
+<s>Still not even close to the Go solution, not sure why.</s></p>
+
+<p><strong>Edit:</strong> Thanks Keith Randall for the reminder that multiplication is faster if the number is similar in size. I implemented multi-level multiplication, similar to memory coalescing concept on memory management. And the result is impressive. What used to take 51s, now takes only 0.5s (i.e., 100-fold improvement!!)</p>
+
+<pre>
+OLD CODE (n=14,000,000)
+Done sieving in 0.343s
+Done calculating binom in 51.929s
+Done summing in 0.901s
+14000000: 18954729
+
+real    0m53.194s
+user    0m53.116s
+sys 0m0.060s
+
+NEW CODE (n=14,000,000)
+Done sieving in 0.343s
+Done calculating binom in 0.552s
+Done summing in 0.902s
+14000000: 18954729
+
+real    0m1.804s
+user    0m1.776s
+sys 0m0.023s
+</pre>
+
+<p>The run for <code>n=287,000,000</code></p>
+
+<pre>
+Done sieving in 4.211s
+Done calculating binom in 17.934s
+Done summing in 37.677s
+287000000: 388788354
+
+real    0m59.928s
+user    0m58.759s
+sys 0m1.116s
+</pre>
+
+<p>The code. Compile with <code>-lgmp -lgmpxx -O3</code></p>
+
+<pre class="lang-cpp prettyprint-override"><code>#include &lt;gmpxx.h&gt;
+#include &lt;iostream&gt;
+#include &lt;time.h&gt;
+#include &lt;cstdio&gt;
+
+const int MAX=287000000;
+const int PRIME_COUNT=15700000;
+
+int primes[PRIME_COUNT], factors[PRIME_COUNT], count;
+bool sieve[MAX];
+int max_idx=0;
+
+void run_sieve(){
+    sieve[2] = true;
+    primes[0] = 2;
+    count = 1;
+    for(int i=3; i&lt;MAX; i+=2){
+        sieve[i] = true;
+    }
+    for(int i=3; i&lt;17000; i+=2){
+        if(!sieve[i]) continue;
+        for(int j = i*i; j&lt;MAX; j+=i){
+            sieve[j] = false;
+        }
+    }
+    for(int i=3; i&lt;MAX; i+=2){
+        if(sieve[i]) primes[count++] = i;
+    }
+}
+
+mpz_class sum_digits(mpz_class n){
+    clock_t t = clock();
+    char* str = mpz_get_str(NULL, 10, n.get_mpz_t());
+    int result = 0;
+    for(int i=0;str[i]&gt;0;i++){
+        result+=str[i]-48;
+    }
+    printf("Done summing in %.3fs\n", ((float)(clock()-t))/CLOCKS_PER_SEC);
+    return result;
+}
+
+mpz_class nc2_fast(const mpz_class &amp;x){
+    clock_t t = clock();
+    int prime;
+    const unsigned int n = mpz_get_ui(x.get_mpz_t());
+    const unsigned int n2 = n/2;
+    unsigned int m;
+    unsigned int digit;
+    unsigned int carry=0;
+    unsigned int carries=0;
+    mpz_class result = 1;
+    mpz_class prime_prods = 1;
+    mpz_class tmp;
+    mpz_class tmp_prods[32], tmp_prime_prods[32];
+    for(int i=0; i&lt;32; i++){
+        tmp_prods[i] = (mpz_class)NULL;
+        tmp_prime_prods[i] = (mpz_class)NULL;
+    }
+    for(int i=0; i&lt; count; i++){
+        prime = primes[i];
+        carry=0;
+        carries=0;
+        if(prime &gt; n) break;
+        if(prime &gt; n2){
+            tmp = prime;
+            for(int j=0; j&lt;32; j++){
+                if(tmp_prime_prods[j] == NULL){
+                    tmp_prime_prods[j] = tmp;
+                    break;
+                } else {
+                    mpz_mul(tmp.get_mpz_t(), tmp.get_mpz_t(), tmp_prime_prods[j].get_mpz_t());
+                    tmp_prime_prods[j] = (mpz_class)NULL;
+                }
+            }
+            continue;
+        }
+        m=n2;
+        while(m&gt;0){
+            digit = m%prime;
+            carry = (2*digit + carry &gt;= prime) ? 1 : 0;
+            carries += carry;
+            m/=prime;
+        }
+        if(carries&gt;0){
+            tmp = 0;
+            mpz_ui_pow_ui(tmp.get_mpz_t(), prime, carries);
+            for(int j=0; j&lt;32; j++){
+                if(tmp_prods[j] == NULL){
+                    tmp_prods[j] = tmp;
+                    break;
+                } else {
+                    mpz_mul(tmp.get_mpz_t(), tmp.get_mpz_t(), tmp_prods[j].get_mpz_t());
+                    tmp_prods[j] = (mpz_class)NULL;
+                }
+            }
+        }
+    }
+    result = 1;
+    prime_prods = 1;
+    for(int j=0; j&lt;32; j++){
+        if(tmp_prods[j] != NULL){
+            mpz_mul(result.get_mpz_t(), result.get_mpz_t(), tmp_prods[j].get_mpz_t());
+        }
+        if(tmp_prime_prods[j] != NULL){
+            mpz_mul(prime_prods.get_mpz_t(), prime_prods.get_mpz_t(), tmp_prime_prods[j].get_mpz_t());
+        }
+    }
+    mpz_mul(result.get_mpz_t(), result.get_mpz_t(), prime_prods.get_mpz_t());
+    printf("Done calculating binom in %.3fs\n", ((float)(clock()-t))/CLOCKS_PER_SEC);
+    return result;
+}
+
+int main(int argc, char* argv[]){
+    const mpz_class n = atoi(argv[1]);
+    clock_t t = clock();
+    run_sieve();
+    printf("Done sieving in %.3fs\n", ((float)(clock()-t))/CLOCKS_PER_SEC);
+    std::cout &lt;&lt; n &lt;&lt; ": " &lt;&lt; sum_digits(nc2_fast(n)) &lt;&lt; std::endl;
+    return 0;
+}
+</code></pre>
+</div>
+<div id="pu4" class="pu"><h1>GMP - 1500000 / 300000 = 5.0</h1>
+<p>Although this answer won't compete against sieves, sometimes short code can still get results.</p>
+<pre><code>#include &lt;gmpxx.h&gt;
+#include &lt;iostream&gt;
+    
+mpz_class sum_digits(mpz_class n)
+{
+    char* str = mpz_get_str(NULL, 10, n.get_mpz_t());
+    int result = 0;
+    for(int i=0; str[i]&gt;0; i++)
+         
+    result += str[i] - 48;
+
+    return result;
+}
+
+
+mpz_class comb_2(const mpz_class &amp;x)
+{
+    const unsigned int k = mpz_get_ui(x.get_mpz_t()) / 2;
+    mpz_class result = k + 1;
+
+    for(int i=2; i&lt;=k; i++)
+    {
+        result *= k + i;
+        mpz_divexact_ui(result.get_mpz_t(), result.get_mpz_t(), i);
+    }
+
+    return result;
+}
+
+int main()
+{
+    const mpz_class n = 1500000;
+    std::cout &lt;&lt; sum_digits(comb_2(n)) &lt;&lt; std::endl;
+
+    return 0;
+}
+</code></pre>
+</div>
+<div id="pu5" class="pu"><h2>Go, 33.96 = (16300000 / 480000)</h2>
+
+<pre><code>package main
+
+import "math/big"
+
+const n = 16300000
+
+var (
+    sieve     [n + 1]bool
+    remaining [n + 1]int
+    count     [n + 1]int
+)
+
+func main() {
+    println("finding primes")
+    for p := 2; p &lt;= n; p++ {
+        if sieve[p] {
+            continue
+        }
+        for i := p * p; i &lt;= n; i += p {
+            sieve[i] = true
+        }
+    }
+
+    // count net number of times each prime appears in the result.
+    println("counting factors")
+    for i := 2; i &lt;= n; i++ {
+        remaining[i] = i
+    }
+    for p := 2; p &lt;= n; p++ {
+        if sieve[p] {
+            continue
+        }
+
+        for i := p; i &lt;= n; i += p {
+            for remaining[i]%p == 0 { // may have multiple factors of p
+                remaining[i] /= p
+
+                // count positive for n!
+                count[p]++
+                // count negative twice for ((n/2)!)^2
+                if i &lt;= n/2 {
+                    count[p] -= 2
+                }
+            }
+        }
+    }
+
+    // ignore all the trailing zeros
+    count[2] -= count[5]
+    count[5] = 0
+
+    println("listing factors")
+    var m []uint64
+    for i := 0; i &lt;= n; i++ {
+        for count[i] &gt; 0 {
+            m = append(m, uint64(i))
+            count[i]--
+        }
+    }
+
+    println("grouping factors")
+    m = group(m)
+
+    println("multiplying")
+    x := mul(m)
+
+    println("converting to base 10")
+    d := 0
+    for _, c := range x.String() {
+        d += int(c - '0')
+    }
+    println("sum of digits:", d)
+}
+
+// Return product of elements in a.
+func mul(a []uint64) *big.Int {
+    if len(a) == 1 {
+        x := big.NewInt(0)
+        x.SetUint64(a[0])
+        return x
+    }
+    m := len(a) / 2
+    x := mul(a[:m])
+    y := mul(a[m:])
+    x.Mul(x, y) // fast because x and y are about the same length
+    return x
+}
+
+// return a slice whose members have the same product
+// as the input slice, but hopefully shorter.
+func group(a []uint64) []uint64 {
+    var g []uint64
+    r := uint64(1)
+    b := 1
+    for _, x := range a {
+        c := bits(x)
+        if b+c &lt;= 64 {
+            r *= x
+            b += c
+        } else {
+            g = append(g, r)
+            r = x
+            b = c
+        }
+    }
+    g = append(g, r)
+    return g
+}
+
+// bits returns the number of bits in the representation of x
+func bits(x uint64) int {
+    n := 0
+    for x != 0 {
+        n++
+        x &gt;&gt;= 1
+    }
+    return n
+}
+</code></pre>
+
+<p>Works by counting all the prime factors in the numerator and denominator and canceling matching factors.  Multiplies the leftovers to get the result.</p>
+
+<p>More than 80% of the time is spent in converting to base 10.  There's got to be a better way to do that...</p>
+</div>
+<div id="pu6" class="pu"><h2>Python 3 (8.8 = 2.2 million / 0.25 million)</h2>
+
+<p>This is in Python, which isn't known for speed, so you can probably do better porting this to another language.</p>
+
+<p>Primes generator taken from this <a href="https://stackoverflow.com/a/3035188">StackOverflow contest</a>.</p>
+
+<pre class="lang-python prettyprint-override"><code>import numpy
+import time
+
+def primesfrom2to(n):
+    """ Input n&gt;=6, Returns a array of primes, 2 &lt;= p &lt; n """
+    sieve = numpy.ones(n//3 + (n%6==2), dtype=numpy.bool)
+    for i in range(1,int(n**0.5)//3+1):
+        if sieve[i]:
+            k=3*i+1|1
+            sieve[       k*k/3     ::2*k] = False
+            sieve[k*(k-2*(i&amp;1)+4)/3::2*k] = False
+    return numpy.r_[2,3,((3*numpy.nonzero(sieve)[0][1:]+1)|1)]
+
+t0 = time.clock()
+
+N=220*10**4
+n=N//2
+
+print("N = %d" % N)
+print()
+
+print("Generating primes.")
+primes = primesfrom2to(N)
+
+t1 = time.clock()
+print ("Time taken: %f" % (t1-t0))
+
+print("Computing product.")
+product = 1
+
+for p in primes:
+    p=int(p)
+    carries = 0 
+    carry = 0
+
+    if p&gt;n:
+        product*=p
+        continue
+
+    m=n
+
+    #Count carries of n+n in base p as per Kummer's Theorem
+    while m:
+        digit = m%p
+        carry = (2*digit + carry &gt;= p)
+        carries += carry
+        m//=p
+
+    if carries &gt;0:
+        for _ in range(carries):
+            product *= p
+
+    #print(p,carries,product)
+
+t2 = time.clock()
+print ("Time taken: %f" % (t2-t1))
+
+print("Converting number to string.")
+
+# digit_sum = 0
+# result=product
+
+# while result:
+    # digit_sum+=result%10
+    # result//=10
+
+digit_sum = 0
+digit_string = str(product)
+
+t3 = time.clock()
+print ("Time taken: %f" % (t3-t2))
+
+print("Summing digits.")
+for d in str(digit_string):digit_sum+=int(d)
+
+t4 = time.clock()
+print ("Time taken: %f" % (t4-t3))
+print ()
+
+print ("Total time: %f" % (t4-t0))
+print()
+print("Sum of digits = %d" % digit_sum)
+</code></pre>
+
+<p>The main idea of the algorithm is to use <a href="http://en.wikipedia.org/wiki/Kummer%27s_theorem" rel="nofollow noreferrer">Kummer's Theorem</a> to get the prime-factorization of the binomial. For each prime, we learn the highest power of it that divides the answer, and multiply the running product by that power of the prime. In this way, we only need to multiply once for each prime in the prime-factorization of the answer.</p>
+
+<p><strong>Output showing time breakdown:</strong></p>
+
+<pre><code>N = 2200000
+Generating primes.
+Time taken: 0.046408
+Computing product.
+Time taken: 17.931472
+Converting number to string.
+Time taken: 39.083390
+Summing digits.
+Time taken: 1.502393
+
+Total time: 58.563664
+
+Sum of digits = 2980107
+</code></pre>
+
+<p>Surprisingly, most of the time is spent converting the number to a string to sum its digits. Also surprisingly, converting to a string was much faster than getting digits from repeated <code>%10</code> and <code>//10</code>, even though the whole string must presumably be kept in memory.</p>
+
+<p>Generating the primes takes negligible time (and hence I don't feel unfair copying existing code). Summing digits is fast. The actual multiplication takes one third of the time. </p>
+
+<p>Given that digit summing seems to be the limiting factor, perhaps an algorithm to multiply numbers in decimal representation would save time in total by shortcutting the binary/decimal conversion.</p>
+</div>
+<div id="pu7" class="pu"><h1>Java (2,020,000/491,000) = 4.11</h1>
+<p><strong>updated, previously 2.24</strong></p>
+<p>Java <code>BigInteger</code> isn't the fastest number cruncher, but it's better than nothing.</p>
+<p>The basic formula for this seems to be <code>n! / ((n/2)!^2)</code>, but that seems like a bunch of redundant multiplication.</p>
+<p>You can get a significant speedup by eliminating all prime factors found in both the numerator and denominator. To do this, I first run a simple prime sieve. Then for each prime, I keep a count of what power it needs to be raised to. Increment each time I see a factor in the numerator, decrement for the denominator.</p>
+<p>I handle twos separately (and first), since it's easy to count/eliminate them before factoring.</p>
+<p>Once that's done, you have the minimum amount of multiplications necessary, which is good because BigInt multiply is <em>slow</em>.</p>
+<pre class="lang-java prettyprint-override"><code>import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
+
+public class CentBiCo {
+    public static void main(String[] args) {
+        int n = 2020000;
+        long time = System.currentTimeMillis();
+        sieve(n);
+        System.out.println(sumDigits(cbc(n)));
+        System.out.println(System.currentTimeMillis()-time);
+    }
+    
+    static boolean[] sieve;
+    static List&lt;Integer&gt; primes;
+    static void sieve(int n){
+        primes = new ArrayList&lt;Integer&gt;((int)(Math.sqrt(n)));
+        sieve = new boolean[n];
+        sieve[2]=true;
+        for(int i=3;i&lt;sieve.length;i+=2)
+            if(i%2==1)
+                sieve[i] = true;
+        for(int i=3;i&lt;sieve.length;i+=2){
+            if(!sieve[i])
+                continue;
+            for(int j=i*2;j&lt;sieve.length;j+=i)
+                sieve[j] = false;
+        }
+        for(int i=2;i&lt;sieve.length;i++)
+            if(sieve[i])
+                primes.add(i);
+    }
+    
+    static int[] factors;
+    static void addFactors(int n, int flip){
+        for(int k=0;primes.get(k)&lt;=n;){
+            int i = primes.get(k);
+            if(n%i==0){
+                factors[i] += flip;
+                n /= i;
+            } else {
+                if(++k == primes.size())
+                    break;
+            }
+        }
+        factors[n]++;
+    }
+    
+    static BigInteger cbc(int n){
+        factors = new int[n+1];
+        int x = n/2;
+        for(int i=x%2&lt;1?x+1:x+2;i&lt;n;i+=2)
+            addFactors(i,1);
+        factors[2] = x;
+        for(int i=1;i&lt;=x/2;i++){
+            int j=i;
+            while(j%2&lt;1 &amp;&amp; factors[2] &gt; 1){
+                j=j/2;
+                factors[2]--;
+            }
+            addFactors(j,-1);
+            factors[2]--;
+        }
+        BigInteger cbc = BigInteger.ONE;
+        for(int i=3;i&lt;factors.length;i++){
+            if(factors[i]&gt;0)
+                cbc = cbc.multiply(BigInteger.valueOf(i).pow(factors[i]));
+        }
+        return cbc.shiftLeft(factors[2]);
+    }
+    
+    static long sumDigits(BigInteger in){
+        long sum = 0;
+        String str = in.toString();
+        for(int i=0;i&lt;str.length();i++)
+            sum += str.charAt(i)-'0';
+        return sum;
+    }
+}
+</code></pre>
+<p>Oh, and the output sum for n=2020000 is <code>2735298</code>, for verification purposes.</p>
+</div>
+<div id="pu8" class="pu"><h1>Python 2 (PyPy), 1,134,000 / 486,000 = 2.32</h1>
+
+<pre><code>#/!usr/bin/pypy
+n=input(); a, b, c=1, 1, 2**((n+2)/4)
+for i in range(n-1, n/2, -2): a*=i
+for i in range(2, n/4+1): b*=i
+print sum(map(int, str(a*c/b)))
+</code></pre>
+
+<h3>Result: 1,537,506</h3>
+
+<p>Fun fact: The bottleneck of your code is adding the digits, not computing the binomial coefficient.</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/37270/">37270</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
