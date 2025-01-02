@@ -26,9 +26,28 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>107</td><td>JavaScript Node.js</td><td>250102T110253Z</td><td><a href="https://codegolf.stackexchange.com/questions/277482/where-is-it-midnight/277484#277484">Arnauld</a></td></tr>
+<tr d-ix="0"><td>093</td><td>Bash + systemd</td><td>250102T130218Z</td><td><a href="https://codegolf.stackexchange.com/questions/277482/where-is-it-midnight/277485#277485">Themooni</a></td></tr>
+<tr d-ix="1"><td>107</td><td>JavaScript Node.js</td><td>250102T110253Z</td><td><a href="https://codegolf.stackexchange.com/questions/277482/where-is-it-midnight/277484#277484">Arnauld</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 107 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.gnu.org/software/bash/" rel="nofollow noreferrer">Bash</a> + systemd, 93 bytes</h1>
+<pre class="lang-bash prettyprint-override"><code>for t in `timedatectl list-timezones`;{
+TZ=$t date -d$1UTC|grep -qE [0:]{8}&amp;&amp;echo $t&amp;&amp;break
+}
+</code></pre>
+<p>Despite <code>timedatectl list-timezones</code> being a glorified list, it still requires systemd to be running, which it isn't in ATO nor TIO. Could be fixed by using /usr/share/zoneinfo/posix/ but that requires more bytes.</p>
+<p>Test cases on my machine:</p>
+<p><a href="https://i.sstatic.net/26wGTbCM.png" rel="nofollow noreferrer"><img src="https://i.sstatic.net/26wGTbCM.png" alt="test cases" /></a></p>
+<p>Explained:</p>
+<pre class="lang-bash prettyprint-override"><code>for t in `timedatectl list-timezones`;{ #for every timezone systemd knows about
+TZ=$t                                   #set the timezone to that and
+      date -d$1UTC                      #resolve the string e.g. &quot;12:00UTC&quot; as a date in that timezone
+                  |grep -qE [0:]{8}     #check if that date has &quot;00:00:00&quot; (thanks Arnauld)
+                                   &amp;&amp;echo $t&amp;&amp;break #if so, output the timezone and exit
+}
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=m70kKbE4Y8GCpaUlaboWN-PS8osUShQy8xQSSjJzU1MSS1KTS3IUcjKLS3RBAlX5eanFCdbVXJwhUbYqJQogBQq6KSqGoSHONelFqQUKuoWuCtEGVrHVFrVqaqnJGfkKKiVqaklFqYnZXLUQW6CWwSwFAA" rel="nofollow noreferrer">Attempt This Online!</a></p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 107 bytes</h1>
 <p><em>-1 thanks to @Shaggy</em></p>
 <p>Expects a string in <code>HH:MM</code> format. Returns either a string or <em>undefined</em>.</p>
 <pre class="lang-javascript prettyprint-override"><code>h=&gt;Intl.supportedValuesOf(s=&quot;timeZone&quot;).find(t=&gt;new Date([1,h]).toLocaleTimeString(&quot;es&quot;,{[s]:t})&lt;&quot;0:00:01&quot;)
