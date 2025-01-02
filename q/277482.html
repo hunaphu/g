@@ -26,10 +26,25 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>093</td><td>Bash + systemd</td><td>250102T130218Z</td><td><a href="https://codegolf.stackexchange.com/questions/277482/where-is-it-midnight/277485#277485">Themooni</a></td></tr>
-<tr d-ix="1"><td>107</td><td>JavaScript Node.js</td><td>250102T110253Z</td><td><a href="https://codegolf.stackexchange.com/questions/277482/where-is-it-midnight/277484#277484">Arnauld</a></td></tr>
+<tr d-ix="0"><td>179</td><td>Wolfram Language Mathematica</td><td>250102T134039Z</td><td><a href="https://codegolf.stackexchange.com/questions/277482/where-is-it-midnight/277487#277487">Introduc</a></td></tr>
+<tr d-ix="1"><td>093</td><td>Bash + systemd</td><td>250102T130218Z</td><td><a href="https://codegolf.stackexchange.com/questions/277482/where-is-it-midnight/277485#277485">Themooni</a></td></tr>
+<tr d-ix="2"><td>107</td><td>JavaScript Node.js</td><td>250102T110253Z</td><td><a href="https://codegolf.stackexchange.com/questions/277482/where-is-it-midnight/277484#277484">Arnauld</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.gnu.org/software/bash/" rel="nofollow noreferrer">Bash</a> + systemd, 93 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.wolfram.com/wolframscript/" rel="nofollow noreferrer">Wolfram Language (Mathematica)</a>, 179 bytes</h1>
+<pre><code>(u=TimeZone-&gt;&quot;UTC&quot;;d=DateList[CurrentDate@&quot;Day&quot;,u];d[[-3;;-2]]=#;DateSelect[Cases[TimeZoneConvert[DateObject[d,u],#]&amp;/@EntityList[&quot;TimeZone&quot;],_DateObject],#Hour==0&amp;&amp;#Minute==0&amp;])&amp;
+</code></pre>
+<p><a href="https://tio.run/##Rc1RC4IwEAfw9z7GBCmYpEUQjIVgQQ9FRPbSGLHyokVO0Fsg4Wc3F4hv9@d@/7tc4RNyhfqu2nZseapzuBQGghU5pwlhGV8rhJ2uUCS2LMGgyzFZq5pQK1kmRDBnLJhJyT3mdid4w73TqoJK9OeSwnygROHA4fZyIOvq1JP@NN4Y1Fj/f5C@QCS9DriD28KWnIe@7@21sQhulhO/PVoNGD/ibxTRMGpGQ17SaNG0Pw" rel="nofollow noreferrer" title="Wolfram Language (Mathematica) – Try It Online">Try it online!</a></p>
+<p>This code takes into account day light savings.</p>
+<p>It converts a <code>{h,m}</code> input into a UTC <code>DateObject</code> as of today. It then filters a list of all timezones available with a <code>{12,00}</code> hour and minute component.</p>
+<p>Note:</p>
+<ol>
+<li><p>This does not work on TIO as it requires an internet connection to download <code>EntityList[&quot;TimeZone&quot;]</code>.</p>
+</li>
+<li><p>There is a bug in Mathematica <code>EntityList[&quot;TimeZone&quot;]</code> producing invalid timezones. To work around this I used <code>Cases[...,_DateObject]</code> to filter out the invalid timezones. Code would be 160 bytes without the bug. (I have reported the bug to Wolfram).</p>
+</li>
+</ol>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.gnu.org/software/bash/" rel="nofollow noreferrer">Bash</a> + systemd, 93 bytes</h1>
 <pre class="lang-bash prettyprint-override"><code>for t in `timedatectl list-timezones`;{
 TZ=$t date -d$1UTC|grep -qE [0:]{8}&amp;&amp;echo $t&amp;&amp;break
 }
@@ -47,7 +62,7 @@ TZ=$t                                   #set the timezone to that and
 </code></pre>
 <p><a href="https://ato.pxeger.com/run?1=m70kKbE4Y8GCpaUlaboWN-PS8osUShQy8xQSSjJzU1MSS1KTS3IUcjKLS3RBAlX5eanFCdbVXJwhUbYqJQogBQq6KSqGoSHONelFqQUKuoWuCtEGVrHVFrVqaqnJGfkKKiVqaklFqYnZXLUQW6CWwSwFAA" rel="nofollow noreferrer">Attempt This Online!</a></p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 107 bytes</h1>
+<div id="pu2" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 107 bytes</h1>
 <p><em>-1 thanks to @Shaggy</em></p>
 <p>Expects a string in <code>HH:MM</code> format. Returns either a string or <em>undefined</em>.</p>
 <pre class="lang-javascript prettyprint-override"><code>h=&gt;Intl.supportedValuesOf(s=&quot;timeZone&quot;).find(t=&gt;new Date([1,h]).toLocaleTimeString(&quot;es&quot;,{[s]:t})&lt;&quot;0:00:01&quot;)
