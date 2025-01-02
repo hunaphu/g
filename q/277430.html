@@ -26,8 +26,8 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>121</td><td>JavaScript Node.js</td><td>241230T114557Z</td><td><a href="https://codegolf.stackexchange.com/questions/277430/determine-the-area-of-biggest-rectangle-containing-exactly-one-x/277455#277455">tsh</a></td></tr>
-<tr d-ix="1"><td>051</td><td>Dyalog APL</td><td>250102T053147Z</td><td><a href="https://codegolf.stackexchange.com/questions/277430/determine-the-area-of-biggest-rectangle-containing-exactly-one-x/277480#277480">Aaron</a></td></tr>
+<tr d-ix="0"><td>035</td><td>Dyalog APL</td><td>250102T053147Z</td><td><a href="https://codegolf.stackexchange.com/questions/277430/determine-the-area-of-biggest-rectangle-containing-exactly-one-x/277480#277480">Aaron</a></td></tr>
+<tr d-ix="1"><td>121</td><td>JavaScript Node.js</td><td>241230T114557Z</td><td><a href="https://codegolf.stackexchange.com/questions/277430/determine-the-area-of-biggest-rectangle-containing-exactly-one-x/277455#277455">tsh</a></td></tr>
 <tr d-ix="2"><td>027</td><td>Uiua</td><td>250101T063448Z</td><td><a href="https://codegolf.stackexchange.com/questions/277430/determine-the-area-of-biggest-rectangle-containing-exactly-one-x/277464#277464">janMakos</a></td></tr>
 <tr d-ix="3"><td>024</td><td>Brachylog</td><td>241230T195206Z</td><td><a href="https://codegolf.stackexchange.com/questions/277430/determine-the-area-of-biggest-rectangle-containing-exactly-one-x/277457#277457">cjquines</a></td></tr>
 <tr d-ix="4"><td>171</td><td>Maple</td><td>241230T181048Z</td><td><a href="https://codegolf.stackexchange.com/questions/277430/determine-the-area-of-biggest-rectangle-containing-exactly-one-x/277456#277456">dharr</a></td></tr>
@@ -37,7 +37,36 @@
 <tr d-ix="8"><td>121</td><td>JavaScript Node.js</td><td>241229T085300Z</td><td><a href="https://codegolf.stackexchange.com/questions/277430/determine-the-area-of-biggest-rectangle-containing-exactly-one-x/277431#277431">l4m2</a></td></tr>
 <tr d-ix="9"><td>042</td><td>Charcoal</td><td>241229T111329Z</td><td><a href="https://codegolf.stackexchange.com/questions/277430/determine-the-area-of-biggest-rectangle-containing-exactly-one-x/277432#277432">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 121 bytes</h1>
+<div id="pu0" class="pu"><h1>Dyalog APL, <s>51</s> 35 chars</h1>
+<pre><code>{⌈/⌈/∘∊¨⍵∘{{(×/⍴⍺↓⍵)×1=+/∊'X'=⍵}⌺⍵⊢⍺}¨,∘⍳∘⍴⍵}
+</code></pre>
+<p>Edit: I realized not only do I not need to explicitly filter out the edge cases, but its more correct to include them.</p>
+<p>Explanation, separated into helper functions for clarity:</p>
+<pre><code>windows←,∘⍳∘⍴  ⍝ Generates all possible window sizes
+               ⍝     inside the rectangular input  
+        ,      ⍝ Ravel (turn a table into an array)
+          ⍳    ⍝ the indices of
+            ⍴  ⍝ the shape of the input
+
+validSize←{(×/⍴⍺↓⍵)×1=+/∊'X'=⍵}  ⍝ This is the stencil function
+                                 ⍝ It determines if the rectangle is valid (only one X)
+                                 ⍝ The left argument is how many cells are overhanging, would be 0,0 if no overhang
+                                 ⍝ The right argument in the windowed input matrix
+                    1=+/∊'X'=⍵   ⍝ Check if elements are equal to 'X', flatten, sum it, ensure it's equal to 1
+           (×/⍴⍺↓⍵)              ⍝ Multiply the elements of the shape to find its area, after dropping padding (the answer we're looking for)
+                   ×             ⍝ Multiply these things together, so that if the rectangle is invalid, the result becomes zero;
+                                 ⍝     otherwise it is the area of the rectangle
+
+{⌈/⌈/∘∊¨⍵∘{validSize⌺⍵⊢⍺}¨windows ⍵}
+                         ¨windows ⍵    ⍝ For each window size
+          {validSize⌺⍵⊢⍺}              ⍝     run the stencil over the original input
+        ⍵∘                             ⍝ Bind the original input as the left arg (⍺ in the above function)
+       ¨                               ⍝ For each result
+   ⌈/∘∊                                ⍝     flatten and find the max (essentially just find any non-zero)
+ ⌈/                                    ⍝ And find the maximum of that to determine the largest rectangle
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 121 bytes</h1>
 
 <pre class="lang-none prettyprint-override"><code>f=S=&gt;!!S.replace(/./g,c=&gt;X+=c&gt;[++L],L=X=0)&lt;X?Math.max(...[/.*\n?/,/\n?.*$/,/^./mg,/.$/mg].map(r=&gt;f(S.replace(r,'')))):X*L
 </code></pre>
@@ -50,35 +79,6 @@
 </code></pre>
 <p><a href="https://ato.pxeger.com/run?1=m72soLIkIz9vwYKlpSVpuhY3o9JscxJzk1ISFRytchMrNHITCzTSdKIdow2tYnUco610DcGUDpSrAxKI1dTMTNMIsbLVcLS1VYpQ0tQrLs3V0NS0M0zNKU5VcNQrzqxK1QqB2rAsM7cgv6hEIa80t6BSIbFYIa-Aq6AoM69EI00jr0AvsagosVIjOhpoDshgTaxyenjkIpR0gPI6IP066DwICySCKYfEA5kNcS0sXAA" rel="nofollow noreferrer">Attempt This Online!</a></p>
 <p>Expect a <code>np.array</code> with <code>&quot;.&quot;</code> and <code>&quot;X&quot;</code>.</p>
-</div>
-<div id="pu1" class="pu"><h1>Dyalog APL, 51 chars</h1>
-<pre><code>{⌈/⌈/∘∊¨⍵∘{{(∧/⍺=0)×(×/⍴⍵)×1=+/∊'X'=⍵}⌺⍵⊢⍺}¨,∘⍳∘⍴⍵}
-</code></pre>
-<p>Explanation, separated into helper functions for clarity:</p>
-<pre><code>windows←,∘⍳∘⍴  ⍝ Generates all possible window sizes
-               ⍝     inside the rectangular input  
-        ,      ⍝ Ravel (turn a table into an array)
-          ⍳    ⍝ the indices of
-            ⍴  ⍝ the shape of the input
-
-validSize←{(∧/⍺=0)×(×/⍴⍵)×1=+/∊'X'=⍵}  ⍝ This is the stencil function
-                                       ⍝ It determines if the rectangle is valid (only one X and not overhanging the input matrix)
-                                       ⍝ The left argument is how many cells are overhanging, would be 0,0 if no overhang
-                                       ⍝ The right argument in the windowed input matrix
-                          1=+/∊'X'=⍵   ⍝ Check if equal to 'X', flatten, sum it, ensure it's equal to 1
-                   (×/⍴⍵)              ⍝ Multiply the elements of the shape to find its area (the answer we're looking for)
-           (∧/⍺=0)                     ⍝ Ensure left arg is all zeroes
-                  ×      ×             ⍝ Multiply these three things together, so that if the rectangle is invalid, the result becomes zero;
-                                       ⍝     otherwise it is the area of the rectangle
-
-{⌈/⌈/∘∊¨⍵∘{validSize⌺⍵⊢⍺}¨windows ⍵}
-                         ¨windows ⍵    ⍝ For each window size
-          {validSize⌺⍵⊢⍺}              ⍝     run the stencil over the original input
-        ⍵∘                             ⍝ Bind the original input as the left arg (⍺ in the above function)
-       ¨                               ⍝ For each result
-   ⌈/∘∊                                ⍝     flatten and find the max (essentially just find any non-zero)
- ⌈/                                    ⍝ And find the maximum of that to determine the largest rectangle
-</code></pre>
 </div>
 <div id="pu2" class="pu"><h1>Uiua, 27 bytes</h1>
 <pre class="lang-none prettyprint-override"><code>/↥×≡(/↥=₁♭⊃⧈(⧻⊚)/×)♭₂⍜¯⇡⊃△¤
