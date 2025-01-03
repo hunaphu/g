@@ -26,12 +26,28 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>131</td><td>C#</td><td>250102T191332Z</td><td><a href="https://codegolf.stackexchange.com/questions/277482/where-is-it-midnight/277491#277491">Ezlandin</a></td></tr>
-<tr d-ix="1"><td>091</td><td>Bash</td><td>250102T130218Z</td><td><a href="https://codegolf.stackexchange.com/questions/277482/where-is-it-midnight/277485#277485">Themooni</a></td></tr>
-<tr d-ix="2"><td>104</td><td>JavaScript Node.js</td><td>250102T110253Z</td><td><a href="https://codegolf.stackexchange.com/questions/277482/where-is-it-midnight/277484#277484">Arnauld</a></td></tr>
-<tr d-ix="3"><td>179</td><td>Wolfram Language Mathematica</td><td>250102T134039Z</td><td><a href="https://codegolf.stackexchange.com/questions/277482/where-is-it-midnight/277487#277487">Introduc</a></td></tr>
+<tr d-ix="0"><td>159</td><td>Wolfram Language Mathematica</td><td>250102T134039Z</td><td><a href="https://codegolf.stackexchange.com/questions/277482/where-is-it-midnight/277487#277487">Introduc</a></td></tr>
+<tr d-ix="1"><td>131</td><td>C#</td><td>250102T191332Z</td><td><a href="https://codegolf.stackexchange.com/questions/277482/where-is-it-midnight/277491#277491">Ezlandin</a></td></tr>
+<tr d-ix="2"><td>091</td><td>Bash</td><td>250102T130218Z</td><td><a href="https://codegolf.stackexchange.com/questions/277482/where-is-it-midnight/277485#277485">Themooni</a></td></tr>
+<tr d-ix="3"><td>104</td><td>JavaScript Node.js</td><td>250102T110253Z</td><td><a href="https://codegolf.stackexchange.com/questions/277482/where-is-it-midnight/277484#277484">Arnauld</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>C#, <strike>135</strike> 131 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.wolfram.com/wolframscript/" rel="nofollow noreferrer">Wolfram Language (Mathematica)</a>, <s>179</s>159 bytes</h1>
+<pre><code>(u=TimeZone-&gt;&quot;UTC&quot;;d=DateList@u;d[[-3;;-2]]=#;DateSelect[Cases[TimeZoneConvert[d~DateObject~u,#]&amp;/@EntityList[&quot;TimeZone&quot;],_DateObject],#Hour==0&amp;&amp;#Minute==0&amp;])&amp;
+</code></pre>
+<p><a href="https://tio.run/##bZBBS8NAEIXv/oohgdCWRBtFEMJKIAoKlirGi2GRbXaqq8mOZmcVkfavx@RQ6sHbzLxv3humVfyCrWJTq34t@okXpWnxkSwm58FDWQSZFheK8cY4zn2mqyo5ybLkWEoRZqNwjw3WXBXKoat2uwXZT@y40tsRWa5eB2Tr41BGR/mlZcPfo18V7PhAxk97UsbhFflOiHkUhQtjPeNYy2nUT2ZQk0bQhA4sMXTeAlkor5egHJhhgB/edIOq6cs2pLSxz/B/5iHcNjjcDe/KMQITKFjs/zH644robTY9uPMGOV/nP2kaz9PNn/4sTk83/S8" rel="nofollow noreferrer" title="Wolfram Language (Mathematica) – Try It Online">Try it online!</a></p>
+<p>This code takes into account day light savings.</p>
+<p>It converts a {h,m} input into a UTC DateObject as of today. It then filters a list of all timezones available with a {12,00} hour and minute component.</p>
+<p>Note:</p>
+<ol>
+<li><p>This does not work on TIO as it requires an internet connection to download EntityList[&quot;TimeZone&quot;].</p>
+</li>
+<li><p>There is a bug in Mathematica <code>EntityList[&quot;TimeZone&quot;]</code> producing invalid timezones. To work around this I used <code>Cases[...,_DateObject]</code> to filter out the invalid timezones. Code would be 19 bytes shorter without the bug. (I have reported the bug to Wolfram).</p>
+</li>
+</ol>
+<p><strong>Edit</strong>:
+-20 bytes thanks to inspiration from att to reduce the code to generate the <code>DateObject</code> <code>d</code></p>
+</div>
+<div id="pu1" class="pu"><h1>C#, <strike>135</strike> 131 bytes</h1>
 <p>-4 bytes, alias System.TimeZoneInfo to 'z' instead of returning a string</p>
 <pre class="lang-cs prettyprint-override"><code>using z=System.TimeZoneInfo;z F(DateTime t)=&gt;z.GetSystemTimeZones().Where(x=&gt;z.ConvertTimeFromUtc(t,x).TimeOfDay.Ticks==0).First();
 </code></pre>
@@ -46,7 +62,7 @@ z F(DateTime t)
 }
 </code></pre>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://www.gnu.org/software/bash/" rel="nofollow noreferrer">Bash</a>, 91 bytes</h1>
+<div id="pu2" class="pu"><h1><a href="https://www.gnu.org/software/bash/" rel="nofollow noreferrer">Bash</a>, 91 bytes</h1>
 <p>-2 bytes by corvus_192 by using <code>/usr/share/zoneinfo/posix/</code> + <code>find</code></p>
 <pre class="lang-bash prettyprint-override"><code>cd /*/*/z*x/*x;find * -exec sh -c &quot;env TZ={} date -d$1UTC|grep -qE [0:]{8}&quot; \; -print -quit
 </code></pre>
@@ -60,7 +76,7 @@ find * -exec sh -c #for every file in the tree, execute:
 }
 </code></pre>
 </div>
-<div id="pu2" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 104 bytes</h1>
+<div id="pu3" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 104 bytes</h1>
 <p><em>-1 thanks to @Shaggy</em><br />
 <em>-3 thanks to @l4m2</em></p>
 <p>Expects a string in <code>HH:MM</code> format. Returns either a string or <em>undefined</em>.</p>
@@ -83,20 +99,6 @@ Intl.supportedValuesOf( // get the list of supported values for ...
   &lt; &quot;0:01&quot;              //   is it midnight there?
 )                       // end of find()
 </code></pre>
-</div>
-<div id="pu3" class="pu"><h1><a href="https://www.wolfram.com/wolframscript/" rel="nofollow noreferrer">Wolfram Language (Mathematica)</a>, 179 bytes</h1>
-<pre><code>(u=TimeZone-&gt;&quot;UTC&quot;;d=DateList[CurrentDate@&quot;Day&quot;,u];d[[-3;;-2]]=#;DateSelect[Cases[TimeZoneConvert[DateObject[d,u],#]&amp;/@EntityList[&quot;TimeZone&quot;],_DateObject],#Hour==0&amp;&amp;#Minute==0&amp;])&amp;
-</code></pre>
-<p><a href="https://tio.run/##Rc1RC4IwEAfw9z7GBCmYpEUQjIVgQQ9FRPbSGLHyokVO0Fsg4Wc3F4hv9@d@/7tc4RNyhfqu2nZseapzuBQGghU5pwlhGV8rhJ2uUCS2LMGgyzFZq5pQK1kmRDBnLJhJyT3mdid4w73TqoJK9OeSwnygROHA4fZyIOvq1JP@NN4Y1Fj/f5C@QCS9DriD28KWnIe@7@21sQhulhO/PVoNGD/ibxTRMGpGQ17SaNG0Pw" rel="nofollow noreferrer" title="Wolfram Language (Mathematica) – Try It Online">Try it online!</a></p>
-<p>This code takes into account day light savings.</p>
-<p>It converts a <code>{h,m}</code> input into a UTC <code>DateObject</code> as of today. It then filters a list of all timezones available with a <code>{12,00}</code> hour and minute component.</p>
-<p>Note:</p>
-<ol>
-<li><p>This does not work on TIO as it requires an internet connection to download <code>EntityList[&quot;TimeZone&quot;]</code>.</p>
-</li>
-<li><p>There is a bug in Mathematica <code>EntityList[&quot;TimeZone&quot;]</code> producing invalid timezones. To work around this I used <code>Cases[...,_DateObject]</code> to filter out the invalid timezones. Code would be 160 bytes without the bug. (I have reported the bug to Wolfram).</p>
-</li>
-</ol>
 </div>
 
 <table id="st">
