@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::236841</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>079</td><td>Rust</td><td>250104T063410Z</td><td><a href="https://codegolf.stackexchange.com/questions/236841/fast-matrix-multiplicator-evaluator/277510#277510">138 Aspe</a></td></tr>
+<tr d-ix="1"><td>195</td><td>C gcc</td><td>211103T194850Z</td><td><a href="https://codegolf.stackexchange.com/questions/236841/fast-matrix-multiplicator-evaluator/236844#236844">Anders K</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>Rust, score≈7.9</h1>
+<p>Rust port of @Ander Kaseorg's C++ code.</p>
+<hr />
+<p><code>Cargo.toml</code></p>
+<pre class="lang-none prettyprint-override"><code>[package]
+name = &quot;fast_matrix_multiplicator_evaluator&quot;
+version = &quot;0.1.0&quot;
+edition = &quot;2021&quot;
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rand_pcg = &quot;0.3.1&quot;
+rand = &quot;0.8.0&quot;
+
+
+[profile.release]
+lto = true
+panic = &quot;abort&quot;
+</code></pre>
+<p><code>src/main.rs</code></p>
+<pre class="lang-rust prettyprint-override"><code>use std::env;
+use std::time::{Duration, Instant};
+
+// Import necessary traits and structs from the rand crate
+use rand::Rng;
+use rand::SeedableRng;
+use rand_pcg::Pcg64;
+
+// Function to initialize a vector with pseudo-random values using a fixed seed
+fn initialize_vector(size: usize) -&gt; Vec&lt;f64&gt; {
+    // Initialize the RNG with a fixed seed for reproducibility
+    let mut rng = Pcg64::seed_from_u64(0);
+    let mut vec = Vec::with_capacity(size);
+    for _ in 0..size {
+        // Generate a random f64 between 0.0 and 1.0
+        vec.push(rng.gen::&lt;f64&gt;());
+    }
+    vec
+}
+
+// The `error` function translated from C
+fn error_func(gamma: usize, sigma: usize, A: &amp;[f64], B: &amp;[f64], C: &amp;[f64]) -&gt; f64 {
+    let mut E = 0.0;
+    for r in 0..sigma {
+        for i in 0..gamma {
+            for j in 0..gamma {
+                let mut x = 0.0;
+                for l in 0..gamma {
+                    let rkl = r * gamma * gamma + j * gamma + l;
+                    let rnm = r * gamma * gamma + i * gamma + l;
+                    x += B[rkl] * C[rnm];
+                }
+                let rij = r * gamma * gamma + i * gamma + j;
+                E += A[rij] * x;
+            }
+        }
+    }
+    E = (gamma as f64).powi(3) - 2.0 * E;
+    for r in 0..sigma {
+        for s in r..sigma {
+            let mut xa = 0.0;
+            let mut xb = 0.0;
+            let mut xc = 0.0;
+            for ij in 0..(gamma * gamma) {
+                let rij = r * gamma * gamma + ij;
+                let sij = s * gamma * gamma + ij;
+                xa += A[rij] * A[sij];
+                xb += B[rij] * B[sij];
+                xc += C[rij] * C[sij];
+            }
+            E += (1.0 + if r != s { 1.0 } else { 0.0 }) * xa * xb * xc;
+        }
+    }
+    E
+}
+
+// The `reference` function translated from C
+fn reference_func(gamma: usize, sigma: usize, A: &amp;[f64], B: &amp;[f64], C: &amp;[f64]) -&gt; f64 {
+    let mut E = 0.0;
+    for i in 0..gamma {
+        for j in 0..gamma {
+            for k in 0..gamma {
+                for l in 0..gamma {
+                    for m in 0..gamma {
+                        for n in 0..gamma {
+                            let mut s = 0.0;
+                            for r in 0..sigma {
+                                let rij = r * gamma * gamma + i * gamma + j;
+                                let rkl = r * gamma * gamma + k * gamma + l;
+                                let rnm = r * gamma * gamma + n * gamma + m;
+                                s += A[rij] * B[rkl] * C[rnm];
+                            }
+                            let e = s - if n == i &amp;&amp; j == k &amp;&amp; l == m {
+                                1.0
+                            } else {
+                                0.0
+                            };
+                            E += e * e;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    E
+}
+
+fn main() {
+    // Parse command-line arguments
+    let args: Vec&lt;String&gt; = env::args().collect();
+    if args.len() != 3 {
+        eprintln!(&quot;Usage: {} &lt;gamma&gt; &lt;sigma&gt;&quot;, args[0]);
+        std::process::exit(1);
+    }
+    let gamma: usize = args[1].parse().expect(&quot;Invalid gamma&quot;);
+    let sigma: usize = args[2].parse().expect(&quot;Invalid sigma&quot;);
+
+    // Allocate and initialize A, B, C
+    let size = sigma * gamma * gamma;
+    let A = initialize_vector(size);
+    let B = initialize_vector(size);
+    let C = initialize_vector(size);
+
+    // Measure execution time for `reference_func`
+    let reference_start = Instant::now();
+    let mut reference_count = 0;
+    let mut reference_E = 0.0;
+    while reference_start.elapsed() &lt; Duration::from_secs(1) {
+        reference_E = reference_func(gamma, sigma, &amp;A, &amp;B, &amp;C);
+        reference_count += 1;
+    }
+    let reference_time = reference_start.elapsed().as_secs_f64() / reference_count as f64;
+    println!(&quot;reference: E={} time={} s&quot;, reference_E, reference_time);
+
+    // Measure execution time for `error_func`
+    let error_start = Instant::now();
+    let mut error_count = 0;
+    let mut error_E = 0.0;
+    while error_start.elapsed() &lt; Duration::from_secs(1) {
+        error_E = error_func(gamma, sigma, &amp;A, &amp;B, &amp;C);
+        error_count += 1;
+    }
+    let error_time = error_start.elapsed().as_secs_f64() / error_count as f64;
+    println!(&quot;me:        E={} time={} s&quot;, error_E, error_time);
+
+    // Calculate and print the score
+    println!(&quot;score={}&quot;, reference_time / error_time);
+}
+</code></pre>
+<h3>Run</h3>
+<pre><code>$ cargo.exe run --package fast_matrix_multiplicator_evaluator --bin fast_matrix_multiplicator_evaluator --release 
+$ .\target\release\fast_matrix_multiplicator_evaluator.exe 6 159
+reference: E=18104555.908983983 time=0.004142786363636363 s
+me:        E=18104555.90898394 time=0.0005224228720626632 s
+score=7.929948295103448
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C (gcc)</a>, score ≈ 6.7×, 8.5×, 13.6x, 19.5×</h1>
+<p>For the four categories (3, 22), (4, 48), (5, 97), (6, 159).</p>
+<p>This algorithm runs in <span class="math-container">\$O(γ^3σ + γ^2σ^2)\$</span> rather than <span class="math-container">\$O(γ^6σ)\$</span>, using the rearranged formula:</p>
+<p><span class="math-container">\begin{multline*}
+\textrm{error}(A, B, C) = γ^3 - 2\sum_{r=1}^σ \sum_{i,j,l=1}^γ A_{ij}^rB_{jl}^rC_{il}^r \\
++ \sum_{r,s=1}^σ\left(\sum_{i,j=1}^γ A_{ij}^rA_{ij}^s\right)\left(\sum_{k,l=1}^γ B_{kl}^rB_{kl}^s\right)\left(\sum_{n,m=1}^γ C_{nm}^rC_{nm}^s\right).
+\end{multline*}</span></p>
+
+<pre class="lang-c prettyprint-override"><code>double error(size_t gamma, size_t sigma, double *A, double *B, double *C) {
+  double E = 0.0;
+  for (int r = 0; r &lt; sigma; ++r) {
+    for (int i = 0; i &lt; gamma; ++i) {
+      for (int j = 0; j &lt; gamma; ++j) {
+        double x = 0.0;
+        for (int l = 0; l &lt; gamma; ++l) {
+          int rkl = r * gamma * gamma + j * gamma + l;
+          int rnm = r * gamma * gamma + i * gamma + l;
+          x += B[rkl] * C[rnm];
+        }
+        int rij = r * gamma * gamma + i * gamma + j;
+        E += A[rij] * x;
+      }
+    }
+  }
+  E = gamma * gamma * gamma - 2 * E;
+  for (int r = 0; r &lt; sigma; ++r) {
+    for (int s = r; s &lt; sigma; ++s) {
+      double xa = 0.0, xb = 0.0, xc = 0.0;
+      for (int ij = 0; ij &lt; gamma * gamma; ++ij) {
+        int rij = r * gamma * gamma + ij;
+        int sij = s * gamma * gamma + ij;
+        xa += A[rij] * A[sij];
+        xb += B[rij] * B[sij];
+        xc += C[rij] * C[sij];
+      }
+      E += (1 + (r != s)) * xa * xb * xc;
+    }
+  }
+  return E;
+}
+</code></pre>
+<p><a href="https://tio.run/##vVZtjxo3EP7Or5ikauXl5XKkaqWUUAm2KIqaO6S0HyrR02rPGM7g9UbehV4b8ddDZ@x98e6VhF51RYIde54ZD8@8ePlgzfnxK6m52i0FvM7kWsfq4u7HjreXL2X6YEvJ2@ZeLhPR3NlpiUDa60RRnOdG3u5yEUWM6VRqJbUIAjgu092tEiCMSQ3L5F8iymEdJ0nch2KFQdGqAHYntTitxTCAjx0olzMYw@XF5Qh3VqkBJnUOhvZG@HjtPI6g1zPOykNJh5KIslEQSpYoD7dxuI2P29S4KpL7OpKWB@U8KN@D8j0A2LC3BDTQdajq2cOza1mN2mY6OWEmT5ndQ28M0wUeeIOQcIEubmr9odNwLzdnuN/U5jNyPlmgHTm/LxXOK/3Sl9LW9Fc@B/AS5dkjEppRnCN8eKisprlMU@zy1If720rizdzVNVIkX1bZL@O01dIogy@Q5TFkg7XI7AtIDNYnc7JAMy9T@A9cIp162lZzUoelOmyoyyzbdLEhHswMPMOQsFW7dHCX3OMPHzUyZ0S@M5oSdDiebPZOQbYRK2GE5uJJ@/2znXxuH1e4rcNtfdzWT/S/6esKmzhs4mOTJtZDa4fWPlq30RUnWVnHoj2CWm4/20f@51GNf94s254aSudMNO3JyUPjrNEtJwdce8y5j7D9OACG5I9BUhewDYlbKyoSk6DtxbYPVimIpsb3fngwWg@nWqrTyfI4lxz2qcInJVeuscvSRHJsmGWq8ZwaI5dwF@ulEsZNQHupY0ItEP/PcIQHdGz9xVJbTGzWvA/8LkZ@u7jYu/z7/YmGeKJkpF0Mb4K@q5bG9ssbS0XVuqhMYqVSzhy2@2C80wnpijmLoGE9/U/W4aOsM4PEscugedGUA9/Yif@P7qyy1yvbpig3rFfyF8ALKI95P7n@Kbqa/OYKY3omLjwLR2WT5WbHc6DXseyD4JDvcQTk@yHpVarXwNOdzmlVFVM5RC0BtljYL2/fTN69v@qXhYSEoNKaWios0baYrByr2CRsaGnjSPk2WoucQmDhu3n4c3Q1v57/Or9@G/bhGwyoSFTBFQ3v@kqo7gJ7CeDwx6EfFg3W61XBH@CPO4qdPaM4zjx46FdIdWREeBgXTcgY4i7yfZQheQOir1gEdBkWOt1QaqvtwlAMXlFqqiA/GCyfFXteHfUDzMZfq5XNjhWy3/XzPsz6rWiemm73tv2/UZ38@fQcJ0huOX1PcFyE4cgt7TKeGouzqFZRvPBscCAYIdikFqe16GgrRvYlvQUdvz8Ov3v1ia9UvM6Og/m3fwM" rel="nofollow noreferrer" title="C (gcc) – Try It Online">Try it online!</a></p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/236841/">236841</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
