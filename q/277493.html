@@ -26,10 +26,43 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>686</td><td>Python</td><td>250104T004041Z</td><td><a href="https://codegolf.stackexchange.com/questions/277493/how-many-free-polyominos-without-holes/277508#277508">138 Aspe</a></td></tr>
-<tr d-ix="1"><td>350</td><td>Ruby</td><td>250103T192921Z</td><td><a href="https://codegolf.stackexchange.com/questions/277493/how-many-free-polyominos-without-holes/277505#277505">Level Ri</a></td></tr>
+<tr d-ix="0"><td>277</td><td>Ruby</td><td>250103T192921Z</td><td><a href="https://codegolf.stackexchange.com/questions/277493/how-many-free-polyominos-without-holes/277505#277505">Level Ri</a></td></tr>
+<tr d-ix="1"><td>686</td><td>Python</td><td>250104T004041Z</td><td><a href="https://codegolf.stackexchange.com/questions/277493/how-many-free-polyominos-without-holes/277508#277508">138 Aspe</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 686 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a>, 277 bytes</h1>
+
+<pre class="lang-none prettyprint-override"><code>f=-&gt;n,p=[[2]],s=1{q=[]
+z=[w=n*3,w-1,-1,~w,-w,1-w,1,-~w]
+p.map{|a|(s*4).times{|i|r=[];g=h=1
+c=a+[d=z[i%4*2]+a[i/4]]
+8.times{|j|h+=(g-g=2*a.count(d+z[j]))**2
+c=c.map!{|k|j%2&lt;1?k-k%w*2:k%w*w+k/w}.sort!.map{|m|m-c[0]+n}
+r&lt;&lt;c*1}
+a.any?(d)||h&gt;10||q&lt;&lt;r.min}}
+s&lt;n ?f[n,q&amp;q,s+1]:p.size}
+</code></pre>
+<p><a href="https://tio.run/##NU5JboMwALz7FcmBCrwFUw5VisNDLB9cCKtwABNZAZOvU1BVaWZOs43Pn9e2FZzcNO65EJGU2HC2DFxIMHNhuYaf2BKGd7wtJhazg5i8rQQ97VS/OOV8A@OATnV3N4ur3binv0tecQYyrpDI@SxqL4aRRErUl1hK8PXvblyFuF@SkkdQ0ezx1JOfo1k0MgggjPaC7Fg5L651jRclLG1J61kYXQ@1qL3YlZrHOJ3/znSuI5kIJdIrGJMkg2wFiir9Sv08cK66sdC5IUlG2tV6XYFJ9CkthMbDx4ANYvLaU1PP93XrT4Vgodx@AQ" rel="nofollow noreferrer" title="Ruby – Try It Online">Try it online!</a></p>
+<p>First golfed version, runs a little slower due to certain checks being carried out late in the algorithm to avoid <code>()</code>, resulting in a lot of unnecessary calculation.</p>
+<h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a>, 350 bytes</h1>
+
+<pre class="lang-none prettyprint-override"><code>f=-&gt;n,p=[[2]],s=1{z=[w=n*3,w-1,-1,~w,-w,1-w,1,-~w];p p.size
+#p.map{|a|t=(?.*~-w+$/)*s;a.map{|k|t[k]=?#};puts t,$/}
+s&lt;n&amp;&amp;(q=[]
+p.map{|a|(s*4).times{|i|d=z[i%4*2]+a[i/4]
+a.index(d)||(c=a+[d];r=[];g=a.count(d-~w);h=0
+8.times{|j|c=c.map!{|k|j%2&lt;1?k-k%w*2:k%w*w+k/w}.sort!.map{|m|m-(c[0])+n};r&lt;&lt;c*1
+h+=g^g=a.count(d+z[j])}
+h&lt;3&amp;&amp;q&lt;&lt;r.min)}}
+f[n,q&amp;q,s+1])
+}
+</code></pre>
+<p><a href="https://tio.run/##TY7dboIwGIbPexUalVBaiqAHy6DzQpou6cCfSqhAa7ph660ziXFZ8n7vyZc879Nfv37G8UDjD4VbyljGOdY0vQ2UWaqiDbZxih@5WxxbnE6H47vleTtriZbDHixa0oj25oQzNNyR6B5btExgpHPxfNTOsJrT3cLn7dXomcHLxANdqCAIO8o4@AOEOtpCYmSz1zcnXUUHJlfbKONIMJlsORBEqmr/HVbQubCkArGK5/2DkR@pIOXlqkxYPfRgfqJr8PZCnV1Jy2lkPtmcV1mR7uq4Xtkoe5/aojqxnuhLb@ZPl8Y1cViyNYdI@bwvijJKwQnR4@e/ITSwM4cenIpNEHRF0ZNGKug9ODCFu6DDGqUcAj8eWJrx8Rc" rel="nofollow noreferrer" title="Ruby – Try It Online">Try it online!</a></p>
+<p>First working version, adapted from my answer to a <a href="https://codegolf.stackexchange.com/a/246311/15599">previous question</a> about polyiamonds (shapes composed of equilateral triangles). This version prints the full sequence from 1 to n. It will even print the polyominos themselves if you uncomment the second line. Golfed version to follow.</p>
+<p>This is a recursive function taking required size of polyominos <code>n</code> as an argument, plus two optional arguments: an array <code>p</code> of smaller polyominos and <code>s</code> the number of squares in the smaller polyominos. The initial default value of these corresponds to the seed polyomino of just one square.</p>
+<p>The main new feature is the avoidance of holes. The polyomino is grown by adding a new square beside any existing square in any of the four orthogonal directions. The new square is rejected if it bridges across to another existing square. This is detected by walking around the 8 spaces adjacent to the new square and counting the number of changes from full square to empty square. There should be exactly 2 changes. If there are more, the new square is bridging and the polyomino is rejected.</p>
+<p>At the same time, the polyomino is reflected 8 times orthogonally and diagonally to generate all 8 possible orientations. If the polyomino is not rejected, it is added to the new list of larger polyominos <code>q</code>.</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 686 bytes</h1>
 <p>Python port of formatted <a href="https://tio.run/##XVLRcoIwEHznK9YHHRBIDfrQKdh@SCadoaIVHRBBh9aqv043OKViZi7J3e1tNpeUx4/vplnN/dfcQ4E5lAWoQFvaQ0VX4oeBk0nUnHKMMfVQw4f04NOuNVeaZMgs9K61DllUoBBVelpyWyFi6WgEe2@YNBgzoxBZXLQnmHFGTLMrnjFzxCHNllWXM9mUlrD@pFIMMSMs0HAR033CTHfIWKR5svyyEwdn8i1YEhOnEh2ibM8P8WmCYrE75gc7ofRr7YRYMzhBx/Ms8CjiJmRDM6wLI3/Qz5r8tsUMEfDaEm/0fdqQbaNkvHT7mqq21F73GC6i2pWHQa81/9xZaz6vpSbaIUHeLw57bokootQxZC@8hjtnC94f2uCytRvt3EEv1n1RhKl5xL0hLUWW5n/QG@w2rxR/0h6EmR/kQpLwYq2UDHTT/AI" rel="nofollow noreferrer">Ruby code by @Level River St</a></p>
 <hr />
 <p>Golfed version. <a href="https://ato.pxeger.com/run?1=jVJLTsMwEJVYcgpvKtlN0pK0i6quF3bSQr8cwDISAhciFceK3UU3vQgbNrDkQJwGO2mgqF3wFEvxjN-bN_a8fuidfS7U29v71q6jwdfF5w0p79WTvHyUa3ANVajJqlAyNCRGw0vgkK-BBrkBPjzUhPNEiCpBiWr38JRwGtIoDt23p2FEw9ivMNpTgXWZKws3UkGNUKNmRqpW9kgJFz-bdVGCDOQK6N8DTXzm4zfQtPvob9JjTKZ81uq3ExFkfNbt9sXJEVd4DFRhvUx2quDBSBbwscBz5wlPSNZ5KLbO_ti1gvCCXJ0leW_L2tvgjLOj8stWMoqHjHAWsRZtJxWVeSo7tdtAboysOI5BA9bt0n_RWMcUpYUIOyqNGL8SgaqItCbieedea6keIXNd6h1ECK_I5LjrYMqXwvUdkNXd5Gwh19Ni1BvekpdcwTnCaaNpt3oj4e3hyT1SssmNhUZamLpS7tWrPUU_nlKBS2m3paqmMA1NENf06gYOKV2P7fs1jBNU_zej_A0" rel="nofollow noreferrer">Attempt This Online!</a></p>
@@ -103,25 +136,6 @@ def G(n,p=None,s=1):
 # Execute the function with n = 12
 result = f(12)
 </code></pre>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a>, 350 bytes</h1>
-
-<pre class="lang-none prettyprint-override"><code>f=-&gt;n,p=[[2]],s=1{z=[w=n*3,w-1,-1,~w,-w,1-w,1,-~w];p p.size
-#p.map{|a|t=(?.*~-w+$/)*s;a.map{|k|t[k]=?#};puts t,$/}
-s&lt;n&amp;&amp;(q=[]
-p.map{|a|(s*4).times{|i|d=z[i%4*2]+a[i/4]
-a.index(d)||(c=a+[d];r=[];g=a.count(d-~w);h=0
-8.times{|j|c=c.map!{|k|j%2&lt;1?k-k%w*2:k%w*w+k/w}.sort!.map{|m|m-(c[0])+n};r&lt;&lt;c*1
-h+=g^g=a.count(d+z[j])}
-h&lt;3&amp;&amp;q&lt;&lt;r.min)}}
-f[n,q&amp;q,s+1])
-}
-</code></pre>
-<p><a href="https://tio.run/##TY7dboIwGIbPexUalVBaiqAHy6DzQpou6cCfSqhAa7ph660ziXFZ8n7vyZc879Nfv37G8UDjD4VbyljGOdY0vQ2UWaqiDbZxih@5WxxbnE6H47vleTtriZbDHixa0oj25oQzNNyR6B5btExgpHPxfNTOsJrT3cLn7dXomcHLxANdqCAIO8o4@AOEOtpCYmSz1zcnXUUHJlfbKONIMJlsORBEqmr/HVbQubCkArGK5/2DkR@pIOXlqkxYPfRgfqJr8PZCnV1Jy2lkPtmcV1mR7uq4Xtkoe5/aojqxnuhLb@ZPl8Y1cViyNYdI@bwvijJKwQnR4@e/ITSwM4cenIpNEHRF0ZNGKug9ODCFu6DDGqUcAj8eWJrx8Rc" rel="nofollow noreferrer" title="Ruby – Try It Online">Try it online!</a></p>
-<p>First working version, adapted from my answer to a <a href="https://codegolf.stackexchange.com/a/246311/15599">previous question</a> about polyiamonds (shapes composed of equilateral triangles). This version prints the full sequence from 1 to n. It will even print the polyominos themselves if you uncomment the second line. Golfed version to follow.</p>
-<p>This is a recursive function taking required size of polyominos <code>n</code> as an argument, plus two optional arguments: an array <code>p</code> of smaller polyominos and <code>s</code> the number of squares in the smaller polyominos. The initial default value of these corresponds to the seed polyomino of just one square.</p>
-<p>The main new feature is the avoidance of holes. The polyomino is grown by adding a new square beside any existing square in any of the four orthogonal directions. The new square is rejected if it bridges across to another existing square. This is detected by walking around the 8 spaces adjacent to the new square and counting the number of changes from full square to empty square. There should be exactly 2 changes. If there are more, the new square is bridging and the polyomino is rejected.</p>
-<p>At the same time, the polyomino is reflected 8 times orthogonally and diagonally to generate all 8 possible orientations. If the polyomino is not rejected, it is added to the new list of larger polyominos <code>q</code>.</p>
 </div>
 
 <table id="st">
