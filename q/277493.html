@@ -42,7 +42,27 @@ a.any?(d)||h&gt;10||q&lt;&lt;r.min}}
 s&lt;n ?f[n,q&amp;q,s+1]:p.size}
 </code></pre>
 <p><a href="https://tio.run/##NY7NboMwAIPveYr2wAT5o0k5TB0pDxLlkNECAZECoUKF8OyMbtrFsuRPtofn92vbCkGuFndCSq4UdoItvZAKzEJOwsIzJgyTCTMFOtrqbvHahw4mER1Ne3eLN37Y8a9SVIKBXGgkb2KWJkgU0tLEiVLg85@tfYVEWJJScKhp/njaMbyRWdYxV6gOOPy1hKkogpDvbfl78rj4xu9pyrKGNMEE@eWtE2riaaXuMYzHv2etb0kuTwrZFQxpmkO2Ak21fWXhLfK@urKT932aDrQ1dl2BS@0hK6TF/UePHWLq0lFn5vu6dYdCMqa2Hw" rel="nofollow noreferrer" title="Ruby – Try It Online">Try it online!</a></p>
+<p>Adapted from my answer to a <a href="https://codegolf.stackexchange.com/a/246311/15599">previous question</a> about polyiamonds (shapes composed of equilateral triangles).</p>
 <p>First golfed version, runs a little slower due to certain checks being carried out late in the algorithm to avoid <code>()</code>, resulting in a lot of unnecessary calculation.</p>
+<p>This is a recursive function taking required size of polyominos <code>n</code> as an argument, plus two optional arguments: an array <code>p</code> of smaller polyominos and <code>s</code> the number of squares in the smaller polyominos. The initial default value of these corresponds to the seed polyomino of just one square.</p>
+<p>The main new feature is the avoidance of holes. The polyomino is grown by adding a new square beside any existing square in any of the four orthogonal directions. The new square is rejected if it bridges across to another existing square. This is detected by walking around the 8 spaces adjacent to the new square and counting the number of changes from full square to empty square. There should be exactly 2 changes. If there are more, the new square is bridging and the polyomino is rejected.</p>
+<p>At the same time, the polyomino is reflected 8 times orthogonally and diagonally to generate all 8 possible orientations. If the polyomino is not rejected, it is added to the new list of larger polyominos <code>q</code>.</p>
+<p><strong>Commented code</strong></p>
+<pre class="lang-none prettyprint-override"><code>f=-&gt;n,p=[[2]],s=1{                  #Call function with desired n, seeded with single square
+q=[]                                #Make an array for next generation polyomino
+z=[w=n*3,-1,-w,1]                   #w=width of board. z=array of 4 orthogonal directions
+p.map{|a|(s*4).times{|i|            #Try extending each existing polyomino in p, from each square in 4 directions
+  r=[];g=h=1                         #Make array to hold all orientations of new shape. Initialise g&amp;h for hole detection
+  c=a+[d=z[i%4]+a[i/4]]              #Make new polyomino c by extending from a[i/4] in direction i%4 adding square d  
+  8.times{|j|h+=                          #Loop 8 times for relections and hole detection
+(g-g=2*a.count(d-z[j/2]+j%2*z[j/2-1]))**2 #Walk around 8 neighbours of square d, update g, and if it changed increment h
+    c=c.map!{|k|j%2&lt;1?k-k%w*2:k%w*w+k/w}. #Reflect c orthogonally or diagonally depending on value of j%2
+    sort!.map{|m|m-c[0]+n}                #sort &amp; normalise the elements so that the lowest=n putting it in middle of board
+    r&lt;&lt;c*1}                               #add current relection of c to r. We will select the lexically lowest value of c
+  a.any?(d)||h&gt;10||q&lt;&lt;r.min}}        #If new square d doesn't overlap existing square &amp; h shows no bridge, add new shape to q
+s&lt;n ?f[n,q&amp;q,s+1]:p.size}           #if s==n return the size of existing list p. 
+                                    #If s&lt;n, take precalculated list of next size polyominos q, eliminate duplicates and recurse
+</code></pre>
 <h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a>, 350 bytes</h1>
 
 <pre class="lang-none prettyprint-override"><code>f=-&gt;n,p=[[2]],s=1{z=[w=n*3,w-1,-1,~w,-w,1-w,1,-~w];p p.size
@@ -57,10 +77,7 @@ f[n,q&amp;q,s+1])
 }
 </code></pre>
 <p><a href="https://tio.run/##TY7dboIwGIbPexUalVBaiqAHy6DzQpou6cCfSqhAa7ph660ziXFZ8n7vyZc879Nfv37G8UDjD4VbyljGOdY0vQ2UWaqiDbZxih@5WxxbnE6H47vleTtriZbDHixa0oj25oQzNNyR6B5btExgpHPxfNTOsJrT3cLn7dXomcHLxANdqCAIO8o4@AOEOtpCYmSz1zcnXUUHJlfbKONIMJlsORBEqmr/HVbQubCkArGK5/2DkR@pIOXlqkxYPfRgfqJr8PZCnV1Jy2lkPtmcV1mR7uq4Xtkoe5/aojqxnuhLb@ZPl8Y1cViyNYdI@bwvijJKwQnR4@e/ITSwM4cenIpNEHRF0ZNGKug9ODCFu6DDGqUcAj8eWJrx8Rc" rel="nofollow noreferrer" title="Ruby – Try It Online">Try it online!</a></p>
-<p>First working version, adapted from my answer to a <a href="https://codegolf.stackexchange.com/a/246311/15599">previous question</a> about polyiamonds (shapes composed of equilateral triangles). This version prints the full sequence from 1 to n. It will even print the polyominos themselves if you uncomment the second line. Golfed version to follow.</p>
-<p>This is a recursive function taking required size of polyominos <code>n</code> as an argument, plus two optional arguments: an array <code>p</code> of smaller polyominos and <code>s</code> the number of squares in the smaller polyominos. The initial default value of these corresponds to the seed polyomino of just one square.</p>
-<p>The main new feature is the avoidance of holes. The polyomino is grown by adding a new square beside any existing square in any of the four orthogonal directions. The new square is rejected if it bridges across to another existing square. This is detected by walking around the 8 spaces adjacent to the new square and counting the number of changes from full square to empty square. There should be exactly 2 changes. If there are more, the new square is bridging and the polyomino is rejected.</p>
-<p>At the same time, the polyomino is reflected 8 times orthogonally and diagonally to generate all 8 possible orientations. If the polyomino is not rejected, it is added to the new list of larger polyominos <code>q</code>.</p>
+<p>First working version  This version prints the full sequence from 1 to n. It will even print the polyominos themselves if you uncomment the second line.</p>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 686 bytes</h1>
 <p>Python port of formatted <a href="https://tio.run/##XVLRcoIwEHznK9YHHRBIDfrQKdh@SCadoaIVHRBBh9aqv043OKViZi7J3e1tNpeUx4/vplnN/dfcQ4E5lAWoQFvaQ0VX4oeBk0nUnHKMMfVQw4f04NOuNVeaZMgs9K61DllUoBBVelpyWyFi6WgEe2@YNBgzoxBZXLQnmHFGTLMrnjFzxCHNllWXM9mUlrD@pFIMMSMs0HAR033CTHfIWKR5svyyEwdn8i1YEhOnEh2ibM8P8WmCYrE75gc7ofRr7YRYMzhBx/Ms8CjiJmRDM6wLI3/Qz5r8tsUMEfDaEm/0fdqQbaNkvHT7mqq21F73GC6i2pWHQa81/9xZaz6vpSbaIUHeLw57bokootQxZC@8hjtnC94f2uCytRvt3EEv1n1RhKl5xL0hLUWW5n/QG@w2rxR/0h6EmR/kQpLwYq2UDHTT/AI" rel="nofollow noreferrer">Ruby code by @Level River St</a></p>
