@@ -26,13 +26,52 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>221</td><td>Ruby</td><td>250106T212830Z</td><td><a href="https://codegolf.stackexchange.com/questions/277493/how-many-free-polyominos-without-holes/277540#277540">Level Ri</a></td></tr>
-<tr d-ix="1"><td>114</td><td>Charcoal</td><td>250105T141533Z</td><td><a href="https://codegolf.stackexchange.com/questions/277493/how-many-free-polyominos-without-holes/277518#277518">Neil</a></td></tr>
-<tr d-ix="2"><td>229</td><td>Python 3</td><td>250105T003449Z</td><td><a href="https://codegolf.stackexchange.com/questions/277493/how-many-free-polyominos-without-holes/277514#277514">xnor</a></td></tr>
+<tr d-ix="0"><td>221</td><td>Python 3</td><td>250105T003449Z</td><td><a href="https://codegolf.stackexchange.com/questions/277493/how-many-free-polyominos-without-holes/277514#277514">xnor</a></td></tr>
+<tr d-ix="1"><td>221</td><td>Ruby</td><td>250106T212830Z</td><td><a href="https://codegolf.stackexchange.com/questions/277493/how-many-free-polyominos-without-holes/277540#277540">Level Ri</a></td></tr>
+<tr d-ix="2"><td>114</td><td>Charcoal</td><td>250105T141533Z</td><td><a href="https://codegolf.stackexchange.com/questions/277493/how-many-free-polyominos-without-holes/277518#277518">Neil</a></td></tr>
 <tr d-ix="3"><td>275</td><td>Ruby</td><td>250103T192921Z</td><td><a href="https://codegolf.stackexchange.com/questions/277493/how-many-free-polyominos-without-holes/277505#277505">Level Ri</a></td></tr>
 <tr d-ix="4"><td>686</td><td>Python</td><td>250104T004041Z</td><td><a href="https://codegolf.stackexchange.com/questions/277493/how-many-free-polyominos-without-holes/277508#277508">138 Aspe</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a>, 221 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://docs.python.org/3.8/" rel="nofollow noreferrer">Python 3</a>, 221 bytes</h1>
+
+<pre class="lang-none prettyprint-override"><code>def f(n):
+ L=[[]];c=0
+ for l in L:
+  A=p=0;s,*r=1,;L+=l+[0],l+[1],l+[3];L*=len(l)&lt;2*n+3
+  for d in l:s*=1j**d*2**(p in r);r+=p,;p+=s;A+=p/s
+  c+=s-1==p==0&lt;A.imag==n*2!=l==max(max(l:=l[1:]+[x],l[::-1])for x in l)
+ return c
+</code></pre>
+<p><a href="https://tio.run/##HY9LbsQgEET3PgXZQcMkxpaiCKYX3vsGiIXlz8QR04OwIzmnd8CLLvVHVU8d//bvF7VfMZ3nNC9s4SRMxXp0zns7Yl2x5ZVYYCuxPh9YhxFruylIqJXtJQbpaq@y6ktbb3vAMBMP4t4AyTabSsRUIoLZAPUPwAQNAI9ll4RNEqOyUeJmu9x@bNkz5ummMeOwvnfv63N4IBI0bxgQn8PBSwWDwWnjpTsy3Rlz014U2nHRRMXSvP8mYuNZtnTxBnrMXKvP8mhMK@2cVPlbnP8" rel="nofollow noreferrer" title="Python 3.8 (pre-release) – Try It Online">Try it online!</a></p>
+<p><em>Saved 8 bytes with <a href="https://codegolf.stackexchange.com/a/277540/20260">Level River St's idea</a> of discarding paths not in canonical form</em></p>
+<p>I haven't golfed this too hard -- I just want to show off a new method.</p>
+<p>We represent a hole-free polyomino by its boundary loop walk. This means, tracing its perimeter one segment at a time, which direction do we turn at each step: left, right, or straight?</p>
+<p>For example, the area-3 polyomino</p>
+<pre class="lang-none prettyprint-override"><code>XX
+X
+</code></pre>
+<p>has the boundary walk</p>
+<pre class="lang-none prettyprint-override"><code>L&lt;S&lt;L
+v   ^
+S R&gt;L
+v ^
+L&gt;L
+</code></pre>
+<p>which corresponds to <code>RLLSLSLL</code> if we start from the <code>R</code>.</p>
+<p>This representation has some nice features compared to the usual of a polyomino as the coordinates of each of its squares. Because everything is relative, there's no need to handle translated or rotated polyominoes. Ones with interior holes are never generated, and ones with self-touches can be culled by checking if the boundary ever revisits a point.</p>
+<p>Moreover, there's a neat &quot;discrete calculus&quot; trick to find the area from the walk, and I've even posted a challenge about it before: <a href="https://codegolf.stackexchange.com/q/163395/20260">Area enclosed by perimeter loop</a>!</p>
+<hr />
+<p>So, here's the method. Generate all sequences of turns (left, right, straight) of sufficiently large length. For each one, check that it:</p>
+<ul>
+<li>Returns to its start point</li>
+<li>Ends facing the starting direction</li>
+<li>Never encounters a coordinate a second time, since this would indicate a loop of self-crossing</li>
+<li>Has the desired area</li>
+</ul>
+<p>If so, add it to the list of polyominos. However, polyominos will repeat because the starting point of the loop is arbitrary, and reflections correspond to reversed walks. So, convert each walk to a canonical form, by taking the list-maximum among its cyclic rotations and reversals, and only increment the count if it was already in that form.</p>
+<p>This code is slow -- it only gets up to <code>n=5</code> on TIO. I've tested a somewhat-optimized version up to <code>n=7</code>.</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a>, 221 bytes</h1>
 
 <pre class="lang-none prettyprint-override"><code>-&gt;n{c=0
 (9**-~n).times{|i|r=i.to_s(3).bytes
@@ -47,7 +86,7 @@ c}
 <p>Once a walk in canonical form is found it is checked to see if it is a valid polyomino. The ascii code 49 (for <code>1</code>) is considered straight and 48 and 50 are (for <code>0</code> and <code>2</code>) considered left and right.</p>
 <p>The algorithm for finding the polyomino area is based on a classic way of finding the area of a polygon: select a point (which can be inside the polygon but doesn't have to be if areas are signed.) Draw a triangle from each edge to the point and the area contribution to the polygon for each edge is found from the area of a triangle formula <code>base*height/2</code></p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 114 bytes</h1>
+<div id="pu2" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 114 bytes</h1>
 <pre><code>≔Ｉ1jδＮθ⊞υ⟦⟧Ｆυ«≔ＸδＥιΣ…ι⊕λη≔θζ≔⁰εＦη≡κδ≧⁻εζ±δ≧⁺εζ≧⁺κε¿⁼⁰ΣηＭ∧¬ζ∧⁼¹⊟η⁼ι⌊ΣＥＥιＥι§ι⁺λν⟦⮌κκ⟧→¿›‹Ｌι⊗⊕θ№ＥηΣ…ηλΣηＦ³⊞υ⁺ι⟦⊖κ⟧»Ｉⅈ
 </code></pre>
 <p><a href="https://ato.pxeger.com/run?1=dVLBahsxEIXcsl8x-DQCBRraQ4hPxinFUJsluQSMD-vdsaVa1sYryWkS8iW5JJDQflO_piNZJiale9BqxJun997o6Xetqq5uK_P8_Bb84uTsz9HdwDm9tDisnMfe6Y-ekNCIfjGyN8FPwnpOHW64LoNTGCRMZ1ws2g4wCHgojnN72d4ysJEwrm5QS7gKaxze1YaGqk0HI1t3tCbrqUEj4idBMdWeYCPh_qD8JIFimW5SAtyt9rUCXKVL68oRNOfxsh3-Ui-Vx7G2wXFjpkqoCS0rT9iIf9ClOQQ3tKiC8f9BrbKcx-JYLwC_bkJlXBQZfSo2A-N2SziwDU5aj_dsLu4z7lRCySmo6DkfcSKsVq-5PVLE1HJy-TfwI9vQz7iNEtBIsLvUppe0pc4RZ8HCZiKHeZ70ij6QYdtR5beO2HqH38k5XuzSK9SMvGjD3PAYDkeySRzDNlifhKiPI-QDkzB7xwLSbD4L2D-NpJP1Ti_onXglWGG_eCzKTjN3embXyO39VzevXX6Hv6a9k63pzV6-7Oq_" rel="nofollow noreferrer">Attempt This Online!</a> Link is to verbose version of code. Explanation: Uses @xnor's approach, but even slower so can only manage up to <code>n=4</code> on ATO.</p>
@@ -96,44 +135,6 @@ c}
 <pre><code>»Ｉⅈ
 </code></pre>
 <p>Output the final number of polyominoes found.</p>
-</div>
-<div id="pu2" class="pu"><h1><a href="https://docs.python.org/3.8/" rel="nofollow noreferrer">Python 3</a>, 229 bytes</h1>
-
-<pre class="lang-none prettyprint-override"><code>def f(n):
- t,=L=[[]]
- for l in L:
-  A=p=0;s,*r=1,;L+=l+[0],l+[1],l+[3];L*=len(l)&lt;2*n+3
-  for d in l:s*=1j**d*2**(p in r);r+=p,;p+=s;A+=p/s
-  if s-1==p==0&lt;A.imag==n*2:t+=max(max(l:=(*l[1:],x),l[::-1])for x in l),
- return len({*t})
-</code></pre>
-<p><a href="https://tio.run/##HU9BbsMgELz7FRxhIa2xpaqC7MF3/wBxsGQ7dUQIAiI5qvp2F3zY0WhXM7MT3vnn6fvvEI9jXlayUs9UQ7LAEY2xtiHrMxJHNk/GsicDBmx1EhBRCj1ydNy0VhSUJ/ZWj4Bu8dSxawee90VULeZq4VQClHeAGToAGuouMh05BqEDx6SHQj9T0WwrSReJJQ7b6/CxPaYboodOZY6Paad1nEIKzkhlxc6EM0pdpGU1bT/TmGhIXPIrFl4@@oX8x4569mfw5G8LleKrFg5x85l6Ufuz4x8" rel="nofollow noreferrer" title="Python 3.8 (pre-release) – Try It Online">Try it online!</a></p>
-<p>I haven't golfed this too hard -- I just want to show off a new method.</p>
-<p>We represent a hole-free polyomino by its boundary loop walk. This means, tracing its perimeter one segment at a time, which direction do we turn at each step: left, right, or straight?</p>
-<p>For example, the area-3 polyomino</p>
-<pre class="lang-none prettyprint-override"><code>XX
-X
-</code></pre>
-<p>has the boundary walk</p>
-<pre class="lang-none prettyprint-override"><code>L&lt;S&lt;L
-v   ^
-S R&gt;L
-v ^
-L&gt;L
-</code></pre>
-<p>which corresponds to <code>RLLSLSLL</code> if we start from the <code>R</code>.</p>
-<p>This representation has some nice features compared to the usual of a polyomino as the coordinates of each of its squares. Because everything is relative, there's no need to handle translated or rotated polyominoes. Ones with interior holes are never generated, and ones with self-touches can be culled by checking if the boundary ever revisits a point.</p>
-<p>Moreover, there's a neat &quot;discrete calculus&quot; trick to find the area from the walk, and I've even posted a challenge about it before: <a href="https://codegolf.stackexchange.com/q/163395/20260">Area enclosed by perimeter loop</a>!</p>
-<hr />
-<p>So, here's the method. Generate all sequences of turns (left, right, straight) of sufficiently large length. For each one, check that it:</p>
-<ul>
-<li>Returns to its start point</li>
-<li>Ends facing the starting direction</li>
-<li>Never encounters a coordinate a second time, since this would indicate a loop of self-crossing</li>
-<li>Has the desired area</li>
-</ul>
-<p>If so, add it to the list of polyominos. However, polyominos will repeat because the starting point of the loop is arbitrary, and reflections correspond to reversed walks. So, convert each walk to a canonical form, by taking the list-maximum among its cyclic rotations and reversals. At the end, output the number of distinct values produced this way.</p>
-<p>This code is slow -- it only gets up to <code>n=5</code> on TIO. I've tested a somewhat-optimized version up to <code>n=7</code>.</p>
 </div>
 <div id="pu3" class="pu"><h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a>, 275 bytes</h1>
 
