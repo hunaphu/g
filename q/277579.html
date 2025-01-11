@@ -26,17 +26,17 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>026</td><td>Jelly</td><td>250111T183610Z</td><td><a href="https://codegolf.stackexchange.com/questions/277579/how-much-coffee-is-in-my-water/277591#277591">lolad</a></td></tr>
+<tr d-ix="0"><td>024</td><td>Jelly</td><td>250111T183610Z</td><td><a href="https://codegolf.stackexchange.com/questions/277579/how-much-coffee-is-in-my-water/277591#277591">lolad</a></td></tr>
 <tr d-ix="1"><td>087</td><td>Wolfram Language Mathematica</td><td>250111T181327Z</td><td><a href="https://codegolf.stackexchange.com/questions/277579/how-much-coffee-is-in-my-water/277590#277590">Greg Mar</a></td></tr>
 <tr d-ix="2"><td>077</td><td>JavaScript V8</td><td>250111T025253Z</td><td><a href="https://codegolf.stackexchange.com/questions/277579/how-much-coffee-is-in-my-water/277582#277582">Weird Gl</a></td></tr>
 <tr d-ix="3"><td>079</td><td>R</td><td>250111T050034Z</td><td><a href="https://codegolf.stackexchange.com/questions/277579/how-much-coffee-is-in-my-water/277585#277585">Eonema</a></td></tr>
 <tr d-ix="4"><td>113</td><td>Python3</td><td>250111T030542Z</td><td><a href="https://codegolf.stackexchange.com/questions/277579/how-much-coffee-is-in-my-water/277584#277584">Ajax1234</a></td></tr>
 <tr d-ix="5"><td>170</td><td>Python 2</td><td>250111T013410Z</td><td><a href="https://codegolf.stackexchange.com/questions/277579/how-much-coffee-is-in-my-water/277581#277581">Lucenapo</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/DennisMitchell/jellylanguage" rel="nofollow noreferrer">Jelly</a>, 26 bytes</h1>
-<pre><code>Ṫ÷S}C¹0&gt;0$?×¹+ḷµ@ƒØ0µ÷@/‘İ
+<div id="pu0" class="pu"><h1><a href="https://github.com/DennisMitchell/jellylanguage" rel="nofollow noreferrer">Jelly</a>, 24 bytes</h1>
+<pre><code>Ṫ÷S}C¹0AƑ?×¹+ḷµ@ƒØ0÷@/‘İ
 </code></pre>
-<p><a href="https://tio.run/##y0rNyan8///hzlWHtwfXOh/aaWBnoGJ/ePqhndoPd2w/tNXh2KTDMwwObT283UH/UcOMIxv@//8fHW1ooAOEsTrRINoUTJuSwI8FAA" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></p>
+<p><a href="https://tio.run/##y0rNyan8///hzlWHtwfXOh/aaeB4bKL94emHdmo/3LH90FaHY5MOzzA4vN1B/1HDjCMb/v//Hx1taKADhLE60SDaFEybksCPBQA" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></p>
 <p>Input is a list of lists, where each row is a 3-tuple <code>[coffee, water, drink]</code>. The index corresponding to the action contains its parameter, while the others are zero. For example,</p>
 <pre><code>w(10),c(15) -&gt; [[0,10,0],[15,0,0]]
 </code></pre>
@@ -47,34 +47,35 @@
 <li><span class="math-container">\$\delta&gt;0\$</span> (drinking). Given current total liquid <span class="math-container">\$V=c+w\$</span>, we calculate scale factor <span class="math-container">\$k=\frac{V-\delta}{V}=1-\frac{\delta}{V}\$</span>. If <span class="math-container">\$V=0\$</span> or <span class="math-container">\$k\le0\$</span>, set <span class="math-container">\$k=0\$</span> (so we never drink more than everything). Then, multiply, giving new state <span class="math-container">\$(kc,kw)\$</span>.</li>
 </ul>
 <p>Note that <span class="math-container">\$\delta=0\implies k=1\$</span>, and <span class="math-container">\$\gamma,\omega\$</span> work independently of each other. So we can apply all 3 operations at once, calculating new state <span class="math-container">\$(kc+\gamma,kw+\omega)\$</span>.</p>
-<pre><code>Ṫ÷S}C¹0&gt;0$?×¹+ḷµ@ƒØ0µ÷@/‘İ    Main monadic link taking
+<pre><code>Ṫ÷S}C¹0AƑ?×¹+ḷµ@ƒØ0÷@/‘İ      Main monadic link taking
                                input matrix and returning
                                coffee %
 
-Ṫ÷S}C¹0&gt;0$?×¹+ḷ               Dyadic chain taking (𝛾,𝜔,𝛿) and (c,w),
+Ṫ÷S}C¹0AƑ?×¹+ḷ                Dyadic chain taking (𝛾,𝜔,𝛿) and (c,w),
                                calculating state update:
 Ṫ                              𝛿
  ÷S}                            ÷the sum c+w = V
     C                          1-𝛿÷V = k
-       &gt;0$?                    if k &gt; 0:
+       AƑ?                     if k &gt; 0 (|k|=k):
      ¹                          do nothing
-      0                        otherwise, set k = 0
+                               otherwise (inc. k=NaN):
+      0                         set k = 0
            ×¹                  calculate (kc,kw)
              +ḷ                and add (𝛾,𝜔), giving (kc+𝛾,kw+𝜔)
                                - 𝛿 was implicitly popped earlier
 
-               µ@ƒØ0          Monadic chain to loop
-                               through instructions:
+                              Monadic chain on input:
+               µ@ƒØ0          loop through instructions:
                 @ƒ             Reduce through input
                                with args reversed,
                                calling previous chain
                   Ø0           and using [0,0] as initial state
 
-                    µ÷@/‘İ    Monadic chain calculating
-                               final coffee % from (c,w):
-                     ÷@/       w÷c
-                        ‘      w÷c + 1 = (w+c)÷c
-                         İ     c÷(w+c)
+                    ÷@/‘İ     Calculate final coffee %
+                               from (c,w):
+                    ÷@/        w÷c
+                       ‘       w÷c + 1 = (w+c)÷c
+                        İ      c÷(w+c)
 </code></pre>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://www.wolfram.com/wolframscript/" rel="nofollow noreferrer">Wolfram Language (Mathematica)</a>, 87 bytes</h1>
