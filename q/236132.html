@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::236132</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>099</td><td>APLNARS</td><td>250112T151714Z</td><td><a href="https://codegolf.stackexchange.com/questions/236132/lean-golf-pascal-vs-fibonacci/277605#277605">Rosario</a></td></tr>
+<tr d-ix="1"><td>243</td><td>Lean</td><td>220215T192538Z</td><td><a href="https://codegolf.stackexchange.com/questions/236132/lean-golf-pascal-vs-fibonacci/242867#242867">Kyle Mil</a></td></tr>
+<tr d-ix="2"><td>299</td><td>Lean</td><td>211008T045254Z</td><td><a href="https://codegolf.stackexchange.com/questions/236132/lean-golf-pascal-vs-fibonacci/236140#236140">Anders K</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>APL(NARS), 99 chars</h1>
+<pre><code>r←f w;h;k
+h←0x⋄k←1x
+r←h⋄h←k⋄k+←r⋄→2×⍳0≤w-←1
+
+p←{+/{(k-⍵){⍺&lt;⍵-1:0⋄⍵⊃1,⍺!⍨⍳⍺}⍵}¨⍳k←⍵}
+
+c←{∧/{(p⍵)=f⍵}¨⍳⍵}
+</code></pre>
+<p>//43+38+18=99
+I know this could be cancelled due the language is different...
+But how to prove the two computation have the same result in APL?</p>
+<p>f is the function for input &gt;=0 that return the fibonacci number, the same the function p that use the Pascal triangle
+for return the fibonacci number. c is the function that see if the two way of calculate fibonacci number return the same
+result up the input of c.</p>
+<pre><code>  c 10
+1
+  c 50
+1
+  c 100
+0
+  c 100x
+1
+  c 200x
+1
+  
+</code></pre>
+<p>note different result because up to some number one has to use big rationals for the approximation errors...
+⍺C⍵ of the exercise it would be {⍺&lt;⍵-1:0⋄⍵⊃1,⍺!⍨⍳⍺} but it was need to put ⍺&lt;⍵-1:0 because indexes
+went out of Pascal triangle, or 90% my error in something.</p>
+</div>
+<div id="pu1" class="pu"><h1>Lean, <s>247</s> 243 bytes</h1>
+<pre><code>import data.nat.fib data.list
+open nat list.nat
+def X:∀n,((antidiagonal n).map$function.uncurry
+choose).sum=fib(n+1)|0:=rfl|1:=rfl|(n+2):=by
+rw[fib_add_two,antidiagonal_succ_succ'];simpa[&lt;-X,antidiagonal_succ',&lt;-add_assoc,&lt;-list.sum_map_add]
+</code></pre>
+<p><a href="https://leanprover-community.github.io/lean-web-editor/#code=import%20data.nat.fib%20data.list%0Aopen%20nat%20list.nat%0Adef%20X%3A%E2%88%80n%2C%28%28antidiagonal%20n%29.map%24function.uncurry%0Achoose%29.sum%3Dfib%28n%2B1%29%7C0%3A%3Drfl%7C1%3A%3Drfl%7C%28n%2B2%29%3A%3Dby%0Arw%5Bfib_add_two%2Cantidiagonal_succ_succ%27%5D%3Bsimpa%5B%3C-X%2Cantidiagonal_succ%27%2C%3C-add_assoc%2C%3C-list.sum_map_add%5D" rel="nofollow noreferrer">Try it on Lean Web Editor</a> <em>(Note 2/15/2022: this will work within 24 hours)</em></p>
+<p>Perhaps it's cheating, since I contributed very relevant lemmas about antidiagonals to mathlib that were just merged this morning, but I added them for other reasons, I promise! The Lean Web Editor is updated daily, so it should eventually work.</p>
+</div>
+<div id="pu2" class="pu"><h1>Lean, 299 bytes</h1>
+<pre class="lang-lean prettyprint-override"><code>import data.list data.nat.fib
+open nat
+def s(n k):=((list.nat.antidiagonal n).map$λa:_×_,choose(a.1+k)a.2).sum
+def X:∀n,s n 0=fib(n+1)|0:=rfl|1:=rfl|(n+2):=by{let:∀k,s(n+2)k=choose k(n+2)+s n k+s(n+1)k,induction
+n;intro;simp[s,(∘),&lt;-add_one,add_assoc,*]at*;ring,rw[one_add,choose],ring,safe}
+</code></pre>
+<p><a href="https://leanprover-community.github.io/lean-web-editor/#code=import%20data.list%20data.nat.fib%0Aopen%20nat%0Adef%20s%28n%20k%29%3A%3D%28%28list.nat.antidiagonal%20n%29.map%24%CE%BBa%3A_%C3%97_%2Cchoose%28a.1%2Bk%29a.2%29.sum%0Adef%20X%3A%E2%88%80n%2Cs%20n%200%3Dfib%28n%2B1%29%7C0%3A%3Drfl%7C1%3A%3Drfl%7C%28n%2B2%29%3A%3Dby%7Blet%3A%E2%88%80k%2Cs%28n%2B2%29k%3Dchoose%20k%28n%2B2%29%2Bs%20n%20k%2Bs%28n%2B1%29k%2Cinduction%0An%3Bintro%3Bsimp%5Bs%2C%28%E2%88%98%29%2C%3C-add_one%2Cadd_assoc%2C*%5Dat*%3Bring%2Crw%5Bone_add%2Cchoose%5D%2Cring%2Csafe%7D%0A%0Aexample%20%3A%20%E2%88%80%20%28n%20%3A%20%E2%84%95%29%2C%0A%20%20%28%28list.nat.antidiagonal%20n%29.map%20%28function.uncurry%20nat.choose%29%29.sum%0A%20%20%3D%20n.succ.fib%20%3A%3D%0A%20%20X" rel="nofollow noreferrer">Try it on Lean Web Editor</a></p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/236132/">236132</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
