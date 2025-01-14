@@ -31,17 +31,30 @@
 <tr d-ix="2"><td>074</td><td>Charcoal</td><td>250113T230039Z</td><td><a href="https://codegolf.stackexchange.com/questions/277623/draw-an-ascii-analog-digital-clock/277627#277627">Neil</a></td></tr>
 </table>
 <div id="pu0" class="pu"><h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a>, <s>137 129</s> 123 bytes</h1>
+<pre><code>&lt;!-- language-all: lang-ruby --&gt;
 
-<pre class="lang-none prettyprint-override"><code>-&gt;t{s=(&quot; &quot;*39+$/)*20
-(-3..2).map{|i|j=t[h=i/3]
-g=j/5**-h-3
-s[420+i*~0**(h+g/6)*&quot;\5,RxN$&quot;[g%6].ord,2]=i==0?&quot;##&quot;:&quot;%02d&quot;%j}
-s}
+    -&gt;t{s=(&quot; &quot;*39+$/)*20
+    (-3..2).map{|i|j=t[h=i/3]
+    g=j/5**-h-3
+    s[420+i*~0**(h+g/6)*&quot;\5,RxN$&quot;[g%6].ord,2]=i==0?&quot;##&quot;:&quot;%02d&quot;%j}
+    s}
 </code></pre>
 <p><a href="https://tio.run/##bctNC4IwHIDx@z6FTAX9u821qVSw/AYduq4dCvENInEKhdpXNwq6dXz48fTj9bmWaqWHYbIqwA4GuYu8OATBUUAlYyJkt0s3zc3cqkHXqomlQZVq4xSA1lQiqxPBowZeHCCooyrOQsDnlJweRw/rys8Mu/cFEUY1SvEcuy7eY5@LAvvtguyyduNgnVLrLRGpMeibOYWEo59sBOH8P0mSfKb1DQ" rel="nofollow noreferrer" title="Ruby – Try It Online">Try it online!</a></p>
 <p>A function taking an argument in the form <code>[12,00]</code> and returning a newline separated string.</p>
 <p>It forms a canvas of 20 lines of 39 spaces plus newline. . It then draws from the tip of the minute hand at iteration <code>-3</code> to the centre <code>0</code> and then on to tip of the hour hand <code>2</code> by replacing characters.</p>
 <p>The centre of the clock is at index 420 (I didn't plan it that way, it just happened!) There is an array of 6 magic numbers for the offsets corresponding to half a revolution of the hand. the other half revolution is managed by negating these offsets by multiplying by <code>-1</code> raised to the power <code>h+g/6</code> (due to Ruby priority rules, <code>-1</code> is represented by <code>~0</code>.)</p>
+<p><strong>Commented code</strong></p>
+<pre><code>-&gt;t{s=(&quot;.&quot;*39+$/)*20     #Make a string s of 20 lines of 39 spaces plus newline
+(-3..2).map{|i|          #Iterate from -3 (minute hand) to 2 (hour hand)
+  j=t[h=i/3]             #h= -1 for minute, 0 for hour (rounding integer division down)
+                         #Extract j from t[] (ruby wraps negative index -1 round to 1)
+  (g=j/5**-h)-3          #If minute, divide j by 5 to make g correspond to hour value. 
+                         #Subtract 3 so that g/6 is even in lower half 3..8 and odd in upper half 
+  s[420+i*~0**(h+g/6)*   #Centre at 420. Offset by i, with signflip if minutes(h)+upperhalf(g/6) is odd.. 
+  &quot;\5,RxN$&quot;[g%6].ord,2]= #...times offset for one of 6 values from magic string. Change 2 chars in array 
+  i==0?&quot;##&quot;:&quot;%02d&quot;%j}    #...to ## if i==0 or the minute/hour contained in j if not.
+s}                       #Return string s
+</code></pre>
 </div>
 <div id="pu1" class="pu"><h1>JavaScript (ES8), 196 bytes</h1>
 <p>Expects <code>(&quot;HH&quot;)(&quot;MM&quot;)</code> and returns a matrix of characters.</p>
