@@ -33,27 +33,44 @@
 <div id="pu0" class="pu"><h1>JavaScript (ES8), 195 bytes</h1>
 <p>Expects <code>(&quot;HH&quot;)(&quot;MM&quot;)</code> and returns a matrix of characters.</p>
 
-<pre class="lang-none prettyprint-override"><code>h=&gt;m=&gt;(C=[...(M=Math)+h].map(_=&gt;[...&quot;&quot;.padEnd(32)]),g=n=&gt;[.36,2/3,z].map(i=&gt;[z=0,1].map(k=&gt;C[7.5+M.sin(q=(n-3)/1.9)*i*7|0][15.5+M.cos(q)*i*(13+5%(n%6||3))+k|0]=i?m[k]:&quot;#&quot;)))(m/5,z=.967)&amp;g(m=h)||C
+<pre class="lang-none prettyprint-override"><code>h=&gt;m=&gt;(C=[...(M=Math)+h].map(_=&gt;[...&quot;&quot;.padEnd(32)]),g=n=&gt;[.36,2/3,z].map(d=&gt;[z=0,1].map(k=&gt;C[7.5+M.sin(a=(n-3)/1.9)*d*7|0][15.5+M.cos(a)*d*(13+5%(n%6||3))+k|0]=d?m[k]:&quot;#&quot;)))(m/5,z=.967)&amp;g(m=h)||C
 </code></pre>
-<p><a href="https://tio.run/##RZDNbsIwDIDvPEWUicmmIfRnhTHk7lBx5Am6aKpKoQWalrbagXXP3iUwaSfbnz85sU/pV9plbdn0c13v8/FAY0FRRRHElEgpYUe7tC/QKZSs0gY@KbKYc9mk@63eQ@CjQnEkbRvBUviLQNwebmnQjVzhPcozRXGykqGzk12p4Uqg5wEuPLnGWTlbDa5KvPDezuoOrhaCFzjhFPR0OQwBonM2EpXvVXJWb/yJIyJUi1DcSK6XK3w@QkUFDkM8bpIJYwnj7isXjPshZ0o8iOdb4rr/xA0sebHORE3koW63aVYAJKwQrGIKGUXs27iXvGcxI3aAwryLG4OyWnf1JZeX@gjxfcvW2q081WZFbn74l31ojsxhNtow57LNmzzt7f3MpB8cfwE" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<p><a href="https://tio.run/##RZDNboMwDIDvfQorUye7pCk/o11XhR1QjzwBQ1MEtPSHgADt0LFnZ0k7aSfbnz85sc/qS/V5d2qHpW6KcjrIqZJRLSOMZSqEwEQmaqjIqTJRqxY/ZWQxY6JVxV4XGPiUET9KbRvBmvurgN8ebmHQTbrce5QXGcXpRoROIvqTRiVRLwNaeWJLi2KxGd0s9cJ7O296VBaiFzjhHPV8PY4BkXMxkize6/SSvbEnRkRYr0J@k2K73tDzEWtZ0TjG0y6dAaTA3FfGgfkhg4w/iOdb4rr/xA0sebHOLJuJQ9PtVV4hplBxqCEjkBF8G/daDhCDhANW5l3aGZQ3um@upbg2R4zvW3bW7sS5MSsy88O/7EMzAgdstGHJRFe2pRrs/cykH5p@AQ" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<h3>Formulas</h3>
+<p>Given the index <span class="math-container">\$n\in[0\dots11]\$</span> of the hand position, the angle is given by:</p>
+<p><span class="math-container">$$a=(n - 3)\times 2\pi/12\approx(n-3)/1.9$$</span></p>
+<p>We use <span class="math-container">\$a\$</span> to compute the integer position <span class="math-container">\$(x,y)\$</span> on the grid as follows:</p>
+<p><span class="math-container">$$x=\lfloor15.5+\cos(a)\times d\times r_x\rfloor\\
+y=\lfloor7.5+\sin(a)\times d\times r_y\rfloor$$</span></p>
+<p>where <span class="math-container">\$r_y\$</span> is always <span class="math-container">\$7\$</span> and <span class="math-container">\$r_x\$</span> depends on <span class="math-container">\$n\bmod 6\$</span>:</p>
+<p><span class="math-container">$$\begin{array}{|c|c|c|c|c|c|c|}
+\hline
+  n\bmod 6 &amp; 0 &amp; 1 &amp; 2 &amp; 3 &amp; 4 &amp; 5 \\ 
+\hline
+   r_x &amp; 15 &amp; 13 &amp; 14 &amp; 15 &amp; 14 &amp; 13 \\
+\hline
+\end{array}$$</span></p>
+<p>The value of <span class="math-container">\$r_x\$</span> is obtained with the JS code <code>13 + 5 % (n % 6 || 3)</code>.</p>
+<p>The following values of <span class="math-container">\$d\$</span> are used to generate the different circles: <span class="math-container">\$0\$</span>, <span class="math-container">\$0.36\$</span>, <span class="math-container">\$2/3\$</span>, <span class="math-container">\$0.967\$</span>.</p>
 <h3>Ungolfed</h3>
-<p>This ungolfed code draws the full clock, using the same formulas.</p>
+<p>This ungolfed code draws the full clock, using the formulas described above.</p>
 
 <pre class="lang-none prettyprint-override"><code>let C = [...Array(15)].map(_ =&gt; [...Array(32).fill(&quot; &quot;)]);
 
 for(let n = 0; n &lt; 12; n++) {
-  [ 0, 0.36, 2 / 3, 0.967 ].forEach(i =&gt; {
-    let q = (n - 3) / 1.9,
-        y = 7.5 + Math.sin(q) * i * 7 | 0,
-        x = 15.5 + Math.cos(q) * i * (13 + 5 % (n % 6 || 3)) | 0;
+  [ 0, 0.36, 2 / 3, 0.967 ].forEach(d =&gt; {
+    let a = (n - 3) * Math.PI * 2 / 12,
+        rx = 13 + 5 % (n % 6 || 3),
+        x = 15.5 + Math.cos(a) * d * rx | 0,
+        y = 7.5 + Math.sin(a) * d * 7 | 0;
 
-    C[y][x] = i ? n &gt;&gt; 1 : &quot;#&quot;;
-    C[y][x + 1] = i ? n * 5 % 10 : &quot;#&quot;;
+    C[y][x] = d ? n &gt;&gt; 1 : &quot;#&quot;;
+    C[y][x + 1] = d ? n * 5 % 10 : &quot;#&quot;;
   });
 }
 console.log(C.map(r =&gt; r.join(&quot;&quot;)).join(&quot;\n&quot;));
 </code></pre>
-<p><a href="https://tio.run/##TVDtaoMwFP3vUxwchaTazCgqnatjyH7uCZwMcXa1ONOqjMrss7sbGbOBkJt7zwfnHvPvvCva6tRvGvVRTlNd9kiwQyqEeG7bfGDS55n4yk/sHbv4pu@5XOyrumYmTJ7xyDD2qmWa3xDfieh5hHTptSyOHwNI4dhwhBfYcHEPT3@2QYhMEPMlLw6s0hYaCmihMwmxBht4nPBSbO15pM9Ao1D4sPCa9wfRVQ07c6xR0Q0xktM/9EJQ6S/YQnULlkmP@j5W2miFAONIblwrUCJNT9IhSy8ZiVR4olBxDIkHmHdmdDMnEblg1rOidBbclRZ0NQrVdKouRa0@WTIvtdWJW3FUFMA0Of@r3hqqo2n6BQ" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<p><a href="https://tio.run/##TZBRa4MwFIXf/RUHRyGpbWYUlc21Y8ge9jDYu5MR1K4tzpQoo2Xtb3c3MmYD4d4k3zk39@7Vt@pKszv0y1ZX9TA0dY8MK@RCiCdj1InJiBfiSx3YB1brq/sw4GKzaxrmwuUFTx1now2z@pb0fkrhATKg6HkcPw6Qw1/AF2G8QIBbhPZwFycoBCmfVblllS1hUcAaKTJiLZYIOeZ4Vf1WvL1QZtUyWIycXeZIoAzhIcLMKmaIcT6TbGJGJBIRQaNRqTumrG1FmwzO9Ll/@ERwMrHdrp3YxKLUreWy/FTkx4LoCo/U8HoNiXu4N2569U42cmLm4yelP3EXGt7FKXXb6aYWjf5k2ThwY6dhxF5Tedfl/C97bylPh@EX" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a>, <s>137 129 123 121</s> 119 bytes</h1>
 
