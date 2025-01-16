@@ -26,8 +26,8 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>nan</td><td></td><td>240804T043815Z</td><td><a href="https://codegolf.stackexchange.com/questions/37624/tips-for-golfing-in-ecmascript-6-and-above/274663#274663">noodle p</a></td></tr>
-<tr d-ix="1"><td>nan</td><td></td><td>170626T134654Z</td><td><a href="https://codegolf.stackexchange.com/questions/37624/tips-for-golfing-in-ecmascript-6-and-above/128411#128411">Arnauld</a></td></tr>
+<tr d-ix="0"><td>nan</td><td></td><td>170626T134654Z</td><td><a href="https://codegolf.stackexchange.com/questions/37624/tips-for-golfing-in-ecmascript-6-and-above/128411#128411">Arnauld</a></td></tr>
+<tr d-ix="1"><td>nan</td><td></td><td>240804T043815Z</td><td><a href="https://codegolf.stackexchange.com/questions/37624/tips-for-golfing-in-ecmascript-6-and-above/274663#274663">noodle p</a></td></tr>
 <tr d-ix="2"><td>nan</td><td></td><td>181007T092746Z</td><td><a href="https://codegolf.stackexchange.com/questions/37624/tips-for-golfing-in-ecmascript-6-and-above/173575#173575">Shieru A</a></td></tr>
 <tr d-ix="3"><td>nan</td><td></td><td>230306T222510Z</td><td><a href="https://codegolf.stackexchange.com/questions/37624/tips-for-golfing-in-ecmascript-6-and-above/258893#258893">EzioMerc</a></td></tr>
 <tr d-ix="4"><td>nan</td><td></td><td>170621T010021Z</td><td><a href="https://codegolf.stackexchange.com/questions/37624/tips-for-golfing-in-ecmascript-6-and-above/127617#127617">Downgoat</a></td></tr>
@@ -71,17 +71,7 @@
 <tr d-ix="42"><td>nan</td><td></td><td>140912T221713Z</td><td><a href="https://codegolf.stackexchange.com/questions/37624/tips-for-golfing-in-ecmascript-6-and-above/37745#37745">Optimize</a></td></tr>
 <tr d-ix="43"><td>005</td><td>Function expressions in ES6 use the arrow notation</td><td>140912T162845Z</td><td><a href="https://codegolf.stackexchange.com/questions/37624/tips-for-golfing-in-ecmascript-6-and-above/37720#37720">William </a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Abuse third argument to setInterval for assignment</h1>
-<p>In the browser you can pass a string instead of a function to <code>setInterval</code>, in which case this isn't shorter, but in Node/Deno that errors, so you should try to abuse this trick.</p>
-<p>If you have code like e.g. <code>(M=Math).sin(M.PI)</code> (made up example) where you have that assignment in parentheses, you can shorten it by making <code>M</code> the argument to the arrow function <code>M=&gt;{...}</code> and passing <code>Math</code> as the third argument to <code>setInterval</code>.</p>
-<p>This trick saves 2 bytes:</p>
-<pre class="lang-javascript prettyprint-override"><code>// before
-setInterval(_=&gt;{(c=console).clear();c.log(&quot;Hello, world!&quot;)},50)
-// after, 2 bytes shorter
-setInterval(c=&gt;{c.clear();c.log(&quot;Hello, world!&quot;)},50,console)
-</code></pre>
-</div>
-<div id="pu1" class="pu"><h2>Optimizing small constant ranges for <code>map()</code></h2>
+<div id="pu0" class="pu"><h2>Optimizing small constant ranges for <code>map()</code></h2>
 <h3>Context</h3>
 <p>Starting with ES6, it has become fairly common to use (and abuse) the <code>map()</code> method instead of a <code>for</code> loop to iterate over a range <span class="math-container">\$[0..N-1]\$</span>, so that the entire answer can be written in functional style:</p>
 <pre class="lang-js prettyprint-override"><code>for(i = 0; i &lt; 10; i++) {
@@ -132,16 +122,26 @@ N = 15      | use {}                               | [...''+{}].map(_=&gt;F())  
 16 ≤ N ≤ 18 | use number+{}                        | [...1+{}].map(_=&gt;F())           | N+2
 N = 18      | use the fraction 1/3                 | [...1/3+''].map(_=&gt;F())         | 20
 N = 19      | use the fraction 1/6                 | [...1/6+''].map(_=&gt;F())         | 20
-19 ≤ N ≤ 24 | use scientific notation 1e[N-1]+{}   | [...1e4+{}].map(_=&gt;F())         | 20
-25 ≤ N ≤ 29 | use scientific notation 1e[N-1]+{}   | [...1e10+{}].map(_=&gt;F())        | 21
+19 ≤ N ≤ 24 | use scientific notation 1e[N-16]+{}  | [...1e4+{}].map(_=&gt;F())         | 20
+25 ≤ N ≤ 29 | use scientific notation 1e[N-16]+{}  | [...1e10+{}].map(_=&gt;F())        | 21
 N = 30      | use {}+{}                            | [...{}+{}].map(_=&gt;F())          | 19
-31 ≤ N ≤ 36 | use scientific notation 1e[N-1]+{}   | [...1e15+{}].map(_=&gt;F())        | 21
+31 ≤ N ≤ 36 | use scientific notation 1e[N-16]+{}  | [...1e15+{}].map(_=&gt;F())        | 21
 N = 37      | use scientific notation -1e20        | [...-1e20+{}].map(_=&gt;F())       | 22
 38 ≤ N ≤ 44 | use Array(N)                         | [...Array(38)].map(_=&gt;F())      | 23
 N = 45      | use {}+{}+{}                         | [...{}+{}+{}].map(_=&gt;F())       | 22
 46 ≤ N ≤ 99 | use Array(N)                         | [...Array(46)].map(_=&gt;F())      | 23
 </code></pre>
 <p><sup><strong>NB</strong>: The length of the callback code <code>F()</code> is not counted.</sup></p>
+</div>
+<div id="pu1" class="pu"><h1>Abuse third argument to setInterval for assignment</h1>
+<p>In the browser you can pass a string instead of a function to <code>setInterval</code>, in which case this isn't shorter, but in Node/Deno that errors, so you should try to abuse this trick.</p>
+<p>If you have code like e.g. <code>(M=Math).sin(M.PI)</code> (made up example) where you have that assignment in parentheses, you can shorten it by making <code>M</code> the argument to the arrow function <code>M=&gt;{...}</code> and passing <code>Math</code> as the third argument to <code>setInterval</code>.</p>
+<p>This trick saves 2 bytes:</p>
+<pre class="lang-javascript prettyprint-override"><code>// before
+setInterval(_=&gt;{(c=console).clear();c.log(&quot;Hello, world!&quot;)},50)
+// after, 2 bytes shorter
+setInterval(c=&gt;{c.clear();c.log(&quot;Hello, world!&quot;)},50,console)
+</code></pre>
 </div>
 <div id="pu2" class="pu"><h1>Convert BigInt back to Number</h1>
 <p>(Chrome 67+ / Node.js 10.4+)</p>
