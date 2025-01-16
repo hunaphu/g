@@ -26,13 +26,42 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>035</td><td>Japt</td><td>250115T110840Z</td><td><a href="https://codegolf.stackexchange.com/questions/277661/interpret-a-squeezel-string/277670#277670">Shaggy</a></td></tr>
-<tr d-ix="1"><td>107</td><td>JavaScript ES6</td><td>250115T002102Z</td><td><a href="https://codegolf.stackexchange.com/questions/277661/interpret-a-squeezel-string/277662#277662">Arnauld</a></td></tr>
+<tr d-ix="0"><td>105</td><td>JavaScript ES9</td><td>250115T002102Z</td><td><a href="https://codegolf.stackexchange.com/questions/277661/interpret-a-squeezel-string/277662#277662">Arnauld</a></td></tr>
+<tr d-ix="1"><td>035</td><td>Japt</td><td>250115T110840Z</td><td><a href="https://codegolf.stackexchange.com/questions/277661/interpret-a-squeezel-string/277670#277670">Shaggy</a></td></tr>
 <tr d-ix="2"><td>108</td><td>Perl 5 MMathBase36=all p</td><td>250115T165213Z</td><td><a href="https://codegolf.stackexchange.com/questions/277661/interpret-a-squeezel-string/277675#277675">Xcali</a></td></tr>
 <tr d-ix="3"><td>043</td><td>05AB1E</td><td>250115T090046Z</td><td><a href="https://codegolf.stackexchange.com/questions/277661/interpret-a-squeezel-string/277669#277669">Kevin Cr</a></td></tr>
 <tr d-ix="4"><td>062</td><td>Charcoal</td><td>250115T010947Z</td><td><a href="https://codegolf.stackexchange.com/questions/277661/interpret-a-squeezel-string/277664#277664">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/ETHproductions/japt" rel="nofollow noreferrer">Japt</a>, 35 <a href="https://en.wikipedia.org/wiki/ISO/IEC_8859-1" rel="nofollow noreferrer">bytes</a></h1>
+<div id="pu0" class="pu"><h1>JavaScript (ES9), 105 bytes</h1>
+
+<pre class="lang-none prettyprint-override"><code>s=&gt;s.replace(/[()]((?&lt;=\()\w{4}|\d?.)/g,(_,s)=&gt;s[1]?String.fromCodePoint(parseInt(s,36)):s.toUpperCase())
+</code></pre>
+<p><a href="https://tio.run/##bY4xTsMwFIZ3ThFl8pNCorSAABEyZGJDQoihqbBJnSYojY2fTaUAEuIUbIw9CffhBiHQFJW4nqzvffr037NHhpkqpd6vxYy3edRidI6@4rJiGSfBhMCUkPgsSgmky6eDl@d0FvsQzD1y6yF07iScxldalfXcz5VYJF3mUpS1JpIp5BfdB73xEcAp@lpcS8lVwpATgDYTNYqK@5WYk5zQXIg7psLRmDq/D8AJAueP7g10yJgsNat6u9eTNRzK5GcNr3XBkSMAXcv/oNV3H4zQ3cGlW/0eupa9LASEx86CQ6joxr4phNeh2LJPms3srfbnypo9UodIh97Xx/vrjmLTULvYNLuaxhhqNd@Mab8B" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<h3>Method</h3>
+<p>Regular expression:</p>
+<pre class="lang-none prettyprint-override"><code>[()]           // a parenthesis followed by either:
+(              //
+  (?&lt;=\()\w{4} //   4 digits or letters if it was an opening parenthesis
+               //   matches: (xxxx
+  |            //   or
+  \d?.         //   an optional digit followed by any character
+)              //   matches: ((, )), )a, )&quot;, and )xx
+</code></pre>
+<p>where the <code>a</code> in <code>)a</code> is a lower case letter and <code>xx</code> / <code>xxxx</code> are base-36 strings.</p>
+<p>NB: Nothing else will be match provided that the input string does not contain invalid tokens, as specified in the challenge.</p>
+<p>Once we have a match <code>s</code>, we don't care about the escape character anymore and it boils down to two cases:</p>
+<ul>
+<li><p>If <code>s</code> is at least 3 characters long, proceed with base-36 decoding which, alas, is quite verbose in JS:</p>
+<pre class="lang-none prettyprint-override"><code>String.fromCodePoint(parseInt(s.slice(1),36))
+</code></pre>
+</li>
+<li><p>Otherwise, return the 2nd character of <code>s</code> in upper case (leaving <code>(</code>, <code>)</code> and <code>&quot;</code> unchanged):</p>
+<pre class="lang-none prettyprint-override"><code>s[1].toUpperCase()
+</code></pre>
+</li>
+</ul>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/ETHproductions/japt" rel="nofollow noreferrer">Japt</a>, 35 <a href="https://en.wikipedia.org/wiki/ISO/IEC_8859-1" rel="nofollow noreferrer">bytes</a></h1>
 <p>Port of <a href="https://codegolf.stackexchange.com/a/277662/58974">Arnauld's JS solution</a>.</p>
 <pre><code>r&quot;%)%d?.|%(%w\{0,3}.&quot;È¤?XÅn36 d:XÌu
 </code></pre>
@@ -50,31 +79,6 @@ r                        :Replace
                  XÌ      :     Last character
                    u     :     Uppercase
 </code></pre>
-</div>
-<div id="pu1" class="pu"><h1>JavaScript (ES6), 107 bytes</h1>
-
-<pre class="lang-none prettyprint-override"><code>s=&gt;s.replace(/\)\d?.|\(\w{0,3}./g,s=&gt;s[2]?String.fromCodePoint(parseInt(s.slice(1),36)):s[1].toUpperCase())
-</code></pre>
-<p><a href="https://tio.run/##bY7BToMwHIfvPgXh1H@CRSAaNZkcOHkzMcbDWNLKCsMwiv23LkFNjE/hzaNP4vv4BsgcM5Oup@br1y@/e/7IMVNlow9rORddPulwcoFUiabimSB@Cuk8ps8pSVdPR170Qv3CWxvTcBZfa1XWBc2VXCb95ytZ1po0XKG47C9IsSr7RABedAJwjtNgRrW8aRqhEo6CAHSZrFFWglayIDlhuZR3XAVhxJzfA@D4vvNHD0Y6ZLwpNa8Ge9CTDRzLZL1M1HohUCAA28j/oNV3H4zU/YPLdvoDdC17tZAQnDpLAYFiW/t2Ib0exZZ91m5n77S/Pq3ZoTpGNva@P95f9xTbltnFtt3XNMYwq/lmTPcD" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
-<h3>Method</h3>
-<p>Our regular expression is made of two main parts:</p>
-<ul>
-<li><code>\)\d?.</code> matches <code>))</code>, <code>)&quot;</code>, <code>)a</code> and <code>)xx</code></li>
-<li><code>\(\w{0,3}.</code> matches <code>((</code> and <code>(xxxx</code></li>
-</ul>
-<p>where <code>a</code> is a lower case letter and <code>xx</code> / <code>xxxx</code> are base-36 strings.</p>
-<p>NB: Nothing else will be match provided that the input string does not contain invalid tokens, as specified in the challenge.</p>
-<p>Once we have a match <code>s</code>, we don't care about the escape character anymore and it boils down to two cases:</p>
-<ul>
-<li><p>If <code>s</code> is at least 3 characters long, proceed with base-36 decoding which, alas, is quite verbose in JS:</p>
-<pre class="lang-none prettyprint-override"><code>String.fromCodePoint(parseInt(s.slice(1),36))
-</code></pre>
-</li>
-<li><p>Otherwise, return the 2nd character of <code>s</code> in upper case (leaving <code>(</code>, <code>)</code> and <code>&quot;</code> unchanged):</p>
-<pre class="lang-none prettyprint-override"><code>s[1].toUpperCase()
-</code></pre>
-</li>
-</ul>
 </div>
 <div id="pu2" class="pu"><h1><a href="https://www.perl.org/" rel="nofollow noreferrer">Perl 5</a> <code>-MMath::Base36=:all -p</code>, 108 bytes</h1>
 
