@@ -26,10 +26,63 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>173</td><td>JavaScript ES8</td><td>250116T204331Z</td><td><a href="https://codegolf.stackexchange.com/questions/277701/make-a-textual-paint-like-program/277702#277702">Arnauld</a></td></tr>
-<tr d-ix="1"><td>080</td><td>Charcoal</td><td>250117T012110Z</td><td><a href="https://codegolf.stackexchange.com/questions/277701/make-a-textual-paint-like-program/277708#277708">Neil</a></td></tr>
+<tr d-ix="0"><td>263</td><td>Java OpenJDK 8</td><td>250117T143411Z</td><td><a href="https://codegolf.stackexchange.com/questions/277701/make-a-textual-paint-like-program/277721#277721">mastaH</a></td></tr>
+<tr d-ix="1"><td>173</td><td>JavaScript ES8</td><td>250116T204331Z</td><td><a href="https://codegolf.stackexchange.com/questions/277701/make-a-textual-paint-like-program/277702#277702">Arnauld</a></td></tr>
+<tr d-ix="2"><td>080</td><td>Charcoal</td><td>250117T012110Z</td><td><a href="https://codegolf.stackexchange.com/questions/277701/make-a-textual-paint-like-program/277708#277708">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>JavaScript (ES8), 173 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="http://openjdk.java.net/" rel="nofollow noreferrer">Java (OpenJDK 8)</a>, 263 bytes</h1>
+<p>Posting this lengthy Java version just because it was fun implementing it with an array instead of a matrix.</p>
+
+<pre class="lang-java prettyprint-override"><code>char[] g=new char[2000];Arrays.fill(g,' ');int p=0,i=0;char m=0,c;while(i&lt;s.length){c=s[i++];if(c&gt;47&amp;c&lt;54)g[p]=(&quot; ░▒▓█&quot;+m).charAt(c-48);else if(c&lt;64)m=c&lt;34?g[p]:s[i++];else p=c&gt;100?c&gt;115?p&lt;80?p:p-80:p&gt;1975?p:p+80:c&gt;99?p%80&gt;78?p:p+1:p%80&lt;1?p:p-1;}return g;
+</code></pre>
+<p><a href="https://tio.run/##jVJNj5swEL3nV3gjtWuXDTIJNCSGoFUvvfS0x4iDawgx5cPCTtAqyr3XtlJ@YP5I1gZ2lagf6ozsmbHfPMOzc7qnk1qkVZ58u/BS1I0CuV6zd4oX9mPT0GdJRiOx@1pwBlhBpQRfKK/AYQS0sS1t1jEQcEgkOlyGNAurtO0BU4xxTHoye8OLAmYP9@AeEV4pIEL8wENMDBKUumCk3fIihTyQdpFWmdqiAwvlmltWTPgGspU7f88Cz0XZWsQhHIPz6cf59PN8@nU@fR9bJbIN16OCbOL6iKSFTIHpCz66qAxZMHMj07kcKLt9EbKVg3GkZ8eLRODjSCzFxMdLsXIWc89Ulq7YarGIxDsfr@Z@t@YsTRU4HdwhxyZVu6YCGbkYfY6jTqZBPqmo0mFf8wSUWkT4pBpeZVos2mQSDZoa6yQuQQiMhqaAiLxtCt2kYGkLOHak9mTaak9mUnvittqHvF/vMGNb1Z@MKuYSIEJ/ppsmkrZ30pNecuWmpoO3XjvTw@Sz/@OkxmQSffaSKNWjMJwR1ePOo1HtSTdxKXV7/wvlq4wN31OV3ujYn/T65q413NQNgOaFca0jJjoEYOrpaFnXsBto3kNzDfVN/B1q7OlZqrS0652y@@OzNQcfdAewQB5fydB/@79ai5ubPQ5/e7y8AA" rel="nofollow noreferrer" title="Java (OpenJDK 8) – Try It Online">Try it online!</a></p>
+<h3>Commented</h3>
+<pre class="lang-java prettyprint-override"><code>char[] p(char[] s) {
+    char[] g=new char[2000];          // output 25*80 chars
+    Arrays.fill(g, ' ');              // fill with spaces
+    int p = 0, i = 0;                 // array (p)osition and input (i)ndex
+    char m = 0,c;                     // in (m)emory and current input (c)har
+    while(i &lt; s.length){              // for each char in input array
+        c = s[i++];                   //   get char
+        if (c &gt; 47 &amp; c &lt; 54)          //   if c = &quot;1&quot;,&quot;2&quot;,&quot;3&quot;,&quot;4&quot; or &quot;5&quot;
+            g[p] = (&quot; ░▒▓█&quot;+m)        //     add m to grayscale chars
+                    .charAt(c - 48);  //     converto to number
+        else if (c &lt; 64)              //   if c = &quot;?&quot; or &quot;!&quot;
+            m =                       //   update (m)emory with
+                c &lt; 34 ?              //     if c = &quot;!&quot;
+                    g[p]              //       char at current position
+                :                     //     else (c = &quot;?&quot;)
+                    s[i++];           //       next input char
+        else                          //   if c = &quot;w&quot;,&quot;a&quot;,&quot;s&quot; or &quot;d&quot;
+            p =                       //     update (p)osition with
+                c &gt; 100 ?             //       if c = &quot;w&quot; or &quot;s&quot;
+                    c &gt; 115 ?         //         if c = &quot;w&quot;
+                        p &lt; 80 ?      //           if y = 0
+                            p         //             don't move
+                        :             //           else (y &gt; 0)
+                            p - 80    //             move up by a full row (80 chars)
+                    :                 //         else (c = &quot;s&quot;)
+                        p &gt; 1975 ?    //           if y = 24
+                            p         //             don't move
+                        :             //           else (y &lt; 24)
+                            p + 80    //             move down by a full row (80 chars)
+                :                     //       else (c = &quot;a&quot; or &quot;d&quot;)
+                    c &gt; 99 ?          //         if c = &quot;d&quot;
+                        p % 80 &gt; 78 ? //           if x = 79
+                            p         //             don't move
+                        :             //           else (x &lt; 79)
+                            p+1       //             move right
+                    :                 //         else (c = &quot;a&quot;)
+                        p % 80 &lt; 1 ?  //           if x = 0
+                            p         //             don't move
+                        :             //           else (x &gt; 0)
+                            p-1;      //             move left
+    }
+    return g;                         // return array
+}
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>JavaScript (ES8), 173 bytes</h1>
 <p>Expects an array of characters and returns a matrix of characters.</p>
 
 <pre class="lang-none prettyprint-override"><code>a=&gt;a.map(c=&gt;~a?1/c?m[y][x]=&quot; ░▒▓█&quot;[c]||a:c&lt;{}?a=c&gt;&quot;!&quot;?-1:m[y][x]:c&gt;&quot;s&quot;?y-=!!y:c&gt;&quot;d&quot;?y+=y&lt;24:x+=c&gt;&quot;a&quot;?x&lt;79:-!!x:a=c,m=[...1e9+{}].map(_=&gt;[...&quot;&quot;.padEnd(80)]),x=y=0)&amp;&amp;m
@@ -71,7 +124,7 @@
 ) &amp;&amp; m                    // end of map() -&gt; return m[]
 </code></pre>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 80 bytes</h1>
+<div id="pu2" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 80 bytes</h1>
 <pre><code>ＵＯ⁸⁰¦²⁵ ≔⪪ ░▒▓█ ¹θＦＳ¿υ§≔θ⊟υι≡ιwＭ›ⅉ⁰↑aＭ›ⅈ⁰←sＭ‹ⅉ²⁴↓dＭ‹ⅈ⁷⁹→?⊞υ⁵!§≔θ⁵ＫＫＰ§θＩι
 </code></pre>
 <p><a href="https://tio.run/##ZZDNSsQwFIX3fYo7XSUQYRxa1JlFGRR0YMTBQdBlbNI2GJpOk04Fce9WhT5gX6TeWqx/CecuDl/OJSfOeBkbrrvu6l6bPCXHUwazkIEPPl14S2tVmpNtoZUjPrTNa9u8tc1727yAz@CQMtghlpgSyCovKrd1pcIUSkElQCoKQ8LSrXIhH8mOwcYU6DNQdAFSWwm2Vi7OgCgKT17M0fFrfw6XZi/JeSm5kyW5I/hiiprfFLhvoPhf6nak1jJxI2e/uLW0doiaBT11Zup8pMQv6jPq6KSnrlWafYdFiG0qm5GKQTi6E3T//RRb3Ej5gGUsPCETXmmHK3CqAkty5Ad6yq3DAnryuet4f6yILkIRSZQOBU6OmoQ8MqENRMB5MNzuYK8/AA" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code. Note that TIO's deverbosifier inserts an unnecessary <code>”y”</code>. Explanation:</p>
