@@ -38,38 +38,40 @@
 </code></pre>
 <p><a href="https://tio.run/##RVDLbsIwELzzFVMkkE2SAkWlqMZ8CReHOpEld135AUIo354uzaGX3dXMaHZ2L83FG@rHsRcrko9oc4m0ouVhdzjsNx9q6ATVsXa1r7N8dCGKzgeT0dZGR71RpqqOpGKl/cS22mnPePuH@0rnpTm10vGgzbE99WJpZMO1leqpV05Jv9KuadQwLUdUw/htHAmJxwxgFYSjDILGVnE7cn/noaok1mts9xXC1UYOdgMLXyEKJdeT/YIP1COQvyOVeHVXm5AD3nYwdL@Ze2qaFHCziIUQSkbong74ifbikgsEFqG1nMFiOvyfuhhiip3gUir2RXJYMM8GnZgvyuc5L8qZ5jWoRiemx0mQlGo2jL8" rel="nofollow noreferrer" title="C (clang) – Try It Online">Try it online!</a></p>
 <p><em>-3 with some Boolean comparison shenanigans + -2 rearranging for associativity</em></p>
-<p>Inaccurate for <span class="math-container">\$n&gt;15\$</span> due to integer width. Explicit <code>unsigned long</code> types are good for all <span class="math-container">\$n \leq 23\$</span>.</p>
+<p>Inaccurate for <span class="math-container">\$n&gt;15\$</span> due to integer width. Good for all <span class="math-container">\$n \leq 23\$</span> if explicit 64-bit unsigned types added where appropriate.</p>
 <p>I'm definitely not the best C golfer out there, but this idea was just too fun not to use... For porting <a href="https://codegolf.stackexchange.com/a/277652/85334">my Jelly solution</a>, C may not have any built-in functionality for converting an integer to a string representation of its binary digits to compare with a costly <code>strcmp</code>, but that's not to say it doesn't still have built-in functionality for <em>left-aligning</em> integers’ binary digits. Namely, <em><strong>representing them as floats</strong></em>.</p>
-<p>Ungolfed:</p>
+<p>Ungolfed, and with a higher failure threshold:</p>
 
-<pre class="lang-c prettyprint-override"><code>int significand(int* n) {
+<pre class="lang-c prettyprint-override"><code>#include &lt;stdint.h&gt;
+
+int32_t significand(int32_t* n) {
     return *n &amp; (1 &lt;&lt; 23) - 1;
 }
 
-int f(int n) {
-    int rank = 0;
+uint64_t f(int n) {
+    uint64_t rank = 0;
     for (float a = 1; a &lt;= n; a++) {
         int index = 0;
         int lehmer = 0;
         for (float b = 1; b &lt;= n; b++) {
-            int diff = significand((int *)&amp;a) - significand((int *)&amp;b);
-            if (diff &lt; 0 || diff == 0 &amp;&amp; a &lt; b) {
+            int32_t diff = significand((int32_t *)&amp;a) - significand((int32_t *)&amp;b);
+            if (diff &lt; 0 || (diff == 0 &amp;&amp; a &lt; b)) {
                 index++;
             }
             if (diff &lt; 0 &amp;&amp; a &gt; b) {
                 lehmer++;
             }
         }
-        int factorial = 1;
-        while (index) {
-            factorial *= index--;
+        uint64_t factorial = 1;
+        for (; index &gt; 0; index--) {
+            factorial *= index;
         }
         rank += lehmer * factorial;
     }
     return rank;
 }
 </code></pre>
-<p><a href="https://tio.run/##dVPLUtswFN3nK07pkPEDA26nLLDDl7CRbSnR1FwxspU0U/Lt9ErCdcwEb2Tdx7mPc9QWbS9o@/5dU9u7TqIexk6b293Tu6YRg96SVroV1CV8z0Ap/q7An5Wjs4SMsEZSoq7x42eKAmW1Oq1WPlf5jDnBX6yg39jgvgoWZSwS1RsxQrC1rPioNyA@83xKm1I1dfLPnDuZe7l7kXZpP8NtIm7zgdsscSeQTivFgefDht6zdC38TJccTVotcRSSgFPjHm9vH5jcF9ZrPxeaz5VjdZ4qz5dQp6@BA9bTZay4iq/BTovFKdGOxmrRhw39dx12updIQl@fi8wp2SZ2XhTVBfjAcr6ZuMnmxBh9OheQD2bJBLW9CE1JrBo4DPqJDJJnsPzFP57CuzuUDznMXlrm@eAHukXiyBMlO/SGtjDUHzE4u9d7OWA0rE8IOh7EcSiKweAgYR3BuBFGhZW8WtnqQRsCB6GR3INE1NHsYhGwi5Ggh8HJb2kY5tUygEqurt3j83jtnunqBnTDTyDqMOVnkPop/wE" rel="nofollow noreferrer" title="C (clang) – Try It Online">Try it online!</a></p>
+<p><a href="https://tio.run/##dVPLbtswELzrK6YpYugRNbFd9FBJ/pIABSVRDlFlGVAk0qDxt6dL0q4sI@ZBpJY7s49ZdmU3Ctp/fFXUja6XqCfbK/3taXdhIsu2JOF9u/llMak9qUF1gvr0aMtBGf4m4GWkdYaQE1ZI16hrbLYZSqyr5JAkjgE/vjPJ4KEz6r/dCPqNBg9VMA/aIB1GLSwEW9cVb3UD4r0oTli/PJmiXv6ZsSfzKJ@epVnaz3jbyNseedsl75Ek1N2rYWDn8/JP9SPPVsJXee2yzaol54A08NV4wPv78afhJLFa@SLRZpd5xFy4xqJYkh2uUweyHZN9whUbc51sPs2qic5qo8QYmrZsZ3UUYMeNjseyvAw74/Mm@lSfhAszUDQn5fIZFr0P54PmnXm0PrzUz0JRGmOGlMKIRX3J67vZ8sELfH8PR14r2WPUtIem8Q2i65wRVsJqdi3LSeNVwjiCdhZ6COP0YmSnJqUJr@INreRAEnGU5ivWn6/AXzVNTn4JCb8Yxg/pza37@WhvR/dIN3egO34KcRQzfg6ZL@Uf" rel="nofollow noreferrer" title="C (clang) – Try It Online">Try it online!</a></p>
 <p>Ignoring irrelevant special cases, floating point represents numbers as essentially the product of a fixed-point real in <span class="math-container">\$[1, 2)\$</span> with an integer power of 2 by encoding the exponent of the power of 2 and the fractional part (the &quot;significand&quot;) of the fixed-point real--this can also be thought of as the exponent encoding where to put the radix point within the significand's binary digits infinitely 0-padded to the left and right, hence the name &quot;floating point&quot;. How and why the exponent works is entirely besides the point here, because all the solution does with its <code>float</code>s (single precision--the factorial-heavy solution outgrows 64-bit ints long before it outgrows 32-bit floats!) is discard the sign bit and exponent to compare the significands directly.</p>
 <p>Single-precision <code>float</code> has one sign bit and 8 exponent bits, so type punning to <code>int</code> (conveniently implicit in the declaration of <code>g</code>! Which actually saves two bytes over a <code>#define</code>) then masking to the lower 23 bits with <code>&amp;8388607</code> yields the significand as a signed integer (<code>&lt;&lt;9</code> clobbers the exponent and sign just the same, but requires casting to unsigned for useful comparisons because the top bit of the significand ends up in the sign bit instead).</p>
 <p>Unlike variable-length bit strings, floating-point significands don’t distinguish trailing zeroes, so in order to determine if node <code>a</code> precedes node <code>b</code> in the permutation, instead of just checking <code>g(&amp;a)&lt;g(&amp;b)</code> it's necessary to defer to a comparison of the original integers as a tiebreaker if the significands' difference is 0--done by <code>a&lt;b&gt;g(&amp;a)-g(&amp;b)</code> to compare the difference to 0 if <code>a &gt;= b</code> (strictly negative) but 1 if <code>a &lt; b</code> (merely nonpositive; 0 is true). For each node <code>a</code>, the solution compares it with every node <code>b</code>, and: counts as <code>i</code> the true comparisons to determine <code>a</code>’s index from the <em>right</em> end of the permutation, counts as <code>l</code> the true comparisons for which it also holds that <code>a &gt; b</code> (<code>a</code>’s corresponding term in the permutation’s <a href="https://en.wikipedia.org/wiki/Lehmer_code" rel="nofollow noreferrer">Lehmer code</a>), multiplies <code>l</code> by the factorial of <code>i</code> (<code>for(;i;)l*=i--</code>), and finally adds it to a running sum <code>r</code> across all <code>a</code> in order to compute the permutation’s rank as the factoradic valuation of its Lehmer code.</p>
