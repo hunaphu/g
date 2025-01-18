@@ -40,6 +40,35 @@ r’µŒHṪṚĖ’ç€⁸S)Ḅȯ1
 </code></pre>
 <p>A monadic Link that accepts a positive integer, <span class="math-container">\$n\$</span>, and yields a positive integer, the number of Rota-Baxter words with <span class="math-container">\$n\$</span> <code>a</code>s.</p>
 <p><strong><a href="https://tio.run/##y0rNyan8///hjiXJh5bmJzsEWD1q3PFw5yquokcNMw9tPTrJA8h5uHPWkWlA/uHlj5rWAOWDNR/uaDmx3vD/4XagwP//RgYA" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></strong></p>
+<h3>How?</h3>
+<pre><code>Ḥc¥oc@P:⁸Ṫ - Helper Link: pairs of integers, L=[i,v]; integer J
+  ¥        - last two links as a dyad - f(L, J):
+Ḥ          -   double {L}
+ c         -   {that} choose {J} -&gt; X = [C(2i,J),C(2v,J)]
+                     (N.B. since 2i&lt;J this is [0,C(2v,J)])
+     @     - with swapped arguments:
+    c      -   {J} choose {L}    -&gt; Y = [C(J,i),C(J,v)]
+   o       - {X} logical OR {Y} (vectorises)
+                                     -&gt; [C(J,i),C(2v,J)]
+      P    - product                 -&gt;  C(J,i)×C(2v,J)
+       :⁸  - integer divide by L     -&gt; [C(J,i)×C(2v,J)÷i,C(J,i)×C(2v,J)÷v]
+         Ṫ - tail                    -&gt;  C(J,i)×C(2v,J)÷v
+
+r’µŒHṪṚĖ’ç€⁸S)Ḅȯ1 - Main Lin: positive integer, N
+ ’                - decrement {N} -&gt; N-1
+r                 - {N} inclusive range {N-1} -&gt; [N,N-1]
+  µ          )    - for each {J in [N,N-1]}:
+   ŒH             -   split {[1..J]} into two (first half longer if J odd)
+     Ṫ            -   tail {that} -&gt; [1+floor((J+1)÷2),...,J-1,J]
+      Ṛ           -   reverse     -&gt; [J,J-1,...,1+floor((J+1)÷2]
+       Ė          -   enumerate -&gt; [[1,J],[2,J-1],...,[floor(J÷2),1+floor((J+1)÷2)]
+        ’         -   decrement -&gt; [[0,J-1],[1,J-2],...,floor(J÷2)-1,floor((J+1)÷2)]
+          €       -   for each {[i,v] in that}:
+         ç ⁸      -     call the Helper Link as a dyad - f([i,v], J)
+            S     -   sum {the results}
+              Ḅ   - convert from binary (i.e. 2*First+Second)
+               ȯ1 - logical OR with 1 (replaces the 0 calculated for N=1 with 1)
+</code></pre>
 </div>
 <div id="pu1" class="pu"><h1>JavaScript (ES6), 85 bytes</h1>
 <p>This is a port of <a href="https://codegolf.stackexchange.com/a/277739/58563">Albert.Lang's Python answer</a>, with even more recursion.</p>
