@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::22585</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>nan</td><td></td><td>250121T081607Z</td><td><a href="https://codegolf.stackexchange.com/questions/22585/brainfk-debugger/277788#277788">felo man</a></td></tr>
+<tr d-ix="1"><td>1008</td><td>PHP</td><td>140305T005118Z</td><td><a href="https://codegolf.stackexchange.com/questions/22585/brainfk-debugger/22936#22936">TimWolla</a></td></tr>
+</table>
+<div id="pu0" class="pu"><p>Hola por favor necesito que me ayuden con este problema que está pasando con mi cuenta y mi teléfono Escriba &quot;Hecho&quot;</p>
+</div>
+<div id="pu1" class="pu"><h1>PHP - 1008</h1>
+
+<pre><code>&lt;?php
+$_=trim(fread(STDIN,1e5));$z=$p=0;$t=$l=[];$q='';function s(){global$p,$t,$l,$_,$q,$z;switch($_[$z++]){case'&gt;':$p++;break;case'&lt;':$p--;break;case'+':@$t[$p]++;break;case'-':@$t[$p]--;break;case'.':$q.=chr($t[$p]);break;case',':echo"I&gt;";$t[$p]=ord(trim(fread(STDIN,2)));break;case'[':$l[]=$z;if(!isset($t[$p])||$t[$p]==0){$c=1;while($c&gt;0){$b=$_[$z++];if($b=='[')$c++;elseif($b==']')$c--;}array_pop($l);}break;case']':$z=array_pop($l)-1;break;}if($z==strlen($_)){if($q)echo'O&gt;'.$q."\n";die("Done\n");}}for(;;){echo"&gt;";$c=trim(fread(STDIN,1e5));$g=strlen($c);switch($c[0]){case'L':echo str_repeat(' ',$z)."v\n".$_."\n";break;case'D':if($g)$x=$t;else{list($a,$b)=explode(' ',substr($c,1));$x=array_slice($t,$a-1,$b);}echo implode(', ',$x)."\n";break;case'S':if($g)s();for($i=0;$i&lt;substr($c,1);$i++)s();echo $z."\n";break;case'G':if($c[1]=='-')$x=strlen($_)-substr($c,2);else$x=substr($c,1);while($z!=$x)s();break;case'P':echo$p."\n";default:if(is_numeric($c))echo$t[$c]."\n";}if($q)echo'O&gt;'.$q."\n";$q='';}
+</code></pre>
+
+<p>The output for cells that were never written is slightly different:</p>
+
+<pre><code>[timwolla@/data/workspace/php/PCG]php pcg-22585.php
++
+&gt;D15 20
+
+&gt;
+</code></pre>
+
+<p>Large version:</p>
+
+<pre><code>&lt;?php
+$_=trim(fread(STDIN,1024));
+$z=$p=0;
+$t=$l=[];
+$q='';
+
+function step() {
+    global $p, $t,$l,$_,$q,$z;
+    switch ($_[$z++]){
+        case '&gt;': 
+            $p++; 
+        break;
+        case '&lt;': 
+            $p--; 
+        break;
+        case '+': 
+            @$t[$p]++; 
+        break;
+        case '-': 
+            @$t[$p]--; 
+        break;
+        case '.': 
+            $q.=chr($t[$p]); 
+        break;
+        case ',': 
+            echo "I&gt;";
+            $t[$p] = ord(trim(fread(STDIN, 2)));
+        break;
+        case '[': 
+            $l[] = $z;
+            if (!isset($t[$p]) || $t[$p] == 0) { 
+                $counter = 1; 
+                while ($counter &gt; 0) { 
+                    $char = $_[$z++]; 
+                    if ($char == '[') $counter++;
+                    else if ($char == ']') $counter--;
+                }
+                array_pop($l);
+            }
+        break;
+        case ']': 
+            $z = array_pop($l)-1;
+        break;
+    }
+    if($z==strlen($_)) {
+        if ($q) echo 'O&gt;'.$q."\n";
+        die("Done\n");
+    }
+}
+
+for(;;){
+    echo "&gt;";
+    $c=trim(fread(STDIN,100));
+    switch ($c[0]) {
+        case 'L':
+            echo str_repeat(' ', $z)."v\n".$_."\n";
+        break;
+        case 'D':
+            if(strlen($c) == 1)$x=$t;
+            else {
+                list($a,$b)=explode(' ',substr($c,1));
+                $x=array_slice($t,$a-1,$b);
+            }
+            echo implode(', ', $x)."\n";
+        break;
+        case 'S':
+            if(strlen($c)==1)step();
+            for($i=0;$i&lt;substr($c,1);$i++)step();
+            echo $z."\n";
+        break;
+        case 'G':
+            if($c[1]=='-')$x=strlen($_)-substr($c,2);
+            else $x=substr($c,1);
+            while ($z!=$x)step();
+        break;
+        case 'P':
+            echo $p."\n";
+        default:
+            if(is_numeric($c)) echo $t[$c]."\n";
+    }
+    if ($q) {
+        echo 'O&gt;'.$q."\n";
+        $q='';
+    }
+}
+</code></pre>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/22585/">22585</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
