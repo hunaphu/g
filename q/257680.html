@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::257680</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>001</td><td>Rust</td><td>230211T122343Z</td><td><a href="https://codegolf.stackexchange.com/questions/257680/base64-fixed-point/257692#257692">Anders K</a></td></tr>
+<tr d-ix="1"><td>218</td><td>JavaScript Node.js</td><td>230211T114229Z</td><td><a href="https://codegolf.stackexchange.com/questions/257680/base64-fixed-point/257690#257690">Neil</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>Rust, <span class="math-container">\$3^{38\,000\,000}\$</span> in ~1 minute</h1>
+<h3>How it works</h3>
+<p>Given position <span class="math-container">\$n\$</span>, we convert <span class="math-container">\$3n\$</span> into a base-<span class="math-container">\$\frac43\$</span> representation with digits <span class="math-container">\$0, 1, 2, 3\$</span> using a relatively fast divide-and-conquer algorithm. Iterating through these base-<span class="math-container">\$\frac43\$</span> digits from most to least significant gives the shifts needed to maintain a three-character sliding window of the Base64 fixed point.</p>
+<p>For example, given position <span class="math-container">\$27\$</span>, we compute</p>
+<p><span class="math-container">$$3 · 27 = (3210201101)_{\frac43},$$</span></p>
+<p>so we can jump the sliding window to the following positions (in units of <span class="math-container">\$\frac13\$</span> of a 6-bit character).</p>
+<p><span class="math-container">$$0 · \frac43 + 3 = 3, \quad
+3 · \frac43 + 2 = 6, \quad
+6 · \frac43 + 1 = 9, \quad
+9 · \frac43 + 0 = 12, \\
+12 · \frac43 + 2 = 18, \quad
+18 · \frac43 + 0 = 24, \quad
+24 · \frac43 + 1 = 33, \quad
+33 · \frac43 + 1 = 45, \\
+45 · \frac43 + 0 = 60, \quad
+60 · \frac43 + 1 = 81.$$</span></p>
+<h3>Usage</h3>
+<p>Accepts a base-ten integer on STDIN, and outputs a character to STDOUT.</p>
+<pre><code>$ cargo build --release
+$ python3 -c 'import gmpy2; print(gmpy2.mpz(3) ** 38000000)' &gt; /tmp/in
+$ time target/release/base64 &lt; /tmp/in
+1
+
+real    1m0.092s
+user    1m0.023s
+sys     0m0.068s
+</code></pre>
+<h3>Code</h3>
+<p><strong><code>Cargo.toml</code></strong></p>
+<pre><code>[package]
+name = &quot;base64&quot;
+version = &quot;0.1.0&quot;
+edition = &quot;2021&quot;
+
+[dependencies]
+rug = &quot;1.19.0&quot;
+</code></pre>
+<p><strong><code>src/main.rs</code></strong></p>
+<pre class="lang-rust prettyprint-override"><code>use rug::Integer;
+use std::io::BufRead;
+
+const ALPHABET: &amp;[u8] = b&quot;ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/&quot;;
+
+fn encode_low(n: Integer, k: u32) -&gt; (Integer, Integer, Integer) {
+    if k == 1 {
+        let t = n * 3;
+        let l = Integer::from(&amp;t &amp; 3);
+        (3.into(), t &gt;&gt; 2, l)
+    } else {
+        let k0 = k / 2;
+        let (p0, h0, l0) = encode_low(&amp;n &amp; !((!Integer::ZERO) &lt;&lt; (k0 * 2)), k0);
+        let k1 = k - k0;
+        let (p1, h1, l1) = encode_low((n &gt;&gt; (k0 * 2)) * &amp;p0 + h0, k1);
+        (p1 * p0, h1, l1 &lt;&lt; (k0 * 2) | l0)
+    }
+}
+
+fn encode(n: Integer) -&gt; Integer {
+    if n == 0 {
+        Integer::ZERO
+    } else {
+        let k = (n.significant_bits() + 1) / 2;
+        let (_, h, l) = encode_low(n, k);
+        encode(h) &lt;&lt; (k * 2) | l
+    }
+}
+
+fn char_at(n: Integer) -&gt; char {
+    let e = encode(n);
+    let mut a: u32 = 0x566d30;
+    for i in (0..e.significant_bits()).step_by(2).rev() {
+        let k = 6 - e.get_bit(i + 1) as u32 * 4 - e.get_bit(i) as u32 * 2;
+        a = (ALPHABET[((a &gt;&gt; (k + 12)) &amp; 0x3f) as usize] as u32) &lt;&lt; 16
+            | (ALPHABET[((a &gt;&gt; (k + 6)) &amp; 0x3f) as usize] as u32) &lt;&lt; 8
+            | (ALPHABET[((a &gt;&gt; k) &amp; 0x3f) as usize] as u32);
+    }
+    char::from((a &gt;&gt; 16) as u8)
+}
+
+fn main() {
+    for line in std::io::stdin().lock().lines() {
+        let n: Integer = line.unwrap().parse().unwrap();
+        println!(&quot;{}&quot;, char_at(n));
+    }
+}
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 218 bytes</h1>
+
+<pre class="lang-javascript prettyprint-override"><code>var btoa = s =&gt; Buffer.from(s).toString('base64');
+var fp = (n, m = n + 1n) =&gt; m &gt; 9n ? btoa(fp(n / 4n * 3n, (m + 3n) / 4n * 3n)).slice(Number(n % 4n), Number(n % 4n + m - n)) : &quot;Vm0wd2QyU&quot;.slice(Number(n), Number(m));
+</code></pre>
+<p><a href="https://tio.run/##bZDbTsJAEIbvfYpJE0OXQ20pMUEEEy/ANAEjtLvQux6hsIemLSC@PE5JlGC8mp3d/9v9drbBISijIsurjlRxcj4fggLCSgUwhBKGI3jdp2lSGGmhhF4So1KLqsjkWm@EQZk89hpkcFcjaY6ALtsgsEpogSVJjQsYQV/Cy@VOPc11CQ/Qk9AEG8O6wKSNyd89QoySZ1Giz/YiTAqM3@MRacNNj5SADmAankCjwjzG3Y@Tp/1hr5ggZHCOlCwVTwyu1rWJjS82oY92HbRtw7VHe9Os/YegVS7lzhftWsrlzoRxh4WTWc/dxfNkHO9dHi/n9uZEWf7uWatPj/s06M5XnrDMqeUv40nFprucrUz/yLjPojefTeVmQ7fjIKK0ZIIvwp2j4RRTVYDOkwoynKApB1ifLx64arUI/Guf3bhnP@b42W8" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a> Link includes test cases. Using Node because it has a reasonably convenient <code>btoa</code> builtin, so it won't win any speed records but at least it scores reasonably well in time complexity.</p>
+<p>Since the above code is recursive and stack space is expensive, here's an iterative version, although this only returns one character at a time so there's only one test case: <a href="https://tio.run/##RY7BasMwDIbPyVOIQqld1ixby2CU9tAHGIyxXcoOTmon2RLZWHbLGH32TF4L1U36pU/flzoqqn3nwgLtQY/jUXmoglWwAYLNFnbRGO0L4@0gSBbBvgXfYSNmlSL9tJrJdW4i1qGzCMYJlPCbZxRU/c2E/ec6z05t12u4JpeocJFa8RKHSnuBMIUVSgZlGfIRwj33MIcl8ujMNB5OPobydHh8/Xmf3JAXVq@xCa1Muv/mSZNiRcFfF5x1Qt7Bc/rgdYgegfYlq53z2iLZXhe9bQTbL/ntHB7KVMloHP8A" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<pre class="lang-javascript prettyprint-override"><code>var btoa = s =&gt; Buffer.from(s).toString('base64');
+function fp(n) {
+&#9;stack = [];
+&#9;while (n) {
+&#9;&#9;stack.push(Number(n % 4n));
+&#9;&#9;n = n / 4n * 3n;
+&#9;}
+&#9;s = "Vm0wd2QyU";
+&#9;while (stack.length) s = btoa(s).substr(stack.pop(), 9);
+&#9;return s[0];
+}
+console.log(fp(3n ** 100000n));
+</code></pre>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/257680/">257680</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
