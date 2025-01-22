@@ -1,0 +1,1416 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::221277</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>012</td><td>C++</td><td>250122T082346Z</td><td><a href="https://codegolf.stackexchange.com/questions/221277/patterns-in-permutations/277802#277802">138 Aspe</a></td></tr>
+<tr d-ix="1"><td>013</td><td>Rust</td><td>210328T042339Z</td><td><a href="https://codegolf.stackexchange.com/questions/221277/patterns-in-permutations/222494#222494">Anders K</a></td></tr>
+<tr d-ix="2"><td>011</td><td>C++ clang</td><td>210326T010036Z</td><td><a href="https://codegolf.stackexchange.com/questions/221277/patterns-in-permutations/221389#221389">Noodle9</a></td></tr>
+<tr d-ix="3"><td>010</td><td>JavaScript Node.js</td><td>210325T003654Z</td><td><a href="https://codegolf.stackexchange.com/questions/221277/patterns-in-permutations/221284#221284">Arnauld</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>C++, Score: ~12</h1>
+<p>C++ port of @Anders Kaseorg's Rust answer.</p>
+<pre class="lang-cpp prettyprint-override"><code>#include &lt;algorithm&gt;
+#include &lt;cassert&gt;
+#include &lt;cstdint&gt;
+#include &lt;execution&gt;   // For parallel algorithms (available in C++17+ with some libraries)
+#include &lt;functional&gt;
+#include &lt;iostream&gt;
+#include &lt;iterator&gt;
+#include &lt;map&gt;
+#include &lt;optional&gt;
+#include &lt;string&gt;
+#include &lt;thread&gt;
+#include &lt;utility&gt;
+#include &lt;vector&gt;
+#include &lt;sstream&gt;
+#include &lt;memory&gt;
+#include &lt;mutex&gt;
+
+
+// #include &lt;numeric&gt;
+
+// A replacement for Rust's std::cell::Cell&lt;u64&gt; using C++ thread-safe approach
+// In single-threaded usage, you can just store a raw uint64_t.
+struct Cell {
+    // Not strictly `atomic`, but for demonstration. 
+    // If you want proper concurrency safety, consider std::atomic&lt;uint64_t&gt;.
+    uint64_t value;
+    Cell() : value(0) {}
+    explicit Cell(uint64_t v) : value(v) {}
+    uint64_t get() const { return value; }
+    void set(uint64_t v) { value = v; }
+};
+
+// A naive thread-local container that mimics thread_local::ThreadLocal&lt;Vec&lt;Cell&lt;u64&gt;&gt;&gt;
+//
+// We'll store a std::vector&lt;std::shared_ptr&lt;std::vector&lt;Cell&gt;&gt;&gt; mapped to 
+// each thread ID. This is a rough approximation to show the logic.
+class ThreadLocalVec {
+private:
+    // We map thread id to a vector of Cells
+    std::map&lt;std::thread::id, std::shared_ptr&lt;std::vector&lt;Cell&gt;&gt;&gt; storage;
+    std::mutex storage_mutex;
+
+public:
+    // Get an existing thread-local vector or create one if it doesn't exist
+    std::shared_ptr&lt;std::vector&lt;Cell&gt;&gt; get_or(std::function&lt;std::vector&lt;Cell&gt;()&gt; init) {
+        std::lock_guard&lt;std::mutex&gt; lock(storage_mutex);
+        auto tid = std::this_thread::get_id();
+        auto it = storage.find(tid);
+        if (it == storage.end()) {
+            auto newVec = std::make_shared&lt;std::vector&lt;Cell&gt;&gt;(init());
+            storage[tid] = newVec;
+            return newVec;
+        }
+        return it-&gt;second;
+    }
+
+    // Iteration over all thread-local vectors after computations
+    std::vector&lt;std::shared_ptr&lt;std::vector&lt;Cell&gt;&gt;&gt; collect() const {
+        std::vector&lt;std::shared_ptr&lt;std::vector&lt;Cell&gt;&gt;&gt; result;
+        for (auto &amp;entry : storage) {
+            result.push_back(entry.second);
+        }
+        return result;
+    }
+};
+
+// In the Rust code:
+// enum UpdateIterator&lt;'a&gt; {
+//   Leave(u16, slice::Iter&lt;'a, (u16,u16)&gt;),
+//   Take(u16, u16, Zip&lt;slice::Iter&lt;'a,(u16,u16)&gt;, slice::Iter&lt;'a,u16&gt;&gt;)
+// }
+//
+// We'll approximate in C++ by storing a mode (Leave vs. Take) plus
+// the data needed. We'll build a small &quot;iterator&quot; class that yields (u16, u16).
+// In Rust each variant has an internal iterator. In C++ we'll store indices 
+// into vectors.
+class UpdateIterator {
+public:
+    enum class Mode {
+        Leave,
+        Take
+    };
+
+private:
+    // Common data
+    Mode        mode_;
+    uint16_t    i_;
+    uint16_t    tau0_;   // Only used in the 'Take' mode
+
+    // For Leave mode
+    const std::vector&lt;std::pair&lt;uint16_t, uint16_t&gt;&gt;* leaveData_; 
+    size_t  leaveIndex_;
+
+    // For Take mode
+    const std::vector&lt;std::pair&lt;uint16_t, uint16_t&gt;&gt;* takeData_;
+    const std::vector&lt;uint16_t&gt;*                     takeTau_;
+    size_t  takeIndex_;  // used to track position in the &quot;zip&quot; of (bounds1, &amp;tau[..])
+
+public:
+    // Constructor for Leave
+    UpdateIterator(uint16_t i, const std::vector&lt;std::pair&lt;uint16_t, uint16_t&gt;&gt;* bounds)
+      : mode_(Mode::Leave), i_(i), tau0_(0),
+        leaveData_(bounds), leaveIndex_(0), 
+        takeData_(nullptr), takeTau_(nullptr), takeIndex_(0)
+    {
+    }
+
+    // Constructor for Take
+    UpdateIterator(uint16_t i, uint16_t tau0,
+                   const std::vector&lt;std::pair&lt;uint16_t, uint16_t&gt;&gt;* bounds1,
+                   const std::vector&lt;uint16_t&gt;* tauVec)
+      : mode_(Mode::Take), i_(i), tau0_(tau0),
+        leaveData_(nullptr), leaveIndex_(0),
+        takeData_(bounds1), takeTau_(tauVec), takeIndex_(0)
+    {
+    }
+
+    // Return the next (u16, u16) or std::nullopt if done.
+    std::optional&lt;std::pair&lt;uint16_t, uint16_t&gt;&gt; next() {
+        if (mode_ == Mode::Leave) {
+            // Rust logic:
+            //   .next()
+            //   .map(|&amp;(low, high)| (low + (low &gt; i) as u16, high + (high &gt;= i) as u16)),
+            if (!leaveData_ || leaveIndex_ &gt;= leaveData_-&gt;size()) {
+                return std::nullopt;
+            }
+            auto [low, high] = (*leaveData_)[leaveIndex_++];
+            uint16_t newLow  = low  + ((low  &gt; i_) ? 1 : 0);
+            uint16_t newHigh = high + ((high &gt;= i_) ? 1 : 0);
+            return std::pair&lt;uint16_t, uint16_t&gt;(newLow, newHigh);
+        }
+        else {
+            // mode_ == Mode::Take
+            // Rust logic:
+            //   zip.next().map(|(&amp;(low, high), &amp;tau1)| {
+            //       if tau0 &lt; tau1 {
+            //           (low.max(i) + 1, high + (high &gt;= i) as u16)
+            //       } else {
+            //           (low + (low &gt; i) as u16, high.min(i))
+            //       }
+            //   })
+            if (!takeData_ || !takeTau_ || takeIndex_ &gt;= takeData_-&gt;size() || takeIndex_ &gt;= takeTau_-&gt;size()) {
+                return std::nullopt;
+            }
+            auto [low, high] = (*takeData_)[takeIndex_];
+            uint16_t tau1    = (*takeTau_)[takeIndex_];
+            takeIndex_++;
+
+            if (tau0_ &lt; tau1) {
+                // (low.max(i_) + 1, high + (high &gt;= i_) as u16)
+                uint16_t newLow  = std::max(low, i_) + 1;
+                uint16_t newHigh = high + ((high &gt;= i_) ? 1 : 0);
+                return std::pair&lt;uint16_t, uint16_t&gt;(newLow, newHigh);
+            } else {
+                // (low + (low &gt; i_) as u16, high.min(i_))
+                uint16_t newLow  = low  + ((low  &gt; i_) ? 1 : 0);
+                uint16_t newHigh = (high &lt; i_) ? high : i_;
+                return std::pair&lt;uint16_t, uint16_t&gt;(newLow, newHigh);
+            }
+        }
+    }
+};
+
+// We define a small helper function that we can use as a callback &quot;FnMut&quot; style in Rust.
+using UpdateCallback = std::function&lt;void(UpdateIterator, int64_t)&gt;;
+
+// update(tau, remaining, states, i, mut callback)
+void update(const std::vector&lt;uint16_t&gt;&amp; tau,
+            size_t remaining,
+            const std::vector&lt;std::pair&lt;const std::vector&lt;std::pair&lt;uint16_t,uint16_t&gt;&gt;*, int64_t&gt;&gt;&amp; states,
+            uint16_t i,
+            UpdateCallback callback)
+{
+    // states is [ (&amp;[(u16,u16)], isize), ... ]
+    for (auto&amp;&amp; st : states) {
+        auto* bounds = st.first;
+        auto  count  = st.second;
+
+        if (bounds-&gt;size() &lt; remaining) {
+            // callback(UpdateIterator::Leave(i, bounds.iter()), count);
+            UpdateIterator it(i, bounds);
+            callback(it, count);
+        }
+
+        if (!bounds-&gt;empty()) {
+            // if let Some((&amp;(low0, high0), bounds1)) = bounds.split_first() {
+            //     if low0 &lt;= i &amp;&amp; i &lt;= high0 {
+            //         callback(
+            //           UpdateIterator::Take(
+            //             i,
+            //             tau[tau.len() - bounds.len()],
+            //             bounds1.iter().zip(&amp;tau[tau.len() - bounds.len() + 1..]),
+            //           ), count
+            //         )
+            //     }
+            // }
+            auto low0  = bounds-&gt;front().first;
+            auto high0 = bounds-&gt;front().second;
+
+            if (low0 &lt;= i &amp;&amp; i &lt;= high0) {
+                // We want to pass everything except the first element: bounds[1..]
+                // In C++, let's create a subvector pointer. We'll store them in a new vector or 
+                // keep references. For efficiency, you might do something more advanced; 
+                // here we'll just do a slice approach.
+
+                // slice: bounds-&gt;begin()+1, ...
+                std::vector&lt;std::pair&lt;uint16_t,uint16_t&gt;&gt; subBounds(
+                    bounds-&gt;begin()+1,
+                    bounds-&gt;end()
+                );
+                // We also want tau[tau.size() - bounds-&gt;size()] for tau0 
+                // and the remainder for the zip. 
+                size_t offset = tau.size() - bounds-&gt;size();
+                if (offset &lt; tau.size()) {
+                    uint16_t tau0 = tau[offset];
+
+                    // create a new storage for subBounds so that we can pass pointer
+                    // similarly for subTau 
+                    std::vector&lt;uint16_t&gt; subTau(
+                        tau.begin() + (offset + 1),
+                        tau.end()
+                    );
+
+                    // Construct an UpdateIterator with mode=Take
+                    // UpdateIterator(i, tau0, &amp;subBounds, &amp;subTau)
+                    // The callback takes ownership of the iterator OR uses it immediately
+                    UpdateIterator it(i, tau0, &amp;subBounds, &amp;subTau);
+                    callback(it, count);
+                }
+            }
+        }
+    }
+}
+
+// search_step(...) roughly corresponds to the &quot;search_step&quot; function in Rust
+// We'll emulate the &quot;Arena&quot; usage by simply storing newly created vectors in a local container.
+template &lt;typename F&gt;
+void search_step(
+    const std::vector&lt;uint16_t&gt;&amp; tau,
+    size_t remaining,
+    const std::vector&lt;std::pair&lt;const std::vector&lt;std::pair&lt;uint16_t,uint16_t&gt;&gt;*, int64_t&gt;&gt;&amp; states,
+    size_t arena_len,
+    uint16_t i,
+    F search // F should be a callable: (const std::vector&lt;std::pair&lt;const std::vector&lt;std::pair&lt;uint16_t,uint16_t&gt;&gt;*, int64_t&gt;&gt;&amp;, size_t) -&gt; void
+) {
+    // Let’s create new_states. We do what Rust does in &quot;update&quot; then &quot;sort_by_key&quot; then &quot;dedup_by&quot;.
+    std::vector&lt;std::pair&lt;std::vector&lt;std::pair&lt;uint16_t, uint16_t&gt;&gt;, int64_t&gt;&gt; localStorage;
+    localStorage.reserve(states.size() * 2);
+
+    // We'll do update(...) but the callback is:
+    auto cb = [&amp;](UpdateIterator it, int64_t cnt) {
+        // We must iterate over that UpdateIterator and collect all pairs
+        // because in Rust, we do: new_states.push((&amp;*arena.alloc_extend(bounds), count)).
+        // We'll store them in a local vector; once done, we push to localStorage
+        std::vector&lt;std::pair&lt;uint16_t,uint16_t&gt;&gt; collected;
+        while (true) {
+            auto nxt = it.next();
+            if (!nxt.has_value()) break;
+            collected.push_back(nxt.value());
+        }
+        localStorage.push_back({std::move(collected), cnt});
+    };
+
+    update(tau, remaining, states, i, cb);
+
+    // Now we transform localStorage into the final new_states 
+    // but first we must sort by the &quot;bounds&quot; (the vector of pairs).
+    // In Rust: new_states.sort_by_key(|&amp;(bounds, _)| bounds)
+    // We'll define a custom comparator that just compares lexicographically the vector of pairs.
+    auto cmp = [](auto &amp;lhs, auto &amp;rhs){
+        // Compare the vector of pairs lexicographically
+        const auto &amp;v1 = lhs.first;
+        const auto &amp;v2 = rhs.first;
+        return v1 &lt; v2;
+    };
+    std::sort(localStorage.begin(), localStorage.end(), cmp);
+
+    // dedup_by:
+    // new_states.dedup_by(|(bounds0, count0), (bounds1, count1)| {
+    //    bounds0 == bounds1 &amp;&amp; { *count1 += *count0; true }
+    // });
+    // We'll do it in a single pass:
+    std::vector&lt;std::pair&lt;const std::vector&lt;std::pair&lt;uint16_t,uint16_t&gt;&gt;*, int64_t&gt;&gt; newStates;
+    newStates.reserve(localStorage.size());
+
+    // We'll keep track of unique vectors in localStorage
+    for (size_t idx = 0; idx &lt; localStorage.size(); ) {
+        auto &amp;currentVec = localStorage[idx].first;
+        auto  currentCnt = localStorage[idx].second;
+        size_t j = idx + 1;
+        // accumulate counts for duplicates
+        while (j &lt; localStorage.size() &amp;&amp; localStorage[j].first == currentVec) {
+            currentCnt += localStorage[j].second;
+            j++;
+        }
+        // We now have a unique vector [idx..j-1], sum of counts is currentCnt
+        // We need to store pointer reference in newStates, so we have to keep the actual 
+        // vector of pairs in memory. We'll store it in a static container or keep it locally.
+        // We'll push it to a static container or store it inline in a &quot;big&quot; container.
+        // For simplicity, we store them in localStorage itself, but we need a stable pointer.
+        // We'll wrap currentVec in a shared_ptr or so. But let's do a simpler approach:
+        // We'll just store a pointer to the vector inside localStorage. 
+        // We must ensure it won't move after we fill newStates. We'll finalize after the loop.
+
+        idx = j; 
+        newStates.push_back({ &amp;currentVec, currentCnt });
+    }
+
+    // in Rust: search(&amp;newStates, arena.len());
+    // We don't strictly track &quot;arena&quot; usage, but pass the length anyway.
+    search(newStates, localStorage.size());
+}
+
+// We'll define the function &quot;search&quot;. This is the heart of the recursion in the Rust code.
+//
+// search(n, tau, k, states, arena_len, output)
+void search_impl(
+    size_t n,
+    const std::vector&lt;uint16_t&gt;&amp; tau,
+    size_t k,
+    const std::vector&lt;std::pair&lt;const std::vector&lt;std::pair&lt;uint16_t,uint16_t&gt;&gt;*, int64_t&gt;&gt;&amp; states,
+    size_t arena_len,
+    std::vector&lt;Cell&gt;&amp; output
+);
+
+// We wrap it in a lambda or direct function to be able to pass forward references in search_step.
+struct SearchClosure {
+    size_t n;
+    const std::vector&lt;uint16_t&gt;&amp; tau;
+    size_t k;
+    size_t arena_len;
+    std::vector&lt;Cell&gt;&amp; output;
+
+    void operator()(const std::vector&lt;std::pair&lt;const std::vector&lt;std::pair&lt;uint16_t,uint16_t&gt;&gt;*, int64_t&gt;&gt;&amp; newStates, size_t localSize) {
+        search_impl(n, tau, k + 1, newStates, localSize, output);
+    }
+};
+
+void search_impl(
+    size_t n,
+    const std::vector&lt;uint16_t&gt;&amp; tau,
+    size_t k,
+    const std::vector&lt;std::pair&lt;const std::vector&lt;std::pair&lt;uint16_t,uint16_t&gt;&gt;*, int64_t&gt;&gt;&amp; states,
+    size_t arena_len,
+    std::vector&lt;Cell&gt;&amp; output
+) {
+    // if n - k == 1 =&gt; do single-step
+    if (n - k == 1) {
+        // Rust code does:
+        // let mut deltas = vec![0; n + 1];
+        // let mut total = 0;
+        // for &amp;(bounds, count) in states {
+        //     match bounds {
+        //         [] =&gt; total += count,
+        //         &amp;[(low, high)] =&gt; {
+        //             deltas[low] += count;
+        //             deltas[high + 1] -= count;
+        //         }
+        //     }
+        // }
+        // ...
+        // for delta in deltas[..n] {
+        //     total += delta;
+        //     output[total].set(output[total].get() + 1);
+        // }
+        std::vector&lt;int64_t&gt; deltas(n+1, 0);
+        int64_t total = 0;
+
+        for (auto &amp;[bounds, count] : states) {
+            if (bounds-&gt;empty()) {
+                total += count;
+            } else if (bounds-&gt;size() == 1) {
+                auto low  = (*bounds)[0].first;
+                auto high = (*bounds)[0].second;
+                if (low &lt; deltas.size()) {
+                    deltas[low] += count;
+                }
+                if (high+1 &lt; deltas.size()) {
+                    deltas[high+1] -= count;
+                }
+            } 
+            // else do nothing for larger bounds
+        }
+        for (size_t idx = 0; idx &lt; n; idx++) {
+            total += deltas[idx];
+            // output[total].set(output[total].get() + 1);
+            if (total &lt; 0) {
+                // Danger if negative, but in Rust it’s isize. We'll ignore sign issues depending on data.
+                continue; 
+            }
+            if (static_cast&lt;size_t&gt;(total) &lt; output.size()) {
+                uint64_t prev = output[static_cast&lt;size_t&gt;(total)].get();
+                output[static_cast&lt;size_t&gt;(total)].set(prev + 1ULL);
+            }
+        }
+    }
+    else if (n - k == 2) {
+        // n - k == 2 =&gt; For i in [0..=k], do ...
+        for (uint16_t i = 0; i &lt;= k; i++) {
+            std::vector&lt;int64_t&gt; deltas(n+1, 0);
+            int64_t total = 0;
+            // update(tau, n - k, states, i, ...)
+            auto cb = [&amp;](UpdateIterator it, int64_t cnt) {
+                // We only read the first .next()
+                auto nxt = it.next();
+                if (nxt.has_value()) {
+                    auto [low, high] = nxt.value();
+                    if (low &lt; deltas.size()) {
+                        deltas[low] += cnt;
+                    }
+                    if (high+1 &lt; deltas.size()) {
+                        deltas[high+1] -= cnt;
+                    }
+                    // debug_assert!(bounds.next().is_none());
+                    // We won't read a second next() in debug mode, 
+                    // but let's just do it in release anyway:
+                    auto nxt2 = it.next();
+                    if (nxt2.has_value()) {
+                        // In Rust they'd do a debug_assert that it's None.
+                        // We'll ignore.
+                    }
+                } else {
+                    total += cnt;
+                }
+            };
+            update(tau, n - k, states, i, cb);
+
+            // Now we apply the deltas
+            for (size_t idx = 0; idx &lt; n; idx++) {
+                total += deltas[idx];
+                if (total &lt; 0) continue;
+                if (static_cast&lt;size_t&gt;(total) &lt; output.size()) {
+                    uint64_t prev = output[static_cast&lt;size_t&gt;(total)].get();
+                    output[static_cast&lt;size_t&gt;(total)].set(prev + 1ULL);
+                }
+            }
+        }
+    }
+    else {
+        // n - k &gt; 2 =&gt; for i in [0..=k], call search_step
+        // search_step(tau, n - k, states, arena_len, i, |states, arena_len| { search(n, tau, k+1, states, arena_len, output) })
+        for (uint16_t i = 0; i &lt;= k; i++) {
+            SearchClosure delegate{n, tau, k, arena_len, output};
+            search_step(tau, n - k, states, arena_len, i, delegate);
+        }
+    }
+}
+
+// The Rust code calls search(...) with references. We'll define a simpler function that sets up output properly.
+void search(
+    size_t n,
+    const std::vector&lt;uint16_t&gt;&amp; tau,
+    size_t k,
+    const std::vector&lt;std::pair&lt;const std::vector&lt;std::pair&lt;uint16_t,uint16_t&gt;&gt;*, int64_t&gt;&gt;&amp; states,
+    size_t arena_len,
+    std::vector&lt;Cell&gt;&amp; output
+) {
+    return search_impl(n, tau, k, states, arena_len, output);
+}
+
+// par_search(...) is used for parallel recursion in Rust. 
+// We'll do a simplistic approach using std::for_each(std::execution::par, ...).
+void par_search(
+    size_t n,
+    const std::vector&lt;uint16_t&gt;&amp; tau,
+    size_t k,
+    const std::vector&lt;std::pair&lt;const std::vector&lt;std::pair&lt;uint16_t,uint16_t&gt;&gt;*, int64_t&gt;&gt;&amp; states,
+    size_t arena_len,
+    size_t comb,
+    ThreadLocalVec&amp; outputs
+) {
+    // In Rust: if n - k &lt;= 4 =&gt; do search(...) in the local thread's output
+    if (n - k &lt;= 4) {
+        auto localVec = outputs.get_or([&amp;](){
+            return std::vector&lt;Cell&gt;(comb+1, Cell(0));
+        });
+        // Now call search(...) 
+        search(n, tau, k, states, arena_len, *localVec);
+    } else {
+        // parallel
+        // for i in [0..=k] =&gt; do search_step =&gt; par_search
+        std::vector&lt;uint16_t&gt; range;
+        for (uint16_t i = 0; i &lt;= k; i++) {
+            range.push_back(i);
+        }
+
+        // Use parallel for
+        std::for_each(std::execution::par, range.begin(), range.end(), 
+            [&amp;](auto i) {
+                // The callback:
+                auto cb = [&amp;](const std::vector&lt;std::pair&lt;const std::vector&lt;std::pair&lt;uint16_t,uint16_t&gt;&gt;*, int64_t&gt;&gt;&amp; newStates, size_t localSize) {
+                    par_search(n, tau, k+1, newStates, localSize, comb, outputs);
+                };
+                search_step(tau, n - k, states, arena_len, i, cb);
+            }
+        );
+    }
+}
+
+// counts(...)
+std::vector&lt;uint64_t&gt; counts(size_t n, const std::vector&lt;uint16_t&gt;&amp; tau) {
+    // Rust code:
+    // if n &gt; tau.len() { ... } else if n == tau.len() { ... } else { ... }
+    if (n &gt; tau.size()) {
+        // compute comb = combination(n, tau.size())
+        size_t comb = 1;
+        for (size_t i = 0; i &lt; tau.size(); i++) {
+            comb = comb * (n - i) / (i + 1);
+        }
+
+        // Build the initial states with [(&amp;vec![(0,0); tau.len()], 1)]
+        auto initVec = std::make_shared&lt;std::vector&lt;std::pair&lt;uint16_t,uint16_t&gt;&gt;&gt;(
+            tau.size(), std::make_pair&lt;uint16_t,uint16_t&gt;(0, 0)
+        );
+        std::vector&lt;std::pair&lt;const std::vector&lt;std::pair&lt;uint16_t,uint16_t&gt;&gt;*, int64_t&gt;&gt; states = {
+            { initVec.get(), 1 }
+        };
+
+        ThreadLocalVec outputs;
+        // par_search
+        par_search(n, tau, 0, states, tau.size(), comb, outputs);
+
+        // Collect final 
+        std::vector&lt;uint64_t&gt; output(comb+1, 0ULL);
+        auto allOutputs = outputs.collect();
+        for (auto &amp;thrVecPtr : allOutputs) {
+            auto&amp; thrVec = *thrVecPtr;
+            for (size_t i = 0; i &lt; thrVec.size() &amp;&amp; i &lt; output.size(); i++) {
+                output[i] += thrVec[i].get();
+            }
+        }
+
+        // Trim trailing zeros
+        auto rit = std::find_if(output.rbegin(), output.rend(), [](uint64_t x){ return x != 0; });
+        if (rit != output.rend()) {
+            output.erase(rit.base(), output.end());
+        } else {
+            output.clear();
+        }
+        return output;
+    }
+    else if (n == tau.size()) {
+        // vec![(1..=n as u64).product::&lt;u64&gt;() - 1, 1]
+        // We'll replicate the factorial of n, then subtract 1 =&gt; [ factorial(n)-1, 1 ]
+        uint64_t factorial = 1;
+        for (uint64_t i = 1; i &lt;= n; i++) factorial *= i;
+        std::vector&lt;uint64_t&gt; result;
+        // Possibly watch overflow if n is large.
+        if (factorial &gt; 1) {
+            result.push_back(factorial - 1);
+        } else {
+            result.push_back(0); 
+        }
+        result.push_back(1);
+        return result;
+    }
+    else {
+        // vec![(1..=n as u64).product()]
+        uint64_t factorial = 1;
+        for (uint64_t i = 1; i &lt;= n; i++) factorial *= i;
+        std::vector&lt;uint64_t&gt; result{ factorial };
+        return result;
+    }
+}
+
+// main
+int main(int argc, char** argv) {
+    // Expect usage: permutations n &quot;τ1 τ2 ... τm&quot;
+    if (argc != 3) {
+        std::cerr &lt;&lt; &quot;Usage: &quot; &lt;&lt; argv[0] &lt;&lt; &quot; n \&quot;τ1 τ2 … τm\&quot;&quot; &lt;&lt; std::endl;
+        return 1;
+    }
+
+    try {
+        size_t n = std::stoul(argv[1]);
+        // parse tau
+        std::vector&lt;uint16_t&gt; tau;
+        {
+            std::string tauStr = argv[2];
+            std::istringstream iss(tauStr);
+            uint16_t val;
+            while (iss &gt;&gt; val) {
+                tau.push_back(val);
+            }
+        }
+
+        auto result = counts(n, tau);
+        for (auto c : result) {
+            std::cout &lt;&lt; c &lt;&lt; std::endl;
+        }
+    } catch (const std::exception&amp; e) {
+        std::cerr &lt;&lt; &quot;Error: &quot; &lt;&lt; e.what() &lt;&lt; std::endl;
+        std::cerr &lt;&lt; &quot;Usage: &quot; &lt;&lt; argv[0] &lt;&lt; &quot; n \&quot;τ1 τ2 … τm\&quot;&quot; &lt;&lt; std::endl;
+        return 1;
+    }
+
+    return 0;
+}
+</code></pre>
+<p>How to run it and timing?</p>
+<pre><code>I Use CodeRunner VS Code Extension to generate executable program (and run it)
+Measure-Command {.\cpp_hello.exe 13  '1 2'}
+</code></pre>
+<hr />
+<p>My environment:</p>
+<pre><code>$&gt; g++ -v
+Using built-in specs.
+COLLECT_GCC=g++
+COLLECT_LTO_WRAPPER=C:/mingw64/mingw64/bin/../libexec/gcc/x86_64-w64-mingw32/14.1.0/lto-wrapper.exe
+OFFLOAD_TARGET_NAMES=nvptx-none
+Target: x86_64-w64-mingw32
+Configured with: ../configure --prefix=/R/winlibs64ucrt_stage/inst_gcc-14.1.0/share/gcc --build=x86_64-w64-mingw32 --host=x86_64-w64-mingw32 --enable-offload-targets=nvptx-none --with-pkgversion='MinGW-W64 x86_64-ucrt-posix-seh, built by Brecht Sanders, r1' --with-tune=generic --enable-checking=release --enable-threads=posix --disable-sjlj-exceptions --disable-libunwind-exceptions --disable-serial-configure --disable-bootstrap --enable-host-shared --enable-plugin --disable-default-ssp --disable-rpath --disable-libstdcxx-debug --disable-version-specific-runtime-libs --with-stabs --disable-symvers --enable-languages=c,c++,fortran,lto,objc,obj-c++ --disable-gold --disable-nls --disable-stage1-checking --disable-win32-registry --disable-multilib --enable-ld --enable-libquadmath --enable-libada --enable-libssp --enable-libstdcxx --enable-lto --enable-fully-dynamic-string --enable-libgomp --enable-graphite --enable-mingw-wildcard --enable-libstdcxx-time --enable-libstdcxx-pch --with-mpc=/d/Prog/winlibs64ucrt_stage/custombuilt --with-mpfr=/d/Prog/winlibs64ucrt_stage/custombuilt --with-gmp=/d/Prog/winlibs64ucrt_stage/custombuilt --with-isl=/d/Prog/winlibs64ucrt_stage/custombuilt --disable-libstdcxx-backtrace --enable-install-libiberty --enable-__cxa_atexit --without-included-gettext --with-diagnostics-color=auto --enable-clocale=generic --with-libiconv --with-system-zlib --with-build-sysroot=/R/winlibs64ucrt_stage/gcc-14.1.0/build_mingw/mingw-w64 CFLAGS='-I/d/Prog/winlibs64ucrt_stage/custombuilt/include/libdl-win32   -march=nocona -msahf -mtune=generic -O2 -Wno-error=format' CXXFLAGS='-Wno-int-conversion  -march=nocona -msahf -mtune=generic -O2' LDFLAGS='-pthread -Wl,--no-insert-timestamp -Wl,--dynamicbase -Wl,--high-entropy-va -Wl,--nxcompat -Wl,--tsaware' LD=/d/Prog/winlibs64ucrt_stage/custombuilt/share/binutils/bin/ld.exe
+Thread model: posix
+Supported LTO compression algorithms: zlib zstd
+gcc version 14.1.0 (MinGW-W64 x86_64-ucrt-posix-seh, built by Brecht Sanders, r1)
+</code></pre>
+<p>Use <a href="https://glot.io/snippets/h3wjtdj7jh" rel="nofollow noreferrer">this script</a> to see C++ standard and platform:</p>
+<pre><code>current C++ Standard: 201703
+Operating system: Windows
+Major version: 6
+Minor version: 2
+Build number: 9200
+Platform: 2
+Service pack: None
+Machine: AMD64
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>Rust, score ≈ 13</h1>
+<p>This enumerates permutations σ recursively, sharing as much computation as possible at branches of the search tree, so that only constant work is needed at each leaf.</p>
+<p>Times in seconds measured on my Ryzen 7 1800X (8 cores/16 threads):</p>
+<pre><code>τ   n = 10    11    12     13      14       15
+──────────────────────────────────────────────
+1     0.00  0.02  0.25   2.93   38.72   660.86
+12    0.00  0.04  0.47   5.89   79.08  1268.18
+123   0.00  0.06  0.67   8.47  115.61  1836.36
+132   0.01  0.10  1.18  15.50  218.39  3443.56
+1234  0.00  0.05  0.59   7.65  104.88  1643.29
+1243  0.00  0.06  0.81  10.72  152.60  2417.75
+1324  0.01  0.09  1.10  14.52  208.59  3280.18
+1342  0.01  0.10  1.21  16.59  242.01  3871.64
+1432  0.01  0.09  1.19  16.21  237.93  3808.25
+2143  0.00  0.06  0.81  10.72  151.09  2409.76
+2413  0.01  0.09  1.20  16.07  232.74  3717.70
+──────────────────────────────────────────────
+max   0.01  0.10  1.21  16.59  242.01  3871.64
+</code></pre>
+<p>Build and run with:</p>
+<pre><code>cargo build --release
+target/release/permutations 11 '1 3 4 2'
+</code></pre>
+<p>Or <a href="https://tio.run/##xVjNjts2EL77Kbg5KNRGq9pJsAfZ1qVAgQItckjbQw1DkGV6TaxMCRK1mx8baIM@RJ@gr9N3yIPUnSEpi/qxsy1QVMjaMjn/881wmKIq5fFYlYyUch0ETDxMR6dfXLIiCH7mubVWpjxh09GIiWpHfszXsWTfAlkss2L2PA7JxxGB5zsWPzBaTW49ohiCAImAwCN6FT7c0PUU8Q/xPaPqDR/cHv4BhswuSOurguUw1Pyg6jAa8V2ektpcsoG/rgdR7YF8nzMk3ZG5pQQcx82NIIK9k9TZVZKULN245CYkb3LJMzGzTDKy8NnFMtmSayS2VvFpmxAEOnbcIwXbEFSwyiqxLl0yD81rix0fX1nj9td3cU73Dk2zR49s@d3W3RP8QV7or5Bwl8SlCrPaxw31Hc6bLdf1Lhqs8gf2yrgaN1Z/4Lky@WPPKtgxBmv7qG2gRxyQMwFD@4z48I3SQ2b4NTlDhA/KBPnvKPjxgkwu@Tco40BYCqC/rOBsIP0dF6D5jOje6qFN2BDot8MJdiX/wKItF4C9E@5ohatejT/1K3R72Hsy9CKvDzm/UfwUNIAI@FdDABM@yF97B/6Bb5WSpDsBJDcgzgLiudTkBdvFXHBxFxDtrlotJXCUSEl/Ysms1Q04krmGnQdNL0F0JnGaruLkPiCqJ3wjvq8kbbtSS/BGdSyxYTgUAa6D4pEEvqVLuDCWWPHlNZWfMkFdAOzJhU4Walvo2U5gBGE/plCNRu3UiqOtNmWSvM12jOrCGmtEjt1azsSFrJzymqdcRhtelJCZjmEoC/jJDIqFOA58wJuSNVAWJy8GIT@IkrOlxb2zWwCMBfyZoN60Yrw8z2Y8NyH0AZHUuSQKW4bvL91hiWeWVVr6W1aihotbw79kcZFso1Ky/L@vAa3shP43ImH0ggCrCBBdWEGCPUYG9HMCfEHwyOU2SuI8Trh8T/WeieY1eWmiYIocfPMafzzjBOjzyL5VXPY50Kj086rcUmoylmRpyhIZBDO0PwpDeqoR3VcPRrkloMwKGa3ew@kDg0IE9HSF33sS@8kupyu3z7Jm6yrXPFrx2GgZK3aNMLPUPsAMOZnXZTfBcmrX0LXmIy/m5nXcho0sKtZFjrFRJ5M6ja2wYYNK40m0YNND1/2/Q1VWybySQIigWFS3r5cNVqCBCCise3TcPqtrDK1ZKmPEzwNLrhbjKVBD3S2nPUKZyTgFOism/6gZWxPYtSYf6GCLJR5WWhVk4Uw1L6xhZTk84OCjXVvgcIBzAUZseZI6vcSi5pOaR8WD3Jzl648SkbLpcLHl1PFTGjFgjtHt@2LZcegUD0XStkDnfqFJWm5Opl2s6nHKRsRLSxNaw9GSse/P780o1bHkyaj5AnK6bUgZ1G5Bzdg90IYGj9oGFNbhqqfc/xchmm9V3UVxWbJCXtGWcT4vI5EJRl13AF2XZuB2oXwJmoeO@KfC70sQfDIMB4/ern9PgaF9Tp/Dj34fAo1pyEJdlzwoBHU3qXm1J53LgHtmYFBxL@mprdstXV0MsHFDQw7tbhySZuTpN@Qk261IK2x2RIY49dyjuNTXNaEYD7gOfUUoR@/c6UD3qRVqh61aVkLa5dyEzFExg2MXTiXFQOF97E4bn5YeKIQPpxFu6dcLPhylIjldNdqb/Tu0Hhn760WelRxvXHDDNj1CfZEr6DbDd/EoK9DiPd8THZrmeOlZ2eua0DGHEqDjAMPqXCi83r52/bzI1pUaiDD9argFkE2Ww6C/IAEC2oIczmvUngTj4g6GBATaW1nAJBdCKpl4CALcgO5iRjNq3DMtcwGXQ10BcIIS5xqJO2isUQ37ws/jooQO5VfisYhz6rYHBAV7hfXJLerHKOlrzeMWklfCQMrq/2sQ@wFxPTNr4Ot88qbUNAS7@M/Bc5mKK/rs4@HZ0O1sMOx5LHgCPFUZ37GA5KwAzMYIqBKy/fzP3z5/@pXg5yfy@Zc/1Nvvz5@5dT6Ox@NkcpyQ13COvvor2aTxXXm8@TrL5U3KHlg6f/U3" rel="nofollow noreferrer" title="Rust – Try It Online">try it online!</a>
+(But note, the TIO version lacks parallelism and many other optimizations, so it’s much slower, due to being unable to use external crates.)</p>
+<p><a href="https://glot.io/snippets/fx5su1m6dq/raw/permutations.out" rel="nofollow noreferrer">All outputs</a> for <em>n</em> = 0…15.</p>
+<p><strong><code>Cargo.toml</code></strong></p>
+<pre class="lang-toml prettyprint-override"><code>[package]
+name = &quot;permutations&quot;
+version = &quot;0.1.0&quot;
+authors = [&quot;Anders Kaseorg &lt;andersk@mit.edu&gt;&quot;]
+edition = &quot;2018&quot;
+
+[dependencies]
+rayon = &quot;1.5.0&quot;
+thread_local = &quot;1.1.3&quot;
+typed-arena = &quot;2.0.1&quot;
+
+[profile.release]
+lto = &quot;y&quot;
+panic = &quot;abort&quot;
+</code></pre>
+<p><strong><code>src/main.rs</code></strong></p>
+<pre class="lang-rust prettyprint-override"><code>use rayon::prelude::*;
+use std::cell::Cell;
+use std::env;
+use std::iter::Zip;
+use std::slice;
+use thread_local::ThreadLocal;
+use typed_arena::Arena;
+
+enum UpdateIterator&lt;'a&gt; {
+    Leave(u16, slice::Iter&lt;'a, (u16, u16)&gt;),
+    Take(
+        u16,
+        u16,
+        Zip&lt;slice::Iter&lt;'a, (u16, u16)&gt;, slice::Iter&lt;'a, u16&gt;&gt;,
+    ),
+}
+
+impl Iterator for UpdateIterator&lt;'_&gt; {
+    type Item = (u16, u16);
+
+    fn next(&amp;mut self) -&gt; Option&lt;(u16, u16)&gt; {
+        match *self {
+            UpdateIterator::Leave(i, ref mut bounds) =&gt; bounds
+                .next()
+                .map(|&amp;(low, high)| (low + (low &gt; i) as u16, high + (high &gt;= i) as u16)),
+            UpdateIterator::Take(i, tau0, ref mut zip) =&gt; {
+                zip.next().map(|(&amp;(low, high), &amp;tau1)| {
+                    if tau0 &lt; tau1 {
+                        (low.max(i) + 1, high + (high &gt;= i) as u16)
+                    } else {
+                        (low + (low &gt; i) as u16, high.min(i))
+                    }
+                })
+            }
+        }
+    }
+
+    fn size_hint(&amp;self) -&gt; (usize, Option&lt;usize&gt;) {
+        match self {
+            UpdateIterator::Leave(_, bounds) =&gt; bounds.size_hint(),
+            UpdateIterator::Take(_, _, zip) =&gt; zip.size_hint(),
+        }
+    }
+}
+
+fn update(
+    tau: &amp;[u16],
+    remaining: usize,
+    states: &amp;[(&amp;[(u16, u16)], isize)],
+    i: u16,
+    mut callback: impl FnMut(UpdateIterator, isize),
+) {
+    for &amp;(bounds, count) in states {
+        if bounds.len() &lt; remaining {
+            callback(UpdateIterator::Leave(i, bounds.iter()), count);
+        }
+
+        if let Some((&amp;(low0, high0), bounds1)) = bounds.split_first() {
+            if low0 &lt;= i &amp;&amp; i &lt;= high0 {
+                callback(
+                    UpdateIterator::Take(
+                        i,
+                        tau[tau.len() - bounds.len()],
+                        bounds1.iter().zip(&amp;tau[tau.len() - bounds.len() + 1..]),
+                    ),
+                    count,
+                );
+            }
+        }
+    }
+}
+
+fn search_step(
+    tau: &amp;[u16],
+    remaining: usize,
+    states: &amp;[(&amp;[(u16, u16)], isize)],
+    arena_len: usize,
+    i: u16,
+    search: impl FnOnce(&amp;[(&amp;[(u16, u16)], isize)], usize),
+) {
+    let arena = Arena::with_capacity(2 * arena_len + 1 - states.len());
+    let mut new_states = Vec::with_capacity(states.len() * 2);
+    update(tau, remaining, states, i, |bounds, count| {
+        new_states.push((&amp;*arena.alloc_extend(bounds), count))
+    });
+    new_states.sort_by_key(|&amp;(bounds, _)| bounds);
+    new_states.dedup_by(|(bounds0, count0), (bounds1, count1)| {
+        bounds0 == bounds1 &amp;&amp; {
+            *count1 += *count0;
+            true
+        }
+    });
+    search(&amp;new_states, arena.len());
+}
+
+fn search(
+    n: usize,
+    tau: &amp;[u16],
+    k: usize,
+    states: &amp;[(&amp;[(u16, u16)], isize)],
+    arena_len: usize,
+    output: &amp;[Cell&lt;u64&gt;],
+) {
+    if n - k == 1 {
+        let mut deltas = vec![0; n + 1];
+        let mut total = 0;
+        for &amp;(bounds, count) in states {
+            match bounds {
+                [] =&gt; total += count,
+                &amp;[(low, high)] =&gt; {
+                    deltas[low as usize] += count;
+                    deltas[high as usize + 1] -= count;
+                }
+                _ =&gt; {}
+            }
+        }
+        for delta in &amp;deltas[..n] {
+            total += delta;
+            output[total as usize].set(output[total as usize].get() + 1);
+        }
+    } else if n - k == 2 {
+        for i in 0..=k as u16 {
+            let mut deltas = vec![0; n + 1];
+            let mut total = 0;
+            update(tau, n - k, states, i, |mut bounds, count| {
+                if let Some((low, high)) = bounds.next() {
+                    deltas[low as usize] += count;
+                    deltas[high as usize + 1] -= count;
+                    debug_assert!(bounds.next().is_none());
+                } else {
+                    total += count;
+                }
+            });
+            for delta in &amp;deltas[..n] {
+                total += delta;
+                output[total as usize].set(output[total as usize].get() + 1);
+            }
+        }
+    } else {
+        for i in 0..=k as u16 {
+            search_step(tau, n - k, states, arena_len, i, |states, arena_len| {
+                search(n, tau, k + 1, states, arena_len, output)
+            })
+        }
+    }
+}
+
+fn par_search(
+    n: usize,
+    tau: &amp;[u16],
+    k: usize,
+    states: &amp;[(&amp;[(u16, u16)], isize)],
+    arena_len: usize,
+    comb: usize,
+    outputs: &amp;ThreadLocal&lt;Vec&lt;Cell&lt;u64&gt;&gt;&gt;,
+) {
+    if n - k &lt;= 4 {
+        search(
+            n,
+            tau,
+            k,
+            states,
+            arena_len,
+            outputs.get_or(|| vec![Cell::new(0); comb + 1]),
+        );
+    } else {
+        (0..=k as u16).into_par_iter().for_each(|i| {
+            search_step(tau, n - k, states, arena_len, i, |states, arena_len| {
+                par_search(n, tau, k + 1, states, arena_len, comb, outputs)
+            })
+        });
+    }
+}
+
+fn counts(n: usize, tau: &amp;[u16]) -&gt; Vec&lt;u64&gt; {
+    if n &gt; tau.len() {
+        let mut comb = 1;
+        for i in 0..tau.len() {
+            comb = comb * (n - i) / (i + 1);
+        }
+        let outputs = ThreadLocal::new();
+        par_search(
+            n,
+            &amp;tau,
+            0,
+            &amp;[(&amp;vec![(0, 0); tau.len()], 1)],
+            tau.len(),
+            comb,
+            &amp;outputs,
+        );
+        let mut output = vec![0; comb + 1];
+        for thread_output in outputs {
+            for (x, y) in output.iter_mut().zip(thread_output) {
+                *x += y.get();
+            }
+        }
+        output.truncate(
+            output
+                .iter()
+                .rposition(|&amp;count| count != 0)
+                .map_or(0, |i| i + 1),
+        );
+        output
+    } else if n == tau.len() {
+        vec![(1..=n as u64).product::&lt;u64&gt;() - 1, 1]
+    } else {
+        vec![(1..=n as u64).product()]
+    }
+}
+
+fn main() {
+    let args: Vec&lt;String&gt; = env::args().collect();
+    if let [_, n, tau] = &amp;*args {
+        let n: usize = n.parse().unwrap();
+        let tau: Vec&lt;u16&gt; = tau.split_whitespace().map(|n| n.parse().unwrap()).collect();
+        for count in counts(n, &amp;tau) {
+            println!(&quot;{}&quot;, count);
+        }
+    } else {
+        panic!(&quot;usage: permutations n 'τ₁ τ₂ … τₘ'&quot;)
+    }
+}
+</code></pre>
+</div>
+<div id="pu2" class="pu"><h1>C++ (clang), score 11</h1>
+<pre><code>#include &quot;patterns_in_permutations.hpp&quot;
+
+int main(int argc, char *argv[])
+{
+    unsigned int running_time = 60;
+    unsigned int n = 4;
+    std::unordered_map&lt;size_t, std::vector&lt;std::string&gt;&gt; all_gens;
+    const auto start = std::chrono::steady_clock::now();
+    for (const auto finish = start + std::chrono::seconds{running_time}; n &lt; 12 &amp;&amp; std::chrono::steady_clock::now() &lt; finish; ++n)
+    {
+        Perms p(n);
+        const std::vector&lt;std::string&gt; gens = p.Generate();
+        all_gens[n] = gens;
+        Runner1(n);
+    }
+    const std::chrono::duration&lt;double&gt; duration = std::chrono::steady_clock::now() - start;
+    std::cout &lt;&lt; &quot;It took &quot; &lt;&lt; duration.count() &lt;&lt; &quot; seconds.\n&quot;;
+    Runner(Runner2, running_time, 4, &quot;12&quot;, all_gens);
+    Runner(Runner3, running_time, 4, &quot;123&quot;, all_gens);
+    Runner(Runner3, running_time, 4, &quot;132&quot;, all_gens);
+    Runner(Runner4, running_time, 4, &quot;1234&quot;, all_gens);
+    Runner(Runner4, running_time, 4, &quot;1243&quot;, all_gens);
+    Runner(Runner4, running_time, 4, &quot;1324&quot;, all_gens);
+    Runner(Runner4, running_time, 4, &quot;1342&quot;, all_gens);
+    Runner(Runner4, running_time, 4, &quot;1423&quot;, all_gens);
+    Runner(Runner4, running_time, 4, &quot;1432&quot;, all_gens);
+    Runner(Runner4, running_time, 4, &quot;2143&quot;, all_gens);
+    Runner(Runner4, running_time, 4, &quot;2413&quot;, all_gens);
+
+    return 0;
+}
+</code></pre>
+<h3>patterns_in_permutations.hpp:</h3>
+<pre><code>#include &lt;iostream&gt;
+#include &lt;string&gt;
+#include &lt;vector&gt;
+#include &lt;functional&gt;
+#include &lt;algorithm&gt;
+#include &lt;iterator&gt;
+#include &lt;thread&gt;
+#include &lt;chrono&gt;
+#include &lt;unordered_map&gt;
+
+class Perms
+{
+public:
+    Perms(size_t n)
+    {
+        char next = '1';
+        for (int i = 0; i &lt; n; ++i) {
+            base_+= next;
+            ++next;
+        }
+    }
+
+    std::vector&lt;std::string&gt; Generate()
+    {
+        std::string current = base_;
+        do {
+            perms_.push_back(current);
+        } while (std::next_permutation(current.begin(), current.end()));
+        return perms_;
+    }
+private:
+    std::vector&lt;std::string&gt; perms_;
+    std::string base_;
+};
+
+class Pattern2
+{
+public:
+    Pattern2()
+    {}
+    unsigned int CountMatches(const std::string&amp; word) const
+    {
+        unsigned int matches = 0;
+        size_t size = word.size();
+        for (int i = 0; i &lt; size - 1; ++i) 
+            for (int j = i + 1; j &lt; size; ++j)
+                        matches += word[i] &lt; word[j];
+        return matches;
+    }
+};
+
+class Pattern3
+{
+public:
+    Pattern3(const std::string&amp; word) : pattern_{GenPattern(word[0], word[1], word[2])}
+    {}
+    unsigned int GenPattern(char a, char b, char c) const
+    {
+        unsigned int pattern = (a&gt;b) | ((a&gt;c)&lt;&lt;1) | ((b&gt;c)&lt;&lt;2);
+        return pattern;
+    }
+    bool Matches(char a, char b, char c) const
+    {
+        unsigned int pattern = GenPattern(a, b, c);
+        return pattern == pattern_;
+    }
+    unsigned int CountMatches(const std::string&amp; word) const
+    {
+        unsigned int matches = 0;
+        size_t size = word.size();
+        for (int i = 0; i &lt; size - 2; ++i) 
+            for (int j = i + 1; j &lt; size - 1; ++j)
+                for (int k = j + 1; k &lt; size; ++k)
+                        matches += Matches(word[i], word[j], word[k]);
+        return matches;
+    }
+private:
+    unsigned int pattern_;
+};
+
+class Pattern4
+{
+public:
+    Pattern4(const std::string&amp; word) : pattern_{GenPattern(word[0], word[1], word[2], word[3])}
+    {}
+    unsigned int GenPattern(char a, char b, char c, char d) const
+    {
+        unsigned int pattern = (a&gt;b) | ((a&gt;c)&lt;&lt;1) |  ((a&gt;d)&lt;&lt;2) | ((b&gt;c)&lt;&lt;3) | ((b&gt;d)&lt;&lt;4) |  ((c&gt;d)&lt;&lt;5);
+        return pattern;
+    }
+    bool Matches(char a, char b, char c, char d) const
+    {
+        unsigned int pattern = GenPattern(a, b, c, d);
+        return pattern == pattern_;
+    }
+    unsigned int CountMatches(const std::string&amp; word) const
+    {
+        unsigned int matches = 0;
+        size_t size = word.size();
+        for (int i = 0; i &lt; size - 3; ++i) 
+            for (int j = i + 1; j &lt; size - 2; ++j)
+                for (int k = j + 1; k &lt; size - 1; ++k)
+                    for (int l = k + 1; l &lt; size; ++l)
+                        matches += Matches(word[i], word[j], word[k], word[l]);
+        return matches;
+    }
+private:
+    unsigned int pattern_;
+};
+
+void Print(unsigned int n, const std::string&amp; tau, const std::vector&lt;unsigned long&gt;&amp; counts)
+{
+    std::cout &lt;&lt; &quot;n is: &quot; &lt;&lt; n &lt;&lt; &quot;, tau is: &quot; &lt;&lt; tau &lt;&lt; &quot;, and we have: [&quot;;
+    int i = 0;
+    for (auto c : counts) {
+        std::cout &lt;&lt; (i ? &quot;, &quot; : &quot;&quot;) &lt;&lt; c;
+        ++i;
+    }
+    std::cout &lt;&lt; &quot;]\n&quot;;
+}
+
+
+void Runner1(unsigned int n)
+{
+    unsigned int num_counts = n + 1;
+    std::vector&lt;unsigned long&gt; counts(num_counts, 0);
+    counts[n] = 1;
+    for (int i = 2; i &lt;= n; ++i) {
+        counts[n] *= i;
+    }
+    Print(n, &quot;1&quot;, counts);
+}
+
+void Runner2(const std::string&amp;, unsigned int n, const std::vector&lt;std::string&gt;&amp; gens)
+{
+    Pattern2 pat;
+    unsigned int num_counts = n*n;
+    std::vector&lt;unsigned long&gt; counts(num_counts, 0);
+    for (const std::string&amp; sigma : gens) {
+        auto matches = pat.CountMatches(sigma);
+        ++counts[matches];
+    }
+    while (counts.back() == 0) {
+        counts.pop_back();
+    }
+    Print(n, &quot;12&quot;, counts);
+}
+
+void Counter3(std::vector&lt;unsigned long&gt;&amp; counts,
+             const std::vector&lt;std::string&gt;&amp; gens,
+             const std::vector&lt;std::string&gt;::const_iterator&amp; start,
+             const std::vector&lt;std::string&gt;::const_iterator&amp; end,
+             const Pattern3&amp; pat)
+{
+    for (auto iter = start; iter &lt; end; ++iter) {
+        auto matches = pat.CountMatches(*iter);
+        ++counts[matches];
+    }
+}
+
+void Runner3(const std::string&amp; tau, unsigned int n, const std::vector&lt;std::string&gt;&amp; gens)
+{
+    Pattern3 pat{tau};
+    unsigned int num_counts = n * n * (n - 1) * (n - 2);
+
+    size_t block_size = gens.size() / 4;
+    std::vector&lt;unsigned long&gt; counts0(num_counts, 0);
+    auto start0 = gens.begin();
+    auto end0 = start0;
+    std::advance(end0, block_size);
+    std::vector&lt;unsigned long&gt; counts1(num_counts, 0);
+    auto start1 = end0;
+    auto end1 = start1;
+    std::advance(end1, block_size);
+    std::vector&lt;unsigned long&gt; counts2(num_counts, 0);
+    auto start2 = end1;
+    auto end2 = start2;
+    std::advance(end2, block_size);
+    std::vector&lt;unsigned long&gt; counts3(num_counts, 0);
+    auto start3 = end2;
+    auto end3 = gens.end();
+    std::thread t0(Counter3, std::ref(counts0), std::cref(gens), std::cref(start0), std::cref(end0), std::cref(pat)); 
+    std::thread t1(Counter3, std::ref(counts1), std::cref(gens), std::cref(start1), std::cref(end1), std::cref(pat)); 
+    std::thread t2(Counter3, std::ref(counts2), std::cref(gens), std::cref(start2), std::cref(end2), std::cref(pat)); 
+    std::thread t3(Counter3, std::ref(counts3), std::cref(gens), std::cref(start3), std::cref(end3), std::cref(pat)); 
+    t0.join();
+    t1.join();
+    t2.join();
+    t3.join();
+    std::vector&lt;unsigned long&gt; counts(num_counts, 0);
+    for (int i = 0; i &lt; num_counts; ++i) {
+        counts[i] = counts0[i] + counts1[i] + counts2[i] + counts3[i];
+    }
+
+    while (counts.back() == 0) {
+        counts.pop_back();
+    }
+    Print(n, tau, counts);
+}
+
+void Counter4(std::vector&lt;unsigned long&gt;&amp; counts,
+             const std::vector&lt;std::string&gt;&amp; gens,
+             const std::vector&lt;std::string&gt;::const_iterator&amp; start,
+             const std::vector&lt;std::string&gt;::const_iterator&amp; end,
+             const Pattern4&amp; pat)
+{
+    for (auto iter = start; iter &lt; end; ++iter) {
+        auto matches = pat.CountMatches(*iter);
+        ++counts[matches];
+    }
+}
+
+void Runner4(const std::string&amp; tau, unsigned int n, const std::vector&lt;std::string&gt;&amp; gens)
+{
+    Pattern4 pat{tau};
+    unsigned int num_counts = n * n * (n - 1) * (n - 2) * (n - 3);
+
+    size_t block_size = gens.size() / 4;
+    std::vector&lt;unsigned long&gt; counts0(num_counts, 0);
+    auto start0 = gens.begin();
+    auto end0 = start0;
+    std::advance(end0, block_size);
+    std::vector&lt;unsigned long&gt; counts1(num_counts, 0);
+    auto start1 = end0;
+    auto end1 = start1;
+    std::advance(end1, block_size);
+    std::vector&lt;unsigned long&gt; counts2(num_counts, 0);
+    auto start2 = end1;
+    auto end2 = start2;
+    std::advance(end2, block_size);
+    std::vector&lt;unsigned long&gt; counts3(num_counts, 0);
+    auto start3 = end2;
+    auto end3 = gens.end();
+    std::thread t0(Counter4, std::ref(counts0), std::cref(gens), std::cref(start0), std::cref(end0), std::cref(pat)); 
+    std::thread t1(Counter4, std::ref(counts1), std::cref(gens), std::cref(start1), std::cref(end1), std::cref(pat)); 
+    std::thread t2(Counter4, std::ref(counts2), std::cref(gens), std::cref(start2), std::cref(end2), std::cref(pat)); 
+    std::thread t3(Counter4, std::ref(counts3), std::cref(gens), std::cref(start3), std::cref(end3), std::cref(pat)); 
+    t0.join();
+    t1.join();
+    t2.join();
+    t3.join();
+    std::vector&lt;unsigned long&gt; counts(num_counts, 0);
+    for (int i = 0; i &lt; num_counts; ++i) {
+        counts[i] = counts0[i] + counts1[i] + counts2[i] + counts3[i];
+    }
+    
+    while (counts.back() == 0) {
+        counts.pop_back();
+    }
+    Print(n, tau, counts);
+}
+
+template&lt;typename Func&gt;
+void Runner(Func func, unsigned int running_time, unsigned int n, const std::string&amp; tau, std::unordered_map&lt;size_t, std::vector&lt;std::string&gt;&gt;&amp; all_gens)
+{
+    const auto start = std::chrono::steady_clock::now();
+    for (const auto finish = start + std::chrono::seconds{running_time}; n &lt; 12 &amp;&amp; std::chrono::steady_clock::now() &lt; finish; ++n)
+    {
+        const std::vector&lt;std::string&gt; gens = all_gens[n];
+        func(tau, n, gens);
+    }
+    const std::chrono::duration&lt;double&gt; duration = std::chrono::steady_clock::now() - start;
+    std::cout &lt;&lt; &quot;It took &quot; &lt;&lt; duration.count() &lt;&lt; &quot; seconds.\n&quot;;
+}
+</code></pre>
+<h3>Outputs:</h3>
+<pre><code>n is: 4, tau is: 1, and we have: [0, 0, 0, 0, 24]
+n is: 5, tau is: 1, and we have: [0, 0, 0, 0, 0, 120]
+n is: 6, tau is: 1, and we have: [0, 0, 0, 0, 0, 0, 720]
+n is: 7, tau is: 1, and we have: [0, 0, 0, 0, 0, 0, 0, 5040]
+n is: 8, tau is: 1, and we have: [0, 0, 0, 0, 0, 0, 0, 0, 40320]
+n is: 9, tau is: 1, and we have: [0, 0, 0, 0, 0, 0, 0, 0, 0, 362880]
+n is: 10, tau is: 1, and we have: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3628800]
+n is: 11, tau is: 1, and we have: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 39916800]
+It took 2.29098 seconds.
+n is: 4, tau is: 12, and we have: [1, 3, 5, 6, 5, 3, 1]
+n is: 5, tau is: 12, and we have: [1, 4, 9, 15, 20, 22, 20, 15, 9, 4, 1]
+n is: 6, tau is: 12, and we have: [1, 5, 14, 29, 49, 71, 90, 101, 101, 90, 71, 49, 29, 14, 5, 1]
+n is: 7, tau is: 12, and we have: [1, 6, 20, 49, 98, 169, 259, 359, 455, 531, 573, 573, 531, 455, 359, 259, 169, 98, 49, 20, 6, 1]
+n is: 8, tau is: 12, and we have: [1, 7, 27, 76, 174, 343, 602, 961, 1415, 1940, 2493, 3017, 3450, 3736, 3836, 3736, 3450, 3017, 2493, 1940, 1415, 961, 602, 343, 174, 76, 27, 7, 1]
+n is: 9, tau is: 12, and we have: [1, 8, 35, 111, 285, 628, 1230, 2191, 3606, 5545, 8031, 11021, 14395, 17957, 21450, 24584, 27073, 28675, 29228, 28675, 27073, 24584, 21450, 17957, 14395, 11021, 8031, 5545, 3606, 2191, 1230, 628, 285, 111, 35, 8, 1]
+n is: 10, tau is: 12, and we have: [1, 9, 44, 155, 440, 1068, 2298, 4489, 8095, 13640, 21670, 32683, 47043, 64889, 86054, 110010, 135853, 162337, 187959, 211089, 230131, 243694, 250749, 250749, 243694, 230131, 211089, 187959, 162337, 135853, 110010, 86054, 64889, 47043, 32683, 21670, 13640, 8095, 4489, 2298, 1068, 440, 155, 44, 9, 1]
+n is: 11, tau is: 12, and we have: [1, 10, 54, 209, 649, 1717, 4015, 8504, 16599, 30239, 51909, 84591, 131625, 196470, 282369, 391939, 526724, 686763, 870233, 1073227, 1289718, 1511742, 1729808, 1933514, 2112319, 2256396, 2357475, 2409581, 2409581, 2357475, 2256396, 2112319, 1933514, 1729808, 1511742, 1289718, 1073227, 870233, 686763, 526724, 391939, 282369, 196470, 131625, 84591, 51909, 30239, 16599, 8504, 4015, 1717, 649, 209, 54, 10, 1]
+It took 2.13947 seconds.
+n is: 4, tau is: 123, and we have: [14, 6, 3, 0, 1]
+n is: 5, tau is: 123, and we have: [42, 27, 24, 7, 9, 6, 0, 4, 0, 0, 1]
+n is: 6, tau is: 123, and we have: [132, 110, 133, 70, 74, 54, 37, 32, 24, 12, 16, 6, 6, 8, 0, 0, 5, 0, 0, 0, 1]
+n is: 7, tau is: 123, and we have: [429, 429, 635, 461, 507, 395, 387, 320, 260, 232, 191, 162, 104, 130, 100, 24, 74, 62, 18, 32, 10, 30, 13, 8, 0, 10, 10, 0, 0, 0, 6, 0, 0, 0, 0, 1]
+n is: 8, tau is: 123, and we have: [1430, 1638, 2807, 2528, 3008, 2570, 2864, 2544, 2389, 2182, 2077, 1818, 1580, 1456, 1494, 886, 1047, 1004, 682, 656, 546, 466, 537, 288, 228, 324, 252, 156, 115, 138, 154, 66, 58, 60, 68, 38, 47, 0, 18, 40, 16, 10, 0, 0, 15, 12, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 1]
+n is: 9, tau is: 123, and we have: [4862, 6188, 11864, 12525, 16151, 15203, 18179, 17357, 18096, 17333, 17505, 16605, 15847, 15068, 15049, 12630, 12472, 12101, 10837, 9588, 8935, 8225, 8089, 6836, 5405, 6072, 5158, 4541, 3901, 3462, 3412, 2976, 2524, 2151, 1887, 1995, 1583, 1312, 1064, 1190, 850, 834, 823, 508, 488, 420, 458, 427, 282, 186, 166, 234, 148, 248, 44, 80, 57, 66, 110, 58, 50, 0, 10, 20, 60, 19, 12, 0, 0, 0, 21, 14, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 1]
+n is: 10, tau is: 123, and we have: [16796, 23256, 48756, 58258, 80889, 83382, 105082, 107194, 120197, 121630, 129449, 128712, 132579, 130310, 133945, 124572, 127049, 121602, 121330, 112240, 109115, 103134, 102875, 95256, 86372, 84020, 82579, 73540, 69645, 64590, 61259, 56574, 53742, 47734, 44615, 41368, 39552, 35538, 31990, 29182, 27361, 25088, 23871, 20574, 18612, 16776, 15679, 14582, 14304, 11058, 9812, 9188, 8974, 9012, 6788, 5824, 5451, 4708, 5058, 4682, 3486, 3004, 2795, 2206, 2678, 2434, 1977, 1256, 1192, 1134, 1480, 1130, 986, 606, 401, 608, 603, 700, 378, 312, 192, 156, 264, 296, 326, 60, 107, 64, 15, 120, 172, 72, 59, 0, 12, 0, 35, 84, 22, 14, 0, 0, 0, 0, 28, 16, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 1]
+n is: 11, tau is: 123, and we have: [58786, 87210, 196707, 259787, 385387, 431167, 568809, 616449, 730182, 778432, 868607, 901457, 975820, 1000220, 1059437, 1051194, 1099257, 1092656, 1121794, 1101327, 1106169, 1079286, 1094214, 1065888, 1031696, 1005574, 1002920, 963317, 925079, 897540, 867777, 833036, 807892, 761461, 735291, 694925, 665451, 644967, 601738, 567469, 536582, 514598, 487819, 457925, 428537, 402525, 377705, 354636, 343753, 315180, 288746, 273107, 250591, 248644, 223830, 206056, 191347, 177756, 167509, 159312, 140646, 133790, 124559, 111283, 105226, 98752, 89678, 84846, 74486, 68371, 65623, 60868, 54635, 50256, 43978, 42730, 39349, 35811, 32045, 28528, 27264, 25732, 21425, 20715, 19063, 16286, 14829, 15964, 11766, 11168, 11210, 8690, 8278, 8326, 7356, 6657, 5607, 4362, 4878, 3660, 3955, 4146, 3456, 2574, 1787, 1862, 1688, 2283, 1806, 1756, 1310, 874, 398, 746, 867, 1089, 850, 534, 508, 166, 150, 166, 533, 392, 462, 64, 148, 66, 0, 35, 222, 224, 98, 68, 0, 14, 0, 0, 56, 112, 25, 16, 0, 0, 0, 0, 0, 36, 18, 0, 0, 0, 0, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+It took 4.41592 seconds.
+n is: 4, tau is: 132, and we have: [14, 5, 4, 1]
+n is: 5, tau is: 132, and we have: [42, 21, 23, 14, 12, 5, 3]
+n is: 6, tau is: 132, and we have: [132, 84, 107, 82, 96, 55, 64, 37, 29, 22, 10, 0, 2]
+n is: 7, tau is: 132, and we have: [429, 330, 464, 410, 526, 394, 475, 365, 360, 298, 281, 175, 206, 126, 93, 55, 23, 14, 13, 1, 2]
+n is: 8, tau is: 132, and we have: [1430, 1287, 1950, 1918, 2593, 2225, 2858, 2489, 2682, 2401, 2620, 2088, 2321, 1853, 1770, 1576, 1417, 1152, 1048, 730, 647, 397, 322, 169, 162, 109, 41, 37, 20, 0, 7, 1]
+n is: 9, tau is: 132, and we have: [4862, 5005, 8063, 8657, 12165, 11539, 15174, 14772, 16627, 16066, 18248, 16413, 18449, 16681, 17104, 16300, 16525, 14486, 14891, 12878, 12952, 11213, 10816, 8969, 8484, 7136, 6163, 4914, 4110, 3094, 2722, 1937, 1611, 1181, 950, 509, 510, 311, 107, 141, 85, 11, 37, 6, 0, 5, 1]
+n is: 10, tau is: 132, and we have: [16796, 19448, 33033, 38225, 55482, 57064, 76381, 79768, 94243, 96248, 112709, 109422, 124827, 121352, 130154, 129704, 137826, 130013, 137479, 129923, 134624, 128037, 129817, 119910, 120597, 112847, 109851, 101464, 98255, 88302, 86333, 75684, 71042, 62466, 57142, 47504, 43980, 36867, 31539, 26333, 23803, 18854, 16276, 12781, 10735, 8453, 6665, 5023, 4158, 2658, 2056, 1584, 1040, 681, 562, 271, 175, 159, 83, 26, 44, 11, 4, 6, 1]
+n is: 11, tau is: 132, and we have: [58786, 75582, 134576, 166322, 248509, 273612, 372506, 411132, 501367, 540405, 645884, 666591, 771103, 792470, 873391, 904364, 988292, 984496, 1062388, 1058312, 1121118, 1117511, 1167522, 1140122, 1182129, 1158052, 1180398, 1150418, 1167814, 1120075, 1134523, 1080774, 1075062, 1022688, 1008723, 948246, 933609, 874695, 839814, 777886, 749612, 684351, 647464, 583310, 541746, 487788, 449094, 396602, 365025, 316887, 287377, 251343, 226338, 190755, 170845, 144866, 126540, 104648, 90914, 73269, 62680, 50919, 41128, 32514, 26314, 19986, 16651, 12085, 9197, 7079, 5386, 3647, 2884, 2099, 1284, 1016, 769, 358, 343, 150, 111, 82, 41, 6, 19, 6, 4, 1]
+It took 4.17272 seconds.
+n is: 4, tau is: 1234, and we have: [23, 1]
+n is: 5, tau is: 1234, and we have: [103, 12, 4, 0, 0, 1]
+n is: 6, tau is: 1234, and we have: [513, 102, 63, 10, 6, 12, 8, 0, 0, 5, 0, 0, 0, 0, 0, 1]
+n is: 7, tau is: 1234, and we have: [2761, 770, 665, 196, 146, 116, 142, 46, 10, 72, 32, 24, 0, 13, 0, 12, 18, 0, 0, 10, 0, 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+n is: 8, tau is: 1234, and we have: [15767, 5545, 5982, 2477, 2148, 1204, 1782, 885, 503, 804, 573, 600, 199, 312, 112, 156, 333, 115, 96, 136, 142, 12, 0, 89, 24, 84, 44, 24, 10, 41, 0, 0, 40, 0, 0, 28, 8, 0, 0, 10, 0, 15, 0, 0, 0, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+n is: 9, tau is: 1234, and we have: [94359, 39220, 49748, 25886, 25190, 13188, 19936, 11533, 9599, 9533, 7775, 8585, 5312, 5586, 3004, 3006, 4679, 2718, 2776, 2102, 3081, 1323, 640, 1586, 1253, 1590, 928, 998, 502, 948, 620, 220, 746, 567, 272, 400, 408, 242, 54, 440, 158, 302, 124, 157, 30, 364, 112, 12, 161, 94, 48, 28, 16, 60, 0, 152, 44, 94, 40, 46, 0, 10, 40, 0, 0, 50, 20, 0, 0, 0, 12, 68, 0, 0, 10, 19, 0, 0, 0, 0, 12, 0, 0, 0, 0, 21, 0, 0, 0, 0, 14, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+n is: 10, tau is: 1234, and we have: [586590, 276144, 396642, 244233, 260505, 142550, 210663, 130920, 132620, 113954, 100201, 102866, 85736, 82752, 55779, 51594, 64086, 46271, 48938, 36084, 49273, 30289, 24894, 25486, 25212, 29569, 20598, 20286, 15216, 18642, 16001, 10686, 14354, 12342, 12164, 9042, 9190, 8688, 5268, 8640, 6875, 7195, 4618, 6043, 2831, 6714, 5228, 2594, 3816, 3726, 4140, 1548, 1916, 2116, 992, 3908, 1846, 2534, 1824, 2104, 1208, 994, 1422, 953, 870, 1320, 1210, 737, 372, 779, 302, 1426, 586, 828, 424, 942, 350, 68, 747, 263, 265, 299, 160, 56, 422, 594, 140, 406, 16, 108, 246, 340, 300, 8, 104, 161, 50, 216, 0, 0, 116, 240, 0, 80, 15, 142, 72, 24, 0, 56, 187, 0, 40, 0, 0, 158, 60, 0, 0, 0, 12, 60, 0, 0, 0, 59, 12, 8, 0, 35, 10, 0, 0, 0, 0, 84, 12, 0, 0, 0, 22, 0, 0, 0, 0, 0, 14, 0, 0, 0, 0, 0, 0, 0, 0, 28, 0, 0, 0, 0, 0, 16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+n is: 11, tau is: 1234, and we have: [3763290, 1948212, 3089010, 2167834, 2493489, 1476655, 2136586, 1396483, 1574270, 1308353, 1231914, 1168760, 1139142, 1065192, 848857, 772876, 854099, 688165, 725885, 568412, 709188, 510887, 500661, 428278, 433048, 460477, 396052, 360136, 307833, 337855, 307073, 252242, 275869, 230346, 254906, 212275, 202396, 177857, 160884, 176735, 155432, 160778, 126044, 139380, 102473, 129824, 119286, 100572, 96254, 84524, 108448, 70634, 67477, 66313, 48076, 79778, 60889, 67211, 49818, 62162, 47384, 37102, 46130, 38655, 38438, 36768, 36972, 33390, 24838, 27562, 19970, 35462, 23347, 26997, 19102, 26876, 21432, 16120, 19400, 16220, 17410, 12648, 12176, 8489, 12720, 19653, 10636, 11919, 8356, 11398, 6688, 11942, 11340, 5242, 8694, 7886, 5136, 8846, 5104, 4526, 3704, 8888, 3228, 6718, 3714, 5102, 2336, 3804, 4226, 2584, 5818, 2710, 2235, 2682, 2162, 3645, 3398, 3668, 908, 2298, 2028, 1972, 2084, 1264, 360, 2673, 2228, 610, 564, 1882, 780, 2404, 664, 540, 101, 2426, 1492, 1344, 136, 500, 1064, 620, 1060, 184, 552, 1179, 354, 250, 416, 538, 508, 644, 10, 32, 460, 857, 568, 192, 0, 330, 296, 668, 504, 12, 0, 618, 143, 180, 16, 40, 92, 388, 10, 225, 320, 134, 12, 20, 0, 60, 324, 138, 120, 60, 24, 342, 66, 120, 0, 40, 40, 24, 103, 0, 0, 0, 78, 0, 60, 210, 0, 0, 66, 0, 0, 140, 84, 0, 0, 0, 12, 22, 84, 0, 10, 0, 0, 68, 0, 0, 12, 0, 0, 0, 0, 56, 0, 0, 0, 0, 14, 0, 112, 0, 0, 0, 0, 0, 25, 0, 0, 0, 0, 0, 0, 16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 36, 0, 0, 0, 0, 0, 0, 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+It took 10.9059 seconds.
+n is: 4, tau is: 1243, and we have: [23, 1]
+n is: 5, tau is: 1243, and we have: [103, 11, 4, 2]
+n is: 6, tau is: 1243, and we have: [513, 88, 56, 32, 14, 7, 9, 0, 0, 1]
+n is: 7, tau is: 1243, and we have: [2761, 638, 543, 341, 235, 138, 173, 51, 42, 47, 34, 6, 17, 4, 0, 7, 1, 0, 2]
+n is: 8, tau is: 1243, and we have: [15767, 4478, 4600, 3119, 2658, 1710, 2180, 972, 975, 877, 771, 356, 542, 233, 184, 266, 157, 81, 130, 41, 60, 49, 16, 16, 37, 8, 9, 13, 3, 0, 10, 1, 0, 0, 0, 0, 1]
+n is: 9, tau is: 1243, and we have: [94359, 31199, 36691, 26602, 25756, 17628, 22984, 12381, 13705, 11786, 11395, 6832, 9438, 5252, 4870, 5314, 4350, 2787, 3611, 1905, 2415, 2032, 1200, 1029, 1510, 905, 794, 680, 579, 409, 541, 242, 295, 275, 130, 137, 296, 56, 45, 120, 77, 28, 86, 17, 21, 45, 15, 4, 23, 0, 9, 5, 3, 0, 8, 1, 0, 1, 0, 0, 2]
+n is: 10, tau is: 1243, and we have: [586590, 218033, 284370, 218957, 231390, 166338, 221429, 133959, 156652, 134354, 137682, 94181, 125521, 80373, 80587, 80257, 74696, 53683, 65521, 42356, 50366, 43226, 33854, 27707, 36211, 25734, 24108, 21261, 20671, 15427, 18681, 11391, 12545, 11648, 8921, 8324, 10657, 6082, 5355, 5853, 5991, 3719, 4870, 2942, 2636, 3405, 2395, 1732, 2600, 1439, 1457, 1328, 1346, 740, 1183, 759, 674, 733, 469, 303, 656, 329, 190, 329, 307, 158, 221, 109, 96, 128, 117, 63, 108, 31, 42, 51, 37, 10, 43, 6, 26, 11, 14, 2, 23, 6, 0, 1, 0, 0, 11, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1]
+n is: 11, tau is: 1243, and we have: [3763290, 1535207, 2174352, 1767837, 1994176, 1496134, 2028316, 1333828, 1613196, 1400002, 1491191, 1107853, 1450538, 1015596, 1068935, 1031355, 1025935, 793317, 946788, 684288, 792446, 693662, 618559, 517310, 636195, 490334, 483795, 432288, 438545, 352040, 408434, 292745, 311630, 284867, 255834, 234898, 267252, 191952, 185679, 177865, 186232, 142166, 160978, 116730, 115187, 121503, 102725, 86464, 102757, 74906, 75723, 69379, 67843, 50755, 61223, 49497, 47371, 43658, 35241, 31189, 41500, 26903, 25412, 26919, 24336, 20775, 22053, 15432, 16000, 15455, 14645, 11527, 14570, 8759, 8812, 9220, 8078, 6370, 8098, 4763, 6182, 5400, 4197, 3545, 4861, 3079, 2496, 2699, 2605, 1985, 2805, 1700, 1612, 1613, 1265, 1053, 1446, 659, 934, 727, 891, 550, 726, 376, 451, 469, 370, 193, 320, 176, 252, 257, 222, 110, 151, 87, 87, 87, 78, 27, 141, 30, 28, 32, 20, 36, 53, 11, 2, 14, 24, 0, 10, 0, 0, 15, 8, 0, 1, 0, 9, 1, 0, 1, 0, 0, 1, 0, 0, 0, 2]
+It took 11.0133 seconds.
+n is: 4, tau is: 1324, and we have: [23, 1]
+n is: 5, tau is: 1324, and we have: [103, 10, 6, 1]
+n is: 6, tau is: 1324, and we have: [513, 75, 74, 26, 17, 9, 6]
+n is: 7, tau is: 1324, and we have: [2762, 522, 645, 321, 290, 130, 166, 47, 54, 48, 41, 4, 8, 2]
+n is: 8, tau is: 1324, and we have: [15793, 3579, 5023, 3058, 3232, 1527, 2228, 874, 1159, 893, 875, 340, 503, 281, 269, 207, 156, 112, 123, 21, 54, 2, 0, 6, 5]
+n is: 9, tau is: 1324, and we have: [94776, 24670, 37549, 26174, 30409, 15966, 23762, 10965, 15598, 11639, 12070, 6487, 9633, 5690, 6056, 5021, 4579, 3366, 4128, 1991, 2734, 1503, 1488, 1127, 1432, 765, 933, 657, 496, 262, 425, 106, 154, 74, 92, 26, 54, 8, 0, 7, 4, 0, 4]
+n is: 10, tau is: 1324, and we have: [591950, 172198, 277089, 213122, 264667, 154452, 228665, 119090, 171635, 130545, 140681, 87346, 129648, 80843, 89519, 77927, 77496, 57636, 72997, 44129, 56802, 38567, 40481, 30585, 39332, 26288, 29031, 23149, 22663, 15442, 20266, 11940, 13360, 10107, 10516, 7633, 9318, 6070, 5707, 4886, 5013, 2983, 3876, 2168, 2205, 1851, 1824, 950, 1214, 526, 685, 386, 485, 74, 391, 116, 92, 32, 42, 3, 65, 32, 0, 0, 0, 0, 4, 4, 1]
+n is: 11, tau is: 1324, and we have: [3824112, 1219974, 2043416, 1693787, 2213548, 1420513, 2086877, 1205632, 1719334, 1345649, 1499284, 1018334, 1487469, 982487, 1111324, 994064, 1041082, 795125, 999180, 685365, 853857, 640737, 685976, 541423, 679946, 501230, 546144, 458471, 479249, 364168, 448498, 315978, 353005, 288836, 301293, 241579, 283104, 210799, 217702, 188745, 197027, 145802, 170042, 125405, 132888, 113900, 115130, 86529, 99081, 69574, 79658, 61304, 64454, 46900, 56090, 38556, 42314, 32258, 33958, 24748, 29923, 19324, 21834, 16521, 15886, 12154, 14597, 8298, 9837, 6772, 7068, 4758, 6183, 2874, 4226, 2660, 2398, 1474, 1902, 751, 1314, 798, 482, 400, 388, 208, 316, 74, 87, 148, 86, 10, 32, 38, 24, 0, 16, 4, 14, 0, 0, 6, 0, 0, 0, 0, 1]
+It took 11.162 seconds.
+n is: 4, tau is: 1342, and we have: [23, 1]
+n is: 5, tau is: 1342, and we have: [103, 10, 6, 1]
+n is: 6, tau is: 1342, and we have: [512, 77, 69, 30, 21, 5, 6]
+n is: 7, tau is: 1342, and we have: [2740, 548, 598, 330, 335, 123, 174, 58, 58, 37, 26, 3, 9, 1]
+n is: 8, tau is: 1342, and we have: [15485, 3799, 4686, 2970, 3411, 1676, 2338, 1040, 1317, 878, 777, 363, 608, 230, 252, 165, 133, 30, 93, 26, 31, 4, 1, 3, 4]
+n is: 9, tau is: 1342, and we have: [91245, 26165, 35148, 24550, 30182, 17185, 24685, 12976, 16867, 12248, 12360, 7203, 11086, 5692, 6391, 5194, 5006, 2751, 3917, 2019, 2482, 1622, 1371, 812, 1233, 490, 495, 416, 360, 157, 282, 54, 78, 41, 29, 22, 49, 7, 4, 0, 6]
+n is: 10, tau is: 1342, and we have: [555662, 180512, 258390, 194524, 249925, 157765, 228949, 137892, 178897, 136866, 147875, 97336, 144013, 86383, 97551, 83482, 87825, 57805, 75538, 48428, 59365, 44334, 43055, 30914, 40620, 25178, 26230, 21239, 21735, 14478, 18540, 10413, 11956, 8481, 8007, 5559, 7822, 3944, 3937, 2917, 3450, 1677, 2394, 1149, 1250, 1028, 811, 379, 802, 216, 322, 236, 249, 90, 189, 50, 65, 35, 16, 2, 36, 0, 12]
+n is: 11, tau is: 1342, and we have: [3475090, 1251832, 1882813, 1506786, 1998264, 1364500, 1991958, 1318382, 1727153, 1382970, 1540425, 1108017, 1581056, 1057910, 1212103, 1062295, 1152892, 843320, 1060298, 761390, 916286, 740645, 749373, 594592, 742181, 536033, 568444, 485474, 512375, 392372, 469748, 334596, 371632, 300252, 299179, 240512, 288754, 200025, 206566, 171109, 188723, 132675, 152423, 106675, 115972, 97837, 90729, 66595, 84156, 53183, 58167, 45687, 46707, 32569, 38358, 24868, 27436, 20574, 19746, 13524, 18937, 10616, 10981, 8781, 9015, 5447, 7130, 4028, 4673, 3378, 3130, 1960, 3506, 1238, 1538, 1296, 1094, 619, 941, 297, 546, 423, 198, 120, 356, 56, 82, 62, 26, 6, 80, 2, 14, 8, 8, 0, 2]
+It took 11.0463 seconds.
+n is: 4, tau is: 1423, and we have: [23, 1]
+n is: 5, tau is: 1423, and we have: [103, 10, 6, 1]
+n is: 6, tau is: 1423, and we have: [512, 77, 69, 30, 21, 5, 6]
+n is: 7, tau is: 1423, and we have: [2740, 548, 598, 330, 335, 123, 174, 58, 58, 37, 26, 3, 9, 1]
+n is: 8, tau is: 1423, and we have: [15485, 3799, 4686, 2970, 3411, 1676, 2338, 1040, 1317, 878, 777, 363, 608, 230, 252, 165, 133, 30, 93, 26, 31, 4, 1, 3, 4]
+n is: 9, tau is: 1423, and we have: [91245, 26165, 35148, 24550, 30182, 17185, 24685, 12976, 16867, 12248, 12360, 7203, 11086, 5692, 6391, 5194, 5006, 2751, 3917, 2019, 2482, 1622, 1371, 812, 1233, 490, 495, 416, 360, 157, 282, 54, 78, 41, 29, 22, 49, 7, 4, 0, 6]
+n is: 10, tau is: 1423, and we have: [555662, 180512, 258390, 194524, 249925, 157765, 228949, 137892, 178897, 136866, 147875, 97336, 144013, 86383, 97551, 83482, 87825, 57805, 75538, 48428, 59365, 44334, 43055, 30914, 40620, 25178, 26230, 21239, 21735, 14478, 18540, 10413, 11956, 8481, 8007, 5559, 7822, 3944, 3937, 2917, 3450, 1677, 2394, 1149, 1250, 1028, 811, 379, 802, 216, 322, 236, 249, 90, 189, 50, 65, 35, 16, 2, 36, 0, 12]
+n is: 11, tau is: 1423, and we have: [3475090, 1251832, 1882813, 1506786, 1998264, 1364500, 1991958, 1318382, 1727153, 1382970, 1540425, 1108017, 1581056, 1057910, 1212103, 1062295, 1152892, 843320, 1060298, 761390, 916286, 740645, 749373, 594592, 742181, 536033, 568444, 485474, 512375, 392372, 469748, 334596, 371632, 300252, 299179, 240512, 288754, 200025, 206566, 171109, 188723, 132675, 152423, 106675, 115972, 97837, 90729, 66595, 84156, 53183, 58167, 45687, 46707, 32569, 38358, 24868, 27436, 20574, 19746, 13524, 18937, 10616, 10981, 8781, 9015, 5447, 7130, 4028, 4673, 3378, 3130, 1960, 3506, 1238, 1538, 1296, 1094, 619, 941, 297, 546, 423, 198, 120, 356, 56, 82, 62, 26, 6, 80, 2, 14, 8, 8, 0, 2]
+It took 10.8298 seconds.
+n is: 4, tau is: 1432, and we have: [23, 1]
+n is: 5, tau is: 1432, and we have: [103, 11, 5, 0, 1]
+n is: 6, tau is: 1432, and we have: [513, 87, 68, 17, 18, 10, 0, 4, 2, 0, 1]
+n is: 7, tau is: 1432, and we have: [2761, 625, 626, 268, 274, 138, 112, 58, 51, 44, 31, 9, 15, 8, 12, 0, 5, 0, 0, 0, 3]
+n is: 8, tau is: 1432, and we have: [15767, 4378, 5038, 2781, 3060, 1697, 1817, 1036, 964, 773, 656, 450, 379, 320, 285, 148, 237, 97, 98, 55, 68, 61, 23, 30, 30, 13, 30, 0, 0, 0, 16, 0, 10, 0, 0, 1, 0, 0, 0, 0, 2]
+n is: 9, tau is: 1432, and we have: [94359, 30671, 38541, 24731, 28881, 17943, 21193, 13040, 14245, 10607, 10156, 7596, 7574, 5938, 5647, 3722, 4904, 3131, 3256, 2205, 2372, 1729, 1572, 1423, 1130, 846, 1014, 634, 644, 316, 609, 295, 371, 190, 306, 105, 195, 82, 94, 182, 86, 32, 79, 0, 49, 18, 41, 8, 30, 0, 43, 0, 20, 0, 0, 4, 1, 0, 0, 0, 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2]
+n is: 10, tau is: 1432, and we have: [586590, 216883, 289785, 205853, 251051, 170941, 211942, 142187, 163587, 128113, 128732, 100701, 109971, 85489, 85649, 67021, 75089, 56874, 60397, 45806, 49198, 40624, 37457, 32975, 31394, 26058, 26056, 20705, 20996, 14894, 17646, 12853, 13931, 10583, 10699, 8066, 8780, 6271, 6318, 6394, 5366, 3753, 4414, 2917, 3838, 2395, 3069, 1715, 2167, 1181, 1746, 1424, 1579, 880, 927, 841, 617, 569, 697, 293, 765, 139, 373, 268, 329, 241, 317, 85, 200, 108, 202, 94, 92, 16, 24, 78, 92, 19, 140, 0, 107, 5, 16, 10, 1, 4, 0, 0, 30, 0, 72, 4, 0, 0, 0, 0, 0, 0, 0, 0, 14, 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 2]
+n is: 11, tau is: 1432, and we have: [3763290, 1552588, 2172387, 1663964, 2096207, 1535129, 1954751, 1417314, 1674215, 1367302, 1442060, 1166386, 1334171, 1059609, 1109249, 930634, 1012528, 817526, 883392, 712076, 770293, 657724, 659051, 567799, 581450, 505877, 505195, 435477, 442807, 363235, 391358, 314376, 330559, 279469, 279737, 233779, 247628, 202488, 198986, 181873, 178728, 145947, 151991, 122028, 133974, 106370, 109130, 88316, 95025, 72848, 77553, 66516, 69104, 54015, 56357, 46890, 45853, 39525, 41001, 29289, 37365, 24516, 28021, 21883, 24707, 20150, 20127, 13574, 17768, 13105, 14200, 11333, 12459, 8252, 8839, 8040, 8981, 5471, 8179, 4280, 6717, 4186, 4545, 3061, 4806, 3268, 2641, 2630, 2670, 1591, 3442, 2364, 2218, 905, 1571, 704, 1344, 916, 734, 877, 1257, 599, 1219, 446, 889, 470, 843, 210, 418, 136, 385, 83, 150, 172, 356, 50, 452, 274, 212, 42, 380, 36, 16, 34, 40, 62, 56, 34, 138, 0, 110, 0, 106, 20, 6, 84, 0, 0, 0, 0, 69, 1, 28, 0, 0, 0, 0, 12, 0, 0, 42, 0, 0, 0, 16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8]
+It took 10.8561 seconds.
+n is: 4, tau is: 2143, and we have: [23, 1]
+n is: 5, tau is: 2143, and we have: [103, 11, 4, 2]
+n is: 6, tau is: 2143, and we have: [513, 88, 53, 33, 18, 8, 6, 0, 0, 1]
+n is: 7, tau is: 2143, and we have: [2761, 642, 495, 340, 262, 160, 172, 65, 58, 39, 14, 6, 18, 0, 0, 6, 0, 0, 2]
+n is: 8, tau is: 2143, and we have: [15767, 4567, 4099, 3007, 2692, 1832, 2171, 1152, 1291, 968, 728, 457, 566, 174, 176, 221, 129, 14, 122, 29, 38, 52, 8, 0, 32, 9, 0, 10, 0, 0, 8, 0, 0, 0, 0, 0, 1]
+n is: 9, tau is: 2143, and we have: [94359, 32443, 32345, 25049, 24492, 17732, 21841, 13234, 15867, 12824, 11744, 8852, 10670, 5983, 6058, 5709, 4751, 2372, 3642, 1790, 2080, 1799, 1020, 719, 1508, 621, 456, 549, 490, 200, 498, 152, 170, 198, 66, 114, 189, 34, 8, 52, 70, 0, 58, 4, 0, 30, 0, 0, 22, 0, 6, 0, 0, 0, 8, 0, 0, 0, 0, 0, 2]
+n is: 10, tau is: 2143, and we have: [586590, 232189, 250371, 203452, 211291, 160561, 201524, 133030, 162800, 136840, 134669, 109219, 134085, 90985, 97178, 91917, 87126, 60426, 74360, 50859, 55948, 46889, 37498, 28547, 39584, 23350, 21951, 20022, 19986, 12961, 17766, 9861, 11022, 9968, 6998, 6849, 9424, 4124, 3624, 4367, 4884, 2464, 3844, 1630, 1911, 2721, 1054, 795, 2217, 783, 873, 778, 600, 240, 748, 514, 486, 276, 130, 68, 522, 30, 58, 214, 121, 126, 116, 10, 16, 41, 64, 0, 140, 4, 12, 10, 0, 0, 32, 0, 18, 16, 0, 0, 12, 0, 0, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+n is: 11, tau is: 2143, and we have: [3763290, 1679295, 1926145, 1635315, 1776655, 1409304, 1787218, 1263567, 1554692, 1348551, 1376606, 1161259, 1427223, 1058226, 1158896, 1110992, 1120317, 883389, 1044049, 817100, 905437, 795435, 730734, 615053, 747506, 548342, 542930, 488947, 490209, 377724, 439366, 313966, 333400, 293175, 258751, 232438, 276324, 179719, 175730, 167202, 179041, 127377, 149490, 100038, 107522, 110872, 82676, 66882, 95691, 59304, 59918, 56481, 50440, 36032, 49024, 36793, 36822, 31347, 22820, 17667, 34580, 16068, 14327, 18082, 16211, 13114, 13538, 7564, 8832, 7829, 9394, 4766, 11001, 4054, 3146, 5248, 3522, 3338, 4014, 1790, 4034, 2533, 1382, 994, 3394, 1542, 348, 790, 1528, 530, 2034, 880, 420, 370, 192, 288, 1138, 280, 210, 458, 321, 110, 308, 48, 316, 116, 62, 0, 350, 16, 140, 32, 98, 0, 64, 20, 0, 112, 0, 4, 108, 0, 0, 0, 4, 0, 42, 0, 0, 0, 32, 0, 0, 0, 0, 8, 0, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2]
+It took 10.9596 seconds.
+n is: 4, tau is: 2413, and we have: [23, 1]
+n is: 5, tau is: 2413, and we have: [103, 9, 8]
+n is: 6, tau is: 2413, and we have: [512, 62, 82, 34, 28, 2]
+n is: 7, tau is: 2413, and we have: [2740, 402, 612, 384, 466, 94, 232, 42, 60, 8]
+n is: 8, tau is: 2413, and we have: [15485, 2593, 4187, 3036, 4356, 1746, 3132, 1064, 1918, 909, 654, 333, 612, 144, 104, 22, 24, 1]
+n is: 9, tau is: 2413, and we have: [91245, 16921, 28065, 21638, 33274, 17598, 31180, 12942, 24000, 14290, 15434, 7770, 15692, 5965, 6896, 3947, 5660, 2226, 3674, 1314, 1512, 516, 508, 204, 332, 37, 40]
+n is: 10, tau is: 2413, and we have: [555662, 112196, 188514, 149946, 237128, 140954, 257686, 132874, 222776, 149894, 184050, 106012, 211448, 99394, 118316, 95636, 121084, 66468, 95314, 51880, 68562, 43284, 43446, 27110, 44888, 19814, 20422, 15206, 14496, 7502, 8876, 4222, 5374, 2376, 2390, 808, 2008, 274, 312, 76, 112, 10]
+n is: 11, tau is: 2413, and we have: [3475090, 755920, 1278590, 1036826, 1658064, 1041598, 1933438, 1143020, 1880176, 1322744, 1709002, 1090862, 2112490, 1138532, 1462450, 1234316, 1556162, 989470, 1426682, 890202, 1244686, 861630, 962280, 676572, 1037130, 595502, 688432, 542620, 600072, 394014, 529312, 314892, 413768, 262686, 283214, 182652, 260852, 136382, 154338, 105060, 120560, 68362, 85002, 44736, 54548, 34494, 32444, 17900, 31096, 10350, 11190, 6468, 6804, 2534, 5160, 828, 1588, 364, 540, 64, 40]
+It took 10.9555 seconds.   
+</code></pre>
+<p>Runs all <span class="math-container">\$\tau\$</span>s for <span class="math-container">\$n\in {4,5,\dots,11}\$</span> in  under <span class="math-container">\$11\$</span> seconds per <span class="math-container">\$\tau\$</span>.<br />
+Maybe able to increase that but need to rewrite how the permutations of <span class="math-container">\$\sigma\$</span> are generated for <span class="math-container">\$n=12\$</span>. The above caches all the permutations but that blows up on my laptop for <span class="math-container">\$n=12\$</span> due to memory overload.</p>
+</div>
+<div id="pu3" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, Score: 10 (estimated)</h1>
+<p>For now, this is a very simple implementation to make sure I understood the challenge correctly. The score is probably just <strong>10</strong>, which is quite bad.</p>
+
+<pre class="lang-javascript prettyprint-override"><code>function count(a, b, c = [], p = 0, i = 0) {
+  return (
+    p == b.length ? 1 :
+    i == a.length ? 0 :
+    (
+      b.every((v, k) =&gt; k &gt;= p || Math.sign(b[p] - v) == Math.sign(a[i] - c[k])) &amp;&amp;
+      count(a, b, [...c, a[i]], p + 1, i + 1)
+    ) +
+    count(a, b, c, p, i + 1)
+  );
+}
+
+function perm(a) {
+  let r = [];
+
+  (function P(a, p = []) {
+    if(a.length) {
+      a.forEach((v, i) =&gt; P(a.filter(_ =&gt; i--), [...p, v]));
+    }
+    else {
+      r.push(p);
+    }
+  })(a);
+
+  return r;
+}
+
+function f(n, t) {
+  let list = [];
+
+  perm([...Array(n)].map((_, i) =&gt; i + 1)).forEach(p =&gt; {
+    let x = count(p, t);
+
+    if(!list[x]) {
+      for(let i = 0; i &lt;= x; i++) list[i] |= 0;
+    }
+    list[x]++;
+  });
+  return list;
+}
+</code></pre>
+<p><a href="https://tio.run/##dVJNb6MwEL3zK2YvrS2I1XTTSl2Wrvawx0p7R6hyqEm8ocYyBqVq8tuzM4aE9OvCwMy8N/Pe8E/2si2dtn5mmid1uOxaBa13uvSX6aHqTOl1Y6BsOuOZTGCZQAkZ5EUCFuNVApoCh9cIwCnfOQMMX4HKGSxFrczKr@EXzOFHyGvKyyl/NeYHFCBE9cq9MNYnsOGQ3cMG7jOk2@3gQfq1aPXKsGVuC5hBz4ltSstcU7rMNwXncHExcp6vnwshygSoM4iIYU4iMPDQzSGO3mOw35418TTaR9HJHKvcM5ODBbXy4IJBaYSf7NT0l6hsqAyd6ETFjj4cU4DOVI37I8t1MEAHAxArKl175dgjfevZjA9CcKselaYBvA9PVeMFj2xO2K5dM3vWsee4a1huPJd7q6ZiJgE/qal16ydBQStN/u2cfGGGF@JZWsYej7sOJvGTCkvJYR1i2yLV4KylKYEzOPGN5uTbYnICGRhBwg@WYviZwRZjHPOwFJ16R6Uz8SNJHKdBaTqppAoKPZSNaZtaibpZsYrdoo14/usEviewQCejt/Wbqf6xeEfFLzFIeP2xSAMXgXD@KediHPg58magDWDa9vAf" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/221277/">221277</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
