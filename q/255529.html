@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::255529</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>nan</td><td></td><td>250123T080457Z</td><td><a href="https://codegolf.stackexchange.com/questions/255529/smallest-and-largest-100-bit-square-with-maximum-hamming-weight/277819#277819">138 Aspe</a></td></tr>
+<tr d-ix="1"><td>nan</td><td></td><td>221215T152108Z</td><td><a href="https://codegolf.stackexchange.com/questions/255529/smallest-and-largest-100-bit-square-with-maximum-hamming-weight/255531#255531">l4m2</a></td></tr>
+<tr d-ix="2"><td>067</td><td>Rust w/ Rayon  0.9s runtime</td><td>221219T095707Z</td><td><a href="https://codegolf.stackexchange.com/questions/255529/smallest-and-largest-100-bit-square-with-maximum-hamming-weight/255705#255705">gsitcia</a></td></tr>
+<tr d-ix="3"><td>nan</td><td></td><td>221219T163412Z</td><td><a href="https://codegolf.stackexchange.com/questions/255529/smallest-and-largest-100-bit-square-with-maximum-hamming-weight/255726#255726">AnttiP</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>Python</h1>
+<p>Python port of @gsitcia's Rust answer.</p>
+<pre class="lang-python prettyprint-override"><code>import sys
+import math
+from typing import Optional, Iterator
+
+def main():
+    args = sys.argv
+    if len(args) == 2:  # Example: python max_square.py 10
+        n = try_parse_int(args[1])
+        if n is None:
+            print(&quot;Error reading args&quot;)
+            return
+        solve(n, verbose=True)
+    elif len(args) == 3:  # Example: python max_square.py -q 10
+        # Decide which argument is the number of bits
+        # and whether we are verbose or not
+        if args[1] == &quot;-q&quot;:
+            n = try_parse_int(args[2])
+            if n is None:
+                print(&quot;Error reading args&quot;)
+                return
+            solve(n, verbose=False)
+        elif args[2] == &quot;-q&quot;:
+            n = try_parse_int(args[1])
+            if n is None:
+                print(&quot;Error reading args&quot;)
+                return
+            solve(n, verbose=False)
+        else:
+            print(&quot;Usage: max_square [-q] [number of bits]&quot;)
+            return
+    else:
+        print(&quot;Usage: max_square [-q] [number of bits]&quot;)
+        return
+
+def try_parse_int(s: str) -&gt; Optional[int]:
+    &quot;&quot;&quot;Attempt to parse an integer from a string.&quot;&quot;&quot;
+    try:
+        return int(s)
+    except ValueError:
+        return None
+
+def solve(n: int, verbose: bool):
+    &quot;&quot;&quot;
+    Tries to solve the same problem logic as in the Rust code:
+    - If n &lt; 6, there's a small switch-case result
+    - Otherwise, it proceeds through the a and b variables,
+      calculates costs, and decides which step to perform.
+    - Finally, it prints the best data found.
+    &quot;&quot;&quot;
+    if n &lt; 6:
+        match n:
+            case 1:
+                print(&quot;1 1 1 1&quot;)
+            case 2:
+                print(&quot;None&quot;)
+            case 3:
+                print(&quot;3 1 2 2&quot;)
+            case 4:
+                print(&quot;4 2 3 3&quot;)
+            case 5:
+                print(&quot;5 3 5 5&quot;)
+            case _:
+                print(&quot;Error&quot;)
+        return
+
+    best_solution = Solution(n)
+    a = 0
+    b = 2
+
+    # Continue while best + a + b &lt;= n
+    while best_solution.get_best() + a + b &lt;= n:
+        cost_a = calculate_cost_a(n, a)
+        cost_b = calculate_cost_b(n, b)
+        if cost_a &lt; cost_b:
+            if verbose:
+                print(f&quot;({a+b-1}/{n - best_solution.get_best() - 1}) a={a} {cost_a} (best: {best_solution.get_best()})&quot;,
+                      file=sys.stderr)
+            step_a(n, a, best_solution)
+            a += 1
+        else:
+            if verbose:
+                print(f&quot;({a+b-1}/{n - best_solution.get_best() - 1}) b={b} {cost_b} (best: {best_solution.get_best()})&quot;,
+                      file=sys.stderr)
+            step_b(n, b, best_solution)
+            b += 1
+
+    solutions = best_solution.solutions
+    if verbose:
+        print(&quot;&quot;, file=sys.stderr)
+        print(f&quot;B_max: {best_solution.get_best()}&quot;, file=sys.stderr)
+        smin = min(solutions) if solutions else None
+        smax = max(solutions) if solutions else None
+        print(f&quot;n_min: {smin}&quot;, file=sys.stderr)
+        print(f&quot;n_max: {smax}&quot;, file=sys.stderr)
+        print(&quot;&quot;, file=sys.stderr)
+        print(&quot;Found values: &quot;, end=&quot;&quot;, file=sys.stderr)
+        for z in solutions:
+            print(f&quot;{z} &quot;, end=&quot;&quot;, file=sys.stderr)
+        print(&quot;\n&quot;, file=sys.stderr)
+
+    # Print final result
+    smin = min(solutions) if solutions else 0
+    smax = max(solutions) if solutions else 0
+    print(f&quot;{n} {best_solution.get_best()} {smin} {smax}&quot;)
+
+def calculate_cost_a(n: int, a: int) -&gt; int:
+    &quot;&quot;&quot;
+    In Rust: cost_a = binomial((n-1)/2, a)
+    We'll use a direct binomial function (float-&gt;int) but might differ in large n.
+    &quot;&quot;&quot;
+    # binomial expects int; we do floor for (n-1)/2
+    return binomial((n - 1) // 2, a)
+
+def step_a(n: int, a: int, best: 'Solution'):
+    &quot;&quot;&quot;
+    In Rust this does:
+        iter::split(
+          Combinator::with_prefix_postfix( ... ),
+          split_combinator
+        ).flatten_iter()
+        .for_each(...)
+    We'll just iterate through the combinator in a single-threaded manner.
+    &quot;&quot;&quot;
+    h = n // 2
+    # Generate the combinator
+    comb = Combinator.with_prefix_postfix(
+        full_width=n,
+        num_zeros=a,
+        prefix=1,
+        prefix_width=1,
+        postfix=(1 &lt;&lt; h) - 1,
+        postfix_width=h
+    )
+    # We won't do the split in Python, just do a normal iteration
+    for zval in comb:
+        best.update(isqrt(zval))
+
+def calculate_cost_b(n: int, b: int) -&gt; int:
+    &quot;&quot;&quot;
+    In Rust: cost_b = (1..b/2 + 1).map(...).sum() * 2
+    We'll rewrite similarly in Python.
+    &quot;&quot;&quot;
+    s = 0
+    half = (b // 2) + 1
+    for i in range(1, half):
+        s += (1 &lt;&lt; i) * binomial((n // 2) - 1 - 2*i, b - 2*i)
+    return s * 2
+
+def step_b(n: int, b: int, best: 'Solution'):
+    &quot;&quot;&quot;
+    This is more complex in Rust. We'll do it as close as we can in Python.
+    &quot;&quot;&quot;
+    m = (1 &lt;&lt; ((n + 1) // 2)) - 1
+    half_b = b // 2
+    for k in range(half_b):
+        w = ((n + 1) // 2) - 3 - 2*k
+        comb = Combinator(w, b - 2 - 2*k, 1, 3)
+        for a_val in comb:
+            x = (modsqrt(w + 3, a_val) &lt;&lt; k)
+            z = 1 &lt;&lt; ((n + 1) // 2)
+            step_size = 1 &lt;&lt; (((n + 1) // 2) - 1 - k)
+            while z &gt; 0:
+                z -= step_size
+                best.update((z + x) &amp; m)
+                best.update((z - x) &amp; m)
+
+def modsqrt(n: int, a: int) -&gt; int:
+    &quot;&quot;&quot;
+    The Rust version:
+        let mut x = 1;
+        let m = (1&lt;&lt;n) - 1;
+        for _ in 3..n {
+            x = (((x*x - a) &gt;&gt; 1) + x) &amp; m;
+        }
+        x
+    &quot;&quot;&quot;
+    x = 1
+    m = (1 &lt;&lt; n) - 1
+    # The loop goes from 3..n in Rust, so it iterates (n-3) times.
+    for _ in range(3, n):
+        x = (((x*x - a) &gt;&gt; 1) + x) &amp; m
+    return x
+
+def isqrt(n: int) -&gt; int:
+    &quot;&quot;&quot;
+    The Rust version tries integer sqrt, then adjusts either up or down.
+    &quot;&quot;&quot;
+    if n &lt; 0:
+        return 0
+    x = int(math.isqrt(n))
+    if x*x &lt;= n:
+        x += 1
+        while x*x &lt;= n:
+            x += 1
+        return x - 1
+    else:
+        x -= 1
+        while x*x &gt; n:
+            x -= 1
+        return x
+
+def binomial(n: int, k: int) -&gt; int:
+    &quot;&quot;&quot;
+    Calculate &quot;n choose k&quot; in an integer manner.
+    &quot;&quot;&quot;
+    if k &lt; 0 or k &gt; n:
+        return 0
+    k = min(k, n - k)
+    if k == 0:
+        return 1
+    c = 1
+    for i in range(k):
+        c = c * (n - i) // (i + 1)
+    return c
+
+def next_combination(n: int) -&gt; int:
+    &quot;&quot;&quot;
+    Rust version:
+      if n &amp; 1 == 0 { return n - (((n ^ (n-1)) + 1) &gt;&gt; 2); }
+      let a = (n ^ (n+1)) &gt;&gt; 1;
+      let na = n - a;
+      if na == 0 { return na; }
+      let b = ((na ^ (na-1))&gt;&gt;2) - a;
+      if b == 0 { return na - 1; }
+      let b = b &gt;&gt; b.trailing_zeros();
+      na - 1 - b
+    We'll translate it directly into Python.
+    &quot;&quot;&quot;
+    if (n &amp; 1) == 0:
+        return n - (((n ^ (n-1)) + 1) &gt;&gt; 2)
+    a = (n ^ (n+1)) &gt;&gt; 1
+    na = n - a
+    if na == 0:
+        return na
+    b = ((na ^ (na-1)) &gt;&gt; 2) - a
+    if b == 0:
+        return na - 1
+    # In Rust: b = b &gt;&gt; b.trailing_zeros()
+    # In Python, trailing_zeros is the number of trailing 0 bits.
+    trailing_zeros = (b &amp; -b).bit_length() - 1
+    b = b &gt;&gt; trailing_zeros
+    return na - 1 - b
+
+def ntoc(n: int, k: int) -&gt; int:
+    &quot;&quot;&quot;
+    &quot;combinatorial number system&quot; from Rust:
+      if k == 0 {return 0;}
+      if n == 0 {return (1&lt;&lt;k) - 1;}
+      ...
+    &quot;&quot;&quot;
+    if k == 0:
+        return 0
+    if n == 0:
+        return (1 &lt;&lt; k) - 1
+    x = k
+    xck = 1  # x choose k
+    x1ck = k + 1  # x+1 choose k
+    while x1ck &lt;= n:
+        xck = x1ck
+        x += 1
+        x1ck = (xck * (x + 1)) // (x + 1 - k)
+    return ntoc(n - xck, k - 1) + (1 &lt;&lt; x)
+
+def split_combinator(c: 'Combinator'):
+    &quot;&quot;&quot;
+    Rust logic: if c.max - c.min &lt;= 100000 { return (c, None); }
+                let midpoint = c.min + (c.max - c.min) / 2;
+                ...
+    We'll keep the logic but won't necessarily use it in this Python code.
+    &quot;&quot;&quot;
+    if c.max_val - c.min_val &lt;= 100000:
+        return (c, None)
+    midpoint = c.min_val + (c.max_val - c.min_val) // 2
+    c1 = Combinator(c.width, c.width - c.k, c.mask, c.offset)
+    c1.curr = ntoc(midpoint, c.k)
+    c1.min_val = c.min_val
+    c1.max_val = midpoint
+    c1.k = c.k
+
+    c2 = Combinator(c.width, c.width - c.k, c.mask, c.offset)
+    c2.curr = c.curr
+    c2.min_val = midpoint
+    c2.max_val = c.max_val
+    c2.k = c.k
+    return (c1, c2)
+
+class Combinator:
+    &quot;&quot;&quot;
+    Translates the Rust struct Combinator with curr, mask, offset, min, max, k.
+    &quot;&quot;&quot;
+    def __init__(self, width: int, num_zeros: int, mask: int, offset: int):
+        self.width = width
+        self.k = width - num_zeros
+        # In Rust: curr = (1 &lt;&lt; width) - (1 &lt;&lt; num_zeros)
+        self.curr = (1 &lt;&lt; width) - (1 &lt;&lt; num_zeros)
+        self.mask = mask
+        self.offset = offset
+        self.min_val = 0
+        self.max_val = binomial(width, num_zeros)
+        # max_val is the number of combos, used as a counter
+
+    @classmethod
+    def with_prefix_postfix(cls,
+                            full_width: int,
+                            num_zeros: int,
+                            prefix: int,
+                            prefix_width: int,
+                            postfix: int,
+                            postfix_width: int):
+        &quot;&quot;&quot;
+        In Rust:
+          let width = full_width - prefix_width - postfix_width;
+          Combinator::new(width, num_zeros, (prefix &lt;&lt; (width + postfix_width)) + postfix, postfix_width)
+        &quot;&quot;&quot;
+        width = full_width - prefix_width - postfix_width
+        mask = (prefix &lt;&lt; (width + postfix_width)) + postfix
+        return cls(width, num_zeros, mask, postfix_width)
+
+    def __iter__(self) -&gt; Iterator[int]:
+        return self
+
+    def __next__(self) -&gt; int:
+        if self.min_val == self.max_val:
+            raise StopIteration
+        curr_val = self.curr
+        self.max_val -= 1
+        self.curr = next_combination(curr_val)
+        return self.mask | (curr_val &lt;&lt; self.offset)
+
+class Solution:
+    &quot;&quot;&quot;
+    In Rust:
+      struct Solution {
+          best: AtomicU32,
+          minz: i128,
+          maxz: i128,
+          solutions: Arc&lt;Mutex&lt;HashSet&lt;i128&gt;&gt;&gt;,
+      }
+    We'll store everything in normal Python attributes.
+    &quot;&quot;&quot;
+    def __init__(self, width: int):
+        self.best = 0
+        self.minz = isqrt((1 &lt;&lt; (width - 1)) - 1) + 1
+        self.maxz = isqrt(1 &lt;&lt; width)
+        self.solutions = set()
+
+    def update(self, z: int):
+        &quot;&quot;&quot;
+        Similar logic to Rust:
+          if z &lt; self.minz or z &gt; self.maxz: return;
+          let z2 = z*z;
+          let z2c = z2.count_ones();
+          let prev = self.best.fetch_max(z2c, Ordering::Relaxed);
+        &quot;&quot;&quot;
+        if z &lt; self.minz or z &gt; self.maxz:
+            return
+        z2 = z*z
+        # In Rust, z2.count_ones() is # of set bits in z2.
+        z2c = bit_count(z2)
+        if z2c &lt; self.best:
+            return
+        elif z2c &gt; self.best:
+            self.best = z2c
+            self.solutions.clear()
+        self.solutions.add(z)
+
+    def get_best(self) -&gt; int:
+        return self.best
+
+def bit_count(n: int) -&gt; int:
+    &quot;&quot;&quot;
+    Returns the number of 1 bits in the binary representation of n.
+    In Python 3.10+, we have int.bit_count(). If you can rely on that, do n.bit_count().
+    Here, we define an equivalent for wider compatibility.
+    &quot;&quot;&quot;
+    return bin(n).count(&quot;1&quot;)
+
+if __name__ == &quot;__main__&quot;:
+    main()
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>Going further</h1>
+<pre><code>49 41 22193965 22193965
+50 41 32988235 32988235
+51 42 43586515 47450235
+52 44 57804981 57804981
+53 44 94905541 94905541
+54 44 115609962 134053275
+55 46 164382389 177549685
+56 47 268123979 268123979
+57 47 320528203 379526189
+58 49 528407335 528407335
+59 50 657506485 657506485
+60 51 888717493 888717493
+61 52 1510322221 1510322221
+62 52 2100772683 2111529939
+63 53 2630119323 2630119323
+64 54 4227325771 4227325771
+65 55 5853487285 5853487285
+66 55 8580481947 8580481947
+67 57 10520476455 10520476455
+68 57 14878203147 17110519093
+69 58 21040953067 24295633269
+70 59 31469977781 31469977781
+71 62 48589783221 48589783221
+72 63 66537313397 66537313397
+73 62 97179566261 97179566442
+74 63 133074626794 133074626794
+75 64 194366549037 194366549037
+76 64 259365748555 274835944267
+77 66 388730126517 388730126517
+78 66 475016392885 540779528373
+79 68 759031429451 759031429451
+80 68 1064500084555 1081632748507
+81 68 1503999171957 1554929409435
+82 69 2055848542027 2197923974325
+83 70 2576736968885 3109840793419
+84 72 3646667521867 4362198168395
+85 72 5384675514549 6216643955893
+86 73 8445509046091 8791729601637
+87 74 11620627528805 11937419436213
+88 76 17435796250805 17435796250805
+89 76 21537910687315 24879106612889
+90 77 34895284158283 34895284158283
+91 77 39275570260917 49752141391123
+92 78 60940798018325 68134217006923
+93 80 93089098383179 93089098383179
+94 80 121861586862261 139768858984629
+95 81 184920521899109 199030966469849
+96 82 222524145495085 222524145495085
+97 85 398064946368587 398064946368587
+98 84 461438710099403 562672855105355
+99 87 796095014224053 796095014224053
+100 85 933544295655093 1125891114428899
+101 88 1592054863872923 1592054863872923
+102 88 2233021208375059 2233021208375059
+103 89 3153273599102795 3153273599102795
+104 90 4498915668727861 4498915668727861
+105 92 6354993066190667 6354993066190667
+106 91 7790298568288075 8721180941868443
+107 92 12709986132381334 12711635715085643
+108 93 18005548694652121 18005548694652121
+109 94 25469208479569437 25469208479569437
+110 94 30874441840049387 36004547995030069
+111 95 47233732013276085 50801164553247509
+112 96 66646890995961483 72057405025529767
+113 99 101480601046523531 101480601046523531
+114 98 143542302959229109 143542302959229109
+115 99 202961202093047062 202961202093047062
+116 101 269614819660724085 269614819660724085
+117 101 403417952942237229 403417952942237229
+118 101 529472308325235947 576458535517221045
+119 103 808844333869390923 808844333869390923
+120 103 970104967079909557 1143803445656875189
+121 104 1578696363991412555 1630401033738048053
+122 106 1996776422069106507 2156918025961517429
+123 106 2688433943050910795 3260133329992761163
+124 107 4575515161264941861 4605489388616186187
+125 108 6518622390190614475 6518622390190614475
+126 110 7977185712837244873 7977185712837244873
+</code></pre>
+<p>127 overflows basic type X( (maybe)
+<a href="https://tio.run/##jVVtr6pGEP7Or5h6ck4XlfKix3MsYHKS2yY3EfulTW3S1CgsuBYXCsu9eG/967WzwBF8aVKiq8w8Mzsvz876aapFvn86PTDux0VAwclFwJLvtjOlFe3XYnspEWxPpUQRh5QGNISC5yziNIA44REUcrVvlasV48K0XqGYVwBd9xOeC0ApLMAF07BspRV5KFroZ1HlFby3JYonz5Y5NV6npjWZTEZT0zQmc5jNYGJp3hX@o/Q8tazR6MUyRpPX5/HLy/Or8VLjRy2@ggdJsYkpLK3fJmO0Q@uBaSsyGrGlq4z6SRag3LCV2n2GiCGub0tb@ZSwAGoIkRZ82MRQqvBVAXxYCITP3NbVu0I@aYZGIek9FkUOjwE8xkv8Fr/z3hD8OPH/JOpQ@izxo9oQhnGRbwn2KymEap/d1Hvc30I@WV2RrC5kaV8oL5Lkre4INM7plScWEulshunJX/fKV6V@WzqV@m3ZVR@Vej02VeS0FL8ysSVX9apfNzJOeAKt8VBLRSUdwKYr9FEo4A@4QO5R6MtuW4PValOwWDC@8sWXmGyaumVUFBlHy79hb2NUsnsRazoaJJ85zaqOsmFFzN3dxjLHUBtP9lm4c11vYCIMLhpUzlzZhqcnKB0Xi3PTpJpFnhaxTsxpkvpJwUVMSHWC1LJfzmaeWhHiqrhtWrbSSutcMFbQ4BuC5k/EnDvOTkUfu4HZOsLK4nmUKvv/G9aF268ZJ@8JhYk0kqVzDRuY45KF1uGmbuHxgsGAyQqFzQlAStMsG0LvMfi@Yj9Dup@T6h7uHcXWWnNwHPDaAlR7NgDUY6AVQGOqhpvtnB3F1T1zDnO4qr6uwy9pium6LjAwvs2veI1thZmLu@vja9NLfuZ/ZdisXb8aJ6qcJDdY2Uc4yDDrloq@uEXJLclBUthTZVC7e9tWQDl25NzSGB6N@8yR0akHWZLJWPNU@66jZggQnDfiDuSo3H9r/2ENP9ScuSniO5ci5uKBMvDT7HAEvX8zDn9OxDoGeeOAnIzdcdgJ7AEvGsYp5ALNIhYeLIKH86H8b4DUX6DP0B8/zn/oIxuxjmGSUg6kp4t9qvvR2td7HQ8LJH/vc68TRkNhIGFa8bee48V5juNd0bJ/2Lk9uj4wO5y16AJp39eV4@n0jx/G6yg/aT@NTtpeFJy6fC3YJ4pv68zfnt8@LNzx9F8" rel="nofollow noreferrer" title="C++ (gcc) – Try It Online">Odd</a></p>
+<p><a href="https://tio.run/##jVVdr5pAEH3nV0xvo4UrlA@9qAVMmtyXJmpf2vQ2aWoUUJfiQmG5xbb@9dpZQMCPNCVA3LMzw@yZM6Mbx8rGdY/Hl4S6Yeb5YKfMI9Hr7URooN2Sbc8RRnY@RwS2j33PX0NGU7KhvgdhRDeQ8bd1vblYEMp0YwTZtDBQVTeiKQNEYQ4O6JphCQ00Q2iu1lARFWbvuKX5YOhjbTTWDdM0@2Nd18wpTCZg9pXZhf3bJ7QfG0a/PzS0vjl6GAyHDyNteGVfmHtRtgp9eDI@mwP0Q@@ebgk8G7b1F4nvRomHuGYJzxHxoAREvk/l6ou5BL8EwIusQaQTp3E8bfArTtBpLd51siyFjged8Amf7Au9k8ENI/ebKMk8Zo63ZMF6HWbpVsTqRBmTrDrMWVa0xA/CQShToX7OPhG2FS8yK5crdMmhC0putVBWoD1YtUEXQQZf4cxyh6DLWTR6i8UqIyEjdOGyn6G4qjJMfJYlFD1/w87CrDhPG1Jx50U/qJ8U3BG5KHhwk0Jia1IVyarBwHFmaAQ1ERzMJw6XR7cLue1g6dp8l@kU1ZopG9LKOI5iN8ooC0Wx0KWU3@eTyUwqiK/9D0ITpUmlRMuTYKagwAsR3buiPrXtQMIYQU9vAiGvqHK@Zf2/Y0nbbkmoeDrQOuJOnDhHs4DYjjhXWjLDnoFej3B@VHVdKQ2l4yeJDHcd702hMoKyqg/VbpnA5704BduGWUNA8c3KAPfFykAhkqJbENiBj2@nVhye4YJ9VYWPcYzHdRwgoL1Kz3aLosLEwa@rxqXruTrT7wkWK7gvmlTi/Xlpq6qVRnAwYNePDE0zx2NzMJxKTeOF2Yv68Xodj5PCZBSQjIeSb@uD5yCddMLumcQ5MAfKTJKusyisYM/Jqh2urXim4p63EQoaqQluHb4w5EOGzySFYHv@I799nZR1M1A1L0ScLuyGyUG4vWp@YSUfS@VelfKk6A1xsKk1vKV2p7Qn34eILUPgfyXAh2B78nHVH49/3HW43KRH5X3/qOyWibt16JKRZx9XLKN@vXqcO7qm/QU" rel="nofollow noreferrer" title="C++ (gcc) – Try It Online">Try it online!</a></p>
+<p><a href="https://tio.run/##FJq3kqtKFEVz/QoB3oV4742ADO9BePPz782tmkSJaHX32XutGrI1bafqyPv//gP9gviKM8Mw/givrsTUTMO48d9nFtKBb4fdIJgocMGwuX6yN80kEWMEbh8lhHwlu4NPfuHaECa82PlhdlQpw053iRalvmt/y0r0E7cJTZmSIRaesDdlZ8RdMFkdGYucDgHxHjJDUa/nq/jbAbw1izvyLL7S55ZGpPfnrwnLLhJKRh9uqYNm8EaPghvWLw4y7mXgQZHWTJdlsJ4uj2QWQ0ToZakSwpfo7szDF5xJjo@wqiIZje9@X11cneDDKahb6xz8srr2UMkyGHnqwmyYcXzKOUQu1s2VRX1CgU40Lhz19ajuCFWIkctP8RY2EDLwD1lZJAlunatxZH5L@ZpgNqqo1JG5v5Vne7mBxchROX825lDf6YZ@SVU1IvIirIeDbEsKPmgqZrhLXwa/ZvkkwilAL/GRC8LGpKsRngQQEkp9qOvEXMz3iyaK6a9aI20hEGiX3@gcrQpij5qmiXw6oI14/lUvcEWRHEQBGFPXDC@ysOExEie1Fes4SykV/ezaZChwYGDbSY0DdRNK7LYCYBbJvx1TpXj6RF/hmc0KIGMC4S2Qd3eZZlZsqR3fhQTnvkotEn8EWEtJ@jISHMkQlTisO8VJFd4jPsJce8NFVHeR@zHNlWLg24yzTVKJi3OGS0zMMla3Pm5iBcWv7/1UjLszCKQFwoWHq4ac63TChY88bcSccvzdJDooguvjTMAR1HaHxsu60@BrYg1zySwFGmOCokSthdaW0qtfMRFIALbjx1tgNPE2d/7Uyoa9EzFO5RvXta34qbhpc8j@jmLp8WuSw0sYQ6x0QZSEQhrGjkeMzibNhmQ@zUJhYsUaiBeQCEcsiBlMcS8qha18t4Qv9Sntrcvm/tXXWUJRLT/q4A33KhjlN7FTAeSLXDGE/pS0mk5rX3CVUc8aVqUYaEoYOFeViaPkwIGujPr0xs8xsBMhsxWTkhpuJ6tpbaO8bEYI38tPyPErWQ7Gs8UoP48O31MH/4x4kM7Iv4z6pkHTu7vD6KD9M1i2fwz004Z7Ofl5EvJa6kuO7dBtTUvRyxCmT2iXitiYdFtKMCROvd99H@K54iXJFbEs6Vw5rxgP9WG1@lUa1naSmtGbL/WNWOSVeW0jaxDwTU/cXjhUgXYVeC9uOBz48WkUQG@o1yI0tXVl@zGjl4LtWcaHoVGasYLAsvIc/ZY1VBGmyOq4B7CQy4LBAK7yBdrqAL/AFww9Fd2@rsNAGxnJRIVGEPYYieKYXCSHn7Xbz4EGUtsnj0GgdWfCWHk/k/FUKxVVh3tuisewoQcC57XvteDKK8Q46YUn40glCfPyFs0@4Yf2yY@lzTbq/ZT9kVlRwIeE94IOQjBVxZ4@si7mZxAT0FPR1dqHJb@GREHirvH4FDi6mV8ygDuAabgt5MEfpE4YXeTSpYPvHE/7v1xty6hJdiSFWbUjJcowNYLgJ4emBj8BZSKniJtsI9c6HJbs8Ll2aSfFIfKhP@oezjkYWBow/4U0qjVfWScmPUwILw/kBc87zAFTBZi/SLp7ZaMU6vWCAXaRiCOaloluFf0i4zjKMv2x1RP527EU4kShEf3f7Aekbw13cPdYe/GLuHEIDpPc@6SaqqrhCHQzyC3GAoixJ1ZNJpLkobbVvITphzrAYhIVk@nJaqWwI2NtMhfV6V2JkHM6MxbbxaC410SEeDfhLHaVbdQPnbAvyY/czbTByYESXg@77WPe7FCPUYGP9D41hJiUWtsPWfACpSbqnFSinMQ7Jqy/rUzyopAVd8uivn25SXnjGZSLhlBRuYcrdvvBhYWDvdXpVeIuvR8l9ppsucrNxfhGnl1NdnO0YlovkO0G22oRTPy7WGV/XxuIPs4hpkpRE788NCrtc4XW35deP1DaIX36JbZOB7zxAl6LTvQOJAyW03QVj83ZaApAdZC0SaT8u3ukep3JUS5T009vtISrvj/rF3mnOrIvJ5fnJI8KQ0UpTdrrBZySK9eVjUrNuGnlxq6XJIy5OrdX4jQjiWSBUkJwXWujnCGt3ew/1MMTcV06LYeQOTuwuNh@vScqvGwYGmRQ/ADerNbSCzL8CXK8Cy3PfePJ6jS9o5EvP//uMybdn3lE9WfI9W3xJ3kxdU4hBE2YHTebMbYPu1mq10qosDPsuVfH3aYFG/xYV3LkTvzSzPSLQDCsiHeFjeQRBcknB9TMElK8GiwXrB4bgkAK84REfaMxt7zpOOBfNMB3drtn7XxLwrEXJaQfbJLdl9NT3lLVanuXNVKvT7XEUphtpxLiMplmXaC2jpTS5X07JshLI3bdy4MBQSeBhGL0z0vM4U4fS5TQ423HeO4LSoeHNQwU3qdFrtlrVR2FnCgzPA95CtvqH12F7vM8NTALUQ0nfd5WPYkc3KN9Mo2BSsgvy/ynAqw2bMlBP2IQBL@PLfA4s7R9w4f4QE91X0IYCuq6pgER1eqrUY35seDEaWAd2Dm7OkiitTl5Unj666vTro/DILY4l3@vT@6ehFgZ7nG9l2knVysE58uz9gQKwbr44txqWssOpf1AvUX6odDTjvRzjUPqulUMhG@N3qKg9LDwRB/ye5prJVeBF9ByiWm@mTU/RrvcELiKb8fDX9Ja/s6UhQ1kJI23Kimli5NrzG@w4myjwmnnOVLUdSHtQ7Xk@lVV16ca@uUjYFtMpQK/X0ErJR2i4WiDAfPXldK0f@/t2CrI8@pMOlnpQG/Ac2DNtldbetJD2T9/ER847rEQQm8ytf@t/bOKclQO9zDazu8PbHeoDqjxa5f0AzrBpqYIPZyBjnc2XA1yIWhSxkcwThJ/4zRKR0@nYAJgyzMt1ZvjF0WbvogExd5IiDGSID26Jox7kbVxJL5kLjfpypyUOluAfCUCG8HI@0L8gQudNaOXp1N0YD9dKNeL14q/23jILco5dut4dMIn2w6CjraccvI3kLmNMoc1VcjqkAXZFey54wYr1zX7iW86hPG9loxvV060YlkSaVjhLkYP9xV1DUwgJigGLqCdWb2tDgiaq5uiSbXwSvbanw39DR@yjpmSqZ8AFL7Jg7ASIMKzBhuz3YtAetRL9IPz9hIBV/VT1m4yosjSr55YHMhzrqJ0dwqWgcazMMnkgvgW@V@jy0KgnnVnm6t61Sg7U6zVkBigwVAtv8E2/M3M12X8gWNdudpPL0GrlXXaafd5dyRV4Gi1@TsdDEzzzIdaUaPV1AYbY/uy0xFa@THxZiEXXOfub@NkS9adrwTJae5qY4XXSrHePQlMtxZr4vlKuSD@K0T/Up2/CeB6plzg/FB5BwmV@hnqDo1kVXI1DrFOmtGxXV2@/e86zMnIowj4KU91Od2yo6LaBLAoSbDwFobw/dj8X8d4P6auX6c4rOK8pT0n1lJ74jTWJlL8qV84rnNyj92Njq23b3H40HZRu4eYGNMIUuLaEs30b98@9wxBvzeJkbmgSIuoS0zY477LwLnf8pilyr@IYeEoPeEmVP7ushBLwv6lr/BZRMCAX82fsS8jvvZS0J8Q/Np1nMcrtFOLIn73BdptxKqWd@qJKjZOAvHRfHG6AfFy77qh3wGlf2mU9N9iQFYBm89BqRA1EB738wRdRzPaCMc/lmFh0LZiOEOftl9J5K61nV9INtNPs2NmFL2SJfwNrF@y9/LLFRaH5HK9O3eYhmg97Q9IsMhJ9aSLjOvvYje5ggxdUQ8nnVzIkm9omwLl3F5GzTtzRGc9M5PDRvAMX6DrpTdpYqFvTUgDQSuffUqMJp94YGsSnZ1O6eYcZW7MkpIpmTtTcirWaWXQLMUGdksvmH0pwHXtm6wl@NAjcNlvCItr/CGtD6DA6DcEE9c164fCY6vGgLlYmf1FAr@sKLK07TbCPZnb4B1QKsswRxckw/7WVwE@ZF4avhqZ4KchKZ8azZasidr4SC0g0Ye2FyZlODaV9O3uz@qarpXPnPJqe34ktfKNYLUpKxfgaBB2Ivw7S8qatlniM1X@@OKeo4foFFUqxCtXIIg1fnu8HkVhd1ca8gH6bvQSXiwctFtxc96u7BsWvBgWgcJGpQISG2S6pQJm/DS60Ia@VZUElrclkLm26Z17uM@XxoqXb2FPYGi1M0IQ@oD0W5si1Z0rWfqkF2EiJI8UJcewpB3xk3zknBklXN@l/KfksnTh3B4btFsnGGWXhxzHVoQlfkOL0gn96of79QN8zpbg0ieV9kR0lTv5ZPr4nkX4eX85hRrEqm2yJX4by4DhyiNfhT6KgI3ZdO2pb3WhXFapFoPnTHbX5D5rydGAvMUuNlCVtI4LYlg66Mctf5nuyLnXnXiXSK7DR6f@F789DipzUX71Bb/yfpEB4i8thQLVRBB3ipyu1kDmBeJeeTh@nZI36aT7bDnzis0Xzu94@zK1wIbHyI16JHGCkyYDxUPRG5Hx5EYRkZh/7Y8yspnxo9QpK@nvdoMAD12TjnfjxAeu3u1e6sdn@T2Il@Lys@jCZtAOZ31F71HD@FdUirMLlswoV/1uPB9cJ@/wlTOc@jpLxEL6KbOaOuanCK2pG1zJ4mIIUg7/fuMLuHbNCeS3RXgOGMUymQi@BH7rycw8taUoKLNgm@/tLKvyPaPFekRwYrh/hTIEh@YvHDER@cgXJ282NlGqKAnAl8cn5W8bviz4Y0ol1qkvEMhr9xyzeNihBYc0guRCzvX7PIx4Pn3gjVZNaQRxz0OnP/S5f6jYeqpMa1FH@aPq/OxeUdk/rvnKxOtfdAjA9vhygf71eiVLDji6UNc@V2rWPzXIRyGy7H@RbuzfR6bWxKcGMidQHbYYOte7qo02paKzsfyDM2DPsfg1ZY69ogdgM/aFulFzDSWepPEjiqQzfv@qZxav7xK3eWYzDuMjv9D8A6jWSkRYm65tKK9Uo4/9KSmb7bQ5ud1uxQ8l2mbna2oxBhMR/xkMyZvui8bBYrfx8xs4PCr9PVMzBAXQDMSCxbwmUyWqyYeB/1YWtGJUV0EhsuyN0S1n@vOIo4ODk/wH74pItCV4m3QGRSRUteqkvg4sabIzXZ2vnaXw4s3euhVQUEBbjS5diNdzOjmVjyNNQGdpCLyALBbkR2zz/l1cMjgSdKP8VARkm23X8K@r6cbDlyajDkllzaACvfrHMB6PF6XgUYWkfs2Dj8MYNI72vJSGvz/u8lDPOe2QfxT9cpP7hnktsBIm1Hsczsh6k0g60@4wa39r6l0XpEV9bfJisXLGhqJZAduAIvzZjY1@Tj@r/QZtgSnDvy6oh3P5d341fgCzhW0wRpEcg5BXDebliXYhsY5uj6wG7yq/dKMUwq2sgYTr@Q/Hfp@ecZtN3zgjMOEToTg7hrlz7SZHVdbsbyWAszWdrWDBtcohuZJm4WHJ36Qjsr5AbenWWTHhTri8lu599nDUklWkiH4CTvm4tJRweTsmAg2TuFFCuz@3faNMWvjlV/1ZEIdlS0tdJkRJYcDTd/Z7Dre5xL8bH3zqeHYyn2zTV2/87v6y2YvYWVBmi95mqSlg0OQH9nlTN/fHtccg2@eeMUsxy7TD9kS8TLUScwPdkK/0wbdvmNbXTYyteyE/PVjSJS4VbCKFXh4o8rEdC2wrBwK/yRX@LVoWl0yWjpNkuZGXDkEnJO1ayq6t48@xac1C2pQY/uV8563uxOOEGyv1tw1lqMFLb9D9runtONJj6HhZ9V0zYC9HAb8afymH3ga9dQ9J/QE@pR8cGHHX17yk8XXGSiryCGhy8jxVMw1RnCv@kQ0d3blv69tKBcEahlG5VsENcOyDf0GfnYD3Rsh3/sB6n8rpQ@i8iM2Dt9bwC/1dPJGJznOxIZVg@fIV/9BCvve3IUUUaTqBRCjhyJtrvKxsEiGFYJDJnIdP241147ampMNFoYeu@ieSp8ZV1TPql83Ad4DdgP8yjXgYh24HalZ/u3QYpLmO1cIUSYbc1qbLvGaSP1GhioPNlfr5sDzBLOHMiuIe0anupXzMkwg8wPj791v7Kv3LqA7T1Hz7UfGSD0eQ/bF5pdB1ToiltggfLIM3amQ1k0sg5Xu3Jh@1LvDGZBMEQiJkA/aWgWCRiBUw@hT/DP2vBP5uQBzRf6mZ5KBc1g650de8n59ZcrqCQzrA0hNlBL@S/01T9K9asdxwXv8b6qL2FwXDeQPxnMjmcYQtkS7qBqHNfhSYh4QMBE27WrTpxwFtLiGvRgRwYkPiBtCe4u885KneqMkYLeT@eWk@rLiGpzXjRGJM/9U@rRsEyZvi3x2CQN2bizmHGuNvZVAznHPW/Zh9kMXeln/ki9GzKBE6jOKYImzZA@aIJKZv9zbn8eBAeEdQ5YYihQY1W5ZIkuKi7vrF548osvQovZ6XaT98/5SdOEOzOb9oTJ0rkU80T6XaICzuMO9v5M0/98UVm4O24K8ExCo1IVzrz8U0lPnTMd5laku72C/oU2XDwly1TNwNgzRWUVx3c4pkarZGhHmOBw2potYG@uuXnJl0aUkLZbIn4JZsgy/lw@WJ1oTaQlHeOqLZV6nkeIe9nkQRU2AZm7wrw144oyYiePoJmJ3psjCIVHTj340GnSVBj@lqaJ4l5Q/El0wdltmfOWqGwylW/3vcGbcNfi3JyzdmZqQmot1Z6Pri4qV7drWPrQ@k4IpLhrZPjhshUFkldHp/sFBQGRkI4zf2iioMsSsxQUGh6VGbJzu139oFM3H87r@SraZpgHa8bMWX5aLKLvoMBU@pCW6kvMeW/0jFcR0o9NebDmkQ7cHCOA@nhTTUPzgR06p0mVtUJ/ZCgl5DXxjw7PnrbJaw9oOhjpVu/UzN5UGGh/HPuVSbGHjfpM/V7z3dnXx/A3r9sQY6l6mfut7eTDmqvFqRF9FYduQvrHShX5ZkcppeEDYjjVhxDG3I@2CpbBvJxVhMlUtUgsN/FL4dIXlGXdtEdlPI/R4jylAKWZ9iNm4aTMBXi2evzdGkMAjIpVS5uNp1C/6RlA1m7LG6CePPhwKXHv1B0MQr/6P4AzmssFvot3xKdmzTdeuSrK7ItD1yULKADF2Vv0v0VDiSRXwGfuqQB/6MuxcC46VHGxr5GGtBw5gGeGMajY9fAzY16EvNziz7PN@RcWkmlHhLraIOSku50w113V97vOiHId4bW7@ZzLlYXa0z93vXsCAinakiS3ehqXBShfVYlUKxaRf0kHvdG6ueLW0rysnKP8Em4Qb1Onb2P@Csig/hxfkGnDnrR/CWdguGtTf3sD/3zgZUTITUmnlevgsv4KAvQt@L4nZpBYq5NvfuQSNMD16VbHw2Ai4VhHeuve1/DE@NiLmxSRevZCdMNQsRL7y7jA34OYBEKzwuIcGqUQbKyzXhPdiFPUawTrWNgj5@dpqNBMyUZQnfGmPvj@DR09lOKSY4zl8SujJElpEtSn36XpGokZVHt8f9ZWJcY7EkWJzveF3dZIZ88/EzqW5Z6E8zw4uKg3ExbEfE46L2cHWTblNVVGoWxTTFRBTrHaBOtMvcJsi1@YucMnVAOVWISPygKPLTD3G1YXAMf3/qZlbf52e39eYKfg1KmQUwNY7AJp@P37S28qxVFL3zEzmpRwEU/9KSDNScY6y9RvPt@vTNodLQAS7yiYrgY79faDxb/Y8ec8i5nQ6lPcihXniOpUjdc@Yb1tRfNxbNzihmdCYWl9908xMJoHg/t1KWXeqZmwrKvxpojHxxfaCjRFVRBEP6rlVYlA89CjEfzgwoTiyCvn2pqfZdyzMRvOv4vdcKm3g3//yuha3RWiwyNSdky9YEJBxfNZKOgNxLQCVXMzHooi3nEku0LIxe1VPQVOyRiabvxE5drmAY86AL//qI8eLc@pi@doIVOIK3uvCXdQKlGBb0eMeFTZoTd5d@opXIBeDOKgd7cDYKlOAEe/WoI3N4s9cI@k31UWYIDcggMsTW7x/d3x7le/y6foN/5jS4Gb3aI00v5Eo8q5kSXc6/Kbc/snZjmHBW1gscahObvA0L8oeZkMOXZuhOvUvbaybi2ZlE5NEU02SczS/qeuV@ptZiJ/KXLRaCKbXbErMULTOnH3Jw@g6vvLG7qp0fCWeFXcHSfaV@JL8t6Q@A0UKhl8wVIwLm3mLusb@UiyWmM/39qX7V0hOQlcVmtQRp@de1P4GohMqAyQ9ASi8kYgk3EFzGYPWfQ1FrmRYYfqT@KStPXPSEi992Z1sjQlKvx6aq/lircZE/gWa2ArgkyZeD0xA@X5XHst271zt@ZYLRG0UB4nOG2By9YWuAwR6dAiun5T/sH/M7zDR25jI37ZDs2xmHn3fSaFvXu7aS@pHIVkbXUu@FFijbVdzGVbnOzoHFOfvCPD2j3Fno5uTTOX/EsHonvmagPrbhOeD6NoWfLdj0D/bIYPPRpe0eZTFqRXXg2gUyhrcsmiasJOvtLQH/TtYfMzT1da3wH34jdmCnCVKx8GVBekap43McBCVfvBv2nz3tBjR0V9afJ5gz5GdwVbUTLc7KlxSHL9ELvAkE0rOVoYxvwKvBSAGxV6iMX3sluD5zbdTQzrgH7s@hgVW@zTk/rj6tBA/zp4RFqrwkZrzQL6ITS97P60rFCEObTfkNFyQSkOpEnImZkg0GtMrKeB9ds3N8pnEtE5ocZegNco8RRyPhktZjx2giuZR4KxuqUsjE3l@lTpZaJsElhRkY4@FeJ81WL7VWHhcC3xPXfeRNjIYw/Osl7Ag4Q1/GyQcxtjpt6lJfnzG6YDCmyu5DiYSWCO6r7gxhKX9yE6ZBHUTo/apj@ZnNfPtAkY8VCp8/AQL@zPoNsqlySy08RhePCsNT/FO8woGRkCLsNaJej6/aAwfAVrrKpRWF7wvXzc95S2b7gQavp8qlMHGbrjINEXQXOMMbqGkTfHGIHRx66BBOmpr8@2UOun3QZRvMg4TH8P4DqjcvxtcIl7B208/vJcUd5b2k0hl6PFaZKO7EtAIixV82aY8BjtPdQ1tUR@WE8WeoJMYVeJRtcV5AF@neOWrDIWLqdryP3g0LYZ8u8@JNQnyz7T2eCx4CL1@zxybxMBCDjLyC9WjYaBA7Ox6sZBqjcpSr1c5YJzTMSxJKiFujzyNYPJsE8KzE0G3sU@87aS0tilw7NCVdNbF5kIQrZBqXPeCh8ShquIgwo8H83mPfG9@cjz9cY8u96T7qyl0@1TlB6iRQzTD18XugLCKUxgAre4QE@2tEr6LDcnej0smaMPEn2FQUIZ2aHsyZIpclZUAmAnb4UVEacPVzUwOFiwlCcvznbwNqUI/phDJB@s@GjeoXhcx00@z2BVMEj6rEYZvci1NJdK5@uA8CC9SfNX/IBjULtcPTFt76oTFmonR/bu@xDowS2OkU4E9h/AM14tYoQE4r3qiUjCsR9qTRoJzin8JKiS9f7S/7Ec1Q4QV46JhBkP8mHKSZjla@MRoq5DzUMT5@O2Zqnh@0T@Egj@2T8LeR6rWDcbjoaBc@gxyRA8NVlx/0hYISP4mJwljc/vbbQ6WnvP3@/S/pq5vv3KiyxJXVPFB9WV3bn3tUJk5IEUQR2hfKBbz@xrlZzLzNffiTlnIWazPOUO3ZjUGeB53hW@F2xHLeN36312lxDTRvJBdqefHRnbn0EQ8LLKdvJSGtXhI1q6LZJPlsso704chPRd32y1R1A3krjlQ/wJ@l3ubISYeu8HuhxjeLoe9X2UHCdTmyhsE3sA5Gw5lU039xZsDvJzipiOSwbJNPj8pCKN/pSsGLov8q41/QrTbzfO8u8dmTnX9/13hxOLK9KlFoRcTPUi1gqXwJADnBYPQTd9z16GWpjFOTNqH5w8CVSvx5Nf@WeZkwZM@ktfn2F@/pMFXEWDW9dM7GK3jm28nzLhXbTaKzkBezz4aPtIaepqZ/u5f/wTVGlNP41yqQMOa@GF/xK5Aq3KsWwnauot5ECSlOAoaDRBqdWLWPp8WESkrz3X86na2lMPepv5/nKAUKteik1mYAjPgP8zYtfMqzGXyezWGk9BB5Nx@NXhp2VXztPbAgZdrd9XKwJjnvQ56DLZZdpKLvDf/av8gN97LawNCJF9c1s9/@BDPLjHzpyP1sgVCjHleHti5lFu3UV7pMs0HzdVSTd//I8cd4MhO@X1z4MWNEJcVrbgGKePIaeaCvDlEGu/a3KRa7k5pkUdjlIVBeERAmlnITYsQZ@yPFBqKwz2oNl188XZ@JkFyAIQWsVotgv8ldjigLCIdIofenRwovfiU9kPmKqJpe7jtTn/rWyYI@vY8TvREc9j5ztS@/IXoarKOz21xBhKKTkVGehDqrFoOjV96jeA2B22xbub5is/7@SqQDc74th3vEiCOkGCiOx1r7tL9ytdH2b@l/5EDoZoCNHQmYv5a98L@RPjqi/oGiVr5LzVhR6FLaDx4hUIp2K7/0CrSla7z/XM3r/8JRQYierHsF@nliewBwvAY/EOUR1L76KsheVE0LFstTKahbR6dU2LTJ5JcjF4GEce@lsqTL7oby54Aon4X7G4Bz4ihA85juBiCF@sOdpG1SV77hoGqPmGwpCcDtU0fOLLBVO88njfqKdhnr61Qvnni0ja53@O9Dc9c20VaNHM7XOso/nIquyuaz5bS8ckgrnG3@yO6KeENc/hAdkPNBFy9rGdGLcl/9fNfNILPhiPpW/cAGAXQynOTkn@oFwjtfGMs3xdU6BBZzOENWf8YTaeE@iYsUQFNCAGkkn@SsB8P8@N88lya/Mb8nIcKfmJXFgqtMjXEm9OuyE0GF05ffiPAe1Bryhi9DQ/5zYSWOH14LE@YyhnmPfb0V5BTXae/AT4G4tQ03/MAg9pfhwbQoqtj@iArY@pFxi2nYmvtgkBbR4ooVB7PxysLGruOWkuK02H@vbmTiW3CjGa87ZZI9FpGfiqNyozPlcf7FLy7dQBwzJRlGJrEZvGP00OLxajjuu/rrdCfNJ@/Cn705xmP4cx1tePW5gZVb/gJs/0HPPrJiHsKKswnq7BK4NBXteq7iglgFzk/ra6vRCm9@wLd2/9IrkkmTHifUndtq@U5YLsfAVxOY@4A@Spc5Wn2F2DBENOLN7rCItXovD6wX6uhAtyOCni@QMJAqSOdWP6HreafqtO2vQgwgGkjN4yUJ8kzw@uiOanvJINR/jrjLLrJ@i7BB8nYTlJomGHQNJdHISdMtrkBlsntvrbbiZwloTwX9CXD5N4e/xG/CdEo/4fNOAUR0Sgajhn/S3JJEPgU0zQ0bbgceTmQA08Ce6jBIpsdUbBCN6d8uLZvz@Eg0ZEcuEHnZTUyXfJBbxmuuW/bbItlZGdnWN6HY96Vbq4ODcCDCGz0u902WkWXSqWDF/TIEI/MX1rulLrlwJhDE@tZrkn7MgS@naFJq8nQkJoUITo2r5fgrXJLsbEniKOTOlTRxUBAiCdBhR3AY5nll4N9VOaLpNqdBYrL2uJ38gfDeV7KgeGDAUIavAjJfn7lxAymZnOiEBLNaD2T4iWpSNd/MzGCgVo78gECWYT9/J1omOO@Qc@SN4OfiWrFIvovZd6qROZXUuFijMRkAY6ietxGeb9P0XTxmX8YqUsnEBcbq7wEZdTnbMXQ75DxPdj7t21of2KYfnB51p7UiSFJWsfnu6SUGQ0//OZts6nOZPlGCyOo9P8pR3X/sDaqq88h@2N/t@t3dWi7SPLJZ4eMVWJCJG8OnmAXhGkZORJH50T1exxv/NUw/0a602shSCz2NbKR4POUv2MGCF3zLz1P8@muKXMqdP7f4NG4KDW3ga7@Tdyl5ilCtm7AbvWeORvcacUiVHzm/QWGfyxQCFOInJVlg3/Amjpe3EY97KXFBCLEF@cjfrQY7AP73cvHusDIZ0DSL0m9JKtrfnvnAn@bqlll1fPIkhaxYpIq8r8TKv3R3UCh7kHkodtTjsLj6WI2WsUZMOdSUCFMN9MoG/eV/ZBGBzeYjs31/NBCnvbU9KdeNpz2fjETD7YvSSzd72sRWxwDoGoco9CcTUz3xI2PcPMwyuDEFv/Dyno9dkeIkEz8OiwoBagQWCXi5RIaKIOPYyGjwXPfNTWD3W51b3@keRYKf@1L4Wjz2RxJI3Rhl7RXfMHd0wOXXv/ObTzBlHlZ2EgR6gPkMFZHUXH/LR@c5wmfiaKHe1G4TjW39fqLFX6FswFxREG7xa5gZDOTait3BjdkRwK98e5qnnpcCOtXkQhnWUDz6bOCOnIsNDuuv5TZ7YhkgxH2I@NJPTSAwavEIMh/rDY9@m2fUxhKdKy7wf13/AIKxYHzAjRdotJD5nf2MTXlyVbpVnQpwKL9sakDFx51pm56OvUR/tifTGs9FJ@YveK@9CmI8SPu8v4D7/WaGHmZHsWXRiBDOzec/jXL23dLV9vVZx3BiCPgQc65eyQhvxm8gawRUCQBsc2yp/Hck/EuB1uS@rle1f27SZdDToBg0xIOjl7994RHid5GSh7AZ9tbhp/p1W71uAa3ArXFBwcaNf2c1hbqPbMvDBfC2BvadHCnSF3YkFJNSJNudi9JFAki3tlv5hKXjlmShLH8dUFLoBmArD3ANekZt6yRyXqh4Cs7x3WudQniK3J2ogIjnQDI@joEYzVbgW922pfK1mq/JjKnjYfmfvD50WKtLGee2Qec97e9PordUKlSt1o00pldrzi8aJq43tqPF4JeiYuTM6WdKHfmvQ6YI7IYlEprB5ysFmlVH6pE/6U5h3n5awB6c/tSnzwloxC/q/YYX7xy4WKBGoK52DimIMzKvmfxnG0FhWSJDCr@vrXx8Y6hn/Y0DfBvVyNTuniagVq//slP/CRkByV9JSU9hbuE3m6XBD9U1KhhoW6xwD7SRJeLmAdEUgDP2UxdAb1L29IUc0Y4LPL@Sx1KOA6mrIpKCCsiaV4rr6fvUh/eCHFgCY/Z3Otx@nROgx4Agp/yb@pbKrp9HpwM/hGVAVh/22Yx3pEj7Rie3j6gG3ohuKAXc5j1doUeeYe@/gYphgrTzsFV0UKHQbFYZdpurP1j/EJTI98noxsdQCMwB7TWZWu4P8c9TG81ApuFL8/boL5dE8RvLtvAUB/nv5T808SodIlJ5@07fGRKzqf6si71UsUrH4WOV7D1F4MjSKDDxawQe4LoIM5tJFZfp2qmHqBSUHBrS4RZLmk7aJY7WI1Nyxu@e/jz0k4SkOlavpvcSac7fXaip@CgGa9wGxrsw@vz1RULwfNk3QMEAdygPo@wKGE2pNzcBJXsGGqbPUimk0KccJVQOT8ata/drtzzyiKf2Ew67uIw/GH0f6KUsPpUsWjQsrOgT04f86zoZzqQscfzr4WcC7sBA1Cz41AI7D@l4v8rBLI9E0ZllV7WKMBI0KnCXMMtvylRDFCaa20gubc5@3SqLXa7ZHln1/oYcLoglwJhy/DnaMecrSQ34F@AJyb5jWKTES8K/J3NWiI4819jJ3XMAT6qNf5y9NHxlwyXrNRf0OEqNtoPLR1DSpuBnDyCenoXpzYUoiq0TZGsrmSfYbFH1GXHN44BQkU2vnXxJad8pDEv3And9MHau8GcdWaBfs2e5Nt7BZxVLSE2C2wcx5@hYLBGbrA3@ouwCyJ9rm@59xm6oeMpp8vx8KsOF@6xPbMn50uKib7L0bN5mhpP/l2e4Ass7ANeXk92vvWlbOsYFJ46vAAMDi/J/CJFUMvZHX6MmIorM/swjn79vY@fKC8OkwydRi/RJrWboJzHSB1Sl0af9VFiE7w/bSfbvxND9W@DTiVIiWOqrJOwH2m5PcvQUDioDkuyndAqIrCvsdO3bWMtfxvqUtQZLGE/lnWkw713d6ZwKuYWOGVRuFvCd4u9oqjfzqhQ6yAaHLKl@Zsdkv79tjQ3GGnqdR0xT3In000nal1PpnkOptg4pXzq@PcaI2O20CUcPEXmV0CQYPejBVarp6BFWVZn@TFYTtNMP0QfX4khCDklbuw9cvGxWQjf9RggMffPGftx@BY/ba4Mj/BUH0X6TC4KPZaSes@PbteMNualHULsjn2QOD7pBltGG5st/flpIQFCcBD8Y2fH0uHd2qGxGxsKSBQOv4MgqsRJR86V2uN/7l0cR/xUAoWUqtRt6NuvtLCEgJkQz4EP95RPXgxFilzkv5n8WMHDHHpLyoBa1PyiKnnftVYONgQnzL/fG44eZofcrUHfwHV5EMHRkhBdjf5j3iTkpj/la0FJWnANQCoQyjjui6pkun2Kv5zvACk7a8LM0mmuYldR7PBT5GYV@OrXg3IV861HY3pQ4@URgJfqZdHOvafjrr8zlYqK42eef5TqY52eZ@H3nEPnCWTRLGOyqjtSDbpCUIxVXtlHoqx7ggz3z5e8DEgwRLeI@nn9VWmTFul9JF9eiKTDtsil4oO/5Jb@vkLraEYwzQU@wz/6a@QtiQzpP/97X//165Gfi7adVXnIS2tUnos1iHh5r4qNzMyNWf0TEenReORM/@umPAQrvuy1f@Hau1zcoO/tmt7pkMeiYCfDjx778AFbyTXEYhb14/LuVnLr9QjlIwZ6TMfp@qBvsfsgPCEaQj5bRFvtLQ@gaLnsgKi@aEGpBhH9ingFEHH0uIf8NuE24wPHj5AcOYiGJoozQqWSCSXHvRsw@NU9I7eShV9ILQJ20FuX5y/ArWCaYzv7WphFncFzTp1EgfzCCiOrKQStWl8TJIF21Vm3U8F3O/di8cVmQVAu5ASJLturiRHHRqfRXRi@nr2GId@v9VXl@MJ@RI/74DMCxeYBP4b2PcDo8YB26tAsqq6cqZnMvaDiNsZI1JuT@wMUbMEI2ABNAlW2Sv0@i2UtLsEXxYR0H308II7dYW8BlgDnxT5P6VvyzwD14blPG6SwQjRvMDWJQTK4NN2KPbx5BEDouFEW0Ln7or8lZpE8WsiyNsN85u1HB7pQoEBu9puTxGMVpM47I6snCmcacfYm/EykQ4InfMgzb3LiMXdd1@8DPl0B/yB8FEe0lMjuZbN8TgtBQebrqb@ZlUDx602fss10S465VCVmWcc6ZnxH93aRB@qW1gGEvCBad7tryvf7Uiv@414uLm6bL3wunGCx2J1Bzmj7i2SuZkEuttKsFXBjb3eROsjFeLT4K/TAD0Ji0Tp2x7nAhMynFHiD87EAPN@X@KpQTj79e28M@oGJbHOYaiCJJ@7t233HY7YARFZy1S1J1lfS9TTM5/jTYwfiCMkorCQI63j/n78aOZbiE3nFlzBYIYPljtyNepe2lLybBEK9e1y3Fj4fhtCCfuRyYCW4Sc1BWQzaXFXTFY/cpeJH/BJf2Gj@53adxoD2rKRLYCvItJa7pN6RlkxS8zbsmaDwU55LGQPZcs/TpcVAYFivGtCSEe7Wxb1kb8ufohRssO1VE8yhUGmYuAff3fRZz9UHTxUQrGAacq2UiQSu4oNT4t2GP@8wVC/zZT0aGz9w23CZlXi58sOPkZW2F9laHG9j@28LH75fwT79LyJs9P/CwoTjP6M8qgfewZ/lYzyM6q2FJag1x5@QSKhYfxsTeog@/1VaR@EG3mMtKGYQWDUs38T5sbJaHesXKykrceYfcqmmfgGqG9LJz0pBu4apjXY34w8m2iMAMW9TPD8@FZW4i5K9XEmbc@K93OL32C5h7mqplduvLFgOykOBfoN7qWeXQX5B66Tux@Z/eS6sZzq/wGxla5z7yXF5Fz4aUAMj9jaH8MLBPV4gKqOru6jQA@eK/IJpxcCAb0/gWNy@CngBHCuKw/etEz1zId3z8GoT5ROYhWkGmGBCKguHNzRwDJn6@uPt9locEDAEPB3gGQN1uL6KFSXoxx81PHX9SUwnZsVt4P7BN59E39QF@sJVNyuk@MVF5aJ2Bpt0E4qShXRCj2G144sFm@2v53LzzVp6wGRURWGAJ/CA38Nvqrrk/tnOzNv6h4boNg4ONInp88uY1@95ZZ9xrLO1eXeZ9WXNQ3S@xu/XZQtYS1EHOln4pWMfxZ2nmBYC2M1CcxizMxxuoVpUDqnX5kfuOP5XaE2mZImak0jvS/UEtBVmXvCpvYU1Ffo/H/k33yw0LMx/579VgPdAc/bDYo/3YOgNCTZ4MuompGRfKeQQxG2qOgupE76u28W@8yi33SpJ6CElR9alzw@RU7MTVyL8TZoOqF5PhTgv2U/ogaUUo3@Lavg9zagXjn5PqixjyiRZjFdAGsvV3Eo3dsuj6V0GWPq4dN7iDhIlQZM8ZPOtUGhy0D3z6gXPOr/qHIwU6Pr7g9agC0OdYFSKcNEmVx7KI58zphW5wOQj4l7x2ssPg43qKm2M1of26A@OTm0X9zzZhBQFXvZHeixDB9nw@V5heBsxnBsIEs15tESBsp3aPPraYg4N1bCFhbBcWg40phdvPKkZk5W97vh8cJoBnU9oijcPSl5fMAr2qlAtTSgQck4F6of76aFkREAP9@TlNDBJmaMKyxGa00@P5R2JHkdznBnQ/@bmR39P@yuUZsnYTM3Sq@iEv@sJ3N65C1CiL9kySVP5oeddKSyLWw1t/96DZ8RXRRpV1CL4vjTMP6uetcU8CiV86GF9MGMiYK8iruXncSoFxpPWiBJzR1N8NfBA9mAWwxWbA3tPwx2eE8IswNkDeII@sRwI@He9o7KntKxPS8/ZkV91W/K@6K4jWTVkr6/ZYLhqhe4PjuHXco5sHssfk2T@4@nv4HOB7sci1Znik9zE5qx8764pIuIeTNbbrgx7l/ndnq4stoHQbApUKK8BBjZz2WF@kCB836xTF82gdkiikcf7cqqkiQ/1JS8wUlcGBX@4MXEDQ/C8kRrX/Y1CgxnQO1a9mQWGyuW6YS4NJ4WMyqqs8MO3@r99gjzDISmUkFCD6T@xC5c@8Z0XU7ZTXjfNg4Yea8SzVfseQsGK1EGVZm4iI2CcPxV2niOz3EA1adZk/J0sbIk64x/NMlPj8Mj1b64jiAqM8J8UalFK4gN6g4p/mlnAEpPH34tw1clnW/BtySmkEzpyPRfxT6r6YzTy6IzXHJBoQPjXbJyRG/fDYjuF8OIsWJLjx@KvUqZAqzUUH6DTzO40pI7jj6Pn51lfX0wsajwwm0So0nnvV8xpkbfZ/is5jSUEoiKJ7f4UFSGZJRnJOO3LOIOHrx6myrNJSB/t133uPo4@XL/i8VqIo@sXdbpxVPXoabwjeXr3/6OhKm6LM@dw4ZJeIEvtxlO9A48mh72TTltk0rSPFuYOKfH9Y/MKPGuMC/5ECDBHcWWyxZPo4GwWvOhMeXtVIyY1Syp31jbXo/E6hFsRphNJjiHYZmSwH7gF7C21zCPdiTRA6PrQEvZ3BJH/IhYlEFPR26jId4WC/xGYpc4HVbKA2OJtOIW8ot1NUedXIKiihwjQqYCn9kPlndcjgXbwRa@K8w2zuFKdE4qNDuVGD@HCh6cqIVkc@YKiyKuA0x8NDCv1Nfro07J5CZ6LpNy0ZZW3SSLyIoQ9gPrQ18MeZ3PxY5/5hhaPcTXLtCjOL0uvDqdgOIv7zxvE9xZVu6CNBJwI4HJDAZb9s8kaPT/CrGawciliTZRz/bO343jYcgak//kb4cI4COISFKecJkSBhWzi@7ssMS0uLwa6TFn6mYoCNGWhw2LRXW75wGNyVvSyKYxZ9nuD8gXwCc4RU7wjjEh16VEKdRa0ZRYI9Ocvw6p6GBoLgrHVxEuBGbHo8ismjUS///yHj1d0Mwt0xEizjfoPPaTqzZTLvkCrakFoGLahoZblLYL@YYM6DnxtIZYH5c9ioppKlvxhUDlDZbC@a7EnkUnrCJxpfHb6UDtFspPPeSTkmL12Dc1NwDfAcWJmDpnqd/7DN3svrz3I@tPbphQoruaxIC316pdtkA4ZthO798CV9XFU9Sb@FhBB1XHRjWD1PQ5IJaJvwXDGn0N5W2bT6eneKY2wnf6ulWzY0ErYs8ZqLdb0/rDf@GOhyjd8szzE9@U4ufgJ1Mtb@Wr5laJO1i6e2kTtOuRvn55ABpXJU99C@40ohVuR9ZJZ6ycg@AWInFd7d9BwsFI2S3@xEMoF0zGp7uBXwO9rFE2Fm8bEJ3gfF9li4xkMd0H5auN9OopID5jnB96VL@kgoJVmhyiQuF6qnRMhxyf5xjS6wLtPhzeDhj5v/kFFbI4kTAm8IX@GnCb4WH5bmqJHpAmaRWWYvYrvIYmwezsmPn6I5Mhp/SSsB9YjLWzA4VONHxl@n7Xeu3dt6aumSXrL0ZD7Ze1WMA5V/0@pTIKO06osjDEf7LbEwFtKK8omFgg3Yy3PZ9EuBVAFidTOqoUZ7St7iX5iIOJGAIvJY2LsH1gmi5uA4Yq1dDD@sZuXE2zhQ9HWcl/mYo25pbMJHqDr96D9NxQl0/PbDwF5@Vn73U/He4UYezuaCSkQ@h/dXFxLdkSquf0EpOQPg81Fc6EHenGbFF7ewFPmDJZv349knn@icwtb9AVSr0tBHUgO6MJmAzN/@qTgfP/piuSSLwyy8ytNBviDLWRs/S6ZsyTz3w5Jae8Nyj3I4WDALfBnE@5Lm@9mSjJrC31RuYHIaWjtcwh5clmw/jTnT@gvZvAdO7c/7dsbQpMnqZxXC1sxfPA@leBaVzlPRsKELe/NIQf8i@RonV6VYCeu3cVwhtOBarN3TrIa/cOWrUrzm2Z6XfpHRjmo1ggUlqLoygX13eP9S30CnZ0TNlLL6qTIFxWYT/WawuZuu/RQNJMVlDJgXwkvx@GOTy1BIiQei5RbPWdNkfa8qc5TGSBzWhstErg@MqebZFr9WiOqgY8rGn4M49UUV2KNMmtttSstXF0njhqqWHR2GxTNyGUC3a4zYZceLSwRhqnbKrwO8xDKGxbRybTlVj9cc6lMENjTRSOU5kv/mRb/vXh4QUz@CgV0wNtoQQL76F4p8aYm7bNzS7nBpJLur6OMTs2CLmV4ZspXU12/UqpoGvKxUGZvmmrK9COz1/RGB2hapm/vtz274d3RbxwJ0gPTY4wfKG16lBVqRs8tWppmn3DMl5Aeu7WmocF1@u0BNzm9Em0REellPeLgaRicGlHqIPgfk2FlLEKgplSX1KqNTKgWKzw5Gz/Ia8/G@pE4hexMax6oO@HH9ePHbhvXnPTevaU0xovgqh8Gmo7Lppku1YFShCR24XmrWmJR/Hoz2cPhj3eRCrhcK7KDchk7cHKGHz75@VPz/D6m64AWQYW6KyZM6TIuzwZegP3HcxqBV8bzDGNJ3nLH74OgRE365m2gCJBkW49IhQSsgVvOIX@BEkW9hpSnxsko3/bVwHRXc9cZTubdwEYZQkjZT2H4zdQNOH/7x1rVVFOrXJxBArdtVZOBG4Qq5F1IPpQXJ9cCPbV@7qZyy3S2G1nRlp7Qxy@M8x4lAwRfDt3jf9MEZnyUEZKKP12qpvIEYePgXUNUlULnTA/hEmWA6@/LHS7V/UMsetmlcO9VLRMfv7@7CoMJ4C5DYzwQnDHlLLcDc2m2U@n5GnJSMNHJsWTIF7sMxSo0SeANCFK9LMN/0Z2J@fhteF25ejvF7WYYHhI67bHehQPAGFBwKzB1ef0NIUk/1lUNxN1o5TJP5@REkMh6gXnXsi0bQt3rPgpW8e6ci2eQjWLXP5PRN6alxFDyhMIKhv6kur0RueJzNUwZC5T9WZ1n2LLFjhnQ2HncjVb@aR5IEbVrwp9OA5Ho7PSInxs5cwR6n9tZrfIOWK39OslggjhkhSsGH56mlexryqoKgCo24zF64G2y@lgdxt1LIuB3NgjNQmQ19Ft5WQqo0tbfxVtnRRNGENDjOcCvNCG@zWbT81MgBfr@NFeHita6UEgnt6wVxqaj3tv19b9h2ryD6tDXdUd2ieTTW5eyMcfEtkZxQCVjpp4TtK9cDJKPuxSq9ID@dCeSClFD2B7uvTwfI1dekRh7lVfbQpZusjSLEQGpih3MOq1S1KsPVPw8uMB1dX4Mcmt9vA3yFntOyKCFkBRFzNgsk70Wl@pK82@9GIswQvcdkRVQ/0K2muVyEwwJuuD1WZr5hesLSon6@CWKYAosCPa9Ksc5yMIfNZy8a9SK@emmUNPMeBryv3jDb6ND29D4zQz7ybh6r9qglYP8/cqlO6q3s0Rwx@LO2nUwJLn6ELjd87B3FJBH5SVASjrAbQ@rxg4/MeJctz3xd11CIjGxd@ZvUou4jnNM2l29eAWZ3Q0y6nzT9uD5tZH07wyv0Rpz6UzHXaykCpWM7FxPY2k4RE9sorTVSFq08HGTaHSWVRFDZOJ2Sn/m3IluORERYDtRCEOdEYU4tzceD3gQ8f17YQH0/OCCPnc5GVT6JNVsK6ra16I7/utmQzQa1EKDt8psQ3z5zcDe21u/1f/cIOdaXcsM0hC4u6lTuV5qBJ9Tnx9dSH8cN2kKrgoYDCrKiufQoK/dtfmNAp5O0rSYXjgqWcojyrekoddg4BWXoI2TuHZzRI7zIuexBMjgvtdZz43MetDhDV/HZ/GVeXSeocjcTCHl0oHfMBcW7OsqC@BjAIgsholM3hgK8rY@xHQHGy7aQ/qhm1GIHGOoR/73kzrHZFu5GEUGAs1EWbff4iFRbfuOC4XATabwPz6f4Dj9KACFBoD/kmoTgcLz0UzQ7n5b29Rs6kbFDfbmXW@9vCpYTrJTH1v3d8rGDhe3z3EMhuxWyEkUHNz8V8MvoLjyTcjdn3UD9FZbKeS@Y7uXcuexEZmSMtI/5rcXeVxpFcX17vcCfF0GbFfpF5XtSi8/K2jUdLvjZywAkD5f3BTVsN19n6rwTPs74rwGZazl0o9DaQoOw5pNDRX@5CvJghoXefSs/MoqCGKouIfp@Vxm7@AMXEF895J@hDkXtpQnEBRNgArUrSntSx1pE5Fcfead8edwPKX/X3dJGSwa467BlGjhNCKLD2GiU8F5ERtLPE2ytETJRyWt13Njy8GT7lo405lV37oYqLsnvJqDUSxCNo3h04mJNei8CF@djNvm4sIt8TY2phKRfB/nytF15rvwlAsFmUylRK6ULS5V6fdiGTi/mzng2EZ0P/nk8C3xDM@r@kpYzcihiwpiFMqIhsHa7eXDxqUGQ9fx9enVDyXUmgHKAFZCREcygpZQAw6yZwn1@PtmNRylOFJ4ghKfZ0727pRPJLoOyyTWo07wC8IJNNUpRQv0amFo65daaJrK7e450NaNaQkHYyX4vv@3II/TZrw/EGSKg5E1rEcyXUTM10Qb2q4ogzE0y0zxyViXqy4EEP8NCJP/E0TfDD3FeIcOW/JXfm9U9g5yPC3UFjNMQclv/0rih86SNSSwzYNrEY21qzTfRS3M@4S@IIS2YQADc1BtsxDor@EhRXeP4TUeVZ4tOnpDYrwaFpnY2LYxs@7wdePEVk8YmfHFKl64bVfzKngu8SCrMB4G6ertbtRL@iC7kHVYS3LWcW8F0Cl@0iruokqIh6x9axpvo/dNWlPspqLoxwdXDZV5jfBPczUvwbMp/q8V8dVaoqfBvTmZEIj4w72QfASrPRrWGL7rw26eOyajIrBCLwwwFggCDj22tO/O2CRL/MNr0wuuWTNMpKAEn4QJzLdbez2U9ajv6JOg81Bhm9xx1IVx3kIdsmVMKYu87YkEOjwCABLf7gxz8UkPk8qrwwO/Qn5l@jRwMhE3DLF6H2wqgMat07rWPF6A2M0AnD9l14AEC3230/GA8E6U7DXBt5knR42PHRvwXnYnmuYFWUS5Z4oqCYIlRXeUM2OFs@Gxo26DVVMHjiGA06s/3h8th7nHGdMSXKp8DCdK1qcNH9tKgF7ZJozvwOuYr4nP@kuVhdMU3Z7o55A6Z07md1atU06ryR278BoIpuUlCBr13HLGWdyZuNoumeWDWmf4aq6vHivW9e/UvlOEbKsDdzYNa3uUj5GNR7AZZwfe83mKysOxz32GpTaCHeXi91kPd/DnoO/uYkm2tL4XXRUuFJ@qcBFHIwTceeW9NhjYjGSJotUTG7ZPLoBhg1qL9mf3zdq5JC1crYihNGk7U2A770644kr5u5CDSE8w1snkbv8c@SAGegUOa/WzquN813x9ubyttwW/GiLmwPLCxR/aRqceoMmtqTvE5W0tFpLLx5bkzIMxnsJ7I0oa6w@g2NaRBsVhpcXyA@RQrO8l7YdzarH8HTyDWP/nNqPf3@WVdeX9rF251//uMYNxrWfoz6GGe2AiiUOBChbwPHKBiikYbRX5Tp9k/ZREaoNCrZ5RUEOqJNX2ZbOquBY0jULu5N1AqRwMgr4hwTP1E6LUJchSsOZmo@akhjUlTis1MTFc3GfmNYrhcW6C9r3PuDquKfLq27aJyyobvspxManIKlL90B7mU7YQ3o5JbLUYDyBbDt3u4MnCKNgXyb1JiVJozqHZUOfBt9OupAenTJcMqdk@hnT1vpIyOmxz5ypcSA39CRW3MILcktFnmFpYr6saZ7RbULcxxttgdgrfqfMR5gn0Xi@8ONE0XB2@w2iJvcyV@0QUUt9deLb9YSBXt1/flKP65BcoEQyR/EOlhdPQn1wyI8c6sj53LoR9VZ4x9qxQXnQJ@qVzMGXKYvqEfVfrRS/s4172It8cxn0oPxYZpbiODY8d14QXMdhxNfb7@FaRemTuubHbQfaFun@7oCHI@W7QjlqVYkR0R@1e1TxIQ2jJhkYc3AS3T1sc4sO1PiSz@0pC0@AzT8bbKSHl/33aAyeT7syutrdXaiZ509gH4xUV1aNi/L0Ra/QnLkaPcYNgXbV2BXEBFpAkX6NXBrcGYZbe@U3oDMtLty3VjLewxU6ri5WmZ8YnqxH1tZ6dn7VciNKU4bE5gQD0eIfVV3GwNCUdOdMp@2QjPu7v7keWTLjjrFCJwN3I/@kolmpYPJuOp7ZsMjjUPu0CvdA8Y85M7mzH1Vw4oRch27ybix8FbexBVs4dWKA5CHslFHhWrvfWi2upiHYUy6BycobLCEhfeKUGCXxSWRhFiKhEa5suYc7JRoEMos8fMfJ1tk1mS/LqtP1oUIN68bEldjbGb1ZFh0qYa64u4Y@h5C4Y4/mtaIHdGQYVToOv/k@sSuWNJuGViDYvsDbD4BekRLiVlNixR4iwyhxp7@jS36Pc2xWzl0GTFW@mvp6NfVYfq@@1FuNHSIXQthzVYb3/dOX083p92mhaXLSaRQm84D/OIjgyPyLoaB0keupfUphV@2Pi6Yc5Yf/UarC7WhooJI8u/53xYZwZR@PrAtxOsb86F1OjMYWtD2Czms1ZDmDQaOm4cnHLFv6ek@Wn9jH61K/KLjV2OreTR5ECkI8TmpGw4slVf7tDsUn8t7I9yn2SgbH7LeLIoliyOLkB@ZaAqhch/y6XFGdB/QghRXvEXCeaj8PqqyDBl0drTRXH7itlUUm6mjD58uUpNz@qbGHPv5buBJNPvi7gSpHd8T9eN6AHISX4A4eilv2GVeHboU7W1jBIz0h25zNXaeET6APd56@4xy7y3UWmiKtbPVihgnfuoLQhgSsEMTINMZL2iIN/@bymrufcNu4fv@DMfk5qlld2F8rm4aV5@1io@Sq5UavPGGtRE1J/Bge990Nj25vqRku6vqTpErNMfInuB1RtsS6AAPoY6bG94ur0MEYD8Vk@9RD3P3S3TEypaGPbqkEocNOprnb3m4EfbrJx3ThZuUgCbc4X@K0FGJxFN752w/Bmgj/hFLuvocKrmjhPKwMXUZdwe6f8fz3NTpd0MpoBqLtgtMO7Wz6a1Zs/ZmKx3k30xnb/6Lsyldc01bSwvqfNFgSTPw2MSSF77okaDF/bPSpwpT5dH0vV2kAOhPRYfe5OrpwPITxuCQaKHV94TBf1AWNwRBkQlOFB9mQxs9ioIQGmzNjXLo21hRkXV4h0i0iWd5VHKMNtFRmajAe@nK28Cx4d7Il8/b1PXs2xhIz6e8Lmo/oGuAUUf@DpY8YrgamSJISwWN19WvPIacapEsy0MoQMbj3ATnYhSFozKX8p/4WDTDudV605ikfD0Zh79h64sZN32Kk1EZ4JHWUOHqqVmXACpUD7gKiwXXD3kfvaAcbyLvPqR@RPNyIv9xcgoZWyo8FRZx@MdG/kNBhZbqSSAtRvvGULyjQOsgipzyKRUKZFMF/JKuuz8b8L09lHwpca7n22/Nrsu@xVFl8lMqB9g6qUP88nG3BUy4MkxO5IejGBbrzK8772DA6u3h19/TEwkgDqJ/UxbtTpqmDFN81o2B0uf8UEf6zg02hjMncr7ZIDzX8ok4/juZoQx2SMmCY3ZtrmDW0bp4uznW/vpMhASI6P8VkkxO8vXVkKMN/H5757SQta7OwXQP5Ik1HvlMbywJgqJxXjGPfQlt0oIUOy7WQAfWbglJhkFw28mBi@4/OLqy4CKxDgoteN8gkOw9q71qBbJ7z4kXNt@Th1YhnFPQy@r7cLXcxaxkVFp3a8mDqP41sbFXxlQWeZT@by6QtC09bNqxxrHAJ058@ApNsDoBVYaelWNvZvRqRIPaum35p2MpFcjlfURfpxLaSGLqLVzOHj2NsL0RWwKjtT5JkEPiKOtd6Zz/FXYIztpW6@lwkmtdw9K9TfgzvoZ8j70b@37pn5a2XXVVCYSBa1XPx4Odb2QLnFE5t11DTVJ348LvQOtICwag6FoP1sN8rWK@bJC@8M0zNB8pOdMrqyZH69SJLKhn/opbyYa3dtFXoXDePCh/iLpGUp3hv96Tq4V4xCavWD281YTMoyHeG8eBii4X0AZcOYgyiUVxIxLkZ1vv7hSypLx9sIXqqOR2Jh5mn6GPT73Pl8M6Vva1D7jmXOdO@7ZGJ2uu4bC/Vc2dwzzSQYeKgR2BiFvuc9G@zpMwe6wvbx2BWtrljpPsBpCy21fMcDAL92hE8xSWkg7gpawv95lcprfKWyQPnpmW5KwfJbkOaApz59h/qm99vM6NfLgkE9BKl/Nb0v4@aLjPMoIW5KR3GHjlpxOHiqOMyZMl1qSwKPmzxUsEMi8cjsv@5a2jqEiPVDfLzHLQriRxtnd4mEqdms4b69CdOvMitG/cZlFK/@LNhPhP18ALsnJlA6Ai2gmJ@0ssppBHDHXr9y9ql7Z6qmMaeoL6az5vXHzyDVbLEC8rhSNO@w0lAamSjeO5JLvjEN017WoZ5wsMeQF1hWfW9rVjMUSQDBfh1LCc/UYDDQaytuazh9mmZhKMFFgL1plwru5/W/Y2NfYOqOi625izUfefr@7o8lS1x4BV1tYR5qnX58pehPj4Qakp6/V@G63CfUuUFl5gyKmo3N3fClT20qG6U7iCk0jyiTw3GmFFVxM5CimKerDv7A68IBXKgA6@1uvoZ4j1/eGYxqc@@5gop@VaKVTZH0z37ewe74u9eaIA2WMRFp/m@H506anejesGUvjNn1G@MWK6BdDE8oPNevSDGWBb7R6AOA5/QRJDHrx4P4pmhB6zthS6XX8gIR13aOaX/yq1YXUCblqe5ECCNerc2uTUr0HnMcyKmYn/IozcOzEGVhkFi/Ig5C/ouadbXhSt1dIEdDrMeFDNLbsN3smw1Y09tgbb0efV4rqVdlxbcqFyU12Ngc@hnISjBkhsatC9hRCsAGnSUMlCXfLJtl/nnSRJ4hb1uZbWWrlJ84B6xTEk6@fBigNnQjY43HiN9sbLOVAcVFCKJfyPA0XDB@SFlB8IYW67dqOyotQ4DqobD/ejHfD1YXPk@E6A5S@6tC/tNG33G/Zb3Y0if3hY4IQYPFwtjrQzJ0reCYxMSUSnpiHs5Om3r1tGMBibDmMYEjIrFWg29EwvdyKZJFCVcySikMTstQj3sONi3nYycA3eJUu/q7DgPemSKFkYRo7QBMO8Wx5Yt9YVtsWQru6@usECvdCVC/EiqNtW40EbFflMTzv/IP5ITtae2Ks9gums7L/rOWGhsf5/2WqXdpFBggY9LP9sKop4Wj@uDeRv/adgxowOFGpaytuj9BHY7NAbKiRLknL0ZFP0LooOnJHNCASVkQRY/04LqEKNUQ26y65RxrK6sqJGX/hPE8bjpeQNt6vuwoBTL18ebCvGIMz8oEOoEbzh6xayj6ovefJPnHntwDQZh@qGX16e/OcSftqAjvXazO7d/auAhmt7Wx7mOnzk3DVj@4yaa55bPFMg4dtg9@Ew3xpPWMJ9Ndc2ydJseCxf@GMI4iFw@9dMepXjOD6onvxRBXQ@NiVghD95cpkmBMJ5GGD39NIjxOiLkXql5l0dX@rMA5iHy8@@vrbrOQOgFF/d9aIvk5qRYKVOA7gaItMQBDdqeTTF@sfjpGIYb5R0elhbPqQaD/9POIzZwif85srorwY7hvAwXSlt9UG89sLwe8GbuPzfa/ZB5N@CZx4Mr7cS@tE4d1S3ZE5DcPTawO4J4kdAnDvFZdaxjKJUkHy6dp9D/kAXyOpvrzDZTv3MUYLRw2eHZSU4XrxB9TprVt1Vm6FE4q3DtvTmzsSmdEOvye3CytgSACXzwhVkJneW@BgAPASyRNMgQ@tTXNJJUUY@mBbBbFiNW@5vbKOWiEYHkQ2JdEQTWoOS1RqHMDPehNjwg91gFjkh5qnT1FYLxWwF727KPSqLyM7cMH7qbF@N/TXMS75E/m4QNYRW0Gh0O@q6FpVt497HIr05yRnDfAqCeMSmmPTbXyRwcKykwK@acv2yUnEXWZsn7Ag34YwE@z0ZmMKPmViQDZCSLADObtd0PsGWuGTca@2d9Yxzye1HgHiBbYgVivySe7VMixf@tiOGt6hJstKbcrSCA65octHTzQMuVLHxMVWU/4YFnLwFwW25lTQNMyBjA9@t1cW4JKfr5r143xGtmUpL@TAeseXNJLBmy5shpNwEwWvo5rH1X8GNe/AEv5IwjVkI2tvTQHp5nsg0AN5KWhGpbu6pb6KlcyspNh3bXMYVegG1n@QECVCfH29gj7boF62YqjPW7S6eIUnjC5CtwjiN/5mjh@HJi9BZWq81OKr/gRlbnV1FN8H7jYItvMlSujVgB/M7oS7BS6eiPirgmrQclpitT8Vb6KprBPmHg64OhGvMYj6q/oUtSZ@xtXIwsRRbudE0kl5h2RQqecNF61u@NbKC@@tNvVsePowlUgkqfVDRta6Q0zRwUFUfuEADuWKxzVqOjB7WvD8HIkbIGy/VPcdyQP8McC7Ju8UrBPc3Dg7ljt6KjPkSjbomUMtYkJSA9R6oLWXlm0uagO2bUToEVQcCR5HvqrX9HyYOQ/foGqIylfAwLRL7Cn3QXNGqgDHpgBbeOijxN9QJRwxQDBbe10OCW4rPyMect4@YKaqIeNFf5om4pCNhf4wRunLbSofHwlypD6py4fe33gopFshyql3aVa33SsUQuj1zg7K4j/7LUJFkF6IpZGshDhvb2QCms1SeGoh3e4qB74c3OK/KbRg4WzvgaQuHT@1Q4rUIMjIvttVL0rNxUpI@wX6GmLfm0jPSLVv@apXKEgHb8tSTX2MQnHk3uWkSUp3Zy5WyOKXrCQxxRgPVCFDcrAfJLx@koOJ3yTpS8bRU/oGOwRDPTUg6/ApHLviDB8IDeyTn3xGUG7BGg/4QeYuCFnyIcqfev1/SP7kTqgWL9tkLyJRG7FWxq6wLvZg38h36SRoiTa80CTSOPRaGLLBZgUlb3W/H9tfltVtmDGdkOt@CYCdVX82XeU1tWTUQctO4QJ/rIcxEFYDwvB4ij@2fP@UL/VQ9jrIe25/IArtsVrDusl4T1YSX5Zlr231gA/BeMVDvLZbj99QdAF2gKlvOgCqcyjFNv1SKbRiS7nhnG1Tm0YYWc@lclX0t8IGwRj@AiWVH5CfPpTIbEokoMoLx7nnOUk4wlg6LnFxwYcfYuk8h3fUhajb2XLCFTDt1eVqvz1aZ3/ugU/T3vYlYNSYpf8wrc7TonfQL3eGY12TCO5Shx49GP5DE@Ppl1yNaoCpoAPuTKP91bn18xG@0qOcF3s7ihKy59B9/9epbfw4MX1RIl6fT6B9RC3zfxKNlIkMUjNTSJNAApoywztbqSglIev20GyzHmxyGBzBiYZfNzk0eI@qYYO771Z3iqjxiqd0IPL2sntqc83kk8kTfHmV4eXKmHPQwAr2DGuuBnH7h2tr66c@H1vKu6/lGvUimaFuCuYRe3uys6/iQ7MkTpLGf9e0@2l3dEIO1oy9F@e4ptI8NZoMbF0IEDvWNw0qQIdJgk4gBDa/Bb2kIQxbS/09oeqLAbn0WmLwqblqmYH81PH3zsnVjJjIvcTvWLZ4/45sGEQjHG8WGYotRn3URNu5Zkz8J0qpjfRSL4rNF0JORpHxOfwezr5L72r1Q3TTK3jWDTR41uoLP4xTuzlwja6f7xwBy6jcDtAoVfvisOiG/Iq7ZlrV@C8v04ruK1Ngbb7bJO1cz5Ql6u6rb5tFJ2Xfo2mqfhFBbBwrS32grSpC8dH9s3wGvRkfX4KGDaUNNfkXEdnoE98F5wE/ZaIJOvJA/OdQk2n1ilxI4M@jGLsHxNOn9j1at2mOa0QFVFNQ35rXTr6x/LKvFm/o@5WfyDv0cd8@nrJKOnlKj2l3IMvshJUVPS4ijiSobKkDFI@W1/eTTRZwnyyx1Mksf8v1uFY0nRynU8RX/jXIlqKbT8o2Z@6TnSPK7FgsWVeecYt45mh2P9aL4sYDKg4tZ4EZPZLSURWw9qfEiHSzoHdqKgVyvx5US@Btug/4jd6Bdkn4RIeofaJodFpEw8wLHYhjG6O1OKR2FSbmAuJPiw3fgeajNUffho5fU9ABIvWSocJK93xKUg0yzU9p7w5hYMElasZiWz4E94XFxrWSOcwZCoP1sS8HzZ9tHb@GhuAE0tdI9l0UqtDyFxiChm84n7ni0WC9hF/6J69oXJP58y29uH3HyjNseLr7hfEktO9yo6iHz1b@Qibc6yFfPkhzNdsHeeYX584YTT2PLHR7QZZ63ysFnPowLNzV@0Y8NtBzN0p57iyI6PkxIxClsasAkm9ayKZdw4fzCJ/lSS@gXuK@sPbjWbhUF0u/oYu8eyz5TmnfbrLHXyc8ohDrOyynxBklmXA6T7zRrwVXwRaZT0apWLNm@fZ2se21uNnPsZ0e8hEae5x3OZ4oFjVlhP1cBWNV1fMnilfMULS/5fcXTI05m5LLVpEtaoMDvOP/s8RsKt3V@gtX92ueucQqM5AT89vhBHB9pk3toqj5qY43Xzl6E/N@YsTOsQvkG@MQV/TKNwOcS3QAH/H8IQgpK8lXeHo378aLgxZYVPX1rIAIGZVClQX@741M7rUlOX2BoTbIzza2gMe9EYokgjVzhgJTp@ltEDHKcbRMvSYExKoGJ7TJ7zyVWHqi0VtauFQX0VthlcPKzAFahz891w@@9dySoBvIZuwZ9k6GHD8GFzO9ISiRb/NCsYH8dfjNOi7b0tUCV4pTp3L/PuUvZOmE4H5cUrSdVfpCJPksfFJa3PttGyQUheMbQ7OiNhJ@V5PJfoEoVIEPN/MCILTnlT9gPgiLYVxuwne2eXCKOXg0P2RKHUEVYGCpPZgZTY5pT6c8hmzoFin4jzDVaH8t6Xc6puBMsi9OnhtxffnPeztHv2ub1NXj63y@ysPhBmqvFgzNBJcJyyA8NTUEMl2uqNz484CRZK8wr1@R8T1NyWJ9E@5ytoMsL5@1wh@aZ0VXIKL1f3P/gA/UlUSautBp2ZEx7@N9YppsPmB2qZVgJQwWZ@UrI8/DzYUNTFv6/6xRBprDPMh3xI3zgirnPGBZb9DZK@dx3JHoySHDd2i2IF24vuUs@4KrVlemeVi/vWhG1ghYj3W@MNJz5YZyU2G6VEy7eSN5L43z7y6o320QDfZZv07yXEykXknM09GSZq/L1n5MywkPSL@O7B3QnFMk0K0YHx9EW7QhDFCo4uIiWKOETp0mvvDm1N/oolrF/NXqOHPzMpm50d6@cpAfD2iFeM1@R5ZNWSlmhIvE5xHJBlTdfsDJztq2HkyRWbwB5GlooG0ya6KPsMR8QfkyJEqN/8/e4nI18f2YXNI8vPdKjkqCDwFPwtHPQkekf6zj8nutQncboDff3Gbbc@d5bI01t0gA73ECfK/kKJryw2ta0prSgrvnnLbhSyIrUyYESa5W42uF61U9uKXNZ8nT4dzSya7X7iOIcs0ik/@JRY/PGe7dvQetTUS04FHbNE/nK0NNV79@I/4GKoZJDPgTwH4p@o1b4CQHhp9UvOiAovdcbgpNZJNUlBuXK@4P7uEzDQByivsgRDpr8awa6APBa7SMqAWZCAYrcKG@0/exQP1hbjV8Pm9@ILROG7rNCUbAiCOqDEY@bFIpgszhgMScErPCECSvP7aJ5F/i8rAlcX@v3r04FUnS7BrsjzEirPQOQUgIvCQ/4dlMeCJNqeCYY6d2bm0@6Ib5SHj3@chEiXhlVt72a8utDIgtjfhI0VYicsDfJRxUzMLp5xEuei3JoZjT7sNnrGn9KMGp2uYOWarjPk76BAfffq6jOWwvzl/iMQhFe/BP@LUHKwKC1vefbyngefhr32u@DTHopamlG3TcC438JQgR1ERTiDhX6rvgDWzT3jc908vay@7u4DvchUvCYbs16I4yo@E9kF63glpv@gyJHJ@Bw8Mb2lHg4XcMROvj9K5oJV27D5h3zCy40u4p3a8CbC9Ipinislmef4sR732I91NpQ5kmJtKVmk6ukCUfYDS@vxDb@r9gW/7m1wC@XvuszsqFt8UKIKoIr3pm9bJXcr2s7sPzJOT61SvvT/iiE14HZUAV8ciIkoyowV2KdNxQAtPzr7ePrmmojcoGzsbEkt/gvbxKDzkGGZtZNxKk7Z2m3S0yuoI4SsW2ujnz0HlaUeU/8JuttVyW3E7dsX2mT4SSHZiHsi1dZNWuLWR4LRjbsxsHytIgFo1AWlwMfKqZXItx1pwrbrO3wkRif5XuOtqrEP4igwOO2XgaGBxuvwERy2/bNfaIrK9SHHEpjwX6cUCjcPIvdrVsU1uyIe@NYle8iJry97hbGxm3CVgiUiGdXySLqWfPljvReATKvVUfC5x@3eVvVH7x/ICOTxJPv2OfazNxVMT4hcz4AM5TOjVbqNIa1GDpsKMC72WQXqzelMoQF4g9PaIpfZizAl@WxK2bRicLtSxwNJZyyE7SUTDfdMvfDZe8KTgEELFHPp92uweAQ/HvBYXSuaQqHCXoSs/@3ZwHW9DVa/CRi6zszdoF0awmhOEL294Xbt@QzrVPU0ybjHXB0gZ@mg7FjT4ivWqayoTQS@Et8IHM36ANEhwym9dX19kcXd4jkGHuKk9zMb8Vt/BG3jxA@v1NBkiHRPJ45KGMlaoMUhYTQCPN08rPdEMNc2M5yysBLV15fZ2nh78f/Xiznu1wZZw4FJAVdAvuI4VKoPQL6raX1EwaDlZL9T@SzqzdvpLw/vYJVT6XDDdm5gP45b@gNEvVSRUs/MjZYD4pEFVnGwg1emHibHuAslpEgJv6lior0ZoEvV@PXxsD4XRaoCKwqlfqoLWyv1T8mh1mC79iU5opZzy3/v185RikGRj2BeYboQsH5hYofM2z@SROOps25bTADMysonwiEUQ2wKF5n6kZ4vMKFdaIPfqkTpmjpuyL1l8dQrVySUtG2827F0se4ejRTLvUMz0uU62RjyQQpeivC848t9A43B6JbhLUK9fEE3b592VhHinnh65nuiX3FgOoZGlmT1DqzvTloX1uo2YFg4q@W4ofaKqpf01zLALbZ6N5kYXdXK@kw7FqydxgVWCdSeSZj677QLxVoSAOn@pJHRZckVDiGgsBcZLvvg@tWlSar34uSk1RG3zgLwjWy2i81sGxUqiTT3TEC047enTXI3RCb2M9Ahh244vncjdeEy4Dr9uyWp9MdLGo8Z7wzDgtu3algnP7cAClv4jGitjsYo5B6pXhjVnOVnzq5VSGWcpp2mx3UoirdtORacyIaJfl8CC2nm/S0eDBVk@xj1BQLUxKxfHS0nijXPeCT/FMWeSzub/@es/D1/VBmPFJLCnPewXbkV3qXxJ5jA@7HuX@KYyBnREvyMnIj83YNeWnfUWOPT7UUDE/nc9KyliAU0ZgEU3cSsiveVwYBcO0xuHrXhyQwIS2/sbPY7ECZzQR99L30hRbOxn1Nn4lyuns3Kfs8E4jTVBHTSXMtyk6pqscQLeVGClEk@qXl2l1u3v6mM04eH/f4Ta@P1tJtvvPTcPjZpjafk0JswN7MnEopYmZI0kpbQrCDbIrX8VDcdc4QuTBcN8y1f2MFvyo6qLIkFO4NWQ0zu8th9w1AokHT/HroJnwq3x@@mz4oz19FH0E5Cvdwy3oIZ4K5nbBFrciCwRGzIChk/YNcyM6tguSC6NhnFZNPBShMbftvcBaw9wwi7nRY@Rv6nRYEqV0R4cmMeqdZimA28qdbGLTTgiRA1ZxWekoINxYQ0casdeTni223OoJK774842Bbx/nnoEO2TUC43VEuNiwKUvrWHGve@vBCrd0pnftXbi/NHtqqEyEbTFFckHXOKxSkjbcR@n9EjIVvCM77Az5h1Un2RZc/ZtVzwjj8AYn/DuRt3uFBAqlEVI9dw7TC0SpOLhV9QonWf6@6RwAUkqYxVf6PY12@/hoEaAfFgs@XzHDiQbBdIjXFDbEUq8LI9JwDZk7@CX5TN1Q@1piWwDPN6YerxIqiamAYfD56twmbmu7e5xqM1bONga03qnq@83pjy@D9@oAmGqvcqc2MDgqs2DEp8eV/lDOmMAsqr75XUklEBkGn1dNw8v6o2k4BisyyDRQW7/njDJhunt0MfU1xyBmo333msLi4Dl0wRDIWiJiQs3jT8GzQAJiZWpdJUe@BGtP0WbpUGn4BYVRLoYDX1T2izusGzALCdnZRT1w1qMjW0oY9uTBXYnY@38bFf8rSU6jYSxQuddCrC8AgZeOGvJkwZOmzJWw/C0yXO/svExZXEfCe95QPEaSGsAUbliJ92QTOJzlIqSH1EQmvrUKWHZ/qaN46cSkLPgPI6tMn48Megg9IpOzBv0ObN3pSwQmqpYE2QD9M6TRSmua@wa@jkXY8QJaCZtphTzV25GQ0Avp9hEcOplZ8@8SN94NmW2lQ@4uw8eTwJ/hs5Y6YFH5jHQYe/uMeFFxF/BwG8xY3urvmkToUlso0L9e04m/UZkUe/UamAVlC2rwrAwk6Ai14h3j4jGEirm6daOA0W5LJdytYxPQCMmlJgKm96XF0cfxayjIX2qNF2pkCnNZKL9LfS6K0OwYyAoCxhCoYIo0oy5f7Jurs4/gtqfHOVB2gpGrN5RDtIklxcCDPWuw5asYRQvarb4yZy6r7yB1zx3KomJJI@6JHeCR@rn4HllCJckGi1sDIb2s1u5aa@QeTqs9gv03/AEEjxQvmyEgWeJ37qdv5A/sqHZO3Xs/ps44011faEvZCs80nbylyKqtowMyj3SPK8ODaeo5XDD22DkT3liZ/O@vwY98W4ZT@ot4jx53AAyx0/ueLurjfD5aM/j@LAWddAVuezH8jrZCEc9y3qUEJoHYuANt6hSfNfVf32SkcHfw@VahRIIU9cFSD5YISTCQiC5YvlIrc@7REtraOCoaAwX8r1A/D6OViG/iX9OLe@f5DSMxL4CQZn9sxE6GrF3JxXrBfskvfcOAfyqx@Lt@FIhBOnlfs1ra5kTy7rif/Z@/8PIcABoZiSx4KY5GxC/AxRNYBP1yLHTgI3gKHik4H@YLnQ/XlxIFeY@AXu0AV6S1rcPXk7utjnrUAIO8@eoo9267m2aiWNlfInf7CfeT4XT7qeOHYFPbbFMpMaJCx7x2r8E06Enq2eaW@OEz/Q2DcyTKed/2fiGM43Y@EA4XlD6Q2wv1lHi5VfT92dnru50OUH1gUzvftUBJ9tYzZXpwdl1iUCB91cSHXSNp3m9yLEp9x8g1qQKB6TvcQ4b1hcGrie9v@QdM0B03MSNHhdvhmuUHoqSFfrbFy@/PlkIEKUdbRHisE1QAVaU4jddnQUQGMId1DK27/7wM/p3g807w06@wjhhEliUickhaxOTtmcq7kWtvOHXAN4tX1idKKwNp3/4Z8Sta3e81Nn4heuRlUNSOl1cZ2qx4h7Y7rlXhz9jPQ1Cjv0j7uEC4rMC1ZxBseDXN7y0SfRWqBjMtzsCPf/yei7PcNu4OYH4x7Xr1RtBMnzq4mI5XOTVpwiCOui/SVyTqdlPE@65BIcIzyPSpPI@FiYd30DIdRFuU29PQTq1@0L/0kCnYC1GxK5uqfdf7RkTZvmH63Fzm0i196Z2wXl0qXYgFvSzfUKUq3C74Gxn264wKLRnSA34Ajr3ZRt410Qt9SKqokl4CeMVCSstBHjE@PvZfy@WtxSgWBNGcXyHAgwgmQAKe8EI4QQbCPIzw/udnOXum4w46qKquG7x1q1dHPMbv9wsHaFTZ1OeWfaNHUfz4OWIAlO42oLWPXh9UudcbGSG2fRMq9aaHaVP2pP3ol04@yXrRT9lbjiXwsFtCtl8fVJ36qin8tq7qRlqxfA@k/CeAUzmN8WYDhjdxpFALbqZKVnrTSi6kTfc79yCV7K/AfXpnWPL9xPi5sHSaXIbrRospyQ62k5UOle11e@oQCsGjZYuCHSHFl4PnQRsHR/MUqKeKDXEesFUM1@gn1@EXcmksv2BoudTWSbA@A4C5D5cmdlWhfWNKJUKT@Nla4IbQM9NH3PQ7LGHjiHHyykvAw@G@jGbK7bMe19USU1LWo6uu0UGIXlnvrt@CxV1ZzhIJ@EPjc865oyGP7CLperoxPaDwFrWWjqI9YOVOFhh7LtKXKdqLv5wzMaCevzol/zwpgQbt7zPgpRKZVkU8opvNLNNuQ8RNbbSZuAD9brkk5cqd@IYTrdDu1rsOJX4/xk2CEfd6kozvj1cAvwHba3Fo42CcZ4iSYIitUZIKomWQnN1Hvpo6HTwVOhPllMn5O5HtLc4/WVGMIBpWdHiwP8@HAjO3a6cRq4tPRSD2r6MtZgbI55E3RqvEiEI1kAx02I14uVGboZdZr2Vd5ROEAwzGyvQjv5447hPRDz6sWkNF6cZyu1uvnSp@k7tAxALZplLcSsjq0/RIkUmFGaE5FzoI2aEVN85iSR@jHDNJjHMF@fuUH6Qf3kEEPX7TT7Ed8jiaUaX59IoRdp62ChHy27Iltag69qjBOrqyI7KwmcyEvBPYyvkSxyw2Wr8mrrMiqPCSaG9oqU3M4mpRhX/q6ACuRUzaZ3FH5NV62CppPiZ8VZ0zLTA@3trY4lgpPbl7aF80ZY65ZIVyssxxvLvu9JxdJUpQ92YXzasCp0NHHDokVIJosnTEC@iGpa8SH1zVOezwd9Q0BJ8rKwf3ScjKR5OeRzt9Sm2VPwW8BTJ92lt/PuZoJmpwaCdqmhejl930OAvTTEFwgbTuu4c69kzkfFC5fHXUG8R2VKVYE7PBvHgxSYY@dRjMCWaHCpfbtOuGmsYl7KbLAdCVoeapCX2r2pN4o2NZ9mnIq/a70L5p5p5Y4JoCWn3pVUwp9mFDgix/9@5KR5vLCAuTHQzmbw@7uj/iLXOGrZrKCv9G@ezeKl5qDwUhblUhFAXRfDKw0/Yd5JxQ/L8lBX735@/f/wA" rel="nofollow noreferrer">All files.tar.xz</a></p>
+</div>
+<div id="pu2" class="pu"><h1><a href="https://www.rust-lang.org/" rel="nofollow noreferrer">Rust</a> w/ Rayon -- 0.9s runtime, 6.7s cputime for whole range</h1>
+<pre><code>(1/99) a=0 1 (best: 0)
+(2/49) b=2 4 (best: 50)
+(3/27) a=1 49 (best: 72)
+(4/23) b=3 188 (best: 76)
+(5/21) a=2 1176 (best: 78)
+(6/17) b=4 4332 (best: 82)
+(7/15) a=3 18424 (best: 84)
+(8/15) b=5 65220 (best: 84)
+(9/15) a=4 211876 (best: 84)
+(10/15) b=6 721396 (best: 84)
+(11/15) a=5 1906884 (best: 84)
+(12/15) b=7 6249964 (best: 84)
+(13/14) a=6 13983816 (best: 85)
+(14/14) b=8 44156732 (best: 85)
+
+B_max: 85
+n_min: 933544295655093
+n_max: 1125891114428899
+
+Found values: 1121216655081291 1043134657624555 1120665056942829 1116514939453621 933544295655093 1125074802425067 1124798782678823 1125891114428899 1090147221387163
+
+100 85 933544295655093 1125891114428899
+
+________________________________________________________
+Executed in  909.41 millis    fish           external
+   usr time    6.70 secs      0.00 micros    6.70 secs
+   sys time    0.02 secs    516.00 micros    0.02 secs
+</code></pre>
+<p>Output of <code>time max_square 100</code></p>
+<p>Tested on my laptop with 4 cores (8 virtual) @ ~4.5 GHz</p>
+<pre class="lang-rust prettyprint-override"><code>use std::{str::FromStr, collections::HashSet};
+use rayon::prelude::*;
+use std::sync::{Arc, Mutex};
+use std::sync::atomic::{AtomicU32, Ordering};
+use rayon::iter;
+
+fn solve(n: u32, verbose: bool) {
+    if n &lt; 6 {
+        match n {
+            1 =&gt; {println!(&quot;1 1 1 1&quot;)},
+            2 =&gt; {println!(&quot;None&quot;)},
+            3 =&gt; {println!(&quot;3 1 2 2&quot;)},
+            4 =&gt; {println!(&quot;4 2 3 3&quot;)},
+            5 =&gt; {println!(&quot;5 3 5 5&quot;)},
+            _ =&gt; {println!(&quot;Error&quot;);}
+        }
+        return;
+    }
+    let mut best = Solution::new(n);
+    let mut a = 0;
+    let mut b = 2;
+    while best.get_best() + a + b &lt;= n {
+        let cost_a = calculate_cost_a(n, a);
+        let cost_b = calculate_cost_b(n, b);
+        if cost_a &lt; cost_b {
+            if verbose {eprintln!(&quot;({}/{}) a={} {} (best: {})&quot;, a+b-1, n - best.get_best() - 1, a, cost_a, best.get_best());}
+            step_a(n, a, &amp;mut best);
+            a += 1;
+        } else {
+            if verbose {eprintln!(&quot;({}/{}) b={} {} (best: {})&quot;, a+b-1, n - best.get_best() - 1, b, cost_b, best.get_best());}
+            step_b(n, b, &amp;mut best);
+            b += 1;
+        }
+    }
+    let solutions = best.solutions.lock().unwrap();
+    if verbose {
+        eprintln!(&quot;&quot;);
+        eprintln!(&quot;B_max: {}&quot;, best.get_best());
+        eprintln!(&quot;n_min: {}&quot;, solutions.iter().min().expect(&quot;No solutions&quot;));
+        eprintln!(&quot;n_max: {}&quot;, solutions.iter().max().expect(&quot;No solutions&quot;));
+        eprintln!(&quot;&quot;);
+        eprint!(&quot;Found values: &quot;);
+        for z in solutions.iter() {
+            eprint!(&quot;{} &quot;, z);
+        }
+        eprintln!(&quot;&quot;);
+        eprintln!(&quot;&quot;);
+    }
+    println!(&quot;{} {} {} {}&quot;, n, best.get_best(), solutions.iter().min().expect(&quot;No solutions&quot;), solutions.iter().max().expect(&quot;No solutions&quot;));
+}
+
+fn calculate_cost_a(n: u32, a: u32) -&gt; i64 {
+    let a = a as i64;
+    let n = n as i64;
+    binomial((n-1)/2, a)
+}
+
+fn step_a(n: u32, a: u32, best: &amp;Solution) {
+    let h = n / 2;
+    iter::split(
+        Combinator::with_prefix_postfix(n, a, 1, 1, (1 &lt;&lt; h) - 1, h),
+        split_combinator).flatten_iter()
+        .for_each(|z|{
+            best.update(isqrt(z));
+        }
+    );
+}
+
+fn calculate_cost_b(n: u32, b: u32) -&gt; i64 {
+    let b = b as i64;
+    let n = n as i64;
+    (1..b/2 + 1).map(|i| (1&lt;&lt;i) * binomial(n/2 - 1 - 2*i, b - 2*i)).sum::&lt;i64&gt;() * 2
+}
+
+fn step_b(n: u32, b: u32, best: &amp;Solution) {
+    let m = (1 &lt;&lt; ((n + 1) / 2)) - 1;
+    for k in 0..b/2 {
+        let w = ((n + 1) / 2) - 3 - 2*k;
+        iter::split(Combinator::new(w, b - 2 - 2*k, 1, 3), split_combinator).flatten_iter()
+            .for_each(|a| {
+                let x = modsqrt(w + 3, a) &lt;&lt; k;
+                let mut z = 1 &lt;&lt; ((n + 1) / 2);
+                let step_size = 1 &lt;&lt; (((n + 1) / 2) - 1 - k);
+                while z &gt; 0 {
+                    z -= step_size;
+                    best.update((z + x)&amp;m);
+                    best.update((z - x)&amp;m);
+                }
+            }
+        );
+    }
+}
+
+fn modsqrt(n: u32, a: i128) -&gt; i128 {
+    let mut x = 1;
+    let m = (1&lt;&lt;n) - 1;
+    for _ in 3..n {
+        x = (((x*x - a) &gt;&gt; 1) + x) &amp; m;
+    }
+    x
+}
+
+fn isqrt(n: i128) -&gt; i128 {
+    let mut x = (n as f64).sqrt() as i128;
+    if x*x &lt;= n {
+        x += 1;
+        while x*x &lt;= n {
+            x += 1;
+        }
+        x-1
+    } else {
+        x -= 1;
+        while x*x &gt; n {
+            x -= 1;
+        }
+        x
+    }
+}
+
+fn binomial(n: i64, k: i64) -&gt; i64 {
+    let k = std::cmp::min(k, n-k);
+    if k &lt; 0 {return 0;}
+    if k == 0 {return 1;}
+    let mut c: i64 = 1;
+    for i in 0..(k as i64) {
+        c = (c * (n-i)) / (i + 1);
+    }
+    c
+}
+
+struct Combinator {
+    curr: i128,
+    mask: i128,
+    offset: u32,
+    min: i128,
+    max: i128,
+    k: u32,
+}
+
+impl Combinator {
+    fn new(width: u32, num_zeros: u32, mask: i128, offset: u32) -&gt; Combinator {
+        Combinator { curr: (1 &lt;&lt; width) - (1 &lt;&lt; num_zeros), mask: mask, offset: offset, min: 0, max: binomial(width as i64, num_zeros as i64) as i128, k: width - num_zeros }
+    }
+
+    fn with_prefix_postfix(full_width: u32, num_zeros: u32, prefix: i128, prefix_width: u32, postfix: i128, postfix_width: u32) -&gt; Combinator {
+        let width = full_width - prefix_width - postfix_width;
+        Combinator::new(width, num_zeros, (prefix &lt;&lt; (width + postfix_width)) + postfix, postfix_width)
+    }
+}
+
+// calculates the next combination, in reverse lexicographic order
+fn next_combination(n: i128) -&gt; i128 {
+    if n&amp;1 == 0 {return n - (((n^(n-1))+1)&gt;&gt;2);}
+    let a = (n^(n+1))&gt;&gt;1;
+    let na = n-a;
+    if na == 0 {return na;}
+    let b = ((na ^ (na-1))&gt;&gt;2) - a;
+    if b == 0 {return na - 1;}
+    let b = b &gt;&gt; b.trailing_zeros();
+    na - 1 - b
+}
+
+impl Iterator for Combinator {
+    type Item = i128;
+
+    fn next(&amp;mut self) -&gt; Option&lt;Self::Item&gt; {
+        if self.min == self.max {return None;}
+        let curr = self.curr;
+        self.max -= 1;
+        self.curr = next_combination(curr);
+        Some(self.mask | (curr &lt;&lt; self.offset))
+    }
+}
+
+// combinatorial number system
+fn ntoc(n: i128, k: i128) -&gt; i128 {
+    if k == 0 {return 0;}
+    if n == 0 {return (1&lt;&lt;k) - 1;}
+    let mut x = k;
+    let mut xck = 1; // x choose k
+    let mut x1ck = k+1; // x+1 choose k
+    while x1ck &lt;= n {
+        xck = x1ck;
+        x += 1;
+        x1ck = (xck * (x + 1)) / (x + 1 - k);
+    }
+    ntoc(n - xck, k-1) + (1 &lt;&lt; x)
+}
+
+fn split_combinator(c: Combinator) -&gt; (Combinator, Option&lt;Combinator&gt;) {
+    if c.max - c.min &lt;= 100000 {return (c, None);}
+    let midpoint = c.min + (c.max - c.min) / 2;
+    (Combinator {curr: ntoc(midpoint, c.k as i128), min: c.min, max: midpoint, mask: c.mask, offset: c.offset, k: c.k}, Some(Combinator {curr: c.curr, min: midpoint, max: c.max, mask: c.mask, offset: c.offset, k: c.k}))
+}
+
+struct Solution {
+    best: AtomicU32,
+    minz: i128,
+    maxz: i128,
+    solutions: Arc&lt;Mutex&lt;HashSet&lt;i128&gt;&gt;&gt;,
+}
+
+impl Solution {
+    fn update(&amp;self, z: i128) {
+        if z &lt; self.minz {return;}
+        if z &gt; self.maxz {return;}
+        let z2 = z*z;
+        let z2c = z2.count_ones();
+        let prev = self.best.fetch_max(z2c, Ordering::Relaxed);
+        if z2c &lt; prev {return;}
+        let mut solutions = self.solutions.lock().unwrap();
+        if z2c &gt; prev {
+            solutions.clear();
+        }
+        solutions.insert(z);
+    }
+    fn new(width: u32) -&gt; Solution {
+        Solution {best: AtomicU32::new(0), minz: isqrt((1 &lt;&lt; (width - 1)) - 1) + 1, maxz: isqrt(1 &lt;&lt; width), solutions: Arc::new(Mutex::new(HashSet::new()))}
+    }
+    fn get_best(&amp;self) -&gt; u32 {
+        self.best.load(Ordering::Relaxed)
+    }
+}
+
+fn main() {
+    let args: Vec&lt;String&gt; = std::env::args().collect();
+    let i = match args.len() {
+        2 =&gt; (1, true),
+        3 =&gt; {
+            if args[1] == &quot;-q&quot; {
+                (2, false)
+            } else if args[2] == &quot;-q&quot; {
+                (1, false)
+            } else {
+                println!(&quot;Usage: max_square [-q] [number of bits]&quot;);
+                return;
+            }
+        },
+        _ =&gt; {
+            println!(&quot;Usage: max_square [-q] [number of bits]&quot;);
+            return;
+        },
+    };
+    if let Ok(n) = u32::from_str(&amp;args[i.0]) {
+        solve(n, i.1);
+    } else {
+        println!(&quot;Error reading args&quot;);
+    }
+}
+</code></pre>
+<h2>Explanation</h2>
+<p>We'll let <span class="math-container">\$n\$</span> be the number of bits (100) in the squares we're searching.</p>
+<p>This algorithm has two types of steps that corresponding to fixing the most significant / least significant half of the square.</p>
+<p>While there are possible solutions remaining, we chose between the two step types based on which would require fewer operations.</p>
+<h4>Step type <span class="math-container">\$a\$</span>:</h4>
+<p>Range over all integers <span class="math-container">\$x\$</span> with <span class="math-container">\$\left\lceil\frac{n}{2}\right\rceil-1\$</span> bits of which <span class="math-container">\$a\$</span> are zero.</p>
+<p>For each <span class="math-container">\$x\$</span> there is at most one natural number <span class="math-container">\$z\$</span> for which</p>
+<p><span class="math-container">$$
+\underbrace{1x0\ldots0}_{n\text{ bits}}
+\le
+z^2
+\le
+\underbrace{1x1\ldots1}_{n\text{ bits}}
+$$</span></p>
+<p>After updating our solutions with those <span class="math-container">\$z^2\$</span>, assuming we already checked the previous values of <span class="math-container">\$a\$</span>, we now know that all unchecked squares have at least <span class="math-container">\$a+1\$</span> zeros in the first half.</p>
+<h4>Step type <span class="math-container">\$b\$</span>:</h4>
+<p>Range over integers <span class="math-container">\$k\$</span> and <span class="math-container">\$x\$</span> where <span class="math-container">\$2+2k\le b\$</span> and <span class="math-container">\$x\$</span> has <span class="math-container">\$\left\lceil\frac{n}{2}\right\rceil-3-2k\$</span> bits of which <span class="math-container">\$b-2-2k\$</span> are zero.</p>
+<p>For each <span class="math-container">\$x\$</span>, <span class="math-container">\$k\$</span> there are <span class="math-container">\$4\cdot2^k\$</span> values of <span class="math-container">\$z\$</span> (mod <span class="math-container">\$2^{\left\lceil\frac{n}{2}\right\rceil}\$</span>) satisfying</p>
+<p><span class="math-container">$$
+z^2\equiv \underbrace{x001[00]\times k}_{\left\lceil\frac{n}{2}\right\rceil\text{ bits}}\mod2^{\left\lceil\frac{n}{2}\right\rceil}
+$$</span></p>
+<p>After updating our solutions with those <span class="math-container">\$z^2\$</span>, assuming we already checked the previous values of <span class="math-container">\$b\$</span>, we now know that all unchecked squares have at least <span class="math-container">\$b+1\$</span> zeros in the first half.</p>
+<h2>Output for n from 3 to 126</h2>
+<pre><code>3 1 2 2
+4 2 3 3
+5 3 5 5
+6 3 7 7
+7 5 11 11
+8 4 13 15
+9 6 21 21
+10 6 27 27
+11 8 45 45
+12 8 53 53
+13 9 75 89
+14 9 101 117
+15 13 181 181
+16 11 217 235
+17 13 362 362
+18 12 437 491
+19 14 627 723
+20 15 923 949
+21 16 1241 1241
+22 16 1619 1773
+23 17 2505 2891
+24 18 3915 3915
+25 19 5221 5747
+26 20 6475 7093
+27 21 11309 11309
+28 22 15595 16203
+29 23 19637 19637
+30 24 31595 31595
+31 25 44491 44491
+32 25 61029 64747
+33 26 69451 86581
+34 27 113447 113447
+35 28 185269 185269
+36 29 244661 244661
+37 30 357081 357081
+38 31 453677 453677
+39 31 642119 738539
+40 34 980853 980853
+41 33 1380917 1481453
+42 34 1961706 2079669
+43 37 2965685 2965685
+44 37 3923411 3923411
+45 38 5931189 5931189
+46 38 8096813 8222581
+47 39 11862197 11862965
+48 39 16244453 16244453
+49 41 22193965 22193965
+50 41 32988235 32988235
+51 42 43586515 47450235
+52 44 57804981 57804981
+53 44 94905541 94905541
+54 44 115609962 134053275
+55 46 164382389 177549685
+56 47 268123979 268123979
+57 47 320528203 379526189
+58 49 528407335 528407335
+59 50 657506485 657506485
+60 51 888717493 888717493
+61 52 1510322221 1510322221
+62 52 2100772683 2111529939
+63 53 2630119323 2630119323
+64 54 4227325771 4227325771
+65 55 5853487285 5853487285
+66 55 8580481947 8580481947
+67 57 10520476455 10520476455
+68 57 14878203147 17110519093
+69 58 21040953067 24295633269
+70 59 31469977781 31469977781
+71 62 48589783221 48589783221
+72 63 66537313397 66537313397
+73 62 97179566261 97179566442
+74 63 133074626794 133074626794
+75 64 194366549037 194366549037
+76 64 259365748555 274835944267
+77 66 388730126517 388730126517
+78 66 475016392885 540779528373
+79 68 759031429451 759031429451
+80 68 1064500084555 1081632748507
+81 68 1503999171957 1554929409435
+82 69 2055848542027 2197923974325
+83 70 2576736968885 3109840793419
+84 72 3646667521867 4362198168395
+85 72 5384675514549 6216643955893
+86 73 8445509046091 8791729601637
+87 74 11620627528805 11937419436213
+88 76 17435796250805 17435796250805
+89 76 21537910687315 24879106612889
+90 77 34895284158283 34895284158283
+91 77 39275570260917 49752141391123
+92 78 60940798018325 68134217006923
+93 80 93089098383179 93089098383179
+94 80 121861586862261 139768858984629
+95 81 184920521899109 199030966469849
+96 82 222524145495085 222524145495085
+97 85 398064946368587 398064946368587
+98 84 461438710099403 562672855105355
+99 87 796095014224053 796095014224053
+100 85 933544295655093 1125891114428899
+101 88 1592054863872923 1592054863872923
+102 88 2233021208375059 2233021208375059
+103 89 3153273599102795 3153273599102795
+104 90 4498915668727861 4498915668727861
+105 92 6354993066190667 6354993066190667
+106 91 7790298568288075 8721180941868443
+107 92 12709986132381334 12711635715085643
+108 93 18005548694652121 18005548694652121
+109 94 25469208479569437 25469208479569437
+110 94 30874441840049387 36004547995030069
+111 95 47233732013276085 50801164553247509
+112 96 66646890995961483 72057405025529767
+113 99 101480601046523531 101480601046523531
+114 98 143542302959229109 143542302959229109
+115 99 202961202093047062 202961202093047062
+116 101 269614819660724085 269614819660724085
+117 101 403417952942237229 403417952942237229
+118 101 529472308325235947 576458535517221045
+119 103 808844333869390923 808844333869390923
+120 103 970104967079909557 1143803445656875189
+121 104 1578696363991412555 1630401033738048053
+122 106 1996776422069106507 2156918025961517429
+123 106 2688433943050910795 3260133329992761163
+124 107 4575515161264941861 4605489388616186187
+125 108 6518622390190614475 6518622390190614475
+126 110 7977185712837244873 7977185712837244873
+
+________________________________________________________
+Executed in  498.22 secs    fish           external
+   usr time   65.63 mins   15.29 millis   65.63 mins
+   sys time    0.03 mins   19.41 millis    0.03 mins
+</code></pre>
+</div>
+<div id="pu3" class="pu"><h1>c++ - 6s whole range (single threaded)</h1>
+<p><a href="https://ato.pxeger.com/run?1=nVfNcts2EL7r0FfoVp1xydhKLCV2bOtnxmmTtjNtOpP41mk5_IFIjEGAIUFKbqIn6SWXHvsCfZQ-TRcgJYIk7EzKsSkRwH5Y7H77LfXn32HGykL9e3EY_vPrePLL2i_k-GQ8Sf08TJbcl7Qi498-_lXK9eTi3y--_JrykJURgUVFQiny1agd8VksciqT1BykopA58TtjAZXmY5j6MlmNRqHghQTKJfz048-whLPTuTF28wKHcOLRbD9a8oLGnETABI_r25vr19-_9N7eXL-5wdXPL8-nT6fPzi5Pz8-ezz5t9_L1d2g1nc7OLi4v0eji2ex89nQ-GhUyurqqD7wYWq-gEKyUFMHR_P0ODZ48gbfSjwnMRpWgEYSi5NJRx5DxiT5OUH9kJzZ3KhfejwCvw5zn4erp7ALSkuEmFTwCZzDpVnNttUkoI-AEsFAB22OpS-9MJSI4Cmi1gsCFI5jODyts3mR6xw_gTEvGYLFAo9YgO14qyHYgwAEDEEPxA8kJbAhEtAj9PDLCJRNfQiT4NxISvyJAuCjjBAQnhQlAOa4ksKY5pi9Q27XTdA1OBson45zqyoksc946sjt8q7OhMoFZwAxUWXOeeolC9LygpExS7pFthol3NAU8LxNZbY3hc2G11Pk8dc290d_rUC-CtchB-rcUg4iRF-A344KzOxBRBLxMA5K3h2kyZ9J41bJhf1WLRSfEu04wTOOFStzREd7w24HkfTx9tpDkucrt-BW62OYIxmqwUje9jPCIzbvW-2w-zsoi8QI_vHUqt-_dbrQbjSzkosW7XA6pDNtBCbQ2fpblW8Xh4ZwLGs-JRBkw4m7dTkXUhtbSaUBX7cbq0oOTQ7Dro9TEqufm6liqqlKfcmdvihR4pbkq8zvAvK8pN1m_QZEEJH6K2oiGW6_MMpJ7f5BcFFDfG8brCSwNth7VxN2rYd8KxQ5l55DMB7SKciqpz7yeZkFNfaUPpJBe4qcp0tbbEBonSi9OG3hLOmo_OIn1MjAD3k4tWvVQmmQG-T5IleGO0WTq_n5AtEhWK5LadJjkGrZBaw50jwcVQtTcTA0uR6JXOv9PoB8-OZo34oxudg1UfasVqzpC_UJWV4Dd9rZrtbNiLO7HQJ6h9JXkQRitY0TRx6aNQ7_1YlRMG79Qoj5ftrrANlybRe17rwYeh4z4udPz-hBSa0WobYfrd0MXB5vZdbJrvduXUHV8bCxS5-2H-1ASLiyXfWXoh8AsVqM8P5gPE5higR53WgwQVpD7sI4t7WhnyJHqLfpJ9xetjIV-PVrrXqN7u2BMbFSn7OlkE3do4j7e49iSouCvxpZepRqx45coxUfF1TAjZpA6zbCwYDUHQ42_SQiHEsMiE1rALRcbRiI8FW4T-iwsmS-JcZxU4GsQWa9pSAmX7O6guFIl4-bF3PB1rgbtxTKHyUTGpsvt-8wU_zBx-K48UQCTPhtw2iBTt-9_u3cZE-LnMZF160cYe-9XVPyqJTVJM3nnuH2-9eSoww2FgPBINEXcT9RvuxPlBUFdNrbmkeOeDOssILFqypYZbeF28mnRYvQEE_NInz1Vr4KMpJg5Z7gD2KFtmP62xcTkfDbmQ7qL_lrbDk7s251ZlaLUJaPRzByrB4U1GEPfu1ww34fwDWFX_05sfi5-bD7_Aw" rel="nofollow noreferrer">Attempt this online!</a></p>
+<p>This algorithm has two stages where the first stage checks some very unlikely possibilities for optimal squares. Then stage 2 checks the rest of the possibilities, and gains a massive performance boost from the knowledge of stage one.</p>
+<p>More specifically we are interested in where the zeroes are in the square. In stage 1 we assume all but at most <code>max_upper_zeros</code> are located in the lower half (bottom 50 bits) of the square. We just brute force trough all possible upper halves of the square, check if they have a square root and if so, remember that value as a potential solution.</p>
+<p>Now in stage 2 we enumerate all possibilities, except the ones checked in stage 1. Thus in stage 2 we can assume that the upper half contains at least <code>max_upper_zeros + 1</code> zeros.</p>
+<p>This algorithm has &quot;steps&quot;. In step <code>b</code> we enumerate all possible lower segments of <code>b</code> bits of the root. At step 50 we have enumerated all possible roots and can calculate how many ones the corresponding squares have.</p>
+<p>As stated, this would not make the calculation any faster than brute force, however we can use the following trick: the <code>b</code> lowest bits of the root determine the <code>b</code> lowest bits of the square. Therefore we can get an upper bound to the number of ones in the square from the lowest <code>b</code> bits, which allows us to discard numbers at early steps of stage 2.</p>
+<p>The stage 2 algorithm is run with a &quot;target hamming weight&quot; <code>tg</code>. This is the (minimum) number of ones that we want in the square. We start with <code>tg=100</code> and decrement until we find solutions.</p>
+<p>The stage 2 algorithm in the following code is quite optimized since I invented it first. It has manual tail-call elimination and it only considers odd numbers (odd solutions can be trivially converted to even solutions). The variable p stores the number of bits in the initial segment with a bias given by <code>tg</code> and <code>max_upper_zeros</code>.</p>
+<p>The code outputs some stats to stderr and writes the solution to stdout.</p>
+<pre class="lang-cpp prettyprint-override"><code>#include &lt;vector&gt;
+#include &lt;algorithm&gt;
+#include &lt;iostream&gt;
+#include &lt;bit&gt;
+#include &lt;cmath&gt;
+
+const int LIM = 50;
+const int TB = LIM*2;
+const unsigned long long RANGE_START = 796131459065722;
+const unsigned long long RANGE_END = 1125899906842623;
+
+std::vector&lt;unsigned long long&gt; solutions = {};
+
+// Stage 2
+void count(int tg, int b, int p, unsigned long long v) {
+    unsigned __int128 mul = v * (unsigned __int128)v;
+    while (b &lt; LIM) {
+        int bit = (mul &gt;&gt; b) &amp; 1;
+        unsigned long long vp = v | (1ull &lt;&lt; b);
+        p+= bit;
+        b+= 1;
+        // Here we discard solutions that don't have enough ones
+        // in the first b bits
+        if (p &lt; b) {
+            return;
+        }
+        count(tg, b, p, vp);
+    }
+    if (__builtin_expect(std::__popcount(mul) &gt;= tg, 0)) {
+        // Account for taking into account only odd numbers
+        while (RANGE_START &gt; v) {
+            v&lt;&lt;= 1;
+        }
+        if (RANGE_START &lt;= v &amp;&amp; v &lt;= RANGE_END) {
+            std::cerr &lt;&lt; &quot;Found solution &quot; &lt;&lt; v &lt;&lt; std::endl;
+            solutions.push_back(v);
+        }
+    }
+}
+
+unsigned long long isqrt(unsigned __int128 x) {
+    unsigned long long apprx = (unsigned long long) sqrt((double)x);
+    while (apprx * (unsigned __int128) apprx &gt; x) {
+        apprx-= 1;
+    }
+    return apprx;
+}
+
+int main() {
+    // First try to find solutions with at most max_upper_zeros zeros in the upper half
+    const int max_upper_zeros = 7;
+
+    std::vector&lt;unsigned long long&gt; initial_solutions = {}; 
+    int best_hamming_weight = 0;
+
+    unsigned long long upper_neg = 0; 
+    while (upper_neg &lt; (1ull &lt;&lt; LIM)) {
+        unsigned long long upper = ((1ull &lt;&lt; LIM)-1)^upper_neg;
+        unsigned __int128 m = ((unsigned __int128)upper &lt;&lt; LIM);
+
+        unsigned long long v = isqrt(m);
+        do {
+            unsigned __int128 mul = v * (unsigned __int128)v;
+            unsigned long long upp = mul &gt;&gt; LIM;
+            if (upp &gt; upper) {
+                break;
+            }
+            if (upp &lt; upper) {
+                continue;
+            }
+            int ones = std::__popcount(mul);
+            if (ones &gt;= best_hamming_weight &amp;&amp; RANGE_START &lt;= v &amp;&amp; v &lt;= RANGE_END) {
+                if (ones &gt; best_hamming_weight) {
+                    initial_solutions.clear();
+                    best_hamming_weight = ones;
+                }
+                initial_solutions.push_back(v);
+            }
+        } while (v++);
+        if (std::__popcount(upper_neg) == max_upper_zeros) {
+            upper_neg = (upper_neg | (upper_neg - 1)) + 1;
+        } else {
+            upper_neg+= 1;
+        }
+    }
+
+    std::cerr
+    &lt;&lt; &quot;First stage found the following solutions with hamming weight &quot;
+    &lt;&lt; best_hamming_weight &lt;&lt; &quot;:&quot; &lt;&lt; std::endl;
+    for (auto &amp;s: initial_solutions) {
+        std::cerr &lt;&lt; s &lt;&lt; std::endl;
+    }
+
+    // Then use this knowledge to calculate solutions more efficiently
+    int tg = TB;;
+    for (; tg &gt;= best_hamming_weight; --tg) {
+        count(tg, 1, 1 + TB - tg - max_upper_zeros, 1);
+        std::cerr &lt;&lt; &quot;Calculated target &quot; &lt;&lt; tg &lt;&lt; std::endl;
+        if (!solutions.empty()) {
+            break;
+        }
+    }
+
+    if (tg + 1 == best_hamming_weight) {
+        solutions.insert(solutions.end(),initial_solutions.begin(),initial_solutions.end());
+    }
+
+    unsigned long long min = *std::min_element(solutions.begin(), solutions.end());
+    unsigned long long max = *std::max_element(solutions.begin(), solutions.end());
+    int ones = std::__popcount(min * (unsigned __int128)min);
+
+    
+
+    std::cout &lt;&lt; ones &lt;&lt; std::endl &lt;&lt; min &lt;&lt; std::endl &lt;&lt; max &lt;&lt; std::endl;
+
+    return 0;
+}
+</code></pre>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/255529/">255529</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
