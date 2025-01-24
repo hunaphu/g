@@ -26,8 +26,8 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>019</td><td>MATL</td><td>170804T153334Z</td><td><a href="https://codegolf.stackexchange.com/questions/137572/approximate-the-dottie-number-to-arbitrary-precision/137578#137578">Luis Men</a></td></tr>
-<tr d-ix="1"><td>068</td><td>APLNARS</td><td>231220T220009Z</td><td><a href="https://codegolf.stackexchange.com/questions/137572/approximate-the-dottie-number-to-arbitrary-precision/268661#268661">Rosario</a></td></tr>
+<tr d-ix="0"><td>279</td><td>APLNARS</td><td>231220T220009Z</td><td><a href="https://codegolf.stackexchange.com/questions/137572/approximate-the-dottie-number-to-arbitrary-precision/268661#268661">Rosario</a></td></tr>
+<tr d-ix="1"><td>019</td><td>MATL</td><td>170804T153334Z</td><td><a href="https://codegolf.stackexchange.com/questions/137572/approximate-the-dottie-number-to-arbitrary-precision/137578#137578">Luis Men</a></td></tr>
 <tr d-ix="2"><td>188</td><td>Zephyr</td><td>250123T184846Z</td><td><a href="https://codegolf.stackexchange.com/questions/137572/approximate-the-dottie-number-to-arbitrary-precision/277838#277838">DLosc</a></td></tr>
 <tr d-ix="3"><td>093</td><td>Maxima</td><td>231222T081416Z</td><td><a href="https://codegolf.stackexchange.com/questions/137572/approximate-the-dottie-number-to-arbitrary-precision/268693#268693">138 Aspe</a></td></tr>
 <tr d-ix="4"><td>006</td><td>Vyxal</td><td>231220T063303Z</td><td><a href="https://codegolf.stackexchange.com/questions/137572/approximate-the-dottie-number-to-arbitrary-precision/268656#268656">emanresu</a></td></tr>
@@ -52,7 +52,92 @@
 <tr d-ix="23"><td>046</td><td>Mathics or Mathematica</td><td>170804T160033Z</td><td><a href="https://codegolf.stackexchange.com/questions/137572/approximate-the-dottie-number-to-arbitrary-precision/137584#137584">notjagan</a></td></tr>
 <tr d-ix="24"><td>058</td><td>Python 3</td><td>170804T153302Z</td><td><a href="https://codegolf.stackexchange.com/questions/137572/approximate-the-dottie-number-to-arbitrary-precision/137577#137577">Dennis</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/lmendo/MATL" rel="nofollow noreferrer">MATL</a>, <s>34</s> <s>30</s> 19 bytes</h1>
+<div id="pu0" class="pu"><h1>APL(NARS), 279 chars</h1>
+<pre><code>r←D w;e;v;⎕FPC
+⎕FPC←4×w⋄e←÷10x*w⋄v←1v
+r←2○v⋄→0×⍳e&gt;∣v-r⋄v←r⋄→2
+
+r←a P w;⎕ct;⎕FPC;s;y;k;b
+   ⎕ct←0⋄s←''⋄⎕FPC←4+a×4⋄→B×⍳∼w&lt;0⋄s←'¯'⋄w←-w
+B: y←⌊w×10x*a⋄b←''
+C: b,←10∣y⋄→C×⍳0&lt;y←⌊y÷10⋄k←≢r←⎕D[1+⌽b]⋄→D×⍳∼a=0⋄r←s,r⋄→0
+D: →F×⍳∼0≥y←k-a⋄r←s,'0.',('0'⍴⍨-y),r⋄→0
+F: r←s,(y↑r),'.',y↓r
+
+f←{⍵P D⍵+1}
+</code></pre>
+<p>//15+23+23+25+45+19+57+40+21+11=279</p>
+<p>It seems that is possible approssimate the number <code>c</code> where <code>cos(c)=c</code>, with the succession <code>{x_i}</code> that is build
+in this way:</p>
+<pre><code>x_1=1 and x_(i+1)=cos(x_i), where lim_(i-&gt;+oo)x_i=c.
+</code></pre>
+<p>The <code>D</code> function implement that succession, has argument the decimal precision where decimal precision is a
+positive integer number. The <code>P</code> function is one home made, possible not bug free function that has as input <code>w</code>=number
+and <code>a</code>=the precision, and return the traslation of the number in string of chars of the number <code>w</code> with the precision <code>a</code>.
+The <code>f</code> function has as argument the decimal precision (&gt;0) and call <code>D</code> and the function <code>P</code> for print the result.
+<code>⎕FPC</code> is a local variable that not change outside the function <code>D</code> because it was changed inside <code>D</code> function,
+<code>⎕FPC</code> should represent the precision (in base 2) of the float calculations we run inside the <code>D</code> function.
+One observation, the result of <code>D</code> function it seems a large obj enough for contain the number that live outside
+the function and the <code>P</code> function has need to change <code>⎕FPC</code> inside that function, too for print right result.
+Because it seems</p>
+<pre><code>Ndigits_base_2(Number)=1+⌊Ndigits_base_10(Number) x 3.32192809  
+</code></pre>
+<p>I choose the 4 in <code>4×w</code> in <code>D</code> function, but in other functions that number could not be enought (for example I choose the <code>⎕FPC←4+a×4</code> in P function, because  <code>a×4</code> was not ok in one result).</p>
+<p>Test:</p>
+<pre><code>  ⍪f¨⍳46
+0.7                                              
+0.73                                             
+0.739                                            
+0.7390                                           
+0.73908                                          
+0.739085                                         
+0.7390851                                        
+0.73908513                                       
+0.739085133                                      
+0.7390851332                                     
+0.73908513321                                    
+0.739085133215                                   
+0.7390851332151                                  
+0.73908513321516                                 
+0.739085133215160                                
+0.7390851332151606                               
+0.73908513321516064                              
+0.739085133215160641                             
+0.7390851332151606416                            
+0.73908513321516064165                           
+0.739085133215160641655                          
+0.7390851332151606416553                         
+0.73908513321516064165531                        
+0.739085133215160641655312                       
+0.7390851332151606416553120                      
+0.73908513321516064165531208                     
+0.739085133215160641655312087                    
+0.7390851332151606416553120876                   
+0.73908513321516064165531208767                  
+0.739085133215160641655312087673                 
+0.7390851332151606416553120876738                
+0.73908513321516064165531208767387               
+0.739085133215160641655312087673873              
+0.7390851332151606416553120876738734             
+0.73908513321516064165531208767387340            
+0.739085133215160641655312087673873404           
+0.7390851332151606416553120876738734040          
+0.73908513321516064165531208767387340401         
+0.739085133215160641655312087673873404013        
+0.7390851332151606416553120876738734040134       
+0.73908513321516064165531208767387340401341      
+0.739085133215160641655312087673873404013411     
+0.7390851332151606416553120876738734040134117    
+0.73908513321516064165531208767387340401341175   
+0.739085133215160641655312087673873404013411758  
+0.7390851332151606416553120876738734040134117589 
+45 P D 46
+0.739085133215160641655312087673873404013411758
+  ⎕FPC
+128
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/lmendo/MATL" rel="nofollow noreferrer">MATL</a>, <s>34</s> <s>30</s> 19 bytes</h1>
 <p><em>11 bytes off thanks to <a href="https://codegolf.stackexchange.com/users/32352/sanchises">Sanchises</a>!</em></p>
 <pre><code>48i:&quot;'cos('wh41hGY$
 </code></pre>
@@ -73,40 +158,6 @@ i:&quot;        % Do n times, where n is the input
   GY$      %   Evaluate with variable-precision arithmetic using n digits
            %   The result is a string, which represents the new x
            % End (implicit). Display (implicit). The stack contains the last x
-</code></pre>
-</div>
-<div id="pu1" class="pu"><h1>APL(NARS), 68 chars</h1>
-<pre><code>r←D w;e;v;⎕FPC
-⎕FPC←4×w⋄e←1÷10x*w⋄v←1x
-r←2○v⋄→0×⍳e&gt;∣v-r⋄v←r⋄→2
-
-f←⍕∘D⍨
-</code></pre>
-<p>//15+24+23+6=68
-It seems that is possible approssimate the number <code>c</code> where <code>cos(c)=c</code>, with the succession <code>{x_i}</code> that is build
-in this way:</p>
-<pre><code>x_1=1 and x_(i+1)=cos(x_i), and we know lim_(i-&gt;+oo)x_i=c.
-</code></pre>
-<p>All easy... the code for find the solution thru succession (is the <code>D</code> function that has argument the decimal precision)
-and code for print the result (<code>f</code> function that has as argument the decimal precision).
-<code>⎕FPC</code> is a local variable that not change outside the function <code>D</code>, it would represent the precision (in base 2 it seems)
-of the float calculations we run inside the <code>D</code> function. One observation, the result of <code>D</code> function it seems a large obj enough for
-contain the number that live outside the function, and <code>⍕</code> it seems can adjust inside the ⎕FPC variable, for print right the obj it recieve. Because it seems</p>
-<pre><code>Ndigits_base_2(Number)=1+⌊Ndigits_base_10(Number) x 3.32192809  
-</code></pre>
-<p>I choose the 4 in <code>4×w</code> in D function, but in other functions that number is not enought...</p>
-<p>Test:</p>
-<pre><code>  f 1
-0.7
-  f 10
-0.7390851332
-  f 300
-0.73908513321516064165531208767387340401341175890075746496568063577328465488354759459937610
-  69317665318498012466439871630277149036913084203157804405746207786885249038915392894388
-  45095234801335631276772231580956353776572451204373419936433512538409780034340646700479
-  402143478080271801883771136138204206631
-  ⎕FPC
-128
 </code></pre>
 </div>
 <div id="pu2" class="pu"><h1><a href="https://github.com/dloscutoff/zephyr" rel="nofollow noreferrer">Zephyr</a>, 188 bytes</h1>
