@@ -26,8 +26,8 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>043</td><td>6502 Assembly</td><td>250124T153904Z</td><td><a href="https://codegolf.stackexchange.com/questions/273152/compute-the-degree-of-a-string/277858#277858">testc</a></td></tr>
-<tr d-ix="1"><td>047</td><td>Retina 0.8.2</td><td>250122T205800Z</td><td><a href="https://codegolf.stackexchange.com/questions/273152/compute-the-degree-of-a-string/277811#277811">Unrelate</a></td></tr>
+<tr d-ix="0"><td>042</td><td>Retina 0.8.2</td><td>250122T205800Z</td><td><a href="https://codegolf.stackexchange.com/questions/273152/compute-the-degree-of-a-string/277811#277811">Unrelate</a></td></tr>
+<tr d-ix="1"><td>043</td><td>6502 Assembly</td><td>250124T153904Z</td><td><a href="https://codegolf.stackexchange.com/questions/273152/compute-the-degree-of-a-string/277858#277858">testc</a></td></tr>
 <tr d-ix="2"><td>009</td><td>Jelly</td><td>240517T124510Z</td><td><a href="https://codegolf.stackexchange.com/questions/273152/compute-the-degree-of-a-string/273164#273164">Jonathan</a></td></tr>
 <tr d-ix="3"><td>049</td><td>Perl 5 Minteger pF</td><td>240517T214017Z</td><td><a href="https://codegolf.stackexchange.com/questions/273152/compute-the-degree-of-a-string/273170#273170">Xcali</a></td></tr>
 <tr d-ix="4"><td>012</td><td>Uiua</td><td>250122T131409Z</td><td><a href="https://codegolf.stackexchange.com/questions/273152/compute-the-degree-of-a-string/277808#277808">nyxbird</a></td></tr>
@@ -44,60 +44,22 @@
 <tr d-ix="15"><td>022</td><td>Charcoal</td><td>240517T151233Z</td><td><a href="https://codegolf.stackexchange.com/questions/273152/compute-the-degree-of-a-string/273167#273167">Neil</a></td></tr>
 <tr d-ix="16"><td>6766</td><td>Rust</td><td>240517T092316Z</td><td><a href="https://codegolf.stackexchange.com/questions/273152/compute-the-degree-of-a-string/273157#273157">mousetai</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>6502 Assembly, 43 Bytes</h1>
-<p>Reads the stack as a string, calculates degree into A</p>
-<pre><code>  ldx #$00  
-  stx $00   ;counter: start at 0 rounds
-  inx
-  stx $02   ;bit mask for the 'bit' instruction
-  pla       ;load first letter from stack
-  sta $01   ;previous letter: set to first letter
-loop:
-  tax       ;copy letter to X
-  sec
-  sbc $01   ;compare to previous letter by calculating their difference
-  beq skip  ;skip repeated letters
-  stx $01   ;save current letter
-  clc
-  bit $02   ;bit test difference with the value in $02 (#$01)
-  bne not_c_a ;If the first bit of the difference was set, skip inversion
-  eor #$ff  ;for a-c or c-a, invert difference
-  adc #$01  ;difference is still either -2 or 2, avoiding having to divide by 3 later
-not_c_a :
-  adc $00   ;add difference to counter
-  sta $00   ;save counter
-skip:
-  pla       ;load next letter from stack
-  tsx       ;did we hit the bottom?
-  bne loop  ;continue loop 
-  lda $00
-  cmp #$80  ;done, divide counter by 4
-  ror a 
-  cmp #$80
-  ror a     ;A contains the result!
-</code></pre>
-<p>Assembled:</p>
-<pre><code>A2 00 86 00 E8 86 02 68 85 01 AA 38 E5 01 F0 0F
-86 01 18 24 02 D0 04 49 FF 69 01 65 00 85 00 68
-BA D0 E7 A5 00 C9 80 6A C9 80 6A
-</code></pre>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://github.com/m-ender/retina/wiki/The-Language/a950ad7d925ec9316e3e2fb2cf5d49fd15d23e3d" rel="nofollow noreferrer">Retina 0.8.2</a>, 47 bytes</h1>
-<pre><code>+`(.)(.)?\2*\1
+<div id="pu0" class="pu"><h1><a href="https://github.com/m-ender/retina/wiki/The-Language/a950ad7d925ec9316e3e2fb2cf5d49fd15d23e3d" rel="nofollow noreferrer">Retina 0.8.2</a>, <s>47</s> 42 bytes</h1>
+<pre><code>+`(.).?\1
 $1
 1`ba|cb|ac
 -$&amp;
 \w(...)*.*
 $#1
 </code></pre>
-<p><a href="https://tio.run/##VYyxDgIxDEN3/wY91CsiUvkBRn6iQ@3oBhYGhMRy/15a7gZQbFlJrPdcXvcH2xRvtZ1qtLnrWi6pZISMXMXVtdJxDkeUdzSzOVlCOOTWKCe6hW4H3SWRGHfXlt839Tv@v47aAO1t7zRxFzauPg" rel="nofollow noreferrer" title="Retina 0.8.2 – Try It Online">Try it online!</a></p>
+<p><a href="https://tio.run/##VYyxDoMwEEN3/0ZDFah6Ur6gY3@CIfaJoQsDQmLh39OkMFCdrdP5rLdM62dm6eI7l0eO1ttrTAgJKYu7a6fjGe4Yt2hm/WADwi2VQjlRLVQ76C6JRMtdx/69qev4/9lqDXS2vdLEUzi4@gI" rel="nofollow noreferrer" title="Retina 0.8.2 – Try It Online">Try it online!</a></p>
 <p>I knew something like this should be possible and competitive--it just didn't occur to me that it would be in Retina!</p>
 <h4>Explanation:</h4>
-<pre><code>+`(.)(.)?\2*\1
+<pre><code>+`(.).?\1
 $1
 </code></pre>
-<p>Match any character, a possibly empty run of any one other character (though not necessarily a different character), and a copy of that first character. Replace all of that with just the first character, and repeat until nothing changes.</p>
-<p>Each iteration essentially &quot;straightens out&quot; every pair of steps that undo each other, and repeating this eventually leaves only steps which are <em>all</em> in one direction or the other.</p>
+<p>Match any character, zero or one other characters, and a copy of that first character. Replace all of that with just the first character, and repeat until nothing changes.</p>
+<p>Each iteration essentially &quot;straightens out&quot; every pair of steps that undo each other on top of gradually condensing runs of the same vertex, and repeating this eventually leaves only steps which are <em>all</em> in one direction or the other.</p>
 <pre><code>1`ba|cb|ac
 -$&amp;
 </code></pre>
@@ -139,6 +101,44 @@ $3$#1
 <p>Divide by <em>6</em> rounded towards 0, and convert to decimal:</p>
 <p>Like Neil's paired division and conversion, this doesn't directly &quot;do signed math&quot; so much as it floor divides the nonnegative unary and copies the unary digit onto the beginning of the decimal result to serve as its sign. However, using a number-of-matches substitution <code>$#{...}</code> instead of a length substitution <code>$.{...}</code>, it's a little trickier to actually match <em>specifically</em> a minus sign without consuming it out of the total--I have to clumsily use <code>((-)|.)</code> to include it, since filtering letters out afterwards is much bulkier (because decimal digits are also matched by <code>\w</code>),</p>
 <p>Outside of the sign logic, this matches the entire string as 0 or more greedy repetitions of 6 of anything then 0 or more repetitions of anything at all (anchored to the start of the string to eliminate an extra empty match at the end), and replaces it with (the sign prefixed to) the number of times the 6-wide group matched in decimal.</p>
+</div>
+<div id="pu1" class="pu"><h1>6502 Assembly, 43 Bytes</h1>
+<p>Reads the stack as a string, calculates degree into A</p>
+<pre><code>  ldx #$00  
+  stx $00   ;counter: start at 0 rounds
+  inx
+  stx $02   ;bit mask for the 'bit' instruction
+  pla       ;load first letter from stack
+  sta $01   ;previous letter: set to first letter
+loop:
+  tax       ;copy letter to X
+  sec
+  sbc $01   ;compare to previous letter by calculating their difference
+  beq skip  ;skip repeated letters
+  stx $01   ;save current letter
+  clc
+  bit $02   ;bit test difference with the value in $02 (#$01)
+  bne not_c_a ;If the first bit of the difference was set, skip inversion
+  eor #$ff  ;for a-c or c-a, invert difference
+  adc #$01  ;difference is still either -2 or 2, avoiding having to divide by 3 later
+not_c_a :
+  adc $00   ;add difference to counter
+  sta $00   ;save counter
+skip:
+  pla       ;load next letter from stack
+  tsx       ;did we hit the bottom?
+  bne loop  ;continue loop 
+  lda $00
+  cmp #$80  ;done, divide counter by 4
+  ror a 
+  cmp #$80
+  ror a     ;A contains the result!
+</code></pre>
+<p>Assembled:</p>
+<pre><code>A2 00 86 00 E8 86 02 68 85 01 AA 38 E5 01 F0 0F
+86 01 18 24 02 D0 04 49 FF 69 01 65 00 85 00 68
+BA D0 E7 A5 00 C9 80 6A C9 80 6A
+</code></pre>
 </div>
 <div id="pu2" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, <s> 12 </s> 9 bytes</h1>
 <pre><code>IÆTṠS÷3r`
