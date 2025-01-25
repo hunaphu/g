@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::244023</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>012</td><td>C++</td><td>250125T010354Z</td><td><a href="https://codegolf.stackexchange.com/questions/244023/the-maximum-liberty-of-a-group-on-a-go-board/277876#277876">138 Aspe</a></td></tr>
+<tr d-ix="1"><td>nan</td><td>Python 3</td><td>220311T211921Z</td><td><a href="https://codegolf.stackexchange.com/questions/244023/the-maximum-liberty-of-a-group-on-a-go-board/244024#244024">loopy wa</a></td></tr>
+<tr d-ix="2"><td>1537</td><td>Rust</td><td>220314T030927Z</td><td><a href="https://codegolf.stackexchange.com/questions/244023/the-maximum-liberty-of-a-group-on-a-go-board/244099#244099">Anders K</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>C++, score ≈ 12</h1>
+<p>C++ port of @Anders Kaseorg's Rust answer.</p>
+<pre class="lang-cpp prettyprint-override"><code>#include &lt;iostream&gt;
+#include &lt;vector&gt;
+#include &lt;unordered_map&gt;
+#include &lt;functional&gt;
+#include &lt;algorithm&gt;
+#include &lt;optional&gt;
+
+// We'll represent the Rust enum Point with a small struct that can hold either
+// Unused, Used, or Stone with an associated value.
+
+enum class PointType {
+    Unused,
+    Used,
+    Stone
+};
+
+struct Point {
+    PointType type;
+    // Only valid/used if type == Stone
+    unsigned value;
+
+    Point() : type(PointType::Unused), value(0) {}
+    Point(PointType t) : type(t), value(0) {}
+    Point(PointType t, unsigned v) : type(t), value(v) {}
+
+    // Equality operator for Point
+    bool operator==(const Point&amp; other) const {
+        if (type != other.type) return false;
+        if (type == PointType::Stone) {
+            return value == other.value;
+        }
+        // If both are Unused or Used, they're equal
+        return true;
+    }
+};
+
+// Custom hash for Point so we can build a hash for std::vector&lt;Point&gt;
+struct PointHash {
+    std::size_t operator()(const Point&amp; p) const {
+        // Combine a hash of the type with the stone value, if applicable.
+        // This is just an example of combining both.
+        // (static_cast&lt;size_t&gt;(p.type) &lt;&lt; 32) ^ p.value is a possible way:
+        size_t h1 = std::hash&lt;int&gt;()(static_cast&lt;int&gt;(p.type));
+        size_t h2 = std::hash&lt;unsigned&gt;()(p.value);
+        // A prime-based combination
+        return h1 ^ (h2 + 0x9e3779b97f4a7c15ULL + (h1 &lt;&lt; 6) + (h1 &gt;&gt; 2));
+    }
+};
+
+// Custom hash for std::vector&lt;Point&gt;
+struct VectorPointHash {
+    std::size_t operator()(const std::vector&lt;Point&gt;&amp; vec) const {
+        // We will fold over points with combination of their individual hashes
+        // to produce a single hash value for the entire vector.
+        std::size_t result = 0;
+        for (auto&amp; p : vec) {
+            std::size_t h = PointHash{}(p);
+            // Combine
+            result ^= h + 0x9e3779b97f4a7c15ULL + (result &lt;&lt; 6) + (result &gt;&gt; 2);
+        }
+        return result;
+    }
+};
+
+// Equality comparator for std::vector&lt;Point&gt;
+struct VectorPointEq {
+    bool operator()(const std::vector&lt;Point&gt;&amp; a, const std::vector&lt;Point&gt;&amp; b) const {
+        if (a.size() != b.size()) return false;
+        for (size_t i = 0; i &lt; a.size(); i++) {
+            if (!(a[i] == b[i])) {
+                return false;
+            }
+        }
+        return true;
+    }
+};
+
+// Helper to check if a Point is &quot;Stone(x)&quot; for a given x
+inline bool isStone(const Point&amp; p, unsigned x) {
+    return (p.type == PointType::Stone &amp;&amp; p.value == x);
+}
+
+// Helper to retrieve &quot;Stone(x)&quot; value if type is Stone; otherwise std::nullopt
+inline std::optional&lt;unsigned&gt; getStoneValue(const Point&amp; p) {
+    if (p.type == PointType::Stone) {
+        return p.value;
+    }
+    return std::nullopt;
+}
+
+unsigned libFunc(std::size_t n) {
+    // We'll store state -&gt; count in an unordered_map
+    // Each state is a vector of Points of length n
+    // Start with one entry: a vector of [Used, Used, ..., Used] =&gt; count=0
+    std::vector&lt;Point&gt; initialState(n, Point(PointType::Used));
+    std::unordered_map&lt;std::vector&lt;Point&gt;, unsigned, VectorPointHash, VectorPointEq&gt; states;
+    states.emplace(initialState, 0);
+
+    unsigned best = 0;
+
+    for (std::size_t _i = 0; _i &lt; n; _i++) {
+        for (std::size_t j = 0; j &lt; n; j++) {
+            // We'll build the new states in states1
+            std::unordered_map&lt;std::vector&lt;Point&gt;, unsigned, VectorPointHash, VectorPointEq&gt; states1;
+
+            // Lambda to add or update a state
+            auto add = [&amp;](std::vector&lt;Point&gt; state, unsigned count) {
+                auto it = states1.find(state);
+                if (it == states1.end()) {
+                    states1.emplace(std::move(state), count);
+                } else {
+                    it-&gt;second = std::max(it-&gt;second, count);
+                }
+            };
+
+            for (auto&amp; entry : states) {
+                const std::vector&lt;Point&gt;&amp; oldState = entry.first;
+                unsigned count = entry.second;
+
+                // We'll make copies of oldState in various branches of logic
+                // and push them into states1 with appropriate count adjustments.
+
+                // --- This corresponds to:
+                // if state[j] != Point::Stone(j as u32) { ... } 
+                // In C++: check if it's not Stone(j)
+                if (!isStone(oldState[j], static_cast&lt;unsigned&gt;(j))) {
+                    std::vector&lt;Point&gt; newState = oldState;
+                    bool used = false;
+
+                    // used = matches!(state[j], Point::Stone(_)) || (j != 0 &amp;&amp; matches!(state[j-1], Point::Stone(_)));
+                    // We'll replicate that logic in C++:
+                    if (newState[j].type == PointType::Stone) {
+                        used = true;
+                    } else if (j != 0 &amp;&amp; newState[j - 1].type == PointType::Stone) {
+                        used = true;
+                    }
+
+                    // state[j] = if used { Used } else { Unused }
+                    newState[j] = used ? Point(PointType::Used) : Point(PointType::Unused);
+
+                    add(std::move(newState), count + (used ? 1U : 0U));
+                }
+                // else if let Some(k) = ...
+                // This block checks: if the next portion of state has 'Stone(j)', find the first position &quot;k&quot; after j
+                // If found, rename all Stone(j) from index k onward with Stone(k).
+                // Then set state[j] to Used, and add 1 to count.
+                else {
+                    // Attempt to find Stone(j) in the slice j+1.. 
+                    auto indexOpt = [&amp;]() -&gt; std::optional&lt;std::size_t&gt; {
+                        for (std::size_t idx = j + 1; idx &lt; oldState.size(); idx++) {
+                            if (isStone(oldState[idx], static_cast&lt;unsigned&gt;(j))) {
+                                return idx;
+                            }
+                        }
+                        return std::nullopt;
+                    }();
+
+                    if (indexOpt.has_value()) {
+                        std::size_t k = indexOpt.value();
+                        std::vector&lt;Point&gt; newState = oldState;
+                        // for point in &amp;mut state[k..] { if *point == Stone(j) { *point = Stone(k) }}
+                        for (std::size_t idx = k; idx &lt; newState.size(); idx++) {
+                            if (isStone(newState[idx], static_cast&lt;unsigned&gt;(j))) {
+                                newState[idx] = Point(PointType::Stone, static_cast&lt;unsigned&gt;(k));
+                            }
+                        }
+                        newState[j] = Point(PointType::Used);
+                        add(std::move(newState), count + 1);
+                    }
+                    // else if not found in j+1.., check if no Stone(...) is in the entire array except possibly oldState[j].
+                    // If so, update best to max of best and count.
+                    else {
+                        // if !state[..j].iter().chain(&amp;state[j+1..]).any(|s| matches!(s, Stone(_)))
+                        // We'll check if the entire array except position j has no Stone
+                        bool hasStone = false;
+                        for (std::size_t idx = 0; idx &lt; oldState.size(); idx++) {
+                            if (idx == j) continue;
+                            if (oldState[idx].type == PointType::Stone) {
+                                hasStone = true;
+                                break;
+                            }
+                        }
+                        if (!hasStone) {
+                            best = std::max(best, count);
+                        }
+                    }
+                }
+
+                // Next portion of the code:
+                // We do some logic that modifies the current j or j-1 depending on whether they are Unused.
+                // Then merges or re-labels Stone groups if necessary.
+
+                // Begin with a copy of oldState (since we'll modify it).
+                // let mut state = state;
+                std::vector&lt;Point&gt; newState = oldState;
+                bool used0 = (newState[j].type == PointType::Unused);
+                bool used1 = false;
+                // used1 = j != 0 &amp;&amp; state[j-1] == Point::Unused
+                if (j != 0 &amp;&amp; newState[j - 1].type == PointType::Unused) {
+                    used1 = true;
+                    newState[j - 1] = Point(PointType::Used);
+                }
+
+                // Then, if let Some(Point::Stone(k)) = j.checked_sub(1).map(|j1| state[j1])
+                // we do merges if j is Stone(...) or not, or we label j as Stone(k).
+                if (j &gt; 0) {
+                    if (newState[j - 1].type == PointType::Stone) {
+                        unsigned k = newState[j - 1].value;
+                        if (newState[j].type == PointType::Stone) {
+                            unsigned l = newState[j].value;
+                            if (l &lt; k) {
+                                // for point in &amp;mut state[k..j] { if *point == Stone(k) { *point = Stone(l) }}
+                                // In C++, that means rewriting all Stone(k) to Stone(l) from index k..(j)
+                                for (std::size_t idx = k; idx &lt; j; idx++) {
+                                    if (isStone(newState[idx], k)) {
+                                        newState[idx] = Point(PointType::Stone, l);
+                                    }
+                                }
+                            } else if (l &gt; k) {
+                                // for point in &amp;mut state[j..] { if *point == Stone(l) { *point = Stone(k) }}
+                                for (std::size_t idx = j; idx &lt; newState.size(); idx++) {
+                                    if (isStone(newState[idx], l)) {
+                                        newState[idx] = Point(PointType::Stone, k);
+                                    }
+                                }
+                            }
+                        } else {
+                            // state[j] = Point::Stone(k)
+                            newState[j] = Point(PointType::Stone, k);
+                        }
+                    }
+                    else {
+                        // else if let Point::Stone(_) = state[j] { /* do nothing */ }
+                        // else state[j] = Stone(j)
+                        if (newState[j].type == PointType::Stone) {
+                            // do nothing
+                        } else {
+                            newState[j] = Point(PointType::Stone, static_cast&lt;unsigned&gt;(j));
+                        }
+                    }
+                } else {
+                    // j == 0
+                    // if let Point::Stone(_) = state[j] { /* do nothing */ } else { state[j] = Stone(j) }
+                    if (newState[j].type == PointType::Stone) {
+                        // do nothing
+                    } else {
+                        newState[j] = Point(PointType::Stone, static_cast&lt;unsigned&gt;(j));
+                    }
+                }
+
+                // Add the newly formed state, incrementing count by used0 + used1
+                add(std::move(newState), count + (used0 ? 1U : 0U) + (used1 ? 1U : 0U));
+            }
+
+            states = std::move(states1);
+        }
+    }
+
+    // Finally, after we process everything, we check the states for any that contain a single Stone(...) type
+    // or only the same Stone(...) repeated. If so, update best with that state's count if bigger.
+
+    for (auto&amp; entry : states) {
+        const std::vector&lt;Point&gt;&amp; state = entry.first;
+        unsigned count = entry.second;
+
+        // We'll scan the entire state for the first Stone(...) if any
+        std::optional&lt;unsigned&gt; firstStoneValue = std::nullopt;
+        for (auto&amp; p : state) {
+            if (p.type == PointType::Stone) {
+                firstStoneValue = p.value;
+                break;
+            }
+        }
+
+        // If we found a Stone(...) anywhere
+        if (firstStoneValue.has_value()) {
+            unsigned val = firstStoneValue.value();
+            // Check if all Stone(...) in the entire array is the same val
+            bool allSame = true;
+            for (auto&amp; p : state) {
+                if (p.type == PointType::Stone &amp;&amp; p.value != val) {
+                    allSame = false;
+                    break;
+                }
+            }
+            if (allSame) {
+                best = std::max(best, count);
+            }
+        }
+    }
+
+    return best;
+}
+
+int main() {
+    for (unsigned n = 0; /* infinite loop, like for n in 0.. in Rust */; n++) {
+        std::cout &lt;&lt; n &lt;&lt; &quot; &quot; &lt;&lt; libFunc(n) &lt;&lt; std::endl;
+    }
+    return 0;
+}
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a>, Using pnlwc (<strike>Probably</strike> Definitely not loopy Walt's conjecture)</h1>
+
+<pre class="lang-python prettyprint-override"><code>def pnlwc(n):
+    if n&lt;4:return[0,0,2,6][n]
+    if n%3==0:return n//3*(2*n-1)
+    if n%3==2:return n//3*(2*n-1)+n
+    return n//3*2*n+1
+</code></pre>
+<p><a href="https://tio.run/##bc7LCsIwFIThvU9xNkLSRpqLugj2SUoXookekGkIEfHpY1ERBWf7f4tJ93Ke4Go9hkgJl9tBQPoFzeNI2K19DuWaMWillVXbccD4qUvX9/oNCF3nGmEbrIz8EfafaPE032UOralxysTEoLzHKQij7Eb6lBlFsHodZCnrAw" rel="nofollow noreferrer" title="Python 3 – Try It Online">Try it online!</a></p>
+<h2>Conjectured optimal group</h2>
+<p>The conjectured formula seems to hold for all test cases larger than 3. It is definitely a lower bound, see the corresponding groups below.</p>
+<p>n = 0 mod 3</p>
+<pre class="lang-python prettyprint-override"><code>............ 
+XXXXXXXXXXXX
+.X..X..X..X.
+.X..X..X..X.
+.X..X..X..X.
+.X..X..X..X.
+.X..X..X..X.
+.X..X..X..X.
+.X..X..X..X.
+.X..X..X..X.
+.X..X..X..X.
+.X..X..X..X.
+</code></pre>
+<p>n = 2 mod 3</p>
+<pre class="lang-python prettyprint-override"><code>........... 
+XXXXXXXXXXX
+.X..X..X..X
+.X..X..X..X
+.X..X..X..X
+.X..X..X..X
+.X..X..X..X
+.X..X..X..X
+.X..X..X..X
+.X..X..X..X
+.X..X..X..X
+</code></pre>
+<p>n = 1 mod 3</p>
+<pre class="lang-python prettyprint-override"><code>.......... 
+XXXXXXXXXX
+.X..X..X..
+.X..X..X..
+.X..X..XXX
+.X..X..X..
+.X..X..X..
+.X..X..XXX
+.X..X..X..
+.X..X..XX.
+</code></pre>
+<h3>Partial proof:</h3>
+<p><em>The n=0 mod 3 case is actually comparatively easy to prove:</em></p>
+<p>Start with a few easy observations:</p>
+<ol>
+<li>We can assume that all squares are either stone or lib. Proof: (easy) exercise. Hint: trade squares that are neither against adjacent libs.</li>
+<li>As a consequence, we can either maximise libs or minimise stones.</li>
+<li>Another consequence is that each of the four corners must neighbour at least one stone. It follows that at least one pair of opposite edges (E and W, say) must be connected by a stone path.</li>
+<li>(Arithmetic 101:) (a) the stone-to-lib ratio is at least 1:2. Indeed, the E-W path if it is straight has exactly this ratio. If it meanders, (b) each turn knocks off one lib. (c) 3-way (4-way) branch points knock off 3 (6) libs. (d) Ends gain 1 lib if in the open and are neutral at a wall. In either case they incur a net loss because they necessitate a branch point. Finally, (e) a straight hugging a wall or (f) running parallel to another straight less than 2 squares away loses 1 lib per length unit (2 if parallel and directly touching).</li>
+</ol>
+<p>Note: the reader is encouraged to verify themselves that the group can indeed be thought of as assembled from connected horizontal and vertical straights.</p>
+<p>Inspecting the claimed optimal pattern we see that it has no turns and exactly n/3 3-way branch points. It has n/3 x (n+1) stones and n/3 x (2n-1) libs which is as predicted by our arithmetic 101 exactly n short of doubling the stones.</p>
+<p>We will now show that this is as good as it gets:</p>
+<p>The group must contain either at least n/3 horizontal or at least n/3 vertical straights. If it doesn't there is a y coordinate y0 where there is no stone or lib caused by a horizontal straight and similar for x coordinates and vertical straights. But this would mean square y0,x0 is neither stone nor lib which we have ruled out.</p>
+<p>Let's say WLOG that it is n/3 verticals. Generally, connecting k horz displaced vert straights will cost at the very least 2xk-2 libs as all but 2 vert straights must connect to at least two others each. Indeed, the cheapest way would be through two horz straights each connected via a turn to either end of the vert.</p>
+<p>That does, however, not work for the case at hand because the horizontal ends of this construction do not line up flush (cf. fig) and there is not enough slack in the system to create compensating elements. For example, just pushing the bridging horz all the way to the wall costs too much (101.e).</p>
+<pre class="lang-python prettyprint-override"><code>. . . . . . . .
+. . O O O O . .
+O O X X X X O O
+O O X O O X O O
+O O X O O X O O 
+O O X O O X O O 
+X X X O O X X X
+O O O . . O O O 
+. . . . . . . .
+</code></pre>
+<p>The next cheapest way of joining is branching off from a single horz which costs exactly n libs and is in fact precisely what the reference pattern does.</p>
+<p>Note 1: This argument does not work for n=3 which may be viewed as a reason why the formula needs a special value there.</p>
+<p>Note 2: The proof is relatively straight forward because for n=0 mod 3 the very small number of lost libs puts strong constraints on eligible patterns. The n=2 mod 3 and are considerably more forgiving and therefore tricky.</p>
+</div>
+<div id="pu2" class="pu"><h1>Rust, score ≈ 15 in 37 minutes</h1>
+<p>This uses dynamic programming to run in <span class="math-container">\$O((1 + \sqrt5)^n n^{3/2})\$</span> time (much faster than a brute-force <span class="math-container">\$2^{n^2}n^{O(1)}\$</span> solution). The idea is that if we fill the grid row-by-row and column-by-column with stones or holes, trying each of these two decisions at each step, the only state we need to remember is</p>
+<ul>
+<li>whether the last point in each column has a stone or a hole,</li>
+<li>if it has a stone, which other stones it’s been connected to so far,</li>
+<li>if it has a hole, whether it’s already been counted as a liberty, and</li>
+<li>how many liberties have been counted so far;</li>
+</ul>
+<p>and we can use a hash table to collapse states that are identical up to the number of counted liberties.  The number of distinct states we need to store grows as <span class="math-container">\$\frac{5(1 + \sqrt{5})^{n + 5/2}}{4\sqrt[4]{5}\sqrt{2\pi}n^{3/2}}\$</span>.</p>
+<p>Build with <code>cargo build --release</code> and run with <code>cargo run --release</code>.</p>
+<p><strong><code>Cargo.toml</code></strong></p>
+<pre><code>[package]
+name = &quot;liberty&quot;
+version = &quot;0.1.0&quot;
+edition = &quot;2021&quot;
+
+[dependencies]
+mimalloc = { version = &quot;0.1.28&quot;, default-features = false }
+
+[profile.release]
+codegen-units = 1
+lto = true
+panic = &quot;abort&quot;
+</code></pre>
+<p><strong><code>src/main.rs</code></strong></p>
+<pre class="lang-rust prettyprint-override"><code>use mimalloc::MiMalloc;
+use std::collections::HashMap;
+
+#[global_allocator]
+static GLOBAL: MiMalloc = MiMalloc;
+
+#[derive(Copy, Clone, Eq, Hash, PartialEq)]
+enum Point {
+    Unused,
+    Used,
+    Stone(u32),
+}
+
+fn lib(n: usize) -&gt; u32 {
+    let mut states = HashMap::from([(vec![Point::Used; n], 0)]);
+
+    let mut best = 0;
+
+    for _i in 0..n {
+        for j in 0..n {
+            let mut states1 = HashMap::new();
+            let mut add = |state: Vec&lt;Point&gt;, count: u32| {
+                states1
+                    .entry(state)
+                    .and_modify(|c| *c = count.max(*c))
+                    .or_insert(count);
+            };
+            for (state, count) in states {
+                if state[j] != Point::Stone(j as u32) {
+                    let mut state = state.clone();
+                    let used = matches!(state[j], Point::Stone(_))
+                        || (j != 0 &amp;&amp; matches!(state[j - 1], Point::Stone(_)));
+                    state[j] = if used { Point::Used } else { Point::Unused };
+                    add(state, count + used as u32);
+                } else if let Some(k) = state[j + 1..]
+                    .iter()
+                    .position(|&amp;point| point == Point::Stone(j as u32))
+                    .map(|k| j + 1 + k)
+                {
+                    let mut state = state.clone();
+                    for point in &amp;mut state[k..] {
+                        if *point == Point::Stone(j as u32) {
+                            *point = Point::Stone(k as u32);
+                        }
+                    }
+                    state[j] = Point::Used;
+                    add(state, count + 1);
+                } else if !state[..j]
+                    .iter()
+                    .chain(&amp;state[j + 1..])
+                    .any(|state| matches!(state, Point::Stone(_)))
+                {
+                    best = best.max(count);
+                }
+
+                let mut state = state;
+                let used0 = state[j] == Point::Unused;
+                let used1 = j != 0 &amp;&amp; state[j - 1] == Point::Unused;
+                if used1 {
+                    state[j - 1] = Point::Used;
+                }
+                if let Some(Point::Stone(k)) = j.checked_sub(1).map(|j1| state[j1]) {
+                    if let Point::Stone(l) = state[j] {
+                        if l &lt; k {
+                            for point in &amp;mut state[k as usize..j] {
+                                if *point == Point::Stone(k) {
+                                    *point = Point::Stone(l);
+                                }
+                            }
+                        } else if l &gt; k {
+                            for point in &amp;mut state[j..] {
+                                if *point == Point::Stone(l) {
+                                    *point = Point::Stone(k);
+                                }
+                            }
+                        }
+                    } else {
+                        state[j] = Point::Stone(k);
+                    }
+                } else if let Point::Stone(_) = state[j] {
+                } else {
+                    state[j] = Point::Stone(j as u32);
+                }
+                add(state, count + used0 as u32 + used1 as u32);
+            }
+            states = states1;
+        }
+    }
+
+    for (state, count) in states {
+        let mut it = state.into_iter();
+        if let Some(j) = it.find_map(|point| {
+            if let Point::Stone(j) = point {
+                Some(j)
+            } else {
+                None
+            }
+        }) {
+            if it.all(|point| {
+                if let Point::Stone(k) = point {
+                    j == k
+                } else {
+                    true
+                }
+            }) {
+                best = best.max(count);
+            }
+        }
+    }
+
+    best
+}
+
+fn main() {
+    for n in 0.. {
+        println!(&quot;{n} {}&quot;, lib(n));
+    }
+}
+</code></pre>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/244023/">244023</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
