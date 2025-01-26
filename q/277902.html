@@ -36,6 +36,40 @@
 <p><strong><a href="https://tio.run/##y0rNyan8/z84/uGOJVyHNh1uPzz98PYAj8Ntjoe3mxxuC3nUMCPg8PZDm451nZx8uB3IDD7WdWgvSG76////o40sjC2NdBSMDA0MDICUqYW5USwA" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></strong> Or see the <a href="https://tio.run/##y0rNyan8/z84/uGOJVyHNh1uPzz98PYAj8Ntjoe3mxxuC3nUMCPg8PZDm451nZx8uB3IDD7WdWgvSG76f53D7UcnPdw541HTmqxHDXMUbO0UHjXM1Yz8/1/DUEcBhDR1FEBMIyACMY3ATGMQ01hHwURHwRTENAUK6SiYg9UaADWBNJqAeUBhMx0FSxjb0Aiqw9gcKAFUZgnWZGRhbAky2dDAAKjdyNTC3EgTAA" rel="nofollow noreferrer" title="Jelly – Try It Online">test-suite</a>.</p>
 <h4>How?</h4>
 <p>Just a golfed implementation of the given method.</p>
+<pre><code>S_Ḥ - Helper Link: list of integers, L=[x, y, z]
+S   - sum {L}            -&gt; Sum = x+y+z
+  Ḥ - double {L}     -&gt; Doubles = [2x, 2y, 2z]
+ _  - {Sum} subtract {Doubles} -&gt; [y+z-x, x+z-y, x+y-z]
+
+²Ç×÷PHÆA÷4ÆT‘P÷²ƊɓÇP÷SƊ½÷4× - Main Link: list of integers, T=[a, b, c]
+²                           - square {T} -&gt; [a², b², c²]
+ Ç                          - call the Helper Link with {that} -&gt; [b²+c²-a², a²+c²-b², a²+b²-c²]
+  ×                         - multiply by {T} -&gt; [a(b²+c²-a²), b(a²+c²-b²), c(a²+b²-c²)]
+    P                       - product {T} -&gt; abc
+   ÷                        - divide {these} -&gt; [(b²+c²-a²)÷bc, (a²+c²-b²)÷ac, (a²+b²-c²)÷ab]
+     H                      - halve {that} -&gt; [(b²+c²-a²)÷2bc, (a²+c²-b²)÷2ac, (a²+b²-c²)÷2ab]
+      ÆA                    - arc-cosine {that} -&gt; [A, B, C]
+        ÷4                  - divide {that} by four -&gt; [A÷4, B÷4, C÷4]
+          ÆT                - tangent {that} -&gt; [tan(A÷4), tan(B÷4), tan(C÷4)]
+            ‘               - increment {that} -&gt; [1+tan(A÷4), 1+tan(B÷4), 1+tan(C÷4)]
+                Ɗ           - last three links as a dyad - f(X=that):
+             P              -   product {X} -&gt; (1+tan(A÷4))(1+tan(B÷4))(1+tan(C÷4)]
+               ²            -   square {X} -&gt; [(1+tan(A÷4))², (1+tan(B÷4))², (1+tan(C÷4))²]
+              ÷             -   divide {these}
+                              -&gt; Z = [(1+tan(B÷4))(1+tan(C÷4))÷(1+tan(A÷4)),
+                                      (1+tan(A÷4))(1+tan(C÷4))÷(1+tan(B÷4)),
+                                      (1+tan(A÷4))(1+tan(B÷4))÷(1+tan(C÷4)),
+                                     ]
+                 ɓ          - start a new dyadic chain - f(T, Unnormalised)
+                  Ç         - call the Helper Link with {T} -&gt; [b+c-a, a+c-b, a+b-c]
+                      Ɗ     - last three links as a monad - f(X=that):
+                   P        -   product {X} -&gt; (b+c-a)×(a+c-b)×(a+b-c)
+                     S      -   sum {X} -&gt; b+c-a+a+c-b+a+b-c = a+b+c
+                    ÷       -   divide {those} -&gt; 4r²
+                       ½    - square-root {that} -&gt; 2r
+                        4  - divide by four -&gt; r÷2
+                          × - multiply {that} by {Z} -&gt; [r(GA), r(GB), r(GC)]
+</code></pre>
 </div>
 
 <table id="st">
