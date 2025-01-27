@@ -26,11 +26,28 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>031</td><td>Jelly</td><td>250126T091358Z</td><td><a href="https://codegolf.stackexchange.com/questions/277902/malfatti-circle-radii/277905#277905">Jonathan</a></td></tr>
-<tr d-ix="1"><td>129</td><td>JavaScript ES7</td><td>250126T153238Z</td><td><a href="https://codegolf.stackexchange.com/questions/277902/malfatti-circle-radii/277916#277916">Arnauld</a></td></tr>
-<tr d-ix="2"><td>066</td><td>Charcoal</td><td>250126T112602Z</td><td><a href="https://codegolf.stackexchange.com/questions/277902/malfatti-circle-radii/277908#277908">Neil</a></td></tr>
+<tr d-ix="0"><td>218</td><td>Maple</td><td>250127T010022Z</td><td><a href="https://codegolf.stackexchange.com/questions/277902/malfatti-circle-radii/277929#277929">dharr</a></td></tr>
+<tr d-ix="1"><td>031</td><td>Jelly</td><td>250126T091358Z</td><td><a href="https://codegolf.stackexchange.com/questions/277902/malfatti-circle-radii/277905#277905">Jonathan</a></td></tr>
+<tr d-ix="2"><td>129</td><td>JavaScript ES7</td><td>250126T153238Z</td><td><a href="https://codegolf.stackexchange.com/questions/277902/malfatti-circle-radii/277916#277916">Arnauld</a></td></tr>
+<tr d-ix="3"><td>066</td><td>Charcoal</td><td>250126T112602Z</td><td><a href="https://codegolf.stackexchange.com/questions/277902/malfatti-circle-radii/277908#277908">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 31 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
+<div id="pu0" class="pu"><h1><a href="https://www.maplesoft.com/" rel="nofollow noreferrer">Maple</a>, 218 bytes</h1>
+<pre><code>proc()s:=x-&gt;subs({a=b,b=c,c=a,A=B,B=C,C=A},x);q:=d[A]=r[A]*sqrt((a+b+c)*(b+c-a)/(a+b-c)/(a-b+c));4*r[A]*r[B]=(d[A]+d[B]-c)^2;t:=subs(q,s(q),%);e=subs((a,b,c)=~args,{t,s(t),s(s(t))});eval([r[A],r[B],r[C]],fsolve(e))end;
+</code></pre>
+<pre><code>proc()
+s:=x-&gt;subs({a=b,b=c,c=a,A=B,B=C,C=A},x);  # makes cyclic substitutions
+q:=d[A]=r[A]*sqrt((a+b+c)*(b+c-a)/(a+b-c)/(a-b+c)); # Mathworld Eq (12)
+4*r[A]*r[B]=(d[A]+d[B]-c)^2;     # Mathworld Eq (9)
+t:=subs(q,s(q),%);               # substitute d[A] and d[B] in Eq (9) 
+e:=subs((a,b,c)=~args,           # substitute numerical values into        
+    {t,s(t),s(s(t))});           # the 3 equations to solve.  
+eval([r[A],r[B],r[C]],fsolve(e)) # solve and output
+end;
+</code></pre>
+<p>Since the <code>arccos</code> and other trig functions in Maple are verbose, I looked for equations that don't use them. The six equations 9-14 on <a href="https://mathworld.wolfram.com/MalfattiCircles.html" rel="nofollow noreferrer">MathWorld</a> are two equations (9 and 12) with the others found from cyclic permutations of the variables. Solving all six equations directly gave too many invalid solutions, e.g., negative d or r values. But substituting d values found from eqns 12-14 into eqns 9-11 and solving these three equations works without additional conditions required. Subscripts 1,2,3 were replaced by A,B,C for golfing purposes.</p>
+<p>The default output from fsolve is {r[A]=number, r[B]=number, r[C]=number} and if that were acceptable then the last line could just be <code>fsolve(e)</code>, saving 23 bytes.</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 31 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
 <pre><code>S_Ḥ
 ²Ç×÷PHÆA÷4ÆT‘P÷²ƊɓÇP÷SƊ½÷4×
 </code></pre>
@@ -73,7 +90,7 @@ S   - sum {L}            -&gt; Sum = x+y+z
                           × - multiply {that} by {Z} -&gt; [r(GA), r(GB), r(GC)]
 </code></pre>
 </div>
-<div id="pu1" class="pu"><h1>JavaScript (ES7), 129 bytes</h1>
+<div id="pu2" class="pu"><h1>JavaScript (ES7), 129 bytes</h1>
 <p>Expects <code>(a,b,c)</code> and returns an array of 3 floats.</p>
 
 <pre class="lang-none prettyprint-override"><code>(a,b,c)=&gt;[s=a+b+c,s,s].map(x=&gt;(g=r=&gt;1+Math.tan(Math.acos((r?[a,b,c]=[c,a,b]:0,x/=c+a-b,a*a+b*b-c*c)/2/a/b)/4))()*g``/g``/x**.5/4)
@@ -115,7 +132,7 @@ S   - sum {L}            -&gt; Sum = x+y+z
 )                         // end of map()
 </code></pre>
 </div>
-<div id="pu2" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 66 bytes</h1>
+<div id="pu3" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 66 bytes</h1>
 <pre><code>Ｆ³⊞υＮ≔Ｅ∕×υ⁻ΣＸυ²⊗Ｘυ²⊗Πυ∕₂⁻¹Ｘι²ιθＦ²ＵＭθ∕⊖₂⊕Ｘκ²κＩ×∕Π⊕θＸ⊕θ²∕₂∕Π⁻Συ⊗υΣυ⁴
 </code></pre>
 <p><a href="https://ato.pxeger.com/run?1=ZZG9TsMwFIXFylNYna6lVEpdEEGdULN0KKooG2LIj0utxnZj-5aHYakQCFZeh6chxmmbwGJZx9efzzl--SzWmSl0Vu337-hWw-T77HWlDYExJQu0a8CIzNQW3S3KnBugdHJ-Y614UjDPtpCKnSg53AvJrR-dC4UWlihhoZ-b8UZilEYk1ZhXvOypPd3oEgsHGNRAXdaYGX6ntYPAHUUkAEQARET4pW48_XpmlDSmplrKTJVQH0EpLwyXXLnmpQ50pk5y4G6OxjY-6MII5WCaWdcmbHkHt11A7W8FSl8-NPAv0x_YqTrsFBMKCarfXXh7kzebF7b9sI-HwXBXDR6_WDK-ZoSN4jgm7DK5YuH8Bw" rel="nofollow noreferrer">Attempt This Online!</a> Link is to verbose version of code. Explanation:</p>
