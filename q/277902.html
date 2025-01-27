@@ -26,12 +26,52 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>218</td><td>Maple</td><td>250127T010022Z</td><td><a href="https://codegolf.stackexchange.com/questions/277902/malfatti-circle-radii/277929#277929">dharr</a></td></tr>
-<tr d-ix="1"><td>031</td><td>Jelly</td><td>250126T091358Z</td><td><a href="https://codegolf.stackexchange.com/questions/277902/malfatti-circle-radii/277905#277905">Jonathan</a></td></tr>
-<tr d-ix="2"><td>129</td><td>JavaScript ES7</td><td>250126T153238Z</td><td><a href="https://codegolf.stackexchange.com/questions/277902/malfatti-circle-radii/277916#277916">Arnauld</a></td></tr>
+<tr d-ix="0"><td>128</td><td>JavaScript ES7</td><td>250126T153238Z</td><td><a href="https://codegolf.stackexchange.com/questions/277902/malfatti-circle-radii/277916#277916">Arnauld</a></td></tr>
+<tr d-ix="1"><td>218</td><td>Maple</td><td>250127T010022Z</td><td><a href="https://codegolf.stackexchange.com/questions/277902/malfatti-circle-radii/277929#277929">dharr</a></td></tr>
+<tr d-ix="2"><td>031</td><td>Jelly</td><td>250126T091358Z</td><td><a href="https://codegolf.stackexchange.com/questions/277902/malfatti-circle-radii/277905#277905">Jonathan</a></td></tr>
 <tr d-ix="3"><td>066</td><td>Charcoal</td><td>250126T112602Z</td><td><a href="https://codegolf.stackexchange.com/questions/277902/malfatti-circle-radii/277908#277908">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.maplesoft.com/" rel="nofollow noreferrer">Maple</a>, 218 bytes</h1>
+<div id="pu0" class="pu"><h1>JavaScript (ES7), 128 bytes</h1>
+<p>Expects <code>(a,b,c)</code> and returns an array of 3 floats.</p>
+
+<pre class="lang-none prettyprint-override"><code>(a,b,c)=&gt;[m=Math,0,0].map(_=&gt;(g=r=&gt;1+m.tan(m.acos((r?[a,b,c]=[c,a,b]:x=a+b+c,x/=c+a-b,a*a+b*b-c*c)/2/a/b)/4))()*g``/g``/x**.5/4)
+</code></pre>
+<p><a href="https://tio.run/##jZPLbttADEX3/gotJXsi8TUzZAO5qy77BYbQyGoeLeI4cIIiQNFvdzlKUOThRQUJEK7AM5eX1M/x1/gwHX7cP57d7b9fHq/6Yz2GbZiafr3Z9V/Hx5sAAYZ2N97X3/p1fd0f@jWudu3jeFfv2nHaP9T14fNmLhr6zRT8bfj01I@r7WoKT10/rcazbRiXLiy3Z9Nyajrqxm7bdNI0dbO8vrjoyvO0XLbRteP5ZlFVGwxVuYdQvbq6roIWlQEpA6oRUfgP5YXnX@gEj8FEjCyaqWCpJlSSqJxiRI0flcKjmccneIIonJVyTgnn6o8KZUbFnIAk8@yPQyWhiid4OaKZcWRWilqqUxI1QdXM9qxEyMZsiTiSpMLzYxyZT/CSgPdBgOAtz9WZNAJIRi8mKApH9AARFTyY5/xcxzIReYV0HrUEKWbgCEkY/ExqEbK4V2Q1IFfQHUfwcIEIjW3muZ5CZW8MPvvzkaEmiVk8r1LNZmjoPSdvWYviQWRVTcZu@B8P6V2CzsPWF8Gz8hmAKFOpdg9AyllicTr7y55KgkTJcpR5Htn9eb@W3/bLvluGiXwAUQVKzK2HD45G0KQyJ2rZtw99r9Qd6rwvylZ2BgE8yeKfhplnyXz0VlThmBbDor3aH76M001d@29VbUM1DU3Vr6vfzpn2dw/728v2dn9dX9Uvn5vmfPGnOT/@BQ" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<h3>Method</h3>
+<p>For each Malfatti circle radius, the same method <code>g</code> is invoked 3 times to:</p>
+<ul>
+<li>compute successively <span class="math-container">\$1+\tan A/4\$</span>, <span class="math-container">\$1+\tan B/4\$</span>, <span class="math-container">\$1+\tan C/4\$</span> in the relevant order</li>
+<li>simultaneously compute the product <span class="math-container">\$(b+c-a)(c+a-b)(a+b-c)\$</span></li>
+</ul>
+<p>The behavior of <code>g</code> is solely determined by the order of the triplet <span class="math-container">\$(a,b,c)\$</span> which is rotated 2 times out of 3.</p>
+<h3>Commented</h3>
+<pre class="lang-none prettyprint-override"><code>(a, b, c) =&gt;               // (a, b, c) = input
+[ m = Math, 0, 0 ]         // m = alias for Math
+.map(_ =&gt;                  // repeat 3 times:
+  ( g = r =&gt;               //   g is a helper function taking a flag r:
+    1 + m.tan(             //     compute 1 + the tangent of ...
+      m.acos(              //       the inverse cosine of ...
+        (                  //     
+          r ?              //         if r is set:
+            [a, b, c] =    //           rotate (a, b, c)
+            [c, a, b]      //           to (c, a, b)
+          :                //         else:
+            x = a + b + c, //           initialize x to a + b + c
+          x /= c + a - b,  //         divide x by c + a - b
+          a * a +          //         compute a² + b² - c² ...
+          b * b -          //     
+          c * c            //     
+        ) / 2 / a / b      //         ... divided by 2ab
+      ) / 4                //       end of Math.acos(); divide by 4
+    )                      //     end of Math.tan()
+  )()                      //   first call to g (r not set)
+  * g``                    //   multiply by a 2nd call to g (r set)
+  / g``                    //   divide by a 3rd call to g (r set)
+  / x ** .5 / 4            //   divide by 4√x
+)                          // end of map()
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.maplesoft.com/" rel="nofollow noreferrer">Maple</a>, 218 bytes</h1>
 <pre><code>proc()s:=x-&gt;subs({a=b,b=c,c=a,A=B,B=C,C=A},x);q:=d[A]=r[A]*sqrt((a+b+c)*(b+c-a)/(a+b-c)/(a-b+c));4*r[A]*r[B]=(d[A]+d[B]-c)^2;t:=subs(q,s(q),%);e=subs((a,b,c)=~args,{t,s(t),s(s(t))});eval([r[A],r[B],r[C]],fsolve(e))end;
 </code></pre>
 <pre><code>proc()
@@ -47,7 +87,7 @@ end;
 <p>Since the <code>arccos</code> and other trig functions in Maple are verbose, I looked for equations that don't use them. The six equations 9-14 on <a href="https://mathworld.wolfram.com/MalfattiCircles.html" rel="nofollow noreferrer">MathWorld</a> are two equations (9 and 12) with the others found from cyclic permutations of the variables. Solving all six equations directly gave too many invalid solutions, e.g., negative d or r values. But substituting d values found from eqns 12-14 into eqns 9-11 and solving these three equations works without additional conditions required. Subscripts 1,2,3 were replaced by A,B,C for golfing purposes.</p>
 <p>The default output from fsolve is {r[A]=number, r[B]=number, r[C]=number} and if that were acceptable then the last line could just be <code>fsolve(e)</code>, saving 23 bytes.</p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 31 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
+<div id="pu2" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 31 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
 <pre><code>S_Ḥ
 ²Ç×÷PHÆA÷4ÆT‘P÷²ƊɓÇP÷SƊ½÷4×
 </code></pre>
@@ -88,48 +128,6 @@ S   - sum {L}            -&gt; Sum = x+y+z
                        ½    - square-root {that} -&gt; 2r
                         ÷4  - divide {that} by four -&gt; r÷2
                           × - multiply {that} by {Z} -&gt; [r(GA), r(GB), r(GC)]
-</code></pre>
-</div>
-<div id="pu2" class="pu"><h1>JavaScript (ES7), 129 bytes</h1>
-<p>Expects <code>(a,b,c)</code> and returns an array of 3 floats.</p>
-
-<pre class="lang-none prettyprint-override"><code>(a,b,c)=&gt;[s=a+b+c,s,s].map(x=&gt;(g=r=&gt;1+Math.tan(Math.acos((r?[a,b,c]=[c,a,b]:0,x/=c+a-b,a*a+b*b-c*c)/2/a/b)/4))()*g``/g``/x**.5/4)
-</code></pre>
-<p><a href="https://tio.run/##jZPLbtpQEIb3eQovbXDsuZ0zM41MV132CRBSjJtLqzREEFWRqj47nWNYpBGLooNkzYGPme8ffoy/xsO0//7yev28@3Z3vB@O9dhu26kZVuvDMC63y6k9tIdN93N8qd@GVf0w7IcVLr@Or4/d6/hczw/jtDvU9f7zev7uZlhPbTxtPkH71g/TcrzetuMiYIvt9bSYmp76sd82vTRN3Swebm/78n5bLLoUtePN@qqq1thW5Wza6t2r76saOjQGJAU0J0Jnbqv/LTZnNMW5hGZwESdP7iaQqUAIjSQZ55TQklC@WJzJNJP5ElkQhdVINWcU1QK5VCNlNNQMJMoEqjM4ppG2SpfAmtDdOTEbpTgFkrOYC5ope1KbwQk0BHgmTiSZcebGpwOtl7hZIKYjQAgbp96ULAGIYhDiwkqNE4ZjRIPQRpROhiGiK/HJO3LBUkeQkwInyMJAGjKpQ1CJzpHNIRBRwxghgQnCnJvTObloNm79n37P7ZaELUtS0QiFCoPd0TFU5DBhpRKG1MyycwxgZ7mFivRBb6FiF9sTGiMnEGNMUhjRD5CxSip989yshq0c@5JdE/spslCWw4HrBwcca@mYKRJKsWSSg8pdpAPGhGDZRGe1rrG7GAtp0a6mk9r4ZS9rhgAhucxDmxPWs8eWeCkLp1jIzVV3v9t/GafHuo6/ZrVtq2nTVMOq@h2kafd82D3ddU@7h/q@Pl83zc3Vn@bm@Bc" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
-<h3>Method</h3>
-<p>For each Malfatti circle radius, the same method <code>g</code> is invoked 3 times to:</p>
-<ul>
-<li>compute successively <span class="math-container">\$1+\tan A/4\$</span>, <span class="math-container">\$1+\tan B/4\$</span>, <span class="math-container">\$1+\tan C/4\$</span> in the relevant order</li>
-<li>simultaneously compute the product <span class="math-container">\$(b+c-a)(c+a-b)(a+b-c)\$</span></li>
-</ul>
-<p>The behavior of <code>g</code> is solely determined by the order of the triplet <span class="math-container">\$(a,b,c)\$</span> which is rotated 2 times out of 3.</p>
-<h3>Commented</h3>
-<pre class="lang-none prettyprint-override"><code>(a, b, c) =&gt;              // (a, b, c) = input
-[ s = a + b + c,          // s = sum of the 3 input values
-  s,                      //
-  s                       //
-].map(x =&gt;                // repeat 3 times, starting with x = s:
-  ( g = r =&gt;              //   g is a helper function taking a flag r:
-    1 + Math.tan(         //     compute 1 + the tangent of ...
-      Math.acos(          //       the inverse cosine of ...
-        (                 //     
-          r ?             //         if r is set:
-            [a, b, c] =   //           rotate (a, b, c)
-            [c, a, b]     //           to (c, a, b)
-          :               //         else:
-            0,            //           do nothing
-          x /= c + a - b, //         divide x by c + a - b
-          a * a +         //         compute a² + b² - c² ...
-          b * b -         //     
-          c * c           //     
-        ) / 2 / a / b     //         ... divided by 2ab
-      ) / 4               //       end of Math.acos(); divide by 4
-    )                     //     end of Math.tan()
-  )()                     //   first call to g (r not set)
-  * g``                   //   multiply by a 2nd call to g (r set)
-  / g``                   //   divide by a 3rd call to g (r set)
-  / x ** .5 / 4           //   divide by 4√x
-)                         // end of map()
 </code></pre>
 </div>
 <div id="pu3" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 66 bytes</h1>
