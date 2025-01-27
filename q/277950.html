@@ -26,11 +26,57 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>048</td><td>Charcoal</td><td>250127T231019Z</td><td><a href="https://codegolf.stackexchange.com/questions/277950/the-steps-of-sorting-a-stack-of-disks-on-three-pegs/277957#277957">Neil</a></td></tr>
-<tr d-ix="1"><td>021</td><td>Jelly</td><td>250127T213342Z</td><td><a href="https://codegolf.stackexchange.com/questions/277950/the-steps-of-sorting-a-stack-of-disks-on-three-pegs/277956#277956">Jonathan</a></td></tr>
+<tr d-ix="0"><td>023</td><td>Jelly</td><td>250127T213342Z</td><td><a href="https://codegolf.stackexchange.com/questions/277950/the-steps-of-sorting-a-stack-of-disks-on-three-pegs/277956#277956">Jonathan</a></td></tr>
+<tr d-ix="1"><td>048</td><td>Charcoal</td><td>250127T231019Z</td><td><a href="https://codegolf.stackexchange.com/questions/277950/the-steps-of-sorting-a-stack-of-disks-on-three-pegs/277957#277957">Neil</a></td></tr>
 <tr d-ix="2"><td>097</td><td>JavaScript ES6</td><td>250127T191414Z</td><td><a href="https://codegolf.stackexchange.com/questions/277950/the-steps-of-sorting-a-stack-of-disks-on-three-pegs/277955#277955">Arnauld</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 48 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 23 <a href="https://github.com/DennisMitchell/jelly/wiki/Code=page" rel="nofollow noreferrer">bytes</a></h1>
+<pre><code>NỤ&gt;&quot;;\§ạƲż’$ṭLFJḂƝżƊṛ/Ƈ
+</code></pre>
+<p>A monadic Link that accepts the disks as an unordered list of a prefix of the natural numbers and yields a list of instructions. Each instruction is:</p>
+<pre><code>[[ToPeg, FromPeg], DiskCount]
+</code></pre>
+<p>where the initially full peg is <code>0</code> while <code>1</code> and <code>2</code> are the others (although we only use <code>0</code> and <code>1</code> anyway :p)</p>
+<p><strong><a href="https://tio.run/##AToAxf9qZWxsef//TuG7pD4iO1zCp@G6ocayxbzigJkk4bmtTEZK4biCxp3FvMaK4bmW////WzEsNCwzLDJd" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></strong></p>
+<h4>How?</h4>
+<h5>The resulting algorithm</h5>
+<p>Pick up all the disks from the &quot;Source Peg&quot; and put them on another peg, the &quot;Buffer Peg&quot;, then repeatedly (a) pick up as many disks as needed from the Buffer Peg to reach the largest disk and place them onto the Source Peg, and then, if possible, (b) pick up one less disk than in (a) from the Source Peg and place them on the Buffer Peg.</p>
+<p>This results in many redundant moves for any initially sorted run :p</p>
+<h5>Code</h5>
+<pre><code>NỤ&gt;&quot;;\§ạƲż’$ṭLFJḂƝżƊṛ/Ƈ - Link: unordered list of [1..N], Disks
+N                       - negate {Disks}
+ Ụ                      - grade {that} up
+                          -&gt; Places = Disk indices sorted by Disk value, descending
+        Ʋ               - last four links as a monad - f(Places):
+    ;\                  -   prefixes of {Places}
+   &quot;                    -   zip with:
+  &gt;                     -     {Place} greater than {Prefix} (vectorises)
+      §                 -   sums -&gt; Counts
+                              [count of values both earlier in Places and less than V
+                               for V in Places] 
+       ạ                -   {that} absolute difference {Places}
+                            -&gt; counts of disks to pick up from the Buffer Peg at
+                               each iteration.
+           $            - last two links as a monad - f(X=that):
+          ’             -   decrement -&gt; counts of disks to return to the Buffer Peg
+         ż              -   {X} zip with {that} -&gt; PairsOfCounts
+             L          - length {Disks} (the initial move count)
+            ṭ           - {PairsOfCounts} tack {that}
+              F         - flatten -&gt; AllCounts (plus a trailing zero)
+                   Ɗ    - last three links as a monad - f(AllCounts):
+               J        -   indices {AllCounts} -&gt; [1..AllCounts]
+
+                 Ɲ      -   for neighbouring pairs:
+                Ḃ       -     mod two
+                            -&gt; [[1,0],[0,1],[1,0],[0,1],...]
+                  ż     -   {that} zip with {AllCounts}
+                      Ƈ - keep those for which:
+                     /  -   reduce by:
+                    ṛ   -     get right argument
+                          (i.e. remove instructions where zero disks would be moved)
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 48 bytes</h1>
 <pre><code>Ｗ⌈Φθ›κ⊕λ«≔⊕⌕θιη≔⁺⁺✂θηι¹…θη✂θιＬθ¹θ⟦⁺abι⁺baη⁺ba⁻ιη
 </code></pre>
 <p><a href="https://tio.run/##VY1LawIxEIDP7a8Y9pTACLX2JZ6KYBEqCB6XPcQ4mMFs7GZXayn97TGzgtQ5DPP45hvrTLR741P6duwJ1MKcuD7Uasa@o6gahI9IRsodwjzYSDWFjjbKawn4vb97b1veBvV/OeOwkVvWGsHpyRVa@kN7SSvPloRxGUMYZnD6Yz1N3f6rH8vpFcrEJ4Vt51SjBc6pEe0ycuhU2RsLsy7kJcKlXZtCNDftgkOuuddXWfCXUlkOER4RxggjhBeEV4Q3hCeE5/zpoarS4OjP" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code. Outputs in the format <code>[src][dest][#discs]</code>. Explanation:</p>
@@ -46,50 +92,6 @@
 <pre><code>⟦⁺abι⁺baη⁺ba⁻ιη
 </code></pre>
 <p>Move <code>i</code> discs from <code>a</code> to <code>b</code>, then <code>h</code> discs from <code>b</code> to <code>a</code>, then the remaining discs from <code>b</code> to <code>a</code>.</p>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 21 <a href="https://github.com/DennisMitchell/jelly/wiki/Code=page" rel="nofollow noreferrer">bytes</a></h1>
-<pre><code>NỤ&gt;&quot;;\§ạƲż’$ṭLFJḂƝżƊṖ
-</code></pre>
-<p>A monadic Link that accepts the disks as an unordered list of a prefix of the natural numbers and yields a list of instructions. Each instruction is:</p>
-<pre><code>[[FromPeg, ToPeg], DiskCount]
-</code></pre>
-<p>where the initially full peg is <code>0</code> while <code>1</code> and <code>2</code> are the others (although we only use <code>0</code> and <code>1</code> anyway :p)</p>
-<p><strong><a href="https://tio.run/##AToAxf9qZWxsef//TuG7pD4iO1zCp@G6ocayxbzigJkk4bmtTEZK4biCxp3FvMaK4bmW////WzEsNCwzLDJd" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></strong></p>
-<h4>How?</h4>
-<h5>The resulting algorithm</h5>
-<p>Pick up all the disks from the &quot;Source Peg&quot; and put them on another peg, the &quot;Buffer Peg&quot;, then repeatedly (a) pick up as many disks as needed from the Buffer Peg to reach the largest disk and place them onto the Source Peg, and (b) pick up one less disk than in (a) from the Source Peg and place them on the Buffer Peg. When executing the last iteration part (b) is a no-op so we don't output it.</p>
-<p>This results in many redundant moves for any initially sorted run :p</p>
-<h5>Code</h5>
-<pre><code>NỤ&gt;&quot;;\§ạƲż’$ṭLFJḂƝżƊṖ - Link: unordered list of [1..N], Disks
-N                     - negate {Disks}
- Ụ                    - grade {that} up
-                        -&gt; Places = Disk indices sorted by Disk value, descending
-        Ʋ             - last four links as a monad - f(Places):
-    ;\                -   prefixes of {Places}
-   &quot;                  -   zip with:
-  &gt;                   -     {Place} greater than {Prefix} (vectorises)
-      §               -   sums -&gt; Counts
-                            [count of values both earlier in Places and less than V
-                             for V in Places] 
-       ạ              -   {that} absolute difference {Places}
-                          -&gt; counts of disks to pick up from the Buffer Peg at
-                             each iteration.
-           $          - last two links as a monad - f(X=that):
-          ’           -   decrement -&gt; counts of disks to return to the Buffer Peg
-         ż            -   {X} zip with {that} -&gt; PairsOfCounts
-             L        - length {Disks} (the initial move count)
-            ṭ         - {PairsOfCounts} tack {that}
-              F       - flatten -&gt; AllCounts (plus a trailing zero)
-                   Ɗ  - last three links as a monad - f(AllCounts):
-               J      -   indices {AllCounts} -&gt; [1..AllCounts]
-
-                 Ɲ    -   for neighbouring pairs:
-                Ḃ     -     mod two
-                          -&gt; [[0,1],[1,0],[0,1],[1,0],...]
-                  ż   -   {that} zip with {AllCounts}
-                    Ṗ - pop (remove the trailing, lonesome zero count)
-</code></pre>
-<p>...we <em>could</em> move everything to the Buffer Peg and finally pick it all up and place it back on the Source Peg replacing <code>ṭL</code> with <code>oL</code> and not doing the <code>Ṗ</code>, but I have not yet found anything shorter that way.</p>
 </div>
 <div id="pu2" class="pu"><h1>JavaScript (ES6), 97 bytes</h1>
 <p>A silly algorithm using only two pegs. The I/O format is the one used in the challenge.</p>
