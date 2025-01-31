@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::47163</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>nan</td><td></td><td>250131T130356Z</td><td><a href="https://codegolf.stackexchange.com/questions/47163/finding-all-but-one-matches/278010#278010">138 Aspe</a></td></tr>
+<tr d-ix="1"><td>001</td><td>C++ time On^2</td><td>150309T041452Z</td><td><a href="https://codegolf.stackexchange.com/questions/47163/finding-all-but-one-matches/47561#47561">Ray</a></td></tr>
+<tr d-ix="2"><td>nan</td><td></td><td>150304T182825Z</td><td><a href="https://codegolf.stackexchange.com/questions/47163/finding-all-but-one-matches/47375#47375">MickyT</a></td></tr>
+<tr d-ix="3"><td>nan</td><td></td><td>150302T122225Z</td><td><a href="https://codegolf.stackexchange.com/questions/47163/finding-all-but-one-matches/47237#47237">ror3d</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>Rust</h1>
+<p>Rust port of @Ray's C++ answer.</p>
+<p><a href="https://tio.run/##jVXNjtMwEL7nKWZ7IdGm2SbHlu5hgRtCiAOXFaq86aR1Se0QO9tuq0pceQQegBfbFylj578NEjklnvH3Mx5P8kLp87lQCEovp9N4m02nxy3b@7Dl4jRzmgiXFFCYJj48FMkXZEuKOomALePC9eDoAD0papPOBczB7LDvrjdrgttCQ8oFKkqwwSCV8XfXC@yiybSpd3dgKECvEfROAhdZvbHlCQnDLgUC95owCrHLWdZ5aXlV9B/JNfU7KZ4x15Zd6ZyLlQItIV6zHFiesxcFicwBmeKYk7Yl7imn4TJ5KpzCV4zfmvd74zUM7DLxxTJNMdZddTYUXeyIhnY0W4RxXzIFKfZqLKI6FNWhXv3peBe0TkmT2VUAxZIC47CtxkcpM5BUEFuPnIkVwmM4FpFPIjybZarBqRDghjA2/EwBV/yAXhC4pLT5rNqkS5pMWiG99XB4vVIf/TtKFqKuh8rHe9SYU1ej9cFFnBaKP9eOjIUNPDGFS5ACeA9ZaZbrxYZACd/lPkw846kwnmbQeYgGhSpy6u8N7KR4/flbwxOCwBXTRNZDJZ0lJl2RTpF8KuVtr4gdrkEC3MdIskXY@i3t0IlU0oOgZGvrX8l9wJiZS85JxmrdE@sDo2YgFAUs3Zmuf/31ByZ@eS@KJ9v4loluFyW5Gzp87vUYjE@bt@BiYS8hZdXGbHprzunt5EnV3o@bbzCvG/qxA/btwo31PYHbOYSz60A4EDgBpuT9OJQ9t1iDUBcda5GuxBPEfdus1xSdPk4GSDqN3CmY0WNO7TYERVNRv1H2MDKpuObUtizR1T3dMh2vqSkUDQ6KXIgdkE2SG0mN8Avd7eSoU2fOgOgqbuTPnD7pqRkrH34U/JkRhjazlSlFE9etAW7M9a1GWhm6uYrVQJ9pQFezmm0RZKHNv4KVlZE5X3HBUojlEqcwKq9D2bnmRti3UQ31SWozHZiGhm1cW/VM8U2bl38FgqGZX/a2uWfhuJwd9d8gcPrDg46oLUuL2j9auyczflJx446OJzieRn6L4NcAZP90Pu/3e5ZlKb6Uj3NgGf0oDofDXw" rel="nofollow noreferrer">Try it online!</a></p>
+<pre class="lang-rust prettyprint-override"><code>use std::cmp::{max, min};
+use std::io::{self, BufRead};
+
+fn main() {
+    let stdin = io::stdin();
+    let mut lines = stdin.lock().lines();
+
+    // Read the two input lines
+    let s1 = lines.next().unwrap().unwrap();
+    let s2 = lines.next().unwrap().unwrap();
+
+    // Convert the strings to char arrays for easier indexing
+    let chars1: Vec&lt;char&gt; = s1.chars().collect();
+    let chars2: Vec&lt;char&gt; = s2.chars().collect();
+
+    let n1 = chars1.len();
+    let n2 = chars2.len();
+
+    let mut max_len = 0;
+    let mut max_end = -1;
+
+    // Loop over the range [1-n2, n1)
+    for i in (1 - n2 as isize)..(n1 as isize) {
+        let mut f0 = 0;
+        let mut f1 = 0;
+        let mut max_len2 = 0;
+        let mut max_end2 = -1;
+
+        // Determine the inclusive range for j based on i
+        let start_j = max(i, 0) as usize;            // ensures j won’t be negative
+        let end_j = min(n1 as isize, i + n2 as isize) as usize; // ensures j won’t exceed n1
+
+        for j in start_j..end_j {
+            // Because i might be negative, and j is always ≥ 0, the subindex for s2 is (j - i)
+            let index_in_s2 = (j as isize - i) as usize;
+
+            if chars1[j] == chars2[index_in_s2] {
+                f0 += 1;
+                f1 += 1;
+            } else {
+                f1 = f0 + 1;
+                f0 = 0;
+            }
+
+            if f1 &gt; max_len2 {
+                max_len2 = f1;
+                max_end2 = j as isize + 1; // +1 so it's the position after the matched section
+            }
+        }
+
+        if max_len2 &gt; max_len {
+            max_len = max_len2;
+            max_end = max_end2;
+        }
+    }
+
+    // Equivalent to assert(max_end != -1);
+    assert!(max_end != -1);
+
+    // Print the same output as the original code: &quot;start_index end_index&quot;
+    // Note that (max_end - max_len) + 1 is the starting index in 1-based indexing.
+    let start_pos = max_end - max_len as isize + 1;
+    println!(&quot;{} {}&quot;, start_pos, max_end);
+}
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>C++ time: O(n^2), extra space: O(1)</h1>
+
+<p>It takes 0.2s to complete the 15K data on my machine.</p>
+
+<p>To compile it, use:</p>
+
+<pre><code>g++ -std=c++11 -O3 code.cpp -o code
+</code></pre>
+
+<p>To run it, use:</p>
+
+<pre><code>./code &lt; INPUT_FILE_THAT_CONTAINS_TWO_LINES_SPERATED_BY_A_LINE_BREAK
+</code></pre>
+
+<h2>Explaination</h2>
+
+<p>The idea is simple, for string <code>s1</code> and <code>s2</code>, we try to offset <code>s2</code> by <code>i</code>:</p>
+
+<pre><code>s1: abcabcabc
+s2: bcabcab
+</code></pre>
+
+<p>When offset is 3:</p>
+
+<pre><code>s1: abcabcabc
+s2:    bcabcab
+</code></pre>
+
+<p>Then, for each offset <code>i</code>, we perform a dynamic programing scan on <code>s1[i:]</code> and <code>s2</code>. For each <code>j</code>, let <code>f[j, 0]</code> be the maximum length <code>d</code> such that <code>s1[j - d:j] == s2[j - i - d: j - i]</code>. Similarly, let <code>f[j, 1]</code> be the maximum length <code>d</code> such that strings <code>s1[j - d:j]</code> and <code>s2[j - i - d:j - i]</code> differ by at most 1 character.</p>
+
+<p>So for <code>s1[j] == s2[j - i]</code>, we have:</p>
+
+<pre><code>f[j, 0] = f[j - 1, 0] + 1  // concat solution in f[j - 1, 0] and s1[j]
+f[j, 1] = f[j - 1, 1] + 1  // concat solution in f[j - 1, 1] and s1[j]
+</code></pre>
+
+<p>Otherwise:</p>
+
+<pre><code>f[j, 0] = 0  // the only choice is empty string
+f[j, 1] = f[j - 1, 0] + 1  // concat solution in f[j - 1, 0] and s1[j] (or s2[j - i])
+</code></pre>
+
+<p>And:</p>
+
+<pre><code>f[-1, 0] = f[-1, 1] = 0 
+</code></pre>
+
+<p>Since we only need f[j - 1, :] to calculate f[j, :], only O(1) extra space is used.</p>
+
+<p>Finally, the max length will be:</p>
+
+<pre><code>max(f[j, 1] for all valid j and all i)
+</code></pre>
+
+<h2>Code</h2>
+
+<pre><code>#include &lt;string&gt;
+#include &lt;cassert&gt;
+#include &lt;iostream&gt;
+
+using namespace std;
+
+int main() {
+    string s1, s2;
+    getline(cin, s1);
+    getline(cin, s2);
+    int n1, n2;
+    n1 = s1.size();
+    n2 = s2.size();
+    int max_len = 0;
+    int max_end = -1;
+    for(int i = 1 - n2; i &lt; n1; i++) {
+        int f0, f1;
+        int max_len2 = 0;
+        int max_end2 = -1;
+        f0 = f1 = 0;
+        for(int j = max(i, 0), j_end = min(n1, i + n2); j &lt; j_end; j++) {
+            if(s1[j] == s2[j - i]) {
+                f0 += 1;
+                f1 += 1;
+            } else {
+                f1 = f0 + 1;
+                f0 = 0;
+            }
+            if(f1 &gt; max_len2) {
+                max_len2 = f1;
+                max_end2 = j + 1;
+            }
+        }
+        if(max_len2 &gt; max_len) {
+            max_len = max_len2;
+            max_end = max_end2;
+        }
+    }
+    assert(max_end != -1);
+    // cout &lt;&lt; max_len &lt;&lt; endl;
+    cout &lt;&lt; max_end - max_len + 1 &lt;&lt; " " &lt;&lt; max_end &lt;&lt; endl;
+}
+</code></pre>
+</div>
+<div id="pu2" class="pu"><h1><a href="http://www.r-project.org/" rel="nofollow">R</a></h1>
+
+<p>Seems I was over complicating the problem with the previous solution.  This is about 50% quicker (23 secs on 15k strings) than the previous one and pretty simple.</p>
+
+<pre><code>rm(list=ls(all=TRUE))
+a="xxxappleyyyyyyy"
+b="zapllezzz"
+s=proc.time()
+matchLen=1
+matchIndex=1
+indexA = 1
+repeat {    
+    i = 0
+    repeat {
+        srch = substring(a,indexA,indexA+matchLen+i)
+        if (agrepl(srch,b,max.distance=list(insertions=0,deletions=0,substitutions=1)))
+            i = i + 1
+        else {
+            if (i &gt; 0) {
+                matchLen = matchLen + i - 1
+                matchIndex = indexA
+            }
+            break
+        }
+    }
+    indexA=indexA+1
+    if (indexA + matchLen &gt; nchar(a)) break
+}
+c(matchIndex, matchLen + matchIndex)
+print (substring(a,matchIndex, matchLen + matchIndex))
+print(proc.time()-s)
+</code></pre>
+
+<p>This will never be a contender due to the language, but I did have a bit of fun doing it.<br>
+Not sure of the complexity of it, but over a couple of ~15k strings it takes 43 secs using a single thread.  The largest portion of that was the sorting of the arrays.  I tried some other libraries, but without significant improvement.</p>
+
+<pre><code>a="xxxappleyyyyyyy"
+b="zapllezzz"
+s=proc.time()
+N=nchar
+S=substring
+U=unlist
+V=strsplit
+A=N(a)
+B=N(b)
+a=S(a,1:A)
+b=S(b,1:B)
+a=sort(a,method="quick")
+b=sort(b,method="quick")
+print(proc.time()-s)
+C=D=1
+E=X=Y=I=0
+repeat{
+    if(N(a[C])&gt;E &amp;&amp; N(b[D])&gt;E){
+        for(i in E:min(N(a[C]),N(b[D]))){
+            if (sum(U(V(S(a[C],1,i),''))==U(V(S(b[D],1,i),'')))&gt;i-2){
+                F=i
+            } else break
+        }
+        if (F&gt;E) {
+            X=A-N(a[C])+1
+            Y=X+F-1
+            E=F
+        }
+        if (a[C]&lt;b[D])
+            C=C+1
+            else
+            D=D+1
+    } else
+        if(S(a[C],1,1)&lt;S(b[D],1,1))C=C+1 else D=D+1
+    if(C&gt;A||D&gt;B)break
+}
+c(X,Y)
+print(proc.time()-s)
+</code></pre>
+
+<p><strong>Method:</strong></p>
+
+<ul>
+<li>Create a suffix array for each string</li>
+<li>Order the suffix arrays</li>
+<li>Step through each of the arrays in a staggered sort of way comparing the beginning of each</li>
+</ul>
+</div>
+<div id="pu3" class="pu"><h2>C++</h2>
+
+<p>I tried thinking of a good algorithm to do this, but I'm a bit distracted today and couldn't think of anything that would work well. This runs at O(n^3) time, so it's veeeery slow. The other option I thought of could have been theoretically faster but would have taken O(n^2) space, and with inputs of 1M, it would have been worse even.</p>
+
+<p>It's shameful, it takes 190 seconds for inputs of 15K. I'll try to improve it.
+<strong>Edit:</strong> Added multiprocessing. Now takes 37 seconds for 15K input on 8 threads.</p>
+
+<pre><code>#include &lt;string&gt;
+#include &lt;vector&gt;
+#include &lt;sstream&gt;
+#include &lt;chrono&gt;
+#include &lt;thread&gt;
+#include &lt;atomic&gt;
+#undef cin
+#undef cout
+#include &lt;iostream&gt;
+
+using namespace std;
+
+typedef pair&lt;int, int&gt; range;
+
+int main(int argc, char ** argv)
+{
+    string a = "xxxappleyyyyyyy";
+    string b = "zapllezzz";
+
+    getline(cin, a);
+    getline(cin, b);
+
+    range longestA;
+    range longestB;
+
+    using namespace std::chrono;
+
+    high_resolution_clock::time_point t1 = high_resolution_clock::now();
+
+    unsigned cores = thread::hardware_concurrency(); cores = cores &gt; 0 ? cores : 1;
+
+    cout &lt;&lt; "Processing on " &lt;&lt; cores &lt;&lt; " cores." &lt;&lt; endl;
+
+    atomic&lt;int&gt; processedCount(0);
+
+    vector&lt;thread&gt; threads;
+
+    range* longestAs = new range[cores];
+    range* longestBs = new range[cores];
+    for (int t = 0; t &lt; cores; ++t)
+    {
+        threads.push_back(thread([&amp;processedCount, cores, t, &amp;a, &amp;b, &amp;longestBs, &amp;longestAs]()
+        {
+            int la = a.length();
+            int l = la / cores + (t==cores-1? la % cores : 0);
+            int lb = b.length();
+            int aS = t*(la/cores);
+
+            for (int i = aS; i &lt; aS + l; ++i)
+            {
+                int count = processedCount.fetch_add(1);
+                if ((count+1) * 100 / la &gt; count * 100 / la)
+                {
+                    cout &lt;&lt; (count+1) * 100 / la &lt;&lt; "%" &lt;&lt; endl;
+                }
+                for (int j = 0; j &lt; lb; ++j)
+                {
+                    range currentB = make_pair(j, j);
+                    bool letterChanged = false;
+                    for (int k = 0; k + j &lt; lb &amp;&amp; k + i &lt; la; ++k)
+                    {
+                        if (a[i + k] == b[j + k])
+                        {
+                            currentB = make_pair(j, j + k);
+                        }
+                        else if (!letterChanged)
+                        {
+                            letterChanged = true;
+                            currentB = make_pair(j, j + k);
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                    if (currentB.second - currentB.first &gt; longestBs[t].second - longestBs[t].first)
+                    {
+                        longestBs[t] = currentB;
+                        longestAs[t] = make_pair(i, i + currentB.second - currentB.first);
+                    }
+                }
+            }
+        }));
+    }
+
+    longestA = make_pair(0,0);
+    for(int t = 0; t &lt; cores; ++t)
+    {
+        threads[t].join();
+
+        if (longestAs[t].second - longestAs[t].first &gt; longestA.second - longestA.first)
+        {
+            longestA = longestAs[t];
+            longestB = longestBs[t];
+        }
+    }
+
+    high_resolution_clock::time_point t2 = high_resolution_clock::now();
+
+    duration&lt;double&gt; time_span = duration_cast&lt;duration&lt;double&gt;&gt;(t2 - t1);
+
+    cout &lt;&lt; "First substring at range (" &lt;&lt; longestA.first &lt;&lt; ", " &lt;&lt; longestA.second &lt;&lt; "):" &lt;&lt; endl;
+    cout &lt;&lt; a.substr(longestA.first, longestA.second - longestA.first + 1) &lt;&lt; endl;
+    cout &lt;&lt; "Second substring at range (" &lt;&lt; longestB.first &lt;&lt; ", " &lt;&lt; longestB.second &lt;&lt; "):" &lt;&lt; endl;
+    cout &lt;&lt; b.substr(longestB.first, longestB.second - longestB.first + 1) &lt;&lt; endl;
+    cout &lt;&lt; "It took me " &lt;&lt; time_span.count() &lt;&lt; " seconds for input lengths " &lt;&lt; a.length() &lt;&lt; " and " &lt;&lt; b.length() &lt;&lt;"." &lt;&lt; endl;
+
+    char c;
+    cin &gt;&gt; c;
+    return 0;
+}
+</code></pre>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/47163/">47163</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
