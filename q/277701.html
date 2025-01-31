@@ -26,35 +26,22 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>308</td><td>Bash on vt510rm</td><td>250117T154844Z</td><td><a href="https://codegolf.stackexchange.com/questions/277701/make-a-textual-paint-like-program/277723#277723">Themooni</a></td></tr>
+<tr d-ix="0"><td>292</td><td>Bash on vt510rm</td><td>250117T154844Z</td><td><a href="https://codegolf.stackexchange.com/questions/277701/make-a-textual-paint-like-program/277723#277723">Themooni</a></td></tr>
 <tr d-ix="1"><td>250</td><td>Java OpenJDK 8</td><td>250117T143411Z</td><td><a href="https://codegolf.stackexchange.com/questions/277701/make-a-textual-paint-like-program/277721#277721">mastaH</a></td></tr>
 <tr d-ix="2"><td>173</td><td>JavaScript ES8</td><td>250116T204331Z</td><td><a href="https://codegolf.stackexchange.com/questions/277701/make-a-textual-paint-like-program/277702#277702">Arnauld</a></td></tr>
 <tr d-ix="3"><td>080</td><td>Charcoal</td><td>250117T012110Z</td><td><a href="https://codegolf.stackexchange.com/questions/277701/make-a-textual-paint-like-program/277708#277708">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.gnu.org/software/bash/" rel="nofollow noreferrer">Bash</a> on vt510-rm, <s>349</s> 308 bytes</h1>
-<p>-41 bytes by cedilla and myself by factorising the echo calls into a function, and replacing <code>((y&gt;0))&amp;&amp;z A&amp;&amp;((y--))</code> with <code>((y&gt;0&amp;&amp;y--))&amp;&amp;z A</code></p>
+<div id="pu0" class="pu"><h1><a href="https://www.gnu.org/software/bash/" rel="nofollow noreferrer">Bash</a> on vt510-rm, <s>349</s> 292 bytes</h1>
+<p>-57 bytes by cedilla and myself by factorising the echo calls into a function, and replacing <code>((y&gt;0))&amp;&amp;z A&amp;&amp;((y--))</code> with <code>((y&gt;0&amp;&amp;y--))&amp;&amp;z A</code>, as well as removing unneeded newlines.</p>
 <pre class="lang-bash prettyprint-override"><code>s=&quot; ░▒▓█&quot;
-z(){ echo -ne $2&quot;\033[1&quot;$1;}
+z()(echo -ne &quot;$2\033[1&quot;$1)
 r=&quot;read -sn1 c&quot;
 while $r;do
 case $c in
-w)((y&gt;0&amp;&amp;y--))&amp;&amp;z A
-;;
-a)((x&gt;0&amp;&amp;x--))&amp;&amp;z D
-;;
-s)((y&lt;25&amp;&amp;y++))&amp;&amp;z B
-;;
-d)((x&lt;80&amp;&amp;x++))&amp;&amp;z C
-;;
-0|1|2|3|4|5)z D &quot;${s:$c:1}&quot;
-;;
-\?)$r
-s=&quot;${s::5}$c&quot;
-;;
-!)z &quot;;1;$y;$y;$x;$x*y&quot;&gt;/dev/tty;read -s c
-s=&quot;${s::5}${c:6:1}&quot;
-;;
-esac
+w)((y&gt;0&amp;&amp;y--))&amp;&amp;z A;;a)((x&gt;0&amp;&amp;x--))&amp;&amp;z D;;s)((y&lt;25&amp;&amp;y++))&amp;&amp;z B;;d)((x&lt;80&amp;&amp;x++))&amp;&amp;z C;;0|1|2|3|4|5)z D &quot;${s:$c:1}&quot;;;\?)$r
+s=&quot;${s::5}$c&quot;;;!)z &quot;;1;$y;$y;$x;$x*y&quot;&gt;/dev/tty
+read -s c
+s=&quot;${s::5}${c:6:1}&quot;;;esac
 done
 </code></pre>
 <p>Don't try this online, it requires a terminal that supports <a href="https://vt100.net/docs/vt510-rm/DECRQCRA.html" rel="nofollow noreferrer">DECRQCRA</a>. I don't have one, but as far as I can tell, this should work (maybe). DECRQCRA is a vt510-rm escape code that asks the terminal to do a checksum of all the characters in a rectangular area. if you ask it to check an area of 1x1, it returns the sum of 1 character (so that character). It is largely unsupported because that means that applications would be able to read what previous apps launched from the same terminal wrote, and is thus a security risk. For this reasons, command line programs that need to reference what they've previously outputted need to use <code>ncurses</code> or otherwise keep an array of what the ouput looks like, on modern terminals.</p>
