@@ -26,9 +26,334 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>005</td><td>Python</td><td>140710T081812Z</td><td><a href="https://codegolf.stackexchange.com/questions/34276/optimal-minesweeper-on-the-largest-board/34282#34282">isaacg</a></td></tr>
+<tr d-ix="0"><td>nan</td><td></td><td>250131T071651Z</td><td><a href="https://codegolf.stackexchange.com/questions/34276/optimal-minesweeper-on-the-largest-board/278009#278009">138 Aspe</a></td></tr>
+<tr d-ix="1"><td>005</td><td>Python</td><td>140710T081812Z</td><td><a href="https://codegolf.stackexchange.com/questions/34276/optimal-minesweeper-on-the-largest-board/34282#34282">isaacg</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Python, 4x5 board, 5 mines.</h1>
+<div id="pu0" class="pu"><h1>Rust</h1>
+<p>Rust port of @isaacg's Python answer.</p>
+<p><a href="https://play.rust-lang.org/?version=stable&amp;mode=release&amp;edition=2021&amp;gist=b02948285cb65e7c68b14609ae22cd46" rel="nofollow noreferrer">Run it on Rust Playground!</a></p>
+<pre class="lang-rust prettyprint-override"><code>use std::collections::{HashMap, HashSet};
+use std::io;
+use itertools::Itertools;
+
+#[derive(Debug, Clone)]
+struct Position {
+    dim_r: usize,
+    dim_c: usize,
+    rev: String,       // Revealed cells string
+    boards: Vec&lt;String&gt;,
+}
+
+#[derive(Default)]
+struct Solver {
+    /// Memo keyed by the revealed string, stores a tuple (wins, Vec&lt;click_locations&gt;)
+    memo: HashMap&lt;String, (u64, Vec&lt;usize&gt;)&gt;,
+    /// Another memo used when the number of revealed cells is within a certain threshold
+    restart_memo: HashMap&lt;String, (u64, Vec&lt;usize&gt;)&gt;,
+    /// Count how many times we've called memoBestClick
+    memo_counter: usize,
+    /// Count how many times we've restarted the memo
+    restart_counter: usize,
+    /// Maximum number of revealed cells difference to check for restarts
+    restart_max: usize,
+}
+
+impl Solver {
+    /// Create a new Solver with defaults pre-initialized
+    fn new() -&gt; Self {
+        let mut solver = Solver::default();
+        solver.restart_max = 6;
+        solver
+    }
+
+    /// Main &quot;memoBestClick&quot; logic
+    fn memo_best_click(&amp;mut self, pos: &amp;Position) -&gt; (u64, Vec&lt;usize&gt;) {
+        self.memo_counter += 1;
+        if !self.memo.contains_key(&amp;pos.rev) {
+            // ... same mirror checks as before ...
+
+            let unrevealed_count = pos.rev.matches('_').count();
+            let already_revealed = pos.rev.len() - unrevealed_count;
+            if already_revealed &lt;= self.restart_max {
+                // Fix #1 for move error: clone the result before storing
+                let best = pos.some_best_click(self);
+                self.restart_memo.insert(pos.rev.clone(), best.clone());
+                self.memo.insert(pos.rev.clone(), best.clone());
+                return best;
+            }
+
+            // If the memo grows too large, we &quot;restart&quot; it
+            if self.memo.len() &gt; 5 * 10_usize.pow(6) {
+                self.memo = self.restart_memo.clone();
+                self.restart_counter += 1;
+            }
+
+            // Fix #2 for move error: clone the result before storing
+            let best = pos.some_best_click(self);
+            self.memo.insert(pos.rev.clone(), best.clone());
+            return best;
+        }
+        // Return from memo
+        self.memo[&amp;pos.rev].clone()
+    }
+}
+
+/// Reverse the board vertically
+fn vertical_reverse(s: &amp;str, rows: usize, cols: usize) -&gt; String {
+    let mut lines: Vec&lt;&amp;str&gt; = Vec::new();
+    for r in 0..rows {
+        let start = r * cols;
+        let end = start + cols;
+        lines.push(&amp;s[start..end]);
+    }
+    lines.reverse();
+    lines.into_iter().collect()
+}
+
+/// Reverse the board horizontally
+fn horizontal_reverse(s: &amp;str, rows: usize, cols: usize) -&gt; String {
+    let mut reversed = String::new();
+    for r in 0..rows {
+        let start = r * cols;
+        let end = start + cols;
+        let row_str: String = s[start..end].chars().rev().collect();
+        reversed.push_str(&amp;row_str);
+    }
+    reversed
+}
+
+impl Position {
+    fn new(dimensions: (usize, usize), revealed: String, boards: Vec&lt;String&gt;) -&gt; Self {
+        let (dim_r, dim_c) = dimensions;
+        assert_eq!(revealed.len(), dim_r * dim_c);
+        Position {
+            dim_r,
+            dim_c,
+            rev: revealed,
+            boards,
+        }
+    }
+
+    /// Equivalent to the Python &quot;click&quot; method
+    fn click(&amp;self, loc: usize) -&gt; Vec&lt;Position&gt; {
+        // Must be an unrevealed cell ('_') to click
+        assert_eq!(self.rev.chars().nth(loc).unwrap(), '_');
+
+        // Separate boards according to what's at the clicked location
+        let mut board_dict: HashMap&lt;char, Vec&lt;String&gt;&gt; = HashMap::new();
+        for board in &amp;self.boards {
+            let clicked_cell = board.chars().nth(loc).unwrap();
+            board_dict.entry(clicked_cell).or_default().push(board.clone());
+        }
+
+        // Build new positions by revealing the clicked cell with the char from each board set
+        let mut new_positions = Vec::new();
+        for (ch, boards_for_ch) in board_dict {
+            let mut new_rev = self.rev.clone();
+            // replace the single character
+            unsafe {
+                new_rev.as_mut_vec()[loc] = ch as u8;
+            }
+            let pos = Position::new((self.dim_r, self.dim_c), new_rev, boards_for_ch);
+            new_positions.push(pos);
+        }
+        new_positions
+    }
+
+    /// Equivalent to Python's &quot;someBestClick&quot; method
+    ///
+    /// Returns:
+    ///   (best_wins, best_click_list)
+    fn some_best_click(&amp;self, solver: &amp;mut Solver) -&gt; (u64, Vec&lt;usize&gt;) {
+        // If we've already got a revealed bomb, there's no winning scenario
+        if self.rev.contains('*') {
+            return (0, Vec::new());
+        }
+
+        let unrevealed: Vec&lt;usize&gt; = self
+            .rev
+            .chars()
+            .enumerate()
+            .filter_map(|(i, c)| if c == '_' { Some(i) } else { None })
+            .collect();
+
+        // If only one board is possible, reveal all non-bomb squares
+        if self.boards.len() == 1 {
+            let board = &amp;self.boards[0];
+            let safe_squares = unrevealed
+                .into_iter()
+                .filter(|&amp;loc| board.chars().nth(loc).unwrap() != '*')
+                .collect::&lt;Vec&lt;_&gt;&gt;();
+            return (1, safe_squares);
+        }
+
+        // If there's a cell that's safe in ALL boards, click it
+        for &amp;loc in &amp;unrevealed {
+            if self.boards.iter().all(|b| b.chars().nth(loc).unwrap() != '*') {
+                // Summation of wins after we click “loc”
+                let mut sum_wins = 0;
+                for new_pos in self.click(loc) {
+                    // Only count if the revealed cell is not '*'
+                    if new_pos.rev.chars().nth(loc).unwrap() != '*' {
+                        let (wins, _) = solver.memo_best_click(&amp;new_pos);
+                        sum_wins += wins;
+                    }
+                }
+                return (sum_wins, vec![loc]);
+            }
+        }
+
+        // Otherwise, try all possible unrevealed locations
+        let mut click_list = Vec::new();
+        let mut most_wins = 0u64;
+
+        for &amp;loc in &amp;unrevealed {
+            let mut sum_wins = 0;
+            for new_pos in self.click(loc) {
+                // Only count if the revealed cell is not '*'
+                if new_pos.rev.chars().nth(loc).unwrap() != '*' {
+                    let (wins, _) = solver.memo_best_click(&amp;new_pos);
+                    sum_wins += wins;
+                }
+            }
+
+            if sum_wins &gt; most_wins {
+                most_wins = sum_wins;
+                click_list.clear();
+                click_list.push(loc);
+            } else if sum_wins == most_wins {
+                click_list.push(loc);
+            }
+        }
+
+        (most_wins, click_list)
+    }
+}
+
+/// Equivalent to Python's &quot;makeBlankPosition&quot;
+fn make_blank_position(dimensions: (usize, usize), mines: usize) -&gt; Position {
+    let (dim_r, dim_c) = dimensions;
+    let mut boards = Vec::new();
+
+    // All possible mine placements (combinations of loc)
+    // Note: loc is used as a single index. We'll convert to (x, y) by (loc % dim_c, loc / dim_c).
+    let all_locs = (0..dim_r * dim_c).collect::&lt;Vec&lt;_&gt;&gt;();
+    for combo in all_locs.into_iter().combinations(mines) {
+        let mine_set: HashSet&lt;usize&gt; = combo.into_iter().collect();
+        let board = make_board_from_mines(dimensions, &amp;mine_set);
+        boards.push(board);
+    }
+
+    let revealed = &quot;_&quot;.repeat(dim_r * dim_c);
+    Position::new(dimensions, revealed, boards)
+}
+
+/// Equivalent to Python's &quot;makeBoardFromMines&quot;
+fn make_board_from_mines(dimensions: (usize, usize), mine_layout: &amp;HashSet&lt;usize&gt;) -&gt; String {
+    let (dim_r, dim_c) = dimensions;
+
+    let mut board = String::new();
+    for loc in 0..(dim_r * dim_c) {
+        if mine_layout.contains(&amp;loc) {
+            board.push('*');
+        } else {
+            // Count adjacent mines
+            let r = loc / dim_c;
+            let c = loc % dim_c;
+            let mut count = 0;
+            for (dr, dc) in [
+                (-1, -1),
+                (-1, 0),
+                (-1, 1),
+                (0, -1),
+                (0, 1),
+                (1, -1),
+                (1, 0),
+                (1, 1),
+            ] {
+                let nr = r as isize + dr;
+                let nc = c as isize + dc;
+                if nr &gt;= 0
+                    &amp;&amp; nr &lt; dim_r as isize
+                    &amp;&amp; nc &gt;= 0
+                    &amp;&amp; nc &lt; dim_c as isize
+                {
+                    let adj_loc = (nr as usize) * dim_c + (nc as usize);
+                    if mine_layout.contains(&amp;adj_loc) {
+                        count += 1;
+                    }
+                }
+            }
+            board.push(std::char::from_digit(count, 10).unwrap());
+        }
+    }
+    board
+}
+
+/// Equivalent to Python's &quot;makePosition&quot;
+fn make_position(dimensions: (usize, usize), mines: usize, revealed: &amp;str) -&gt; Position {
+    let blank = make_blank_position(dimensions, mines);
+    let mut boards_subset = Vec::new();
+
+    'outer: for board in &amp;blank.boards {
+        for (i, ch) in revealed.chars().enumerate() {
+            if ch != '_' &amp;&amp; ch != board.chars().nth(i).unwrap() {
+                // This board doesn't match the &quot;revealed&quot; pattern
+                continue 'outer;
+            }
+        }
+        boards_subset.push(board.clone());
+    }
+    Position::new(dimensions, revealed.to_string(), boards_subset)
+}
+
+/// Note the added lifetime parameter 'a
+fn win_rate&lt;'a&gt;(
+    solver: &amp;'a mut Solver,
+    dimensions: (usize, usize),
+    mines: usize,
+    revealed: &amp;'a str,
+) -&gt; (u64, usize, Vec&lt;usize&gt;, &amp;'a HashMap&lt;String, (u64, Vec&lt;usize&gt;)&gt;) {
+    let pos = make_position(dimensions, mines, revealed);
+    solver.memo.clear();
+    let (wins, moves) = solver.memo_best_click(&amp;pos);
+    (wins, pos.boards.len(), moves, &amp;solver.memo)
+}
+
+
+fn main() {
+    let dim_r: usize = 4;
+    let dim_c: usize = 4;
+    let mines_count: usize = 4;
+    let revealed_str_clean= &quot;________________&quot;;
+
+    // Now we run the solver
+    let mut solver = Solver::new();
+    let start_time = std::time::Instant::now();
+    let (wins, total_boards, moves, memo_map) =
+        win_rate(&amp;mut solver, (dim_r, dim_c), mines_count, revealed_str_clean);
+    let duration = start_time.elapsed().as_secs_f64();
+
+    // Convert move indexes into (row, col)
+    let move_points: Vec&lt;(usize, usize)&gt; =
+        moves.iter().map(|&amp;m| (m / dim_c, m % dim_c)).collect();
+
+    println!(
+&quot;Best moves are {:?}.
+{} wins out of {} boards. Ratio of {}.
+{} positions searched.
+{} seconds taken.&quot;,
+        move_points,
+        wins,
+        total_boards,
+        wins as f64 / total_boards as f64,
+        memo_map.len(),
+        duration
+    );
+}
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>Python, 4x5 board, 5 mines.</h1>
 <p>This is the reference implementation, I just thought I'd put it here to help give people ideas.</p>
 <p>This implementation uses dynamic programming to prevent duplication of work, exploits mirror symmetries, and maintains a fist of all possible boards with a given revealed square status to check for guaranteed safe squares.</p>
 <pre class="lang-none prettyprint-override"><code># Minesweeper solver
