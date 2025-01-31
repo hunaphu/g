@@ -26,12 +26,48 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>250</td><td>Java OpenJDK 8</td><td>250117T143411Z</td><td><a href="https://codegolf.stackexchange.com/questions/277701/make-a-textual-paint-like-program/277721#277721">mastaH</a></td></tr>
-<tr d-ix="1"><td>349</td><td>Bash on vt510rm</td><td>250117T154844Z</td><td><a href="https://codegolf.stackexchange.com/questions/277701/make-a-textual-paint-like-program/277723#277723">Themooni</a></td></tr>
+<tr d-ix="0"><td>308</td><td>Bash on vt510rm</td><td>250117T154844Z</td><td><a href="https://codegolf.stackexchange.com/questions/277701/make-a-textual-paint-like-program/277723#277723">Themooni</a></td></tr>
+<tr d-ix="1"><td>250</td><td>Java OpenJDK 8</td><td>250117T143411Z</td><td><a href="https://codegolf.stackexchange.com/questions/277701/make-a-textual-paint-like-program/277721#277721">mastaH</a></td></tr>
 <tr d-ix="2"><td>173</td><td>JavaScript ES8</td><td>250116T204331Z</td><td><a href="https://codegolf.stackexchange.com/questions/277701/make-a-textual-paint-like-program/277702#277702">Arnauld</a></td></tr>
 <tr d-ix="3"><td>080</td><td>Charcoal</td><td>250117T012110Z</td><td><a href="https://codegolf.stackexchange.com/questions/277701/make-a-textual-paint-like-program/277708#277708">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="http://openjdk.java.net/" rel="nofollow noreferrer">Java (OpenJDK 8)</a>, <s>263</s> <s>261</s> <s>251</s> 250 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.gnu.org/software/bash/" rel="nofollow noreferrer">Bash</a> on vt510-rm, <s>349</s> 308 bytes</h1>
+<p>-41 bytes by cedilla and myself by factorising the echo calls into a function, and replacing <code>((y&gt;0))&amp;&amp;z A&amp;&amp;((y--))</code> with <code>((y&gt;0&amp;&amp;y--))&amp;&amp;z A</code></p>
+<pre class="lang-bash prettyprint-override"><code>s=&quot; ░▒▓█&quot;
+z(){ echo -ne $2&quot;\033[1&quot;$1;}
+r=&quot;read -sn1 c&quot;
+while $r;do
+case $c in
+w)((y&gt;0&amp;&amp;y--))&amp;&amp;z A
+;;
+a)((x&gt;0&amp;&amp;x--))&amp;&amp;z D
+;;
+s)((y&lt;25&amp;&amp;y++))&amp;&amp;z B
+;;
+d)((x&lt;80&amp;&amp;x++))&amp;&amp;z C
+;;
+0|1|2|3|4|5)z D &quot;${s:$c:1}&quot;
+;;
+\?)$r
+s=&quot;${s::5}$c&quot;
+;;
+!)z &quot;;1;$y;$y;$x;$x*y&quot;&gt;/dev/tty;read -s c
+s=&quot;${s::5}${c:6:1}&quot;
+;;
+esac
+done
+</code></pre>
+<p>Don't try this online, it requires a terminal that supports <a href="https://vt100.net/docs/vt510-rm/DECRQCRA.html" rel="nofollow noreferrer">DECRQCRA</a>. I don't have one, but as far as I can tell, this should work (maybe). DECRQCRA is a vt510-rm escape code that asks the terminal to do a checksum of all the characters in a rectangular area. if you ask it to check an area of 1x1, it returns the sum of 1 character (so that character). It is largely unsupported because that means that applications would be able to read what previous apps launched from the same terminal wrote, and is thus a security risk. For this reasons, command line programs that need to reference what they've previously outputted need to use <code>ncurses</code> or otherwise keep an array of what the ouput looks like, on modern terminals.</p>
+<p>only <code>!</code> requires the exotic terminal, the rest works on normal modern terminals:</p>
+<p><a href="https://i.sstatic.net/wiMtkdXY.png" rel="nofollow noreferrer"><img src="https://i.sstatic.net/wiMtkdXY.png" alt="test case 1" /></a></p>
+<p>my shell catches commands that don't end at the beggining of a line (and prints the ugly <code>%</code>), so i've taken the liberty of adding <code>sd</code> to the test case so we could see it in its entirety</p>
+<p><code>!</code> is untested, I can emulate it with <code>?▒</code> here:
+<a href="https://i.sstatic.net/LhixGV6d.png" rel="nofollow noreferrer"><img src="https://i.sstatic.net/LhixGV6d.png" alt="test case 2" /></a></p>
+<p><a href="https://i.sstatic.net/Y5XZWcx7.png" rel="nofollow noreferrer"><img src="https://i.sstatic.net/Y5XZWcx7.png" alt="test case 3" /></a></p>
+<p>if you don't pipe in a test case, <code>read</code> will read from stdin, which means you get to paint manually which is actually pretty fun :D
+<a href="https://i.sstatic.net/BOY0LqTz.png" rel="nofollow noreferrer"><img src="https://i.sstatic.net/BOY0LqTz.png" alt="enter image description here" /></a></p>
+</div>
+<div id="pu1" class="pu"><h1><a href="http://openjdk.java.net/" rel="nofollow noreferrer">Java (OpenJDK 8)</a>, <s>263</s> <s>261</s> <s>251</s> 250 bytes</h1>
 
 <pre class="lang-java prettyprint-override"><code>char[]g=new char[2000];Arrays.fill(g,' ');for(int i=0,p=0,c,e=80;i&lt;s.length;)if((c=s[i++])&gt;47&amp;c&lt;54)g[p]=(&quot; ░▒▓█&quot;+s[0]).charAt(c-48);else if(c&lt;e)s[0]=c&lt;34?g[p]:s[i++];else p+=c&gt;100?c&gt;115?p&lt;e?0:-e:p&gt;1975?0:e:c&gt;99?p%e&gt;78?0:1:p%e&lt;1?0:-1;return g;
 </code></pre>
@@ -87,41 +123,6 @@
 }
 </code></pre>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://www.gnu.org/software/bash/" rel="noreferrer">Bash</a> on vt510-rm, 349 bytes</h1>
-<pre class="lang-bash prettyprint-override"><code>s=&quot; ░▒▓█&quot;
-e=&quot;echo -ne &quot;
-r=&quot;read -sn1 c&quot;
-while $r; do
-case $c in
-w)((y&gt;0))&amp;&amp;$e&quot;\033[1A&quot;&amp;&amp;((y--))
-;;
-a)((x&gt;0))&amp;&amp;$e&quot;\033[1D&quot;&amp;&amp;((x--))
-;;
-s)((y&lt;25))&amp;&amp;$e&quot;\033[1B&quot;&amp;&amp;((y++))
-;;
-d)((x&lt;80))&amp;&amp;$e&quot;\033[1C&quot;&amp;&amp;((x++))
-;;
-0|1|2|3|4|5)$e&quot;${s:$c:1}\033[1D&quot;
-;;
-\?)$r
-s=${s::5}$c
-;;
-!)$e&quot;\033[1;1;$y;$y;$x;$x*y&quot;&gt;/dev/tty;read -s c
-s=${s::5}${c:6:1}
-;;
-esac
-done
-</code></pre>
-<p>Don't try this online, it requires a terminal that supports <a href="https://vt100.net/docs/vt510-rm/DECRQCRA.html" rel="noreferrer">DECRQCRA</a>. I don't have one, but as far as I can tell, this should work (maybe). DECRQCRA is a vt510-rm escape code that asks the terminal to do a checksum of all the characters in a rectangular area. if you ask it to check an area of 1x1, it returns the sum of 1 character (so that character). It is largely unsupported because that means that applications would be able to read what previous apps launched from the same terminal wrote, and is thus a security risk. For this reasons, command line programs that need to reference what they've previously outputted need to use <code>ncurses</code> or otherwise keep an array of what the ouput looks like, on modern terminals.</p>
-<p>only <code>!</code> requires the exotic terminal, the rest works on normal modern terminals:</p>
-<p><a href="https://i.sstatic.net/wiMtkdXY.png" rel="noreferrer"><img src="https://i.sstatic.net/wiMtkdXY.png" alt="test case 1" /></a></p>
-<p>my shell catches commands that don't end at the beggining of a line (and prints the ugly <code>%</code>), so i've taken the liberty of adding <code>sd</code> to the test case so we could see it in its entirety</p>
-<p><code>!</code> is untested, I can emulate it with <code>?▒</code> here:
-<a href="https://i.sstatic.net/LhixGV6d.png" rel="noreferrer"><img src="https://i.sstatic.net/LhixGV6d.png" alt="test case 2" /></a></p>
-<p><a href="https://i.sstatic.net/Y5XZWcx7.png" rel="noreferrer"><img src="https://i.sstatic.net/Y5XZWcx7.png" alt="test case 3" /></a></p>
-<p>if you don't pipe in a test case, <code>read</code> will read from stdin, which means you get to paint manually which is actually pretty fun :D
-<a href="https://i.sstatic.net/BOY0LqTz.png" rel="noreferrer"><img src="https://i.sstatic.net/BOY0LqTz.png" alt="enter image description here" /></a></p>
-</div>
 <div id="pu2" class="pu"><h1>JavaScript (ES8), 173 bytes</h1>
 <p>Expects an array of characters and returns a matrix of characters.</p>
 
@@ -164,10 +165,10 @@ done
 ) &amp;&amp; m                    // end of map() -&gt; return m[]
 </code></pre>
 </div>
-<div id="pu3" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 80 bytes</h1>
+<div id="pu3" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="noreferrer">Charcoal</a>, 80 bytes</h1>
 <pre><code>ＵＯ⁸⁰¦²⁵ ≔⪪ ░▒▓█ ¹θＦＳ¿υ§≔θ⊟υι≡ιwＭ›ⅉ⁰↑aＭ›ⅈ⁰←sＭ‹ⅉ²⁴↓dＭ‹ⅈ⁷⁹→?⊞υ⁵!§≔θ⁵ＫＫＰ§θＩι
 </code></pre>
-<p><a href="https://tio.run/##ZZDNSsQwFIX3fYo7XSUQYRxa1JlFGRR0YMTBQdBlbNI2GJpOk04Fce9WhT5gX6TeWqx/CecuDl/OJSfOeBkbrrvu6l6bPCXHUwazkIEPPl14S2tVmpNtoZUjPrTNa9u8tc1727yAz@CQMtghlpgSyCovKrd1pcIUSkElQCoKQ8LSrXIhH8mOwcYU6DNQdAFSWwm2Vi7OgCgKT17M0fFrfw6XZi/JeSm5kyW5I/hiiprfFLhvoPhf6nak1jJxI2e/uLW0doiaBT11Zup8pMQv6jPq6KSnrlWafYdFiG0qm5GKQTi6E3T//RRb3Ej5gGUsPCETXmmHK3CqAkty5Ad6yq3DAnryuet4f6yILkIRSZQOBU6OmoQ8MqENRMB5MNzuYK8/AA" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code. Note that TIO's deverbosifier inserts an unnecessary <code>”y”</code>. Explanation:</p>
+<p><a href="https://tio.run/##ZZDNSsQwFIX3fYo7XSUQYRxa1JlFGRR0YMTBQdBlbNI2GJpOk04Fce9WhT5gX6TeWqx/CecuDl/OJSfOeBkbrrvu6l6bPCXHUwazkIEPPl14S2tVmpNtoZUjPrTNa9u8tc1727yAz@CQMtghlpgSyCovKrd1pcIUSkElQCoKQ8LSrXIhH8mOwcYU6DNQdAFSWwm2Vi7OgCgKT17M0fFrfw6XZi/JeSm5kyW5I/hiiprfFLhvoPhf6nak1jJxI2e/uLW0doiaBT11Zup8pMQv6jPq6KSnrlWafYdFiG0qm5GKQTi6E3T//RRb3Ej5gGUsPCETXmmHK3CqAkty5Ad6yq3DAnryuet4f6yILkIRSZQOBU6OmoQ8MqENRMB5MNzuYK8/AA" rel="noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code. Note that TIO's deverbosifier inserts an unnecessary <code>”y”</code>. Explanation:</p>
 <pre><code>ＵＯ⁸⁰¦²⁵ 
 </code></pre>
 <p>Create the grid.</p>
