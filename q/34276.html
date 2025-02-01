@@ -26,11 +26,194 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>nan</td><td></td><td>250201T025755Z</td><td><a href="https://codegolf.stackexchange.com/questions/34276/optimal-minesweeper-on-the-largest-board/278017#278017">138 Aspe</a></td></tr>
-<tr d-ix="1"><td>nan</td><td></td><td>250131T071651Z</td><td><a href="https://codegolf.stackexchange.com/questions/34276/optimal-minesweeper-on-the-largest-board/278009#278009">138 Aspe</a></td></tr>
-<tr d-ix="2"><td>005</td><td>Python</td><td>140710T081812Z</td><td><a href="https://codegolf.stackexchange.com/questions/34276/optimal-minesweeper-on-the-largest-board/34282#34282">isaacg</a></td></tr>
+<tr d-ix="0"><td>005</td><td>Python</td><td>140710T081812Z</td><td><a href="https://codegolf.stackexchange.com/questions/34276/optimal-minesweeper-on-the-largest-board/34282#34282">isaacg</a></td></tr>
+<tr d-ix="1"><td>nan</td><td></td><td>250201T025755Z</td><td><a href="https://codegolf.stackexchange.com/questions/34276/optimal-minesweeper-on-the-largest-board/278017#278017">138 Aspe</a></td></tr>
+<tr d-ix="2"><td>nan</td><td></td><td>250131T071651Z</td><td><a href="https://codegolf.stackexchange.com/questions/34276/optimal-minesweeper-on-the-largest-board/278009#278009">138 Aspe</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>C++</h1>
+<div id="pu0" class="pu"><h1>Python, 4x5 board, 5 mines.</h1>
+<p>This is the reference implementation, with fixes thanks to @138Aspen. I just thought I'd put it here to help give people ideas.</p>
+<p>This implementation uses dynamic programming to prevent duplication of work, exploits mirror symmetries, and maintains a fist of all possible boards with a given revealed square status to check for guaranteed safe squares.</p>
+<p>On my current laptop, when run using pypy, it can optimally solve the 4x5 board with 5 mines in 72 seconds.</p>
+<pre class="lang-py prettyprint-override"><code># Minesweeper solver
+# Class just contains partially revealed boards that all look the same
+# from the outside
+
+# This is a branch, that uses strings.
+
+# Boards have every cell revealed.
+# Revealed is partially revealed. Boards must match revealed on every
+# cell that is revealed.
+
+# Meanings:
+# '0'-'8': Safe square with that # of surrounding mines
+# '*'    : Mine
+# '_'    : Unrevealed
+import copy
+import itertools
+import time
+
+class Position:
+    def __init__(self, dimensions, revealed, boards):
+        self.dim_r,self.dim_c=dimensions
+        self.rev=revealed
+        self.boards=boards
+        assert len(revealed)==self.dim_r*self.dim_c
+
+    def click(self,loc):
+        # Takes a location, returns all possible revealed positions, with boards
+        # split up accordingly
+        try:
+            assert self.rev[loc]=='_'
+        except AssertionError:
+            print(self,loc,self.rev)
+            assert self.rev[loc]=='_'
+        # Create all possible new boards, split up by revealed item.
+        board_dict={}
+        for board in self.boards:
+            clicked_cell=board[loc]
+            if clicked_cell in board_dict:
+                board_dict[clicked_cell].append(board)
+            else:
+                board_dict[clicked_cell]=[board]
+        new_positions=[]
+        for rev_cell in board_dict.keys():
+            # Make the new board without copying
+            new_rev=''.join([self.rev[:loc],rev_cell,self.rev[loc+1:]])
+            new_pos=Position((self.dim_r,self.dim_c),new_rev,board_dict[rev_cell])
+            new_positions.append(new_pos)
+        return new_positions
+
+    def someBestClick(self):
+        click_list=[]
+        # Set of boards is all we know when outputting, may be smaller than
+        # complete set
+        # If we've clicked on a bomb, no way to win, no best click.
+        if '*' in self.rev:
+            return 0,[]
+        unrevealed = [loc for loc in range(len(self.rev)) if self.rev[loc]=='_']
+        # If there is only 1 possible board, you're done. The click list is every
+        # unrevealed square on the board without a bomb under it.
+        if len(self.boards)==1:
+            return 1,[loc for loc in unrevealed if self.boards[0][loc]!='*']
+
+        # If there is an unrevaled locaiton on the board that is bomb free in
+        # every sub-board, use it.
+        for loc in unrevealed:
+            if all(board[loc]!='*' for board in self.boards):
+                return sum(pos.memoBestClick()[0] for pos in self.click(loc)),[loc]
+
+        # The broadest test - try everywhere.
+        click_list=[]
+        most_wins=0
+        for loc in unrevealed:
+            wins=sum(pos.memoBestClick()[0] for pos in self.click(loc) if pos.rev[loc]!='*')
+            if wins&gt;=most_wins:
+                if wins&gt;most_wins:
+                    click_list=[]
+                    most_wins=wins
+                click_list.append(loc)
+        return most_wins,click_list
+
+    def memoBestClick(self):
+        global memo
+        global memo_counter
+        memo_counter +=1
+        if not self.rev in memo:
+            # These lines check for mirror images of the board being in the memo table
+
+            vert_reversed_memo_str=                                         \
+            ''.join([self.rev[y*self.dim_c:(y+1)*self.dim_c]
+                     for y in range(self.dim_r)][::-1])
+
+            if vert_reversed_memo_str in memo:
+                vert_reversed_output=memo[vert_reversed_memo_str]
+                return vert_reversed_output[0],                             \
+                        [(self.dim_r-1-loc//self.dim_c)*self.dim_c+loc%self.dim_c
+                         for loc in vert_reversed_output[1]]
+
+            horiz_reversed_memo_str=                                        \
+            ''.join(self.rev[y*self.dim_c:(y+1)*self.dim_c][::-1]
+                    for y in range(self.dim_r))
+
+            if horiz_reversed_memo_str in memo:
+                horiz_reversed_output=memo[horiz_reversed_memo_str]
+                return horiz_reversed_output[0],                            \
+                        [(loc//self.dim_c)*self.dim_c+loc%self.dim_c
+                         for loc in horiz_reversed_output[1]]
+            both_reversed_memo_str=self.rev[::-1]
+            if both_reversed_memo_str in memo:
+                both_reversed_output=memo[both_reversed_memo_str]
+                return both_reversed_output[0],                             \
+                        [len(self.rev)-1-loc
+                         for loc in both_reversed_output[1]]
+
+            global restart_counter
+            global restart_memo
+
+            if len(self.rev)-self.rev.count('_') &lt;= restart_max:
+                restart_memo[self.rev]=self.someBestClick()
+                memo[self.rev]=restart_memo[self.rev]
+                return restart_memo[self.rev]
+            # Needed because of memory issues
+            if len(memo)&gt;5*10**6:
+                memo=copy.deepcopy(restart_memo)
+                restart_counter+=1
+            memo[self.rev]=self.someBestClick()
+        return memo[self.rev]
+
+def makeBlankPosition(dimensions,mines):
+    dim_r,dim_c=dimensions
+    # Makes all locations on the board
+    all_loc=itertools.product(range(dim_c),range(dim_r))
+    # Makes all possible distributions of mines
+    all_mine_layouts=itertools.combinations(all_loc,mines)
+    boards=[]
+    for mine_layout in all_mine_layouts:
+        boards.append(makeBoardFromMines(dimensions,mine_layout))
+    return Position(dimensions, '_'*dim_c*dim_r, boards)
+
+def makeBoardFromMines(dimensions,mine_layout):
+    dim_r,dim_c=dimensions
+    def mineNum(loc):
+        if (loc%dim_c,loc//dim_c) in mine_layout:
+            return '*'
+        return str(sum(((loc%dim_c+dif[0],loc//dim_c+dif[1]) in mine_layout) for dif in
+                   [(-1,-1),(-1,0),(-1,1),(0,-1),(0,1),(1,-1),(1,0),(1,1)]))
+    return ''.join(map(mineNum,(loc for loc in range(dim_r*dim_c))))
+
+def makePosition(dimensions,mines,revealed):
+    blank_pos=makeBlankPosition(dimensions,mines)
+    boards_subset=[]
+    for board in blank_pos.boards:
+        if all(revealed[cell_num]==board[cell_num] or revealed[cell_num]=='_' for cell_num in range(len(board))):
+            boards_subset.append(board)
+    return Position(dimensions, revealed, boards_subset)
+
+def winRate(dimensions,mines,revealed):
+    pos=makePosition(dimensions,mines,revealed)
+    global memo
+    memo={}
+    wins=pos.memoBestClick()
+    return wins[0],len(pos.boards),wins[1],memo
+
+global memo_counter
+memo_counter=0
+global restart_counter
+restart_counter=0
+global restart_memo
+restart_memo={}
+global restart_max
+restart_max=6
+dimensions, mines, revealed = eval(input())
+start_time=time.time()
+wins, total_boards, moves, memo = winRate(dimensions, mines, revealed)
+move_points=[(move//dimensions[1],move%dimensions[1]) for move in moves]
+print(&quot;&quot;&quot;Best moves are %s.\n%i wins out of %i boards. Ratio of %f. %i 
+positions searched.\n%f seconds taken.&quot;&quot;&quot;%(move_points, wins, total_boards,
+wins/total_boards, len(memo),time.time()-start_time))
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>C++</h1>
 <p>C++ port of @isaacg's Python answer.</p>
 <p><a href="https://tio.run/##xVrdc@O2EX/XX4G6Ex8VUzr70vZBsv1wN0nTmXaaSTPNg3vDoUjYYk0RKkFa53j0t1/3AyABEvTZk3SqTM4SuVjsx28XiwWy/X6RlWl19/nz74sqK9tcisss1VrWzfXMebStVaXcJ4XSTS3TnftMBx41dVHduU/aStW5rGWe7NJ9@IWW3uQPMmtU7T5JyztVF83Wm6pp96W8ns1aDTOKKt1JvU8zKXSTr2ezt2/Fd6o@pHUucgkq12lTqGoG8rVZI35QusDfTPjnUm3SUuzkThW/EJ14SOsi3ZRSzzz5jX6x2KdFfVlUTSxYWvx@fX1NPNavHFNL3aR1k/BYeEhckky1VSNrcSXO@amlm3yxSz/Bwz@BUgM1xdNMwAdp82KX1DH9ydb0lMUDJg9rIcAa3e898JVVgz@arUQCmZYyB4K0kSKSabYV2TatV@JN8kbcqlq0lSWKBfxMYZq7osGvb75@I4rbjsecZjZmMJgRGwXe0muUgXjTb1Fo4HPblqX5rdomUzspUnzOQ2fEzSobkUli0jaLRaYq3VilTnv5@PlAhNMNS4afFdsqqufGXFEG34BB1GkRG5mjzdyYGD8cThHKMQfSpS5@kdFcXF0xQ/E1s5uz@Y8sPSidlUV2vxJ3xYOsQLdSZYxFYJTLT6iPwulh1jtZSQC0BBOAXSp56JTXltnmUeh9WTSd@1hSsUk1uBC4HrYpqJ@WrUQTd84tKqCGN5ksy6XrJTvDNctJVgYR58aQI/WB4w28/4h6Az7mDK5dC7Qb6SClG@cHDQIrHrjHQCTJi6xZd@MQeBELkbZgolPGycpo7HoGP8iYVYCZUEsIGaIkadcebT/djTvi43Lf6m2yScEMRDLvhx27byO7gZ@SvfVTP4IzFUO@cwMJBsS62BTgxcdYtPscw24QiYTqtMpFWYD@6tYovfStw3aBWK4frV1Iq6BtgLu1C41Y3ha1bnzDmIlRIyAHSsweHoV5ZSDQMR0TdRZxjNqFsputYsszNnJpCV7P50Hj17Jp6ypk8j7eNKSR95A6P6BrzQhMKpinITwAiitLCnZEIwjQpFENrBWHAkhva7WD1UVnsspTCIduprgfx0LCOIYDuQjmFDv1AOEbkaEhvotMak494VXCFzZyHQfT/OUWxN6o3UZsMS2WsCrnjzAP5JE@4VUKpcZgZ1yVskcJpGYMWHB1lUeQq@fid1fGyatVBfRDpBj7Pp3H4ul4DHkAxPqgyhJ0oCTVB3xvpmGooKYO4SDEMeEUtOjBn0sxSK/w8OxsKKVR66bospD3mrOOnc7BXzGf0AgM3SAw0IqqKh/hH9mZkwML0PkgIc4chfV/2rSWnFdhYKUa6y5a3MArFUYTQsJ3iQnmfgG5GGroWo4g5QdYZzgIQ4j8XqYhH3/Gm/OPHLiAAkLDmBg/NKFjNlwO1iPK42z6l4XRRczMPCRNGT6tXON2y6Q1r05vJS5j7AbdbhbGL62G581y9mrjbJQqie23yJIyAyaCupUBa798JfJs3q@V0/YeiXCbllqug7QbyAH3r3MGyuJPEZQYDKbb3c@YAKkCHRKE6wWJOZArhzBMnIUKAgqMZoZNGsPIcHaFAbjEktnJj6FFa6yxC0HDD/IZyOemNH@YD8v3tUpzTOcN/rMQuMAOsp3Fp6Zleo9LTbNVAMUD/essH7SmgBgIYijli11aOukAtwWwB0sOI8O7OYCMlmAxsH49zgsrxMivI586Yk@7deTSflTIq2DPbyvddpmyW9QOqVOg2kinSWNxABMqTqk5VK@NJg2WwUBDnHhl6deBBYHqIIXbnjYQWofXQW4cYMTgundlyBCun/HPWIzezcuslGkdzZ@leS5FH4UsMTFa2cAuzwr3UrbTRdlTxz92uB2H5ZlnXkzeuFbe9Vt10eAGHeoxkUHpjFWxbsvGuH6iihq4zFHP3XKfna29ZRjfcWmE2y@yED4BJEfzoYmw7NlKEHhX1DXgH6L4TuohycVS/BM2SUUGuiCya52WK/ONa3zaC2G1WKvDAM6m@AbaJjFD8oll/1HYTedCXKzh5zXVT4@LRci1HkdEOZVX7QYmjB7ttjX2dq/TQO@N5rGlynLafLSBxIxBg2Cvv28xw@CAG4/Px8mFh/JgU6eVBjPshqYJJERnKrunmFhzqLMA4uC4t24PJUSYGcKvvkRI2xrXUfB//Tw58r0yA41fxJmYmMOxhROyhs38NWukaynKdrHL/PgcJAD075bie1UXv0ByDcKed8DqEET7Fke@BO4Ib9gekDHh63hT4Pa81EG8BuVsCxIhQkE38q6oIuwKwQ/G83iALzmFlTq8PHr84S8NHx7lx4/P6TcMIHey/1sEZSaCMhNB2UsiyI0eYvK/jiDPVK8PoW@W4r1qthaEuRM8ULHU0gA7GEEbGNjDMNCyscj2CHuM@49DaPeB69G/FLc0yIetx@fXoBZdz90bE/PcOPgSuh2RvgDuMEx4Sgbla@Hizv0CtIy8MexBQ1hgiUO9nj55wQ/ySkwtEnF55Z4oTLsKtzywDd4WenE9aE@F0mZ/yHEDM2JTEDmMKb9MYawzfhmwAGHOaH8t/nhOn2DRjSXl1eAwZkqLQKE4dqSryBesNKqRu7G2Kj7yUdVisRDfy3IPteFtW2W8sUTAcqvBHAxgOwQo@XDLHCdAmpOVJnpqcOJuNIUqtZJJmT4CxkTUtyijTJUxLFNzotXzGDn1HVKezOSavnuNzcwYrY4FLHU2qR3JmzhuKxbUooGvS@T4d@zpHAotY/OCBqJtuZW928Dw/N8pbBoxdN2TCZPUdum9fI/SfFer3d9AGR31pT@lhF7vwZmPT3ctTh1bzIcnZry4GEY2FHnl8N5wgmCneQecpkUHU/xDGtSCAX6W1JXqelh80kMVglvXKdMIGDWY9pCfAmJ3C6jCXLcf7kxpEabSZ@8JTKBlCZewO6NTnKEg3amVt7KAA/g5fYVNNkVc6LjLS65UreGXS/9ojB76lRvFspGNcxjm0nGnrm@lIcqcCONt7rjhQcwSZB3oe/SWmixYejtPliqdzjniaAEbMfgCWZa@hAvUfkhmh2R2SBYeYq2Ek4Ai4vSUBsPXcJPj@UZHVyvVBo5nIGssKhQH1YWfUxUWyACjro0M8NV6F39l/Qvr9mxKm04Gs93xqrWJ2cNYqQgskwPYFB0Ohml9ep1@rp3qY/H8DcVPN8cw9/O/dmXjgDpSAv8Jlo4u2QNF1tYacnr5ODgGziBdFpXpNUaQeO2xEoEp2ypFFyXuIdXKncZzdEyyVJ0sZw@qyA0HiWn0r5RPNEGQljw@T7@P@yrKa62IUxCrlk7Dxeu7nHJzpkur4KB7hqbjeqZxKifD0lkn2T5uCvKOhkhSOh6y53QLcT86GTJsJ857QkYA113EYLkF/jHKd/oa1dZj/mrP7LuceXRWZF5DnVW5X5AZJ/0xP7m3O2UiCnvMS/gwz7pzNYGnTXZwjjclPGwoKKUZMc7h43LWXRahNbVMq/vuGPaZJZX60gjo32TJdEt0f0VwryJ40HJV86i4H86@4BcB157HLP3YrS7f@fqZ@yrhlRmH4yGGy8XB4EQN4qzlk/17ZBnq3P/6dQrP2SqqwX54bLaAhEzl0isRqQuLBHT5istEnNhPrc4IJ8ieLPExWPgaRPf0gdLOBZ5b9oSKkv6YIzKupVsobpqduGbg3mIyJ3fhXLxpizLHArcLne52Dd4iqJsCouyxP7rg4ogKXzw7NjdyqKhN72opxaGAvb13w4MuUEE6xytUyRu@lUCnHf0ZDgb7vdw3gwh@VfBOXZOyOOsVxLyAVypwdz7KE0P/2MAZhLWXEzjCQ8kgGG4JdupsBT194GrFXI6PXuk09yEti3x0iNtFGmbGpGp3XKF2vy5Zi/7J5JUDst6NJeODdPAflD3hl1wsdI@C3Xkj8sShb@DAN3QGg/IRp/m4WLHGnbjedJyKnXGO990Zi2FAmYm6uPqx21pyYoHChO6qVLdqJfikiPHDw2PnDk1MC2fe8rZ3OevhTqxGh0CEehBStbCYQsoF7j/CMvnbhkkfINOx0VvF2JdaFd5x3vgeaNd9oVIHa3G6qbtabYs77JJpVbY4XZJBlr9frSp1sMxoGNoy4btHwUNMh1TStaWX82eLdp5wxtpHl8boEbJesApzU6E7mcI5@WRR3f1rl0oSkz5ZDe@mjJfknxg@6IuEEBG5w2N3GotW6po5jaO4U2p@JMQSIFLsntmiR@nVSj9WWYIpPNFNXqiIAtUIkxXVsilkVLVluW9qeGpbAD8NlltaYiWEKEixbxvslYIz1KaB@dz4eBZQy5lzs/DD2Rmdk6datzs@XSTW2HAxl021c9MNDxyxUtDMtWOamMu27p3FT@kOxFmJk3finbgQCXxOuKLkbYl49@mdvRZ1Qfw4XG31qd37VzOnkqFQK61mw4vKzvUwMKzAO9QoNFWDJf1l0elytUs9GeQAo6d@2mPvng9pmbUlFuGYkLgaBwX6/LPsI4Z3AgxdyilfjnkH72b742CdmILD@5fBWrmPBMDdanUnm8vz6wjGzcf1sA39jvLCpezuniPuXap3LpUJ9AaUSxoIq8ql/MZSdgZUFR4bihL0T@tuk2L3HQhu7DKR4efwGmTQ3sXjUY0MKiRMN2gp4RtsiKGOw1YY5k96/5Y87DfDMvvyq8FLZy63koVaMTv697czLI8vL8XJ@/52J1ZmJ2v/9c2JbZRBFcIFkFuFuFdmjCpm/mEz7Hc02F/Fu1liO6/3NDrBP6YdaOn4kbmmis/mzlAroFNzHH19Pi7/VQ10JDzjO/5mGg00kYdXIjGJW/yI@ZXpepWAImK0zYnV2zGDJTPuUeuNPnE2xRrgl20hz4wEdpBMY9gYAE18xOTuinJuq5Y/0H/J4PP5c/j5fwE" rel="nofollow noreferrer">Try it online!</a></p>
 <pre class="lang-cpp prettyprint-override"><code>#include &lt;cassert&gt;
@@ -386,7 +569,7 @@ int main() {
 // 4 4 4 ________________
 </code></pre>
 </div>
-<div id="pu1" class="pu"><h1>Rust</h1>
+<div id="pu2" class="pu"><h1>Rust</h1>
 <p>Rust port of @isaacg's Python answer.</p>
 <p><a href="https://play.rust-lang.org/?version=stable&amp;mode=release&amp;edition=2021&amp;gist=b02948285cb65e7c68b14609ae22cd46" rel="nofollow noreferrer">Run it on Rust Playground!</a></p>
 <pre class="lang-rust prettyprint-override"><code>use std::collections::{HashMap, HashSet};
@@ -708,192 +891,6 @@ fn main() {
         duration
     );
 }
-</code></pre>
-</div>
-<div id="pu2" class="pu"><h1>Python, 4x5 board, 5 mines.</h1>
-<p>This is the reference implementation, I just thought I'd put it here to help give people ideas.</p>
-<p>This implementation uses dynamic programming to prevent duplication of work, exploits mirror symmetries, and maintains a fist of all possible boards with a given revealed square status to check for guaranteed safe squares.</p>
-<pre class="lang-none prettyprint-override"><code># Minesweeper solver
-# Class just contains partially revealed boards that all look the same
-# from the outside
-
-# This is a branch, that uses strings.
-
-# Boards have every cell revealed.
-# Revealed is partially revealed. Boards must match revealed on every
-# cell that is revealed.
-
-# Meanings:
-# '0'-'8': Safe square with that # of surrounding mines
-# '*'    : Mine
-# '_'    : Unrevealed
-import copy
-import itertools
-import time
-import pickle
-import random
-import math
-import cProfile
-import sys
-
-class Position:
-    def __init__(self, dimensions, revealed, boards):
-        self.dim_r,self.dim_c=dimensions
-        self.rev=revealed
-        self.boards=boards
-        assert len(revealed)==self.dim_r*self.dim_c
-
-    def click(self,loc):
-        # Takes a location, returns all possible revealed positions, with boards
-        # split up accordingly
-        try:
-            assert self.rev[loc]=='_'
-        except AssertionError:
-            print(self,loc,self.rev)
-            assert self.rev[loc]=='_'
-        # Create all possible new boards, split up by revealed item.
-        board_dict={}
-        for board in self.boards:
-            clicked_cell=board[loc]
-            if clicked_cell in board_dict:
-                board_dict[clicked_cell].append(board)
-            else:
-                board_dict[clicked_cell]=[board]
-        new_positions=[]
-        for rev_cell in board_dict.keys():
-            # Make the new board without copying
-            new_rev=''.join([self.rev[:loc],rev_cell,self.rev[loc+1:]])
-                new_pos=Position((self.dim_r,self.dim_c),new_rev,board_dict[rev_cell])
-            new_positions.append(new_pos)
-        return new_positions
-
-    def someBestClick(self):
-        click_list=[]
-        # Set of boards is all we know when outputting, may be smaller than
-        # complete set
-        # If we've clicked on a bomb, no way to win, no best click.
-        if '*' in self.rev:
-            return 0,[]
-        unrevealed = [loc for loc in range(len(self.rev)) if self.rev[loc]=='_']
-        # If there is only 1 possible board, you're done. The click list is every
-        # unrevealed square on the board without a bomb under it.
-        if len(self.boards)==1:
-            return 1,[loc for loc in unrevealed if self.boards[0][loc]!='*']
-
-        # If there is an unrevaled locaiton on the board that is bomb free in
-        # every sub-board, use it.
-        for loc in unrevealed:
-            if all(board[loc]!='*' for board in self.boards):
-                return sum(pos.memoBestClick()[0] for pos in self.click(loc)),[loc]
-
-        # The broadest test - try everywhere.
-        click_list=[]
-        most_wins=0
-        for loc in unrevealed:
-            wins=sum(pos.memoBestClick()[0] for pos in self.click(loc) if pos.rev[loc]!='*')
-            if wins&gt;=most_wins:
-                if wins&gt;most_wins:
-                    click_list=[]
-                    most_wins=wins
-                click_list.append(loc)
-        return most_wins,click_list
-
-    def memoBestClick(self):
-        global memo
-        global memo_counter
-        memo_counter +=1
-        if not self.rev in memo:
-            # These lines check for mirror images of the board being in the memo table
-
-            vert_reversed_memo_str=                                         \
-            ''.join([self.rev[y*self.dim_c:(y+1)*self.dim_c]
-                     for y in range(self.dim_r)][::-1])
-
-            if vert_reversed_memo_str in memo:
-                vert_reversed_output=memo[vert_reversed_memo_str]
-                return vert_reversed_output[0],                             \
-                        [(self.dim_r-1-loc//self.dim_c)*self.dim_c+loc%self.dim_c
-                         for loc in vert_reversed_output[1]]
-
-            horiz_reversed_memo_str=                                        \
-            ''.join(self.rev[y*self.dim_c:(y+1)*self.dim_c][::-1]
-                    for y in range(self.dim_r))
-
-            if horiz_reversed_memo_str in memo:
-                horiz_reversed_output=memo[horiz_reversed_memo_str]
-                return horiz_reversed_output[0],                            \
-                        [(loc//self.dim_c)*self.dim_c+
-            both_reversed_memo_str=self.rev[::-1]
-            if both_reversed_memo_str in memo:
-                both_reversed_output=memo[both_reversed_memo_str]
-                return both_reversed_output[0],                             \
-                        [len(self.rev)-1-loc
-                         for loc in both_reversed_output[1]]
-
-            global restart_counter
-            global restart_memo
-
-            if len(self.rev)-self.rev.count('_') &lt;= restart_max:
-                restart_memo[self.rev]=self.someBestClick()
-                memo[self.rev]=restart_memo[self.rev]
-                return restart_memo[self.rev]
-            # Needed because of memory issues
-            if len(memo)&gt;5*10**6:
-                memo=copy.deepcopy(restart_memo)
-                restart_counter+=1
-            memo[self.rev]=self.someBestClick()
-        return memo[self.rev]
-
-def makeBlankPosition(dimensions,mines):
-    dim_r,dim_c=dimensions
-    # Makes all locations on the board
-    all_loc=itertools.product(range(dim_c),range(dim_r))
-    # Makes all possible distributions of mines
-    all_mine_layouts=itertools.combinations(all_loc,mines)
-    boards=[]
-    for mine_layout in all_mine_layouts:
-        boards.append(makeBoardFromMines(dimensions,mine_layout))
-    return Position(dimensions, '_'*dim_c*dim_r, boards)
-
-def makeBoardFromMines(dimensions,mine_layout):
-    dim_r,dim_c=dimensions
-    def mineNum(loc):
-        if (loc%dim_c,loc//dim_c) in mine_layout:
-            return '*'
-        return str(sum(((loc%dim_c+dif[0],loc//dim_c+dif[1]) in mine_layout) for dif in
-                   [(-1,-1),(-1,0),(-1,1),(0,-1),(0,1),(1,-1),(1,0),(1,1)]))
-    return ''.join(map(mineNum,(loc for loc in range(dim_r*dim_c))))
-
-def makePosition(dimensions,mines,revealed):
-    blank_pos=makeBlankPosition(dimensions,mines)
-    boards_subset=[]
-    for board in blank_pos.boards:
-        if all(revealed[cell_num]==board[cell_num] or revealed[cell_num]=='_' for cell_num in range(len(board))):
-            boards_subset.append(board)
-    return Position(dimensions, revealed, boards_subset)
-
-def winRate(dimensions,mines,revealed):
-    pos=makePosition(dimensions,mines,revealed)
-    global memo
-    memo={}
-    wins=pos.memoBestClick()
-    return wins[0],len(pos.boards),wins[1],memo
-
-global memo_counter
-memo_counter=0
-global restart_counter
-restart_counter=0
-global restart_memo
-restart_memo={}
-global restart_max
-restart_max=6
-dimensions, mines, revealed = eval(input())
-start_time=time.clock()
-wins, total_boards, moves, memo = winRate(dimensions, mines, revealed)
-move_points=[(move//dimensions[1],move%dimensions[1]) for move in moves]
-print(&quot;&quot;&quot;Best moves are %s.\n%i wins out of %i boards. Ratio of %f. %i 
-positions searched.\n%f seconds taken.&quot;&quot;&quot;%(move_points, wins, total_boards, 
-wins/total_boards, len(memo),time.clock()-start_time))
 </code></pre>
 </div>
 
