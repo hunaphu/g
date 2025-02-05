@@ -50,19 +50,24 @@
 <p>A port of <a href="https://codegolf.stackexchange.com/a/278024/91267">my python answer</a>. Doesn't use tail-call recursion in some places so fails for the larger inputs.</p>
 <h3>Ungolfed</h3>
 <pre class="lang-lisp prettyprint-override"><code>(load library)
+(d # comment)
 
+(# prepends el to head of res then returns res)
 (def return (lambda (el res) (cons (cons el (head res)) (tail res))))
 
+(# given ((data) remaining) (i.e. return from sym and expr) applies func on data, expr on remaining then uses return to join them)
 (def return-func (lambda (res func)
   (return
     (func (head res) (+ (head (max (cons (list 0) (head res)))) 1))
     (expr (tail res)))))
 
+(# indent everything other than the first line with a space)
 (def indent (lambda (ls)
  (if ls
   (cons (head ls) (_repeat-val 32 (equal? (head ls) 10) (indent (tail ls))))
   (list 41))))
 
+(# formats a list given formatted child elements and depth of the list)
 (def wrap (lambda (ls depth)
  (cons depth (indent (cons 40
    (tail (concat
@@ -73,12 +78,13 @@
       (chars (join (map string (map tail (tail ls))) (if (less? depth 4) spc nl))))
      ()))))))))
 
+(# returns ((symbol) remaining))
 (def sym (lambda (ls)
   (if (contains? (list () 32 40 41) (head ls))
     (cons () ls)
     (return (head ls) (sym (tail ls))))))
 
-(comment returns (((depth ungolfed...) (depth ungolfed...) ...) remaining))
+(# returns (((depth ungolfed...) (depth ungolfed...) ...) remaining))
 (def expr (lambda (ls)
   (if (equal? (head ls) 32)
     (expr (tail ls))
@@ -88,7 +94,7 @@
     (return-func (sym (cons 1 ls)) max2)
     (cons () (tail ls)))))))
 
-(comment entrypoint)
+(# entrypoint)
 (lambda (str) (string (tail (head (head (expr (chars str)))))))
 </code></pre>
 </div>
