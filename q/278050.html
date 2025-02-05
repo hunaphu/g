@@ -26,12 +26,46 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>141</td><td>JavaScript V8</td><td>250204T131020Z</td><td><a href="https://codegolf.stackexchange.com/questions/278050/do-not-find-the-fox-in-all-possible-ways/278054#278054">l4m2</a></td></tr>
-<tr d-ix="1"><td>036</td><td>Jelly</td><td>250204T194000Z</td><td><a href="https://codegolf.stackexchange.com/questions/278050/do-not-find-the-fox-in-all-possible-ways/278060#278060">Jonathan</a></td></tr>
-<tr d-ix="2"><td>144</td><td>JavaScript V8</td><td>250204T080530Z</td><td><a href="https://codegolf.stackexchange.com/questions/278050/do-not-find-the-fox-in-all-possible-ways/278051#278051">Arnauld</a></td></tr>
-<tr d-ix="3"><td>099</td><td>Retina 0.8.2</td><td>250204T100047Z</td><td><a href="https://codegolf.stackexchange.com/questions/278050/do-not-find-the-fox-in-all-possible-ways/278052#278052">Neil</a></td></tr>
+<tr d-ix="0"><td>202</td><td>Maple</td><td>250205T023141Z</td><td><a href="https://codegolf.stackexchange.com/questions/278050/do-not-find-the-fox-in-all-possible-ways/278068#278068">dharr</a></td></tr>
+<tr d-ix="1"><td>141</td><td>JavaScript V8</td><td>250204T131020Z</td><td><a href="https://codegolf.stackexchange.com/questions/278050/do-not-find-the-fox-in-all-possible-ways/278054#278054">l4m2</a></td></tr>
+<tr d-ix="2"><td>036</td><td>Jelly</td><td>250204T194000Z</td><td><a href="https://codegolf.stackexchange.com/questions/278050/do-not-find-the-fox-in-all-possible-ways/278060#278060">Jonathan</a></td></tr>
+<tr d-ix="3"><td>144</td><td>JavaScript V8</td><td>250204T080530Z</td><td><a href="https://codegolf.stackexchange.com/questions/278050/do-not-find-the-fox-in-all-possible-ways/278051#278051">Arnauld</a></td></tr>
+<tr d-ix="4"><td>099</td><td>Retina 0.8.2</td><td>250204T100047Z</td><td><a href="https://codegolf.stackexchange.com/questions/278050/do-not-find-the-fox-in-all-possible-ways/278052#278052">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://v8.dev/" rel="nofollow noreferrer">JavaScript (V8)</a>, 141 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.maplesoft.com/" rel="nofollow noreferrer">Maple</a>, 202 bytes</h1>
+<pre><code>a:=1,3,9,11;b:=0,1,4,5;s:=[[$0..2]$3];p:=s*~b[2..];q:=s*~(-1,3,4);for A in Iterator:-Permute([F$5,O$6,X$5])do`if`(`and`(seq(seq(seq(seq(A[j+~k])&lt;&gt;(F,O,X),k=[p,q,-q,-p][i]),j=a[i]+~b),i=1..4)),A,NULL)od;
+</code></pre>
+<p>Ungolfed:</p>
+<pre><code>a:=1,3,9,11;                            # top left cell of each quadrant
+b:=0,1,4,5;                             # offsets to stay, or go right, down, downright
+t[1]:=[[0,1,2],[0,4,8],[0,5,10]];       # right, down, downright (from first quadrant)
+t[2]:=[[0,-1,-2],[0,3,6],[0,4,8]];      # left, down, downleft (from 2nd quadrant)
+t[3]:=[[0,1,2],[0,-3,-6],[0,-4,-8]];    # up, right, upright (from 3rd quadrant)
+t[4]:=[[0,-1,-2],[0,-4,-8],[0,-5,-10]]; # up, left, upleft (from 4th quadrant)
+for A in Iterator:-Permute([F$5,O$6,X$5])do # all valid boards as 1D Arrays
+`if`(`and`(                             # look for all 48 places FOX can be
+   seq(
+       seq(
+           seq(
+               seq(A[j+~k])&lt;&gt;(F,O,X),   # test not F,O,X starting at j going in kth direction
+               k=t[i]                   # in t[i]                  
+              ),
+           j=a[i]+~b                    # place to start in quadrant i
+          ),
+       i=1..4)                          # for each quadrant i
+      ),
+  A,NULL);                              # if none match output the 1D Array
+od;
+</code></pre>
+<p>The board is in a 1D Array (1-relative indexing). For each quadrant of 4 cells in the (2D) board, e.g. top left, we look for F,O,X from each of the 4 cells going in each of 3 directions, e.g., right, down, downright from the top left. The t[i] are the offsets from the current cell to look in for the ith quadrant for each direction.</p>
+<p>The 4 lines generating t[1]..t[4] can shortened to</p>
+<pre><code>s:=[[$0..2]$3];  # start with [[0,1,2],[0,1,2],[0,1,2]]
+p:=s*~b[2..];    # multiply triples by 1, 4, 5 resp. to get t[1]
+q:=s*~(-1,3,4);  # multiply triples by -1, 3, 4 resp. to get t[2]
+t:=[p,q,-q,-p];  # t[3] = -t[2], t[4] = -t[1]
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://v8.dev/" rel="nofollow noreferrer">JavaScript (V8)</a>, 141 bytes</h1>
 
 <pre class="lang-none prettyprint-override"><code>f=(s=!0+'FX'+1e5,q)=&gt;s[43]?/(.)(.*\1){12}|^(....)*.?(F(O|....O....)|..F..O..)X|F...O...X/.test(s)||print(q):[...&quot;FXO&quot;].map(c=&gt;f(c+s+c,[q]+c))
 </code></pre>
@@ -45,7 +79,7 @@
 <p><a href="https://tio.run/##LY29CoMwGACfpQ71@zBGWuwPYiwurlmFkILECgmkFRNcmj57aqHDLXfDmWEdnFr07PP1GuPEwLE0RdY4cTjJm6CUOkndyz4AFNGk3dIuz71QMrR/PxKzWVWDZboo76YoQ3ACdGawOErc23pE4tm7q86k3@DV5YMhzIt@enBY/SZJ1/NEUjvMwFkzgcs4YpwA4xc" rel="nofollow noreferrer" title="JavaScript (V8) – Try It Online">Try it online!</a></p>
 <p>Decide if pos i, mid(i,j), j build <code>fox</code></p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 36 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
+<div id="pu2" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 36 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
 <pre><code>“OFX”ṁ⁴Œ!Qµs4,Z$ŒD;$Ẏṡ€3ẎUƬẎQṢ$ƑƇµÐḟ
 </code></pre>
 <p>A niladic Link that yields a list of lists of characters.</p>
@@ -73,7 +107,7 @@ s4                     - split {Potential} into chunks of length four
                   Ṣ    -   sort {that}
 </code></pre>
 </div>
-<div id="pu2" class="pu"><h1><a href="https://v8.dev/" rel="nofollow noreferrer">JavaScript (V8)</a>, 144 bytes</h1>
+<div id="pu3" class="pu"><h1><a href="https://v8.dev/" rel="nofollow noreferrer">JavaScript (V8)</a>, 144 bytes</h1>
 <p>Similar to the other version, but much slower.</p>
 
 <pre class="lang-none prettyprint-override"><code>f=(s=1e3+&quot;FXFX&quot;+1e3,q)=&gt;s[43]?/(.)(.*\1){12}|^(....)*.?(F(O|....O....)|..F..O..)X|F...O...X/.test(s)||print(q):[...&quot;FXO&quot;].map(c=&gt;f(c+s+c,[q]+c))
@@ -106,7 +140,7 @@ s4                     - split {Potential} into chunks of length four
 <p>This is the beginning and the end of the output of <a href="https://tio.run/##LY7LDoIwFER/pXF1r8WqiUYjKey6tNsmiAlpwGCQ1yW6oHw7VuKszpzZzDN7Z2T7sh027/N8ZZLtQtb2ZT14JCYjZpuamioXVfMAzq8BIwznQgLJceK7oEMZUXI4pfEWlDMIt8/6tsfxODnQnnE8Te4OwgfXIgYF2v2KXoxHtTAap/7WbMWQ0wCEzi1PoMNL4oeVMnqVilfWgpVRAZYTt0HSpdwizgXg/AU" rel="nofollow noreferrer">a slightly modified version</a> that prints the number of results:</p>
 <p><a href="https://i.sstatic.net/KDrNp7Gy.png" rel="nofollow noreferrer"><img src="https://i.sstatic.net/KDrNp7Gy.png" alt="output" /></a></p>
 </div>
-<div id="pu3" class="pu"><h1><a href="https://github.com/m-ender/retina/wiki/The-Language/a950ad7d925ec9316e3e2fb2cf5d49fd15d23e3d" rel="nofollow noreferrer">Retina 0.8.2</a>, 99 bytes</h1>
+<div id="pu4" class="pu"><h1><a href="https://github.com/m-ender/retina/wiki/The-Language/a950ad7d925ec9316e3e2fb2cf5d49fd15d23e3d" rel="nofollow noreferrer">Retina 0.8.2</a>, 99 bytes</h1>
 <pre><code>
 4$*
 1
