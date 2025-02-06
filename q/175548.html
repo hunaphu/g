@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::175548</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>019</td><td>Rust</td><td>250206T020438Z</td><td><a href="https://codegolf.stackexchange.com/questions/175548/find-arrays-with-distinct-subarray-sums/278098#278098">138 Aspe</a></td></tr>
+<tr d-ix="1"><td>019</td><td>C gcc</td><td>181109T185913Z</td><td><a href="https://codegolf.stackexchange.com/questions/175548/find-arrays-with-distinct-subarray-sums/175617#175617">Arnauld</a></td></tr>
+<tr d-ix="2"><td>017</td><td>Node.js</td><td>181109T163208Z</td><td><a href="https://codegolf.stackexchange.com/questions/175548/find-arrays-with-distinct-subarray-sums/175609#175609">Arnauld</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>Rust, s = 19</h1>
+<p>Rust port of @Arnauld's C answer.</p>
+<p><a href="https://play.rust-lang.org/?version=stable&amp;mode=release&amp;edition=2021&amp;gist=1a3530c6ea6da5794a2dc193718b920d" rel="nofollow noreferrer">Run it on RustPlayground!</a></p>
+<pre class="lang-rust prettyprint-override"><code>use std::fmt::Write; // for write! macro used to build strings
+
+/// Search function similar to the C version
+fn search(
+    arr: &amp;mut [u8],
+    n: i32,
+    sum: &amp;mut [u8],
+    max_depth: &amp;mut i32,
+    result_str: &amp;mut String,
+    depth: i32,
+) {
+    // If we found a better array, store it in `result_str`.
+    if depth &gt; *max_depth {
+        // Clear and build the new result string.
+        result_str.clear();
+        for i in 0..depth {
+            write!(result_str, &quot;{} &quot;, arr[i as usize]).unwrap();
+        }
+        *max_depth = depth;
+    }
+
+    // Try to append i = 1..=n to the current array.
+    for i in 1..=n {
+        // Provided that doing so does not produce a sum that was already encountered.
+        if sum[i as usize] == 0 {
+            // In C: for(sum[s = i] = 1, j = depth; j &amp;&amp; !sum[s += arr[j - 1]]; j--) {}
+            // We translate that logic to Rust step by step:
+            let mut s = i as i32;
+            sum[s as usize] = 1;
+
+            let mut j = depth;
+            while j &gt; 0 {
+                let idx = s + arr[(j - 1) as usize] as i32;
+                if sum[idx as usize] != 0 {
+                    break;
+                }
+                s = idx;
+                sum[s as usize] = 1;
+                j -= 1;
+            }
+
+            // If j == 0, we managed to add i in a valid position; recurse deeper.
+            if j == 0 {
+                arr[depth as usize] = i as u8;
+                search(arr, n, sum, max_depth, result_str, depth + 1);
+            }
+
+            // Clear the flags we set in this attempt.
+            // In C: for(sum[s = i] = 0, k = depth - 1; k &gt;= j; k--) { sum[s += arr[k]] = 0; }
+            let mut s = i as i32;
+            sum[s as usize] = 0;
+
+            let mut k = depth - 1;
+            while k &gt;= j {
+                s += arr[k as usize] as i32;
+                sum[s as usize] = 0;
+                k -= 1;
+            }
+        }
+    }
+}
+
+/// Solve function similar to the C version.
+/// Returns the maximum depth for a given `n`, and the construction in `result_str`.
+fn solve(n: i32, result_str: &amp;mut String) -&gt; i32 {
+    let mut max_depth = 0;
+    // Highest possible sum for n
+    let hi = n * (n + 1) / 2;
+    // Encountered sums
+    let mut sum = vec![0u8; (hi + 1) as usize];
+    // Our working array
+    let mut arr = vec![0u8; n as usize];
+
+    search(&amp;mut arr, n, &amp;mut sum, &amp;mut max_depth, result_str, 0);
+    max_depth
+}
+
+fn main() {
+    let mut result_str = String::new();
+
+    for n in 1..=19 {
+        let res = solve(n, &amp;mut result_str);
+        println!(&quot;N = {} --&gt; {} with [ {}]&quot;, n, res, result_str);
+    }
+}
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C (gcc)</a>, s = 19</h1>
+
+<p>This is basically a port of my Node.js answer. It goes one step further with the default compiler options and two steps further with <code>-O2</code> or <code>-O3</code>.</p>
+
+
+
+<pre class="lang-c prettyprint-override"><code>#include &lt;stdio.h&gt;
+#include &lt;string.h&gt;
+#include &lt;stdint.h&gt;
+
+void search(uint8_t * arr, int n, uint8_t * sum, int * max, char * str, int depth) {
+  int i, j, k, s;
+  char tmp[16];
+
+  // do we have a better array?
+  if(depth &gt; *max) {
+    for(str[0] = '\0', i = 0; i &lt; depth; i++) {
+      sprintf(tmp, "%d ", arr[i]);
+      strcat(str, tmp);
+    }
+    *max = depth;
+  }
+
+  // try to append i = 1 to n to the current array
+  for(i = 1; i &lt;= n; i++) {
+    // provided that doing so does not produce a sum that was already encountered
+    if(!sum[i]) {
+      for(sum[s = i] = 1, j = depth; j &amp;&amp; !sum[s += arr[j - 1]]; j--) {
+        sum[s] = 1;
+      }
+      if(!j) {
+        // this is valid: set the value in arr[] and do a recursive call
+        arr[depth] = i;
+        search(arr, n, sum, max, str, depth + 1);
+      }
+      // whether the recursive call was processed or not, we have to clear the flags
+      // that have been set above
+      for(sum[s = i] = 0, k = depth - 1; k &gt;= j; k--) {
+        sum[s += arr[k]] = 0;
+      }
+    }
+  }
+}
+
+int solve(int n, char * str) {
+  int     max = 0;              // best length so far
+  int     hi = n * (n + 1) / 2; // highest possible sum for n
+  uint8_t sum[hi + 1];          // encountered sums
+  uint8_t arr[n];               // array
+
+  memset(sum, 0, (hi + 1) * sizeof(uint8_t));
+  search(arr, n, sum, &amp;max, str, 0);
+
+  return max;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////
+
+void main() {
+  char str[128];
+  int  n, res;
+
+  for(n = 1; n &lt;= 19; n++) {
+    res = solve(n, str);
+    printf("N = %d --&gt; %d with [ %s]\n", n, res, str);
+  }
+}
+</code></pre>
+
+<p><a href="https://tio.run/##dVRtbhoxEP3PKSZUSZawNJBKVdoN9AbtAciqMruGNVm8yDbQtOLqpW/GfEbpCmF7PJ9v3rjozYpit/tgbFGvSk1PPpSm@ViNWuciZ@zsraw0NrCstW5MSV4rV1TJCsLHn4HuSDmXEk5kUzpJ/WoRpXe0UL9SKirlWBz2yqVehqpDf1okR5PSPKWXlHwGiSiHxXI8@JxnLQju76lsaKOpUmtNiiY6BO04tHr9xi6miTikEd0hXPRLNG1cgojjfk5Dun3u3yI2dv0My1NMAdtu96BP5JdAIEwTBE@pfV1SO@UoY5N3soNKcIUKiVQCtb18K/8cHAGi5xZLY/LBvVJoSC2X2paSw4DPlv9CpalYOacBgxTUiomLlmQ6JHuRJhwuXbM2pS5hrQBmg7aRb7DRnmwT@L5cFQwVGhGVNsqTqp1W5StpWzQrCwh1KR6B3xUUucwjFAIeZB55GAZwgB4di8P25oauokJ3KCDNqUeDPMddr3fyQyRK4uGA4Xa/ctz5uSpjVRlP@K1Vbcqv4FsQiHBcaXBFIuWkgCMoochpgOcNaFGouj46Yi3JlOOa7JRLpK@QFoQVmgpBpZ@RRF0adN5misQ2lUYiTrK5jCrYAvJCe4@eNI57kB75iiYXtVbRclqrmW@dVYvWiNZEayvVqkmz1v9rQh9TcmgCw53hOBrSHOs7oB8685KL7WVRWyEoKMoD6Jt6rZP9GJ@G9TSh/EV2Y3wuPlQx0T5Qre0MSYGGU@XOrCpmsoW/xAq0dE8PGVtVZlax4bLx3kxqLVydMnqwPjwlXAc8wDDPLmKecZiV/JkNl2zzN2myTZwvaC70AlAn0n5AmsQIHS7a/NbN9PC@dYQI75Hm5sSafkceKafDylkGKWttd/JYLpSxScRQMOXHaPDwmGcHeODNaS/m3GobZ97yzA@@YHMaeqjhMrbJSuA9R/cvVvs7rvFg9XojXjYGrRjTtc@fbTvdxzmZoe@7v4Vwcdf78ekf" rel="nofollow noreferrer" title="C (gcc) – Try It Online">Try it online!</a></p>
+</div>
+<div id="pu2" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">Node.js</a>, s = 17</h1>
+
+<p>Just a simple recursive search to get the ball rolling. Returns both the length and a valid array.</p>
+
+
+
+<pre class="lang-javascript prettyprint-override"><code>solve = n =&gt; {
+  var max = 0,  // best length so far
+      best,     // best array so far
+      sum = {}; // encountered sums
+
+  (search = a =&gt; {
+    var i, j, k, s;
+
+    // do we have a better array?
+    if(a.length &gt; max) {
+      max = a.length;
+      best = [...a];
+    }
+
+    // try to prepend i = 1 to n to the current array
+    for(i = 1; i &lt;= n; i++) {
+      // provided that doing so does not produce a sum that was already encountered
+      if((sum[j = 0, s = i] ^= 1) &amp;&amp; a.every(n =&gt; sum[j++, s += n] ^= 1)) {
+        search([i, ...a]);
+      }
+      // reset the flags that have been toggled above
+      for(sum[s = i] ^= 1, k = 0; k &lt; j; k++) {
+        sum[s += a[k]] ^= 1;
+      }
+    }
+  })([]);
+
+  return [ max, best ];
+}
+</code></pre>
+
+<p><a href="https://tio.run/##VVPNcqJAEL77FH1KsEATT3sgMW@wL0C5VS20gCEz1syIa6V4dvfrAVbjgRm6v5n@fvDIPfvStaewMraS283brhd6J0PvW/peEPXs6Iv/ovSaEb280F58oE5MHRrylg7sgNKfNrK4m1HsHF9/gvz5C1d9D7mCxJT2bII4qbThFwAlXtiVDUA8UxhJtBkdM/rMyOeLxTSlsnQRahiUGSMDrhqHfkREe0h4PVHdqorldB9NkuZu/iAB5WK9XvNuLA7/hwV3pWDp5OQkpqIWwI0WjD5CI1SenRMzyY6nDtYlEZcD/gZXsabpnQVuPTnbtxUMCA0HCGpNrY5VVjwZG7RfnUvVp9ZF0IU9ceeEq@ujhdOdEJ0AWhzHyDyWdkd/QGJJT0@QLL24axIDjrg0VVQKdhPszg95xTSSAu5HU5azVcNdghMvITpw6Lj2I8kYyl5E3anrDgJ5b3uZTqkxOvyBHbJVxjmWNzpieTQqfjhFZMnF52488ZOKPodlUihFbJ2EszNUaNLZGCwSHW76KZlMOQOmNMyYj9F8Nr@wmecCglb8QyQm6i6twausO1snz7/RfKYUB1Osq9U2vuFQ8bqLpUuLz26ubZTWcPsH" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/175548/">175548</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
