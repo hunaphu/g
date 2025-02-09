@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::128017</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>nan</td><td>Rust</td><td>250209T025900Z</td><td><a href="https://codegolf.stackexchange.com/questions/128017/plant-trees-in-a-park-as-fast-as-you-can/278154#278154">138 Aspe</a></td></tr>
+<tr d-ix="1"><td>nan</td><td>C</td><td>170624T154251Z</td><td><a href="https://codegolf.stackexchange.com/questions/128017/plant-trees-in-a-park-as-fast-as-you-can/128175#128175">Dave</a></td></tr>
+<tr d-ix="2"><td>116</td><td>Clingo</td><td>170625T074812Z</td><td><a href="https://codegolf.stackexchange.com/questions/128017/plant-trees-in-a-park-as-fast-as-you-can/128242#128242">Anders K</a></td></tr>
+<tr d-ix="3"><td>nan</td><td>Java OpenJDK 8</td><td>170623T192448Z</td><td><a href="https://codegolf.stackexchange.com/questions/128017/plant-trees-in-a-park-as-fast-as-you-can/128099#128099">PunPun10</a></td></tr>
+<tr d-ix="4"><td>271</td><td>JavaScript ES6</td><td>170623T175756Z</td><td><a href="https://codegolf.stackexchange.com/questions/128017/plant-trees-in-a-park-as-fast-as-you-can/128079#128079">Arnauld</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>Rust, 711ms on 12x12</h1>
+<p>Rust port of @PunPun1000's Java answer.</p>
+<p><a href="https://play.rust-lang.org/?version=stable&amp;mode=release&amp;edition=2021&amp;gist=1e9957f5abbde99b44bb8a744133a004" rel="nofollow noreferrer">Run it on RustPlayground!</a></p>
+<pre class="lang-rust prettyprint-override"><code>use std::collections::{HashSet, VecDeque};
+use std::time::Instant;
+
+
+/// Rewrites the input 2D array by placing &quot;trees&quot; (marked by 1) in valid positions.
+/// Positions that do not have a tree become 0.
+/// The constraints are:
+///  - No two trees within 1 row/column of each other per area combination.
+///  - No more than two trees per row/column overall.
+fn fold_areas(areas: &amp;mut Vec&lt;Vec&lt;i32&gt;&gt;) {
+    let size = areas.len();
+    // List of per-area bitsets (possible single-tree placements).
+    // area_bitsets[area] = vector of bitsets for each single cell in that area.
+    let mut area_bitsets: Vec&lt;Vec&lt;HashSet&lt;usize&gt;&gt;&gt; = vec![Vec::new(); size * size];
+    // List of folded bitsets (i.e., combined positions that are still valid).
+    let mut area_tree_bitsets: Vec&lt;Vec&lt;HashSet&lt;usize&gt;&gt;&gt; = vec![Vec::new(); size * size];
+
+    // Gather bitsets of single positions for each area index
+    // NOTE: The maximum area index could be as large as repeated values in `areas`. 
+    // For safety, we use area_bitsets.len() = size * size. 
+    // (You can also dynamically resize them if the area ID is large.)
+    for i in 0..size {
+        for j in 0..size {
+            let index = (i * size) + j;
+            let area_id = areas[i][j] as usize;
+            if area_id &gt;= area_bitsets.len() {
+                // If an area index is out of range, resize or handle accordingly.
+                // For simplicity, we skip in this example.
+                continue;
+            }
+            let mut single_pos = HashSet::new();
+            single_pos.insert(index);
+            area_bitsets[area_id].push(single_pos);
+        }
+    }
+
+    // Combine every pair of single-pos bitsets in the same area
+    // if they can fold together (no conflicts).
+    // Store these combined bitsets in area_tree_bitsets.
+    for (area_id, sets) in area_bitsets.iter().enumerate() {
+        // We only fold if there's something in this area.
+        if sets.len() &lt; 2 {
+            continue;
+        }
+        for j in 0..(sets.len() - 1) {
+            for k in (j + 1)..sets.len() {
+                if can_fold_together(&amp;sets[j], &amp;sets[k], size) {
+                    let mut combined = sets[j].clone();
+                    combined.extend(&amp;sets[k]);
+                    area_tree_bitsets[area_id].push(combined);
+                }
+            }
+        }
+    }
+
+    // Start with the first non-empty area, then do a cartesian product 
+    // of valid folded bitsets with subsequent areas.
+    // We'll collect all possible &quot;global&quot; placements in current_possibilities.
+    let mut current_possibilities: VecDeque&lt;HashSet&lt;usize&gt;&gt; = VecDeque::new();
+    let mut future_possibilities: VecDeque&lt;HashSet&lt;usize&gt;&gt; = VecDeque::new();
+
+    // Find the first area with some folded bitsets
+    let first_non_empty_area = area_tree_bitsets.iter().position(|vec| !vec.is_empty());
+    if let Some(start_area) = first_non_empty_area {
+        for set_ in &amp;area_tree_bitsets[start_area] {
+            current_possibilities.push_back(set_.clone());
+        }
+
+        // For the remaining areas, cartesian product to combine sets if valid.
+        for area_id in (start_area + 1)..area_tree_bitsets.len() {
+            if area_tree_bitsets[area_id].is_empty() {
+                continue;
+            }
+            while let Some(existing) = current_possibilities.pop_front() {
+                for next_set in &amp;area_tree_bitsets[area_id] {
+                    if can_fold_together(&amp;existing, next_set, size) {
+                        let mut merged = existing.clone();
+                        merged.extend(next_set);
+                        future_possibilities.push_back(merged);
+                    }
+                }
+            }
+            current_possibilities.append(&amp;mut future_possibilities);
+        }
+    }
+
+    // Take one final possibility (arbitrary) and rewrite the array
+    if let Some(final_bitset) = current_possibilities.pop_front() {
+        for idx in 0..(size * size) {
+            let row = idx / size;
+            let col = idx % size;
+            areas[row][col] = if final_bitset.contains(&amp;idx) { 1 } else { 0 };
+        }
+    }
+}
+
+/// Checks whether combining two sets of positions (&quot;bitsets&quot;) still produces a valid result:
+///  1. No two trees are within 1 row and 1 column of each other (distance constraint).
+///  2. No row or column has more than 2 trees total.
+fn can_fold_together(a: &amp;HashSet&lt;usize&gt;, b: &amp;HashSet&lt;usize&gt;, size: usize) -&gt; bool {
+    // Distance check
+    for &amp;pos_a in a {
+        let r1 = pos_a / size;
+        let c1 = pos_a % size;
+        for &amp;pos_b in b {
+            let r2 = pos_b / size;
+            let c2 = pos_b % size;
+            let row_diff = if r1 &gt; r2 { r1 - r2 } else { r2 - r1 };
+            let col_diff = if c1 &gt; c2 { c1 - c2 } else { c2 - c1 };
+            if row_diff &lt; 2 &amp;&amp; col_diff &lt; 2 {
+                return false;
+            }
+        }
+    }
+
+    // Row/column cardinality check
+    // Combine them first for convenience
+    let mut combined: HashSet&lt;usize&gt; = a.clone();
+    combined.extend(b);
+
+    // Check each row
+    for row in 0..size {
+        // Count how many bits in this row
+        let mut count_in_row = 0;
+        for col in 0..size {
+            let idx = row * size + col;
+            if combined.contains(&amp;idx) {
+                count_in_row += 1;
+                if count_in_row &gt; 2 {
+                    return false;
+                }
+            }
+        }
+    }
+
+    // Check each column
+    for col in 0..size {
+        let mut count_in_col = 0;
+        for row in 0..size {
+            let idx = row * size + col;
+            if combined.contains(&amp;idx) {
+                count_in_col += 1;
+                if count_in_col &gt; 2 {
+                    return false;
+                }
+            }
+        }
+    }
+
+    true
+}
+fn main() {
+    let mut test = vec![
+        vec![0,  0,  0,  0,  0,  1,  2,  2,  2,  2,  3,  3],
+        vec![0,  0,  0,  0,  0,  1,  2,  2,  2,  2,  3,  3],
+        vec![0,  0,  0,  0,  0,  1,  1,  1,  1,  3,  3,  3],
+        vec![4,  4,  4,  0,  5,  5,  5,  6,  1,  6,  7,  7],
+        vec![4,  4,  0,  0,  5,  5,  5,  6,  1,  6,  7,  7],
+        vec![4,  4,  5,  5,  5,  5,  5,  6,  6,  6,  7,  7],
+        vec![4,  4,  4,  5,  8,  9,  5,  5,  6,  7,  7,  7],
+        vec![8,  8,  4,  8,  8,  9,  9,  9,  9, 10,  7,  7],
+        vec![8,  8,  8,  8,  8,  9,  9,  9,  9, 10,  7, 10],
+        vec![11, 11,  9,  9,  9,  9,  9,  9,  9, 10, 10, 10],
+        vec![11, 11, 11, 11, 11, 11, 10, 10, 10, 10, 10, 10],
+        vec![11, 11, 11, 11, 11, 11, 10, 10, 10, 10, 10, 10],
+    ];
+
+    let now = Instant::now();
+    fold_areas(&amp;mut test);
+    let elapsed = now.elapsed();
+
+    println!(&quot;12x12: {}ms&quot;, elapsed.as_millis());
+    for row in &amp;test {
+        println!(&quot;{:?}&quot;, row);
+    }
+}
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>C, official time: 5ms for 12x12</h1>
+
+<pre class="lang-c prettyprint-override"><code>#include &lt;stdio.h&gt;
+#include &lt;string.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;omp.h&gt;
+
+#define valT char
+#define posT int
+
+#ifndef _OPENMP
+#  warning Building without OpenMP support
+#  define omp_get_max_threads() 1
+#  define omp_get_num_threads() 1
+#  define omp_get_thread_num() 0
+#endif
+
+#define MIN_THREADED_SIZE 11
+
+static void complete(posT n, valT *workspace) {
+    const posT s = n * 3 + 2;
+
+    const valT *regions = workspace;
+    valT *output = &amp;workspace[n*2+1];
+
+    for(posT y = 0; y &lt; n; ++ y) {
+        for(posT x = 0; x &lt; n; ++ x) {
+//          putchar(output[y*s+x] ? '*' : '-');
+            putchar(regions[y*s+x] + (output[y*s+x] ? 'A' : 'a'));
+        }
+        putchar('\n');
+    }
+
+    _Exit(0);
+}
+
+static void solveB(const posT n, valT *workspace, valT *pops, const posT y) {
+    const posT s = n * 3 + 2;
+
+    const valT *regions = workspace;
+    const valT *remaining = &amp;workspace[n];
+    valT *output = &amp;workspace[n*2+1];
+
+    for(posT r = 0; r &lt; n; ++ r) {
+        if(pops[r] + remaining[r] &lt; 2) {
+            return;
+        }
+    }
+
+    for(posT t1 = 0; t1 &lt; n - 2; ++ t1) {
+        posT r1 = regions[t1];
+        if(output[t1+1-s]) {
+            t1 += 2;
+            continue;
+        }
+        if(output[t1-s]) {
+            ++ t1;
+            continue;
+        }
+        if((pops[t1+n] | pops[r1]) &amp; 2 || output[t1-1-s]) {
+            continue;
+        }
+        output[t1] = 1;
+        ++ pops[t1+n];
+        ++ pops[r1];
+        for(posT t2 = t1 + 2; t2 &lt; n; ++ t2) {
+            posT r2 = regions[t2];
+            if(output[t2+1-s]) {
+                t2 += 2;
+                continue;
+            }
+            if(output[t2-s]) {
+                ++ t2;
+                continue;
+            }
+            if((pops[t2+n] | pops[r2]) &amp; 2 || output[t2-1-s]) {
+                continue;
+            }
+            output[t2] = 1;
+            ++ pops[t2+n];
+            ++ pops[r2];
+            if(y == 0) {
+                complete(n, &amp;workspace[-s*(n-1)]);
+            }
+            solveB(n, &amp;workspace[s], pops, y - 1);
+            output[t2] = 0;
+            -- pops[t2+n];
+            -- pops[r2];
+        }
+        output[t1] = 0;
+        -- pops[t1+n];
+        -- pops[r1];
+    }
+}
+
+static void solve(const posT n, valT *workspace) {
+    const posT s = n * 3 + 2;
+
+    valT *regions = workspace;
+    valT *remaining = &amp;workspace[n];
+    valT *pops = &amp;workspace[n*s];
+//  memset(&amp;remaining[n*s], 0, n * sizeof(valT));
+
+    for(posT y = n; (y --) &gt; 0;) {
+        memcpy(&amp;remaining[y*s], &amp;remaining[(y+1)*s], n * sizeof(valT));
+        for(posT x = 0; x &lt; n; ++ x) {
+            valT r = regions[y*s+x];
+            valT *c = &amp;remaining[y*s+r];
+            valT *b = &amp;pops[r*3];
+            if(*c == 0) {
+                *c = 1;
+                b[0] = y - 1;
+                b[1] = x - 1;
+                b[2] = x + 1;
+            } else if(x &lt; b[1] || x &gt; b[2] || y &lt; b[0]) {
+                *c = 2;
+            } else {
+                b[1] = b[1] &gt; (x - 1) ? b[1] : (x - 1);
+                b[2] = b[2] &lt; (x + 1) ? b[2] : (x + 1);
+            }
+        }
+//      memset(&amp;output[y*s], 0, (n+1) * sizeof(valT));
+    }
+    memset(pops, 0, n * 2 * sizeof(valT));
+
+    posT sz = (n + 1) * s + n * 3;
+    if(n &gt;= MIN_THREADED_SIZE) {
+        for(posT i = 1; i &lt; omp_get_max_threads(); ++ i) {
+            memcpy(&amp;workspace[i*sz], workspace, sz * sizeof(valT));
+        }
+    }
+
+#pragma omp parallel for if (n &gt;= MIN_THREADED_SIZE)
+    for(posT t1 = 0; t1 &lt; n - 2; ++ t1) {
+        valT *workspace2 = &amp;workspace[omp_get_thread_num()*sz];
+        valT *regions = workspace2;
+        valT *output = &amp;workspace2[n*2+1];
+        valT *pops = &amp;workspace2[n*s];
+
+        posT r1 = regions[t1];
+        output[t1] = pops[t1+n] = pops[r1] = 1;
+        for(posT t2 = t1 + 2; t2 &lt; n; ++ t2) {
+            posT r2 = regions[t2];
+            output[t2] = pops[t2+n] = 1;
+            ++ pops[r2];
+            solveB(n, &amp;regions[s], pops, n - 2);
+            output[t2] = pops[t2+n] = 0;
+            -- pops[r2];
+        }
+        output[t1] = pops[t1+n] = pops[r1] = 0;
+    }
+}
+
+int main(int argc, const char *const *argv) {
+    if(argc &lt; 2) {
+        fprintf(stderr, "Usage: %s 'grid-here'\n", argv[0]);
+        return 1;
+    }
+
+    const char *input = argv[1];
+    const posT n = strchr(input, '\n') - input;
+    const posT s = n * 3 + 2;
+
+    posT sz = (n + 1) * s + n * 3;
+    posT threads = (n &gt;= MIN_THREADED_SIZE) ? omp_get_max_threads() : 1;
+    valT *workspace = (valT*) calloc(sz * threads, sizeof(valT));
+    valT *regions = workspace;
+
+    for(posT y = 0; y &lt; n; ++ y) {
+        for(posT x = 0; x &lt; n; ++ x) {
+            regions[y*s+x] = input[y*(n+1)+x] - 'a';
+        }
+    }
+
+    solve(n, workspace);
+
+    fprintf(stderr, "Failed to solve grid\n");
+    return 1;
+}
+</code></pre>
+
+<p>Compiled with GCC 7 using the <code>-O3</code> and <code>-fopenmp</code> flags. Should have similar results on any version of GCC with OpenMP installed.</p>
+
+<pre class="lang-sh prettyprint-override"><code>gcc-7 Trees.c -O3 -fopenmp -o Trees
+</code></pre>
+
+<p>Input and output format are as given in the question.</p>
+
+<p>On my machine this takes <s>0.009s</s> <s>0.008s</s> 0.005s for the 12x12 example, and <s>0.022s</s> <s>0.020s</s> 0.019s to run all the examples. On the benchmark machine, isaacg reports 5ms for the 12x12 example using the original (non-threaded) version of the code.</p>
+
+<p>Usage:</p>
+
+<pre class="lang-sh prettyprint-override"><code>./Trees 'aaabbbccc
+aaaabbccc
+aaaddbcce
+ffddddcce
+ffffddeee
+fgffdheee
+fggfhhhee
+iggggheee
+iiigggggg'
+</code></pre>
+
+<hr>
+
+<p>Just a simple brute-force solver, working on one row at a time. It runs at a good speed by recognising impossible situations early (e.g. no region cells remaining, but less than 2 trees in the region).</p>
+
+<p>The first update improves cache hits by putting related data close together in memory, and makes the possible-trees-remaining-in-segment calculations slightly smarter (now accounts for the fact that trees cannot be adjacent). It also extracts the outermost loop so that fewer special cases are needed in the hottest part of the algorithm.</p>
+
+<p>The second update makes the outermost loop run in parallel across the available processors (using OpenMP), giving a linear speed boost. This is only enabled for n >= 11, since the overhead of spawning threads outweighs the benefits for smaller grids.</p>
+</div>
+<div id="pu2" class="pu"><h1><a href="http://potassco.sourceforge.net/" rel="nofollow noreferrer">Clingo</a>, ≈ 7 ms for 12×12, 116 bytes</h1>
+
+<pre><code>{t(X,Y):c(X,Y,Z)}=2:-Z=1..n.
+:-X=1..n,{t(X,1..n)}!=2.
+:-Y=1..n,{t(1..n,Y)}!=2.
+:-t(X,Y),t(X+1,Y;X+1,Y+1;X,Y+1;X-1,Y+1).
+</code></pre>
+
+<p>(Newlines are optional and not counted.)</p>
+
+<p>Run with <code>clingo plant.lp - -c n=&lt;n&gt;</code> where <code>&lt;n&gt;</code> is the grid size.  The input format is a list of <code>c(X,Y,Z).</code> statements for each cell (<code>X</code>, <code>Y</code>) colored <code>Z</code>, with 1 ≤ <code>X</code>, <code>Y</code>, <code>Z</code> ≤ <code>n</code>, separated by optional whitespace.  The output includes <code>t(X,Y)</code> for each tree at (<code>X</code>, <code>Y</code>).</p>
+
+<p>The time is pretty meaningless as it’s basically just startup time, so consider this a vote for larger test cases.</p>
+
+<h3>Demo</h3>
+
+<pre><code>$ clingo plant.lp -c n=12 - &lt;&lt;EOF
+&gt; c(1,1,1). c(2,1,1). c(3,1,1). c(4,1,1). c(5,1,1). c(6,1,2). c(7,1,3). c(8,1,3). c(9,1,3). c(10,1,3). c(11,1,4). c(12,1,4).
+&gt; c(1,2,1). c(2,2,1). c(3,2,1). c(4,2,1). c(5,2,1). c(6,2,2). c(7,2,3). c(8,2,3). c(9,2,3). c(10,2,3). c(11,2,4). c(12,2,4).
+&gt; c(1,3,1). c(2,3,1). c(3,3,1). c(4,3,1). c(5,3,1). c(6,3,2). c(7,3,2). c(8,3,2). c(9,3,2). c(10,3,4). c(11,3,4). c(12,3,4).
+&gt; c(1,4,5). c(2,4,5). c(3,4,5). c(4,4,1). c(5,4,6). c(6,4,6). c(7,4,6). c(8,4,7). c(9,4,2). c(10,4,7). c(11,4,8). c(12,4,8).
+&gt; c(1,5,5). c(2,5,5). c(3,5,1). c(4,5,1). c(5,5,6). c(6,5,6). c(7,5,6). c(8,5,7). c(9,5,2). c(10,5,7). c(11,5,8). c(12,5,8).
+&gt; c(1,6,5). c(2,6,5). c(3,6,6). c(4,6,6). c(5,6,6). c(6,6,6). c(7,6,6). c(8,6,7). c(9,6,7). c(10,6,7). c(11,6,8). c(12,6,8).
+&gt; c(1,7,5). c(2,7,5). c(3,7,5). c(4,7,6). c(5,7,9). c(6,7,10). c(7,7,6). c(8,7,6). c(9,7,7). c(10,7,8). c(11,7,8). c(12,7,8).
+&gt; c(1,8,9). c(2,8,9). c(3,8,5). c(4,8,9). c(5,8,9). c(6,8,10). c(7,8,10). c(8,8,10). c(9,8,10). c(10,8,11). c(11,8,8). c(12,8,8).
+&gt; c(1,9,9). c(2,9,9). c(3,9,9). c(4,9,9). c(5,9,9). c(6,9,10). c(7,9,10). c(8,9,10). c(9,9,10). c(10,9,11). c(11,9,8). c(12,9,11).
+&gt; c(1,10,12). c(2,10,12). c(3,10,10). c(4,10,10). c(5,10,10). c(6,10,10). c(7,10,10). c(8,10,10). c(9,10,10). c(10,10,11). c(11,10,11). c(12,10,11).
+&gt; c(1,11,12). c(2,11,12). c(3,11,12). c(4,11,12). c(5,11,12). c(6,11,12). c(7,11,11). c(8,11,11). c(9,11,11). c(10,11,11). c(11,11,11). c(12,11,11).
+&gt; c(1,12,12). c(2,12,12). c(3,12,12). c(4,12,12). c(5,12,12). c(6,12,12). c(7,12,11). c(8,12,11). c(9,12,11). c(10,12,11). c(11,12,11). c(12,12,11).
+&gt; EOF
+clingo version 5.1.0
+Reading from plant.lp ...
+Solving...
+Answer: 1
+c(1,1,1) c(2,1,1) c(3,1,1) c(4,1,1) c(5,1,1) c(6,1,2) c(7,1,3) c(8,1,3) c(9,1,3) c(10,1,3) c(11,1,4) c(12,1,4) c(1,2,1) c(2,2,1) c(3,2,1) c(4,2,1) c(5,2,1) c(6,2,2) c(7,2,3) c(8,2,3) c(9,2,3) c(10,2,3) c(11,2,4) c(12,2,4) c(1,3,1) c(2,3,1) c(3,3,1) c(4,3,1) c(5,3,1) c(6,3,2) c(7,3,2) c(8,3,2) c(9,3,2) c(10,3,4) c(11,3,4) c(12,3,4) c(1,4,5) c(2,4,5) c(3,4,5) c(4,4,1) c(5,4,6) c(6,4,6) c(7,4,6) c(8,4,7) c(9,4,2) c(10,4,7) c(11,4,8) c(12,4,8) c(1,5,5) c(2,5,5) c(3,5,1) c(4,5,1) c(5,5,6) c(6,5,6) c(7,5,6) c(8,5,7) c(9,5,2) c(10,5,7) c(11,5,8) c(12,5,8) c(1,6,5) c(2,6,5) c(3,6,6) c(4,6,6) c(5,6,6) c(6,6,6) c(7,6,6) c(8,6,7) c(9,6,7) c(10,6,7) c(11,6,8) c(12,6,8) c(1,7,5) c(2,7,5) c(3,7,5) c(4,7,6) c(5,7,9) c(6,7,10) c(7,7,6) c(8,7,6) c(9,7,7) c(10,7,8) c(11,7,8) c(12,7,8) c(1,8,9) c(2,8,9) c(3,8,5) c(4,8,9) c(5,8,9) c(6,8,10) c(7,8,10) c(8,8,10) c(9,8,10) c(10,8,11) c(11,8,8) c(12,8,8) c(1,9,9) c(2,9,9) c(3,9,9) c(4,9,9) c(5,9,9) c(6,9,10) c(7,9,10) c(8,9,10) c(9,9,10) c(10,9,11) c(11,9,8) c(12,9,11) c(1,10,12) c(2,10,12) c(3,10,10) c(4,10,10) c(5,10,10) c(6,10,10) c(7,10,10) c(8,10,10) c(9,10,10) c(10,10,11) c(11,10,11) c(12,10,11) c(1,11,12) c(2,11,12) c(3,11,12) c(4,11,12) c(5,11,12) c(6,11,12) c(7,11,11) c(8,11,11) c(9,11,11) c(10,11,11) c(11,11,11) c(12,11,11) c(1,12,12) c(2,12,12) c(3,12,12) c(4,12,12) c(5,12,12) c(6,12,12) c(7,12,11) c(8,12,11) c(9,12,11) c(10,12,11) c(11,12,11) c(12,12,11) t(1,7) t(1,9) t(2,3) t(2,11) t(3,5) t(3,8) t(4,10) t(4,12) t(5,5) t(5,8) t(6,2) t(6,10) t(7,4) t(7,12) t(8,2) t(8,6) t(9,4) t(9,11) t(10,1) t(10,6) t(11,3) t(11,9) t(12,1) t(12,7)
+SATISFIABLE
+
+Models       : 1+
+Calls        : 1
+Time         : 0.009s (Solving: 0.00s 1st Model: 0.00s Unsat: 0.00s)
+CPU Time     : 0.000s
+</code></pre>
+
+<p>To make the input/output format easier to deal with, here are Python programs to convert from and to the format given in the challenge.</p>
+
+<h3>Input</h3>
+
+<pre class="lang-python prettyprint-override"><code>import sys
+print(' '.join("c({},{},{}).".format(x + 1, y + 1, ord(cell) - ord('a') + 1) for y, row in enumerate(sys.stdin.read().splitlines()) for x, cell in enumerate(row)))
+</code></pre>
+
+<h3>Output</h3>
+
+<pre class="lang-python prettyprint-override"><code>import re
+import sys
+for line in sys.stdin:
+    c = {(int(x), int(y)): int(z) for x, y, z in re.findall(r'\bc\((\d+),(\d+),(\d+)\)', line)}
+    if c:
+        t = {(int(x), int(y)) for x, y in re.findall(r'\bt\((\d+),(\d+)\)', line)}
+        n, n = max(c)
+        for y in range(1, n + 1):
+            print(''.join(chr(ord('aA'[(x, y) in t]) + c[x, y] - 1) for x in range(1, n + 1)))
+        print()
+</code></pre>
+</div>
+<div id="pu3" class="pu"><h1><a href="http://openjdk.java.net/" rel="nofollow noreferrer">Java (OpenJDK 8)</a>, Official Timing: 1.2s on 12x12</h1>
+
+<p>edit: no longer code golf</p>
+
+
+
+<pre class="lang-java prettyprint-override"><code>import java.util.*;
+
+// Callable method, takes an int[][] and modifies it
+static void f(int[][] areas){
+    List&lt;List&lt;BitSet&gt;&gt; areaBitSets = new ArrayList&lt;&gt;();
+    List&lt;List&lt;BitSet&gt;&gt; areaTreeBitSets = new ArrayList&lt;&gt;();
+    for(int i = 0; i &lt; areas.length; i++){
+        areaBitSets.add(new ArrayList&lt;BitSet&gt;());
+        areaTreeBitSets.add(new ArrayList&lt;BitSet&gt;());
+    }
+
+    // Add a bitset to our list representing each possible square, grouped by area
+    for(int i=0; i &lt; areas.length; i++){
+        for(int j=0; j &lt; areas.length; j++){
+            BitSet b = new BitSet();
+            b.set(i*areas.length + j);
+            areaBitSets.get(areas[i][j]).add(b);
+        }
+    }
+
+    // Fold each set onto itself so each area bitset has two trees
+    for(int i=0; i &lt; areas.length; i++){
+        for(int j=0; j&lt;areaBitSets.get(i).size()-1; j++){
+            for(int k=j+1; k &lt;areaBitSets.get(i).size(); k++){
+                if(canFoldTogether(areaBitSets.get(i).get(j),areaBitSets.get(i).get(k), areas.length)){
+                    BitSet b = (BitSet)areaBitSets.get(i).get(j).clone();
+                    b.or(areaBitSets.get(i).get(k));
+                    areaTreeBitSets.get(i).add(b);
+                }
+            }
+        }
+    }
+
+    // Starting with area 0 add each area one at a time doing Cartesian products
+    Queue&lt;BitSet&gt; currentPossibilities = new LinkedList&lt;&gt;();
+    Queue&lt;BitSet&gt; futurePossibilities = new LinkedList&lt;&gt;();
+    currentPossibilities.addAll(areaTreeBitSets.get(0));
+
+    for(int i=1; i &lt; areaTreeBitSets.size(); i++){
+        while(!currentPossibilities.isEmpty()){
+            BitSet b= (BitSet)currentPossibilities.poll().clone();
+
+            for(BitSet c: areaTreeBitSets.get(i)){
+                if(canFoldTogether(b,c,areas.length)){
+                    BitSet d=(BitSet)b.clone();
+                    d.or(c);
+                    futurePossibilities.add(d);
+                }
+            }
+        }
+        currentPossibilities.addAll(futurePossibilities);
+        futurePossibilities.clear();
+    }
+
+    // Get final output and modify the array
+    BitSet b = currentPossibilities.poll();
+    for(int i=0; i&lt;areas.length*areas.length; i++){
+        areas[i/areas.length][i%areas.length] = b.get(i)?1:0;
+    }
+}
+
+// Helper method which determines whether combining two bitsets
+// will still produce a valid output
+static boolean canFoldTogether(BitSet a, BitSet b, int size){
+
+    // See if there are trees too close to each other
+    int c=-1;
+    while((c=a.nextSetBit(c+1))&gt;=0){
+        int d=-1;
+        while((d=b.nextSetBit(d+1))&gt;=0){
+            int r1=c/size;
+            int r2=d/size;
+            int c1=c%size;
+            int c2=d%size;
+
+            int rDifference = r1&gt;r2 ? r1-r2 : r2-r1;
+            int cDifference = c1&gt;c2 ? c1-c2 : c2-c1;
+            if(rDifference&lt;2 &amp;&amp; cDifference&lt;2)
+                return false;
+        }
+    }
+
+    // Check for row and column cardinality
+    BitSet f,g;
+    for(int i=0; i&lt;size; i++){
+        f = new BitSet();
+        f.set(i*size,(i+1)*size);
+        g=(BitSet)f.clone();
+        f.and(a);
+        g.and(b);
+        f.or(g);
+        if(f.cardinality()&gt;2){
+            return false;
+        }
+
+
+        f=new BitSet();
+        for(int j = 0; j&lt;size; j++){
+            f.set(j*size+i);
+        }
+        g=(BitSet)f.clone();
+        f.and(a);
+        g.and(b);
+        f.or(g);
+        if(f.cardinality()&gt;2){
+            return false;
+        }
+    }
+
+    return true;
+}
+</code></pre>
+
+<p><a href="https://tio.run/##zVdLU@M4ED6HX9FL1UzJkIQ481wgmWLZ12GmarfgRnGwZTlRolhZSSbDUvx2tiXbRPEDmN05rCuyY6u/bvWnbqm1iG6igVyzbJEsH/hqLZWBBX4b5oaL4cHJ3jqPBadARaQ1fIl4BncPR0dwHgkRxYLBipm5TPpgoiXTEGXAM3N1fXWNfxNYyYSnHL9zs6dNZFDRjeQJpORRSrFIB3d7gNdnrs2pu/3EzQUz06nrLl40TCBjGzhTKrp1QlMSnDyFu1SMPYtNpbJjAY4ioxN8nBZDGgqWzcwcvxwelsOzlzeeYZQkZFdraZ4EpfIK4Y3kBaj7PfdAks@SBCKIudHMgJEgcwUCIaDYWjHNMsOzGbCIzmEtteZ2PvRfOZrsw0zJfM0SiG/dEHadnbzA1Up4YYUXDeHFjrC9Cj8gLskuXolHhb3iIfpC@IGvDA5hURPzeZ4hwIlf8eurxXXgKIw9wH2Ntl@lSApWLG8yQ@YshSIFLYvvVl3F6zzSYDYSDE6S/q80ndYHzoOh5n8zEgzCNs4q9HKyOESBJXQrwN4G3F48JTTKrM@XEgFzpkiLDvtYBP2OnmXQ33EyaLFTm2JS/A86bQ2pkBmrz/82DmTnOJdBB6ieSyWmHg@7cdF8q8fLhYmUy6QNN2VsjACVerGCnkBkMBkNXzFIpJU@RxTTHJe8tZJJTk0RPX/mLGdVUgPNlcI8/cOlJxfc2NWwSJDPPFuyZHc52gWnuckVeym2zZTl5kwI0sbcyNJcC/hwG/C@eBWBu6G/mXPByA@tdrn@ZbU2tyToWCS2AdQKX0sctBdCjaQp9dDjjqB4WaLEfdr/hrhPJtWg46ejO7HRTTs6W2bVhXDyzSH83Ky3WPJstI2DChYp0tiIfkPnU55FArcgs87NdnO/BSQS5wA3s73aCvHExJ60rLOn/kQcPLcJ42Zw5MtcX/FXO@84gLiMhU/h8ajyCH1Cf35nYs1UWbvYOMY8T5hhasUzzLHN3IUHULmKeWZz3W4QxX6hLX7DhQBt7L3IfaQAbiKBpU1BUFXtxFIioxnUA6@kKeo/Eta3hRPYRENPH1cmxjBsLcXKksyKTQpLAYkFmdTMFgVukZJWxKGsFjrB3WZvm6KETqJhxr5aS2iP0MMwCKaTkcephSWPMA@aTGIfmjShFVyFE3pkHThpdo0nSUcXRdSrji5ElV1NjT/zNEVWMqR@gqanagyf8DnA5zHaG6iwReEOiIZTakE0HFALouMBrYNS4hk6HcPr176S03HQyFjFMKsySCOhWXeJcj5ndGkTAJTcuGyiUuQrGygqsYnGzU4@pf1Za844duoVSWcBlpbFl0X1CcepdH89idnjCpc2V7h0iAMlkS/uvsQ7MjjAmfcBKURVW69IMB3XgqeLsu2sp5MOh6riq6jeFyUfLXWW83zh3D3kjdrxf@e6Fy2liFE5Stw/9MoDmX@cWuGxjFwYhSuVO1LN7Imq16vOWFilGCTo7m7UB6i3ENu41t7Ydt8H1NHrfWeU3940UG/xrWoW8c5r70uUfX6wrYEa/SvUu5b23mvtqAr5EduPNeSHBupjKfm2fFYov4WjTtjHl8DC0SMudAyHLdINZHlrgbbeRp2376Dh/gQ14A@zbwYCQ/biVhu2GpaVxCXW3l9wz@XapmavlxIb2e5vKYib73CNaWBERvbD8ddwfAz7eLwk3YpgACJAkf2V3g9K@@WyYlMH9wVnxOZTmxV3jNdDI4v0IyZwSu6dIiw3Hv4B" rel="nofollow noreferrer" title="Java (OpenJDK 8) – Try It Online">Try it online!</a></p>
+
+<p>TIO link is for the 12x12 test case.  TIO reports 2.429s for the run time.</p>
+
+<p>Takes an array of integers as the input and modifies the array to contain 1s for trees and 0s for non-trees.</p>
+
+<p>This runs for all testcases.  The largest testcase runs on my machine in less than a second, although I have a pretty powerful machine</p>
+
+<p>Test code for the 12x12, can modify for others</p>
+
+<pre class="lang-java prettyprint-override"><code>public static void main(String[] args){
+    int[][] test = {{0,  0,  0,  0,  0,  1,  2,  2,  2,  2,  3,  3}, 
+            {0,  0,  0,  0,  0,  1,  2,  2,  2,  2,  3,  3}, 
+            {0,  0,  0,  0,  0,  1,  1,  1,  1,  3,  3,  3}, 
+            {4,  4,  4,  0,  5,  5,  5,  6,  1,  6,  7,  7}, 
+            {4,  4,  0,  0,  5,  5,  5,  6,  1,  6,  7,  7}, 
+            {4,  4,  5,  5,  5,  5,  5,  6,  6,  6,  7,  7}, 
+            {4,  4,  4,  5,  8,  9,  5,  5,  6,  7,  7,  7}, 
+            {8,  8,  4,  8,  8,  9,  9,  9,  9,  10,  7,  7}, 
+            {8,  8,  8,  8,  8,  9,  9,  9,  9,  10,  7,  10}, 
+            {11,  11,  9,  9,  9,  9,  9,  9,  9,  10,  10,  10}, 
+            {11,  11,  11,  11,  11,  11,  10,  10,  10,  10,  10,  10}, 
+            {11,  11,  11,  11,  11,  11,  10,  10,  10,  10,  10,  10}};
+
+    long l = System.currentTimeMillis();
+    f(test);
+    System.out.println("12x12: " + (System.currentTimeMillis() - l) + "ms");
+
+    for(int[] t : test){
+        System.out.println(Arrays.toString(t));
+    }
+
+}
+</code></pre>
+
+<p>Produces this on my machine:</p>
+
+<pre class="lang-java prettyprint-override"><code>12x12: 822ms
+[0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1]
+[0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0]
+[0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0]
+[0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0]
+[0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0]
+[0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0]
+[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+[0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0]
+[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0]
+[0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0]
+[0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0]
+[0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0]
+</code></pre>
+</div>
+<div id="pu4" class="pu"><h2>JavaScript (ES6), 271 bytes</h2>
+
+<p>Takes input as an array of arrays of characters. Returns an array of bitmasks (integers) describing the position of the trees on each row, where the least significant bit is the leftmost position.</p>
+
+<pre class="lang-js prettyprint-override"><code>f=(a,p=0,r=[S=y=0],w=a.length)=&gt;a.some((R,y)=&gt;a.some((_,x)=&gt;r[y]&gt;&gt;x&amp;1&amp;&amp;(o[k=R[x]]=-~o[k])&gt;2),o=[])?0:y&lt;w?[...Array(1&lt;&lt;w)].some((_,n)=&gt;(k=n^(x=n&amp;-n))&lt;=x*2|k&amp;-k^k|n&amp;(p|p/2|p*2)||r.some((A,i)=&gt;r.some((B,j)=&gt;A&amp;B&amp;n&amp;&amp;i&lt;y&amp;j&lt;i))?0:(w=r[y],f(a,r[y++]=n,r),r[--y]=w,S))&amp;&amp;S:S=[...r]
+</code></pre>
+
+<h3>Formatted and commented</h3>
+
+<pre class="lang-js prettyprint-override"><code>f = (                                           // given:
+  a,                                            //   - a = input matrix
+  p = 0,                                        //   - p = previous bitmask
+  r = [                                         //   - r = array of tree bitmasks
+        S = y = 0 ],                            //   - S = solution / y = current row
+  w = a.length                                  //   - w = width of matrix
+) =&gt;                                            //
+  a.some((R, y) =&gt; a.some((_, x) =&gt;             // if there's at least one area with more
+    r[y] &gt;&gt; x &amp; 1 &amp;&amp; (o[k = R[x]] = -~o[k]) &gt; 2 // than two trees:
+  ), o = []) ?                                  //
+    0                                           //   abort right away
+  :                                             // else:
+    y &lt; w ?                                     //   if we haven't reached the last row:
+      [...Array(1 &lt;&lt; w)].some((_, n) =&gt;         //     for each possible bitmask n:
+        (k = n ^ (x = n &amp; -n)) &lt;= x * 2 |       //       if the bitmask does not consist of
+        k &amp; - k ^ k |                           //       exactly two non-consecutive bits,
+        n &amp; (p | p / 2 | p * 2) ||              //       or is colliding with the previous
+        r.some((A, i) =&gt; r.some((B, j) =&gt;       //       bitmask, or generates more than two
+          A &amp; B &amp; n &amp;&amp; i &lt; y &amp; j &lt; i            //       trees per column:
+        )) ?                                    //
+          0                                     //         yield 0
+        :                                       //       else:
+          (                                     //
+            w = r[y],                           //         save the previous bitmask
+            f(a, r[y++] = n, r),                //         recursive call with the new one
+            r[--y] = w,                         //         restore the previous bitmask
+            S                                   //         yield S
+          )                                     //
+      ) &amp;&amp; S                                    //     end of some(): return false or S
+    :                                           //   else:
+      S = [...r]                                //     this is a solution: save a copy in S
+</code></pre>
+
+<h3>Test cases</h3>
+
+<p>This snippet includes an additional function to display the results in a more readable format. It is too slow to solve the last test case.</p>
+
+<p>Expected runtime: ~5 seconds.</p>
+
+<p><div class="snippet" data-lang="js" data-hide="true" data-console="true" data-babel="false">
+<div class="snippet-code snippet-currently-hidden">
+<pre class="snippet-code-js lang-js prettyprint-override"><code>f=(a,p=0,r=[S=y=0],w=a.length)=&gt;a.some((R,y)=&gt;a.some((_,x)=&gt;r[y]&gt;&gt;x&amp;1&amp;&amp;(o[k=R[x]]=-~o[k])&gt;2),o=[])?0:y&lt;w?[...Array(1&lt;&lt;w)].some((_,n)=&gt;(k=n^(x=n&amp;-n))&lt;=x*2|k&amp;-k^k|n&amp;(p|p/2|p*2)||r.some((A,i)=&gt;r.some((B,j)=&gt;A&amp;B&amp;n&amp;&amp;i&lt;y&amp;j&lt;i))?0:(w=r[y],f(a,r[y++]=n,r),r[--y]=w,S))&amp;&amp;S:S=[...r]
+
+format = (a, w) =&gt; a.map(n =&gt; [...('0'.repeat(w) + n.toString(2)).slice(-w)].reverse().join('')).join('\n')
+
+console.log(format(f([
+  [..."aabbbbbcc"],
+  [..."adddbbbcc"],
+  [..."adeeecccc"],
+  [..."adddefgcc"],
+  [..."hhhdifggg"],
+  [..."hdddifffg"],
+  [..."hhhiifffg"],
+  [..."hihiifffg"],
+  [..."iiiiiiggg"]
+]), 9));
+
+console.log(format(f([
+  [..."aaabbbccc"],
+  [..."aaaabbccc"],
+  [..."aaaddbcce"],
+  [..."ffddddcce"],
+  [..."ffffddeee"],
+  [..."fgffdheee"],
+  [..."fggfhhhee"],
+  [..."iggggheee"],
+  [..."iiigggggg"]
+]), 9));
+
+console.log(format(f([
+  [..."aaaaabccdd"],
+  [..."aeaabbbccd"],
+  [..."aeaabfbgcd"],
+  [..."eeeaafggcd"],
+  [..."eeeaafghcd"],
+  [..."eeeiifghcd"],
+  [..."ieiiigghcd"],
+  [..."iiijighhcd"],
+  [..."jjjjighhcd"],
+  [..."jjjggghhdd"]
+]), 10));</code></pre>
+</div>
+</div>
+</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/128017/">128017</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
