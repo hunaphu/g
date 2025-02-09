@@ -26,13 +26,58 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>140</td><td>C clang</td><td>250117T190010Z</td><td><a href="https://codegolf.stackexchange.com/questions/277636/ranking-of-binary-trees/277727#277727">Unrelate</a></td></tr>
-<tr d-ix="1"><td>034</td><td>Charcoal</td><td>250114T180438Z</td><td><a href="https://codegolf.stackexchange.com/questions/277636/ranking-of-binary-trees/277655#277655">Neil</a></td></tr>
-<tr d-ix="2"><td>115</td><td>Python</td><td>250114T125736Z</td><td><a href="https://codegolf.stackexchange.com/questions/277636/ranking-of-binary-trees/277643#277643">Mukundan</a></td></tr>
-<tr d-ix="3"><td>094</td><td>Maple</td><td>250114T220509Z</td><td><a href="https://codegolf.stackexchange.com/questions/277636/ranking-of-binary-trees/277658#277658">dharr</a></td></tr>
-<tr d-ix="4"><td>004</td><td>Jelly</td><td>250114T163145Z</td><td><a href="https://codegolf.stackexchange.com/questions/277636/ranking-of-binary-trees/277652#277652">Unrelate</a></td></tr>
+<tr d-ix="0"><td>038</td><td>x8664 machine code</td><td>250209T191051Z</td><td><a href="https://codegolf.stackexchange.com/questions/277636/ranking-of-binary-trees/278168#278168">m90</a></td></tr>
+<tr d-ix="1"><td>140</td><td>C clang</td><td>250117T190010Z</td><td><a href="https://codegolf.stackexchange.com/questions/277636/ranking-of-binary-trees/277727#277727">Unrelate</a></td></tr>
+<tr d-ix="2"><td>034</td><td>Charcoal</td><td>250114T180438Z</td><td><a href="https://codegolf.stackexchange.com/questions/277636/ranking-of-binary-trees/277655#277655">Neil</a></td></tr>
+<tr d-ix="3"><td>115</td><td>Python</td><td>250114T125736Z</td><td><a href="https://codegolf.stackexchange.com/questions/277636/ranking-of-binary-trees/277643#277643">Mukundan</a></td></tr>
+<tr d-ix="4"><td>094</td><td>Maple</td><td>250114T220509Z</td><td><a href="https://codegolf.stackexchange.com/questions/277636/ranking-of-binary-trees/277658#277658">dharr</a></td></tr>
+<tr d-ix="5"><td>004</td><td>Jelly</td><td>250114T163145Z</td><td><a href="https://codegolf.stackexchange.com/questions/277636/ranking-of-binary-trees/277652#277652">Unrelate</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="http://clang.llvm.org/" rel="nofollow noreferrer">C (clang)</a>, <s>146</s> <s>141</s> 140 bytes</h1>
+<div id="pu0" class="pu"><h1>x86-64 machine code, 38 bytes</h1>
+<pre><code>31 C0 31 F6 89 F9 D1 EE 72 FC F9 11 F6 39 FE 77 F5 F7 E1 11 D2 39 F2 72 FA 29 F2 01 D0 F3 0F B8 D2 29 D0 E2 E6 C3
+</code></pre>
+<p><a href="https://tio.run/##XVJNT8MwDD3Hv8IUTUq2DvF92BgXzlw4IQGHNEnbTGlS9QMyIf46JekKDC6O7Pf8/GxFLAshhuFYW2F6qfCm7aR2J@Ut/CkZnf2vNdoWsQbadpjTGDlbA28rpPiQUDgpjMu4wRzyFfGuQcV9GgPss1anMQCp3CsqETGpoV@RtpzQMyBbgT2QthNgV4RLcdAmqnrKQhvZ8kisehOlwExkOar6iTxmsXWboQmqfXZQ41JODiO/drUIG/0KjOQf2DhXowXSqA5YgmHv8QwV13Z/iaYQKYqSNzifh@SVwTuQiHjc4GmKu/isgbyV2iiki4XHmw2eXTEgpA6n7XKazDQub3Gmn22SYpicU8/CpB/82d5zUWqrUDipVknE/KQrHb5/83B2ev4YJHYbSnvb6sIqOXqbs5w9@cXiha0/cHKyw6Og4O8uDichDV6yXadatjcTwbB739g47QOG4VPkhhftsKyuL0MI32ATepX5Ag" rel="nofollow noreferrer" title="C (gcc) – Try It Online">Try it online!</a></p>
+<p>Following the standard calling convention for Unix-like systems (from the System V AMD64 ABI), this takes <span class="math-container">\$n\$</span> as a 32-bit integer in EDI and returns the rank as a 32-bit integer in EAX.</p>
+<hr />
+<h2>Initialisation; Advancement</h2>
+<p>The program will go through the pre-order traversal and, at each step, determine the rank of the current partial permutation among all partial permutations of the same length. To do this, at each step, multiply the rank by the number of unplaced values (as each of those values is a possible continuation), then add the index of the current value among the unplaced values.</p>
+<p>Number the nodes starting from 1 rather than 0, so that the children of <span class="math-container">\$a\$</span> are <span class="math-container">\$2a\$</span> and <span class="math-container">\$2a+1\$</span> – adding one bit to the end of <span class="math-container">\$a\$</span>'s bits.</p>
+<p><a href="https://i.sstatic.net/nMLWGvPN.png" rel="nofollow noreferrer"><img src="https://i.sstatic.net/nMLWGvPN.png" alt="Moving through the tree, for n=6. Start at 1. Down to 2. Down to 4. Down to 8, then to 4 and to 9, then to 4 and to 2 and to 5. Down to 10, then to 5 and to 11, then to 5 and to 2 and to 1 and to 3. Down to 6." /></a></p>
+<p>To proceed through the pre-order traversal, first descend to a left child by adding a 0 bit to the end of the value. If this goes outside the <span class="math-container">\$n\$</span> tree by producing a value greater than <span class="math-container">\$n\$</span>, then move forwards: ascend to parents until the ascension is from a left child, then descend to a right child – in numbers, remove all trailing 1 bits and the 0 bit before them, and add a 1 bit.</p>
+<pre><code>f:  xor eax, eax    # Set EAX to 0. EAX will hold the current partial permutation's rank.
+    xor esi, esi    # Set ESI to 0. ESI will hold x, the current value for the traversal;
+                    #  it will go from 0 to 1 in the first iteration.
+    mov ecx, edi    # Set ECX to n. ECX will hold the number of unplaced values.
+u:  shr esi, 1      # Shift x right 1 bit. The last bit goes into CF.
+    jc u            # Jump back, to repeat, if that bit is 1.
+    stc             # Set CF to 1.
+n:  adc esi, esi    # Add x+CF to x, which appends CF to its bits.
+                    #  When this instruction is reached from above, CF=1;
+                    #  when later iterations jump here directly, CF=0.
+    cmp esi, edi    # Compare x and n.
+    ja u            # Jump back if x exceeds n.
+</code></pre>
+<h2>Updating the rank</h2>
+<p>As mentioned earlier, to update the rank, multiply the rank by the number of unplaced values, then add the index of the current value among the unplaced values.</p>
+<p><a href="https://i.sstatic.net/0keNTh6C.png" rel="nofollow noreferrer"><img src="https://i.sstatic.net/0keNTh6C.png" alt="The tree for n=15. The current node is 10. The later nodes are 11 through 15 at the same depth (not counted), 6 and 7 at the next lower depth, and 3 at the following depth." /></a></p>
+<p>That index is equal to the number of nodes that have a lesser value than the current value but appear later in the pre-order traversal. For any node that appears later in the pre-order traversal, its value is less than the current value if and only if its depth is less than the current node's depth.</p>
+<p>The number <span class="math-container">\$y\$</span> of later nodes at the same depth can be calculated by subtracting the current value <span class="math-container">\$x\$</span> from the total number of nodes at its depth and lesser depths, which is the first number of the form <span class="math-container">\$2^i-1\$</span> that is at least <span class="math-container">\$x\$</span>. At each successive lower depth, the number of later nodes gets halved and rounded down.</p>
+<p>Take the binary expansion <span class="math-container">\$y = \Sigma_i\ 2^i y_i\$</span>. Because the bits stay separate, this allows the index to be calculated as <span class="math-container">\$\Sigma_i\ y_i(\Sigma_{j&lt;i}\ 2^j) = \Sigma_i\ y_i(2^i - 1) = y - \Sigma_i\ y_i\$</span>.</p>
+<pre><code>    mul ecx         # Multiply the rank in EAX by ECX; the result's high part goes into EDX.
+                    # As long as the result remains within 32 bits, EDX is 0 and CF=0.
+l:  adc edx, edx    # Add EDX+CF to EDX, which appends CF to its bits.
+                    #  CF is 0 in the first iteration, and 1 in later iterations.
+    cmp edx, esi    # Set flags from calculating EDX - x.
+    jb l            # Jump back, to repeat, if EDX was less than x.
+    sub edx, esi    # Subtract x from EDX to obtain y.
+    add eax, edx    # Add y to the rank in EAX.
+    popcnt edx, edx # Set EDX to the number of 1 bits in y.
+    sub eax, edx    # Subtract that number from the rank in EAX.
+    loop n          # Decrease ECX by 1 and jump if it's nonzero.
+    ret             # Return. (The rank in EAX is the return value.)
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="http://clang.llvm.org/" rel="nofollow noreferrer">C (clang)</a>, <s>146</s> <s>141</s> 140 bytes</h1>
 
 <pre class="lang-c prettyprint-override"><code>g(*n){return*n|-1&lt;&lt;23;}f(n,r,i,l,t){for(float b,a=r=0;a++&lt;n;r+=l){for(b=i=l=0;b++&lt;n;l+=t&amp;a&gt;b)i+=t=a&lt;b&gt;g(&amp;a)-g(&amp;b);for(;i;)l*=i--;}return r;}
 </code></pre>
@@ -77,7 +122,7 @@ uint64_t f(int n) {
 <p>Single-precision <code>float</code> has one sign bit and 8 exponent bits, so type punning to <code>int</code> (conveniently implicit in the declaration of <code>g</code>! Which actually saves two bytes over a <code>#define</code>) then neutralizing the upper 9 bits to all ones with <code>|-1&lt;&lt;23;</code> yields a constant offset from the significand as a signed integer (<code>&lt;&lt;9</code> clobbers the exponent and sign just the same, but requires casting to unsigned for useful comparisons because the top bit of the significand ends up in the sign bit instead).</p>
 <p>Unlike variable-length bit strings, floating-point significands don’t distinguish trailing zeroes, so in order to determine if node <code>a</code> precedes node <code>b</code> in the permutation, instead of just checking <code>g(&amp;a)&lt;g(&amp;b)</code> it's necessary to defer to a comparison of the original integers as a tiebreaker if the significands' difference is 0--done by <code>a&lt;b&gt;g(&amp;a)-g(&amp;b)</code> to compare the difference to 0 if <code>a &gt;= b</code> (strictly negative) but 1 if <code>a &lt; b</code> (merely nonpositive; 0 is true). For each node <code>a</code>, the solution compares it with every node <code>b</code>, and: counts as <code>i</code> the true comparisons to determine <code>a</code>’s index from the <em>right</em> end of the permutation, counts as <code>l</code> the true comparisons for which it also holds that <code>a &gt; b</code> (<code>a</code>’s corresponding term in the permutation’s <a href="https://en.wikipedia.org/wiki/Lehmer_code" rel="nofollow noreferrer">Lehmer code</a>), multiplies <code>l</code> by the factorial of <code>i</code> (<code>for(;i;)l*=i--</code>), and finally adds it to a running sum <code>r</code> across all <code>a</code> in order to compute the permutation’s rank as the factoradic valuation of its Lehmer code.</p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, <s>42</s> 34 bytes</h1>
+<div id="pu2" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, <s>42</s> 34 bytes</h1>
 <pre><code>≔ＥＮ↨⊕ι²θ≔⁰ηＷ⁻θυ≔∧⊞Ｏυ⌊ι⁺×ηＬι⌕ι⌊ιηＩη
 </code></pre>
 <p><a href="https://tio.run/##VY3LCsIwEEX3fkWWE4ggroSuqiAIrXbhD8R2aAaStM1DPz9OsRs3A3Pm3Du90aGftC2ljpFGD62e4ebnnO7ZvTCAVOKsIzLrAzr0CQcghkfJY5HVbssdlDC8fQxZFNCSzxEWJbKUYjNqP0CXo3nMGHSaAmQl2COXHTdyW2c58ySHEYwSDfoxmd/lSpylP33F68MukE9w0TGBkbIq5VT2b/sF" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code. Explanation: Uses @UnrelatedString's observation.</p>
@@ -97,7 +142,7 @@ uint64_t f(int n) {
 </code></pre>
 <p>Output the final rank.</p>
 </div>
-<div id="pu2" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 115 bytes</h1>
+<div id="pu3" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 115 bytes</h1>
 <pre class="lang-python prettyprint-override"><code>lambda n:[*permutations(range(n))].index((t:=lambda x:x&lt;n and(x,)+t(2*x+1)+t(2*x+2)or())(0))
 from itertools import*
 </code></pre>
@@ -119,12 +164,12 @@ from sympy.combinatorics import*
 <p><a href="https://ato.pxeger.com/run?1=LYw7DsIwEER7TrEdNoQooUKRcgdKChonsWEVvGttnMJnoUkT7sRtsBSmGWk-7_0JKT6ZltVBC_d1ju50-d5exneDAWquVvwcTUQmNbFEOygx9LCKjrUuRpvaDknrMoej0jsn7GFKPqSyZ58rE1mwnwB9yO_Dn793LICABBusLuBcVbrZQVYQpKicQq23-bJs_gM" rel="nofollow noreferrer">Attempt This Online!</a></p>
 <p>Use of sympy was inspired by the program provided in <a href="https://oeis.org/A379905" rel="nofollow noreferrer">A379905</a></p>
 </div>
-<div id="pu3" class="pu"><h1><a href="https://www.maplesoft.com/" rel="nofollow noreferrer">Maple</a>, 94 bytes</h1>
+<div id="pu4" class="pu"><h1><a href="https://www.maplesoft.com/" rel="nofollow noreferrer">Maple</a>, 94 bytes</h1>
 <pre><code>proc(n)sort(convert~([$n],binary),key=String);combinat:-rankperm(convert~(%,decimal,2))-1;end;
 </code></pre>
 <p>This is @Unrelated String's nice algorithm. Take [1,...,n], convert to binary, sort in string (lex) order, convert back to decimal, and find the rank (builtin).</p>
 </div>
-<div id="pu4" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="noreferrer">Jelly</a>, <s>8</s> 4 bytes</h1>
+<div id="pu5" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="noreferrer">Jelly</a>, <s>8</s> 4 bytes</h1>
 <pre><code>BÞŒ¿
 </code></pre>
 <p><a href="https://tio.run/##y0rNyan8/9/p8Lyjkw7t/3@4/VHDTM3I//8NDQA" rel="noreferrer" title="Jelly – Try It Online">Try it online!</a></p>
