@@ -26,15 +26,221 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>442</td><td>Python</td><td>230914T172220Z</td><td><a href="https://codegolf.stackexchange.com/questions/253633/the-smallest-area-of-a-convex-grid-polygon/265224#265224">G&#252;n</a></td></tr>
-<tr d-ix="1"><td>447</td><td>Rust</td><td>230918T235824Z</td><td><a href="https://codegolf.stackexchange.com/questions/253633/the-smallest-area-of-a-convex-grid-polygon/265355#265355">colt_bro</a></td></tr>
-<tr d-ix="2"><td>323</td><td>Fortran n=17</td><td>221029T125913Z</td><td><a href="https://codegolf.stackexchange.com/questions/253633/the-smallest-area-of-a-convex-grid-polygon/253908#253908">Hugo Pfo</a></td></tr>
-<tr d-ix="3"><td>010</td><td>Python with restricted conditions n=26</td><td>221024T215157Z</td><td><a href="https://codegolf.stackexchange.com/questions/253633/the-smallest-area-of-a-convex-grid-polygon/253721#253721">arrmansa</a></td></tr>
-<tr d-ix="4"><td>nan</td><td>Rust + itertools + fasthash</td><td>221027T091656Z</td><td><a href="https://codegolf.stackexchange.com/questions/253633/the-smallest-area-of-a-convex-grid-polygon/253808#253808">corvus_1</a></td></tr>
-<tr d-ix="5"><td>162</td><td>C++ gcc</td><td>221026T165707Z</td><td><a href="https://codegolf.stackexchange.com/questions/253633/the-smallest-area-of-a-convex-grid-polygon/253788#253788">jdt</a></td></tr>
-<tr d-ix="6"><td>019</td><td>JavaScript Node.js</td><td>221023T151044Z</td><td><a href="https://codegolf.stackexchange.com/questions/253633/the-smallest-area-of-a-convex-grid-polygon/253655#253655">Arnauld</a></td></tr>
+<tr d-ix="0"><td>nan</td><td>Rust</td><td>250210T124501Z</td><td><a href="https://codegolf.stackexchange.com/questions/253633/the-smallest-area-of-a-convex-grid-polygon/278190#278190">138 Aspe</a></td></tr>
+<tr d-ix="1"><td>442</td><td>Python</td><td>230914T172220Z</td><td><a href="https://codegolf.stackexchange.com/questions/253633/the-smallest-area-of-a-convex-grid-polygon/265224#265224">G&#252;n</a></td></tr>
+<tr d-ix="2"><td>447</td><td>Rust</td><td>230918T235824Z</td><td><a href="https://codegolf.stackexchange.com/questions/253633/the-smallest-area-of-a-convex-grid-polygon/265355#265355">colt_bro</a></td></tr>
+<tr d-ix="3"><td>323</td><td>Fortran n=17</td><td>221029T125913Z</td><td><a href="https://codegolf.stackexchange.com/questions/253633/the-smallest-area-of-a-convex-grid-polygon/253908#253908">Hugo Pfo</a></td></tr>
+<tr d-ix="4"><td>010</td><td>Python with restricted conditions n=26</td><td>221024T215157Z</td><td><a href="https://codegolf.stackexchange.com/questions/253633/the-smallest-area-of-a-convex-grid-polygon/253721#253721">arrmansa</a></td></tr>
+<tr d-ix="5"><td>nan</td><td>Rust + itertools + fasthash</td><td>221027T091656Z</td><td><a href="https://codegolf.stackexchange.com/questions/253633/the-smallest-area-of-a-convex-grid-polygon/253808#253808">corvus_1</a></td></tr>
+<tr d-ix="6"><td>162</td><td>C++ gcc</td><td>221026T165707Z</td><td><a href="https://codegolf.stackexchange.com/questions/253633/the-smallest-area-of-a-convex-grid-polygon/253788#253788">jdt</a></td></tr>
+<tr d-ix="7"><td>019</td><td>JavaScript Node.js</td><td>221023T151044Z</td><td><a href="https://codegolf.stackexchange.com/questions/253633/the-smallest-area-of-a-convex-grid-polygon/253655#253655">Arnauld</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Python, <em>n</em>=44 in under 2 minutes</h1>
+<div id="pu0" class="pu"><h1>Rust, <span class="math-container">\$n=16\$</span> in ~ 2.65 seconds</h1>
+<p>Rust port of @jdt's C++ answer.</p>
+<p><a href="https://play.rust-lang.org/?version=stable&amp;mode=release&amp;edition=2021&amp;gist=8a5c0c3f6b2f39281e44c5046c3c0316" rel="nofollow noreferrer">Run it on RustPlayground!</a></p>
+<pre class="lang-rust prettyprint-override"><code>use std::time::{Instant};
+
+#[derive(Clone, Copy, Debug)]
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+fn create_polygon_jit(
+    points: &amp;mut [Point],
+    n: usize,
+    target_n: usize,
+    gridsize: i32,
+    curr_area: i32,
+    min_area: &amp;mut i32,
+    soln: &amp;mut [Point],
+) -&gt; bool {
+    if n &gt;= 3 {
+        let x1 = points[n - 3].x - points[n - 2].x;
+        let y1 = points[n - 3].y - points[n - 2].y;
+        let x2 = points[n - 1].x - points[n - 2].x;
+        let y2 = points[n - 1].y - points[n - 2].y;
+
+        if x1 * y2 - x2 * y1 &lt;= 0 {
+            return false;
+        }
+        if x1 * x2 + y1 * y2 &gt; 0 {
+            return false;
+        }
+        if points[1].x == 0 &amp;&amp; points[n - 1].x == 0 {
+            return true;
+        }
+
+        let add_area = points[n - 1].x * points[n - 2].y - points[n - 1].y * points[n - 2].x;
+        if add_area &lt;= 0 {
+            return true;
+        }
+
+        let curr_area = curr_area + add_area;
+        if curr_area &gt;= *min_area {
+            return true;
+        }
+
+        if n == target_n {
+            *min_area = curr_area;
+            soln.copy_from_slice(&amp;points[..target_n]);
+            return true;
+        }
+
+        let min_i = (points[n - 1].x - 3).max(0);
+        let max_i = (points[n - 1].x + 4).min(gridsize);
+        let min_j = (points[n - 1].y - 3).max(-gridsize / 2);
+        let max_j = (points[n - 1].y + 4).min(gridsize / 2 + 1);
+
+        if x2 &gt; 0 {
+            if y2 &gt; 0 {
+                if x2 &gt; y2 {
+                    for j in min_j..max_j {
+                        for i in (min_i..max_i).rev() {
+                            points[n] = Point { x: i, y: j };
+                            if !create_polygon_jit(points, n + 1, target_n, gridsize, curr_area, min_area, soln) {
+                                break;
+                            }
+                        }
+                        if points[n].x == max_i - 1 {
+                            break;
+                        }
+                    }
+                } else {
+                    for j in (min_j..max_j).rev() {
+                        for i in (min_i..max_i).rev() {
+                            points[n] = Point { x: i, y: j };
+                            if !create_polygon_jit(points, n + 1, target_n, gridsize, curr_area, min_area, soln) {
+                                break;
+                            }
+                        }
+                        if points[n].x == max_i - 1 {
+                            break;
+                        }
+                    }
+                }
+            } else {
+                if x2 &gt; -y2 {
+                    for i in (min_i..max_i).rev() {
+                        for j in min_j..max_j {
+                            points[n] = Point { x: i, y: j };
+                            if !create_polygon_jit(points, n + 1, target_n, gridsize, curr_area, min_area, soln) {
+                                break;
+                            }
+                        }
+                        if points[n].y == min_j {
+                            break;
+                        }
+                    }
+                } else {
+                    for i in min_i..max_i {
+                        for j in min_j..max_j {
+                            points[n] = Point { x: i, y: j };
+                            if !create_polygon_jit(points, n + 1, target_n, gridsize, curr_area, min_area, soln) {
+                                break;
+                            }
+                        }
+                        if points[n].y == min_j {
+                            break;
+                        }
+                    }
+                }
+            }
+        } else {
+            if y2 &gt; 0 {
+                if -x2 &gt; y2 {
+                    for i in min_i..max_i {
+                        for j in (min_j..max_j).rev() {
+                            points[n] = Point { x: i, y: j };
+                            if !create_polygon_jit(points, n + 1, target_n, gridsize, curr_area, min_area, soln) {
+                                break;
+                            }
+                        }
+                        if points[n].y == max_j - 1 {
+                            break;
+                        }
+                    }
+                } else {
+                    for i in (min_i..max_i).rev() {
+                        for j in (min_j..max_j).rev() {
+                            points[n] = Point { x: i, y: j };
+                            if !create_polygon_jit(points, n + 1, target_n, gridsize, curr_area, min_area, soln) {
+                                break;
+                            }
+                        }
+                        if points[n].y == max_j - 1 {
+                            break;
+                        }
+                    }
+                }
+            } else {
+                if -x2 &gt; -y2 {
+                    for j in (min_j..max_j).rev() {
+                        for i in min_i..max_i {
+                            points[n] = Point { x: i, y: j };
+                            if !create_polygon_jit(points, n + 1, target_n, gridsize, curr_area, min_area, soln) {
+                                break;
+                            }
+                        }
+                        if points[n].x == min_i {
+                            break;
+                        }
+                    }
+                } else {
+                    for j in min_j..max_j {
+                        for i in min_i..max_i {
+                            points[n] = Point { x: i, y: j };
+                            if !create_polygon_jit(points, n + 1, target_n, gridsize, curr_area, min_area, soln) {
+                                break;
+                            }
+                        }
+                        if points[n].x == min_i {
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    } else {
+        let min_i = (points[n - 1].x - 3).max(0);
+        let max_i = (points[n - 1].x + 4).min(gridsize);
+        let min_j = (points[n - 1].y - 3).max(-gridsize / 2);
+        let max_j = (points[n - 1].y + 4).min(gridsize / 2);
+
+        for i in min_i..max_i {
+            for j in min_j..max_j {
+                points[n] = Point { x: i, y: j };
+                create_polygon_jit(points, n + 1, target_n, gridsize, curr_area, min_area, soln);
+            }
+        }
+    }
+    points[n] = Point { x: 0, y: 0 };
+    true
+}
+
+fn main() {
+    let start = Instant::now();
+
+    const N: usize = 16;
+    let mut points = [Point { x: 0, y: 0 }; N];
+    let gridsize = 11;
+    let mut min_area = gridsize * gridsize;
+    let mut result = [Point { x: 0, y: 0 }; N];
+
+    create_polygon_jit(&amp;mut points, 1, N, gridsize, 0, &amp;mut min_area, &amp;mut result);
+
+    println!(&quot;Result: &quot;);
+    for p in &amp;result {
+        println!(&quot;({}, {})&quot;, p.x, p.y);
+    }
+    println!(&quot;Area: {}&quot;, min_area);
+
+    let duration = start.elapsed();
+    println!(&quot;Time: {:?} seconds.&quot;, duration.as_secs_f64());
+}
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>Python, <em>n</em>=44 in under 2 minutes</h1>
 <p>This can go up to 44-gons in under 2 minutes, using pypy on my laptop.
 CPython is slightly slower (2'45'').</p>
 <p>The approach is rigorous. It uses the
@@ -619,7 +825,7 @@ print(&quot;2n-gons:&quot;, &quot;,&quot;.join(str(record_vol[k]//2)
                            for k in range(4,N_target+1,2)))
 </code></pre>
 </div>
-<div id="pu1" class="pu"><h1>Rust, <em>n</em>=44 in ~7 seconds</h1>
+<div id="pu2" class="pu"><h1>Rust, <em>n</em>=44 in ~7 seconds</h1>
 <p>This is merely an abridged port of <a href="https://codegolf.stackexchange.com/a/265224">Günter Rote's solution</a>, no original contribution.</p>
 <pre><code>
 const LWF_EVEN: f64 = 1.0;
@@ -796,7 +1002,7 @@ fn main() {
 }
 </code></pre>
 </div>
-<div id="pu2" class="pu"><h1>Fortran n=17, 323 s</h1>
+<div id="pu3" class="pu"><h1>Fortran n=17, 323 s</h1>
 <pre><code>C Find strictly convex polygons of minimum area on square grid
 C Author: Hugo Pfoertner, 2018
       implicit integer (A-Z)
@@ -1253,7 +1459,7 @@ CPU time:     323.0781 s
 Number of polygons with minimum area: 76
 </code></pre>
 <p>For n=17 there is not only the <a href="http://antiton.de/PolygonalAreas/index.html?(8,1),(9,1),(10,2),(11,4),(11,5),(10,8),(9,10),(8,11),(6,12),(5,12),(3,11),(2,10),(1,8),(1,7),(2,5),(3,4),(6,2)" rel="nofollow noreferrer">compact solution</a> found by everyone, but also exotic needle-shaped solutions, like <a href="http://antiton.de/PolygonalAreas/index.html?(31,1),(32,1),(32,2),(31,3),(27,6),(24,8),(16,13),(11,16),(4,20),(2,21),(1,21),(2,20),(6,17),(13,12),(16,10),(24,5),(29,2)" rel="nofollow noreferrer">Squared diameter 1361</a>.
-<a href="https://i.stack.imgur.com/7reqI.png" rel="nofollow noreferrer"><img src="https://i.stack.imgur.com/7reqI.png" alt="n=17,2*Area=151,31X20" /></a>
+<a href="https://i.sstatic.net/7reqI.png" rel="nofollow noreferrer"><img src="https://i.sstatic.net/7reqI.png" alt="n=17,2*Area=151,31X20" /></a>
 This is the one I've known so far with the largest diameter. As far as I know, it has not been proven that no extreme solutions of this kind with a smaller area exist. If one could show that there are no other solutions with even greater stretching, then that would be an important step towards a proof of optimality for this n.</p>
 <h2>Heavily stretched polygons</h2>
 <p>I don't want to spoil anyone's good mood, but if you all only find the solutions that I gave 4 years ago, the doubts remain whether we are making things too easy for ourselves when searching. I have already pointed out the existence of very strongly stretched polygons with likewise minimal areas. As a test case for your programs, you can try to find at least one even slimmer solution than the following at n=19:
@@ -1265,7 +1471,7 @@ My program finds the shown and -intentionally undisclosed- slimmer solutions (sq
 <h1>Fortran revised, n=17, 8.8 s</h1>
 <p>See <a href="https://github.com/HugoPfoertner/Lattice-Polygons" rel="nofollow noreferrer">Lattice-Polygons</a> on GitHub. Another faster version exists (approx. 70% of run time), with explicit expansion of the inner loops, similar to code shown above, but the GitHub version is cleaner.</p>
 </div>
-<div id="pu3" class="pu"><h1>Python (with restricted conditions) n=26, 10 seconds</h1>
+<div id="pu4" class="pu"><h1>Python (with restricted conditions) n=26, 10 seconds</h1>
 <p>Uses backtracking. <br />
 Numba for speed. <br />
 notebook <a href="https://github.com/arrmansa/smallest-area-of-a-convex-grid-polygon/blob/main/Attempt%2019%20-%20one%20half%20is%20bigger.ipynb" rel="nofollow noreferrer">link</a></p>
@@ -1275,8 +1481,8 @@ points: [[0, 0], [0, 1], [1, 3], [2, 4], [4, 5], [7, 6], [8, 6], [11, 5], [13, 4
 <h1>Fast O(n^2) upper bounds for high n (&lt;10% error for n&lt;=36, slightly better than n^3/27 when n&lt;1e5, sometimes better for n&gt;1e5)</h1>
 <p>Assuming the solution to be close to circular. We can make circle-like shapes where sides made of the smallest n vectors where i and j are coprime. This gives a polygon of size n*4. I think this should have the optimal minimum perimeter as well. <a href="https://github.com/arrmansa/smallest-area-of-a-convex-grid-polygon/blob/main/choose%20small%20vectors.ipynb" rel="nofollow noreferrer">github notebook link</a></p>
 <p>The calculated upper bound is (slightly) better than n^3/27 for n upto 10000.</p>
-<p><a href="https://i.stack.imgur.com/crL8G.png" rel="nofollow noreferrer"><img src="https://i.stack.imgur.com/crL8G.png" alt="min double area vs n" /></a></p>
-<p><a href="https://i.stack.imgur.com/v95UI.png" rel="nofollow noreferrer"><img src="https://i.stack.imgur.com/v95UI.png" alt="first 40 points" /></a></p>
+<p><a href="https://i.sstatic.net/crL8G.png" rel="nofollow noreferrer"><img src="https://i.sstatic.net/crL8G.png" alt="min double area vs n" /></a></p>
+<p><a href="https://i.sstatic.net/v95UI.png" rel="nofollow noreferrer"><img src="https://i.sstatic.net/v95UI.png" alt="first 40 points" /></a></p>
 <p>(Old extra method - best solution found in 15s for n upto 44 <a href="https://github.com/arrmansa/smallest-area-of-a-convex-grid-polygon/blob/main/Attempt%2020%20-%20half_bigger-round-opt.ipynb" rel="nofollow noreferrer">link</a> . At these high numbers, it's basically just oneshot generations but still somewhat interesting)</p>
 <h2>Old code links n = 14, 80s</h2>
 <hr />
@@ -1330,7 +1536,7 @@ notebook <a href="https://github.com/arrmansa/smallest-area-of-a-convex-grid-pol
 </code></pre>
 <p>notebook <a href="https://github.com/arrmansa/smallest-area-of-a-convex-grid-polygon/blob/main/Attempt%206.ipynb" rel="nofollow noreferrer">link</a></p>
 </div>
-<div id="pu4" class="pu"><h1>Rust + itertools + fasthash, n = 26 in ~423s</h1>
+<div id="pu5" class="pu"><h1>Rust + itertools + fasthash, n = 26 in ~423s</h1>
 <p>This is a rust port of <a href="https://codegolf.stackexchange.com/a/253655">Arnauld's answer</a>, with a few iterations of performance improvement.</p>
 <p>I use <code>Vec&lt;Option&lt;_&gt;&gt;</code> for sparse arrays and reference counting for the cache. I also use <code>128 * w + h</code> as a hash for coordinate pairs, and use SeaHash from the <a href="https://crates.io/crates/fasthash" rel="nofollow noreferrer">fasthash crate</a></p>
 <p>Obviously needs to be build with <code>--release</code>.</p>
@@ -1625,7 +1831,7 @@ fn main() {
 }
 </code></pre>
 </div>
-<div id="pu5" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C++ (gcc)</a>, n=16 ~2 seconds</h1>
+<div id="pu6" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C++ (gcc)</a>, n=16 ~2 seconds</h1>
 <p>C++ port of @arrmansa's optimized version.</p>
 
 <pre class="lang-cpp prettyprint-override"><code>#include &lt;array&gt;
@@ -1869,7 +2075,7 @@ int main() {
 </code></pre>
 <p><a href="https://tio.run/##7Vnbbts4EH3XV8xmgcCKrcR2iqJryQL6A11gs29tYTAS48qRKUOi0GiD/Hq9Q1I3Wpc4TgKkgfVgc6iZM8OZQ4oSvc3GWnredvtnwLww9Sk4JI5J5hpVh/cjjlhU7wmihMeUrF3DwEbqcdhEAeNwbwBeonVnl83MNh5sw@B0vQkJp07C/dksCf6jCw5fXOM6ikLwEI3TxSYKs2XEFquAD6SajMWR4CNUPlV@kpEEZuqPk3hJ@SKXlnHgC3AleWkcLwiCS/EU1gHLxXb4JAqZaeTDuIEBA3cOl6aUVW85wAnM82i@MrDg8vv5Hf7VeqbYM4KsqZc19DJbx57qNpMu7KZePzaOCOM@E4aW8HImwnPmMDbh4gI@s2VIwYXJp3FpIq6Y8jRmcEPChLaAIc5Q4EhYV2DVwObw175gedhysHOMCQjzG1kQN8w2QKQh4mlpJL4vi92SzLPdJOlpk4nc1bnTwy3RnT1DKrkIw3kZm45ZqWDiCq7uNVzJVUxOMRkqo3vNvADFnJTObE1DTIEyY3a376LzQU@6cBCgvZxfa3I3GI9aqHxp6oxHxZpVwAbVNN41HsIH0276XNV9WoU5XMB01DJF2vyv2vwLAHQ5aYLsxiGmg@J/R@qFRraj0dTSsLKp2bjZVBfXTRTDQIxEjELmw8amowaGzeHQ7LDUrEUNVC1wlDaKbl5QJVpWH4q4iizJuQqBvadyhsqrfmWRlD9anhPFE4GpMlVPg4pCtadA7QEglnqz16W4rlH5tjuyB6MvXi0btcz2u@1x2XTX7KG4sh7EGjkHZKFXed0LEeveav8ijOrEeE2mHan2XKrpUoN0PauadcCydiCN9iBo94J5JObLEjOTxBSpfnPrX5CTIBDUUiQQzS4S/H606lO2j5x7mYWwamkcfM420Dp0H/hKjH76HuG4YD6TvEXK3@ai@XrP5CPV3h/VDto0WgfvGl/5tWb/5fXIzGe@zohUv8235v33eEdavX9a9e4M1W/JtPv3/uH00Y@mT@G9zvOnzsHmLHl0Zjz6DvXS3Lf3II8e9dg2mpHmndrHeiSmqhZWqPiEmyYBWwIja5psiEdVCdVZn0IgKY@AT2R1KfGzhRdG3u1sxqKfg6KKXsQSrk7jUG/yUVk2D9eYm0eJWvcwhofcvjiyuxKUQYBJdW6I2fmsTipKhbOymZu3OoppkoYcNYxHqoQVyktzJUszHhVORzmIWffjRSkHx4GTf@S9GZyoYCUXJeYpbGBWmJb1040HJ@Jvg/UT0ghyMZOiWWDqNt9kUDOlW@RF3TjJI1TFmnYVq1IJ1nSBBRfl8tOY8ACT4pGEO4Xk@FF6HVLXHXBxTMgnZltI/yLOTMZTIp7jTcaRX@I@JBS54SfnMkTk33b7y7sJyTLZWn9f/g8" rel="nofollow noreferrer" title="C++ (gcc) – Try It Online">Try it online!</a></p>
 </div>
-<div id="pu6" class="pu"><h1><a href="https://nodejs.org" rel="noreferrer">JavaScript (Node.js)</a>, <span class="math-container">\$n=19\$</span></h1>
+<div id="pu7" class="pu"><h1><a href="https://nodejs.org" rel="noreferrer">JavaScript (Node.js)</a>, <span class="math-container">\$n=19\$</span></h1>
 <p>This is a very early attempt. Given 10 minutes, it is only able to compute up to <span class="math-container">\$n=19\$</span> on my laptop and finds the same values as the ones listed in A070911.</p>
 <p>It assumes <span class="math-container">\$n\ge7\$</span> in order to avoid some edge cases. Although the code could be updated to support <span class="math-container">\$n&lt;7\$</span>, I'm not sure it's worth the effort.</p>
 <p>A few assumptions are made about the shape of the <span class="math-container">\$n\$</span>-gon and the size of its enclosing rectangle. The later one should probably be relaxed to make sure that no shorter solution is missed.</p>
