@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::11616</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>057</td><td>APLNARS</td><td>250213T121150Z</td><td><a href="https://codegolf.stackexchange.com/questions/11616/exp-function-to-an-arbitrary-double-precision/278225#278225">Rosario</a></td></tr>
+<tr d-ix="1"><td>090</td><td>Mathematica</td><td>130512T221909Z</td><td><a href="https://codegolf.stackexchange.com/questions/11616/exp-function-to-an-arbitrary-double-precision/11660#11660">Kaya</a></td></tr>
+<tr d-ix="2"><td>036</td><td>APL</td><td>130513T165908Z</td><td><a href="https://codegolf.stackexchange.com/questions/11616/exp-function-to-an-arbitrary-double-precision/11678#11678">marinus</a></td></tr>
+<tr d-ix="3"><td>050</td><td>JavaScript</td><td>130512T152927Z</td><td><a href="https://codegolf.stackexchange.com/questions/11616/exp-function-to-an-arbitrary-double-precision/11653#11653">Greg</a></td></tr>
+<tr d-ix="4"><td>057</td><td>Python</td><td>130510T071305Z</td><td><a href="https://codegolf.stackexchange.com/questions/11616/exp-function-to-an-arbitrary-double-precision/11629#11629">Keith Ra</a></td></tr>
+<tr d-ix="5"><td>069</td><td>C</td><td>130509T222913Z</td><td><a href="https://codegolf.stackexchange.com/questions/11616/exp-function-to-an-arbitrary-double-precision/11625#11625">Johannes</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>APL(NARS), 57 chars</h1>
+<pre><code>r←f w;e;i;t;y
+(y e)←w⋄r←i←1-t←1
+r+←t⋄→2×⍳e&lt;∣t×←y÷i+←1
+r+←t
+</code></pre>
+<p>//14+18+21+4=57</p>
+<p>I copy algo from <a href="https://codegolf.stackexchange.com/a/11625/120560">https://codegolf.stackexchange.com/a/11625/120560</a>.
+From calculator this result e^4 with enought digits:</p>
+<pre><code>54,59815003314423907811026120286
+</code></pre>
+<p>test:</p>
+<pre><code>  f 4 0.00001
+54.59814948
+  f 4 0.00001
+54.59814948
+  f 4 0.000001
+54.59814993
+  f 4 0.0000001
+54.59815001
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>Mathematica, 90</h1>
+<pre><code>f[x_,p_]:=Piecewise[{{Sum[x^i/i!,{i,0,50}],x&gt;0},{1/Sum[(-x)^i/i!,{i,0,50}],x&lt;0},{1,x==0}}]
+</code></pre>
+<p>I also ignore the precision <code>p</code> and assume that 20 decimal points will be the most accuracy desired. It also works for negative values of <code>x</code>! To be worked on more later.</p>
+<h1>Python, 88</h1>
+<pre><code>def E(x,p):
+ t=n=s=1.;y=x
+ if x&lt;0:y=-x
+ while t:t*=y/n;n+=1;s+=t
+ if x&lt;0:s=1/s
+ return s
+</code></pre>
+<p><strong>Why the Power Series approach does not work without cases:</strong></p>
+<p>The issue with the taylor series for <code>e(x)</code> centered at the origin is that it is alternating for negative <code>x</code>. When the distance from the origin is small, say <code>x= -1 or -2</code> then this is not an issue as we get convergence to 20 decimal places after about 20-30 terms of the power series. However when the distance from the origin grows all hell breaks loose. Observe the pattern for <code>x= -1</code> where <code>f[x,n]</code> refers to the taylor series with <code>n+1</code> terms.</p>
+<pre><code>Exp[-20] = 2.0611536224385578280*10^-9
+f[-20,1] = -19.000000000000000000
+f[-20,2] = 181.00000000000000000
+f[-20,3] = -1152.3333333333333333
+f[-20,4] = 5514.3333333333333333
+...
+f[-20,10] = 1.8596236807760141093*10^6
+f[-20,15] = -1.4140053694562736891*10^7
+f[-20,20] = 2.1277210342544299144*10^7
+f[-20,30] = 1.5996940964229284082*10^6
+f[-20,40] = 4442.0343631250907290
+f[-20,50] = 1.0469169720658217252
+f[-20,60] = 0.000034317328370370852087
+f[-20,70] = 2.2782871646157681977*10^-9
+</code></pre>
+<p>It takes until term 70 to get within .000000001 of the true value, and I was being kind using <code>x= -20</code>. If we try numbers as low as <code>x= -500</code> we are more than <code>10^200</code> off at term 500. Now lets see, what are we even working with at this point, iteration 500, this should include the term <code>x^500/500!</code>. <code>500!</code> if of the order <code>10^1134</code>, but python and other programming languages are not equipped to deal with numbers much larger than <code>2^63</code> as integers or <code>10^308</code> for doubles (unless you have some sort of arbitrary precision library...?)</p>
+</div>
+<div id="pu2" class="pu"><h2>APL (36)</h2>
+
+<pre><code>{x t←⍺⍵⋄0{t&gt;i←(x*⍵)÷!⍵:⍺⋄∇/⍺⍵+i 1}0}
+</code></pre>
+
+<p>The left argument is the number and the right argument is the tolerance, i.e.</p>
+
+<pre><code>      4 {x t←⍺⍵⋄0{t&gt;i←(x*⍵)÷!⍵:⍺⋄∇/⍺⍵+i 1}0}  0.00001
+54.59814722 
+</code></pre>
+
+<p>It uses a power series expansion. </p>
+
+<p>Explanation:</p>
+
+<ul>
+<li><code>x t←⍺⍵</code>: store the left argument (x) in <code>x</code> and the right argument (tolerance) in <code>t</code></li>
+<li><code>0{</code>...<code>}0</code>: iterator function, <code>⍺</code> is the accumulator and <code>⍵</code> is the iteration</li>
+<li><code>t&gt;i←(x*⍵)÷!⍵</code>: calculate the current iteration's value, and see if it is higher than the tolerance</li>
+<li><code>:⍺</code>: if so, return the accumulator</li>
+<li><code>⋄∇/⍺⍵+i 1</code>: if not, increment the accumulator by <code>i</code> and the iteration by <code>1</code> and try again.</li>
+</ul>
+</div>
+<div id="pu3" class="pu"><p><strong>JavaScript, 50 Chars</strong></p>
+
+<p>Given that javascript has variable args support, this will work with the input <code>e(4,0.00001)</code>. Otherwise, it would be 52 chars.</p>
+
+<pre><code>function e(x){for(t=n=s=1;t*=x/n++;s+=t);return s}
+</code></pre>
+
+<p><a href="http://ideone.com/XbRVJ0" rel="nofollow">ideone</a></p>
+
+<p>If it is going to factor in the precision as the problem states, it can be done in 56 chars.</p>
+
+<pre><code>function e(x,p){for(t=n=s=1;(t*=x/n++)&gt;p;s+=t);return s}
+</code></pre>
+</div>
+<div id="pu4" class="pu"><h2>Python, <strike>59</strike> 57 chars</h2>
+
+<pre><code>def E(x,p):
+ t=n=s=1.
+ while t:t*=x/n;n+=1;s+=t
+ return s
+</code></pre>
+
+<p>Uses the power series expansion of <code>e^x</code>.  Ignores <code>p</code> and just calculates the result to full double precision.</p>
+</div>
+<div id="pu5" class="pu"><h2>C, <s>88</s> 69</h2>
+
+<p><s></p>
+
+<pre><code>double e(int e, double l) {double a,p=1,i=0,f=1,r=1;while ((a=(p*=e)/(f*=++i))&gt;l) r+=a;return r;}
+</code></pre>
+
+<p></s></p>
+
+<pre><code>double e(int x, double l) {double i=0,t=1,r=1;while (t*=x/++i) r+=t;return r;}
+</code></pre>
+
+<p>call <code>e</code>. if you change the first argument to <code>e</code> from <code>int</code> to <code>double</code>, it will even work for floating point exponents.</p>
+
+<p>Code counted without any white space or comments.</p>
+
+<p>Edited some ideas from Keith into it (combine <code>p</code> and <code>f</code> into <code>t</code>, ignore <code>l</code>).</p>
+
+<p>Yes, power series is the way to go. Sure, once one got the idea, everyone copy it.</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/11616/">11616</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
