@@ -26,7 +26,7 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>nan</td><td></td><td>250214T132456Z</td><td><a href="https://codegolf.stackexchange.com/questions/263496/can-you-perform-swaps/278235#278235">138 Aspe</a></td></tr>
+<tr d-ix="0"><td>nan</td><td>Zig</td><td>250214T134501Z</td><td><a href="https://codegolf.stackexchange.com/questions/263496/can-you-perform-swaps/278236#278236">138 Aspe</a></td></tr>
 <tr d-ix="1"><td>194</td><td>Elixir</td><td>250214T071027Z</td><td><a href="https://codegolf.stackexchange.com/questions/263496/can-you-perform-swaps/278232#278232">138 Aspe</a></td></tr>
 <tr d-ix="2"><td>041</td><td>Haskell + hgl</td><td>240720T020113Z</td><td><a href="https://codegolf.stackexchange.com/questions/263496/can-you-perform-swaps/274286#274286">Wheat Wi</a></td></tr>
 <tr d-ix="3"><td>nan</td><td>C89</td><td>230801T055849Z</td><td><a href="https://codegolf.stackexchange.com/questions/263496/can-you-perform-swaps/263596#263596">Pignotto</a></td></tr>
@@ -45,73 +45,114 @@
 <tr d-ix="16"><td>nan</td><td>Scala</td><td>230729T153542Z</td><td><a href="https://codegolf.stackexchange.com/questions/263496/can-you-perform-swaps/263502#263502">138 Aspe</a></td></tr>
 <tr d-ix="17"><td>013</td><td>Jelly</td><td>230729T164305Z</td><td><a href="https://codegolf.stackexchange.com/questions/263496/can-you-perform-swaps/263509#263509">Jonathan</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://gcc.gnu.org" rel="nofollow noreferrer">C++ (GCC)</a></h1>
-<pre class="lang-cpp prettyprint-override"><code>#include &lt;iostream&gt;
-#include &lt;vector&gt;
-#include &lt;tuple&gt;
-#include &lt;algorithm&gt;
-#include &lt;numeric&gt;
+<div id="pu0" class="pu"><h1>Zig, not completed yet</h1>
+<pre class="lang-none prettyprint-override"><code>const std = @import(&quot;std&quot;);
 
-bool f(const std::vector&lt;int8_t&gt;&amp; a, const std::vector&lt;int8_t&gt;&amp; b) {
-    std::vector&lt;std::pair&lt;int, int&gt;&gt; state = {{0, 0}};
+const TestCase = struct {
+    a: []const i8,
+    b: []const i8,
+    expected: bool,
+};
 
-    for (size_t i = 0; i &lt; a.size(); ++i) {
-        std::vector&lt;std::pair&lt;int, int&gt;&gt; nextState;
 
-        for (const auto&amp; pair : state) {
-            int x1 = pair.first + a[i];
-            int y1 = pair.second + b[i];
-            int x2 = pair.first + b[i];
-            int y2 = pair.second + a[i];
+// Define a Pair struct
+const Pair = struct {
+    first: i32,
+    second: i32,
+};
 
-            if (x1 &gt;= 0 &amp;&amp; y1 &gt;= 0) nextState.emplace_back(x1, y1);
-            if (x2 &gt;= 0 &amp;&amp; y2 &gt;= 0) nextState.emplace_back(x2, y2);
+
+fn f(a: []const i8, b: []const i8) bool {
+    // We'll allocate dynamic arrays using an Arena allocator
+    var alloc = std.heap.page_allocator;
+    defer alloc.deinit();
+
+    // Each element in state is a pair of (x, y)
+    var state = std.ArrayList(Pair).init(alloc);
+
+
+    // Initialize state with a single pair (0, 0)
+    _ = state.append( Pair{ .first=0, .second=0 }) catch unreachable;
+
+    // Iterate through the arrays a and b
+    for (a.toSlice().enumerate()) |entry| {
+        const i = entry.index;
+
+        // Prepare the next state
+        var nextState = std.ArrayList(std.pair{i32, i32}).init(alloc);
+
+        // For every (x, y) in the current state, compute (x1, y1) and (x2, y2)
+        // using either (a[i], b[i]) or (b[i], a[i])
+        for (state.items) |pair| {
+            const x1 = pair.first + a[i];
+            const y1 = pair.second + b[i];
+            const x2 = pair.first + b[i];
+            const y2 = pair.second + a[i];
+
+            // Only add valid next positions (non-negative x and y)
+            if (x1 &gt;= 0 and y1 &gt;= 0) {
+                _ = nextState.append(.{ x1, y1 }) catch unreachable;
+            }
+            if (x2 &gt;= 0 and y2 &gt;= 0) {
+                _ = nextState.append(.{ x2, y2 }) catch unreachable;
+            }
         }
 
-        state = std::move(nextState);
+        // Replace the current state with nextState
+        state.deinit(); // free the old array list
+        state = nextState;
     }
 
-    return std::any_of(state.begin(), state.end(), [](const std::pair&lt;int, int&gt;&amp; p) {
-        return p.first == 0 &amp;&amp; p.second == 0;
-    });
+    // Check if (0, 0) is anywhere in the final state
+    for (state.items) |pair| {
+        if (pair.first == 0 and pair.second == 0) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
-int main() {
-    std::vector&lt;std::tuple&lt;std::vector&lt;int8_t&gt;, std::vector&lt;int8_t&gt;, bool&gt;&gt; testCases = {
-        {{1}, {-1}, false},
-        {{1, -1}, {1, -1}, true},
-        {{1, 1, 1, -1, -1, -1}, {1, -1, 1, -1, 1, -1}, true},
-        {{1, -1, 1, -1, -1, -1}, {1, 1, 1, -1, 1, -1}, true},
-        {{-1, -1, -1, 1, 1, 1}, {1, 1, 1, -1, -1, -1}, false},
-        {{-1,-1,-1,-1,-1,-1,-1}, {-1,-1,-1,-1,-1,-1}, false},
-        {{-1,-1,-1,-1,-1,-1,-1}, {-1,-1,-1,-1,-1,-1,-1}, false},
-        {{1, -1,-1,-1,-1,-1,-1}, {1,1,1,1,1,1, -1}, false}
+pub fn main() !void {
+    const stdout = std.io.getStdOut().writer();
+
+    // Each test case has slices a and b, and the expected boolean value
+    const testCases =  [_]TestCase{
+        .{ .a = &amp;[_]i8{ 1 },         .b = &amp;[_]i8{ -1 },             .expected = false },
+        .{ .a = &amp;[_]i8{ 1, -1 },     .b = &amp;[_]i8{ 1, -1 },          .expected = true },
+        .{ .a = &amp;[_]i8{ 1, 1, 1, -1, -1, -1 }, .b = &amp;[_]i8{ 1, -1, 1, -1, 1, -1 }, .expected = true },
+        .{ .a = &amp;[_]i8{ 1, -1, 1, -1, -1, -1 }, .b = &amp;[_]i8{ 1, 1, 1, -1, 1, -1 }, .expected = true },
+        .{ .a = &amp;[_]i8{ -1, -1, -1, 1, 1, 1 },  .b = &amp;[_]i8{ 1, 1, 1, -1, -1, -1 }, .expected = false },
+        .{ .a = &amp;[_]i8{ -1, -1, -1, -1, -1, -1, -1 }, .b = &amp;[_]i8{ -1, -1, -1, -1, -1, -1 }, .expected = false },
+        .{ .a = &amp;[_]i8{ -1, -1, -1, -1, -1, -1, -1 }, .b = &amp;[_]i8{ -1, -1, -1, -1, -1, -1, -1 }, .expected = false },
+        .{ .a = &amp;[_]i8{ 1, -1, -1, -1, -1, -1, -1 },  .b = &amp;[_]i8{ 1, 1, 1, 1, 1, 1, -1 },      .expected = false },
     };
 
-    for (const auto&amp; testCase : testCases) {
-        const auto&amp; a = std::get&lt;0&gt;(testCase);
-        const auto&amp; b = std::get&lt;1&gt;(testCase);
-        bool expected = std::get&lt;2&gt;(testCase);
+    // Run each test case
+    for (testCases) |testCase| {
+        const result = f(testCase.a, testCase.b);
 
-        bool result = f(a, b);
-        std::cout &lt;&lt; &quot;a: {&quot;;
-        for (size_t i = 0; i &lt; a.size(); ++i) {
-            std::cout &lt;&lt; static_cast&lt;int&gt;(a[i]);
-            if (i != a.size() - 1) std::cout &lt;&lt; &quot;, &quot;;
+        // Print arrays a
+        try stdout.print(&quot;a: {{ &quot;, .{});
+        for (testCase.a, 0..) |val, idx| {
+            stdout.print(&quot;{}{}&quot;, .{ val, if (idx &lt; testCase.a.len - 1) &quot;, &quot; else &quot;&quot; });
         }
-        std::cout &lt;&lt; &quot;} b: {&quot;;
-        for (size_t i = 0; i &lt; b.size(); ++i) {
-            std::cout &lt;&lt; static_cast&lt;int&gt;(b[i]);
-            if (i != b.size() - 1) std::cout &lt;&lt; &quot;, &quot;;
+        stdout.print(&quot; }} &quot;, .{});
+
+        // Print arrays b
+         stdout.print(&quot;b: {{ &quot;, .{});
+        for (testCase.b, 0..) |val, idx| {
+             stdout.print(&quot;{}{}&quot;, .{ val, if (idx &lt; testCase.b.len - 1) &quot;, &quot; else &quot;&quot; });
         }
-        std::cout &lt;&lt; &quot;} expected: &quot; &lt;&lt; (expected ? &quot;true&quot; : &quot;false&quot;)
-                  &lt;&lt; &quot;, got: &quot; &lt;&lt; (result ? &quot;true&quot; : &quot;false&quot;) &lt;&lt; std::endl;
+        stdout.print(&quot; }} &quot;, .{});
+
+        stdout.print(
+            &quot;expected: {}, got: {}\n&quot;,
+            .{ testCase.expected, result }
+        );
     }
-
-    return 0;
 }
 </code></pre>
-<p><a href="https://ato.pxeger.com/run?1=pVbNjpswEL5WPMWUShEoECWcVoHQQx-hx9UKGWJSqwQQmFWyiCfpZS899oX6NB1jIGYhadplSZaMv_nms-dH_PgV5UlVik9wiKLX158Vj-2H3x9ePrE0Sqo9BY9lJS8oOfraxfZMI54VqoVXeUJVA0kOWcH4t5FfWh1pwSJf08IsSyA2oiwtOZR8v91KTo-l_CHg_gKIBTdWQxNqDfBSV9vnnLAWZwF--T4CCKewg7peW7BuGldr_eKsAKNkLzTgwHB57eI_D8hK2AzTheWS9THuipPSE_8qYnUBhiByF6Ti2QKEE2ylJpVdXEgDpw1KEaBVzAr0WgJ5ZE_uBHcecCVF_j0Cw1ngyXlLOI87OxNCGXmMjMFAiT4eFywWQoV4NC97X9FjnpCIBiGJviPUQozpTjmcC4fzFw4HORyFo9GUnMjUtvk4Zs_UGEg6hw5cUF4VqcSR9BxksdH6rkJ6YKlhWpJqRdO9-PH4pBbmONGYQzVxHXPeHe-u21XeH6MwdFJQEsoRh30kIui1Am5byZupemuuFSwQrYT1x2nJv5CSlqLWB311vWksqG3xHZOkpI2lrlnQrgwPvKgmCHnbw2fAD_Zb3vYV9zu8bcWvuyfOA-d0c7g0ueVZTI3v8L5GIMVNCTbW5U-VLotEnU7q4Oizi8NjSLRahyqW9C1xoNxb-0bvoDSRCg9V-GYW3k5resqx8uhehTsj-Bhf0LJKsCVwzOMsDxW61j3KKg6eBzrZQq2745n5D4N5QihamUVBREoumsQ3xCCbGUIMPu4GWrBhY74RZoGujp159Q2Ed-kP_19_eEN_-H79fV63oAuLMeT5M-iiJ3WsOb2tUd0ciZCXjHTIeO_f5X3GW-4Oo-OcTeYGNI7KRr6CdG8i_RvJHw" rel="nofollow noreferrer">Attempt This Online!</a></p>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://elixir-lang.org" rel="nofollow noreferrer">Elixir</a>, 194 bytes</h1>
 <p>Golfed version. <a href="https://ato.pxeger.com/run?1=nVRLbtswEN105VMMkkUkmBKcTVIEtQsUSIEsii7SnWEYtDhyiMikTFKJVVcn6SZA0R6kt0hP0yFlO3LawEUBSaTmvZkh5_f1BxZyJc3D4zeB-UKLqkD4wKUCoXsAx_DpRlrIK5U5qRVk2hi0pVbCgtNwkp8AUd0NwnXGC064wDToXTlw_BaJdq-hkNZZ0DmRHc7RWIi0kXOpeFHUMKsd8chOsBEHda4EGHSVURY4zLQukKv0e-Xy5PXjTzoq5BFns5gJfQGXqlqkn2UZJF9G4degqDKMxusBGzQTlqv1itUNE8lIbBh5wd10wcuIsJItm2Q0Xpf9FVv2iUe7mnarZoJKbG3msnBooo2tZLQaDQfhpLXfeGKHzFX99okaluEwnMaT2pv8ejXwl32vDQhcaGWd4T7ODAp0JxYWciGzEN5tuIBC5SDjFi3FycfBVGrqhbbNGATGNDBgCOMgAliPTycMxon_5ryw2LAnhEGQ7zbOVM_w9kl27469k7-sm7ygfFA36Whtnj9Udxb3L3UMl8tK3vEClfOFeo1Ln70iOoujKDmNU6ffUdXFW18hY74WTtP0jIwpmEIyIsshqwwO4f_o_fyw9_MD3v-GP_cekUPibrxAv__i_dke8lxljxp3Ksnj_xmyFvYGusUYbE96YcmpG9YWl1POwC8zBrgqMXMoGniTdOt7U_EAc-2o2POoq7Y98NXHtKycjY6O11JZb6ilxQ3sS2Yk2Xq66GBbWdww76gL0W_cHLWe6F699uvfHo3AHGpdwT1vq0CqO32LoZvbfr2_QeXbV0k1D2LKA7Kgk3GatTQcL3p-Fqe7Ho82g-PhoV1_Aw" rel="nofollow noreferrer">Attempt This Online!</a></p>
