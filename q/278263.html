@@ -26,19 +26,56 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>094</td><td>JavaScript Node.js</td><td>250217T190438Z</td><td><a href="https://codegolf.stackexchange.com/questions/278263/snakes-on-a-2xn-grid/278270#278270">l4m2</a></td></tr>
-<tr d-ix="1"><td>096</td><td>JavaScript V8</td><td>250217T140803Z</td><td><a href="https://codegolf.stackexchange.com/questions/278263/snakes-on-a-2xn-grid/278265#278265">Arnauld</a></td></tr>
-<tr d-ix="2"><td>100</td><td>Python</td><td>250217T163745Z</td><td><a href="https://codegolf.stackexchange.com/questions/278263/snakes-on-a-2xn-grid/278267#278267">Mukundan</a></td></tr>
-<tr d-ix="3"><td>033</td><td>K ngn/k</td><td>250217T171710Z</td><td><a href="https://codegolf.stackexchange.com/questions/278263/snakes-on-a-2xn-grid/278269#278269">ovs</a></td></tr>
-<tr d-ix="4"><td>177</td><td>Python3</td><td>250217T141003Z</td><td><a href="https://codegolf.stackexchange.com/questions/278263/snakes-on-a-2xn-grid/278266#278266">Ajax1234</a></td></tr>
+<tr d-ix="0"><td>020</td><td>Jelly</td><td>250217T210702Z</td><td><a href="https://codegolf.stackexchange.com/questions/278263/snakes-on-a-2xn-grid/278272#278272">Jonathan</a></td></tr>
+<tr d-ix="1"><td>092</td><td>JavaScript Node.js</td><td>250217T190438Z</td><td><a href="https://codegolf.stackexchange.com/questions/278263/snakes-on-a-2xn-grid/278270#278270">l4m2</a></td></tr>
+<tr d-ix="2"><td>096</td><td>JavaScript V8</td><td>250217T140803Z</td><td><a href="https://codegolf.stackexchange.com/questions/278263/snakes-on-a-2xn-grid/278265#278265">Arnauld</a></td></tr>
+<tr d-ix="3"><td>100</td><td>Python</td><td>250217T163745Z</td><td><a href="https://codegolf.stackexchange.com/questions/278263/snakes-on-a-2xn-grid/278267#278267">Mukundan</a></td></tr>
+<tr d-ix="4"><td>033</td><td>K ngn/k</td><td>250217T171710Z</td><td><a href="https://codegolf.stackexchange.com/questions/278263/snakes-on-a-2xn-grid/278269#278269">ovs</a></td></tr>
+<tr d-ix="5"><td>177</td><td>Python3</td><td>250217T141003Z</td><td><a href="https://codegolf.stackexchange.com/questions/278263/snakes-on-a-2xn-grid/278266#278266">Ajax1234</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 94 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 20 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
+<pre><code>ḤRW;ḶḤo‘Ʋ’ḣ;Ṛ{Qʋ\ḊỤ€
+</code></pre>
+<p>A monadic Link that accepts <span class="math-container">\$n\$</span> and yields a list of the <span class="math-container">\$n\$</span> snakes, each as a flattened list of 1-indexed snake locations.</p>
+<p><strong><a href="https://tio.run/##ATUAyv9qZWxsef//4bikUlc74bi24bikb@KAmMay4oCZ4bijO@G5mntRyotc4biK4buk4oKs////Ng" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></strong></p>
+<h4>How?</h4>
+<pre><code>ḤRW;ḶḤo‘Ʋ’ḣ;Ṛ{Qʋ\ḊỤ€ - Link: positive integer, N
+Ḥ                    - double {N} -&gt; 2N
+ R                   - range {that} -&gt; [1..2N]
+  W                  - wrap {that} -&gt; [[1..2N]]
+        Ʋ            - last four links as a monad - f(N):
+    Ḷ                -   lowered range {N} -&gt; [0..N-1]
+     Ḥ               -   double {that} -&gt; [0,2,4,...,2N-2]
+       ‘             -   increment {N} -&gt; N+1
+      o              -   {doubles} logical OR {N+1} -&gt; [N+1,2,4,...,2N-2]
+   ;                 - {wrapped} concatenate {that} -&gt; [[1..2N],N+1,2,4,...,2N-2]]
+         ’           - decrement {that} -&gt; [[0..2N-1],N,1,3,...,2N-3]]
+                \    - cumulative reduce {that} with:
+               ʋ     -   last four links as a dyad - f(Current, V):
+          ḣ          -     head {Current} to index {V}
+            Ṛ{       -     reverse {Current}
+           ;         -     {head} concatenate {reversed}
+              Q      -     deduplicate {that}
+                         -&gt; i.e. f(a-z, 3) -&gt; abczyx...d
+                 Ḋ   - dequeue {that} (to remove the [1..2N])
+                   € - for each {of those}:
+                  Ụ  -   grade up
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 92 bytes</h1>
+
+<pre class="lang-none prettyprint-override"><code>n=&gt;[...Array(n)].map((_,i,A)=&gt;A.map((_,j)=&gt;[(t=[j&lt;i?++k:n*2+i-j,++k])[j=j+k&amp;1],t[j^1]],k=0))
+</code></pre>
+<p><a href="https://tio.run/##XY5BDoIwFET3nqILY1pbGnFjInwM52iqEAXTgr@kNCaGcPbajRtXb97MZmz7bue7N1PI0D262ENEqJSUsva@/VBkWr7aidKbMKJmUNU/tUkUDaBsaS6cD2fcH7nJrEhZM2XB8mGXaxGUveZaiwEOjMXeeTp2gSABkhcJJZBTIueMLBtC7g5nN3ZydE/aIGwXXBtW/A19upXKNX4B" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<s>
+<h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 94 bytes</h1>
 
 <pre class="lang-none prettyprint-override"><code>n=&gt;[...Array(n)].map((_,i,A)=&gt;A.map((_,j)=&gt;[(t=[j&lt;i?k++:--y,k++])[j=j+k&amp;1],t[j^1]],k=0,y=n*2))
 </code></pre>
 <p><a href="https://tio.run/##XY6xDoIwFEV3v6KDMa0tjbiYCA/DdzRVCIKh4CspjQkhfHvt4uJ0cu5Zrqk/9dy4fvIJ2mcbOggIhZJSls7VC0Wm5bueKH2IXpQMivKnJoqiHpTJ@9vA@TVJFhGpmTJg@HBItfDK3FOtxQAnsQAez4yFzjo6tp4gAZJmETmQSyTnjKw7QhqLsx1bOdoXrRD2K24Vy/5CF4/FcQtf" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+</s>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://v8.dev/" rel="nofollow noreferrer">JavaScript (V8)</a>, 96 bytes</h1>
+<div id="pu2" class="pu"><h1><a href="https://v8.dev/" rel="nofollow noreferrer">JavaScript (V8)</a>, 96 bytes</h1>
 <p>Prints one grid per line in flattened transposed format, with the snakes starting at <code>1</code>.</p>
 
 <pre class="lang-none prettyprint-override"><code>f=(w,i=0,n=1,...r)=&gt;i&lt;0|i/w/2|n^(r[i]^=n)?0:n&lt;w*2?[-2,0,2].map(d=&gt;f(w,i+d^!d,n+1,...r)):print(r)
@@ -73,7 +110,7 @@ n ^ (           // or r[i] was not 0 before ...
     print(r)    //     print the grid
 </code></pre>
 </div>
-<div id="pu2" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 100 bytes</h1>
+<div id="pu3" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 100 bytes</h1>
 <pre class="lang-python prettyprint-override"><code>f=lambda n,k=0:(m:=range(k,n))and[[m,range(n,n+n-k)[::-1]]]+[[[k,*j],[k+1,*i]]for i,j in f(n+1,k+2)]
 </code></pre>
 <p><a href="https://ato.pxeger.com/run?1=RY8xEoIwEEV7TpEyIcuMWDhOZjhJ3CIORENgQcDCs9jQ6J28jcGg_vL9v__P3p_9bTp3NM-P62Sz_au0RWPaY2kYgS82ireqGAydKu6BhDBUat1CJAQkKfNCK5XliCi11h7SGkF7mUPqEG03MAc1c8QspwC93Apctw4fd_FiXw5sJ1TCghZnrC7xzq1wUT84mrhu3DgFzn4NIYwi-SdE3Pj-9QY" rel="nofollow noreferrer">Attempt This Online!</a></p>
@@ -84,13 +121,13 @@ n ^ (           // or r[i] was not 0 before ...
 <p><a href="https://ato.pxeger.com/run?1=XY9BCsIwEEX3PUWWSTMBk4VIIEfwBCFCpI2G1GmpceFZ3HSjd_I2tiUi-Jf_8f4wj9dwz-cep-l5y0Hs3l0wnb8cG08QktlANhK8sU5jbaXz2FjPrU08QuKqRhGFdFbr7EI_kkgiktHjqaXInOOBopCgeIJ8EApWc_aK4Vi5uf9zJZAt0xWZs5Ar-tQuNNBY6iXDGDHTFbLqV5TR70Mf" rel="nofollow noreferrer">Attempt This Online!</a></p>
 <p>Returns the snakes as a list of Nx2 matrices.</p>
 </div>
-<div id="pu3" class="pu"><h1><a href="https://codeberg.org/ngn/k" rel="nofollow noreferrer">K (ngn/k)</a>, 33 bytes</h1>
+<div id="pu4" class="pu"><h1><a href="https://codeberg.org/ngn/k" rel="nofollow noreferrer">K (ngn/k)</a>, 33 bytes</h1>
 <p>Returns the snakes as a list of 2×N arrays.</p>
 <pre><code>2_{((0 1,'|2+)'x),,1(|y+)\!y}/!1+
 </code></pre>
 <p><a href="https://ngn.codeberg.page/k#eJxLszKKr9bQMFAw1FGvMdLWVK/Q1NEx1Kip1NaMUays1Vc01ObiKrGqTjCwUrK1tVVQ0tFQASpRUgBylKwVNBRiNNXTHCqsa4GqHAyB2BiIzQF8dRQ6" rel="nofollow noreferrer">Try it online!</a></p>
 </div>
-<div id="pu4" class="pu"><h1>Python3, 177 bytes</h1>
+<div id="pu5" class="pu"><h1>Python3, 177 bytes</h1>
 <pre class="lang-py prettyprint-override"><code>def f(n):
  q=[(0,0,[(0,0)])]
  for x,y,p in q:
