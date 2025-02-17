@@ -38,43 +38,33 @@
 <pre class="lang-none prettyprint-override"><code>w=&gt;(g=(i,n,...r)=&gt;i&lt;0|i/w/2|n^(r[i]^=n)?0:n&lt;w*2?[-2,0,2].map(d=&gt;g(i+d^!d,n+1,...r)):print(r))(0,1)
 </code></pre>
 <p><a href="https://tio.run/##TYzLCoMwFET3/YoUuripMT42LerVDxFF8UWKvUoUXajfbkO76eoMc4Z5lUs5VVqNs708zxbPFWPoEJQgIaXUHGMVubtyVsffKQedqixH4okbULTe/SS1feEKP5PvcoQa4w6UVefXWpDl/R54MGpFM5gErvD42Q4a@mZmxJB5oUGE7GFoWZxtF8aqgaahb2Q/dFAQ3jY6Ch4a0QJ9@T8wxXF@AA" rel="nofollow noreferrer" title="JavaScript (V8) – Try It Online">Try it online!</a></p>
-<hr />
-<h1><a href="https://v8.dev/" rel="nofollow noreferrer">JavaScript (V8)</a>, 119 bytes</h1>
-<p>Prints one grid per line, with columns separated by commas and rows separated by a space.</p>
-<p>The snakes start at <code>1</code>.</p>
-
-<pre class="lang-none prettyprint-override"><code>w=&gt;(m=[[],[]],g=(x,y,n,r=m[y])=&gt;x&lt;0|x/w|r[x]?0:r[r[x]=n,n&lt;w*2?[-1,0,1].map(d=&gt;g(x+d,y^!d,n+1)):print(...m),x]=0)(0,0,1)
-</code></pre>
-<p><a href="https://tio.run/##TYvBDoIwEETvfkVNPGxlrcWLRln8kKZGIkIwsJBKpET9dqyePL3JzLxb9sjuF1d1/eqxmwqaBkqhIWMsGmuxJPA4IqOjxoxWUuoT/fLr4eWMt0e9d@YbiJGTYbk5mlWMGmOrmqyDnNISfJTjeJrnyFEs5b5zFfeglGokBk9L0F9BTkXroL72ggWJ@BCQkNgGRpEUz5kQl5bvbX1VdVvCmWnx5PdZHsJQAP/4fwjFe/oA" rel="nofollow noreferrer" title="JavaScript (V8) – Try It Online">Try it online!</a></p>
 <h3>Commented</h3>
-<pre class="lang-none prettyprint-override"><code>w =&gt; (               // main function taking the width w
-  m = [ [], [] ],    // m[] = matrix
-  g = (              // g is a recursive function taking:
-    x, y,            //   (x, y) = position
-    n,               //   n = current cell (1-indexed)
-    r = m[y]         //   r[] = current row
-  ) =&gt;               //
-  x &lt; 0 |            //   if x is negative
-  x / w |            //   or x = w
-  r[x] ?             //   or r[x] is not zero'ish:
-    0                //     do nothing
-  :                  //   else:
-    r[               //
-      r[x] = n,      //     set r[x] to n
-      n &lt; w * 2 ?    //     if n is less than w*2:
-        [ -1, 0, 1 ] //       list of directions
-        .map(d =&gt;    //       for each direction d:
-          g(         //         recursive call:
-            x + d,   //           add d to x
-            y ^ !d,  //           change y if d=0
-            n + 1    //           increment n
-          )          //         end of recursive call
-        )            //       end of map()
-      :              //     else:
-        print(...m), //       print the matrix
-      x              //     actual index ...
-    ] = 0            //     ... to reset r[x] to 0
-)(0, 0, 1)           // initial call to g
+<pre class="lang-none prettyprint-override"><code>w =&gt; (           // main function taking the width w
+  g = (          // g is a recursive function taking:
+    i,           //   i = position (as y + x * 2)
+    n,           //   n = current cell (1-indexed)
+    ...r         //   r[] = flattened transposed grid
+  ) =&gt;           //
+  i &lt; 0 |        //   if i is negative,
+  i / w / 2 |    //   or i = w*2,
+  n ^ (          //   or r[i] was not 0 before ...
+    r[i] ^= n    //   ... we attempt to set it to n
+  ) ?            //   then:
+    0            //     do nothing
+  :              //   else:
+    n &lt; w * 2 ?  //     if n is less than w*2:
+      [-2, 0, 2] //       list of directions
+      .map(d =&gt;  //       for each direction d:
+        g(       //         recursive call:
+          i + d  //           column update: add d to i
+          ^ !d,  //           change the row if d=0
+          n + 1, //           increment n
+          ...r   //           pass a copy of r[]
+        )        //         end of recursive call
+      )          //       end of map()
+    :            //     else (snake completed):
+      print(r)   //       print the grid
+)(0, 1)          // initial call to g with i=0, n=1
 </code></pre>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 100 bytes</h1>
