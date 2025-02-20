@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::170398</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>056</td><td>Python 2</td><td>180816T001748Z</td><td><a href="https://codegolf.stackexchange.com/questions/170398/primality-testing-formula/170693#170693">xnor</a></td></tr>
+<tr d-ix="1"><td>nan</td><td>This answer doesn't use any numbertheoretic cleverness. It spams Python's bitwise operators to create a manual "for loop"</td><td>180830T051644Z</td><td><a href="https://codegolf.stackexchange.com/questions/170398/primality-testing-formula/171453#171453">Lopsy</a></td></tr>
+<tr d-ix="2"><td>043</td><td>43 bytes</td><td>180810T043055Z</td><td><a href="https://codegolf.stackexchange.com/questions/170398/primality-testing-formula/170403#170403">user2027</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1><a href="https://docs.python.org/2/" rel="nofollow noreferrer">Python 2</a>, 56 bytes</h1>
+
+<pre class="lang-none prettyprint-override"><code>n**(n*n-n)/(((2**n**n+1)**n**n&gt;&gt;n**n*~-n)%2**n**n)%n&gt;n-2
+</code></pre>
+<p><a href="https://tio.run/##K6gsycjPM/qfWRxfUJSZm2qbk5iblJKokGcV8z9PS0sjTytPN09TX0NDw0hLCyiQp22oCWHY2YFIrTqgtCpUTlM1zy5P1@h/Wn6RQp5CZp5CtJGOgrGOgomOgmmsFRcn0Ia8EoU8HQWYbRp5mv8B" rel="nofollow noreferrer" title="Python 2 – Try It Online">Try it online!</a></p>
+<p>This is a proof-of-concept that this challenge is doable with only arithmetic operators, in particular without bitwise <code>|</code>, <code>&amp;</code>, or <code>^</code>. The code uses bitwise and comparison operators just for golfing, and they can easily be replaced with arithmetic equivalents.</p>
+<p>However, the solution is extremely slow, and I haven't been able to run <span class="math-container">\$n=6\$</span>, thanks to two-level exponents like <span class="math-container">\$2^{n^n}\$</span>.</p>
+<p>The main idea is to make an expression for the factorial <span class="math-container">\$n!\$</span>, which lets us do a <a href="https://en.wikipedia.org/wiki/Wilson%27s_theorem" rel="nofollow noreferrer">Wilson's Theorem</a> primality test <span class="math-container">\$(n-1)! \mathbin{\%} n &gt; n-2 \$</span> where <span class="math-container">\$ \mathbin{\%}\$</span> is the modulo operator.</p>
+<p>We can make an expression for the <a href="https://codegolf.stackexchange.com/a/169115/20260">binomial coefficient</a>, which is made of factorials</p>
+<p><span class="math-container">$$\binom{m}{n} \ = \frac{m!}{n!(m-n)!}$$</span></p>
+<p>But it's not clear how to extract just one of these factorials. The trick is to hammer apart <span class="math-container">\$n!\$</span> by making <span class="math-container">\$m\$</span> really huge.</p>
+<p><span class="math-container">$$\binom{m}{n} \ = \frac{m(m-1)\cdots(m-n+1)}{n!}= \frac{m^n}{n!}\cdot \left(1-\frac{1}{m}\right)\left(1-\frac{2}{m}\right)\cdots \left(1-\frac{n-1}{m}\right)$$</span></p>
+<p>So, if we let <span class="math-container">\$c \$</span> be the product <span class="math-container">\$ \left(1-\frac{1}{m}\right)\left(1-\frac{2}{m}\right)\cdots \left(1-\frac{n-1}{m}\right)\$</span>, we have</p>
+<p><span class="math-container">$$n! = \frac{m^n}{\binom{m}{n}} \cdot c$$</span></p>
+<p>If we could just ignore <span class="math-container">\$c\$</span>, we'd be done. The rest of this post is looking how large we need to make <span class="math-container">\$m\$</span> for this to work.</p>
+<p>Note that <span class="math-container">\$c\$</span> approaches <span class="math-container">\$1\$</span> from below as <span class="math-container">\$ m \to \infty \$</span>. We just need to make <span class="math-container">\$m\$</span> huge enough that omitting <span class="math-container">\$c\$</span> gives us a value with integer part <span class="math-container">\$n!\$</span> so that we may compute</p>
+<p><span class="math-container">$$n! = \left\lfloor \frac{m^n}{\binom{m}{n}} \right\rfloor $$</span></p>
+<p>For this, it suffices to have <span class="math-container">\$1 - c &lt; 1/n!\$</span> to avoid the ratio passing the next integer <span class="math-container">\$n!+1\$</span>.</p>
+<p>Observe that <span class="math-container">\$c\$</span> is a product of <span class="math-container">\$n\$</span> terms of which the smallest is <span class="math-container">\$ \left(1-\frac{n-1}{m}\right)\$</span>. So, we have</p>
+<p><span class="math-container">$$c &gt; \left(1-\frac{n-1}{m}\right)^n &gt; 1 - \frac{n-1}{m} n &gt; 1-\frac{n^2}{m},$$</span></p>
+<p>which means <span class="math-container">\$1 - c &lt; \frac{n^2}{m}\$</span>. Since we're looking to have <span class="math-container">\$1 - c &lt; 1/n!\$</span>, it suffices to take <span class="math-container">\$m \geq n! \cdot n^2\$</span>.</p>
+<p>In the code, we use <span class="math-container">\$m=n^n\$</span>. Since Wilson's Theorem uses <span class="math-container">\$(n-1)!\$</span>, we actually only need <span class="math-container">\$m \geq (n-1)! \cdot (n-1)^2\$</span>. It's easy to see that <span class="math-container">\$m=n^n\$</span> satisfies the bound for small <span class="math-container">\$n\$</span> and quickly outgrows the right hand side asymptotically, say with <a href="https://en.wikipedia.org/wiki/Stirling%27s_approximation" rel="nofollow noreferrer">Stirling's approximation</a>.</p>
+</div>
+<div id="pu1" class="pu"><p>This answer doesn't use any number-theoretic cleverness. It spams Python's bitwise operators to create a manual "for loop", checking all pairs \$1 \leq i,j &lt; n\$ to see whether \$i \times j = n\$.</p>
+
+<h1>Python 2, way too many bytes (278 thanks to Jo King in the comments!)</h1>
+
+
+
+<pre class="lang-python prettyprint-override"><code>((((((2**(n*n)/(2**n-1)**2)*(2**((n**2)*n)/(2**(n**2)-1)**2))^((n*((2**(n*n-n)/(2**n-1))*(2**((n**2)*(n-1))/(2**n**2-1))))))-((2**(n*n-n)/(2**n-1))*(2**((n**2)*(n-1))/(2**(n**2)-1))))&amp;(((2**(n*(n-1))/(2**n-1))*(2**((n**2)*(n-1))/(2**(n**2)-1)))*(2**(n-1)))==0))|((1&lt;n&lt;6)&amp;(n!=4))
+</code></pre>
+
+<p><a href="https://tio.run/##lY69DsIwDIR3nsIsyLYa0UaIATVvgpAY@OlyraIuSLx7yE8VlQ1usu/82Z5e83OEDffRE2gA@SseN7aNbeW0ockPmAnNOXCWVWUoZJ8qmE5UrWi2o5/qJSvdMiCXlFbarPhvmLNVwmikJsn8h9bbUbv69Hr3j3QZyZE414q8mbse/TGuxdYdREL4AA" rel="nofollow noreferrer" title="Python 2 – Try It Online">Try it online!</a></p>
+
+<p>This is a lot more bytes than the other answers, so I'm leaving it ungolfed for now. The code snippet below contains functions and variable assignment for clarity, but substitution turns isPrime(n) into a single Python expression.</p>
+
+<pre class="lang-python prettyprint-override"><code>def count(k, spacing):
+    return 2**(spacing*(k+1))/(2**spacing - 1)**2
+def ones(k, spacing):
+    return 2**(spacing*k)/(2**spacing - 1)
+
+def isPrime(n):
+    x = count(n-1, n)
+    y = count(n-1, n**2)
+    onebits = ones(n-1, n) * ones(n-1, n**2)
+    comparison = n*onebits
+    difference = (x*y) ^ (comparison)
+    differenceMinusOne = difference - onebits
+    checkbits = onebits*(2**(n-1))
+    return (differenceMinusOne &amp; checkbits == 0 and n&gt;1)or 1&lt;n&lt;6 and n!=4
+</code></pre>
+
+<h1>Why does it work?</h1>
+
+<p>I'll do the same algorithm here in base 10 instead of binary. Look at this neat fraction:</p>
+
+<p>$$ \frac{1.0}{999^2} = 1.002003004005\dots $$</p>
+
+<p>If we put a large power of 10 in the numerator and use Python's floor division, this gives an enumeration of numbers. For example, \$ 10^{15}/(999^2) = 1002003004 \$ with floor division, enumerating the numbers \$ 1,2,3,4 \$.</p>
+
+<p>Let's say we multiply two numbers like this, with different spacings of zeroes. I'll place commas suggestively in the product.</p>
+
+<p>$$ 1002003004 \times 1000000000002000000000003000000000004 = $$ $$ 1002003004,002004006008,003006009012,004008012016 $$</p>
+
+<p>The product enumerates, in three-digit sequences, the multiplication table up to 4 times 4. If we want to check whether the number 5 is prime, we just have to check whether \$ 005 \$ appears anywhere in that product.</p>
+
+<p>To do that, we XOR the above product by the number \$ 005005005\dots005 \$, and then subtract the number \$ 001001001\dots001 \$. Call the result \$d\$. If \$ 005 \$ appeared in the multiplication table enumeration, it will cause the subtraction to carry over and put \$ 999 \$ in the corresponding place in \$d\$.</p>
+
+<p>To test for this overflow, we compute an AND of \$d\$ and the number \$ 900900900\dots900 \$. The result is zero if and only if 5 is prime.</p>
+</div>
+<div id="pu2" class="pu"><h1>43 bytes</h1>
+
+
+
+<pre class="lang-python prettyprint-override"><code>(4**n+1)**n%4**n**2/n&amp;2**(2*n*n+n)/-~2**n&lt;1
+</code></pre>
+
+<p><a href="https://tio.run/##TY0xDsMgEARreMU1juAcyz7kygo/SUNhEiRrbWGaNPk6wV2a1U6xs8envHe4GvdMoATKAa/VuDvJNNlFqyjk6VnNzIxebMvuqsxuxM0xG9cAPew4fBviIVVF1zZh2wy6RJc5/ZsxiLVahfNcc6Eo3sd2B61SbLTQkRMKof4A" rel="noreferrer" title="Python 2 – Try It Online">Try it online!</a></p>
+
+<p>The method is similar to Dennis' second (deleted) answer, but this answer is easier to be proved correct.</p>
+
+<h1>Proof</h1>
+
+<h3>Short form</h3>
+
+<p>The most significant digit of <code>(4**n+1)**n%4**n**2</code> in base \$2^n\$ that is not divisible by \$n\$ will make the next (less significant) digit in <code>(4**n+1)**n%4**n**2/n</code> nonzero (if that "next digit" is not in the fractional part), then a <code>&amp;</code> with the bitmask <code>2**(2*n*n+n)/-~2**n</code> is executed to check if any digit at odd position is nonzero.</p>
+
+<h3>Long form</h3>
+
+<p>Let \$[a_n,\dots,a_1,a_0]_b\$ be the number having that base \$b\$ representation, i.e., \$a_nb^n+\dots+a_1b^1+a_0b^0\$, and \$a_i\$ be the digit at "position" \$i\$ in base \$b\$ representation.</p>
+
+<ul>
+<li>\$\texttt{2**(2*n*n+n)/-~2**n}
+=\lfloor{2^{(2n+1)n}\over1+2^n}\rfloor
+=\lfloor{4^{n^2}\times 2^n\over1+2^n}\rfloor
+=\lfloor{{(4^{n^2}-1)\times 2^n\over1+2^n}
++{2^n\over1+2^n}}\rfloor
+\$.</li>
+</ul>
+
+<p>Because \$2^n\times{4^{n^2}-1\over1+2^n}
+=2^n(2^n-1)\times{(4^n)^n-1\over4^n-1}
+=[2^n-1,0,2^n-1,0,2^n-1,0]_{2^n}\$ (with \$n\$ \$2^n-1\$s) is an integer,
+and \$\lfloor{2^n\over1+2^n}\rfloor=0\$,
+<code>2**(2*n*n+n)/-~2**n</code> = \$[2^n-1,0,2^n-1,0,2^n-1,0]_{2^n}\$.</p>
+
+<p>Next, consider 
+$$\begin{align}
+\texttt{(4**n+1)**n}
+&amp;=(4^n+1)^n \\
+&amp;=\binom n04^{0n}+\binom n14^{1n}+\dots+\binom nn4^{n^2} \\
+&amp;=\left[\binom nn,0,\dots,0,\binom n1,0,\binom n0\right]_{2^n}
+\end{align}$$</p>
+
+<p>\$4^{n^2}=(2^n)^{2n}\$, so <code>%4**n**2</code> will truncate the number to \$2n\$ last digits - that excludes the \$\binom nn\$ (which is 1) but include all other binomial coefficients.</p>
+
+<p>About <code>/n</code>:</p>
+
+<ul>
+<li><p>If \$n\$ is a prime, the result will be \$\left[\binom n{n-1}/n,0,\dots,0,\binom n1/n,0,0\right]_{2^n}\$. All digits at odd position are zero.</p></li>
+<li><p>If \$n\$ is not a prime:</p>
+
+<p>Let \$a\$ be the largest integer such that \$n\nmid\binom na\$ (\$n&gt;a&gt;0\$). Rewrite the dividend as</p>
+
+<p>\$\left[\binom n{n-1},0,\binom n{n-2},0,\dots,\binom n{a+1},
+    0,0,0,\dots,0,0,0\right]_{2^n} +
+\left[\binom na,0,\binom n{a-1},0,\dots,\binom n0\right]_{2^n}\$</p>
+
+<p>The first summand has all digits divisible by \$n\$, and the digit at position \$2a-1\$ zero.</p>
+
+<p>The second summand has its most significant digit (at position \$2a\$) not divisible by \$n\$ and (the base) \$2^n&gt;n\$, so the quotient when dividing that by \$n\$ would have the digit at position \$2a-1\$ nonzero.</p>
+
+<p>Therefore, the final result (<code>(4**n+1)**n%4**n**2/n</code>) should have the digit (base \$2^n\$, of course) at position \$2a+1\$ nonzero.</p></li>
+</ul>
+
+<p>Finally, the bitwise AND (<code>&amp;</code>) performs a vectorized bitwise AND on the digits in base \$2^n\$ (because the base is a power of 2), and because \$a\texttt &amp;0=0,a\texttt&amp;(2^n-1)=a\$ for all \$0\le a&lt;2^n\$, <code>(4**n+1)**n%4**n**2/n&amp;2**(2*n*n+n)/-~2**n</code> is zero iff <code>(4**n+1)**n%4**n**2/n</code> has all digits in first \$n\$ odd positions zero - which is equivalent to \$n\$ being prime.</p>
+
+
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/170398/">170398</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
