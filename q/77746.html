@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::77746</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>157</td><td>APLNARS</td><td>250221T134505Z</td><td><a href="https://codegolf.stackexchange.com/questions/77746/identify-the-conic-section/278328#278328">Rosario</a></td></tr>
+<tr d-ix="1"><td>247</td><td>Sage</td><td>160420T061852Z</td><td><a href="https://codegolf.stackexchange.com/questions/77746/identify-the-conic-section/78089#78089">user4594</a></td></tr>
+<tr d-ix="2"><td>500</td><td>C</td><td>160418T142430Z</td><td><a href="https://codegolf.stackexchange.com/questions/77746/identify-the-conic-section/78016#78016">edc65</a></td></tr>
+<tr d-ix="3"><td>154</td><td>Matlab</td><td>160415T014317Z</td><td><a href="https://codegolf.stackexchange.com/questions/77746/identify-the-conic-section/77816#77816">David</a></td></tr>
+<tr d-ix="4"><td>316</td><td>JavaScript ES6</td><td>160414T135051Z</td><td><a href="https://codegolf.stackexchange.com/questions/77746/identify-the-conic-section/77779#77779">edc65</a></td></tr>
+<tr d-ix="5"><td>234</td><td>Python</td><td>160415T012311Z</td><td><a href="https://codegolf.stackexchange.com/questions/77746/identify-the-conic-section/77815#77815">Maltysen</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>APL(NARS), 157 chars</h1>
+<pre><code>{W←⍵⋄M←⊃{⍵,(×/⍵),⍵*2}¨q←⍵∼⊂0 0⋄v←5⍴1⋄(M v)←{q≡W:M v⋄(0 1↓M) M[;1]}⋄(b c a)←¯3↑v⌹M×1x⋄(b=0)∧a=c:'circle'⋄0&gt;t←(b*2)-4×a×c:'ellipse'⋄0&lt;t:'hyperbola'⋄'parabola'}
+</code></pre>
+<p>Input should be choosen in the way matrix coefficient is square and its determinat is different of 0.</p>
+<p>For me there are 2 cases, case 1 there is no (0 0) in the argument data points,
+case 2 there is 1 (0 0) in argument data points.
+The book formula for general conic is below, but I modify something in the hope that not change the determinant <code>(b*2)-4×a×c</code>.</p>
+<pre><code>Ax^2+Cy^2+Bxy+Dx+Ey+F=0
+</code></pre>
+<p>For case 1 for build the matrix M I use this formula below, where v=(1 1 1 1 1)</p>
+<p>Ax^2+Cy^2+Bxy+Dx+Ey=1</p>
+<p>For case 2 for build the matrix M I use this formula below, where v=(y)=(the second coordinate 4 points)</p>
+<p>Ax^2+Cy^2+Bxy+Dx   =y</p>
+<p>For find &quot;A C B&quot; I use <code>¯3↑v⌹M</code>. I use rationals for not have round errors.</p>
+<p>test:</p>
+<pre><code>  f←{W←⍵⋄M←⊃{⍵,(×/⍵),⍵*2}¨q←⍵∼⊂0 0⋄v←5⍴1⋄(M v)←{q≡W:M v⋄(0 1↓M) M[;1]}⋄(b c a)←¯3↑v⌹M×1x⋄(b=0)∧a=c:'circle'⋄0&gt;t←(b*2)-4×a×c:'ellipse'⋄0&lt;t:'hyperbola'⋄'parabola'}
+  f (1 0)(0 1)(0.5 0.5)(0.3 0.7)(4 9)
+hyperbola
+  f (1.2 5.3)(4.1 5.6)(9.1 2.5)(0 1)(4.2 0)
+ellipse
+  f (5 0)(4 3)(3 4)(0 5)(0 ¯5)
+circle
+  f (1 0)(0 1)(2 1)(3 4)(4 9)
+parabola
+  f (¯1 4)(2 2)(6 4)(¯3 2)(2 5)
+ellipse
+  f (0 0)(1 5)(2 3)(4 8)(9 2) 
+hyperbola
+  f (5 9)(¯4 ¯3)(2 4)(8 13)(¯1 1)
+DOMAIN ERROR
+  f (5 9)(¯4 ¯3)(2 4)(8 13)(¯1 1)
+  ∧
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h2>Sage, 247 bytes</h2>
+<pre class="lang-py prettyprint-override"><code>def f(p):
+ for i in[1,2,4]:
+  z=[i&amp;1,i&amp;2,i&amp;4,0,0,0]
+  M=matrix([z]+[[x*x,x*y,y*y,x,y,1]for x,y in p])
+  try:A,B,C=(M\vector(z))[:3]
+  except:continue
+  d=B*B-4*A*C
+  return['parabola','hyperbola','circle','ellipse'][[d==0,d&gt;0,d&lt;0and B==0and A==C,d&lt;0].index(1)]
+</code></pre>
+<p><a href="http://sagecell.sagemath.org/?z=eJxFUs1ugzAMvlfqO_jUBOYioHRa0VKp9NwnyDgwSLVIjKKQVtCnX5zSDmTZsf19_kkadYYz74N8uYDzxYAG3ckEU8xKcsFdSL1KUK9SJxnG9JcUOInfyho9cnkv36QcwxHHcMLJyYgTJiWxOcvxQV8GBLFmyg9Y4FHw09dN1fZi-D0IZL7xjGqsVW_z-tJZ3V0VuRpRhMU6Cw_hkY5G2avpJOsrU31f2ooh-5l6ZWa71qZulTNU2-p-UKyUshEixmbv5DOuugYKdyZ9EOJIvjLSXaNGngSuh-XCqsEOIIAxxmOEOEDgCcKWdIqwIZ0hfJDeIaQBiD28elgueBK5tG30SIwIGr37ZLLTyBM54uQRT6kEUcwdO4LtXDWbq20Qshn0BK-3HvMYl2rOkCdvOusn1FHtPOK1N8ZoWLqhuhoUXZEfPBr6VttWd2rg_kW4jwLoNk9boeRHDmfEx4L_HKFuVcvJmp290Z11b8u7PMMfioGfWw==&amp;lang=sage" rel="nofollow noreferrer">Try it online</a></p>
+<p>This function takes an iterable of <code>(x,y)</code> pairs as input, tries computing the discriminant of each of the 3 possible linear systems (<code>A=1</code>, <code>B=1</code>, and <code>C=1</code>), and outputs the type of conic section based on the values of the discriminant, <code>A</code>, <code>B</code>, and <code>C</code>.</p>
+<p>There's probably some more golfing to be done, but I'm rusty with Sage and sleepy right now, so I'll work on it more in the morning.</p>
+</div>
+<div id="pu2" class="pu"><h1>C, 500</h1>
+<p>My JavaScript answer ported to C. Just to see if it can be done.</p>
+<p>Usage: read 10 values from standard input</p>
+<blockquote>
+<p>echo 1 0 0 1 2 1 3 4 4 9 | conic</p>
+</blockquote>
+<p>Output:</p>
+<blockquote>
+<p>Parabola</p>
+</blockquote>
+<p><a href="http://ideone.com/ECm7fm" rel="nofollow noreferrer">Test (ideone)</a></p>
+<pre class="lang-c prettyprint-override"><code>double D(m,k)double*m;{double t=0;for(int s=1,b=1,x=0;x&lt;6;x++,b+=b)k&amp;b||(t+=s*m[x]*(k+b&gt;62?1:D(m+6,k+b)),s=-s);return t;}i,u,h;double m[36],*t=m+6,w[6],s[3],b,d;main(){for(;i++&lt;5;*t++=d*d,*t++=d*b,*t++=b*b,*t++=d,*t++=b,*t++=1)scanf(&quot;%lf%lf&quot;,&amp;d,&amp;b);for(u=4;u;u/=2)for(m[0]=u&amp;1,m[1]=u&amp;2,m[2]=u&amp;4,d=D(m,0),h=0;d&amp;&amp;h&lt;3;h++){for(i=0;i&lt;6;i++)w[i]=m[i*6+h],m[i*6+h]=i?0:u;s[h]=D(m,0)/d;for(;i--;)m[i*6+h]=w[i];}b=s[1];d=b*b-4*s[0]*s[2];puts(d?d&lt;0?!b&amp;(s[2]==s[0])?&quot;Circle&quot;:&quot;Ellipse&quot;:&quot;Hyperbola&quot;:&quot;Parabola&quot;);}
+</code></pre>
+<p><strong>Less golfed</strong></p>
+<pre class="lang-c prettyprint-override"><code>// Calc determinant of a matrix of side d
+// In the golfed code, d is fix to 6
+double D(m, d, k)
+double*m;
+{
+    int s = 1, b = 1, x = 0;
+    double t = 0;
+    for (; x &lt; d; x++, b += b)
+        k&amp;b || (
+            t += s*m[x] *(k+b+1==1&lt;&lt;d? 1: D(  m + d, d, k + b)), s = -s
+        );
+    return t;
+}
+
+double m[36],d, *t = m + 6, w[6], s[3], a, b, c;
+i,u,h;
+main()
+{
+    for (; i++ &lt; 5; )
+    {
+        scanf(&quot;%lf%lf&quot;, &amp;a, &amp;b);
+        *t++ = a*a, *t++ = a*b, *t++ = b*b, *t++ = a, *t++ = b, *t++ = 1;
+    }
+    for (u = 4; u; u /= 2)
+    {
+        m[0] = u &amp; 1, m[1] = u &amp; 2, m[2] = u &amp; 4;
+        d = D(m, 6, 0);
+        if (d) 
+            for (h = 0; h &lt; 3; h++)
+            {
+                for (i = 0; i &lt; 6; i++)
+                    w[i] = m[i * 6 + h],
+                    m[i * 6 + h] = i ? 0 : u;
+                s[h] = D(m, 6, 0)/d;
+                for (; i--; )
+                    m[i * 6 + h] = w[i];
+            }
+    }
+    a = s[0], b = s[1], c = s[2];
+    d = b*b - 4 * a * c;
+    puts(d ? d &lt; 0 ? !b&amp;(c == a) ? &quot;Circle&quot; : &quot;Ellipse&quot; : &quot;Hyperbola&quot; : &quot;Parabola&quot;);
+}
+</code></pre>
+</div>
+<div id="pu3" class="pu"><h1>Matlab, 154 bytes</h1>
+
+<pre><code>p=input();c=null([p.^2 prod(p,2) p 1+p(:,1)*0]),s={'circle' 'ellipse' 'parabola' 'hyperbola'};s{3+sign(c(3)^2-4*c(1)*c(2))-~max(abs(c(3)),abs(c(1)-c(2)))}
+</code></pre>
+
+<p>Saved some bytes thanks to Suever's suggestions.</p>
+
+<p>Takes input as <code>[x1 y1;x2 y2;x3 y3; etc]</code>. This used a Vandermonde matrix, and finds the basis of its null space, which will always be a single vector. Then it calculates the discriminant and uses it to make an index between 1 and 4 which is used to get the string.</p>
+
+<p>Ungolfed:</p>
+
+<pre><code>p=input();
+c=null([p.^2 prod(p')' p ones(length(p),1)]);
+s={'circle' 'ellipse' 'parabola' 'hyperbola'};
+s{3+sign(c(3)^2-4*c(1)*c(2))-~max(abs(c(3)),abs(c(1)-c(2)))}
+</code></pre>
+
+<p>The <code>sign(...)</code> part calculates the discriminant, giving 1 if it's positive (hyperbola), -1 if it's negative (ellipse), and 0 if it's 0 (parabola). The <code>max(...)</code> subtracts 1 away if it is a circle. Matlab arrays are one-indexed, so add 3 to give values 1, 2, 3, 4, and use that to index the array of conic section names.</p>
+</div>
+<div id="pu4" class="pu"><h1>JavaScript (ES6), 316 <s>323 347</s></h1>
+
+
+
+<pre class="lang-js prettyprint-override"><code>p=&gt;[1,2,4].some(x=&gt;(d=D(Q=[[x&amp;1,x&amp;2,x&amp;4,0,0,0],...p.map(([x,y])=&gt;[x*x,x*y,y*y,x,y,1])]))?[a,b,c]=Q.map((v,i)=&gt;D(Q.map((r,j)=&gt;(r=[...r],r[i]=x*!j,r)))/d):0,D=m=&gt;m[1]?m[0].reduce((r,v,i)=&gt;r+(i&amp;1?-v:v)*D(m.slice(1).map(r=&gt;r.filter((a,j)=&gt;j-i))),0):m)&amp;&amp;(d=b*b-4*a*c)?d&lt;0?!b&amp;c==a?'Circle':'Ellipse':'Hyperbola':'Parabola'
+</code></pre>
+
+<p>Any language better suited for handling matrix and determinant should score better (APL, J, CJAM, Jelly)</p>
+
+<p>References: <a href="https://en.wikipedia.org/wiki/Conic_section" rel="nofollow">General form of a conic</a>, <a href="https://en.wikipedia.org/wiki/Five_points_determine_a_conic" rel="nofollow">Five points determine a conic</a>, <a href="https://en.wikipedia.org/wiki/System_of_linear_equations" rel="nofollow">System of linear equations</a>, <a href="https://en.wikipedia.org/wiki/Determinant" rel="nofollow">Determinant</a></p>
+
+<p>In the cartesian plane, the general equation of a conic is</p>
+
+<pre class="lang-js prettyprint-override"><code>A*x*x + B*x*y + C*y*y + D*x + E*y + F = 0 
+</code></pre>
+
+<p>having A or B or C not equal to 0 (otherwise it's a straight line)</p>
+
+<p>A ... F are six unknowns to be found. With five pairs of (x,y) we can build a linear system with five equations, and scaling remove one dimension. That is, we can set one of A,B or C to 1 if it's not 0 (and we know that at least one is not 0).</p>
+
+<p>I build and try to solve 3 systems: first trying A=1. If not solvable then B=1, then C. (There could be a better way, but that's my best at the time)</p>
+
+<p>Having the values of A,B,C we can classify the conic looking at the discriminant <code>d=B*B-4*A*C</code></p>
+
+<ul>
+<li>d == 0 -> parabola  </li>
+<li>d > 0 -> hyperbola  </li>
+<li>d &lt; 0 -> ellipse, particularly (A == C and B == 0) -> circle</li>
+</ul>
+
+<p><strong>Less golfed</strong></p>
+
+<pre class="lang-js prettyprint-override"><code>F=p=&gt;(
+  // Recursive function to find determinant of a square matrix
+  D=m=&gt;m[1]
+    ?m[0].reduce((r,v,i)=&gt;r+(i&amp;1?-v:v)*D(m.slice(1).map(r=&gt;r.filter((a,j)=&gt;j-i))),0)
+    :m,
+  // Try 3 linear systems, coefficients in Q
+  // Five equation made from the paramaters in p
+  // And a first equation with coefficient like k,0,0,0,0,0,1 (example for A)  
+  [1,2,4].some(
+    x =&gt; (
+      // matrix to calc the determinant, last coefficient is missing at this stage
+      Q = [ 
+        [x&amp;1, x&amp;2, x&amp;4, 0,0,0] // first one is different
+        // all other equations built from the params 
+        ,...p.map( ([x,y]) =&gt; [x*x, x*y, y*y, x, y, 1] )
+      ],
+      d = D(Q), // here d is the determinant
+      d &amp;&amp; ( // if solvable  then d != 0
+        // add missing last coefficient to Q
+        // must be != 0 for the first row, must be 0 for the other
+        Q.map( r=&gt; (r.push(x), x=0) ),
+        // solve the system (Cramer's rule), I get all values for A...F but I just care of a,b,c
+        [a,b,c] = Q.map((v,i)=&gt;D(Q.map(r=&gt;(r=[...r],r[i]=r.pop(),r))) / d),
+        d = b*b - 4*a*c, // now reuse d for discriminant
+        d = d&lt;0 ? !b&amp;c==a ? 'Circle' : 'Ellipse' // now reuse d for end result
+        : d ? 'Hyperbola' : 'Parabola'
+      ) // exit .some if not 0
+    ), d // .some exit with true, the result is in d
+  )  
+)
+</code></pre>
+
+<p><strong>Test</strong></p>
+
+<p><div class="snippet" data-lang="js" data-hide="false">
+<div class="snippet-code">
+<pre class="snippet-code-js lang-js prettyprint-override"><code>F=p=&gt;[1,2,4].some(x=&gt;(d=D(Q=[[x&amp;1,x&amp;2,x&amp;4,0,0,0],...p.map(([x,y])=&gt;[x*x,x*y,y*y,x,y,1])]))?[a,b,c]=Q.map((v,i)=&gt;D(Q.map((r,j)=&gt;(r=[...r],r[i]=x*!j,r)))/d):0,D=m=&gt;m[1]?m[0].reduce((r,v,i)=&gt;r+(i&amp;1?-v:v)*D(m.slice(1).map(r=&gt;r.filter((a,j)=&gt;j-i))),0):m)&amp;&amp;(d=b*b-4*a*c)?d&lt;0?!b&amp;c==a?'Circle':'Ellipse':'Hyperbola':'Parabola'
+
+console.log=(...x)=&gt;O.textContent+=x+'\n'
+
+;[
+ [[0, 0], [1, 5], [2, 3], [4, 8], [9, 2]]
+,[[1.2, 5.3],[4.1, 5.6], [9.1, 2.5], [0, 1], [4.2, 0]]
+,[[5, 0], [4, 3], [3, 4], [0, 5], [0, -5]]
+,[[1, 0], [0, 1], [2, 1], [3, 4], [4, 9]]
+].forEach(t=&gt;console.log(t.join`|`+' =&gt; '+F(t)))</code></pre>
+<pre class="snippet-code-html lang-html prettyprint-override"><code>&lt;pre id=O&gt;&lt;/pre&gt;</code></pre>
+</div>
+</div>
+</p>
+</div>
+<div id="pu5" class="pu"><h1>Python - 234 bytes</h1>
+<pre><code>import numpy as n
+x=input()
+d=[n.linalg.det(n.delete(n.array([[i*i,i*j,j*j,i,j,1]for i,j in x]),k,1))for k in range(6)]
+t=d[1]**2-4*d[0]*d[2]
+print&quot;hyperbola&quot;if t&gt;0else&quot;parabola&quot;if t==0else&quot;circle&quot;if d[1]==0and d[0]==d[2]else&quot;ellipse&quot;
+</code></pre>
+<p>I never print <code>circle</code> or <code>parabola</code> because <code>t</code> and <code>d[1]</code> never hit exactly <code>0</code>, but OP said that was okay.</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/77746/">77746</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
