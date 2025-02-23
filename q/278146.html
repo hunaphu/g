@@ -26,9 +26,85 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>018</td><td>JavaScript</td><td>250219T021806Z</td><td><a href="https://codegolf.stackexchange.com/questions/278146/find-the-boolean-logic-to-check-if-a-number-is-prime/278301#278301">DesmosEn</a></td></tr>
+<tr d-ix="0"><td>018</td><td>Rust</td><td>250223T104052Z</td><td><a href="https://codegolf.stackexchange.com/questions/278146/find-the-boolean-logic-to-check-if-a-number-is-prime/278352#278352">138 Aspe</a></td></tr>
+<tr d-ix="1"><td>018</td><td>JavaScript</td><td>250219T021806Z</td><td><a href="https://codegolf.stackexchange.com/questions/278146/find-the-boolean-logic-to-check-if-a-number-is-prime/278301#278301">DesmosEn</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://playcode.io/javascript" rel="nofollow noreferrer">JavaScript</a>, 18 bits</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.rust-lang.org/" rel="nofollow noreferrer">Rust</a>, 18 bits</h1>
+<p>Rust port of @DesmosEnthusiast's JavaScript answer.</p>
+<p>You can run <code>n=10</code> case at <a href="https://play.rust-lang.org/?version=stable&amp;mode=release&amp;edition=2021&amp;gist=03da9c028b6ca31807197224ffc72b27" rel="nofollow noreferrer">RustPlayground</a>!</p>
+<pre class="lang-rust prettyprint-override"><code>fn main() {
+    let num_bits: i128 = 18;
+    let mut primes: Vec&lt;Vec&lt;char&gt;&gt; = Vec::new();
+    let mut not_prime: Vec&lt;i128&gt; = vec![0, 1];
+
+    if num_bits &gt; 1 {
+        // Use checked_pow for overflow protection
+        let limit = match 2_i128.checked_pow(num_bits as u32) {
+            Some(value) =&gt; value,
+            None =&gt; {
+                println!(&quot;2^{} overflows i128&quot;, num_bits);
+                return;
+            }
+        };
+
+        for i in 0..limit {
+            if !not_prime.contains(&amp;i) {
+                let mut binary: Vec&lt;char&gt; = format!(&quot;{:b}&quot;, i).chars().collect();
+                if binary.len() &lt; num_bits as usize {
+                    let mut filler = vec!['0'; num_bits as usize - binary.len()];
+                    filler.append(&amp;mut binary);
+                    binary = filler;
+                }
+                primes.push(binary);
+
+                // Use checked_mul and checked_add for overflow protection
+                let square = match i.checked_mul(i) {
+                    Some(value) =&gt; value,
+                    None =&gt; {
+                        println!(&quot;Overflow in square calculation for {}&quot;, i);
+                        continue;
+                    }
+                };
+                
+                let mut j = square;
+                while j &lt; limit {
+                    not_prime.push(j);
+                    j = match j.checked_add(i) {
+                        Some(value) =&gt; value,
+                        None =&gt; {
+                            println!(&quot;Overflow in increment for i={}&quot;, i);
+                            break;
+                        }
+                    };
+                }
+            }
+        }
+    }
+
+    let mut rule = String::new();
+    for (i, prime) in primes.iter().enumerate() {
+        let mut number_rule = String::from(&quot;(&quot;);
+        for (j, &amp;digit) in prime.iter().enumerate() {
+            if digit == '0' {
+                number_rule.push_str(&amp;format!(&quot;(¬d{})&quot;, j + 1));
+            } else {
+                number_rule.push_str(&amp;format!(&quot;d{}&quot;, j + 1));
+            }
+            if j != num_bits as usize - 1 {
+                number_rule.push_str(&quot; &amp; &quot;);
+            }
+        }
+        rule.push_str(&amp;number_rule);
+        rule.push(')');
+        if i != primes.len() - 1 {
+            rule.push_str(&quot; | &quot;);
+        }
+    }
+    println!(&quot;{}&quot;, rule);
+}
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://playcode.io/javascript" rel="nofollow noreferrer">JavaScript</a>, 18 bits</h1>
 <pre><code>let numBits = parseInt(prompt(&quot;Number of Bits: &quot;));
 let primes = [];
 let notPrime = [0,1];
