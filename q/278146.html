@@ -26,11 +26,55 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>nan</td><td></td><td>250223T161547Z</td><td><a href="https://codegolf.stackexchange.com/questions/278146/find-the-boolean-logic-to-check-if-a-number-is-prime/278359#278359">l4m2</a></td></tr>
-<tr d-ix="1"><td>018</td><td>Rust</td><td>250223T104052Z</td><td><a href="https://codegolf.stackexchange.com/questions/278146/find-the-boolean-logic-to-check-if-a-number-is-prime/278352#278352">138 Aspe</a></td></tr>
-<tr d-ix="2"><td>018</td><td>JavaScript</td><td>250219T021806Z</td><td><a href="https://codegolf.stackexchange.com/questions/278146/find-the-boolean-logic-to-check-if-a-number-is-prime/278301#278301">DesmosEn</a></td></tr>
+<tr d-ix="0"><td>018</td><td>JavaScript</td><td>250219T021806Z</td><td><a href="https://codegolf.stackexchange.com/questions/278146/find-the-boolean-logic-to-check-if-a-number-is-prime/278301#278301">DesmosEn</a></td></tr>
+<tr d-ix="1"><td>nan</td><td></td><td>250223T161547Z</td><td><a href="https://codegolf.stackexchange.com/questions/278146/find-the-boolean-logic-to-check-if-a-number-is-prime/278359#278359">l4m2</a></td></tr>
+<tr d-ix="2"><td>018</td><td>Rust</td><td>250223T104052Z</td><td><a href="https://codegolf.stackexchange.com/questions/278146/find-the-boolean-logic-to-check-if-a-number-is-prime/278352#278352">138 Aspe</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>30 bits</h1>
+<div id="pu0" class="pu"><h1><a href="https://playcode.io/javascript" rel="nofollow noreferrer">JavaScript</a>, 18 bits</h1>
+<pre><code>let numBits = 23;
+let smallestFactor = new Array(2**numBits + 1);
+smallestFactor.fill(0);
+let primes = [];
+let str = &quot;&quot;;
+
+for (let i = 2; i &lt;= 2**numBits; ++i) {
+    if (smallestFactor[i] == 0) {
+        smallestFactor[i] = i;
+        primes.push(i);
+        str += &quot;(&quot;
+        for (let j = 0; j &lt; numBits; j++){
+            if (i &amp; (1 &lt;&lt; j)){
+                str += &quot;(¬&quot; + (numBits - j) + ((j != numBits - 1) ? &quot;)&amp;&quot; : &quot;))|&quot;);
+            }else{
+                str += (numBits - j) + ((j != numBits - 1) ? &quot;&amp;&quot; : &quot;)|&quot;);
+            }
+        }
+    }
+    for (let j = 0; i * primes[j] &lt;= 2**numBits; ++j) {
+        smallestFactor[i * primes[j]] = primes[j];
+    }
+}
+console.log(str.substring(0,str.length - 1));
+</code></pre>
+<p>The code works by filtering out the primes in the range <code>[0,2^numBits]</code>, using the <a href="https://en.wikipedia.org/wiki/Sieve_of_Eratosthenes" rel="nofollow noreferrer">Sieve of Eratosthenes</a>. It converts these primes to binary, and makes a sort of truth table, matching prime binary numbers to 1, and everything else to 0. I then used <a href="https://www.allaboutcircuits.com/textbook/digital/chpt-7/converting-truth-tables-boolean-expressions/" rel="nofollow noreferrer">SOP</a> to fit a boolean expression to this truth table. Here is an example of SOP on a 3-digit prime number table.</p>
+<pre><code>Number | Is prime?
+==================
+000    |0
+001    |0
+010    |1
+011    |1
+100    |0
+101    |1
+110    |0
+111    |1
+</code></pre>
+<p>Prime when number = 010 | 011 | 101 | 111</p>
+<p>Checking if the number is just one of these cases, <code>010</code> for example, can be expanded to <code>(digit 1 = 0) &amp; (digit 2 = 1) &amp; (digit 3 = 0)</code>. This can be written more concisely as <code>((¬d1) &amp; d2 &amp; (¬d3))</code>. Doing this for each case, we get <code>((¬d1) &amp; d2 &amp; (¬d3)) | ((¬d1) &amp; d2 &amp; d3) | (d1 &amp; (¬d2) &amp; d3) | (d1 &amp; d2 &amp; d3)</code>.</p>
+<p><em>Edit February 23rd:</em>
+Used
+<a href="https://cp-algorithms.com/algebra/prime-sieve-linear.html" rel="nofollow noreferrer">this</a> article to massively improve the time complexity of the algorithm.</p>
+</div>
+<div id="pu1" class="pu"><h1>30 bits</h1>
 <pre><code>#include &lt;iostream&gt;
 #include &lt;string&gt;
 const int N = 30;
@@ -86,7 +130,7 @@ sys 0m2.918s
 <p>Seems <code>time</code> also count time of <code>wc</code></p>
 <p><a href="https://tio.run/##7VVLDoIwEN17CzcyjYpSKJIgnMQNgWpqCCVgCIl6I0/BxbAlEPm6dSFdvCZv3rxOp5P06mVe6icsvm0jHtCyPPMEmLO32RET016vGbovcodmXggK4BUULx1JNCokFZoVHiq0EHqAtgIAS8JBQqMgrUzhgoVyGNPljtFErJ9jTHgZAx/SOftbDA94vcONeRu1xpy4i9mrd4rHHa7xJCN@pJfTrksqxIPMvf9J7@v2z/M/z/@/zr9YiprQOPR8CrvitbtslKWCPtQpEFTuuOKnYK4L@VaTOQt2hhz5PEp5SNWQX4ChZ1m@AQ" rel="nofollow noreferrer">verifier for N=8</a></p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://www.rust-lang.org/" rel="nofollow noreferrer">Rust</a>, 18 bits</h1>
+<div id="pu2" class="pu"><h1><a href="https://www.rust-lang.org/" rel="nofollow noreferrer">Rust</a>, 18 bits</h1>
 <p>Rust port of @DesmosEnthusiast's JavaScript answer.</p>
 <p>You can run <code>n=10</code> case at <a href="https://play.rust-lang.org/?version=stable&amp;mode=release&amp;edition=2021&amp;gist=03da9c028b6ca31807197224ffc72b27" rel="nofollow noreferrer">RustPlayground</a>!</p>
 <pre class="lang-rust prettyprint-override"><code>fn main() {
@@ -160,62 +204,6 @@ sys 0m2.918s
     println!(&quot;{}&quot;, rule);
 }
 </code></pre>
-</div>
-<div id="pu2" class="pu"><h1><a href="https://playcode.io/javascript" rel="nofollow noreferrer">JavaScript</a>, 18 bits</h1>
-<pre><code>let numBits = parseInt(prompt(&quot;Number of Bits: &quot;));
-let primes = [];
-let notPrime = [0,1];
-if (numBits &gt; 1){
-  for (let i = 0; i &lt; Math.pow(2,numBits); i++){
-    if (!notPrime.includes(i)){
-      let binary = i.toString(2).split(&quot;&quot;);
-      if (binary.length &lt; numBits){
-        let filler = new Array(numBits - binary.length);
-        filler.fill(&quot;0&quot;);
-        binary = filler.concat(binary);
-      }
-      primes.push(binary);
-      for (let j = Math.pow(i,2); j &lt; Math.pow(2,numBits); j += i){
-        notPrime.push(j);
-      }
-    }
-  }
-}
-let rule = &quot;&quot;;
-for (let i = 0; i &lt; primes.length; i++){
-  let numberRule = &quot;(&quot;;
-  for (let j = 0; j &lt; numBits; j++){
-    if (primes[i][j] === &quot;0&quot;){
-      numberRule += &quot;(¬d&quot; + (j + 1) + &quot;)&quot;;
-    }else{
-      numberRule += &quot;d&quot; + (j + 1);
-    }
-    if (j !== numBits - 1){
-      numberRule += &quot; &amp; &quot;;
-    }
-  }
-  rule += numberRule + &quot;)&quot;;
-  if (i !== primes.length - 1){
-    rule += &quot; | &quot;;
-  }
-}
-console.log(rule);
-</code></pre>
-<p>This code was not meant to be efficient, but it has been a bit since the challenge was posted and I figure even this is better than nothing.</p>
-<p>The code works by filtering out the primes in the range <code>[0,2^numBits]</code>, using the <a href="https://en.wikipedia.org/wiki/Sieve_of_Eratosthenes" rel="nofollow noreferrer">Sieve of Eratosthenes</a>. It converts these primes to binary, and makes a sort of truth table, matching prime binary numbers to 1, and everything else to 0. I then used <a href="https://www.allaboutcircuits.com/textbook/digital/chpt-7/converting-truth-tables-boolean-expressions/" rel="nofollow noreferrer">SOP</a> to fit a boolean expression to this truth table. Here is an example of SOP on a 3-digit prime number table.</p>
-<pre><code>Number | Is prime?
-==================
-000    |0
-001    |0
-010    |1
-011    |1
-100    |0
-101    |1
-110    |0
-111    |1
-</code></pre>
-<p>Prime when number = 010 | 011 | 101 | 111</p>
-<p>Checking if the number is just one of these cases, <code>010</code> for example, can be expanded to <code>(digit 1 = 0) &amp; (digit 2 = 1) &amp; (digit 3 = 0)</code>. This can be written more concisely as <code>((¬d1) &amp; d2 &amp; (¬d3))</code>. Doing this for each case, we get <code>((¬d1) &amp; d2 &amp; (¬d3)) | ((¬d1) &amp; d2 &amp; d3) | (d1 &amp; (¬d2) &amp; d3) | (d1 &amp; d2 &amp; d3)</code>.</p>
 </div>
 
 <table id="st">
