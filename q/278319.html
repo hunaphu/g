@@ -40,6 +40,32 @@
 </code></pre>
 <p><a href="https://tio.run/##y0rNyan8/z/02Jqjk1weNa15uKvP2jrq4Y75QLah54llXGYmQfGPGrc@3Lng6CTFYqCoxeH2Y@2B/w8teri7@1HDHL3AiEcNc92BElmPGvcd2nZo238A" rel="nofollow noreferrer" title="Jelly – Try It Online">Don't try it online</a> it won't complete, even if you run it locally (<span class="math-container">\$64!\$</span> is big :D).</p>
 <p><strong><a href="https://tio.run/##y0rNyan8/z/02Jqjk1weNa15uKvP2jrq4Y75QLah54llXJZB8SYPdy44OkkxsBgoZny4/Vj7/0OLHu7uftQwRy8w4lHDXHegeNajxn2Hth3a9h8A" rel="nofollow noreferrer" title="Jelly – Try It Online">Try a 3x3 with 3 queens and one obstacle</a></strong> (<code>64</code> -&gt; <code>9</code>; <code>⁵</code> (<span class="math-container">\$10\$</span>) -&gt; <code>4</code>; and <code>8</code> -&gt; <code>3</code>. The footer pretty-prints.)</p>
+<h4>How?</h4>
+<pre><code>UƬŒD€Ẏ;;Zḟ€1IȦ - Link 1, isValid?: Board
+                    (list of lists of {-1:queen; 0:obstacle; 1:empty})
+ Ƭ             - collect up while distinct under:
+U              -   reverse each
+  ŒD€          - diagonals of each
+     Ẏ         - tighten -&gt; diagonals + antidiagonals
+      ;        - {diagonals + antidiagonals} concatenate {Board}
+        Z      - transpose {Board} -&gt; Columns
+       ;       - {diagonals + antidiagonals + Board} concatenate {Columns}
+         ḟ€1   - filter all ones (empties) from each
+            I  - forward deltas of each
+             Ȧ - any any all? -&gt; 0 if any zeros are present
+                                   (i.e. queens staring at each other)
+                                 else 1
+
+64R_⁵ṠŒ!Qs€8ÇƇ - Main Link: no arguments
+64R            - [1..64]
+   _⁵          - subtract ten -&gt; [-9..54]
+     Ṡ         - signs -&gt; [-1]*9 + [0] + [1]*54  (queens, obstacle, empties)
+      Œ!       - all permutations
+        Q      - deduplicate
+         s€8   - split each into rows of length eight
+             Ƈ - keep those for which:
+            Ç  -   call Link 1
+</code></pre>
 <hr />
 <h4>Real world version, 53 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h4>
 <pre><code>UƬŒD€Ẏ;Z¹Ƈ€IȦ
