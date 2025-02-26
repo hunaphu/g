@@ -26,10 +26,31 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>115</td><td>P</td><td>250225T001204Z</td><td><a href="https://codegolf.stackexchange.com/questions/277854/wuziqi-connect-5-king-of-the-hill/278379#278379">huanglx</a></td></tr>
-<tr d-ix="1"><td>nan</td><td></td><td>250212T134952Z</td><td><a href="https://codegolf.stackexchange.com/questions/277854/wuziqi-connect-5-king-of-the-hill/278218#278218">user1502</a></td></tr>
+<tr d-ix="0"><td>nan</td><td></td><td>250226T004221Z</td><td><a href="https://codegolf.stackexchange.com/questions/277854/wuziqi-connect-5-king-of-the-hill/278390#278390">user1502</a></td></tr>
+<tr d-ix="1"><td>115</td><td>P</td><td>250225T001204Z</td><td><a href="https://codegolf.stackexchange.com/questions/277854/wuziqi-connect-5-king-of-the-hill/278379#278379">huanglx</a></td></tr>
+<tr d-ix="2"><td>nan</td><td></td><td>250212T134952Z</td><td><a href="https://codegolf.stackexchange.com/questions/277854/wuziqi-connect-5-king-of-the-hill/278218#278218">user1502</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>P, 115 bytes</h1>
+<div id="pu0" class="pu"><pre class="lang-py prettyprint-override"><code>from random import *
+import copy
+import time
+class R:
+ def move(_,G):
+  r,d={},{(i, j):G.board.board[i][j]for i in range(15)for j in range(15)};f=[p for p,x in d.items()if x.is_player]or[(6,7)];c={p:[1,1]for p in d};t=time.time()
+  while time.time()-t&lt;9:
+   M,l,s,g=[(0,0)],f[:],set(f),copy.deepcopy(G)
+   while not g.is_over:
+    m=r.get(M[-1],0)
+    while m not in d or m in s:
+     m=tuple(k+randint(-1, 1)for k in choice(l))
+    M+=[(m,M[-1][1]^1&lt;&lt;15*m[0]+m[1])];g.place(*m);l+=[m];s.add(m)
+   M,p=M[::-1],1
+   for(x,y)in zip(M,M[1:]):
+    u=r.get(y);r[y]=x if p else 0 if u==x else u;p^=1
+   c[M[-2][0]][p]+=1
+  G.place(*max((a/(a+b),m)for m,(a,b)in c.items()if a+b&gt;2)[1])
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>P, 115 bytes</h1>
 <p>Since only the shortest 1/3 of submissions will be picked, let's make sure we make the cut! With only 115 bytes, surely no one can make a smaller program than this!</p>
 
 <pre class="lang-none prettyprint-override"><code>class P:
@@ -60,7 +81,7 @@
         game.place(*e)  # Run the place() function. The *e unpacks the two values of e into the two arguments of place(row, col)
 </code></pre>
 </div>
-<div id="pu1" class="pu"><pre class="lang-py prettyprint-override"><code>from random import *
+<div id="pu2" class="pu"><pre class="lang-py prettyprint-override"><code>from random import *
 class Gamma:
     def move(self, game):
         if not game.move_counter:
