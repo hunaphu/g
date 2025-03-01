@@ -37,6 +37,7 @@
 #include &lt;cmath&gt;
 #include &lt;cstdint&gt;
 #include &lt;cstring&gt;
+#include &lt;string&gt;
 
 #include &lt;unistd.h&gt;
 
@@ -73,12 +74,11 @@ constexpr auto two = []() {
 
 constexpr auto tmpl_lo = []() {
   std::array&lt;char, 5 * (lo - 1) + 2&gt; ret{'|', '('};
+  std::string base(&quot;(  )&amp;&quot;);
+
   for (int i = 0; i &lt; lo - 1; i++) {
-    ret[i * 5 + 2] = '(';
-    ret[i * 5 + 3] = ' ';
+    base.copy(ret.data() + i * 5 + 2, base.size());
     ret[i * 5 + 4] = i + 1 &lt; 26 ? 'A' + i + 1 : 'a' + i + 1 - 26;
-    ret[i * 5 + 5] = ')';
-    ret[i * 5 + 6] = '&amp;';
   }
 
   ret[5 * (lo - 1) + 1] = ')';
@@ -88,21 +88,15 @@ constexpr auto tmpl_lo = []() {
 
 constexpr auto tmpl_hi = []() {
   std::array&lt;char, 5 * hi + 11&gt; ret{')', ')', '|', '('};
+  std::string base(&quot;(  )&amp;&quot;);
+
   for (int i = 0; i &lt; hi; i++) {
-    ret[i * 5 + 4] = '(';
-    ret[i * 5 + 5] = ' ';
+    base.copy(ret.data() + i * 5 + 4, base.size());
     ret[i * 5 + 6] = lo + i &lt; 26 ? 'A' + lo + i : 'a' + lo + i - 26;
-    ret[i * 5 + 7] = ')';
-    ret[i * 5 + 8] = '&amp;';
   }
 
-  ret[5 * hi + 4] = 'A';
-  ret[5 * hi + 5] = '&amp;';
-  ret[5 * hi + 6] = '(';
-  ret[5 * hi + 7] = '(';
-  ret[5 * hi + 8] = '~';
-  ret[5 * hi + 9] = 'A';
-  ret[5 * hi + 10] = ')';
+  std::string end(&quot;A&amp;((~A)&quot;);
+  end.copy(ret.data() + 5 * hi + 4, end.size());
 
   return ret;
 }();
@@ -147,10 +141,10 @@ template &lt;u32 N&gt; constexpr auto sieve_helper() {
     return std::make_pair((N - 2) / 2 - std::count(ret.begin(), ret.end(), true), ret);
   }();
 
-  std::array&lt;std::pair&lt;int, int&gt;, sieve.first&gt; ret;
+  std::array&lt;std::pair&lt;u32, u64&gt;, sieve.first&gt; ret;
   for (u32 i = 3, j = 0; i &lt; N; i += 2)
     if (!sieve.second[i])
-      ret[j++] = {i, (i * i - 1) / 2};
+      ret[j++] = {i, ((u64)i * i - 1) / 2};
   return ret;
 }
 
@@ -181,7 +175,7 @@ int main() {
   flush();
 }
 </code></pre>
-<p><a href="https://ato.pxeger.com/run?1=nVfNcuJGEL6r8hBtp8pIRniN-FliQFv7ACYHjhRFyUKg8QqJkka2dx3yIrnsJcc8Tg7J06S7R7-AvLs5AFL39N_XPd8Mf_zl7oM0oc9q67r_GIvLzq8bJ5GXJlx2dk7s-tPQkeLJY0Ei11O33bZ6l8uvf6Zy0xn9-9PfP4vQDdK1BxMn2EaxkP7O1irCOHY-VwXuzpF-TYBuRSiPRLEIt7ZWkaWhwIU3aKqlCSohHcEUUrQcreQ4l_WsTNizKtJhP5MO-yTV3ChMJDmYobx7O84FuO6eJGkQwGQCs0KBbueouAfbBn0G78Ayqm6CCJUob0PXICU9jEu1L1A9gw6uIyvfieEh3SwGVt8ajZZjJblG0WovY1yKT7l372Ufg5PKCOQzBVksdQNeNQDE4u6OwZ2QuQkDuOYYXRtiT7629NZhjOs2UQw6Vg6Uw-0Yf6guEO228gO0eiHQeEBZL3EVmo5PNBZrfj-j6ZGG3FpD-ACtjy2UCbiDlqOeOqhQVmKDqcCFwqKbx69763McI4tT1w1Yd5XpDhp9NLWkTBFQrYRpHNLPWDvoxhk8d_tgFXwbUx3XcLYYIIP2t5YJb-GrLBpBthpB7hUVnIVFUIeOgSZRCTa9lYCfgmec8T2swFoBtFZ6t7D-bmx56t_G1ueE84k1CFb--hbAvmgEt98I7qARXAYAa20fj3Emy-HNXs_j-74R31ETvly-Svgja2uK6rTXFMNKiTXF-ybFqLJ5a4pfmoJ3b99u-FMk1rDBc8PP-vuMzO_pXZPIi7-Yyzr0ZJD3I3ZDHKSHU-JIpPZEfPFWEmY2sNsolftU6icTg_pEBSMiqYXAjJMbcoPZ2FNQzGpwJ7IkKYedt3P3n3NLE03WjnR0wyyMa6m2p4WcE64kh8Sh06Hw0pxPxi8_nlVumOdWd2QUe4LiN5AOh8gc1slFf6EjTBhwhUTxgbYDTbeajErd9Zgn1fviu6r3xf-sHg1r1ReOGqvPGeFs5YMfrbyIdzSoFBSn8IjtEuE9eSvfC_ZenO2GcyuqbFjjw4coCni6iQUPij9qNfbKY5tStIzsbCTgL5hplrmoYvnIJ8Y1IDKPyvqRrUlULlf7_pEQknHqFexF-51z3DmfvNXeEbGu07FtqQtORyndKA2ljstvHrytCKlh9OKFa-4dOlQS7ptijlrp_EjOJ8jwJtA10FRo3WxEnEhbcc4xHiYXd3sWFgZFuUg87MO6gg6X2m5Tsa_CpMvINfO5urUdxsdUp2l08Owcqoz7llET3sVUKaq7Owfvi9PaHEzmRKL2acWq2XMbHoLI_VSWhlfPIHqmqkwc5q1PE3tfpDZm5WTKKvWCFc_zYSq3JWneoYLDZoE3Igh0Dld2Sb1W-1SZO67qaoEI4VzcqfrK2xovUTM1z2aqMk_sWM3TxgkSL7_HPUIHE85vblq5FA-aqylXdEEtPZ3-rM3zygbPOIftq7NfkrMwitO26Tix7OLKcVB4FbR0UP9usj85X7Pf_wA" rel="nofollow noreferrer">Attempt This Online!</a> (10 bit version)<br />
+<p><a href="https://ato.pxeger.com/run?1=pVfNcuJGEL5TeYg2qYKREV4jYxdlQFt-ALMHji6KkoVAwwpESSPbG4d9kVz2ssc8UPI06e4Z_QHOrpMDIHVP_33d883wx5_-LspS-sxXvv-X9dDsflp6qWra0OxuvMQPx1tPyaeABalajP1Ox7lqzr59z9SyO_j7l_mvcutH2SKAkRet4kSqcOM2KsIk8b5UBf7GU2FNgG7lVh2IErldVUW5pCLKthJNL9BZI0tRCdkAxpChr8FcDXPZlWOEV05FetM30ps-SRt-vE0VOZigvHc5zAW47p4kWRTBaASTQoFup6i4B9cFMYEP4FhVN1GMSpR3oGeRkh6GpTqUqJ5AF9eRVegl8JgtH66dvjMYzIZaco6i-U4luBSfcu_Byy4BL1MxqGcK8jATFrw2ABCL21uGe0TmNlzDOcfouZAE6rUt2vshrlvGCQisHCiHyyH-UF0gOx3tB2j1g0Tja8p6hqvQdHikcVjz9YTmijTk1rmBj9C-a6NMwi20Pf3URYW2kktMBc40Fr08ft1bn-NYJk5dd826ltHtG_Rp6CVlioBqLcySLf0MG3thncBzs4vm0Y8xFbiGs8UABtrf2zbk-LKNHld49NJANAWA1WpanMUp9LW_WgvI8MKPd18E-r9YeMoTFmNnsLf1ilT-FgjLOm5BX7cA-3fYBhKVraC3vB0V6GpF9ooG_DSKPN__jmLIwfPZtAhA_vp_UIbyPTD2fwTjDZWOSHQOx9nIciDNaw3JavLBdiGady0hvt5ZTY6DkhOJFcBgZrSiSOwk8k-xXMASyTs0QD8j_QaiZxNf8BfTR5eeOOgBoWCaKsB2eYoIFkPNFUxcYLdxpnaZEketQ32qg9HerYXAtFOTMbhj0GRmMaYmScphE2x8LNtY2miiq7cL41qqnXEh54QryeFeFcTDL2_nY7b0-7PKDfPc6o6sgkcp_hs7WQ-gdlinRvFCp4a0oIW77yMRFA2SZtJK3fWYR9WH8qeqD-V_rB4Na9UXjt6sPt98Jyu_fm_lRbyDQaWgOIUHtJPK4CmYh0G0CxKzG06tqNJSjZge4zji6SY62msmqNV4VZ6UlKJjmeOIgD9jzpjloorlmmn4HBCZtbZeszWJyuWadNaEkEqyoOAh2u-c48b7HMx3nkyEoJPS0XeKrlb6cbZVzCOPwUpuqWH0QpxDvUOHWsJ908xRK50fyTlBa9Odx7U1WhdLmaTK1ZxziIfNxV2ehIVB0S7SAPuwqKDDpXY6VOyrtEEIDGgxRvrAwcoY_xrfNRpE9BuPyuPmGX7CO5CuR7d44-E9bVwbhtGUzhn3uGzd8akLj1Hsfy7rwytfFD9TaTZO9Cqksb0vUhuycjRmlX7Bsqf5RJV7kzQfUMFhTeCljCLB4cpW6ddqsyrDx1W1HhAmHI5bXV95S-IlerCmZrAqQ8WO9VAtvSgN8vvTGrqYcH5japRLL2fQGnNFZ9TX4y1gej2t7HJDPGxf3QAlQ0urOBHfOlMct7gA7M3RnnPTXv_PMH83vpnffwA" rel="nofollow noreferrer">Attempt This Online!</a> (10 bit version)<br />
 <a href="https://ato.pxeger.com/run?1=vVhLbtswEEW3XPcAAy0MMnHduKsiQAKk__YShurQKQNbEiS6aNNWF-nGm_ZQOU1FykgQeTgUKaVa0BAHHA0f37wZ-vff4rv-kme73Z-tXj17eftkpjZFXmqodKmyK8aqGzgDlWmusmKruRBMfitKO2ff2SovQU3hupkAmW03sky15FXjQ17y1sssrZZKLdZSa1lWQpwyaJ69H_MzK2WxTpeSX09hlXC-gPNz-KF-CZjAXCR335Rf0zVP1unm82UKi9MEjh8uT-pkCkmW66SJky3zbaabVSdtjCbAMs2uJH8BR0dQ3ezjUCvrhKv9u3mK0m5Z3E20vo7PYM5Ya7QzooVtj97u9unz-QnjvL4QEw6vmqF-bYY3ZnhrhndmeG-GD2b4aIZPQvzkyOzkYmJdNUaHL7vOmAA1gcdkHYLbIW66DwNQh7gJUFPnW_iqAxO2ZehGCF0TtmVAv3XgsBM87hDQVQ9N7brIkyaOE9s2jiNOAvxgajf6tRt9_GCw4P0Hg3Hx4KTxg3Ghb_MMIvOMgNiXTGOmBY4-ATGBI0aCntwnCe6CGKPPSFJGQByC4wB5iaMqoiGdkgBBOPqEglADQvcJquJCge3Nr-AEH7GMwQ8mQosRiH157auExLZDVNUnnWMWrp7S6eJjMOkIHHsxK64ExRWTsOQFL1jBdSYueQfoY3C9HpC8JOnuuyVw4BhXlOOYFVxDiVwj6ePfdnBjH9eiE2n431v02sERGALWmDWUkDMfxMFyFpyG_mpI4ujrzghhevwuN64aujIUa8F6M8sHlo8jRH8QkjW9OvhHuNgiYPVKqJHay17CFNem98YR65gQROIu7XE6EnzHjqhrWO_TmwijF6-hFSr4ShyaNe0fh_8A" rel="nofollow noreferrer">Verify output for 10 bits</a></p>
 <p>Uses the character <code>A-Za-z</code> to represent the bits where <code>A</code> is the lsb and <code>z</code> is the msb.</p>
 <p>Generates a boolean expression which <s>brute-force checks every prime</s> it is slightly more optimized now by grouping the high bits, the expression is ~60GiB.</p>
@@ -189,12 +183,12 @@ int main() {
 <pre><code>$ g++ -std=c++23 -Ofast -march=native a.cpp
 
 $ time ./a.out | wc -c
-66270357325
-./a.out  22.66s user 4.91s system 83% cpu 33.128 total
-wc -c  0.13s user 5.97s system 18% cpu 33.127 total
+66381666517
+./a.out  23.00s user 5.17s system 82% cpu 34.010 total
+wc -c  0.16s user 6.16s system 18% cpu 34.010 total
 
 $ time ./a.out &gt;/dev/null
-./a.out &gt; /dev/null  21.65s user 0.01s system 99% cpu 21.691 total
+./a.out &gt; /dev/null  21.30s user 0.01s system 99% cpu 21.342 total
 </code></pre>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://playcode.io/javascript" rel="nofollow noreferrer">JavaScript</a>, 18 bits</h1>
