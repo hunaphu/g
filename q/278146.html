@@ -26,11 +26,116 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>018</td><td>JavaScript</td><td>250219T021806Z</td><td><a href="https://codegolf.stackexchange.com/questions/278146/find-the-boolean-logic-to-check-if-a-number-is-prime/278301#278301">DesmosEn</a></td></tr>
-<tr d-ix="1"><td>nan</td><td></td><td>250223T161547Z</td><td><a href="https://codegolf.stackexchange.com/questions/278146/find-the-boolean-logic-to-check-if-a-number-is-prime/278359#278359">l4m2</a></td></tr>
-<tr d-ix="2"><td>018</td><td>Rust</td><td>250223T104052Z</td><td><a href="https://codegolf.stackexchange.com/questions/278146/find-the-boolean-logic-to-check-if-a-number-is-prime/278352#278352">138 Aspe</a></td></tr>
+<tr d-ix="0"><td>033</td><td>C++</td><td>250301T174828Z</td><td><a href="https://codegolf.stackexchange.com/questions/278146/find-the-boolean-logic-to-check-if-a-number-is-prime/278440#278440">Mukundan</a></td></tr>
+<tr d-ix="1"><td>018</td><td>JavaScript</td><td>250219T021806Z</td><td><a href="https://codegolf.stackexchange.com/questions/278146/find-the-boolean-logic-to-check-if-a-number-is-prime/278301#278301">DesmosEn</a></td></tr>
+<tr d-ix="2"><td>nan</td><td></td><td>250223T161547Z</td><td><a href="https://codegolf.stackexchange.com/questions/278146/find-the-boolean-logic-to-check-if-a-number-is-prime/278359#278359">l4m2</a></td></tr>
+<tr d-ix="3"><td>018</td><td>Rust</td><td>250223T104052Z</td><td><a href="https://codegolf.stackexchange.com/questions/278146/find-the-boolean-logic-to-check-if-a-number-is-prime/278352#278352">138 Aspe</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://playcode.io/javascript" rel="nofollow noreferrer">JavaScript</a>, 18 bits</h1>
+<div id="pu0" class="pu"><h1><a href="https://en.cppreference.com/w/" rel="nofollow noreferrer">C++</a>, 33 bits</h1>
+<pre class="lang-cpp prettyprint-override"><code>#include &lt;algorithm&gt;
+#include &lt;array&gt;
+#include &lt;cmath&gt;
+#include &lt;cstdint&gt;
+#include &lt;cstring&gt;
+
+#include &lt;unistd.h&gt;
+
+using u8 = uint8_t;
+using u32 = uint32_t;
+using u64 = uint64_t;
+
+const u8 N = 33;
+const u64 M = 1ull &lt;&lt; N;
+
+char buf[524288];
+char *buf_ptr = buf;
+
+constexpr auto tmpl = []() {
+  std::array&lt;char, 5 * N + 1&gt; ret{'('};
+  for (int i = 0; i &lt; N; i++) {
+    ret[i * 5 + 1] = '(';
+    ret[i * 5 + 2] = ' ';
+    ret[i * 5 + 3] = i &lt; 26 ? 'A' + i : 'a' + i - 26;
+    ret[i * 5 + 4] = ')';
+    ret[i * 5 + 5] = i == N - 1 ? ')' : '&amp;';
+  }
+
+  return ret;
+}();
+
+void flush() {
+  write(1, buf, buf_ptr - buf);
+  buf_ptr = buf;
+}
+
+void output(u64 x) {
+  if (buf_ptr - buf + tmpl.size() + 1 &gt;= 524288)
+    flush();
+  *buf_ptr++ = '|';
+  memcpy(buf_ptr, tmpl.data(), tmpl.size());
+  for (u32 i = 0; i &lt; N; i++)
+    buf_ptr[i * 5 + 2] = (x &gt;&gt; i) &amp; 1 ? ' ' : '~';
+  buf_ptr += tmpl.size();
+}
+
+template &lt;u32 N&gt; constexpr auto sieve_helper() {
+  constexpr auto sieve = []() {
+    std::array&lt;bool, N&gt; ret{};
+    for (u32 i = 3; i &lt; N; i += 2)
+      if (!ret[i])
+        for (u32 j = i * i; j &lt; N; j += 2 * i)
+          ret[j] = true;
+    return std::make_pair((N - 2) / 2 - std::count(ret.begin(), ret.end(), true), ret);
+  }();
+
+  std::array&lt;std::pair&lt;int, int&gt;, sieve.first&gt; ret;
+  for (u32 i = 3, j = 0; i &lt; N; i += 2)
+    if (!sieve.second[i])
+      ret[j++] = {i, (i * i - 1) / 2};
+  return ret;
+}
+
+int main() {
+  output(2);
+  buf[0] = ' '; // lazy fix
+
+  const u32 S = M &gt;&gt; (N / 2); // TODO: sqrt
+  auto small = sieve_helper&lt;S + 1&gt;();
+
+  std::array&lt;bool, S&gt; block;
+  for (u64 low = 0, high = (M - 1) / 2; low &lt;= high; low += S) {
+    std::fill(block.begin(), block.end(), true);
+    for (auto &amp;[i, j] : small) {
+      for (; j &lt; S; j += i)
+        block[j] = false;
+      j -= S;
+    }
+
+    block[0] &amp;= low != 0;
+    for (u32 i = 0; i &lt; S; i++)
+      if (block[i])
+        output(2 * (low + i) + 1);
+  }
+
+  flush();
+}
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=bVVNT9tAED1W8q-YUonY2OHDARTFsatKvQKH9BZF0eKsk6X-SO01hdL0j_TSS4_9Qe2v6cysHRzCAWy_nXm78-bt5OefeJ3WFf3Nl3H815ke9G8SUekDDw76mSjjVZgLre4lA5VehLHr-oOD2a_ftU76w39vfrxTeZzWCwljkS6LUulVFlkdsCzFYxeIM6FXOwDSqly_gEqVLyOrg9W5wsBjTLXqChehHkIINWYO5zposYHfgAO_g16eN-jlOaFWXOSVJoJrxM9OgxbAuCtC6jSF8RiuKXQlSritk-mFf-4Ph7PAIEcIzde6xGh8aynlw7oEUesCdLZOcW06sx14sgDw6KMRazGmfA8u4Ah3d-EsglLqp57d2wQYlxQl2HhQUJh9GuCDjgHKdQ0PUPRUYfIFJc8wClODvRWfV-CVlQGtEK1_Ce-h96GHmIIR9IR56-PCftY58zmv8F0YvjDEcvpwRpxOj_gOOXhjWRxflzk9AmtjOyjXfaEWkKDvVo1AX9E50j7zSE7-x-r26c0hnhd6bxqKotbrWtvUuQdDpBKwd9LxjNSN40p9k7gZqgZRCKadDpfTnIO2afvqulTvdy4hk1m8fmxJPcO2EFrYjteldrYNJBvuN5D3alh2G2U_QBSBcuDQCAgs4I9et3A37O7FCmiJgNB0OXDD6whemLBS8l7OVzJdy7KR-bWIrk93nHpbFKlHvOTQjWn9Tn2D5_rofL4p0fTgLZtk1kKdzDs2zBGoAF85-46zCXoONy67I3l0Wcut8chIfMZMfJbztVClbZPzfAdOkKNvFuOizrWN4ce3cqly6hR9yHzBTUNCg3DPjCV3SudXIh_jZfSA5pNn1DpOVFnpyJj5pR4eF3f6qiwsiqGoJPZh0VGHS3VdKvZJeTgBSAu6TlwUS79zhyyLZkQmqDLuW3MP_PauTE_bAQAnJ5CKb4-QqAerdQAPyglGXJHxUD_cxeHQTzcfb0ZQfSk1xhqPZCKlWdZ103jCo2tfN2OZSQS3aRF_fhYI72dafCVtPFip5YpMf7UtMODFcchL5gN1m-xYMlFpajPrc0vNZ7epHZPy4Q-nKCeaaGTKaBmbEGPASWPAjvmY2JgvEWnVuA8wro_nMl882dpQlPsw5IO_pf7vX5XGE5POKGhmFed3L0rbS_SAzVLQZEC5ne083Q6sjfkZbn6NfzXP_w" rel="nofollow noreferrer">Attempt This Online!</a> (10 bit version)</p>
+<p>Generates a boolean expression which brute-force checks every prime, the expression is ~60GiB.</p>
+<p>Uses a segmented sieve for better cache locality, should also make it easy to have it use multiple cpu cores might get around to doing that at some point.</p>
+<pre><code>$ g++ -std=c++23 -O3 -march=native sieve64.cpp
+
+$ time ./a.out | wc -c
+63775880333
+./a.out  30.00s user 4.83s system 85% cpu 40.661 total
+wc -c  0.18s user 6.22s system 15% cpu 40.659 total
+
+$ time ./a.out &gt;/dev/null
+./a.out &gt; /dev/null  28.28s user 0.01s system 99% cpu 28.336 total
+</code></pre>
+<p>34 bits also runs under a minute iff I redirect it to <code>/dev/null</code> and piping it into anything seems to get it over limit.</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://playcode.io/javascript" rel="nofollow noreferrer">JavaScript</a>, 18 bits</h1>
 <pre><code>let numBits = 23;
 let smallestFactor = new Array(2**numBits + 1);
 smallestFactor.fill(0);
@@ -74,7 +179,7 @@ console.log(str.substring(0,str.length - 1));
 Used
 <a href="https://cp-algorithms.com/algebra/prime-sieve-linear.html" rel="nofollow noreferrer">this</a> article to massively improve the time complexity of the algorithm.</p>
 </div>
-<div id="pu1" class="pu"><h1>30 bits</h1>
+<div id="pu2" class="pu"><h1>30 bits</h1>
 <pre><code>#include &lt;iostream&gt;
 #include &lt;string&gt;
 const int N = 30;
@@ -130,7 +235,7 @@ sys 0m2.918s
 <p>Seems <code>time</code> also count time of <code>wc</code></p>
 <p><a href="https://tio.run/##7VVLDoIwEN17CzcyjYpSKJIgnMQNgWpqCCVgCIl6I0/BxbAlEPm6dSFdvCZv3rxOp5P06mVe6icsvm0jHtCyPPMEmLO32RET016vGbovcodmXggK4BUULx1JNCokFZoVHiq0EHqAtgIAS8JBQqMgrUzhgoVyGNPljtFErJ9jTHgZAx/SOftbDA94vcONeRu1xpy4i9mrd4rHHa7xJCN@pJfTrksqxIPMvf9J7@v2z/M/z/@/zr9YiprQOPR8CrvitbtslKWCPtQpEFTuuOKnYK4L@VaTOQt2hhz5PEp5SNWQX4ChZ1m@AQ" rel="nofollow noreferrer">verifier for N=8</a></p>
 </div>
-<div id="pu2" class="pu"><h1><a href="https://www.rust-lang.org/" rel="nofollow noreferrer">Rust</a>, 18 bits</h1>
+<div id="pu3" class="pu"><h1><a href="https://www.rust-lang.org/" rel="nofollow noreferrer">Rust</a>, 18 bits</h1>
 <p>Rust port of @DesmosEnthusiast's JavaScript answer.</p>
 <p>You can run <code>n=10</code> case at <a href="https://play.rust-lang.org/?version=stable&amp;mode=release&amp;edition=2021&amp;gist=03da9c028b6ca31807197224ffc72b27" rel="nofollow noreferrer">RustPlayground</a>!</p>
 <pre class="lang-rust prettyprint-override"><code>fn main() {
