@@ -26,12 +26,12 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>033</td><td>C++</td><td>250301T174828Z</td><td><a href="https://codegolf.stackexchange.com/questions/278146/find-the-boolean-logic-to-check-if-a-number-is-prime/278440#278440">Mukundan</a></td></tr>
+<tr d-ix="0"><td>034</td><td>C++</td><td>250301T174828Z</td><td><a href="https://codegolf.stackexchange.com/questions/278146/find-the-boolean-logic-to-check-if-a-number-is-prime/278440#278440">Mukundan</a></td></tr>
 <tr d-ix="1"><td>018</td><td>JavaScript</td><td>250219T021806Z</td><td><a href="https://codegolf.stackexchange.com/questions/278146/find-the-boolean-logic-to-check-if-a-number-is-prime/278301#278301">DesmosEn</a></td></tr>
 <tr d-ix="2"><td>nan</td><td></td><td>250223T161547Z</td><td><a href="https://codegolf.stackexchange.com/questions/278146/find-the-boolean-logic-to-check-if-a-number-is-prime/278359#278359">l4m2</a></td></tr>
 <tr d-ix="3"><td>018</td><td>Rust</td><td>250223T104052Z</td><td><a href="https://codegolf.stackexchange.com/questions/278146/find-the-boolean-logic-to-check-if-a-number-is-prime/278352#278352">138 Aspe</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://en.cppreference.com/w/" rel="nofollow noreferrer">C++</a>, 33 bits</h1>
+<div id="pu0" class="pu"><h1><a href="https://en.cppreference.com/w/" rel="nofollow noreferrer">C++</a>, 34 bits</h1>
 <pre class="lang-cpp prettyprint-override"><code>#include &lt;algorithm&gt;
 #include &lt;array&gt;
 #include &lt;cmath&gt;
@@ -44,21 +44,65 @@ using u8 = uint8_t;
 using u32 = uint32_t;
 using u64 = uint64_t;
 
-const u8 N = 33;
+const u8 N = 10;
 const u64 M = 1ull &lt;&lt; N;
+const u32 S = M &gt;&gt; (N / 2);
+
+const u8 lo = (N + 1) / 2 + 1;
+const u8 hi = N - lo;
 
 char buf[524288];
 char *buf_ptr = buf;
 
-constexpr auto tmpl = []() {
-  std::array&lt;char, 5 * N + 1&gt; ret{'('};
+constexpr auto two = []() {
+  std::array&lt;char, 5 * N - 1&gt; ret{'('};
   for (int i = 0; i &lt; N; i++) {
     ret[i * 5 + 1] = '(';
-    ret[i * 5 + 2] = ' ';
+    ret[i * 5 + 2] = '~';
     ret[i * 5 + 3] = i &lt; 26 ? 'A' + i : 'a' + i - 26;
-    ret[i * 5 + 4] = ')';
-    ret[i * 5 + 5] = i == N - 1 ? ')' : '&amp;';
+    if (i != N - 1) {
+      ret[i * 5 + 4] = ')';
+      ret[i * 5 + 5] = '&amp;';
+    }
   }
+
+  ret[5 + 2] = ' ';
+
+  return ret;
+}();
+
+constexpr auto tmpl_lo = []() {
+  std::array&lt;char, 5 * (lo - 1) + 2&gt; ret{'|', '('};
+  for (int i = 0; i &lt; lo - 1; i++) {
+    ret[i * 5 + 2] = '(';
+    ret[i * 5 + 3] = ' ';
+    ret[i * 5 + 4] = i + 1 &lt; 26 ? 'A' + i + 1 : 'a' + i + 1 - 26;
+    ret[i * 5 + 5] = ')';
+    ret[i * 5 + 6] = '&amp;';
+  }
+
+  ret[5 * (lo - 1) + 1] = ')';
+
+  return ret;
+}();
+
+constexpr auto tmpl_hi = []() {
+  std::array&lt;char, 5 * hi + 11&gt; ret{')', ')', '|', '('};
+  for (int i = 0; i &lt; hi; i++) {
+    ret[i * 5 + 4] = '(';
+    ret[i * 5 + 5] = ' ';
+    ret[i * 5 + 6] = lo + i &lt; 26 ? 'A' + lo + i : 'a' + lo + i - 26;
+    ret[i * 5 + 7] = ')';
+    ret[i * 5 + 8] = '&amp;';
+  }
+
+  ret[5 * hi + 4] = 'A';
+  ret[5 * hi + 5] = '&amp;';
+  ret[5 * hi + 6] = '(';
+  ret[5 * hi + 7] = '(';
+  ret[5 * hi + 8] = '~';
+  ret[5 * hi + 9] = 'A';
+  ret[5 * hi + 10] = ')';
 
   return ret;
 }();
@@ -68,14 +112,29 @@ void flush() {
   buf_ptr = buf;
 }
 
-void output(u64 x) {
-  if (buf_ptr - buf + tmpl.size() + 1 &gt;= 524288)
+template &lt;size_t N&gt; void output(std::array&lt;char, N&gt; s) {
+  if (buf_ptr - buf + s.size() &gt;= 524288)
     flush();
-  *buf_ptr++ = '|';
-  memcpy(buf_ptr, tmpl.data(), tmpl.size());
-  for (u32 i = 0; i &lt; N; i++)
-    buf_ptr[i * 5 + 2] = (x &gt;&gt; i) &amp; 1 ? ' ' : '~';
-  buf_ptr += tmpl.size();
+  memcpy(buf_ptr, s.data(), s.size());
+  buf_ptr += s.size();
+}
+
+void output_lo(u32 x) {
+  if (buf_ptr - buf + tmpl_lo.size() &gt;= 524288)
+    flush();
+  memcpy(buf_ptr, tmpl_lo.data(), tmpl_lo.size());
+  for (u32 i = 0; i &lt; lo - 1; i++)
+    buf_ptr[i * 5 + 3] = (x &gt;&gt; i) &amp; 1 ? ' ' : '~';
+  buf_ptr += tmpl_lo.size();
+}
+
+void output_hi(u32 x) {
+  if (buf_ptr - buf + tmpl_hi.size() &gt;= 524288)
+    flush();
+  memcpy(buf_ptr, tmpl_hi.data(), tmpl_hi.size());
+  for (u32 i = 0; i &lt; hi; i++)
+    buf_ptr[i * 5 + 5] = (x &gt;&gt; i) &amp; 1 ? ' ' : '~';
+  buf_ptr += tmpl_hi.size();
 }
 
 template &lt;u32 N&gt; constexpr auto sieve_helper() {
@@ -96,14 +155,14 @@ template &lt;u32 N&gt; constexpr auto sieve_helper() {
 }
 
 int main() {
-  output(2);
-  buf[0] = ' '; // lazy fix
+  output(two);
 
-  const u32 S = M &gt;&gt; (N / 2); // TODO: sqrt
   auto small = sieve_helper&lt;S + 1&gt;();
 
   std::array&lt;bool, S&gt; block;
   for (u64 low = 0, high = (M - 1) / 2; low &lt;= high; low += S) {
+    output_hi(low / S);
+
     std::fill(block.begin(), block.end(), true);
     for (auto &amp;[i, j] : small) {
       for (; j &lt; S; j += i)
@@ -114,27 +173,29 @@ int main() {
     block[0] &amp;= low != 0;
     for (u32 i = 0; i &lt; S; i++)
       if (block[i])
-        output(2 * (low + i) + 1);
+        output_lo(i);
   }
+
+  output(std::array&lt;char, 2&gt;{')', ')'});
 
   flush();
 }
 </code></pre>
-<p><a href="https://ato.pxeger.com/run?1=bVVNT9tAED1W8q-YUonY2OHDARTFsatKvQKH9BZF0eKsk6X-SO01hdL0j_TSS4_9Qe2v6cysHRzCAWy_nXm78-bt5OefeJ3WFf3Nl3H815ke9G8SUekDDw76mSjjVZgLre4lA5VehLHr-oOD2a_ftU76w39vfrxTeZzWCwljkS6LUulVFlkdsCzFYxeIM6FXOwDSqly_gEqVLyOrg9W5wsBjTLXqChehHkIINWYO5zposYHfgAO_g16eN-jlOaFWXOSVJoJrxM9OgxbAuCtC6jSF8RiuKXQlSritk-mFf-4Ph7PAIEcIzde6xGh8aynlw7oEUesCdLZOcW06sx14sgDw6KMRazGmfA8u4Ah3d-EsglLqp57d2wQYlxQl2HhQUJh9GuCDjgHKdQ0PUPRUYfIFJc8wClODvRWfV-CVlQGtEK1_Ce-h96GHmIIR9IR56-PCftY58zmv8F0YvjDEcvpwRpxOj_gOOXhjWRxflzk9AmtjOyjXfaEWkKDvVo1AX9E50j7zSE7-x-r26c0hnhd6bxqKotbrWtvUuQdDpBKwd9LxjNSN40p9k7gZqgZRCKadDpfTnIO2afvqulTvdy4hk1m8fmxJPcO2EFrYjteldrYNJBvuN5D3alh2G2U_QBSBcuDQCAgs4I9et3A37O7FCmiJgNB0OXDD6whemLBS8l7OVzJdy7KR-bWIrk93nHpbFKlHvOTQjWn9Tn2D5_rofL4p0fTgLZtk1kKdzDs2zBGoAF85-46zCXoONy67I3l0Wcut8chIfMZMfJbztVClbZPzfAdOkKNvFuOizrWN4ce3cqly6hR9yHzBTUNCg3DPjCV3SudXIh_jZfSA5pNn1DpOVFnpyJj5pR4eF3f6qiwsiqGoJPZh0VGHS3VdKvZJeTgBSAu6TlwUS79zhyyLZkQmqDLuW3MP_PauTE_bAQAnJ5CKb4-QqAerdQAPyglGXJHxUD_cxeHQTzcfb0ZQfSk1xhqPZCKlWdZ103jCo2tfN2OZSQS3aRF_fhYI72dafCVtPFip5YpMf7UtMODFcchL5gN1m-xYMlFpajPrc0vNZ7epHZPy4Q-nKCeaaGTKaBmbEGPASWPAjvmY2JgvEWnVuA8wro_nMl882dpQlPsw5IO_pf7vX5XGE5POKGhmFed3L0rbS_SAzVLQZEC5ne083Q6sjfkZbn6NfzXP_w" rel="nofollow noreferrer">Attempt This Online!</a> (10 bit version)</p>
+<p><a href="https://ato.pxeger.com/run?1=nVfNcuJGEL6r8hBtp8pIRniN-FliQFv7ACYHjhRFyUKg8QqJkka2dx3yIrnsJcc8Tg7J06S7R7-AvLs5AFL39N_XPd8Mf_zl7oM0oc9q67r_GIvLzq8bJ5GXJlx2dk7s-tPQkeLJY0Ei11O33bZ6l8uvf6Zy0xn9-9PfP4vQDdK1BxMn2EaxkP7O1irCOHY-VwXuzpF-TYBuRSiPRLEIt7ZWkaWhwIU3aKqlCSohHcEUUrQcreQ4l_WsTNizKtJhP5MO-yTV3ChMJDmYobx7O84FuO6eJGkQwGQCs0KBbueouAfbBn0G78Ayqm6CCJUob0PXICU9jEu1L1A9gw6uIyvfieEh3SwGVt8ajZZjJblG0WovY1yKT7l372Ufg5PKCOQzBVksdQNeNQDE4u6OwZ2QuQkDuOYYXRtiT7629NZhjOs2UQw6Vg6Uw-0Yf6guEO228gO0eiHQeEBZL3EVmo5PNBZrfj-j6ZGG3FpD-ACtjy2UCbiDlqOeOqhQVmKDqcCFwqKbx69763McI4tT1w1Yd5XpDhp9NLWkTBFQrYRpHNLPWDvoxhk8d_tgFXwbUx3XcLYYIIP2t5YJb-GrLBpBthpB7hUVnIVFUIeOgSZRCTa9lYCfgmec8T2swFoBtFZ6t7D-bmx56t_G1ueE84k1CFb--hbAvmgEt98I7qARXAYAa20fj3Emy-HNXs_j-74R31ETvly-Svgja2uK6rTXFMNKiTXF-ybFqLJ5a4pfmoJ3b99u-FMk1rDBc8PP-vuMzO_pXZPIi7-Yyzr0ZJD3I3ZDHKSHU-JIpPZEfPFWEmY2sNsolftU6icTg_pEBSMiqYXAjJMbcoPZ2FNQzGpwJ7IkKYedt3P3n3NLE03WjnR0wyyMa6m2p4WcE64kh8Sh06Hw0pxPxi8_nlVumOdWd2QUe4LiN5AOh8gc1slFf6EjTBhwhUTxgbYDTbeajErd9Zgn1fviu6r3xf-sHg1r1ReOGqvPGeFs5YMfrbyIdzSoFBSn8IjtEuE9eSvfC_ZenO2GcyuqbFjjw4coCni6iQUPij9qNfbKY5tStIzsbCTgL5hplrmoYvnIJ8Y1IDKPyvqRrUlULlf7_pEQknHqFexF-51z3DmfvNXeEbGu07FtqQtORyndKA2ljstvHrytCKlh9OKFa-4dOlQS7ptijlrp_EjOJ8jwJtA10FRo3WxEnEhbcc4xHiYXd3sWFgZFuUg87MO6gg6X2m5Tsa_CpMvINfO5urUdxsdUp2l08Owcqoz7llET3sVUKaq7Owfvi9PaHEzmRKL2acWq2XMbHoLI_VSWhlfPIHqmqkwc5q1PE3tfpDZm5WTKKvWCFc_zYSq3JWneoYLDZoE3Igh0Dld2Sb1W-1SZO67qaoEI4VzcqfrK2xovUTM1z2aqMk_sWM3TxgkSL7_HPUIHE85vblq5FA-aqylXdEEtPZ3-rM3zygbPOIftq7NfkrMwitO26Tix7OLKcVB4FbR0UP9usj85X7Pf_wA" rel="nofollow noreferrer">Attempt This Online!</a> (10 bit version)<br />
+<a href="https://ato.pxeger.com/run?1=vVhLbtswEEW3XPcAAy0MMnHduKsiQAKk__YShurQKQNbEiS6aNNWF-nGm_ZQOU1FykgQeTgUKaVa0BAHHA0f37wZ-vff4rv-kme73Z-tXj17eftkpjZFXmqodKmyK8aqGzgDlWmusmKruRBMfitKO2ff2SovQU3hupkAmW03sky15FXjQ17y1sssrZZKLdZSa1lWQpwyaJ69H_MzK2WxTpeSX09hlXC-gPNz-KF-CZjAXCR335Rf0zVP1unm82UKi9MEjh8uT-pkCkmW66SJky3zbaabVSdtjCbAMs2uJH8BR0dQ3ezjUCvrhKv9u3mK0m5Z3E20vo7PYM5Ya7QzooVtj97u9unz-QnjvL4QEw6vmqF-bYY3ZnhrhndmeG-GD2b4aIZPQvzkyOzkYmJdNUaHL7vOmAA1gcdkHYLbIW66DwNQh7gJUFPnW_iqAxO2ZehGCF0TtmVAv3XgsBM87hDQVQ9N7brIkyaOE9s2jiNOAvxgajf6tRt9_GCw4P0Hg3Hx4KTxg3Ghb_MMIvOMgNiXTGOmBY4-ATGBI0aCntwnCe6CGKPPSFJGQByC4wB5iaMqoiGdkgBBOPqEglADQvcJquJCge3Nr-AEH7GMwQ8mQosRiH157auExLZDVNUnnWMWrp7S6eJjMOkIHHsxK64ExRWTsOQFL1jBdSYueQfoY3C9HpC8JOnuuyVw4BhXlOOYFVxDiVwj6ePfdnBjH9eiE2n431v02sERGALWmDWUkDMfxMFyFpyG_mpI4ujrzghhevwuN64aujIUa8F6M8sHlo8jRH8QkjW9OvhHuNgiYPVKqJHay17CFNem98YR65gQROIu7XE6EnzHjqhrWO_TmwijF6-hFSr4ShyaNe0fh_8A" rel="nofollow noreferrer">Verify output for 10 bits</a></p>
 <p>Uses the character <code>A-Za-z</code> to represent the bits where <code>A</code> is the lsb and <code>z</code> is the msb.</p>
-<p>Generates a boolean expression which brute-force checks every prime, the expression is ~60GiB.</p>
+<p>Generates a boolean expression which <s>brute-force checks every prime</s> it is slightly more optimized now by grouping the high bits, the expression is ~60GiB.</p>
 <p>Uses a segmented sieve for better cache locality, should also make it easy to have it use multiple cpu cores might get around to doing that at some point.</p>
-<pre><code>$ g++ -std=c++23 -O3 -march=native sieve64.cpp
+<pre><code>$ g++ -std=c++23 -Ofast -march=native a.cpp
 
 $ time ./a.out | wc -c
-63775880333
-./a.out  30.00s user 4.83s system 85% cpu 40.661 total
-wc -c  0.18s user 6.22s system 15% cpu 40.659 total
+66270357325
+./a.out  22.66s user 4.91s system 83% cpu 33.128 total
+wc -c  0.13s user 5.97s system 18% cpu 33.127 total
 
 $ time ./a.out &gt;/dev/null
-./a.out &gt; /dev/null  28.28s user 0.01s system 99% cpu 28.336 total
+./a.out &gt; /dev/null  21.65s user 0.01s system 99% cpu 21.691 total
 </code></pre>
-<p>34 bits also runs under a minute iff I redirect it to <code>/dev/null</code> and piping it into anything seems to get it over limit.</p>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://playcode.io/javascript" rel="nofollow noreferrer">JavaScript</a>, 18 bits</h1>
 <pre><code>let numBits = 23;
