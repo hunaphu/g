@@ -26,8 +26,8 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>105</td><td>AWK</td><td>250303T154105Z</td><td><a href="https://codegolf.stackexchange.com/questions/277579/how-much-coffee-is-in-my-water/278486#278486">xrs</a></td></tr>
-<tr d-ix="1"><td>219</td><td>Gawk</td><td>250303T040555Z</td><td><a href="https://codegolf.stackexchange.com/questions/277579/how-much-coffee-is-in-my-water/278476#278476">Braden C</a></td></tr>
+<tr d-ix="0"><td>124</td><td>Gawk</td><td>250303T040555Z</td><td><a href="https://codegolf.stackexchange.com/questions/277579/how-much-coffee-is-in-my-water/278476#278476">Braden C</a></td></tr>
+<tr d-ix="1"><td>105</td><td>AWK</td><td>250303T154105Z</td><td><a href="https://codegolf.stackexchange.com/questions/277579/how-much-coffee-is-in-my-water/278486#278486">xrs</a></td></tr>
 <tr d-ix="2"><td>694</td><td>Bespoke</td><td>250120T015252Z</td><td><a href="https://codegolf.stackexchange.com/questions/277579/how-much-coffee-is-in-my-water/277767#277767">Josiah W</a></td></tr>
 <tr d-ix="3"><td>064</td><td>Julia 1.0</td><td>250119T213120Z</td><td><a href="https://codegolf.stackexchange.com/questions/277579/how-much-coffee-is-in-my-water/277759#277759">MarcMush</a></td></tr>
 <tr d-ix="4"><td>017</td><td>Jelly</td><td>250111T183610Z</td><td><a href="https://codegolf.stackexchange.com/questions/277579/how-much-coffee-is-in-my-water/277591#277591">lolad</a></td></tr>
@@ -37,46 +37,31 @@
 <tr d-ix="8"><td>036</td><td>APLNARS</td><td>250112T195108Z</td><td><a href="https://codegolf.stackexchange.com/questions/277579/how-much-coffee-is-in-my-water/277608#277608">Rosario</a></td></tr>
 <tr d-ix="9"><td>5958</td><td>Ruby</td><td>250111T201541Z</td><td><a href="https://codegolf.stackexchange.com/questions/277579/how-much-coffee-is-in-my-water/277594#277594">Level Ri</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.gnu.org/software/gawk/" rel="nofollow noreferrer">AWK</a>, 105 bytes</h1>
-<pre><code>{for(;i++&lt;NF;t=c+w){y=$(i+1);$i~/c/&amp;&amp;c+=y;$i~/w/&amp;&amp;w+=y;if($i~/d/){y&gt;t&amp;&amp;c=w=0;c-=c*y/t;w-=w*y/t}}}1,$0=c/t
-</code></pre>
-<p>To test:</p>
-<pre><code>awk -F FS=&quot;,|\\\(|\\\)&quot; '{for(;i++&lt;NF;t=c+w){y=$(i+1);$i~/c/&amp;&amp;c+=y;$i~/w/&amp;&amp;w+=y;if($i~/d/){y&gt;t&amp;&amp;c=w=0;c-=c*y/t;w-=w*y/t}}}1,$0=c/t' &lt;&lt;&lt; &quot;c(10),d(5),w(5),d(5),w(5),d(5),w(5),d(5)&quot;
-</code></pre>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://www.gnu.org/software/gawk/" rel="nofollow noreferrer">Gawk</a>, 219 Bytes</h1>
-<pre><code>{for(i=1;i&lt;=NF;i++){switch($i){case/w/:gsub(/[w()]/,&quot;&quot;,$i);P=(P*T)/(T+$i);T+=$i;break;case/c/:gsub(/[c()]/,&quot;&quot;,$i);P=(P*T+$i)/(T+$i);T+=$i;break;case/d/:gsub(/[d()]/,&quot;&quot;,$i);if(T&gt;=$i+0){T-=$i}else{T=0;P=0}}}}END{print P}
+<div id="pu0" class="pu"><h1><a href="https://www.gnu.org/software/gawk/" rel="nofollow noreferrer">Gawk</a>, ~~219~~, 124 Bytes</h1>
+<p>-95 thanks to @manatwork</p>
+<pre><code>{for(i=1;n=$i;i++){gsub(/[^0-9]/,&quot;&quot;,n);if($i~/w/)P=P*T/(T+=n);else if($i~/c/)P=(P*T+n)/(T+=n);else T&gt;=+n?T-=n:T=P=0}print P}
 </code></pre>
 <p>Takes input almost as specified in the statement of the problem, except that the operations should be separated by spaces.  For example:
 <code>w(10) c(10) d(5)</code>.</p>
 <p>An easier to read version is</p>
 <pre><code>{
-        for(i=1;i&lt;=NF;i++) {
-                switch($i) {
-                        case /w/:
-                                gsub(/[w()]/,&quot;&quot;,$i);
-                                P=(P*T)/(T+$i);
-                                T+=$i;
-                                break;
-                        case /c/:
-                                gsub(/[c()]/,&quot;&quot;,$i);
-                                P=(P*T+$i)/(T+$i);
-                                T+=$i;
-                                break;
-                        case /d/:
-                                gsub(/[d()]/,&quot;&quot;,$i);
-                                if(T&gt;=$i+0) {
-                                        T-=$i
-                                } else {
-                                        T=0;
-                                        P=0
-                                }
-                }
+        for(i=1;n=$i;i++) {
+                gsub(/[^0-9]/,&quot;&quot;,n);
+                if($i~/w/)
+                        P=P*T/(T+=n);
+                else if($i~/c/)
+                        P=(P*T+n)/(T+=n);
+                else T&gt;=+n?T-=n:T=P=0
         }
+        print P
 }
-
-END {print P}
-<span class="math-container">```</span>
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.gnu.org/software/gawk/" rel="nofollow noreferrer">AWK</a>, 105 bytes</h1>
+<pre><code>{for(;i++&lt;NF;t=c+w){y=$(i+1);$i~/c/&amp;&amp;c+=y;$i~/w/&amp;&amp;w+=y;if($i~/d/){y&gt;t&amp;&amp;c=w=0;c-=c*y/t;w-=w*y/t}}}1,$0=c/t
+</code></pre>
+<p>To test:</p>
+<pre><code>awk -F FS=&quot;,|\\\(|\\\)&quot; '{for(;i++&lt;NF;t=c+w){y=$(i+1);$i~/c/&amp;&amp;c+=y;$i~/w/&amp;&amp;w+=y;if($i~/d/){y&gt;t&amp;&amp;c=w=0;c-=c*y/t;w-=w*y/t}}}1,$0=c/t' &lt;&lt;&lt; &quot;c(10),d(5),w(5),d(5),w(5),d(5),w(5),d(5)&quot;
 </code></pre>
 </div>
 <div id="pu2" class="pu"><h1><a href="https://github.com/WinslowJosiah/bespokelang" rel="nofollow noreferrer">Bespoke</a>, 694 bytes</h1>
