@@ -26,11 +26,103 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>821</td><td>R</td><td>250226T004221Z</td><td><a href="https://codegolf.stackexchange.com/questions/277854/wuziqi-connect-5-king-of-the-hill/278390#278390">user1502</a></td></tr>
-<tr d-ix="1"><td>115</td><td>P</td><td>250225T001204Z</td><td><a href="https://codegolf.stackexchange.com/questions/277854/wuziqi-connect-5-king-of-the-hill/278379#278379">huanglx</a></td></tr>
-<tr d-ix="2"><td>nan</td><td></td><td>250212T134952Z</td><td><a href="https://codegolf.stackexchange.com/questions/277854/wuziqi-connect-5-king-of-the-hill/278218#278218">user1502</a></td></tr>
+<tr d-ix="0"><td>nan</td><td></td><td>250305T024314Z</td><td><a href="https://codegolf.stackexchange.com/questions/277854/wuziqi-connect-5-king-of-the-hill/278515#278515">huanglx</a></td></tr>
+<tr d-ix="1"><td>692</td><td>R</td><td>250226T004221Z</td><td><a href="https://codegolf.stackexchange.com/questions/277854/wuziqi-connect-5-king-of-the-hill/278390#278390">user1502</a></td></tr>
+<tr d-ix="2"><td>115</td><td>P</td><td>250225T001204Z</td><td><a href="https://codegolf.stackexchange.com/questions/277854/wuziqi-connect-5-king-of-the-hill/278379#278379">huanglx</a></td></tr>
+<tr d-ix="3"><td>nan</td><td></td><td>250212T134952Z</td><td><a href="https://codegolf.stackexchange.com/questions/277854/wuziqi-connect-5-king-of-the-hill/278218#278218">user1502</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>R, 821 bytes</h1>
+<div id="pu0" class="pu"><h1>Chain Blocker</h1>
+<blockquote>
+<p>If I can't get 5 in a row, no one can!</p>
+</blockquote>
+<p>Tries its hardest to stop the opponent from getting 5 in a row. The idea is to outlast the opponent by frustrating their efforts to win as much as possible.</p>
+<p>Since there are not many submissions, length is not a concern for this bot.</p>
+<pre class="lang-none prettyprint-override"><code>import collections
+import math
+import random
+
+class ChainBlocker:
+    def move(self, game):
+        Chain = collections.namedtuple(&quot;Chain&quot;, (&quot;start&quot;, &quot;end&quot;, &quot;threat&quot;, &quot;startavail&quot;, &quot;endavail&quot;, &quot;rowdir&quot;, &quot;coldir&quot;))
+        
+        chains = {}
+        
+        empty_squares = []
+        
+        for scan_row in range(len(game.board.board)):
+            for scan_col in range(len(game.board.board[scan_row])):
+                if game.board.board[scan_row][scan_col] == Color.NONE:
+                    empty_squares.append((scan_row, scan_col))
+                elif game.board.board[scan_row][scan_col] == game.current_player:
+                    pass
+                else:
+                    directions = ((0, 1), (1, 1), (1, 0), (1, -1))
+                    
+                    for rowdir, coldir in directions:
+                        chain_start = (scan_row, scan_col)
+                        chain_end = (scan_row, scan_col)
+                        chain_threat = 0
+                        chain_startavail = False
+                        chain_endavail = False
+                    
+                        curr_row, curr_col = scan_row, scan_col
+                        while True:
+                            curr_row -= rowdir
+                            curr_col -= coldir
+                            if curr_row &lt; 0 or curr_col &lt; 0 or curr_col &gt;= game.COLS or \
+                                    game.board.board[curr_row][curr_col] == game.current_player:
+                                chain_start = (curr_row + rowdir, curr_col + coldir)
+                                break
+                            elif game.board.board[curr_row][curr_col] == Color.NONE:
+                                chain_startavail = True
+                                chain_threat += 1
+                                chain_start = (curr_row + rowdir, curr_col + coldir)
+                                break
+                        
+                        while True:
+                            curr_row += rowdir
+                            curr_col += coldir
+                            chain_threat += 1
+                            if curr_row &gt;= game.ROWS or curr_col &gt;= game.COLS or curr_col &lt; 0 \
+                                    or game.board.board[curr_row][curr_col] == game.current_player:
+                                chain_end = (curr_row - rowdir, curr_col - coldir)
+                                chain_threat -= 1
+                                break
+                            elif game.board.board[curr_row][curr_col] == Color.NONE:
+                                chain_end = (curr_row - rowdir, curr_col - coldir)
+                                chain_endavail = True
+                                break
+                        
+                        if not chain_startavail and not chain_endavail:
+                            chain_threat = 0
+                        
+                        if chain_threat &gt; 0:
+                            try:
+                                chains[chain_threat].append(Chain(chain_start, chain_end, chain_threat, 
+                                        chain_startavail, chain_endavail, rowdir, coldir))
+                            except KeyError:
+                                chains[chain_threat] = [Chain(chain_start, chain_end, chain_threat, 
+                                        chain_startavail, chain_endavail, rowdir, coldir)]
+            
+        move_candidates = []
+        if chains:
+            threatening_chains = chains[max(chains)]
+            
+            for chain in threatening_chains:
+                if chain.startavail:
+                    move_candidates.append((chain.start[0] - chain.rowdir, chain.start[1] - chain.coldir))
+                if chain.endavail:
+                    move_candidates.append((chain.end[0] + chain.rowdir, chain.end[1] + chain.coldir))
+                
+        else:
+            move_candidates = empty_squares
+        
+        move_choice = random.choice(move_candidates)
+        game.place(move_choice[0], move_choice[1])
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=zVlLb9tGEEbRmy75B8WEOYSMKcJymzY1qqBx4rZGUrtIjLqAIhC0uLLY0KRCUnZUN7-kl1zan9RDfk1n9kHu8mU56GsFmNyd2dlv57Wz9G9_LNfFIk3evb_1yTxLz4Elq3OIzpdpVsA-vg8GszjIc3icxmlm04izOwBse88ePX4KY7D2LN4_-e7geJ_6J6J_eHTIu57oHhz--OjZwRMa-cka8KGvl1m6ZFmx5r2QzSHK_WUcrFlm5yyey4WoZaxYZQnQKIzH_OkJAGlmjnIYCvSTKGOzIkqTXEd-iCDsbRdGDu--kN2h7BNqe-TCtuieUHco-mK6YlDzVV8JOCynKI5ygFgUuIPkIoij8Pv0gu2_mbEl4bTLN2cXPM-TrN8G5-zogmXdfJJxLw2ycLfUp-9HSVT4PlenC1l6mbswS-NcUy3XGlEQIz1MAjEjgR4m4ZRWQspkwj3D4-aeozV8iBLIguSM2STOmYpRbZgDmA5KlGjyGasgcoT8T5ppOGerzEeFrRhIS5-xwlbs0jTUornOOhaO60n3q8RxrwqinLXbwaIu-iOkqwLSOZymqyTMPatrodtqIdLDxqsYfNSsR0laLFgGIgxgEeQQxBkLwrUYCiFNoFggsPz1KsiYjC7VNHiVlSaopekEtTQFidIWyqUtRHmU5EWQzJgYdNFOhQMsRsx8oLITKdy0kmYeFIWj8BVsU0giTb3S6MOx5maSrMbIG2oKE8FuGK5kaEsJ9W0OtADIi0z6fzOdWLL7uPf3MrFgq-TdhhHswKfwGdyHz-ELeABf4oj8CdaSt62V802xft9PsuLD-zmNam4zaTjR3Hp-FYVv3sLVXbjLbRy-QWuMtoVV7959C7-CWFwKnFx4wo0pVC94pKIunaZkJKMw7gDERYcFy4JCRK8wgzlrWvYclaNOVr9EryNhjOdHJ5R-R_d57_HRM613fOSfHFCuvj9oT2j1JIbRmLGkkEeI8nVxTrQnL54uBXZC4goqwXDMCecYtv4Mc0DBBW-bVDy2kE6EbwLUsEm8jJJEQ0P5oT_1mUGlL9CWV5pHg0VDlLpU4qCpty2nGULNrW2h9ttSiCeAVtm5ReHONdYw3VazTbnN-hSlM1FacOfVBnTPUq93QG2eGwQFUzYV2gBhCa9kxuTql9bhAPxqSDtaNGtUdNMWNTc4zlasD1SSSjAQzEntQRxDvkwLRIlg51Ecs9BreIHphBIyj6B7leOauJYZZnPbGg6HltNGOF4wOFPuAmEWXN5uZ-ySwONwc1XoSVvyaMFdaRfD3A-r4k0ESIgFVLjTGijKc_iJpawpPNcsEzSd4klrzvPK8nNXARXxXC1DbMIEYEQKJcYSL2XGiQA7Nc1BqRMDclzxirxrMPEkW1VLIxlsIh06pkBqCbv0KR_z8g2zuo3Z_h5EzexNjHTy8nKOM64FY4NTeVylQbmIq4Q45ICG9prA6hrjyaXOQFHdNTUpokT3Hqq4NHmqghCaaQnIMrgNoDdx77l1ZboIN9dbXpdd8kpMxM8HRU1b0dMaLpoX1uKk--hYBlFGlbtZHtjVjcg7dLX7kffCcTs59w3Okx7OQ5P1RS_vicm7r_FOGzoIkrVdz9G1LNHIDyIs-SjFE1eJs2lxiDSjqvl9VcyHD97f-lNejnGBWK48kEPnQbFQ7xi8YVrdnhdBlOzF6eyVOjkIACV0aUFyIg0D5xeBqhbxEmQJi9UyZrbF6ZYLtoW1e1bgm8WSkB7FAg99PsApwUUQxZJcvqOCUG30hvLpzWkpDma0BHnQ1dsmkZ0vi7UvriDcy6ZNHlJ-PgsSXxaLIp3FLLFpszK3COXWslo5k_JU78yJWmBal0EN80X3hIlaYVoVGs3LW-uGvWC5RH3athLmlnCdZtpl8Q1wcD6zDmoHtES3ukEyrcKEKjHx9cOVXzFc-bnDVV8xmnug1jo4Fzc8FM9DDp9ksGq1djTUuH_53EkJUosqr5mKFviwiSJEjDK-BxyPmkZp3wnpevZuGWh2sRP-Jo7q5vY6518uopjxE6Rb6_o6MBxL213PTmCGY2niXnbxWUQsoL4GKAn1_kPp8Pzih4SXvZJVa8SSWm86UZJvFkvGbk23LLeyVbm5Qr8l1dHtb6qdosO96uVqTxIdG7suWXXsR7kmrzE2mydDpbVy61np39Lc3xcKWzcLha2NQuFmOtQDRwUGv931RYwRWpuFD876FyJIZucq1zS9YLixFxiKHG7ijP95xP0D-9dOl41C-ANjR12N64kDC1qNoMBcE1-bHrh9aAwhD2G7f8kiW29oo3yiS56qqo7X1ra2fbfasmuAcbthty6oadOtqdGtVVEdNZhqjH_tg6dsvZ9lXXfv6zZMdfv_Y7NTQ3TZER-80O-iMCjq9wzlGLUSU4BlSZSc-eUVRu7-PHgjtpp3rUiNSlrORZVsU1zrNYOTvGrH7Qap7ae8RmizJ9tTygt8oFSSRh5V5E5HKfH0x2g_GnwlLFutWIg4qoidSKr7YuNi0rStccVqXifFhEUazeg_gOJ67Ym-XRNWAeH5XXy71ubjxlxdHu7Fkdf7jz4Wx5w_oi_22q3dduAOrNOV-tfcbZhgDx14FYeAtX4Kp0yS_J3pQL21SbmI4hiHBgP-5XUs_yFiOwOzalFA-HdffvOlybMgjnMQe4I0mTEPfkBG9E8IcjjF4VceVLN3bjIb1y9wRH7qePdOPP8C" rel="nofollow noreferrer">Attempt this online!</a></p>
+</div>
+<div id="pu1" class="pu"><h1>R, 692 bytes</h1>
 <p>A reasonably strong agent using simulation-based search.</p>
 <pre class="lang-py prettyprint-override"><code>from random import *
 import copy
@@ -52,7 +144,7 @@ class R:
   G.place(*max((a/(a+b),m)for m,(a,b)in c.items()if a+b&gt;2)[1])
 </code></pre>
 </div>
-<div id="pu1" class="pu"><h1>P, 115 bytes</h1>
+<div id="pu2" class="pu"><h1>P, 115 bytes</h1>
 <p>Since only the shortest 1/3 of submissions will be picked, let's make sure we make the cut! With only 115 bytes, surely no one can make a smaller program than this!</p>
 
 <pre class="lang-none prettyprint-override"><code>class P:
@@ -83,7 +175,7 @@ class R:
         game.place(*e)  # Run the place() function. The *e unpacks the two values of e into the two arguments of place(row, col)
 </code></pre>
 </div>
-<div id="pu2" class="pu"><pre class="lang-py prettyprint-override"><code>from random import *
+<div id="pu3" class="pu"><pre class="lang-py prettyprint-override"><code>from random import *
 class Gamma:
     def move(self, game):
         if not game.move_counter:
