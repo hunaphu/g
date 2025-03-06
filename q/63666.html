@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::63666</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>nan</td><td>Go</td><td>250306T182632Z</td><td><a href="https://codegolf.stackexchange.com/questions/63666/get-the-getters/278542#278542">bigyihsu</a></td></tr>
+<tr d-ix="1"><td>nan</td><td>Perl</td><td>151112T221239Z</td><td><a href="https://codegolf.stackexchange.com/questions/63666/get-the-getters/63694#63694">faubi</a></td></tr>
+<tr d-ix="2"><td>nan</td><td>Pyth</td><td>151112T154122Z</td><td><a href="https://codegolf.stackexchange.com/questions/63666/get-the-getters/63671#63671">kirbyfan</a></td></tr>
+<tr d-ix="3"><td>nan</td><td>JavaScript ES6 at the moment</td><td>151112T155002Z</td><td><a href="https://codegolf.stackexchange.com/questions/63666/get-the-getters/63672#63672">Conor O&</a></td></tr>
+<tr d-ix="4"><td>071</td><td>CJam</td><td>151112T153859Z</td><td><a href="https://codegolf.stackexchange.com/questions/63666/get-the-getters/63670#63670">Dennis</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1><a href="https://go.dev" rel="nofollow noreferrer">Go</a>, 452 bytes - 90% = 45.2 bytes</h1>
+<pre class="lang-go prettyprint-override"><code>import(.&quot;fmt&quot;;.&quot;regexp&quot;;.&quot;strings&quot;)
+func f(s string)string{C:=MustCompile
+M,E,G,S,P,F,U:=C(`(p.+? )(static )?([a-zA-Z][a-zA-Z0-9]*)(;)`).FindAllStringSubmatch(s,-1),C(`}$`).FindStringIndex(s)[0],`%[1]s get%[3]s(){return this-&gt;%[2]s;}`,`%[1]s set%[3]s(%[2]s){this-&gt;%[2]s=%[2]s;}`,&quot;public function&quot;,Sprintf,ToUpper
+for _,r:=range M{m:=r[3]
+g,t:=F(G,P,m,U(m[:1])+m[1:]),F(S,P,m,U(m[:1])+m[1:])
+if !Contains(s,g){s=s[:E]+g+s[E:]}
+s=s[:E]+t+s[E:]}
+return s}
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=bVLBjtMwEBXXfIWJqGRTp9rCBRJlV6uqXXGotCL0QhQRb-pkLRLbsifLiihfwqVC4saRT-An4GtwmnRBK04zfn4ez7w3X75W6vBds-IjqzhqmJDfWiiDV7-f_BSNVgbwwi8b8KOFb3jF7_WQWTBCVtYnXtnKApXYohEiY-hWYbxtLaxUo0XNvS1d0yua0Gu6obswXuEc68X8AhFsgYEoELnAKQs-XwbvsymeBa-z5wRHJCeLjZD7y7pOjrWT9qZhUNxiS4Mloa5W_2zijIQ3cs_vsSXpWUbzWbrMLKo4zNKXmcWkMxxaIxHcChucz9IXmY36_MSzJ97xgnT_sOIHrq_bm9r1PIwOQkmfJtr9CyV9p3Zac-OVyqAP1ISxYdKJuu0al7q6XkUhjDf4ygnR0B1u0nCZkXmTLsOM0A1O_od7okRPV0qCs8a6oSvS2dim4TqbV3ObrsOs904AnIBpStuPZv76cfRpcBcT1Hk2jPOiZtaiBJzz3TSRuuOmrNWnSBsFvAC-R2BYwd1Z3DHgiBujzFs-rEU0vZkMLKJHqgyarx7rXUR9n3vXg1q1dBY9pH587v89uX0ixJt6PxzG-Ac" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<h3>(semi-ungolfed) Explanation</h3>
+<pre class="lang-go prettyprint-override"><code>import(.&quot;fmt&quot;;.&quot;regexp&quot;;.&quot;strings&quot;) // boilerplate
+func f(s string)string{
+// regexp for finding the member names, and find all groups
+// also handles `static` (bonus C)
+M:=MustCompile(`(p.+? )(static )?([a-zA-Z][a-zA-Z0-9]*)(;)`).FindAllStringSubmatch(s, -1)
+// regexp for finding the last curly bracket, and get the index
+E:=MustCompile(`}$`).FindStringIndex(s)[0]
+G:=`%[1]s get%[3]s(){return this-&gt;%[2]s;}`     // format for getter
+S:=`%[1]s set%[3]s(%[2]s){this-&gt;%[2]s=%[2]s;}` // format for setter
+P:=&quot;public function&quot;
+for _,r:=range M{m:=r[3] // for each member...
+// generate the getter and setter
+g,t:=Sprintf(G,P,m,ToUpper(m[:1])+m[1:]),Sprintf(S,P,m,ToUpper(m[:1])+m[1:])
+if !Contains(s,g){s=s[:E]+g+s[E:]} // skip if getter exists (bonus A)
+s=s[:E]+t+s[E:]}                   // always add the setter (bonus B)
+return s}
+</code></pre>
+<p>Outputs a highly condensed class, with no whitespace between getters and setters.</p>
+</div>
+<div id="pu1" class="pu"><h1>Perl, 161 - 90% = 16.1 bytes</h1>
+
+<pre><code>$/=0;$_=&lt;&gt;;for$g(/\bp\S*( +static)? +(\S*);/g){++$i%2?$c="public$g function":/get\u$g/||s/}$/$c get\u$g(){return this-&gt;$g;}\n$c set\u$g(x){this-&gt;$g=x;}\n}/}print
+</code></pre>
+</div>
+<div id="pu2" class="pu"><h1>Pyth, <s>198 bytes - 90% = 19.8 bytes</s> <s>187 - 90% = 18.7 bytes</s> 183 bytes - 90% = 18.3 bytes</h1>
+
+<pre><code>pJ&lt;rs.z6_1sm?}+=b"get"K+rh=Zed1tZJks[Y=N|@d1kGbK"(){return "=H+"this-&gt;"Z";}"YNG"set"K"(x){"H"=x;}"):Js["(?:(?:"=Y"public""|private|protected)(?!"=G" function "")( static)?) (\w+)")4\}
+</code></pre>
+
+<p><em>Must...beat...Perl...</em></p>
+
+<h2>187-byte/18.7-byte version</h2>
+
+<pre><code>J&lt;rs.z6_1s_+\},sm?}+=b"get"K+rh=Zed1tZJks[Y=N|@d1kGbK"(){return "=H+"this-&gt;"Z";}"YNG"set"K"(x){"H"=x;}"):Js["(?:(?:"=Y"public""|private|protected)(?!"=G" function "")( static)?) (\w+)")4J
+</code></pre>
+
+<h2>198-byte/19.8-byte version</h2>
+
+<pre><code>J&lt;rs.z6_1s_,sm?}K+rhed1tedJks["public"=N|@d1k=G" function ""get"K"(){return this-&gt;"ed";}public"NG"set"K"("ed"){this-&gt;"ed"="ed";}"):J"(?:(?:public|private|protected)(?! function )( static)?) (\w+)"4J
+</code></pre>
+
+<p><strong>TODO:</strong> More golfing!</p>
+</div>
+<div id="pu3" class="pu"><h1>JavaScript ES6 (at the moment), <s>305</s> <s>289</s> 223 - 60% = 89.2 bytes</h1>
+
+<p>Was <code>256 - 30% = 179.2 bytes</code></p>
+
+<p>Qualifies for static and setter bonuses; now with extra ES6!</p>
+
+<pre><code>s=&gt;s.replace(/\}$/,s.match(/(public|private)( static)* \w+/g).map(e=&gt;{o=(r=e.split` `).pop();return(n=r.join` `)+` get${U=o[0].toUpperCase()+o.slice(1)}(){return this-&gt;${o};}${n} set${U}(${o}){this-&gt;${o}=${o};}`}).join``+"}")
+</code></pre>
+
+<h2>ES5 function, 115.6 bytes</h2>
+
+<pre><code>function g(s){return s.replace(/\}$/,s.match(/(p(?:ublic|rivate))( static)* (\w+?);/gm).map(function(e){o=(r=e.split(" ")).pop().replace(/;/,"");return(n=r.join(" "))+" get"+(U=o[0].toUpperCase()+o.slice(1))+"(){return this-&gt;"+o+";}"+n+" set"+U+"("+o+"){this-&gt;"+o+"="+o+";}"}).join("")+"}")}
+</code></pre>
+</div>
+<div id="pu4" class="pu"><h1>CJam, 71 bytes</h1>
+
+<pre><code>q';/W&lt;_{S%W=:O(eu"public function get"\@"{return this-&gt;"O";}"}%\';f+\'}
+</code></pre>
+
+<p>Try it online in the <a href="http://cjam.aditsu.net/#code=q&#39;%3B%2FW%3C_%7BS%25W%3D%3AO(eu%22public%20function%20get%22%5C%40%22%7Breturn%20this-%3E%22O%22%3B%7D%22%7D%25%5C&#39;%3Bf%2B%5C&#39;%7D&amp;input=class%20A%7Bprotected%20a%3B%7D" rel="nofollow">CJam interpreter</a>.</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/63666/">63666</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
