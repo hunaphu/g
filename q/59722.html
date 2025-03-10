@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::59722</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>097</td><td>Pure bash</td><td>160513T171050Z</td><td><a href="https://codegolf.stackexchange.com/questions/59722/implement-the-dog-bash-utility/79873#79873">F. Hauri</a></td></tr>
+<tr d-ix="1"><td>087</td><td>Ruby</td><td>160513T222621Z</td><td><a href="https://codegolf.stackexchange.com/questions/59722/implement-the-dog-bash-utility/79888#79888">Value In</a></td></tr>
+<tr d-ix="2"><td>107</td><td>PHP</td><td>151006T151426Z</td><td><a href="https://codegolf.stackexchange.com/questions/59722/implement-the-dog-bash-utility/59859#59859">axiac</a></td></tr>
+<tr d-ix="3"><td>181</td><td>Python</td><td>151006T140706Z</td><td><a href="https://codegolf.stackexchange.com/questions/59722/implement-the-dog-bash-utility/59852#59852">Zac Crit</a></td></tr>
+<tr d-ix="4"><td>012</td><td>Pyth</td><td>151005T124517Z</td><td><a href="https://codegolf.stackexchange.com/questions/59722/implement-the-dog-bash-utility/59725#59725">Maltysen</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h3>Pure bash: 97</h3>
+<pre><code>s=$1;shift;for((l=${#s}/$#,m=${#s}-l*$#,i=1;i&lt;=$#;p+=q,i++)){
+printf &quot;${s:p:q=i&gt;m?l:l+1}&quot;&gt;${!i};}
+</code></pre>
+<p>or with exactly same length:</p>
+<pre><code>s=$1;shift;for((a=${#s},l=a/$#,m=a-l*$#,i=1;i&lt;=$#;p+=q,i++)){
+printf &quot;${s:p:q=i&gt;m?l:1+l}&quot;&gt;${!i};}
+</code></pre>
+<p>As a function: (<code>p=</code> is only required for second run)</p>
+<pre><code>dog() { p=
+    s=$1;shift;for((l=${#s}/$#,m=${#s}-l*$#,i=1;i&lt;=$#;p+=q,i++)){
+    printf &quot;${s:p:q=i&gt;m?l:l+1}&quot;&gt;${!i};}
+}
+</code></pre>
+<p>Tests</p>
+<pre><code>$&gt; rm *
+$&gt; dog &quot;Dogs vs Cats&quot; a.txt b.txt c.txt
+$&gt; ls -g
+total 12
+-rw-r--r-- 1 user 4 May 13 22:09 a.txt
+-rw-r--r-- 1 user 4 May 13 22:09 b.txt
+-rw-r--r-- 1 user 4 May 13 22:09 c.txt
+$&gt; cat {a,b,c}.txt;echo
+Dogs vs Cats
+$&gt; 
+</code></pre>
+<p>All files is 4 byte len and concatenated in right order, contain <em>&quot;Dogs vs Cats&quot;</em>.</p>
+<pre><code>$&gt; rm *
+$&gt; dog &quot;$(printf &quot;%s&quot; {0..9} {a..c})&quot; {a..e}.txt 
+$&gt; ls -g
+total 20
+-rw-r--r-- 1 user 3 May 13 22:09 a.txt
+-rw-r--r-- 1 user 3 May 13 22:09 b.txt
+-rw-r--r-- 1 user 3 May 13 22:09 c.txt
+-rw-r--r-- 1 user 2 May 13 22:09 d.txt
+-rw-r--r-- 1 user 2 May 13 22:09 e.txt
+$&gt; cat *;echo
+0123456789abc
+$&gt; 
+</code></pre>
+<p>Firsts files is 3 byte len and last only 2, concatenated by alphabetic order, contain <em>&quot;0123456789abc&quot;</em>.</p>
+<h3>Explanation (ungolfing):</h3>
+<p>If you hit: <code>declare -f dog</code>, <a href="/questions/tagged/bash" class="s-tag post-tag" title="show questions tagged &#39;bash&#39;" aria-label="show questions tagged &#39;bash&#39;" rel="tag" aria-labelledby="tag-bash-tooltip-container" data-tag-menu-origin="Unknown">bash</a> will answer:</p>
+<pre><code>$&gt; declare -f dog
+dog () 
+{ 
+    p=;
+    s=$1;
+    shift;
+    for ((l=${#s}/$#,m=${#s}-l*$#,i=1; i&lt;=$#; p+=q,i++))
+    do
+        printf &quot;${s:p:q=i&gt;m?l:l+1}&quot; &gt; ${!i};
+    done
+}
+</code></pre>
+<p>This could be written:</p>
+<pre><code>dog2() {
+    local string
+    local -i i oneMore partLen partQuant position
+    string=$1
+    shift
+    partLen=&quot; ${#string}/$# &quot;
+    oneMore=&quot; ${#string}-partLen*$# &quot;
+    for (( i=1; i&lt;=$#; i++ )) {
+        if (( i &lt;= oneMore )); then
+            partQuant=&quot; partLen + 1 &quot;
+        else
+            partQuant=partLen
+        fi
+        printf &quot;${string:position:partQuant}&quot; &gt; ${!i};
+        position+=partQuant
+    }
+}
+</code></pre>
+<p>Note: by using <code>local -i</code>, I could avoid <code>$(( .. ))</code>!</p>
+</div>
+<div id="pu1" class="pu"><h1>Ruby, <s>93</s> 87 bytes</h1>
+<p>Full program using command line arguments.</p>
+<p>If I could use <code>s.slice!</code> to mutate the string, I'd do that instead of needing to use <code>s[c..-1]</code>, but Ruby doesn't let you mutate the strings from argv without duplicating them first</p>
+<pre><code>s,*t=$*
+d,r=s.size.divmod t.size
+t.map{|e|open(e,?w)&lt;&lt;s[0,c=(0&gt;r-=1)?d:d+1];s=s[c..-1]}
+</code></pre>
+</div>
+<div id="pu2" class="pu"><h1>PHP, 107 bytes</h1>
+
+<p>The golfed code:</p>
+
+<pre><code>for($i=1;++$i&lt;$argc;fputs(fopen($argv[$i],w),substr($s=$argv[1],($i-2)*$l=ceil(strlen($s)/($argc-2)),$l)));
+</code></pre>
+
+<p>The detailed code:</p>
+
+<pre><code>$len = ceil(strlen($argv[1])/($argc - 2));
+for ($i = 2; $i &lt; $argc; $i ++) {
+    $fh = fopen($argv[$i], 'w');
+    fputs($fh, substr($argv[1], ($i - 2) * $len, $len));
+    fclose($fh);          // omitted in the golfed version
+}
+</code></pre>
+</div>
+<div id="pu3" class="pu"><h1>Python - 181 bytes</h1>
+
+<pre><code>import sys
+a=sys.argv
+l=len
+d=a[2:]
+s=a[1]
+n,r=divmod(l(s),l(d))
+p=0
+for i in range(l(d)):
+    with open(d[i],'w') as f:
+        o=n+int(i&lt;=n)
+        f.write(s[p:p+o])
+        p+=o
+</code></pre>
+</div>
+<div id="pu4" class="pu"><h1>Pyth - 12 bytes</h1>
+<pre><code>.wMC,cl.zz.z
+</code></pre>
+<p>Uses builtin split function and then uses splat-map on the write function. Doesn't work online.</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/59722/">59722</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
