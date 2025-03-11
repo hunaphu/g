@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::67088</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>508</td><td>Python3</td><td>250311T175945Z</td><td><a href="https://codegolf.stackexchange.com/questions/67088/run-length-racers/278604#278604">Ajax1234</a></td></tr>
+<tr d-ix="1"><td>189</td><td>Perl</td><td>151220T022851Z</td><td><a href="https://codegolf.stackexchange.com/questions/67088/run-length-racers/67162#67162">Kenney</a></td></tr>
+<tr d-ix="2"><td>334</td><td>JavaScript ES6</td><td>151219T083109Z</td><td><a href="https://codegolf.stackexchange.com/questions/67088/run-length-racers/67122#67122">user8165</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>Python3, 508 bytes</h1>
+<pre class="lang-py prettyprint-override"><code>import re
+E=enumerate
+def f(t,s):
+ v=[]
+ while t:a,b,t=re.findall('(^\d+)(\D+)(.+)*',t)[0];v=v+[[b]*int(a)]if[]==v or v[-1][-1].lower()!=b.lower()else v[:-1]+[v[-1]+[b]*int(a)]
+ d={i[0].lower():''.join(i)for i in v}
+ d={(x,y):v for x,r in E([d.get(chr(i),'')for i in range(ord(min(d)),ord(max(d))+1)])for y,v in E(r)}
+ q,l=[(*i,[i])for i in d if 0==i[1]and d[i]==s],0
+ for x,y,p in q:l=max(l,y+1);q+=[(*D,p+[D])for X,Y in[(-1,0),(1,0),(0,-1),(0,1)]if d.get(D:=(x+X,y+Y),'').isupper()and D not in p]
+ return l
+</code></pre>
+<p><a href="https://tio.run/##bZBRb5swFIXf@RXeE3ZwEAZSTVR@gJDHbq@tXCZBbBpPxBDHoUHTfntqk3bd1j5gru459zv2HSaz61XyddCXi9wPvTZAC29DhTrtha6N8LhoQQsNPqLMAyNllQeed7ITwGQ1brChWoStVLzuOujDH488QPCxtEcYoIWPDWJRdTvSMWCsqRZSGVijSrasonQEvQYjW5LKfWHXPwsN0RfavJWiOwpryKwasNkY/AXxAKe/pMW/2TPfD3/2UkGJWkuWQCow/p5t8IwnlI3A9c9YO2UDGQ@fhIHbnbYT2Pffp3StngTsNYd7i@MI4bmuz64OCKpm64THK0gjm3LAHWVwITGT1TuJA9mCiFLJSFUrDrhVKT1WOPJeLzPhwRkPWUddQIcnG3B7CBysxEPAyivuHj9YH4NLgiOE4fWM8JLMP@KWCq4PKjMKz8G9BT3Mzwrl8TQMbkPuBiVQvXGJg92gFuakFegug3ZbbaGf1Gl@06wKH/u5j5D3R0jzVZFuk/UnQlwkpW2X/7VTi0qam2L1cYbEd6ki0TdCvlvt7kMQaeLPw0gd53EdF2RL1oTPscU/hjgnDSniNSmTzev05QU" rel="nofollow noreferrer">Try it online!</a></p>
+</div>
+<div id="pu1" class="pu"><h2>Perl, <s>231</s> <s>219</s> <s>203</s> <s>192</s> 189 bytes</h2>
+
+<p><em>includes +1 for <code>-p</code></em>
+</p>
+
+<pre><code>sub f{my($l,$p,$m)=@_;map{$m=$_&gt;$m?$_:$m}f($l,$p+1)+1,f($l-1,$p),f($l+1,$p),f($l,$p-1)-1if$L[$l][$p]&amp;&amp;!$V{$l}{$p}++;$m}s/(\d+)(.)\s*/push@{$L[ord$2&amp;~32]},(0|$2lt'a')x$1;()/ge;$_=0|f(ord,0)
+</code></pre>
+
+<h2>Less golfed:</h2>
+
+<pre><code>sub f{                          # this is a recursive function, so we need locals.
+    my($l,$p,$m)=@_;            # in: lane, position; local: max path length
+
+    map{
+      $m = $_ &gt; $m ? $_ : $m    # update max
+    }
+    f( $l,   $p+1 )+1,          # same lane, forward
+    f( $l-1, $p   ),            # left lane, same pos
+    f( $l+1, $p   ),            # right lane, same pos
+    f( $l,   $p-1 )-1           # same lane, backtrack
+    if
+        $L[$l][$p]              # check if there's road here
+    &amp;&amp; !$V{$l}{$p}++            # and we've not visited this point before.
+    ;
+
+    $m                          # return the max
+}
+
+s/(\d+)(.)\s*/                  # Parse RLE pattern, strip starting lane separator
+  push@{ $L[ord$2&amp;~32] }        # index @L using uppercase ascii-code, access as arrayref
+  ,(0|$2lt'a')x$1               # unpack RLE as bitstring
+  ;()                           # return empty list for replacement
+/gex;                           # (x for ungolfing)
+                                # $_ now contains trailing data: the start lane.
+
+$_ =                            # assign output for -p
+   0|                           # make sure we print 0 instead of undef/nothing
+   f(ord,0)                     # begin calculation at start of current lane
+</code></pre>
+
+<h2>Running</h2>
+
+<p>Store the <em>code above</em> in a file (say <code>231.pl</code>). Input in the form of <code>(\d+\w)+ *\w</code>. Example: inputting track <code>4A5B4c3C</code> and lane <code>A</code>:</p>
+
+<pre><code>echo 4A5B4c3C A | perl -p 231.pl
+</code></pre>
+
+<h2>TestSuite</h2>
+
+<p>(not golfed)</p>
+
+<pre><code>printf "==== Testing %s\n", $file = shift // '231.pl';
+
+sub t{
+    my($input,$expect) = @_;
+#   $input =~ s/\s//g;
+    printf "TEST %-20s -&gt; %-3s: ", $input, $expect;
+
+    $output = `echo $input | perl -p $file`;
+
+    printf "%-3s  %s\n", $output,
+    $output == $expect
+    ? " PASS"
+    : " FAIL: $output != $expect";
+
+}
+
+t("4A5B4c3C A", 7);
+t("4A5B4c3C C", 0);
+t("4A2B3D D", 3);
+t("4A4a4A3b6B5C A", 12);
+t("4A4a4A3b6B5C B",  0);
+t("4A4a4A3b6B5C C", 12);
+t("12M4n10N11O M", 14 );
+t("4A5B1b2B4c3C A", 8);
+t("1a2A2a2B1c1C1d3D B", 4 );
+t("2A1b1B2C1D3E A", 3 );
+t("10A9b1B8c2C9D1E11F A", 11);
+</code></pre>
+
+<ul>
+<li><em>update 219</em> save 12 bytes by reworking array indices.</li>
+<li><em>update 203</em> Save 16 bytes by refactoring recursion.</li>
+<li><em>update 192</em> save 11 bytes by eliminating the <code>@L=map{[/./g]}@L</code> postprocessing.</li>
+<li><em>update 189</em> save 3 bytes by postfixing <code>if</code> using <code>map</code> instead of <code>for</code>.</li>
+</ul>
+</div>
+<div id="pu2" class="pu"><h1>JavaScript (ES6), <s>298</s> 334 bytes</h1>
+
+<pre class="lang-js prettyprint-override"><code>(t,s)=&gt;[a=[],t.match(/\d+(.)(\d+\1)*/gi).map(l=&gt;a[c=l.match`[A-Z]`+"",n=c.charCodeAt(),c==s?i=n:n]=l[r="replace"](/\d+./g,p=&gt;(p.slice(-1)&lt;"a"?"1":"0").repeat(parseInt(p))),i=o=-1),...a.join``,a[i]?a[i]=a[i][r](/^1/,2):0].map(_=&gt;a.map((l,y)=&gt;a[y]=l[r](/1/g,(c,x)=&gt;((a[y-1]||s)[x]|(a[y+1]||s)[x]|l[x-1]|l[x+1])&gt;1?(x&gt;o?o=x:0,2):c)))&amp;&amp;o+1
+</code></pre>
+
+<h2>Explanation</h2>
+
+<p>Basically this solution treats the track as a maze. It finds where all the tiles that are possible for the runner to reach are and returns the greatest value of the X index it found.</p>
+
+<p>The first thing it does is decode the input string into an array of lines. Instead of using letters though, it turns a capital letter into a <code>1</code> and a lowercase letter into a <code>0</code>. The resulting map will look something like this:</p>
+
+<pre><code>11100011
+0011100
+100111
+</code></pre>
+
+<p>After this it makes the first tile of the starting track a <code>2</code> (only if it is already <code>1</code>) and loops through every tile checking adjacent tiles for a <code>2</code>. If a <code>1</code> has an adjacent <code>2</code> it becomes a <code>2</code>. The above map will become this if the runner started on the first line:</p>
+
+<pre><code>22200011
+0022200
+100222
+</code></pre>
+
+<p>The highest X index for a <code>2</code> becomes the result.</p>
+
+<p>I made a very minor oversight when I did the initial version of this and it cost me 36 bytes to hack at it until it worked, so there's probably a lot of improvements that could be made to this. <em>*sigh*</em></p>
+
+<h3>Ungolfed</h3>
+
+<pre class="lang-js prettyprint-override"><code>(t,s)=&gt;
+  [
+
+    // Decode run-length encoded string into an array of track lanes
+    a=[],                           // a = array of track line strings, 0 = air, 1 = tiles
+    t.match(/\d+(.)(\d+\1)*/gi)     // regex magic that separates pairs by their letter
+    .map(l=&gt;                        // for each line of pairs
+      a[                            // add the tiles to the array
+        c=l.match`[A-Z]`+"",        // c = pair character
+        n=c.charCodeAt(),           // n = index of line
+        c==s?i=n:n                  // if this line is the starting line, set i
+      ]=l[r="replace"](/\d+./g,p=&gt;  // match each pair, p = pair
+        (p.slice(-1)&lt;"a"
+          ?"1":"0").repeat(         // repeat 0 for air or 1 for ground
+            parseInt(p)             // cast of match would return NaN because of the
+          )                         //     letter at the end but parseInt works fine
+      ),
+        i=                          // i = index of starting line, initialise as invalid
+          o=-1                      // o = output (max value of x)
+    ),
+
+  // Find all positions that are possible for the runner to get to
+    ...a.join``,                   // add every letter of the track lines to an array
+    a[i]?a[i]=a[i][r](/^1/,2):0    // set the starting tile to 2 if it is already 1
+  ].map(_=&gt;                        // loop for the amount of tiles, this is usually way
+                                   //     more than necessary but allows for hard to reach
+                                   //     tiles to be parsed
+    a.map((l,y)=&gt;                  // for each line l at index y
+      a[y]=l[r](/1/g,(c,x)=&gt;       // for each character c at index x
+
+        // Replace a 1 with 2 if there is a 2 to above, below, left or right of it
+        ((a[y-1]||s)[x]|(a[y+1]||s)[x]|l[x-1]|l[x+1])&gt;1?
+          (x&gt;o?o=x:0,2):c          // set o to max value of x for a 2 tile
+      )
+    )
+  )
+  &amp;&amp;o+1                            // return o + 1
+</code></pre>
+
+<h2>Test</h2>
+
+<p>Bonus: Output includes the parsed map!</p>
+
+<p><div class="snippet" data-lang="js" data-hide="false">
+<div class="snippet-code">
+<pre class="snippet-code-js lang-js prettyprint-override"><code>var solution = (t,s)=&gt;[a=[],t.match(/\d+(.)(\d+\1)*/gi).map(l=&gt;a[c=l.match`[A-Z]`+"",n=c.charCodeAt(),c==s?i=n:n]=l[r="replace"](/\d+./g,p=&gt;(p.slice(-1)&lt;"a"?"1":"0").repeat(parseInt(p))),i=o=-1),...a.join``,a[i]?a[i]=a[i][r](/^1/,2):0].map(_=&gt;a.map((l,y)=&gt;a[y]=l[r](/1/g,(c,x)=&gt;((a[y-1]||s)[x]|(a[y+1]||s)[x]|l[x-1]|l[x+1])&gt;1?(x&gt;o?o=x:0,2):c)))&amp;&amp;o+1
+function generateMap() { var start = 0; a.some((l, i) =&gt; l ? start = i : 0); var end = 0; a.map((l, i) =&gt; l &amp;&amp; i &lt;= 90 ? end = i : 0); for(var output = "", i = start; i &lt; end + 1; i++) output += String.fromCharCode(i) + ") " + (a[i] || "") + "\n"; return output; }</code></pre>
+<pre class="snippet-code-html lang-html prettyprint-override"><code>Track = &lt;input type="text" id="track" value="2A1b1B2C1D3E" /&gt;&lt;br /&gt;
+Starting Letter = &lt;input type="text" id="start" value="A" /&gt;&lt;br /&gt;
+&lt;button onclick="result.textContent=solution(track.value,start.value)+'\n\n'+generateMap()"&gt;Go&lt;/button&gt;
+&lt;pre id="result"&gt;&lt;/pre&gt;</code></pre>
+</div>
+</div>
+</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/67088/">67088</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
