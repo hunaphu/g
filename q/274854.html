@@ -26,6 +26,232 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
+<tr d-ix="0"><td>124</td><td>R</td><td>240812T082555Z</td><td><a href="https://codegolf.stackexchange.com/questions/274854/generalized-super-luhn/274912#274912">Dominic </a></td></tr>
+<tr d-ix="1"><td>018</td><td>05AB1E</td><td>240812T130802Z</td><td><a href="https://codegolf.stackexchange.com/questions/274854/generalized-super-luhn/274917#274917">Kevin Cr</a></td></tr>
+<tr d-ix="2"><td>080</td><td>JavaScript ES7</td><td>240809T162406Z</td><td><a href="https://codegolf.stackexchange.com/questions/274854/generalized-super-luhn/274857#274857">Arnauld</a></td></tr>
+<tr d-ix="3"><td>103</td><td>Retina</td><td>240811T000621Z</td><td><a href="https://codegolf.stackexchange.com/questions/274854/generalized-super-luhn/274890#274890">Neil</a></td></tr>
+<tr d-ix="4"><td>018</td><td>Jelly</td><td>240809T183703Z</td><td><a href="https://codegolf.stackexchange.com/questions/274854/generalized-super-luhn/274861#274861">Unrelate</a></td></tr>
+<tr d-ix="5"><td>035</td><td>APLDyalog Unicode</td><td>240810T143509Z</td><td><a href="https://codegolf.stackexchange.com/questions/274854/generalized-super-luhn/274887#274887">akamayu</a></td></tr>
+<tr d-ix="6"><td>041</td><td>Charcoal</td><td>240809T235450Z</td><td><a href="https://codegolf.stackexchange.com/questions/274854/generalized-super-luhn/274866#274866">Neil</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1><a href="https://www.r-project.org" rel="nofollow noreferrer">R</a>, <s>148</s> <s>145</s> 124 bytes</h1>
+<p><em>Edit: -3 bytes thanks to pajonk</em><br />
+<em>Edit2: -21 bytes by using simplified digital root algorithm copied from <a href="https://codegolf.stackexchange.com/a/274857/95126">Arnauld's answer</a></em></p>
+<pre class="lang-r prettyprint-override"><code>\(l,b,s=sapply)sum(s(rev(l)*s(seq(!l),`?`&lt;-\(x,z=x)`if`(z&gt;1,`if`(x%%z|(b-1)%%z,x?z-1,?x/z),x)),\(x)(1+(x-1)%%(b-1))*!!x))%%b
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=lY8xbsJAEEV7TrEuLM3At-KBJBgpji9C4RiBEmmJgMXRZuWbpDEFh-IktCw2wqIIEtWM_vuj_-dvt6n3uvz8TvfldhElh2pKGgVMaj5WK_3LplySoc38hzT3DZn5mgLNyLP8LZqShUst51-LnNy7oFlsGLqKikjYL7CZiwSZfXIMywx_wyQDsg1vbNwPAo_CsLh0OJ4L0YwE6hlKGDLk3kUbewFqCDVq4AvUK5QXE6iJR7EfN_6z0rn_R4lH0qE2-fFwie-ndxFXMrqS9v26bucJ" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<p>Returns zero (falsy) for checksum-pass, or a positive inteter (truthy) for a checksum fail.</p>
+<p><strong>Ungolfed</strong></p>
+<pre><code># ncd (no common divisors) = funtion that returns x without any common divisors with y
+ncd=
+n=function(x,y,z=x)`if`(z&gt;1,`if`(x%%z|y%%z,n(x,y,z-1),n(x/z,y)),x)
+
+# digital_root = function that returns digital root of x in given base
+digital_root=
+function(x,base=10)(1+(x-1)%%(base-1))*!!x
+
+# luhn = uses helper functions ncd &amp; digital root to calculate luhn modulus
+luhn=
+function(l,b)sum(sapply(rev(l)*sapply(seq(!l),ncd,y=b-1),digital_root,base=b))%%b
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, 18 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
+<pre><code>āRΔDI&lt;¿÷}*ΔIвO}OIÖ
+</code></pre>
+<p>Inputs in the order <span class="math-container">\$list,B\$</span>.</p>
+<p><a href="https://tio.run/##AUAAv/9vc2FiaWX//8SBUs6UREk8wr/Dt30qzpRJ0LJPfU9Jw5b//1s3LDEsMiwzLDQsNSw2LDcsOCw5LDEwLDldCjEy" rel="nofollow noreferrer">Try it online</a> or <a href="https://tio.run/##yy9OTMpM/V9Waa@k8KhtkoKSfWVC6P8jjUHnprhE2Bzaf3h7rda5KREXNvnX@kccnvZf5390dLShjomOYayOoVGsjkJ0tLmOoY6RjjFQzFTHTMdcx0LHUsfQQMcSrgDIgcpjClkAhQwhQiBDCRtraIDdXIghEBFjqEgsAA" rel="nofollow noreferrer">verify all test cases</a>.</p>
+<p><strong>Explanation:</strong></p>
+
+<pre class="lang-python prettyprint-override"><code>ā         # Push a list in the range [1, first (implicit) input-length] (without
+          # popping)
+ R        # Reverse it to range [length,1]
+  Δ       # Loop until the result no longer changes:
+   D      #  Duplicate the current list
+    I     #  Push the second input-integer B
+     &lt;    #  Decrease it by 1
+      ¿   #  Get the GCD of each duplicated value with this B-1
+       ÷  #  (Integer-)divide the value by its GCD(value,B-1)
+  }*      # After the changes-loop: multiply them to the original (unreversed)
+          # input-values
+    Δ     # Loop again until the result no longer changes:
+     Iв   #  Convert each inner value to a base-B list
+       O  #  Sum those inner lists together
+    }O    # After the second changes-loop: sum the list together
+      IÖ  # Check whether it's divisible by the second input B
+          # (after which this is output implicitly as result)
+</code></pre>
+</div>
+<div id="pu2" class="pu"><h1>JavaScript (ES7), 80 bytes</h1>
+<p>Expects <code>(base)(list)</code>. Returns zero for truthy or non-zero for falsy.</p>
+
+<pre class="lang-javascript prettyprint-override"><code>(b,i=!b--)=&gt;g=a=&gt;a+a&amp;&amp;(G=(x,y)=&gt;y?G(y,x%y):(a.pop()*i/x-1)%b-~g(a))(++i,b**i)%~b
+</code></pre>
+<p><a href="https://tio.run/##pY/LbsIwEEX3/Qo3UtBMMqaYR4FWprvyA90FFjaP1FUUR4RW8YZfTw1ItCAQSKxGuudc6c6X@lHlbGWKNc/tfFEvZQ2ajHzUnKMcpVLJkYpVowFjCRU5n7m3MTiqQocvoJqFLQAj81RxgaHmmxQUIsSxIR1FBsONrmc2L222aGY2hSD5WH2vP900wNeH/2AJoo2QCGJdYmKKeI72PSLWJtbZaT1iz8R8OCA29Kjlz4Xmlv31zkjiVBpspSMrmOTJu8rKa@Pv2S9at2y79MDB6eyd@hc" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<h3>Method</h3>
+<p>We divide the indices by their GCDs with <span class="math-container">\$b-1\$</span> raised to the power of each index. This trick is borrowed from <a href="https://codegolf.stackexchange.com/a/274861/58563">Unrelated String's answer</a>.</p>
+<p>The digital root is computed with the direct formula (<a href="https://en.wikipedia.org/wiki/Digital_root" rel="nofollow noreferrer">from Wikipedia</a>):</p>
+<p><span class="math-container">$$\operatorname{dr}_b(n)=\begin{cases}
+0&amp;\text{if }n=0\\
+1+\big((n-1)\bmod(b-1)\big)&amp;\text{if }n\neq0
+\end{cases}$$</span></p>
+<p>Because the sign of <code>%</code> in JS is the sign of the dividend, we actually do not need to handle the <span class="math-container">\$n=0\$</span> edge case separately.</p>
+<h3>Commented</h3>
+<pre class="lang-javascript prettyprint-override"><code>(               // outer function taking:
+  b,            //   b = base
+  i = !b--      //   i = index, initialized to 0
+                //   turn b into b' = b - 1
+) =&gt;            //
+g = a =&gt;        // g = inner recursive function taking a[]
+a + a &amp;&amp; (      // if a[] is not empty:
+  G = (x, y) =&gt; //   G is a recursive function taking (x, y)
+  y ?           //   if y is not zero:
+    G(y, x % y) //     recursive call with x = y, y = x mod y
+  :             //   else:
+    (           //     x is now GCD(x, y)
+      a.pop()   //     extract the last value from a[]
+      * i       //     multiply it by i
+      / x       //     divide by x
+      - 1       //     subtract 1
+    ) % b       //     reduce modulo b'
+    - ~g(a)     //     add 1 + the result of a recursive call to g
+)(++i, b ** i)  //   increment i and process the initial call to G
+                //   with x = i, y = b' ** i
+% ~b            // reduce the final result modulo the original base
+</code></pre>
+</div>
+<div id="pu3" class="pu"><h1><a href="https://github.com/m-ender/retina/wiki/The-Language" rel="nofollow noreferrer">Retina</a>, 103 bytes</h1>
+<pre><code>\D
+:$&lt;;&amp;$&amp;
+\d+
+*
++r`:(\3)+(,.*;\3*(__+)_$)
+:$#1*_$2
+(_*):(_+)
+$.1*$2
++`(_+)(?=.*;\1$)
+_
+,
+
+r`^\1*;(_+)$
+</code></pre>
+<p><a href="https://tio.run/##hYw7DsIwEET7PUUkTOTYoyibBPID0XAL2zhIUNBQRNw/OB8qkOh23sy@4f56PK88bmXvQB0ZFxlHoz1TKw5dLGKyN02K9NC30haJlkhVZwslvdeJF0nYbVh5kZP0KmlloCRSVgHofkrydJw@OEw9gWjoL5ZVN1ViHI1hRCUiduDckTEVGDkKlNhhjwo1GnCG5tOHe62/SB0Iz2RR/rdy9lM7SxZQrOAN" rel="nofollow noreferrer" title="Retina – Try It Online">Try it online!</a> Takes input as a comma-separated list of integers semicolon-separated from the base but link is to test suite that converts from the test case format for convenience. Explanation:</p>
+<pre><code>\D
+:$&lt;;&amp;$&amp;
+</code></pre>
+<p>For each value, suffix its reverse 1-based index.</p>
+<pre><code>\d+
+*
+</code></pre>
+<p>Convert everything to unary.</p>
+<pre><code>+r`:(\3)+(,.*;\3*(__+)_$)
+:$#1*_$2
+</code></pre>
+<p>Repeatedly reduce all of the indices by GCD with the decremented base.</p>
+<pre><code>(_*):(_+)
+$.1*$2
+</code></pre>
+<p>Multiply each value by its reduced index.</p>
+<pre><code>+`(_+)(?=.*;\1$)
+_
+</code></pre>
+<p>Take the digital root of each value.</p>
+<pre><code>,
+
+r`^\1*;(_+)$
+</code></pre>
+<p>Check whether the base divides the sum.</p>
+</div>
+<div id="pu4" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 18 bytes</h1>
+<pre><code>J:g¥Ƭ’}ṪU×ḷb§¥ƬṪS%
+</code></pre>
+<p><a href="https://tio.run/##y0rNyan8/9/LKv3Q0mNrHjXMrH24c1Xo4ekPd2xPOrQcJAbkB6v@P7xcXzPy///o6GhDHQUTHQXDWB1Do1gdruhocx1DHSMdYx0THVMdMx1zHQsdSx1DAx1LuAIgByqPKWQBFDKECEGMJcJkQwPsRkPMgYgYw0ViAQ" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></p>
+<p>A less naive computation of the digital roots comes out a bit longer by having to special-case 0. Inverted output: truthy (nonzero) if the checksum fails.</p>
+<pre><code>J                     1-indices from the start
+ :                    divided by
+  g¥                  their GCDs with
+     ’}               B - 1
+    Ƭ  Ṫ              repeated while unique,
+        U             reversed
+         ×ḷ           times each N.
+              ƬṪ      Loop while unique:
+           b ¥        Convert each to base B
+            §         and sum each.
+                S     Sum
+                 %    mod B.
+</code></pre>
+<p>A version which ties with an alternative to repeated division:</p>
+<h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 18 bytes</h1>
+<pre><code>:gɓ’*
+JçU×ḷb§¥ƬṪS%
+</code></pre>
+<p><a href="https://tio.run/##y0rNyan8/98q/eTkRw0ztbi8Di8PPTz94Y7tSYeWH1p6bM3DnauCVf8fXq6vGfn/f3R0tKGOgomOgmGsjqFRrA5XdLS5jqGOkY6xjomOqY6ZjrmOhY6ljqGBjiVcAZADlccUsgAKGUKEIMYSYbKhAXajIeZARIzhIrEA" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></p>
+<p><code>ç</code> is used to save 1 byte compared to an excessive combination of quicks in <code>:g¥*@¥’}</code> or <code>:g¥’*¥@¥</code>:</p>
+<pre><code>:        Divide the indices by
+ g       their GCDs with
+  ɓ’     B - 1
+    *    raised to the power of each index.
+</code></pre>
+<p>No prime factor of any index has a multiplicity greater than that index, so it suffices to exponentiate B - 1 that many times.</p>
+</div>
+<div id="pu5" class="pu"><h1><a href="https://dyalog.com" rel="nofollow noreferrer">APL(Dyalog Unicode)</a>, <sup><s></s></sup>35 bytes <sup><a href="https://github.com/abrudz/SBCS" rel="nofollow noreferrer">SBCS</a></sup></h1>
+<p>A dfn that takes B and N as its left and right arguments, respectively. It outputs zero for true instances and non-zero output for false instances.</p>
+<pre><code>{⍺|+⌿⍺(+⌿⊥⍣¯1)⍣≡⍵×(⍺-1)(⊢÷∨)⍣≡⌽⍳≢⍵}
+                              ⌽⍳≢⍵  ⍝ Reversed indices of N
+                  (⍺-1)(⊢÷∨)⍣≡      ⍝ Divided by gcd with B-1 until converges
+                ⍵×                  ⍝ Multiplied by N
+     ⍺(+⌿⊥⍣¯1)⍣≡                    ⍝ Sum of digits in base B until converges
+ ⍺|+⌿                               ⍝ Sum in mod B
+</code></pre>
+<p><a href="https://razetime.github.io/APLgolf/?h=C1F41DZBofpRV3P1o95dOuoK6jqPerfW6j/qnXpoBVBEQT1NXQEoogAk2yYBSQ2QIBBDqK2atQA&amp;c=q37Uu6tG@1HPfiCtAaa7lj7qXXxovaEmkHrUufBR79bD0zWAsrqGmhqPuhYd3v6oYwVMrmfvo97NjzoXARXVAgA&amp;f=K1F41DZBIU0hhMvQSKFEwVDBRMEQwjQHcowUjIECpgpmQJ6FgqWCoYGCJVShAUySy9AQmW/B9ahvKtBMdV0CQB3JRgJ2GhqgWQK1FMI1VjAFAA&amp;i=AwA&amp;r=tryapl&amp;l=apl-dyalog&amp;m=dfn&amp;n=f" rel="nofollow noreferrer">Try it on APLgolf!</a></p>
+</div>
+<div id="pu6" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 41 bytes</h1>
+<pre><code>¬﹪ΣＥθ∧ι⊕﹪⊖×ι⌈Φ⊕Ｅθμ∧¬﹪⁻Ｌθκλ⬤…²η∨﹪λν﹪⊖ην⊖ηη
+</code></pre>
+<p><a href="https://tio.run/##bY5Ba8JAEIX/yh4n8AomVq14EoogdK203kIOS7IkS3cnum5K//12U5VW6MDA8M17b6bulK97ZWPce8OBdn0g2TeD7el9cCTVkU4Qa27IQGy59tppDrq5iZ71LzoYp8@jTqov45J7Y2zQnu5sl0CXZZfUP/ek4eFML5rb0NEp7T9S2x@htfSmuNVUQHQJvPqbyUJwAv98M@o4uxbE/eoKx2EVY1kukKPAFI@YYY4FnrBEPsGyQl5U8eHTfgM" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code. Outputs a Charcoal boolean, i.e. <code>-</code> if Luhn, nothing if not. Explanation: Mostly doing recursive GCD without having access to recursion or GCD.</p>
+<pre><code>    θ                                       Input array
+   Ｅ                                        Map over values
+      ι                                     Current values
+     ∧                                      Logical And
+                θ                           Input array
+               Ｅ                            Map over values
+                 μ                          Inner index
+              ⊕                             Vectorised increment
+             Φ                              Filtered where
+                       θ                    Input array
+                      Ｌ                     Length
+                     ⁻                      Subtract
+                        κ                   Outer index
+                   ¬﹪                       Is divisible by
+                         λ                  Inner value
+                  ∧                         Logical And
+                           …                Range from
+                            ²               Literal integer `2`
+                             η              To input base
+                          ⬤                 All values satisfy
+                                 ν          Innermost value
+                               ﹪            Does not divide
+                                λ           Inner value
+                              ∨             Logical Or
+                                     ν      Innermost value
+                                  ﹪         Does not divide
+                                    η       Input base
+                                   ⊖        Decremented
+            ⌈                               Take the maximum
+          ×                                 Multiplied by
+           ι                                Current value
+         ⊖                                  Decremented
+        ﹪                                   Modulo
+                                       η    Input base
+                                      ⊖     Decremented
+       ⊕                                    Incremented
+  Σ                                         Take the sum
+ ﹪                                          Modulo
+                                        η   Input base
+¬                                           Is zero
+                                            Implicitly print
+</code></pre>
+<p>The recursive GCD of <code>I</code> and <code>B-1</code> is the highest factor of <code>I</code> that shares no common factor with <code>B-1</code>.</p>
+</div>
 
 <table id="st">
 <!-- Popups content will be added here -->
