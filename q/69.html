@@ -9277,6 +9277,353 @@ f()
 <p>This version takes about half an hour (175300470 Brain-Flak cycles) to run on my machine using the ruby interpreter.  But for the best performance I suggest you use <a href="https://github.com/Flakheads/CraneFlak" rel="nofollow noreferrer">Crain-Flak</a> the C interpreter which is much faster but lacks some of the polish of the ruby interpreter.</p>
 <p><a href="https://tio.run/nexus/brain-flak#7d1ZkpswEAbg95xEOhPFSVw@u4MWY8DYqVkqBulzZjIuQatptfT3ooVbGEIcQ4whxPIvXsLlOoSQ/49jnL7GfMclTPderpdrHKffOH2ZSzJxnMu/Tvsb9L9Rw8/q@D7tJyiP0mqfkv6T/fV87XU@HZ21b5wdy37O/VNo2DcKt9Dr@m4Bfeiz6ANDPMWRngIlSpQoUaI8SlyOa5tcRZ8k6C@HDrdxhaDtSNDjXIVcCcsDydkP9qNP@9GC5iGEdStsM664sgsk4NP03G7iYFYaV0jHxrE2@m6b7cbSsiC4wjkSsDW9zBCz1PIHNEzDNEzDNHxOi9jf@jo9S4ZBvC7mEe3SPM2z1OwWrtALetG8PLNYkeVk/Vh6eM/S2@1rvxlKFoTdYrfYLXZLxAWVIYKzvp1R7M0nMn7efAKVvfnEWwvko4w7npQ3n8AQnjTJoT68@v/Sy4SeNfKXMennzb69ZZZkho6sWXpFaW7NOguZc1kM/V42mh1kQXFluVguHptspJwYzwQuQJTz99aeuGpjEeH5Y0meMwnErXqNVURo0dqFARmtk3KeE4/b6Z5OeGd/7CjpJa@GUnbXekHZEDk02asz7eETw5iTkqWFNW1HhfxHeb9W@qMTE6xxNUb4ta3lD6ARNDI72ua5m@aTYQrf6PwWj1dlLgjamwOAntYloMS1VStmlooEPFWaNx8kR8OPkz2DoayndZTWNrH/7CmrCFXZYhKIxdtrN/GoNbvefW4Wlk/JjzWTxXvhPZNAXoQ9cfIgSwxTvSsBPtpr0/bJa3xnKCkjKd8sPuDlskAsEAm8t8p7q8y08e70ZHsA7G/E1a5KfikJ9F377My1oGRjWXY2lU2VK7Zz0Qo9Nt8KPVEOW8yb0G7mGswk2bkoYrdzkR/LIyGBDI1ew0LYo4cWLVq0aNGiRYsWbftxYO9xpJxz@5lYe3msmuktNyYri6u8N2yADU5e6v0t5/ZxQOWWZzPFKPYXGHc8qfNlV2AIT7o3T1q7OY1G1IGrHJ@IjgRyEnISvJxznwdkBwd8gk/wCT6JIkVWIisS8JdonsfH4@Px8fj4JFARKkJFqCiaxZWVdFqOyJ2vxdeyVs0aS1GZfXbqEL@0/j6Gvv0m2Zme33zc42kv/DZnIxktzkayZxAi0R5PgObksXA9st8kJ8IesSdm8VhjuWhRhDPwnIEHlZ2BJ5shp8KXdAYeDOFJH0nvZsbtCMCV5y8fIxssq6LnruvIX5YV3S/uVVUKSm2vPw8uqZr8sywvRYlNrn3vyvR3SAXlgfZqzF/TDe@vv6cf0/VUx4u/uaGGNZflM245rK@NW9In0YfX1xLdSlcbdf9bS@nu/JvKU9GQah2HWkuim7pM4T@sVJcVdn/G8jNumnG@FlKtoSgr1ZzqTSX5vntx@iwavnxJj7X4FGHqo5Wa7lqYxR/CfoPl2rLYmVuqudQ/Lh@jNEcscqeb85ipRbVlE0GVIj95ua0MrpB5lNL1g2z7VWEW5xvLAy01P5bKysW5SRb9OtSnrt3gPuDyDWvdzNXEuOx8ubhKdb973Ghko@Q91cWijjdD7Lk53sm6N4ZfyvrUY6qYX/qMBUzSaL6EWHtJ7VE/H2GP4fQC@dYdu0izLdoAyKzGZ9oX1DsDs96Wn@/B9Zo@u7iQr4fntsqMkvBx22rDXEtpmW@2YWa/h3a1munrn9vtLw" rel="nofollow noreferrer">Try it online</a></p>
 <h2>Explanation</h2>
+<p>The reason that Miniflak quines are destined to be slow is Miniflak's lack of random access.  In the short but slow version (short is a bit of an exaggeration and slow an understatement) I get around this by pushing all the numbers and then packaging them up into one number and unrolling it piece by piece.  However this version does it quite differently.  I create a block of code that takes in a number and returns a datum.  Each datum represents a single character like before and the main code simply queries this block for each one at a time.  This essentially works as a block of random access memory.</p>
+<hr />
+<p>To construct this block I actually reused a method from my proof that Miniflak is Turing complete.  For each datum there is a block of code that looks like this:</p>
+<pre><code>(({}[()])[(())]()){(([({}{})]{}))}{}{(([({}{}(%s))]{}))}{}
+</code></pre>
+<p>This subtracts one from the number on top of the stack and if zero pushes <code>%s</code> the datum beneath it.  Since each piece decrements the size by one if you start with n on the stack you will get back the nth datum.</p>
+<p>This is nice and modular, so it can be written by a program easily.</p>
+<hr />
+<p>Next we have to set up the machine that actually translates this memory into the source.  This consists of 5 parts as such:</p>
+<pre><code>([()]())(()()()())
+{({}[(
+   -
+ )]{})
+ 1. (({}[()])[((()))]{}){(([({}{})]{}))}{}{([({}{}{}{}
+     (((((((((((((((((((((((((((()()()()()){}){}){})((((()()()()){}){}())){}{})(((()()()()){}){}()){})[()()])[((((()()()()()){}){}){}()){}()])((((()()()()()){}){}){}()){}())[((((()()()()()){}){}){}()){}]))[()])())[()])())[()])())[()]))()))[()])((((()()()){}){}()){}){}())[((((()()()){}){}()){}){}])[()])((((()()()()){}){}())){}{})[((((()()()()){}){}())){}{}])
+     (()()()())
+    )]{})}{}
+ 2. (({}[()])[((()))]{}){(([({}{})]{}))}{}{([({}{}
+     (({}(({}({}))[({}[{}])][(
+     ({}[()(
+      ([()](((()()[(((((((()()()){})())){}{}){}){})]((((()()()()())){}{}){})([{}]([()()](({})(([{}](()()([()()](((((({}){}){}())){}){}{}))))))))))))
+     )]{})
+     {({}[()(((({})())[()]))]{})}{}
+     (([(((((()()()()){}){}()))){}{}([({})]((({})){}{}))]()()([()()]({}(({})([()]([({}())](({})([({}[()])]()(({})(([()](([({}()())]()({}([()](([((((((()()()())()){}){}){}()){})]({}()(([(((((({})){}){}())){}{})]({}([((((({}())){}){}){}()){}()](([()()])(()()({}(((((({}())())){}{}){}){}([((((({}))){}()){}){}]([((({}[()])){}{}){}]([()()](((((({}())){}{}){}){})(([{}](()()([()()](()()(((((()()()()()){}){}){}()){}()(([((((((()()()())){}){}())){}{})]({}([((((({})()){}){}){}()){}()](([()()])(()()({}(((((({}){}){}())){}){}{}(({})))))))))))))))))))))))))))))))))))))))))))))))
+     )]{})[()]))({()([({})]{})}{}()()()())
+    )]{})}{}
+ 3. (({}[()])[((()))]{}){(([({}{})]{}))}{}{([({}{}
+      (({}[(
+      ({}[()(((((()()()()()){}){}){}))]{}){({}[()(({}()))]{}){({}[()(({}((((()()()){}){}){}()){}))]{}){({}[()(({}()()))]{}){({}[()(({}(((()()()()())){}{}){}))]{}){([(({}{}()))]{})}}}}}{}
+      (({}({}))[({}[{}])])
+     )]{}({})[()]))
+      ({()([({}({}[({})]))]{})}{}()()()()[(({}({})))]{})
+    )]{})}{}
+ 4. (({}[()])[((()))]{}){(([({}{})]{}))}{}{([({}{}(([{}]))(()()()()))]{})}{}
+    ({}[()])
+}{}
+</code></pre>
+<p>The machine consists of four parts that are run in reverse starting with 4 and ending with 1.  I have labeled them in the code above.  Each section also uses the same lookup table format I use for the encoding.  This is because the entire program is contained in a loop and we don't want to run every section every time we run through the loop so we put in the same RA structure and query the section we desire each time.</p>
+<h3>4</h3>
+<p>Section 4 is a simple set up section.</p>
+<p>The program tells first queries section 4 and datum 0. Datum 0 does not exist so instead of returning that value it simply decrements the query once for each datum.  This is useful because we can use the result to determine the number of data, which will become important in future sections.  Section 4 records the number of data by negativizing the result and queries Section 3 and the last datum.  The only problem is we cannot query section 3 directly.  Since there is another decrement left we need to  query a section 4.  In fact this will be the case every time we query a section within another section.  I will ignore this in my explanation however if you are looking a the code just remember 4 means go back a section and 5 means run the same section again.</p>
+<h3>3</h3>
+<p>Section 3 decodes the data into the characters that make up the code after the data block.  Each time it expects the stack to appear as so:</p>
+<pre><code>Previous query
+Result of query
+Number of data
+Junk we shouldn't touch...
+</code></pre>
+<p>It maps each possible result (a number from 1 to 6) to one of the six valid Miniflak characters (<code>(){}[]</code>) and places it below the number of data with the &quot;Junk we shouldn't touch&quot;.  This gets us a stack like:</p>
+<pre><code>Previous query
+Number of data
+Junk we shouldn't touch...
+</code></pre>
+<p>From here we need to either query the next datum or if we have queried them all move to section 2.  Previous query is not actually the exact query sent out but rather the query minus the number of data in the block.  This is because each datum decrements the query by one so the query comes out quite mangled.  To generate the next query we add a copy of the number of data and subtract one.  Now our stack looks like:</p>
+<pre><code>Next query
+Number of data
+Junk we shouldn't touch...
+</code></pre>
+<p>If our next query is zero we have read all the memory needed in section 3 so we add the number of data to the query again and slap a 4 on top of the stack to move onto section 2.  If the next query is not zero we put a 5 on the stack to run section 3 again.</p>
+<h3>2</h3>
+<p>Section 2 makes the block of data by querying our RAM just as section 3 does.</p>
+<p>For the sake of brevity I will omit most of the details of how section 2 works.  It is almost identical to section 3 except instead of translating each datum into one character it translates each into a lengthy chunk of code representing its entry in the RAM.  When section 2 is done it calls on section 1.</p>
+<h3>1</h3>
+<p>Section one is the most simple section.</p>
+<p>It pushes the first bit of the quine <code>([()]())(()()()()){({}[(</code> and defers to section 5.</p>
+<h3>5</h3>
+<p>There is no real section 5 instead a 5 will be decremented once by each section, entering none of them and the once more by the decrement hanging around at the end of the loop.  This will result in a zero and will exit the main loop terminating the program.</p>
+<hr />
+<p>I hope this was clear.  Please comment if you are confused about anything.</p>
+</div>
+<div id="pu347" class="pu"><h2>Python 3, 38 bytes</h2>
+
+<p>There are already a lot of Python quines, but as far as I can see this one hasn't been posted yet. Technically it is a statement that evaluates to a string representation of itself, but other submissions do similar things.</p>
+
+<pre><code>'.__repr__()[:-1]*2'.__repr__()[:-1]*2
+</code></pre>
+
+<p>This works in a similar way to many quines in 2D langauges with "edge-wrap", where "string mode" is entered, the whole program is pushed to the stack, then string mode is executed and the program runs, printing the string mode character (usually <code>"</code>) followed by the contents of the stack (i.e. the program's source) then exiting.</p>
+
+<p>A breakdown of the statement is as follows:</p>
+
+<pre><code>'.__repr__()[:-1]*2'                   # A string containing the body of the program.
+                                       # .__repr__()[:-1]*2
+                    .__repr__()        # The same string, but enclosed in single quote marks.
+                                       # '.__repr__()[:-1]*2'
+                               [:-1]   # A splice that crops off the last character.
+                                       # '.__repr__()[:-1]*2
+                                    *2 # Repeat the string.
+                                       # '.__repr__()[:-1]*2'.__repr__()[:-1]*2
+</code></pre>
+
+<p>The reason I have used <code>.__repr__()</code> instead of <code>repr(string)</code> is because the quine relies on code following and not preceding the string. This is also why this is a statement and not a program; the <code>print()</code> function requires code before the string, which is not possible with this quine layout.</p>
+
+<p>As you may have noticed, there's a much golfier statement that evaluates to this statement:</p>
+
+<pre><code>"'.__repr__()[:-1]*2"*2
+</code></pre>
+
+<p>But this isn't a quine, because it doesn't evaluate to <em>itself</em>.</p>
+</div>
+<div id="pu348" class="pu"><h1><a href="https://github.com/ismael-miguel/SimpleTemplate" rel="nofollow noreferrer">SimpleTemplate</a>, 56 bytes</h1>
+<p>This is a template engine language I've made for fun.</p>
+<p>It was written in PHP and run by compiling the weird syntax to PHP.</p>
+<p>This answer is a translation of <a href="https://codegolf.stackexchange.com/users/73/aurel-b%C3%ADl%C3%BD">Aurel Bílý</a>'s <a href="https://codegolf.stackexchange.com/a/534/14732"><strong>amazing</strong> PHP answer</a>!</p>
+<pre><code>{@setF&quot;{@setF%c%s%c}{@printF,34,F,34}&quot;}{@printF,34,F,34}
+</code></pre>
+<p>Weird, right?</p>
+<p>This works with the commit <a href="https://github.com/ismael-miguel/SimpleTemplate/blob/d1d3e2c43bd98da2bd38f884ee5ac7b39cb8c579/SimpleTemplate.php" rel="nofollow noreferrer">d1d3e2c43bd98da2bd38f884ee5ac7b39cb8c579</a> on my Github and you can try it on <a href="http://sandbox.onlinephpfunctions.com/code/cca9ed3b9c87abad61159725f159285e5daf9bb9" rel="nofollow noreferrer">http://sandbox.onlinephpfunctions.com/code/cca9ed3b9c87abad61159725f159285e5daf9bb9</a>.</p>
+<p>In there, you will have the existing code on that commit, plus showing the result and the generated PHP.</p>
+</div>
+<div id="pu349" class="pu"><h1>Java 8, 94 bytes</h1>
+
+<pre class="lang-java prettyprint-override"><code>()-&gt;{String s="()-&gt;{String s=%c%s%1$c;System.out.printf(s,34,s);}";System.out.printf(s,34,s);}
+</code></pre>
+
+<p>This is a lambda expression which prints its own source code to <code>STDOUT</code>. It uses a similar tactic to other Java quines here, but the lambda really helps cut down bytes.</p>
+
+<p>If we wanted to be really cheeky and cut down two bytes, we could declare the lambda as <code>x-&gt;</code>, where <code>x</code> is an empty string, as according to meta, "taking no input" means <a href="http://meta.codegolf.stackexchange.com/questions/7167/what-does-taking-no-input-mean-for-a-program/7172#7172">you can assume empty input</a>, and in function submissions input is given as a parameter.</p>
+</div>
+<div id="pu350" class="pu"><h2>Pyke, 14 bytes</h2>
+<pre><code>&quot;34.Cp\D\Es&quot;DE
+</code></pre>
+<p><a href="http://pyke.catbus.co.uk/?code=%2234.Cp%5CD%5CEs%22DE&amp;warnings=0" rel="nofollow noreferrer">Try it here!</a></p>
+<pre><code>&quot;34.Cp\D\Es&quot;   - &quot;34.Cp\D\Es&quot;
+            DE - eval(^, stack=^)
+
+ 34.C          -   '&quot;'
+     p         -  print(^)
+      \D\Es    - sum(&quot;34.Cp\D\Es&quot;, ^, &quot;D&quot;, &quot;E&quot;)
+</code></pre>
+</div>
+<div id="pu351" class="pu"><h1>Forth (gforth), 21 bytes</h1>
+
+<pre><code>: x
+latest name-see ;
+</code></pre>
+
+<p>This prints the decompiled source of the latest word, thus only works if <code>x</code> is the latest defined word.</p>
+
+<p>Test:</p>
+
+<pre><code>x 
+: x  
+latest name-see ; ok
+</code></pre>
+
+<p>This one works without that condition, but replaces the constant definition with it's value (since that's the only thing that actually gets saved to memory)</p>
+
+<pre><code>: x
+[ latest ] literal name-see ;
+</code></pre>
+
+<p>Test:</p>
+
+<pre><code>x 
+: x  
+  140121195205104 name-see ; ok
+</code></pre>
+</div>
+<div id="pu352" class="pu"><h1><a href="https://github.com/Mego/Seriously" rel="nofollow noreferrer">Actually</a>, 4 bytes</h1>
+<pre><code>0
+0
+
+</code></pre>
+<p>Note the trailing linefeed. <a href="https://tio.run/nexus/actually#@2/AZcD1/z8A" rel="nofollow noreferrer" title="Actually – TIO Nexus">Try it online!</a></p>
+<p>This exploits a potential flaw in our <a href="https://codegolf.meta.stackexchange.com/a/4878/12012">definition of proper quine</a>:</p>
+<blockquote>
+<p>It must be possible to identify a section of the program which encodes a different part of the program. (&quot;Different&quot; meaning that the two parts appear in different positions.)</p>
+<p>Furthermore, a quine must not access its own source, directly or indirectly.</p>
+</blockquote>
+<p>The stack of Actually is printed backwards, so the first <strong>0</strong> encodes the <em>second</em> <strong>0</strong>, and vice versa.</p>
+<p>This can be verified empirically; the program</p>
+<pre><code>1
+2
+
+</code></pre>
+<p>prints</p>
+<pre><code>2
+1
+
+</code></pre>
+<p><a href="https://tio.run/nexus/actually#@2/IZcT1/z8A" rel="nofollow noreferrer" title="Actually – TIO Nexus">Try it online!</a></p>
+</div>
+<div id="pu353" class="pu"><h1><a href="https://github.com/kade-robertson/haystack" rel="nofollow noreferrer">Haystack</a>, 7 bytes</h1>
+<p>Yay, my first quine!</p>
+<pre><code>&quot;34c,o|
+</code></pre>
+<p><a href="https://tio.run/nexus/haystack#@69kbJKsk1/z/z8A" rel="nofollow noreferrer" title="Haystack – TIO Nexus">Try it online!</a></p>
+<h3>Explanation</h3>
+<p>This is a standard 2D quine.</p>
+<pre><code>&quot;           starts to push a string
+34c,o|      part of the string
+&quot;           it wraps around and go to the beginning of this line thus pushing the string
+34          push this number
+c           output as character (ie outputs &quot;)
+,           discard this value
+o           output the top of stack (ie 34c,o|)
+|           end program
+</code></pre>
+</div>
+<div id="pu354" class="pu"><h1>Cheddar, 56 bytes</h1>
+
+<p><a href="https://tio.run/#c7F4s" rel="nofollow noreferrer">Try this one online!</a></p>
+
+<pre><code>let q='let q=%s%s%s;print IO.sprintf(q,@"39,q,@"39)';print IO.sprintf(q,@"39,q,@"39)
+</code></pre>
+
+<p>See the explanation below, except mentally replace <code>%</code> with <code>IO.sprintf</code>.</p>
+
+<hr>
+
+<hr>
+
+<hr>
+
+<p>Well darn. @ETHProductions <a href="https://codegolf.stackexchange.com/questions/69/golf-you-a-quine-for-great-good/96580#96580">came up with this solution before me.</a>.</p>
+
+<p>This is the shortest I could come up with... Maybe some abuse of functional operators could help me.</p>
+
+<pre><code>let q='let q=%s;print q%@"39+q+@"39';print q%@"39+q+@"39
+</code></pre>
+
+<p><a href="https://tio.run/#FK8m9" rel="nofollow noreferrer">Try it online!</a> You can guess what the output is. </p>
+
+<p>This code can be divided into two parts: the string and the output. The string part:</p>
+
+<pre><code>let q='let q=%s;print q%@"39+q+@"39';
+</code></pre>
+
+<p>is simply a formatting template.</p>
+
+<p>The output part:</p>
+
+<pre><code>;print q%@"39+q+@"39
+</code></pre>
+
+<p>formats the string. <code>@"39</code> is char 39, or <code>'</code>.</p>
+</div>
+<div id="pu355" class="pu"><h1><a href="https://github.com/ConorOBrien-Foxx/stacked" rel="nofollow noreferrer">stacked</a>, 16 bytes</h1>
+
+<p><a href="https://conorobrien-foxx.github.io/stacked/stacked.html" rel="nofollow noreferrer">Try it here!</a></p>
+
+<pre><code>[put ':!' put]:!
+</code></pre>
+
+<p><code>[put ':!' put]</code> is a func, which is pushed to the stack. <code>:</code> duplicates it, and <code>!</code> executes it, which prints the function, then <code>:!</code>.</p>
+</div>
+<div id="pu356" class="pu"><h1><a href="http://esolangs.org/wiki/Zetaplex" rel="nofollow noreferrer">Zetaplex</a>, 13 bytes</h1>
+<pre><code>&quot;Sr34SZOsDrFe
+</code></pre>
+<p>Zetaplex is a variant of <a href="http://esolangs.org/wiki/Gammaplex" rel="nofollow noreferrer">gammaplex</a>. In it, commands are pairs of chars and act on an infinite stack.</p>
+</div>
+<div id="pu357" class="pu"><h1><a href="https://github.com/ETHproductions/cubix" rel="noreferrer">Cubix</a>, 45 bytes</h1>
+
+<pre><code>.....&gt;...R$R....W..^".&lt;R.!'.\)!'"R@&gt;&gt;o;?/o'u"
+</code></pre>
+
+<p>You can test this code <a href="https://ethproductions.github.io/cubix/?code=Li4uLi4+Li4uUiRSLi4uLlcuLl4iLjxSLiEnLlwpISciUkA+Pm87Py9vJ3Ui&amp;input=&amp;speed=20" rel="noreferrer">here</a>.</p>
+
+<p>This program is fairly hard to follow, but to have any chance to do so, we need to start by expanding it into a cube, like the Cubix interpreter does:</p>
+
+<pre><code>      . . .
+      . . &gt;
+      . . .
+R $ R . . . . W . . ^ "
+. &lt; R . ! ' . \ ) ! ' "
+R @ &gt; &gt; o ; ? / o ' u "
+      . . .
+      . . .
+      . . .
+</code></pre>
+
+<p>This is a Befunge-style quine, which works via exploiting wrapping to make string literals "wrap around" executable code (with only one <code>"</code> mark, the code is both inside and outside the quote at the same time, something that becomes possible when you have programs that are nonlinear and nonplanar). Note that this fits our definition of a proper quine, because two of the double quotes don't encode themselves, but rather are calculated later via use of arithmetic.</p>
+
+<p>Unlike Befunge, though, we're using four strings here, rather than one. Here's how they get pushed onto the stack;</p>
+
+<ol>
+<li><p>The program starts at the top of the left edge, going rightwards; it turns right twice (<code>R</code>), making it go leftwards along the third and last of the lines that wrap around the whole cube. The double quote matches itself, so we push the entire third line onto the stack backwards. Then execution continues after the double quote.</p></li>
+<li><p>The <code>u</code> command does a U-turn to the right, so the next thing we're running is from <code>'"</code> onwards on the middle line. That pushes a <code>"</code> onto the stack. Continuing to wrap around, we hit the <code>&lt;</code> near the left hand side of the cube and bounce back. When approaching from this direction, we see a plain <code>"</code> command, not <code>'"</code>, so the entire second line is pushed onto the stack backwards above the third line and the double quote.</p></li>
+<li><p>We start by pushing a <code>!</code> onto the stack (<code>'!</code>) and incrementing it (<code>)</code>); this produces a double quote without needing a double quote in our source code (which would terminate the string). A mirror (<code>\</code>) reflects the execution direction up northwards; then the <code>W</code> command sidesteps to the left. This leaves us going upwards on the seventh column, which because this is a cube, wraps to leftwards on the third row, then downwards on the third column. We hit an <code>R</code>, to turn right and go leftwards along the top row; then the <code>$</code> skips the <code>R</code> via which we entered the program, so execution wraps round to the <code>"</code> at the end of the line, and we capture the first line in a string the same way that we did for the second and third.</p></li>
+<li><p>The <code>^</code> command sends us northwards up the eleventh column, which is (allowing for cube wrapping) southwards on the fifth. The only thing we encounter there is <code>!</code> (skip if nonzero; the top of the stack is indeed nonzero), which skips over the <code>o</code> command, effectively making the fifth column entirely empty. So we wrap back to the <code>u</code> command, which once again U-turns, but this time we're left on the final column southwards, which wraps to the fourth column northwards. We hit a double quote during the U-turn, though, so we capture the entire fourth column in a string, from bottom to top. Unlike most double quotes in the program, this one doesn't close itself; rather, it's closed by the <code>"</code> in the top-right corner, meaning that we capture the nine-character string <code>...&gt;.....</code>.</p></li>
+</ol>
+
+<p>So the stack layout is now, from top to bottom: fourth column; top row; <code>"</code>; middle row; <code>"</code>; bottom row. Each of these are represented on the stack with the first character nearest the top of the stack (Cubix pushes strings in the reverse of this order, like Befunge does, but each time the IP was moving in the opposite direction to the natural reading direction, so it effectively got reversed twice). It can be noted that the stack contents are almost identical to the original program (because the fourth column, and the north/top face of the cube, contain the same characters in the same order; obviously, it was designed like that intentionally).</p>
+
+<p>The next step is to print the contents of the stack. After all the pushes, the IP is going northwards on the fourth column, so it hits the <code>&gt;</code> there and enters a tight loop <code>&gt;&gt;o;?</code> (i.e. "turn east, turn east, output as character, pop, turn right if positive"). Because the seventh line is full of NOPs, the <code>?</code> is going to wrap back to the first <code>&gt;</code>, so this effectively pushes the entire contents of the stack (<code>?</code> is a no-op on an empty stack). We almost printed the entire program! Unfortunately, it's not quite done yet; we're missing the double-quote at the end.</p>
+
+<p>Once the loop ends, we reflect onto the central line, moving west, via a pair of mirrors. (We used the "other side" of the <code>\</code> mirror earlier; now we're using the southwest side. The <code>/</code> mirror hasn't been used before.) We encounter <code>'!</code>, so we push an exclamation mark (i.e. 33; we're using ASCII and Cubix doesn't distinguish between integers and characters) onto the stack. (Conveniently, this is the same <code>!</code> which was used to skip over the <code>o</code> command earlier.) We encounter a pair of <code>R</code> commands and use them to make a "manual" U-turn (the second <code>R</code> command here was used earlier in order to reach the first row, so it seemed most natural to fit another <code>R</code> command alongside it.) The execution continues along a series of NOPs until it reaches the <code>W</code> command, to sidestep to the left. The sidestep crashes right into the <code>&gt;</code> command on the second line, bouncing execution back exactly where it was. So we sidestep to the left again, but this time we're going southwards, so the next command to execute is the <code>)</code> (incrementing the exclamation mark into a double quote), followed by an <code>o</code> (to output it). Finally, execution wraps along the eighth line to the second column, where it finds a <code>@</code> to exit the program.</p>
+
+<p>I apologise for the stray apostrophe on the third line. It doesn't do anything in this version of the program; it was part of an earlier idea I had but which turned out not to be necessary. However, once I'd got a working quine, I just wanted to submit it rather than mess around with it further, especially as removing it wouldn't change the byte count. On the subject of golfing down this quine further, it wouldn't surprise me if this were possible at 3×3 by only using the first five lines, but I can't see an obvious way to do that, and it'd need even tighter packing of all the control flow together with some other way to represent the top face of the cube (or else modifying the algorithm so that it can continue to use the fourth column even though it'd now be ten or eleven characters long).</p>
+</div>
+<div id="pu358" class="pu"><h1><a href="https://github.com/TehFlaminTaco/Reverse-Programmer-Notation" rel="noreferrer">RProgN</a>, 3 bytes</h1>
+<pre><code>0
+0
+</code></pre>
+<p><a href="https://tio.run/nexus/rprogn#@2/AZfD/PwA" rel="noreferrer" title="RProgN – TIO Nexus">Try it online!</a></p>
+<p>This exploits a potential flaw in our <a href="http://meta.codegolf.stackexchange.com/a/4878/12012">definition of proper quine</a>:</p>
+<blockquote>
+<p>It must be possible to identify a section of the program which encodes a different part of the program. (&quot;Different&quot; meaning that the two parts appear in different positions.)</p>
+<p>Furthermore, a quine must not access its own source, directly or indirectly.</p>
+</blockquote>
+<p>The stack of RProgN is printed backwards, so the first <strong>0</strong> encodes the <em>second</em> <strong>0</strong>, and vice versa.</p>
+<p>This can be verified empirically; the program</p>
+<pre><code>1
+2
+</code></pre>
+<p>prints</p>
+<pre><code>2
+1
+</code></pre>
+<p><a href="https://tio.run/nexus/rprogn#@2/IZfT/PwA" rel="noreferrer" title="RProgN – TIO Nexus">Try it online!</a></p>
+</div>
+<div id="pu359" class="pu"><h1>BotEngine, 4x1=4 bytes</h1>
+
+<pre><code>TRUE
+</code></pre>
+
+<p>The <code>T</code> instruction deletes the active bot and prints <code>TRUE</code>.</p>
+</div>
+<div id="pu360" class="pu"><h1>JavaScript, <s>58</s> 54 bytes</h1>
+
+<p>I present to you <em>the shortest</em> non-source-reading quine in JavaScript:</p>
+
+<pre><code>console.log(a="console.log(a=%s,uneval(a))",uneval(a))
+</code></pre>
+
+<p>How have I not thought of this before? Screw that, how has <em>nobody</em> thought of this before? :P</p>
+
+<p>Here's a version that works in all browsers at the cost of 9 bytes:</p>
+
+<pre><code>q='"';console.log(a="q='%s';console.log(a=%s,q,q+a+q)",q,q+a+q)
+</code></pre>
+</div>
+<div id="pu361" class="pu"><p>These are the two shortest <strong>Ruby</strong> quines <a href="https://stackoverflow.com/questions/2474861/shortest-ruby-quine/2475931#2475931">from SO</a>:</p>
+
+<pre><code>_="_=%p;puts _%%_";puts _%_
+</code></pre>
+
+<p>and</p>
+
+<pre><code>puts &lt;&lt;2*2,2
+puts &lt;&lt;2*2,2
+2
+</code></pre>
+
+<p>Don't ask me how the second works...</p>
+</div>
 
 <table id="st">
 <!-- Popups content will be added here -->
