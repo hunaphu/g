@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::68617</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>854</td><td>Javascript</td><td>190414T092307Z</td><td><a href="https://codegolf.stackexchange.com/questions/68617/make-a-frogger-solver/183170#183170">jdt</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h2>Javascript, 854 bytes</h2>
+<pre><code>function f(w){h=[];z=[];for(y=0;y&lt;9;y++){l=w.split('\n')[y];r={s:parseInt(l[0]),d:1,e:[]};for(x=0;x&lt;9;x++){c=l[1+x];if(c=='v'||c=='l')r.d=-1;r.e.push(c);}z.push(r);}h.push(z);h.push(z);for(g=2;g&lt;40;g++){z=JSON.parse(JSON.stringify(z));for(y=0;y&lt;9;y++){r=z[y];if(r.s&gt;0&amp;&amp;(g%2==0||r.s==2)){i=0;t=0;if(r.d==-1){t=r.e[0];for(i=0;i&lt;8;i++)r.e[i]=r.e[i+1];r.e[i]=t;}else{t=r.e[8];for(i=8;i&gt;0;i--)r.e[i]=r.e[i-1];r.e[i]=t;}}}h.push(z);}j=15;k=&quot;&quot;;m(0,4,8,&quot;&quot;,&quot;&quot;);return k==&quot;&quot;?&quot;N&quot;:k;function m(s,a,b,u,v){if(s&lt;j){q={'U':[0,-1],'D':[0,1],'L':[-1,0],'R':[1,0]}[u];if(q)a+=q[0],b+=q[1];v+=u;if(!b){j=s;k=v;return;}if(s&gt;0){for(i=0;i&lt;3;i++){z=h[s*2+i-2];r=z[b];if(i&amp;&amp;(i==1||r.s==2)&amp;&amp;r.e[a].toUpperCase()=='L')a+=r.d;if(a&lt;0||a&gt;8||b&gt;8)return;z=h[s*2+i-1];e=z[b].e;if(e[a].toUpperCase()=='V'||(b&lt;4&amp;&amp;e[a].toUpperCase()!='L'))return;}}t=&quot;UWRLD&quot;;for(x in t)m(s+1,a,b,t[x],v);}}}
+</code></pre>
+<p>Ungolfed</p>
+<pre><code>function solve(input) {
+    var grids = [];
+    var maxgrid = 40;
+    // load input
+    var grid = [];
+    var lines = input.split('\n');
+    for (var y = 0; y &lt; 9; y++) {
+        var line = lines[y];
+        var row = {
+            speed: parseInt(line[0]),
+            direction: 1,
+            cells: []
+        }
+        for (var x = 0; x &lt; 9; x++) {
+            var c = line[1 + x];
+            if (c == 'v' || c == 'l')
+                row.direction = -1;
+            row.cells.push(c);
+        }
+        grid.push(row);
+    }
+    grids.push(grid);
+    grids.push(grid);
+    // animate grids
+    for (var g = 2; g &lt; maxgrid; g++) {
+        grid = JSON.parse(JSON.stringify(grid));
+        for (var y = 0; y &lt; 9; y++) {
+            var row = grid[y];
+            if (row.speed &gt; 0 &amp;&amp; (g % 2 == 0 || row.speed == 2)) {
+                if (row.direction == -1) {
+                    var i, temp = row.cells[0];
+                    for (i = 0; i &lt; 8; i++)
+                        row.cells[i] = row.cells[i + 1];
+                    row.cells[i] = temp;
+                }
+                else {
+                    var i, temp = row.cells[8];
+                    for (i = 8; i &gt; 0; i--)
+                        row.cells[i] = row.cells[i - 1];
+                    row.cells[i] = temp;
+                }
+            }
+        }
+        grids.push(grid);
+    }
+    var best = 15;
+    var best_moves = &quot;&quot;;
+    var forceExit = false;
+
+    move(0, 4, 8, &quot;&quot;, &quot;&quot;);
+    return best_moves == &quot;&quot; ? &quot;N&quot; : best_moves;
+
+    function move(step, fx, fy, dir, moves) {
+        if (step &gt;= best)
+            return &quot;die&quot;;
+        switch (dir) {
+            case 'U':
+                fy--;
+                break;
+            case 'D':
+                fy++;
+                break;
+            case 'L':
+                fx--;
+                break;
+            case 'R':
+                fx++;
+                break;
+        }
+        if (dir != '')
+            moves += dir;
+        if (fy == 0) {
+            best = step;
+            best_moves = moves;
+            return &quot;win&quot;;
+        }
+        if (step &gt; 0) {
+            for (var i = 0; i &lt; 3; i++) {
+                var grid = grids[step * 2 + i - 2];
+                if (i &gt; 0 &amp;&amp; (i == 1 || row.speed == 2)) {
+                    var row = grid[fy];
+                    if (row.cells[fx].toUpperCase() == 'L')
+                        fx += row.direction;
+                }
+                if (fx &lt; 0 || fx &gt; 8 || fy &gt; 8)
+                    return &quot;die&quot;;
+                var grid = grids[step * 2 + i - 1];
+                var cells = grid[fy].cells;
+                if (cells[fx].toUpperCase() == 'V')
+                    return &quot;die&quot;;
+                if (fy &lt; 4 &amp;&amp; cells[fx].toUpperCase() != 'L')
+                    return &quot;die&quot;;
+            }
+        }
+        move(step+1, fx, fy, 'U', moves);
+        move(step+1, fx, fy, 'W', moves);
+        move(step+1, fx, fy, 'R', moves)
+        move(step+1, fx, fy, 'L', moves);
+        move(step+1, fx, fy, 'D', moves)
+    }
+}
+</code></pre>
+<p>I'm only testing for Up, Wait and Right in the example to speed things up:</p>
+<p><a href="https://jsfiddle.net/k5z32a7v/" rel="nofollow noreferrer">JSFiddle</a></p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/68617/">68617</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
