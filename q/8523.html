@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::8523</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>083</td><td>GolfScript</td><td>120929T121918Z</td><td><a href="https://codegolf.stackexchange.com/questions/8523/the-major-minor-dichotomy/8524#8524">Ilmari K</a></td></tr>
+<tr d-ix="1"><td>160</td><td>Python</td><td>120929T123717Z</td><td><a href="https://codegolf.stackexchange.com/questions/8523/the-major-minor-dichotomy/8525#8525">grc</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h2>GolfScript, 83 chars</h2>
+
+<pre><code>n%{' '%{1\{'A#BC D EF G'?+}/.}%$(+2/{~- 12%}%.(+.(+]$0=.$]10,7&gt;?'MMaijnoorr
+
+'&gt;2%}%
+</code></pre>
+
+<p>This is a quick first solution; I'm sure this can be golfed further.  Passes the bash test suite, after fixing the bug pointed out by flodel in the comments.</p>
+
+<p><strong>Edit 1:</strong> Saved 5 chars with a shorter way to recognize the canonicalized major and minor chord patterns.</p>
+
+<p><strong>Edit 2:</strong> Saved 2 more chars with more compact output encoding inspired by grc's solution.  (Thanks!)  As a side effect, the code now prints an extra blank line after the output, but the test harness seems to accept that, so I guess it's OK. :)</p>
+
+<p>Here's how it works:</p>
+
+<ul>
+<li><p>The outer loop <code>n%{ }%n*</code> just splits the input into lines, runs the code inside the braces for each line and joins the results with newlines.</p></li>
+<li><p><code>' '%</code> splits each line into an array of notes.  For each of those notes, <code>1\{'A#BC D EF G'?+}/</code> then converts that note into a semitone number by searching for each of its characters in the string <code>'A#BC D EF G'</code> and adding up the positions (which will be -1 for any character not found in the string, notably including <code>b</code>).  (I'm <em>sure</em> I've seen this trick used before.)  Finally, the <code>.</code> duplicates each number, so that, at the end of the loop, e.g. the input <code>F Ab C</code> has been turned into <code>[9 9 0 0 4 4]</code>.</p></li>
+<li><p>We then sort the notes with <code>$</code>, move the first note to the end with <code>(+</code>, and split the array into pairs with <code>2/</code>, so that it now looks e.g. like <code>[[9 0] [0 4] [4 9]]</code>.  Then <code>{~- 12%}%</code> maps each pair of notes into its difference modulo 12, turning our example array into <code>[9 8 7]</code>.</p></li>
+<li><p>Next, <code>.(+</code> makes a copy of the array and rotates its elements left by one position.  We do this twice and collect the copies into an array with <code>]</code>, so that our example now looks like <code>[[9 8 7] [8 7 9] [7 9 8]]</code>.</p></li>
+<li><p>We then sort this array of arrays with <code>$</code> and take the first element &mdash; in this case <code>[7 9 8]</code> &mdash; with <code>0=</code>.  We then make a copy of this array (<code>.</code>), sort it (<code>$</code>), collect both the unsorted and the unsorted array into another array of arrays (<code>]</code>), and search for the first occurrence of the array <code>[7 8 9]</code> (which is written as <code>10,7&gt;</code> to save two chars) in it.</p></li>
+<li><p>This gives us either <code>0</code> (if the unsorted array was <code>[7 8 9]</code>, and thus the chord is major), <code>1</code> (if the unsorted array was a permutation of <code>[7 8 9]</code>, which, given that its first element must be smallest, can only be <code>[7 9 8]</code>, making the chord minor) or <code>-1</code> (if even the sorted array does not equal <code>[7 8 9]</code>).</p></li>
+<li><p>This number is then used as a starting index into the string <code>"MMaijnoorr\n\n"</code> (where the <code>\n</code>s are given as actual linefeeds in the code), from which we take that character and every second subsequent one as the output.  If the index is -1, we start from the last character of the string, which is just a line feed.</p></li>
+</ul>
+</div>
+<div id="pu1" class="pu"><h2>Python, 160</h2>
+
+<pre><code>f='A#BC D EF G3453543'.find
+try:
+ while 1:x,y,z=sorted(map(lambda x:f(x[0])+f(x[1:])+1,raw_input().split()));print'MMianjoorrr'[f(`y-x`+`z-y`)/14:-1:2]
+except:0
+</code></pre>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/8523/">8523</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+

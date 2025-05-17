@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::279238</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>453</td><td>Maple</td><td>250429T011641Z</td><td><a href="https://codegolf.stackexchange.com/questions/279238/ruler-and-compass-constructions/279390#279390">dharr</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1><a href="https://www.maplesoft.com/" rel="nofollow noreferrer">Maple</a>, <s> 562 </s> <s> 470 </s> 453 bytes</h1>
+<pre><code>proc(n)g:=evala;L:=(X,Y,U,V)-&gt;`if`(X=U,x-g(X),y-g((V-Y)/(d:=U-X)*x+(U*Y-X*V)/d));C:=(X,Y,U,V)-&gt;g((x-X)^2+(y-Y)^2-(U-X)^2-(V-Y)^2);A:={[{},{[0,0],[1,0]}]};to n do Q:=();for d in A do S,P:=d[];m:=nops(P);for i to m do for j to i-1 do for o in [L(P[i][],P[j][]),C(P[i][],P[j][]),C(P[j][],P[i][])]do if not o in S then p:=P[];for z in S do p,=remove(has,g~(map2(eval,[x,y],{solve({o,z},explicit)})),I)[]od;Q,=[{S[],o},{p}]fi od od od od;A:={Q}od;nops(A)end:
+</code></pre>
+<p>Interesting challenge! This is well suited to Maple's ability to work with exact algebraic numbers. The lines and circles are stored as their equations, and the intersection points are found by solving pairs of equations for x and y. All solutions that are not complex are valid. There is no need for prechecking criteria that would tell if circles/lines intersect in 1 or 2 points or not at all, with one exception: the precheck for duplicates means that lines that intersect at an infinite number of points have already been removed and so do not require special postprocessing after the solve command.</p>
+<p>The need to check for duplicates means a canonical form for the equations of the lines and circles and for the form of the points is required. Maple's evala command to process polynomials with algebraic number coefficients serves this function, but has to be applied at multiple places. (Edit: succeeded with version of g that is just evala, but applied in one more place.)</p>
+<p>On my laptop, n = 4 gives 205 in about 2 s; n = 5 gives 5886 in about 4 minutes; I didn't attempt n = 6.</p>
+<pre><code>proc(n)
+# g is a simplification routine for expressions with algebraic numbers
+g:=evala;
+# L generates the equation for a line through points (X,Y) and (U,V)
+L:=(X,Y,U,V)-&gt;`if`(X=U,x-g(X),y-g((V-Y)/(d:=U-X)*x+(U*Y-X*V)/d));
+# C generates the equation for circle with centre at (X,Y) and point (U,V) on circumference
+C:=(X,Y,U,V)-&gt;g((x-X)^2+(y-Y)^2-(U-X)^2-(V-Y)^2);
+# We code a valid diagram as a list of
+# (1) the set of equations of the shapes (circles and lines), and
+# (2) the set of points
+A:={                   # A is the set of all diagrams
+   [{},{[0,0],[1,0]}]  # initial diagram has no shapes and two points
+   };
+to n do
+Q:=();                          # initialize new sequence of diagrams
+for d in A do                   # for each diagram in last iteration
+  S,P:=d[];                     # extract shapes and points
+  m:=nops(P);
+  for i to m do for j to i-1 do # for each pair of distinct points
+    for o in [L(P[i][],P[j][]),C(P[i][],P[j][]),C(P[j][],P[i][])] do # try line and two circles
+      if not o in S then        # if not duplicate
+         p:=P[];                # start new sequence of points
+         for z in S do          # for each other shape find any intersection points
+           # use solve and reject complex solutions, add others to points list
+           p,=remove(has,g~(map2(eval,[x,y],{solve({o,z},explicit)})),I)[]
+         od;
+         Q,=[{S[],o},{p}]       # add new diagram
+      fi
+    od
+  od od
+od;
+A:={Q}                          # ready for next iteration
+od;
+nops(A)
+end;
+</code></pre>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/279238/">279238</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+

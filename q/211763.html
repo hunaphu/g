@@ -26,7 +26,7 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>021</td><td>APLNARS</td><td>240110T161411Z</td><td><a href="https://codegolf.stackexchange.com/questions/211763/circumference-of-an-ellipse/269130#269130">Rosario</a></td></tr>
+<tr d-ix="0"><td>018</td><td>APLNARS</td><td>240110T161411Z</td><td><a href="https://codegolf.stackexchange.com/questions/211763/circumference-of-an-ellipse/269130#269130">Rosario</a></td></tr>
 <tr d-ix="1"><td>051</td><td>Python/mpmath</td><td>230213T173741Z</td><td><a href="https://codegolf.stackexchange.com/questions/211763/circumference-of-an-ellipse/257777#257777">Parcly T</a></td></tr>
 <tr d-ix="2"><td>031</td><td>PARI/GP</td><td>221229T115249Z</td><td><a href="https://codegolf.stackexchange.com/questions/211763/circumference-of-an-ellipse/256136#256136">alephalp</a></td></tr>
 <tr d-ix="3"><td>026</td><td>APL Dyalog Extended</td><td>200930T043510Z</td><td><a href="https://codegolf.stackexchange.com/questions/211763/circumference-of-an-ellipse/211821#211821">Razetime</a></td></tr>
@@ -54,15 +54,20 @@
 <tr d-ix="25"><td>035</td><td>Symja</td><td>200929T055731Z</td><td><a href="https://codegolf.stackexchange.com/questions/211763/circumference-of-an-ellipse/211767#211767">lyxal</a></td></tr>
 <tr d-ix="26"><td>037</td><td>SageMath</td><td>200929T054714Z</td><td><a href="https://codegolf.stackexchange.com/questions/211763/circumference-of-an-ellipse/211765#211765">Sisyphus</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>APL(NARS), 21 chars</h1>
-<pre><code>a←⎕⋄{√+/×⍨a×1 2○⍵}∫○2
+<div id="pu0" class="pu"><h1>APL(NARS), 18 chars</h1>
+<pre><code>a←⎕⋄{∣&lt;a×1 2○⍵}∫○2
 </code></pre>
-<p>test:</p>
-<pre><code>      a←⎕⋄{√+/×⍨a×1 2○⍵}∫○2
+<p><code>{∣&lt;a×1 2○⍵}∫○2</code> would mean the
+integral of the function <code>{∣&lt;a×1 2○⍵}</code> in the interval <code>0..2π</code> where
+<code>○2</code> return <code>2π</code>.</p>
+<p>I find one unducumentated instruction <code>&lt;</code> that given input array of 2 numbers <code>a b</code>, return
+the number complex <code>aJb</code> and so can apply the function norm <code>∣</code> to <code>&lt;a×1 2○⍵</code> (it means 3 chars less).
+test:</p>
+<pre><code>      a←⎕⋄{∣&lt;a×1 2○⍵}∫○2
 ⎕:
       1 1
 6.283185307 
-      a←⎕⋄{√+/×⍨a×1 2○⍵}∫○2
+      a←⎕⋄{∣&lt;a×1 2○⍵}∫○2
 ⎕:
       123 45
 556.6359936 
@@ -70,19 +75,27 @@
 <p>it is based on the parametric representation of ellipse something as</p>
 <p><code>phi(t)=(a cos(t),b sin(t)) t∊[0,2π)</code>
 and the formula for find the lenght of the curve <span class="math-container">$$L(\varphi)=\int_0^{2\pi} \left| \varphi'(t) \right|dt $$</span></p>
-<p>where <code>phi'(t)=(a -sin(t), b cos(t) ) t∊[0,2π)</code>.</p>
-<p>It is possible calculate more digit in that integral but solution is more long, as in</p>
-<pre><code>      ⎕FPC←3000⋄a←⎕⋄300⍕{√+/×⍨a×1 2○⍵}∫○2v
+<p>where <code>phi'(t)=(-a sin(t), b cos(t) ) t∊[0,2π)</code>.</p>
+<p>So we would have <code>|phi'(t)|=sqrt(a^2 sin(t)^2+ b^2 cos(t)^2)</code></p>
+<p>Pheraps it is possible calculate more digits in that integral but solution is more long, as in</p>
+<pre><code>  ⎕FPC←300×4⋄a←⎕⋄300⍕{∣&lt;a×1 2○⍵}∫○2v
 ⎕:
-      1 1
- 6.283185307179586476925286766559005768394338798750211641949889184615632812572417997256069650684234135964296173026564613
-      294187689219101164463450718816256962234900568205403877042211119289245897909860763928857621951331866892256951296467
-      573566330542403818291297133846920697220908653296426787214520498282547
-      300⍕○2v
- 6.283185307179586476925286766559005768394338798750211641949889184615632812572417997256069650684234135964296173026564613
-      294187689219101164463450718816256962234900568205403877042211119289245897909860763928857621951331866892256951296467
-      573566330542403818291297133846920697220908653296426787214520498282547
+  1 1
+6.283185307179586476925286766559005768394338798750211641949889184615632812
+  572417997256069650684234135964296173026564613294187689219101164463450
+  718816256962234900568205403877042211119289245897909860763928857621951
+  331866892256951296467573566330542403818291297133846920697220908653296
+  426787214520498282547
+  ⎕FPC←300×4⋄a←⎕⋄300⍕{∣&lt;a×1 2○⍵}∫○2v
+⎕:
+  123 45
+556.6359936189455567443781051948463024126034035502138146906597334028357954
+  725986409879935974903682461041935521442813245838254811371393443438747
+  420629698312290554610067139047841633148575060990440709560230306713908
+  847002927362101581753119688993061698742679070849585365528914366426158
+  76601356181848049458166
 </code></pre>
+<p>note the 2v at end of the line.</p>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>/<a href="https://mpmath.org" rel="nofollow noreferrer">mpmath</a>, 51 bytes</h1>
 <pre class="lang-python prettyprint-override"><code>lambda a,b:8*elliprg(0,a*a,b*b)
@@ -185,7 +198,7 @@ C3          RET                     ; return to caller
 </code></pre>
 <p>Callable function, input <code>a</code> and <code>b</code> in <code>ST(0)</code> and <code>ST(1)</code>.  Output in <code>ST(0)</code>.  Implements Ramanujan's 2nd approximation (eq 5) in full hardware 80-bit extended precision.</p>
 <p>Test program:</p>
-<p><a href="https://i.stack.imgur.com/iP4N0.png" rel="nofollow noreferrer"><img src="https://i.stack.imgur.com/iP4N0.png" alt="enter image description here" /></a></p>
+<p><a href="https://i.sstatic.net/iP4N0.png" rel="nofollow noreferrer"><img src="https://i.sstatic.net/iP4N0.png" alt="enter image description here" /></a></p>
 </div>
 <div id="pu7" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 52 bytes</h1>
 <pre><code>≧×χφＮθＮηＩ×⁴ΣＥＥφＥ²∕⁺ιλφ₂⁺××θθ⁻Σι⊗₂Πι××ηη⁻⁻²Σι⊗₂⁻⊕ΠιΣι

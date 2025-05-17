@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::13014</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>054</td><td>regarding string concat freebies in awk</td><td>250329T022752Z</td><td><a href="https://codegolf.stackexchange.com/questions/13014/tips-for-golfing-in-awk/278977#278977">RARE Kpo</a></td></tr>
+<tr d-ix="1"><td>nan</td><td>one of the great things about awk's sigils $ is that string concat can be even more condensed than having to use the builtins as buffer zones  say</td><td>221101T114130Z</td><td><a href="https://codegolf.stackexchange.com/questions/13014/tips-for-golfing-in-awk/253988#253988">RARE Kpo</a></td></tr>
+<tr d-ix="2"><td>nan</td><td></td><td>210522T070606Z</td><td><a href="https://codegolf.stackexchange.com/questions/13014/tips-for-golfing-in-awk/226138#226138">Pedro Ma</a></td></tr>
+<tr d-ix="3"><td>nan</td><td>These are not in any particular order</td><td>150905T095917Z</td><td><a href="https://codegolf.stackexchange.com/questions/13014/tips-for-golfing-in-awk/57092#57092">Cabbie40</a></td></tr>
+<tr d-ix="4"><td>nan</td><td></td><td>140317T175048Z</td><td><a href="https://codegolf.stackexchange.com/questions/13014/tips-for-golfing-in-awk/24410#24410">laindir</a></td></tr>
+<tr d-ix="5"><td>nan</td><td></td><td>131026T050318Z</td><td><a href="https://codegolf.stackexchange.com/questions/13014/tips-for-golfing-in-awk/13015#13015">RAM</a></td></tr>
+</table>
+<div id="pu0" class="pu"><p>regarding string concat freebies in <code>awk</code>, there are 5 scenarios where gapless concat is guaranteed to be safe (first 4 examples are attempting to either prepend or append some arbitrary string inside <code>awk</code> variable <code>__</code>)</p>
+<blockquote>
+<ol>
+<li><p>Immediately trailing numbers : e.g. <code>367 __</code> <strong>—&gt;</strong> <code>367__</code></p>
+<p>— ditto for fields referenced by digits. e.g. <code>$19 __</code> <strong>—&gt;</strong> <code>$19__</code></p>
+</li>
+</ol>
+</blockquote>
+<blockquote>
+<ol start="2">
+<li><p>Immediately before fields/sigils : e.g. <code>__ $NF</code> <strong>—&gt;</strong> <code>__$NF</code></p>
+<p>— to perform <code>++$NF</code> or <code>--$NF</code>, do <code>(__)++$NF</code> instead.</p>
+</li>
+</ol>
+</blockquote>
+<blockquote>
+<ol start="3">
+<li><p>Immediately trailing array cells: e.g. <code>___[_] __</code> <strong>—&gt;</strong> <code>___[_]__</code></p>
+<p>— this is mostly useful when performing array join with seps</p>
+</li>
+</ol>
+</blockquote>
+<blockquote>
+<ol start="4">
+<li><p>Immediately trailing closing parenthesis <code>)</code> (like grouping pairs or function calls) : e.g. <code>split(...) __</code> <strong>—&gt;</strong> <code>split(...)__</code>, or <code>(sumN - cntN) __</code> <strong>—&gt;</strong> <code>(sumN - cntN)__</code></p>
+<p>— the primary use case for this is to concat an empty string after the grouping, which would force convert a numeric zero (<code>0</code>) to string zero (<code>&quot;0&quot;</code>) so it would evaluate to TRUE in any boolean context or pattern space. The alternative approach would be extra logic and verbosity to handle the edge case.</p>
+</li>
+</ol>
+</blockquote>
+<blockquote>
+<ol start="5">
+<li>The strangest one - conjuring up arbitrary chain of digits by concating the same variable repeatedly while altering its value along the way :</li>
+</ol>
+</blockquote>
+<pre><code>gawk -p- -be 'BEGIN { print _++_!_--_!_++_++_^_^_^_, _ }' 
+     
+01001165536 2
+    # gawk profile, created Fri Mar 28 21:29:37 2025
+
+    # BEGIN rule(s)
+
+    BEGIN {
+     1      print _++ _ !_-- _ !_++ _++ _^_^_^_, _
+    }
+</code></pre>
+<blockquote>
+<p><em>— By end of the sequence, <code>_</code> only has a measly value of <code>2</code>, since it never stored <code>65,536</code> back into itself</em></p>
+</blockquote>
+</div>
+<div id="pu1" class="pu"><p>one of the great things about <code>awk</code>'s sigils <code>$</code> is that string concat can be even more condensed than having to use the built-ins as buffer zones - say, u wanna prepend a zero to the full row:</p>
+<blockquote>
+<pre><code> _=0
+$_=_$_
+</code></pre>
+</blockquote>
+<pre><code>jot -c 8 75  | gawk '$_=+_$_'  
+
+0K
+0L
+0M
+0N
+0O
+0P
+0Q
+0R
+</code></pre>
+<p>and you wanna make patterns out of it ?</p>
+<pre><code>jot -c 8 75  | gawk '$_=_++$_'  # integers
+
+0K
+L 1
+M  2
+N   3
+O    4
+P     5
+Q      6
+R       7
+
+jot -c 8 75  | gawk '$_=_++$++_' # even numbers
+
+K 0
+L   2
+M     4
+N       6
+O         8
+P           10
+Q             12
+R               14
+
+jot -c 8 75  | gawk '$_=++_$++_'  # odd numbers
+
+K 1
+L   3
+M     5
+N       7
+O         9
+P           11
+Q             13
+R               15
+</code></pre>
+<p>And honestly, what language can repeat stings THIS easily :</p>
+<pre><code>jot 20 | mawk 'NF=OFS=$_'
+
+1
+22
+333
+4444
+55555
+666666
+7777777
+88888888
+999999999
+10101010101010101010
+1111111111111111111111
+121212121212121212121212
+13131313131313131313131313
+1414141414141414141414141414
+151515151515151515151515151515
+16161616161616161616161616161616
+1717171717171717171717171717171717
+181818181818181818181818181818181818
+19191919191919191919191919191919191919
+2020202020202020202020202020202020202020
+</code></pre>
+<p>or can decode arbitrary precision hex with this few keystrokes :</p>
+<pre><code>echo 0xEDCFAB12EDCFAB127659438976594389EDCFAB | 
+</code></pre>
+<blockquote>
+<pre><code>gawk -nM '$_=+$_'
+</code></pre>
+</blockquote>
+<pre><code>5303367068685265828195859270035065456131166123
+</code></pre>
+</div>
+<div id="pu2" class="pu"><h1>Truthy and falsey values</h1>
+<p>Boolean evaluation is somehow flexible in AWK, and this is awesome. Remember: AWK's basis is <code>pattern{action}</code>; when <code>pattern</code> is true, it executes <code>action</code>.</p>
+<p>Besides doing their business, some built-in functions return values, e.g., <code>split()</code>, <code>gsub()</code>. They are also useful as a <code>pattern</code> when manipulating the input.</p>
+<h2>Examples of truthy and falsey variables</h2>
+<p>I tried to come up with valuable examples of how to exploit truthy/falsey variables. This is non-exhaustive. Anyone is encouraged to share more examples, and I would add them to this list.</p>
+<p><a href="https://tio.run/##ZZLPjpwwDMbveQqLvbQadhZm227/qFIPVaU@Q9VDAANRIaGJmWFazbNPnQAzQUUKB8ef8/Nny9Ov6zVxZJVuHEiLQHak9pz8HThEkF8AHpbYJ4jzZHeSZ7dcpYBTiQNBbSxQi6DHrlvShXjMpm/PmGdLzcMlKqnHvkDroFJ1jRb5uramhz9oTYQjxCp@DkC17Byy2qfhzBNCHyFL4ZHPjk82@R9/@/2e@QYsZ74kS1I4tapsQbF2xcygWN54s2lam9PSkieFzItKo0tJqPlUQEwaNwyvJBylVbLokEOKL7QhkM6pRmP1OuVyY6hxREteoMgXYS6RrMa/vURtxm6ukO82RhSeKqTFj2@eFUJ@/vI0PS36l3gKFdZKe5LghtFNdwY6D9ycxQYnz@pIatrD1@2cJHBFGCQRWi3u1d9v6HxO5QflgXpJ7Lx3VOlhJCHKHwmho@Tnov3A2kg86kDHLIqwB1PzuK3klfPt3sW73bqyWWzdzQv2B4@yG8PICuRF8AClxZ6b@Y8hz2eIaAlSuCUB/h65PuSr7nAXHjady45aMzZzv@VMHjYKJ@XIpSG@lADsAszNquv1u3foHw" rel="nofollow noreferrer" title="AWK – Try It Online">Try it online!</a></p>
+<pre><code>&quot;strings are truthy&quot;{print 1}  # truthy; strings are always truthy, except for the null string
+
+-0xF3e10{print 2} # truthy; numbers different from zero are truthy
+
+0{print 3}  # falsey; zeroes are false: 0, -0, +0, 0x0, 0000... expect for &quot;0&quot;, which is a string
+0 b{print 4}  # truthy; now the number 0 is concatenated to a null string (a variable still not assigned), thus converting it to &quot;0&quot;
+&quot;&quot;{print 5} # falsey; null string
+b{print 6}  # falsey; b is null (a variable not assigned)
+
+a=@/x/{print 7} # truthy; defining a strongly typed regex constant. Different from a /x/ pattern
+/x/{print 8}  # falsey; /x/ does not match the input
+
+c[&quot;test&quot;]{print 9}   # falsey; undefined item of array, null
+c[&quot;test&quot;]++{print 10} # falsey; variable is evaluated before increment
+c[&quot;test&quot;]{print 11}   # truthy; now, c[&quot;test&quot;] equals 1
+c[&quot;test2&quot;]{print 12}  # falsey; although the c array now exists, the &quot;test2&quot; element does not
+</code></pre>
+<p>Result:</p>
+<pre><code>1
+2
+4
+7
+11
+</code></pre>
+</div>
+<div id="pu3" class="pu"><p>These are not in any particular order, and some of them might even apply to other languages too, but not to a lot of them I think.</p>
+
+<ul>
+<li><p>You can sometimes use awk's simple string concatenation to assemble numbers</p>
+
+<p><code>z=x*10+y</code> and <code>a=b*10</code></p>
+
+<p>become</p>
+
+<p><code>z=x y</code> and <code>a=b 0</code></p></li>
+<li><p>You can use the ~ operator (match pattern on the right side) to compare numbers or strings if you know that the two parts meet certain conditions</p>
+
+<p>for instance if you know that <code>a</code> will always be smaller than or equal to <code>b</code>, you can replace</p>
+
+<p><code>a==b</code></p>
+
+<p>with</p>
+
+<p><code>a~b</code></p>
+
+<p>or if you want to check for an empty string <code>s</code> (which means that s isn't allowed to be <code>"0"</code> either), and you haven's changed the variable <code>X</code> before, so that it is still undefined, you could use</p>
+
+<p><code>X~s</code></p>
+
+<p>instead of</p>
+
+<p><code>s==""</code></p>
+
+<p>if you want to check if i is an integer you can use</p>
+
+<p><code>i!~/\./</code> (<code>i</code> doesn't contain a dot)</p>
+
+<p>instead of</p>
+
+<p><code>i==int(i)</code></p></li>
+<li><p>You can swap two numbers in a single command</p>
+
+<p><code>t=a;a=b;b=t</code></p>
+
+<p>becomes</p>
+
+<p><code>a+=b-(b=a)</code></p>
+
+<p>saving one character</p></li>
+<li><p>If you don't need them as input anymore, you can use the input variables $1, $2, $3, ... as an array. So instead of writing a[n] you can just write $n. Sometimes even while reading the input from these you can use the already handled ones as a stack for something.</p></li>
+<li><p>You can make good use of the built-in separators FS (space, if not changed by you) and RS (newline) when concatenating strings</p>
+
+<p><code>a=$1" "$2</code></p>
+
+<p>becomes</p>
+
+<p><code>a=$1FS$2</code></p>
+
+<p>or even better</p>
+
+<p><code>a=$1"\n"$2</code></p>
+
+<p>becomes</p>
+
+<p><code>a=$1RS$2</code></p></li>
+<li><p>If there is no input and you use the BEGIN block, you can try to use the END block instead. Depending on the judge it works. If you test it, you have to press <code>Ctrl-D</code> (end of input) to access the <code>END</code> block.</p></li>
+<li><p>If you want to skip the first line, you can use</p>
+
+<p><code>C++</code></p>
+
+<p>instead of</p>
+
+<p><code>NR&gt;1</code></p>
+
+<p>if you won't be using <code>C</code> anywhere in your program.</p></li>
+</ul>
+</div>
+<div id="pu4" class="pu"><h2>Techniques</h2>
+
+<ul>
+<li><p>Thanks to <a href="https://codegolf.stackexchange.com/questions/13014/tips-for-golfing-in-awk/24410#24410">Peter Taylor</a> for pointing out the <a href="https://codegolf.stackexchange.com/questions/5285/tips-for-golfing-in-all-languages/">language-generic version of this question</a> for which I did not bother to search. I'll try to limit this answer to things that are not available in other C-like languages.</p></li>
+<li><p>The frequently accessed builtin variables are 2 characters long. Find the break-even point for assigning to a temp variable. <code>a=$1;</code> is five characters, so it breaks even after five uses of <code>$1</code>;</p></li>
+<li><p>Remember that the default action for a matching pattern is <code>print $0</code>, so if you get what you want printed into <code>$0</code>, just use</p>
+
+<pre><code>1
+</code></pre></li>
+<li><p>Getting creative with operator ordering can save you some parentheses or extra statements</p>
+
+<pre><code>for(i=1;i&lt;=NF;i++)print$i;
+</code></pre>
+
+<p>vs</p>
+
+<pre><code>for(;i&lt;NF;)print$++i;
+</code></pre></li>
+</ul>
+
+<h2>Examples</h2>
+
+<ul>
+<li><p>A solution to <a href="https://codegolf.stackexchange.com/questions/23259/do-we-sink-or-swim">Do We Sink or Swim?</a> in 70 characters:</p>
+
+<pre><code>n{for(;NF;NF--)s+=$NF;n--}NR==1{n=$1;p=$3}END{print p&lt;s?"Swim":"Sink"}
+</code></pre></li>
+<li><p>A solution to <a href="https://codegolf.stackexchange.com/questions/23631/the-floating-horde">The Floating Horde</a> in 44 characters:</p>
+
+<pre><code>{for(i=NF;i&gt;1;){n=int($i/2);$i%=2;$--i+=n}}1
+</code></pre></li>
+</ul>
+
+<h2>Summary</h2>
+
+<p>awk will probably never outgolf APL, Golfscript, J, or K, but you can quite consistently beat other high level languages.</p>
+</div>
+<div id="pu5" class="pu"><p>To read and process a number on each line:</p>
+
+<pre><code>{
+    n=$1;  
+    print(n*n);
+    // OR printf("%d\n",n*n);
+}
+</code></pre>
+
+<p>Compressed form (Length = 14):</p>
+
+<pre><code>{print($1*$1)}       // thanks due to @manatwork
+</code></pre>
+
+<p>Shorter Code (Length = 7)</p>
+
+<pre><code>1,$0^=2              // thanks due to @llhuii
+</code></pre>
+
+<p>When compiled and run in <code>gawk</code> with inputs:</p>
+
+<pre><code>1
+2
+3
+</code></pre>
+
+<p>Output:</p>
+
+<pre><code>1
+4
+9
+</code></pre>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/13014/">13014</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+

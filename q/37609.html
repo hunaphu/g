@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::37609</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>nan</td><td>Python + NumPy + Matplotlib</td><td>140911T145404Z</td><td><a href="https://codegolf.stackexchange.com/questions/37609/catenary-between-two-points-hanging-chain/37630#37630">Quadmast</a></td></tr>
+<tr d-ix="1"><td>260</td><td>BBC Basic</td><td>140912T131917Z</td><td><a href="https://codegolf.stackexchange.com/questions/37609/catenary-between-two-points-hanging-chain/37710#37710">Level Ri</a></td></tr>
+<tr d-ix="2"><td>424</td><td>Python 2.7 + matplotlib</td><td>140912T131104Z</td><td><a href="https://codegolf.stackexchange.com/questions/37609/catenary-between-two-points-hanging-chain/37706#37706">camelthe</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>Python + NumPy + Matplotlib, <del>1131</del> 203</h1>
+<p>Just to get us started, here's an attempt that uses no knowledge of calculus or physics other than the fact that the catenary minimizes the energy of a chain. Hey, my algorithm may not be efficient, but at least it's not implemented efficiently either!</p>
+<pre class="lang-python prettyprint-override"><code>import math
+import random
+import numpy as np
+import matplotlib.pyplot as plt
+length, x0, y0, x1, y1 = input(), input(), input(), input(), input()
+chain = np.array([[x0] + [length / 1000.]*1000, [y0] + [0.] * 1000])
+def rotate(angle, x, y):
+ return x * math.cos(angle) + y * math.sin(angle), -x * math.sin(angle) + y  * math.cos(angle)
+def eval(chain, x1, y1):
+ mysum = chain.cumsum(1)
+ springpotential = 1000 * ((mysum[0][-1] - x1) ** 2 + (mysum[1][-1] - y1)  ** 2)
+ potential = mysum.cumsum(1)[1][-1]
+ return springpotential + potential
+def jiggle(chain, x1, y1):
+ for _ in xrange(100000):
+  pre = eval(chain, x1, y1)
+  angle = random.random() * 2 * math.pi
+  index = random.randint(1,1000)
+  chain[0][index], chain[1][index] = rotate(angle, chain[0][index], chain[1][index])
+  if( pre &lt; eval(chain, x1, y1)):
+   chain[0][index], chain[1][index] = rotate(-angle, chain[0][index], chain[1][index])
+jiggle(chain, x1, y1)
+sum = chain.cumsum(1)
+x1 = 2 * x1 - sum[0][-1]
+y1 = 2 * y1 - sum[1][-1]
+jiggle(chain, x1, y1)
+sum = chain.cumsum(1)
+plt.plot(sum[0][1:], sum[1][1:])
+plt.show()
+</code></pre>
+<p>Edit: Since this is getting comments, lets do a 10 year anniversary re-golf!</p>
+<pre class="lang-python prettyprint-override"><code>from matplotlib.pyplot import*
+def j(l,z,q,*x):m=999;c=np.array([[z,q]]*m);exec((&quot;i=1+np.random.randint(m-1);v=x-c.sum(0)-[0,(m-i)/m];c[i]=v/m*l/v.dot(v)**.5;&quot;*m*19+&quot;x+=v;&quot;)*2);plot(*c.cumsum(0).T);show()
+</code></pre>
+<p>example usage:
+<code>j(10, 1, 0., 4., 1.)</code></p>
+<p>Instead of optimizing by picking random angles and hillclimbing the energy, this uses the closed form solution for the greedy update on a single link.</p>
+</div>
+<div id="pu1" class="pu"><h1>BBC Basic, 300 ASCII characters, tokenised filesize 260</h1>
+<pre><code>  INPUTr,s,u,v,l:r*=8s*=8u*=8v*=8l*=8z=0REPEATz+=1E-3UNTILFNs(z)/z&gt;=SQR(l^2-(v-s)^2)/(u-r)a=(u-r)/2/z
+  p=(r+u-a*LN((l+v-s)/(l-v+s)))/2q=(v+s-l*FNc(z)/FNs(z))/2MOVE800,0DRAW0,0DRAW0,800CIRCLEu,v,8CIRCLEr,s,8FORx=r TOu
+    DRAW x,a*FNc((x-p)/a)+q
+  NEXT
+  DEFFNs(t)=(EXP(t)-EXP(-t))/2
+  DEFFNc(t)=(EXP(t)+EXP(-t))/2
+</code></pre>
+<p>Emulator at <a href="http://www.bbcbasic.co.uk/bbcwin/bbcwin.html" rel="nofollow noreferrer">http://www.bbcbasic.co.uk/bbcwin/bbcwin.html</a></p>
+<p>This has obviously been solved before, so the first thing I did was look what others have done.</p>
+<p>The equation of a catenary centred at the origin is simply <code>y=a*cosh(x/a)</code>. It becomes slightly more complicated if it is not centred at the origin.</p>
+<p>Various sources say that if the length and endpoints are known the value for <code>a</code> must be determined numerically. There is an unspecified parameter <code>h</code> in the wikipedia article. So I found another site and basically followed the method here: <a href="http://www.math.niu.edu/%7Erusin/known-math/99_incoming/catenary" rel="nofollow noreferrer">http://www.math.niu.edu/~rusin/known-math/99_incoming/catenary</a></p>
+<p>BBC Basic does not have <code>sinh</code> and <code>cosh</code> built in, so I defined two functions at the end of the program to calculate them using <code>EXP</code></p>
+<p>coordinates for lefthand point must be supplied before righthand point, OP confirmed this is OK. Length is given last. Values can be separated by commas or newlines.</p>
+<p><strong>Ungolfed code</strong></p>
+<pre><code>  INPUT r,s,u,v,l
+
+  REM convert input in range 0-100 to graphic coordinates in range 0-800 
+  r*=8 s*=8 u*=8 v*=8 l*=8
+
+  REM solve for z numerically
+  z=0
+  REPEAT
+    z+=1E-3
+  UNTIL FNs(z)/z&gt;=SQR(l^2-(v-s)^2)/(u-r)
+
+  REM calculate the curve parameters
+  a=(u-r)/2/z
+  p=(r+u-a*LN((l+v-s)/(l-v+s)))/2
+  q=(v+s-l*FNc(z)/FNs(z))/2
+
+  REM draw axes, 800 graphics units long = 400 pixels long (2 graphics units per pixel)
+  MOVE 800,0
+  DRAW 0,0
+  DRAW 0,800
+
+  REM draw markers at end and beginning of curve (beginning last, so that cursor is in right place for next step)
+  CIRCLE u,v,8
+  CIRCLE r,s,8
+
+  REM draw curve from beginning to end
+  FORx=r TOu
+    DRAW x,a*FNc((x-p)/a)+q
+  NEXT
+
+  REM definitions of sinh and cosh
+  DEF FNs(t)=(EXP(t)-EXP(-t))/2
+  DEF FNc(t)=(EXP(t)+EXP(-t))/2
+</code></pre>
+<p><img src="https://i.sstatic.net/d1vdc.png" alt="enter image description here" /></p>
+</div>
+<div id="pu2" class="pu"><h1>Python 2.7 + matplotlib, 424</h1>
+
+<p>Run as</p>
+
+<pre><code>python thisscript.py [length] [x0] [y0] [x1] [y1]
+</code></pre>
+
+<p>If I can assume that x0 is always smaller than x1 character count reduces to <strong>398</strong></p>
+
+<pre><code>from numpy import *
+from pylab import *
+from scipy.optimize import *
+import sys
+c=cosh
+l,p,q,u,w=map(float,sys.argv[1:])
+if p&gt;u:
+ p,q,u,w=u,w,p,q
+h=u-p
+v=w-q
+a=brentq(lambda a:(2.*h/a*sinh(0.5*a))**2-l**2-v**2,1e-20,600)
+b=brentq(lambda b:c(a*(1.-b))-c(a*b)-a*v/h,-600/a,600/a)
+r=linspace(p,u,100)
+plot([p,u],[q,w],'ro')
+plot(r,h/a*c(((r-p)/h-b)*a)-h/a*c(a*b)+q,'k-')
+gca().set_xlim((0,100))
+gca().set_ylim((0,100))
+show()
+</code></pre>
+
+<p>The magic number 600 you see appearing in some places is due to the fact that cosh(x) and sinh(x) start overflowing around x=710 (so 600 to keep some margin)</p>
+
+<blockquote class="spoiler">
+  <p> Basically I solve the problem in the frame where the catenary goes
+ trough (0,0) and (x1-x0,(y1-y0)/(x1-x0)) and then remap to the original
+ frame. This improves the numerical stability <strong>a lot</strong>.</p>
+</blockquote>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/37609/">37609</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+

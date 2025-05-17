@@ -26,20 +26,56 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>101</td><td>JavaScript Node.js</td><td>230812T095735Z</td><td><a href="https://codegolf.stackexchange.com/questions/243463/convert-to-utf-%e2%88%9e/264067#264067">l4m2</a></td></tr>
-<tr d-ix="1"><td>033</td><td>05AB1E</td><td>220303T075757Z</td><td><a href="https://codegolf.stackexchange.com/questions/243463/convert-to-utf-%e2%88%9e/243595#243595">Kevin Cr</a></td></tr>
-<tr d-ix="2"><td>103</td><td>JavaScript Node.js</td><td>220227T152714Z</td><td><a href="https://codegolf.stackexchange.com/questions/243463/convert-to-utf-%e2%88%9e/243473#243473">Arnauld</a></td></tr>
-<tr d-ix="3"><td>137</td><td>JavaScript Node.js</td><td>220228T090024Z</td><td><a href="https://codegolf.stackexchange.com/questions/243463/convert-to-utf-%e2%88%9e/243488#243488">tsh</a></td></tr>
-<tr d-ix="4"><td>171</td><td>JavaScript Node.js</td><td>220227T091427Z</td><td><a href="https://codegolf.stackexchange.com/questions/243463/convert-to-utf-%e2%88%9e/243464#243464">ophact</a></td></tr>
-<tr d-ix="5"><td>047</td><td>Charcoal</td><td>220227T112926Z</td><td><a href="https://codegolf.stackexchange.com/questions/243463/convert-to-utf-%e2%88%9e/243467#243467">Neil</a></td></tr>
+<tr d-ix="0"><td>146</td><td>Python 3</td><td>250513T191244Z</td><td><a href="https://codegolf.stackexchange.com/questions/243463/convert-to-utf-%e2%88%9e/279696#279696">CrSb0001</a></td></tr>
+<tr d-ix="1"><td>101</td><td>JavaScript Node.js</td><td>230812T095735Z</td><td><a href="https://codegolf.stackexchange.com/questions/243463/convert-to-utf-%e2%88%9e/264067#264067">l4m2</a></td></tr>
+<tr d-ix="2"><td>033</td><td>05AB1E</td><td>220303T075757Z</td><td><a href="https://codegolf.stackexchange.com/questions/243463/convert-to-utf-%e2%88%9e/243595#243595">Kevin Cr</a></td></tr>
+<tr d-ix="3"><td>103</td><td>JavaScript Node.js</td><td>220227T152714Z</td><td><a href="https://codegolf.stackexchange.com/questions/243463/convert-to-utf-%e2%88%9e/243473#243473">Arnauld</a></td></tr>
+<tr d-ix="4"><td>137</td><td>JavaScript Node.js</td><td>220228T090024Z</td><td><a href="https://codegolf.stackexchange.com/questions/243463/convert-to-utf-%e2%88%9e/243488#243488">tsh</a></td></tr>
+<tr d-ix="5"><td>171</td><td>JavaScript Node.js</td><td>220227T091427Z</td><td><a href="https://codegolf.stackexchange.com/questions/243463/convert-to-utf-%e2%88%9e/243464#243464">ophact</a></td></tr>
+<tr d-ix="6"><td>047</td><td>Charcoal</td><td>220227T112926Z</td><td><a href="https://codegolf.stackexchange.com/questions/243463/convert-to-utf-%e2%88%9e/243467#243467">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 101 bytes</h1>
+<div id="pu0" class="pu"><h1>Python 3, <s>152</s> 146 bytes</h1>
+<pre class="lang-python prettyprint-override"><code>def t(i):
+ y,b=64**(x:=-~len(bin(i))//5)-2**(5*x+2)+i,[]
+ while y:b=[y%64]+b;y&gt;&gt;=6
+ for j in range(len(b)):b[j]+=2+(j==0)&lt;&lt;6
+ return[b,[i]][i&lt;128]
+</code></pre>
+<p><a href="https://www.online-python.com/dBx3D0YzOq" rel="nofollow noreferrer">Try it online</a> (Link contains 156-byte version and ungolfed version, as well as a few tests.)</p>
+<p>Here are some of the main tricks I used:</p>
+<ul>
+<li>From @KevinCruijssen's 05AB1E answer, I knew that we first calculate<span class="math-container">$$x=\left\lfloor\frac{\operatorname{len}(\operatorname{bin}(\text{input}))+ 3}5\right\rfloor$$</span>However, since Python automatically attaches the <code>0b</code> identifier at the start of a binary string, we can keep that in there and instead define <span class="math-container">\$x\$</span> as<span class="math-container">$$\left\lfloor\frac{\operatorname{len}(\operatorname{bin}(\text{input}))+1}5\right\rfloor$$</span>or instead as <code>-~len(bin(i))//5</code>.</li>
+<li>We can use bitshift operators to save bytes. For example, instead of dividing by 64 each time in the <code>while y:</code> loop, we can instead compute <code>y&gt;&gt;=6</code>, which saves a byte. Also, we can write <code>2+(j==0)&lt;&lt;6</code> instead of <code>(2+(j==0))&lt;&lt;6</code> because Python bitshift operators work in a way that I don't really understand.</li>
+<li>Since Python allows negative list indexes (the full range of allowed indexes of a list being <span class="math-container">\$-\operatorname{len}(\text{list})\le\text{idx}\lt\operatorname{len}(\text{list})\$</span>), that actually means that instead of reversing the list before the <code>for</code> loop, we can just write <code>b[~j]</code> since <code>~j == -j-1</code> for any Python integer. Also, for any list, <code>list[-i] == list[len(list) - i - 1]</code></li>
+</ul>
+<hr />
+<p>Ungolfed version:</p>
+<pre class="lang-python prettyprint-override"><code>def to_base_inf(inp):
+    if inp &lt; 128:
+        return [inp]
+    
+    x = (len(bin(inp)[2:]) + 3) // 5
+    y = 64 ** x - 4 * 32 ** x + inp
+    
+    BASE_64 = []
+    while y:
+        BASE_64 += [y % 64]
+        y //= 64
+    
+    BASE_INF = BASE_64[::-1]
+    for i in range(len(BASE_INF)):
+        BASE_INF[i] += 128 + 64 * (i == 0)
+    
+    return BASE_INF
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 101 bytes</h1>
 
 <pre class="lang-javascript prettyprint-override"><code>n=&gt;(h=x=&gt;x&gt;&gt;8n?[...h(x&gt;&gt;6n),x%64n+128n]:[x])((g=x=&gt;n&gt;&gt;7n?n&gt;&gt;1n+5n*x?g(++x):64n**x-32n**x:x)(0n)*4n+n)
 </code></pre>
 <p><a href="https://tio.run/##nZbPbhpBDMbveYq9VNoFQsbzx56hYjn1KRAHRAO0ioYqqap9e2rPJLsQtQmzHAZWwr/P/uwx/Nz@2b7snn/8@n0fT98fz/vlOS7b@rjslm3Xtj6u1vP5/FjzZ4zNrPuCNk5B@7hZrLtNU9cH@WZsW4orPiFOXZx0q0M9nXbNgr88mXT3RsvbomtqFZsJA2Jz/rq@qyoVZ1Xp6@GhWqsNB2Moj5ZgDBINmorDJZrjcrgfFx7sTIITw1kshQhDAzLDJIZWlkYxtGFGgFeGH8eQWlD1BRkLwRWSEshoZjgB2eQuOmfGgUKqqi9NQDgGZFMyuVd9fRS8gcKpyzQx2wjSOz7IZdsDgYMiXKbRUORFE4WmR9CkPoNDpUM7FSpEUzQbGSld8FIuCTcpkE39IFDeoylGOnhX89DijLTlSBm6NHmXhffVa@UQHQTUt7coc22aY4HL4Yfeiy3GpKQ98SYgpIIxH@AB/ntcw7EQLsOpw78cufYGyICiwNkT3Lp@BgUnjuQLpt4e0wBiOvLlgBAU7wXHLyhXCJ@7dKmgixXS1ntdfR9ahVZZpYHIsdqNOoMMpQ0rBvm08@Ux69v@iqWLRcpw261lIbz1el3IuI/96k27krHFMvhuqX7onLEGgyMP3Cin0QStgY1U2kkCSpEOln8mguJhd4Ez0/FCq8@c/768OZeuYkoiFUzJPhFEFtzczfen52/b3bGO1bKtdqf4cnp6nD@dDvW@jk3TnP8C" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, 33 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
+<div id="pu2" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, 33 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
 <pre><code>žy@ibg3+5÷U64Xm32Xm4*-+64вāΘÌ64*+
 </code></pre>
 <p>Port of <a href="https://codegolf.stackexchange.com/a/243467/52210"><em>@Neil</em>'s Charcoal answer</a>.</p>
@@ -77,7 +113,7 @@ For inputs <span class="math-container">\$\geq128\$</span>:</p>
                  #  (implicitly output the implicit input)
 </code></pre>
 </div>
-<div id="pu2" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, <s> 104 </s> 103 bytes</h1>
+<div id="pu3" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, <s> 104 </s> 103 bytes</h1>
 <p><em>Saved 1 byte thanks to @emanresuA</em></p>
 <p>Expects a BigInt. Returns a comma-separated string of bytes.</p>
 
@@ -96,14 +132,14 @@ For inputs <span class="math-container">\$\geq128\$</span>:</p>
 <p>We compute <span class="math-container">\$2^x-4\$</span> (a bit mask consisting of <span class="math-container">\$x-2\$</span> ones followed by <span class="math-container">\$2\$</span> zeros). We shift it by <span class="math-container">\$5x\$</span> positions to the left and OR it with <span class="math-container">\$n\$</span>.</p>
 <p>Using the recursive function <span class="math-container">\$g\$</span>, we convert the result to base <span class="math-container">\$64\$</span> in big-endian order. We add <span class="math-container">\$192\$</span> to the leading byte and <span class="math-container">\$128\$</span> to the other ones.</p>
 </div>
-<div id="pu3" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 137 bytes</h1>
+<div id="pu4" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 137 bytes</h1>
 
 <pre class="lang-javascript prettyprint-override"><code>n=&gt;n&lt;128?[n]:eval(`[0b${('1'.repeat((L=(s=n.toString(2)).length+3)/5)+'0'.repeat(~(4.8*~L%6-2))+s).match(/^.{8}|.{6}/g).join`n,0b10`}n]`)
 </code></pre>
 <p><a href="https://tio.run/##hVRNb9pAEL3zK3xo5XUTnP3@aGoqVeqhUm49UipISggRWSOwokiU/HUyM14TN01TDsvuzLw3b2fGezu7n22vNst1M4z1r/nhujrEahQ/Cek/j@Pk4/x@tmLTMb98t2O5yMvNfD2fNYxdVGxbxbKpvzebZVwwWRTlah4Xzc2JKs5McZLzY/Aj06X/8Hjx3g4h7GRblHez5uqGnf0sd37/u9zZ/dmiKG/rZZzGU34p@HQfJ9Pi0GRVNh3wbDjKxnwysIF2NkwGQjrawz8efHsI@jSDA1iMtmSSwoJJgUly3UKkVGAKgkw@mRBoeUIrLYJpHUqCzaBDQyJrjOocgUgSEzpSQk3BrZDE54JXIiQ3JlcY4w0szqCM4IQRye@eeY8y0S@TH0mVfabvNHPLrVXpPhrVecziMJRAToNOJ7j3VrVRRrzI1d2mjdIpCktAdehnTGklN9YaEaxM@o2mWiEEF/98XZSkFLB7B41y1nWlJEgQ/1z6kFRkg7WT4TVNfXXCKcFdgExOuB7SoKq2Ubw7Uk0tLdgTEQKH7hv4iT4y/E9rHyl7SJquNGJvSLaaay6FcwZY@nhHI4pKPY00Hltifew1dNhxBdXSGhjssc/tpL2tPMn/A6/7ePtirt@4hNLKBuO8gFoYaVWQUsCduDTIzLmTQcOXFDh01QRI2b/oa8osOjyN1rHz9AV6nEvnus6QSOu60lAIOZTvqueo7bij8de4GITRGFJZaWiJiopGCEcEcLdpCQ/eHSvK7Xq1bFj@I@b4nq3ZQ1aNsofOPBzlRXE@aMrrevN1Bo9dRPdukGVXddzWq3m5qhfsmn1ZLr7FhkV43@BpzPOsqjJ6c@NYTNBwmv0dBMT74vzwBA" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
 <p>StackExchange code highlight is broken again... Not sure if using string based idea could golf some more bytes or not.</p>
 </div>
-<div id="pu4" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 171 bytes</h1>
+<div id="pu5" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 171 bytes</h1>
 
 <pre class="lang-javascript prettyprint-override"><code>n=&gt;n&lt;128?n:(F='0bxxxxxxxx '.repeat(c=((d=n.toString(2)).length+3)/5|0)[r='replace'](/ 0bxx/g,' 0b10',i=0))[r](/x/g,_=&gt;i++&lt;c?1:d.padStart(5*c+3,0)[i-c])[r](/0b\d{8}/g,eval)
 </code></pre>
@@ -114,7 +150,7 @@ For inputs <span class="math-container">\$\geq128\$</span>:</p>
 <p>Fails on last testcase due to JavaScript's limitations.</p>
 <p><em>Thanks @Neil for -7 bytes.</em></p>
 </div>
-<div id="pu5" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="noreferrer">Charcoal</a>, 47 bytes</h1>
+<div id="pu6" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="noreferrer">Charcoal</a>, 47 bytes</h1>
 <pre><code>Ｎθ≔÷⁺³Ｌ↨θ²¦⁵ηＩ⎇‹θ¹²⁸θＥ↨⁺θ⁻Ｘ⁶⁴η×⁴Ｘ³²η⁶⁴⁺ι×⁶⁴⁺²¬κ
 </code></pre>
 <p><a href="https://tio.run/##NU3LbsIwELz3K3JcS6nkZ4zFqYULEkU58AMutYhFcMB2qPr17jq0K@3u7Ghm9jTYeJrsWMou3OZ8mK@fLsKdrF/eUvLnALuQt/7hvxz045xAtM3ehXMe4N0mB/e24YSQtlHYA7r66EOGjU0Zji4GG39g71KqQsZXKELwYW9P95JYCR8Q9NM3vu5kDWqbo7@6BHg8acErvbzqJI7F6v9l1bQwqDpMGS7kr9alCCk6o/SKMWMU74ThnHGmKVdaSkap5kYqoQxluI2mgpfXx/gL" rel="noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code. Explanation:</p>

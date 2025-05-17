@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::4393</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>312</td><td>Haskell</td><td>111228T011412Z</td><td><a href="https://codegolf.stackexchange.com/questions/4393/the-sleigh-packing-problem/4414#4414">ceased t</a></td></tr>
+<tr d-ix="1"><td>130</td><td>GolfScript</td><td>111228T141836Z</td><td><a href="https://codegolf.stackexchange.com/questions/4393/the-sleigh-packing-problem/4417#4417">Howard</a></td></tr>
+<tr d-ix="2"><td>461</td><td>Python</td><td>111227T054236Z</td><td><a href="https://codegolf.stackexchange.com/questions/4393/the-sleigh-packing-problem/4407#4407">Keith Ra</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h2>Haskell, 312 <strike>318</strike> chars</h2>
+
+<pre><code>import Data.List
+s(ξ:υ:_,λ:σ:η:_)(x:y:_,l:w:_)=(ξ+λ&lt;=x||ξ&gt;=x+l||υ+σ&lt;=y||υ&gt;=y+w)&amp;&amp;ξ+λ&lt;7&amp;&amp;υ+σ&lt;13&amp;&amp;η&lt;6
+y p l=[(v,r):l|v&lt;-[[x,y,0]|x&lt;-[0..5],y&lt;-[0..11]],r&lt;-permutations p,all(s(v,r))l]
+main=do
+ n&lt;-readLn
+ p&lt;-mapM(fmap(map read.words).const getLine)[1..n]
+ putStr.r$foldr((=&lt;&lt;).y)[[([9,0],[0..])]]p
+r[]="NO"
+r _="YES"
+</code></pre>
+
+<p>For some reason that I don't fully understand at the moment, it doesn't finish your tests #9 and #16 in reasonable time. But you didn't say anything about performance, did you?</p>
+
+<hr>
+
+<h2>373 <strike>383</strike> chars</h2>
+
+<p>This version runs <em>much</em> faster for the examples: it first checks if it's not impossible simply because the area is too small, and then it starts with the largest parcels rather then inserting them in the given order. Note that the area detection is not perfect: it doesn't consider rotations, so it may on some inputs give wrong results. But it does work with the test script.</p>
+
+<pre><code>import Data.List
+s(ξ:υ:_,λ:σ:η:_)(x:y:_,l:w:_)=(ξ+λ&lt;=x||ξ&gt;=x+l||υ+σ&lt;=y||υ&gt;=y+w)&amp;&amp;ξ+λ&lt;7&amp;&amp;υ+σ&lt;13&amp;&amp;η&lt;6
+y p l=[(v,r):l|v&lt;-[[x,y,0]|x&lt;-[0..5],y&lt;-[0..11]],r&lt;-permutations p,all(s(v,r))l]
+π=product
+main=do
+ n&lt;-readLn
+ p&lt;-mapM(fmap(map read.words).const getLine)[1..n]
+ putStr$if sum(map(π.init)p)&gt;72||null(foldr((=&lt;&lt;).y)[[([9,0],[0..])]].sortBy((.π).compare.π)$p)then"NO"else"YES"
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h2>GolfScript, 130 characters</h2>
+<pre><code>&quot;NO&quot;:g;~](;3/127{128*64+}12*\{.,0&gt;.!{&quot;YES&quot;:g;}*{([{[~@]..[~\]\}3*;]{)6&lt;{~[2\?(]*128base 83,{2\?1$*.4$&amp;0={3$|2$f}*}%;}*}%;}*;;}:f~g
+</code></pre>
+<p>It took quite some time to get it running in GolfScript. Any attempt to golf it further broke some of the test cases.</p>
+<p>Please be warned that this version may become incredibly slow if you run it with too many presents.</p>
+</div>
+<div id="pu2" class="pu"><h2>Python, 461 chars</h2>
+
+<pre><code>import sys
+def L(P,z):
+ if not P:return 1
+ for w,h in[P[0],P[0][::-1]]:
+  m=sum((2**w-1)&lt;&lt;i*6for i in range(h))
+  for x in range(7-w):
+   for y in range(13-h):
+    n=m&lt;&lt;y*6+x
+    if z&amp;n==0and L(P[1:],z|n):return 1
+ return 0
+for G in sys.stdin.read().split('\n\n'):
+ S=[(x,y)if z&lt;6 else(x,z)if y&lt;6 else(y,z)if x&lt;6 else(9,9)for x,y,z in[sorted(eval(g.replace(' ',',')))for g in G.split('\n')[1:]if g]]
+ print'YES\n'if sum(x*y for x,y in S)&lt;73and L(S,0)else'NO\n'
+</code></pre>
+
+<p><code>L</code> recursively checks if the rectangles in <code>P</code> can be put in the sleigh, where <code>z</code> is a bitmask of cells that are already occupied.  The <code>S</code> assignment determines which way is up for each of the packages (largest dimension &lt;= 5 goes vertically).</p>
+
+<p>The code is potentially exponential, but it is quick on all the test inputs.</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/4393/">4393</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+

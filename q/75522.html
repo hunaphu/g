@@ -26,14 +26,83 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>485</td><td>Java</td><td>160322T205821Z</td><td><a href="https://codegolf.stackexchange.com/questions/75522/theres-an-ant-on-my-rubiks-cube/76017#76017">Blue</a></td></tr>
-<tr d-ix="1"><td>109</td><td>Perl</td><td>160316T220143Z</td><td><a href="https://codegolf.stackexchange.com/questions/75522/theres-an-ant-on-my-rubiks-cube/75651#75651">Ton Hosp</a></td></tr>
-<tr d-ix="2"><td>132</td><td>Ruby</td><td>160318T071851Z</td><td><a href="https://codegolf.stackexchange.com/questions/75522/theres-an-ant-on-my-rubiks-cube/75751#75751">Not that</a></td></tr>
-<tr d-ix="3"><td>422</td><td>Tcl/Tk</td><td>160316T225712Z</td><td><a href="https://codegolf.stackexchange.com/questions/75522/theres-an-ant-on-my-rubiks-cube/75655#75655">D&#250;t</a></td></tr>
+<tr d-ix="0"><td>417</td><td>Tcl/Tk</td><td>160316T225712Z</td><td><a href="https://codegolf.stackexchange.com/questions/75522/theres-an-ant-on-my-rubiks-cube/75655#75655">D&#250;t</a></td></tr>
+<tr d-ix="1"><td>485</td><td>Java</td><td>160322T205821Z</td><td><a href="https://codegolf.stackexchange.com/questions/75522/theres-an-ant-on-my-rubiks-cube/76017#76017">Blue</a></td></tr>
+<tr d-ix="2"><td>109</td><td>Perl</td><td>160316T220143Z</td><td><a href="https://codegolf.stackexchange.com/questions/75522/theres-an-ant-on-my-rubiks-cube/75651#75651">Ton Hosp</a></td></tr>
+<tr d-ix="3"><td>132</td><td>Ruby</td><td>160318T071851Z</td><td><a href="https://codegolf.stackexchange.com/questions/75522/theres-an-ant-on-my-rubiks-cube/75751#75751">Not that</a></td></tr>
 <tr d-ix="4"><td>882</td><td>PowerShell</td><td>160316T122307Z</td><td><a href="https://codegolf.stackexchange.com/questions/75522/theres-an-ant-on-my-rubiks-cube/75622#75622">Matt</a></td></tr>
 <tr d-ix="5"><td>287</td><td>Brachylog</td><td>160315T151829Z</td><td><a href="https://codegolf.stackexchange.com/questions/75522/theres-an-ant-on-my-rubiks-cube/75581#75581">Fatalize</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Java, <s>619</s> <s>605</s> <s>534</s> <s>517</s> 485 bytes</h1>
+<div id="pu0" class="pu"><h1>Tcl/Tk, <s>422</s> 417 bytes</h1>
+<h2>Update by sergiol</h2>
+<pre><code>rename split S
+array se {} [S wyywroorgbbg {}]
+proc R a {lmap x [lassign $a y] {lappend b $x}
+lappend b $y}
+proc &lt; {V H} {set ::H $V
+set ::V [lreverse [R $H]]}
+proc &gt; {V H} [string map {V H H V} [info b &lt;]]
+proc ^ {V H} {
+lassign $V x
+lassign [set ::V [R $V]] y
+set ::H [string map &quot;$x $y $::($x) $::($y)&quot; $::H]
+puts -nonewline $y}
+set V [S wwrrryyyooow {}]
+set H [S wwgggyyybbbw {}]
+foreach p [S $argv {}] {$p $V $H}
+</code></pre>
+<h2>Original post</h2>
+<pre><code>rename split S
+array se {} [S wyywroorgbbg {}]
+proc R a {foreach x [lassign $a y] {lappend b $x}
+lappend b $y}
+proc &lt; {V H} {set ::H $V
+set ::V [lreverse [R $H]]}
+proc &gt; {V H} [string map {V H H V} [info b &lt;]]
+proc ^ {V H} {
+lassign $V x
+lassign [set ::V [R $V]] y
+set ::H [string map &quot;$x $y $::($x) $::($y)&quot; $::H]
+puts -nonewline $y}
+set V [S wwrrryyyooow {}]
+set H [S wwgggyyybbbw {}]
+foreach p [S {*}$argv {}] {$p $V $H}
+</code></pre>
+<p>Alas, I can't get it any smaller. Non-obfuscated version:</p>
+<pre><code>array set opposites [split wyywroorgbbg {}]
+
+proc lrotate xs {
+  foreach x [lassign $xs y] {
+    lappend ys $x
+  }
+  lappend ys $y
+}
+
+proc &lt; {V H} {
+  set ::H $V
+  set ::V [lreverse [lrotate $H]]
+}
+
+proc &gt; {V H} {
+  set ::H [lreverse [lrotate $V]]
+  set ::V $H
+}
+
+proc ^ {V H} {
+  lassign $V x
+  lassign [set ::V [lrotate $V]] y
+  set ::H [string map [list $x $y $::opposites($x) $::opposites($y)] $::H]
+  puts -nonewline $y
+}
+
+set V [split wwrrryyyooow {}]
+set H [split wwgggyyybbbw {}]
+foreach p [split {*}$argv {}] {$p $V $H}
+puts {}
+</code></pre>
+<p>It works by maintaining a list of horizontal and vertical cell colors. ^ &lt; and &gt; are all commands that properly permute the lists. The current cell is the first in each list.</p>
+</div>
+<div id="pu1" class="pu"><h1>Java, <s>619</s> <s>605</s> <s>534</s> <s>517</s> 485 bytes</h1>
 <p>Well, here goes nothing...</p>
 <p>At least it beat powershell!</p>
 <p>-14 bytes thanks to @KevinCruijssen</p>
@@ -134,7 +203,7 @@ public static int[] getPlane(int side)
 }
 </code></pre>
 </div>
-<div id="pu1" class="pu"><h1>Perl, <s>156</s> <s>143</s> <s>134</s> <s>128</s> <s>127</s> <s>125</s> <s>120</s> <s>119</s> <s>117</s> <s>113</s> 109 bytes</h1>
+<div id="pu2" class="pu"><h1>Perl, <s>156</s> <s>143</s> <s>134</s> <s>128</s> <s>127</s> <s>125</s> <s>120</s> <s>119</s> <s>117</s> <s>113</s> 109 bytes</h1>
 
 <p>Includes +1 for <code>-p</code></p>
 
@@ -212,7 +281,7 @@ $f[$n+8]                        return the last element (current face)
 
 <p>So for that last statement rotations lead to the empty string and steps forward lead to the current face. Therefore <code>$_</code> gets replaced by the faces visited on each step.</p>
 </div>
-<div id="pu2" class="pu"><h1>Ruby, 132</h1>
+<div id="pu3" class="pu"><h1>Ruby, 132</h1>
 
 <pre class="lang-ruby prettyprint-override"><code>m=?w
 g="bgoyr"
@@ -228,61 +297,6 @@ $&gt;&lt;&lt;m)if 93&lt;c.upto(64){x,z,g=2-z,x,g[4]+g[2]+g[0]+g[3]+g[1]}}
 <p><code>g</code> is arranged <code>[left, right, behind, opposite, front]</code> so that we don't need to change <code>g[0..1]</code> on <code>^</code></p>
 
 <p><code>&lt;</code> is done simply by doing <code>&gt;</code> three times.</p>
-</div>
-<div id="pu3" class="pu"><h1>Tcl/Tk, 422 bytes</h1>
-
-<pre><code>rename split S
-array se {} [S wyywroorgbbg {}]
-proc R a {foreach x [lassign $a y] {lappend b $x}
-lappend b $y}
-proc &lt; {V H} {set ::H $V
-set ::V [lreverse [R $H]]}
-proc &gt; {V H} [string map {V H H V} [info b &lt;]]
-proc ^ {V H} {
-lassign $V x
-lassign [set ::V [R $V]] y
-set ::H [string map "$x $y $::($x) $::($y)" $::H]
-puts -nonewline $y}
-set V [S wwrrryyyooow {}]
-set H [S wwgggyyybbbw {}]
-foreach p [S {*}$argv {}] {$p $V $H}
-</code></pre>
-
-<p>Alas, I can't get it any smaller. Non-obfuscated version:</p>
-
-<pre><code>array set opposites [split wyywroorgbbg {}]
-
-proc lrotate xs {
-  foreach x [lassign $xs y] {
-    lappend ys $x
-  }
-  lappend ys $y
-}
-
-proc &lt; {V H} {
-  set ::H $V
-  set ::V [lreverse [lrotate $H]]
-}
-
-proc &gt; {V H} {
-  set ::H [lreverse [lrotate $V]]
-  set ::V $H
-}
-
-proc ^ {V H} {
-  lassign $V x
-  lassign [set ::V [lrotate $V]] y
-  set ::H [string map [list $x $y $::opposites($x) $::opposites($y)] $::H]
-  puts -nonewline $y
-}
-
-set V [split wwrrryyyooow {}]
-set H [split wwgggyyybbbw {}]
-foreach p [split {*}$argv {}] {$p $V $H}
-puts {}
-</code></pre>
-
-<p>It works by maintaining a list of horizontal and vertical cell colors. ^ &lt; and &gt; are all commands that properly permute the lists. The current cell is the first in each list.</p>
 </div>
 <div id="pu4" class="pu"><h1>PowerShell, 882 bytes</h1>
 
