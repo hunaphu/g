@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::12717</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>nan</td><td></td><td>221110T182549Z</td><td><a href="https://codegolf.stackexchange.com/questions/12717/unicode-utf-converter/254457#254457">RARE Kpo</a></td></tr>
+<tr d-ix="1"><td>8971</td><td>C++</td><td>160114T141137Z</td><td><a href="https://codegolf.stackexchange.com/questions/12717/unicode-utf-converter/69423#69423">Toby Spe</a></td></tr>
+<tr d-ix="2"><td>nan</td><td>Python 3</td><td>160117T172019Z</td><td><a href="https://codegolf.stackexchange.com/questions/12717/unicode-utf-converter/69572#69572">Tim Pede</a></td></tr>
+<tr d-ix="3"><td>1367</td><td>Python  1367 UTF8 chars</td><td>140121T072815Z</td><td><a href="https://codegolf.stackexchange.com/questions/12717/unicode-utf-converter/18990#18990">Cel Skeg</a></td></tr>
+</table>
+<div id="pu0" class="pu"><p>This <em><strong>ENTIRELY</strong></em> self-contained and POSIX-compliant AWK function of my own making</p>
+<ul>
+<li><p>is fully-encapsulated with zero external dependencies,</p>
+</li>
+<li><p>can encode any single Unicode code-point, in both UTF-8 and
+UTF-32 (BE+LE), plus any arbitrary byte, regardless of locale setting, as long as it's not something like EBCDIC (the only part missing is UTF-16),</p>
+</li>
+<li><p>is proven working on <code>mawk</code> 1/2, <code>gawk</code> (in any mode other than <code>-t</code>), even <code>nawk</code> (sans <code>&quot;\0&quot;</code> NUL byte), and</p>
+</li>
+<li><p>doesn't need loops, recursion, pre-made lookups in any shape or form, or caching/memoization.</p>
+</li>
+</ul>
+<p><em><strong>Every single</strong></em> threshold, range cutoff, scaling factor, and necessary offset (such as <code>xC0 xE0 xF0</code>), both for the auto-detection part and the encoding part, are dynamically generated on the fly, while requiring only 1 additional temp variable on top of the 2 needed for user inputs anyway.</p>
+<p>My own benchmarking using <code>mawk-2</code> puts it within just 1.7x speed ratio against the built-in encoder in <code>gawk</code> (1.0x), which is a decent showing for a user-level function benchmarked against compiled C-code binaries.</p>
+<ul>
+<li><p><code>__</code> is code-point integer input, with auto-detection for out-of-range values such as <code>x &lt; 0</code>, <code>1114111 &lt; x</code>, plus the UTF-16 surrogate ranges, which would simply print out 1 single arbitrary byte that is its modulo-equivalent.</p>
+</li>
+<li><p><code>_</code> is optional - enter <code>-32</code> for UTF32-LE or <code>32</code> for UTF32-BE;</p>
+<p>any other non-empty input, e.g. <code>&quot;1&quot;</code> or <code>&quot;/&quot;</code> or <code>&quot;\t&quot;</code> etc, forces it to use the AWK built-in <code>sprintf(&quot;%c&quot;, x)</code> single-character encoder, taking the input <strong>as-is</strong>, and printing out 1 character that will be locale-setting specific</p>
+<p>(this feature is most useful when validating against <code>gawk</code> in Unicode mode).</p>
+</li>
+</ul>
+<pre class="lang-none prettyprint-override"><code>jot 1114112 0 | mawk 'BEGIN {  }
+
+function chrUC8(__,_,___) {
+    return \
+    ((___=_)*_)&gt;=(_+=_+=_^=_&lt;_)^_ \
+    ? ( (+___&lt;-___)==(___=(--_+_)^_*(_^=++_))^!_ \
+        ? sprintf(&quot;%c%c%c%c&quot;, (__=int(__) % (_*_*_*_))%_+___,
+            int(__/_)%_+___, (__=int(__/_/_))%_+___, int(__/_)+___)\
+        : sprintf(&quot;%c%c%c%c&quot;,  int((__%=_*_*_*_)/_/_/_)+___,
+            int(__/_/_)%_+___, int(__/_)%_+___,__%_+___)\
+                                 ) \
+                                 :  +___  ||
+          (((__=+__)+__)&lt;_^_ &amp;&amp; -__&lt;=+__) ||
+      ((___=(--_+_)^_*++_^_)&lt;=__ &amp;&amp; __&lt;(_^_*(_+_)+___)) ||
+                                  +__&lt;-__ ||
+                              ((_+_)^_*(_*_+_^_))&lt;=__\
+        ? sprintf(&quot;%c&quot;,+___&lt;_?__: (__%(_^=_)+_)%_+___)\
+    : (__+__)&lt;(_+_)^_                                  \
+        ? sprintf(&quot;%c%c&quot;, (___+=(_*=_*_)+_) +_+ int(__/_), __%_+___) \
+    : __&lt;_^(_+_)                                                    \
+        ? sprintf(&quot;%c%c%c&quot;, _*(_+_) + (___+=(_*=_*_)+_) +_+ int(__/_/_),
+                                     int(__/_)%_ + ___, __%_ + ___) \
+        : sprintf(&quot;%c%c%c%c&quot;, _*-_+ (___+=(_*=_*_)+_) +_+_+ int(__/_/_/_),
+                int(__/_/_)%_ +___, int(__/_)%_ + ___,__%_+___)  
+}'
+</code></pre>
+<p>The squeezed form is roughly <strong>789 bytes</strong>, give or take.</p>
+<p>How can this form save space at all?</p>
+<blockquote>
+<p>e.g. one can write 6 ASCII bytes of 262144 or 2¹⁸ or even 64³ to scale 3 continuation bytes in the supplementary planes…</p>
+</blockquote>
+<blockquote>
+<p>…… or save space via 8⁶ or 4⁹.</p>
+</blockquote>
+<p>because truth be told, the number <em><strong>4</strong></em>, and combinations of it, is all you need to encode everything about Unicode:</p>
+<pre><code>4
+16
+256
+ #
+128
+ 2048
+   65536
+      1114112
+           ##
+           64
+           4096
+             262144
+                 ###
+                  128
+                   192
+                    224
+                     240
+                      #####
+                         1048576
+                              2048
+                                55296
+                                   1024
+                                     56320
+                                        57344
+      # gawk profile,
+     created Thu Nov 10 14:26:19 2022
+
+     gawk 'BEGIN {
+     1     OFS=&quot;\f\b\b&quot;
+     1     print &quot;&quot;,
+     _=4,
+     _*_,
+     _^_,
+     &quot;#&quot;,
+     _*(_+_)*_,
+     _^_*(_+_),
+     _^(_+_),
+     (_+_)^_*(_^_+_*_),
+     &quot;##&quot;,
+     _*_*_,
+     (_+_)^_,
+     _^(_+_)*_,
+     &quot;###&quot;,
+     _*(_+_)*_,
+     _^_-_*_*_,
+     _^_-(_+_)*_,
+     _^_-_*_,
+     &quot;#####&quot;,
+     _*_^(_+_)*_,
+     _^_*(_+_),
+     _^_*(_^_-_-(_+_)*_-_),
+     _^_*_,
+     _^_*(_^_-(_+_)*_-_),
+     (_^_-_*_-_*_)*_^_
+}' 
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>C++, (UTF-8) 971 bytes</h1>
+<pre class="lang-c++ prettyprint-override"><code>#include&lt;cstdint&gt;
+using u=uint8_t;using U=uint32_t;U i,o,x,b,m;U R(u*&amp;p){x=*p++;if(!i){m=0;while(128&gt;&gt;m&amp;x)++m;if(m&gt;1)for(x&amp;=127&gt;&gt;m;--m;)x=x&lt;&lt;6|((*p&amp;192)-128?~0:*p++&amp;63);return m?x=~0:x;}else if(i&lt;3){x&lt;&lt;=8;x+=*p++;}else if(i&lt;4){x+=*p++&lt;&lt;8;}else if(i&lt;6){x&lt;&lt;=24;x+=*p++&lt;&lt;16;x+=*p++&lt;&lt;8;x+=*p++;}else{x+=*p++&lt;&lt;8;x+=*p++&lt;&lt;16;x+=*p++&lt;&lt;24;}return x;}U r(u*&amp;p){U x0=R(p);if(i&amp;&amp;i&lt;4&amp;&amp;x&gt;&gt;10==54)x=R(p)&gt;&gt;10==55?(x0&lt;&lt;10)+x-56613888:~0;if(!b++){if(x==65279)if(!i||i%3==1)r(p);else x=~0;else if(x==65534&amp;&amp;i==1)i=3,r(p);else if(x==4294836224&amp;&amp;i==4)i=6,r(p);}return x&gt;1114111||x&gt;&gt;11==27?x=~0:x;}void w(U x,u*&amp;p){if(!o){if(x&lt;128)*p++=x;else{for(m=0;~63&lt;&lt;m&amp;x;m+=6);for(*p++=~127&gt;&gt;m/6|x&gt;&gt;m;m;)*p++=128|x&gt;&gt;(m-=6)&amp;63;}}else if(o&lt;4&amp;&amp;x&gt;65535)x-=65536,w(55296|x&gt;&gt;10,p),w(56320|x&amp;1023,p);else if(o&lt;3)*p++=x&gt;&gt;8,*p++=x;else if(o&lt;4)*p++=x,*p++=x&gt;&gt;8;else if(o&lt;6)*p++=x&gt;&gt;24,*p++=x&gt;&gt;16,*p++=x&gt;&gt;8,*p++=x;else*p++=x,*p++=x&gt;&gt;8,*p++=x&gt;&gt;16,*p++=x&gt;&gt;24;}int t(u*&amp;p,u*&amp;q){for(b=0,x=1;U(x+x);)w(r(p),q);return x;}
+</code></pre>
+<p>The readable program below can be condensed to the above form by filtering it through the following Perl command:</p>
+<pre class="lang-sh prettyprint-override"><code>perl -p0 -e 's!//.*!!g;s/\s+/ /g;s/ \B|\B //g;s/0x[\da-f]+/hex($&amp;)/ige;s/#include&lt;[^&lt;&gt;]+&gt;/\n$&amp;\n/g;s/^\n+//mg'
+</code></pre>
+<p>The above command</p>
+<ul>
+<li>removes comments</li>
+<li>removes unnecessary whitespace</li>
+<li>converts hexadecimal literals to decimal</li>
+<li>reinstates newlines around <code>#include</code> lines</li>
+</ul>
+<h3>Readable code</h3>
+<pre class="lang-c++ prettyprint-override"><code>#include &lt;cstdint&gt;
+using u = uint8_t;
+using U = uint32_t;
+
+U   i,                          // input encoding
+    o,                          // output encoding
+    x,                          // last read value
+    b,                          // char count(BOM only valid when b==0)
+    m;                          // temporary variable for measuring UTF-8
+
+//   Encodings:
+// 0 UTF-8
+// 1 UTF-16
+// 2 UTF-16BE
+// 3 UTF-16LE
+// 4 UTF-32
+// 5 UTF-32BE
+// 6 UTF-32LE
+
+// Read a character or UTF-16 surrogate
+U R(u*&amp; p) {
+    x = *p++;
+    if (!i) { // UTF-8
+        m=0; while (128&gt;&gt;m&amp;x) ++m; // how many bytes?
+        if (m&gt;1) for (x&amp;=127&gt;&gt;m; --m; ) x = x&lt;&lt;6 | ((*p&amp;192)-128?~0:*p++&amp;63);
+        return m ? x=~0 : x;
+    } else if (i&lt;3) { // UTF-16, UTF-16BE
+        x&lt;&lt;=8; x+=*p++;
+    } else if (i&lt;4) { // UTF-16LE
+        x+=*p++&lt;&lt;8;
+    } else if (i&lt;6) { // UTF-32, UTF-32BE
+        x&lt;&lt;=24; x+=*p++&lt;&lt;16; x+=*p++&lt;&lt;8; x+=*p++;
+    } else { // UTF-32LE
+        x+=*p++&lt;&lt;8; x+=*p++&lt;&lt;16; x+=*p++&lt;&lt;24;
+    }
+    return x;
+}
+
+// Read a character, combining surrogates, processing BOM, and checking range
+U r(u*&amp; p) {
+    U x0 = R(p);
+    if (i &amp;&amp; i&lt;4 &amp;&amp; x&gt;&gt;10==54)
+        x = R(p)&gt;&gt;10==55 ? (x0&lt;&lt;10)+x-56613888: ~0; // 56613888 == 0xd800&lt;&lt;10 + 0xdc00 - 0x10000
+    if (!b++) {                 // first char - is it BOM?
+        if (x==0xFEFF)
+            if (!i || i%3==1)
+                r(p); // BOM in UTF-8 or UTF-16 or UTF-32 - ignore, and read next char
+            else
+                x = ~0; // not allowed in these modes
+        else if (x==0xFFFE &amp;&amp; i==1)
+            i=3,r(p); // reversed BOM in UTF-16 - change to little-endian, and read next char
+        else if (x==0xFFFE0000 &amp;&amp; i==4)
+            i=6,r(p); // reversed BOM in UTF-32 - change to little-endian, and read next char
+    }
+    return x&gt;0x10ffff || x&gt;&gt;11==27 ? x=~0 : x;
+}
+
+
+// Write character(assumed in-range)
+void w(U x, u*&amp; p) {
+    if (!o) { // UTF-8
+        if (x&lt;128) *p++=x;        // ASCII
+        else {
+            for (m=0; ~63&lt;&lt;m&amp;x; m+=6); // how many bits?
+            for (*p++=~127&gt;&gt;m/6|x&gt;&gt;m; m; ) *p++ = 128|x&gt;&gt;(m-=6)&amp;63;
+        }
+    } else if (o&lt;4 &amp;&amp; x&gt;65535)  // UTF-16 surrogate
+        x-=65536, w(0xD800|x&gt;&gt;10,p), w(0xDC00|x&amp;0x3FF,p);
+    else if (o&lt;3)  // UTF-16, UTF-16BE
+        *p++=x&gt;&gt;8, *p++=x;
+    else if (o&lt;4)  // UTF-16LE
+        *p++=x, *p++=x&gt;&gt;8;
+    else if (o&lt;6)  // UTF-32, UTF-32BE
+        *p++=x&gt;&gt;24, *p++=x&gt;&gt;16, *p++=x&gt;&gt;8, *p++=x;
+    else  // UTF-32LE
+        *p++=x, *p++=x&gt;&gt;8, *p++=x&gt;&gt;16, *p++=x&gt;&gt;24;
+}
+
+// Transcode
+int t(u*&amp; p, u*&amp; q)                  // input, output
+{
+    for (b=0,x=1;U(x+x);)    // exit condition is true only for x==-x, i.e. 0 and ~0
+        w(r(p),q);
+    return x;
+}
+</code></pre>
+<p>The function to be called is <code>t()</code>, with input and output encodings passed in the global variables <code>i</code> and <code>o</code> respectively, and <code>p</code> pointing at the bytes of input, which <strong>must</strong> be null-terminated.  <code>q</code> points to the output buffer, which will be overwritten, and <strong>must</strong> be big enough for the result - there is no attempt to avoid buffer overrun.</p>
+<p>I hope the code comments are sufficiently explanatory - ask below if one of them is too cryptic (but do make an effort first!).</p>
+<p>I compiled a substantial test suite whilst developing this answer; I include it below for the benefit of other entrants, and to document my interpretation of requirements:</p>
+<h3>Test functions</h3>
+<pre class="lang-c++ prettyprint-override"><code>#include &lt;vector&gt;
+#include &lt;iostream&gt;
+
+std::ostream&amp; operator&lt;&lt;(std::ostream&amp; out, const std::vector&lt;u&gt;&amp; v)
+{
+    out &lt;&lt; &quot;{ &quot;;
+    for (int i: v) out &lt;&lt; i &lt;&lt; &quot; &quot;;
+    out &lt;&lt; &quot;}&quot;;
+    return out;
+}
+
+int test_read(int encoding, std::vector&lt;u&gt; input, U expected)
+{
+    b = 0;
+    i = encoding;
+    auto d = input.data();
+    U actual = r(d);
+    if (actual == expected) return 0;
+    std::cerr &lt;&lt; std::hex &lt;&lt; &quot;Decoding &quot; &lt;&lt; encoding &lt;&lt; &quot;; &quot; &lt;&lt; input &lt;&lt; &quot; gave &quot; &lt;&lt; actual
+              &lt;&lt; &quot; instead of &quot; &lt;&lt; expected &lt;&lt; std::endl;
+    return 1;
+}
+
+int test_write(int encoding, U input, std::vector&lt;u&gt; expected)
+{
+    o = encoding;
+    u buf[20], *p = buf;
+    w(input, p);
+    std::vector&lt;u&gt; actual(buf,p);
+    if (expected == actual) return 0;
+    std::cerr &lt;&lt; std::hex &lt;&lt; &quot;Encoding &quot; &lt;&lt; encoding &lt;&lt; &quot;; &quot; &lt;&lt; input &lt;&lt; &quot; gave &quot; &lt;&lt; actual
+              &lt;&lt; &quot; instead of &quot; &lt;&lt; expected &lt;&lt; std::endl;
+    return 1;
+}
+
+int test_transcode(int ienc, std::vector&lt;u&gt; input, int oenc, std::vector&lt;u&gt; expected)
+{
+    b = 0;
+    i = ienc; o = oenc;
+    u buf[200], *p = buf, *d = input.data();
+    int result = t(d, p);
+    std::vector&lt;u&gt; actual(buf,p);
+    if (result ? expected.empty() : expected == actual) return 0;
+    std::cerr &lt;&lt; std::hex &lt;&lt; &quot;Encoding &quot; &lt;&lt; ienc &lt;&lt; &quot; to &quot; &lt;&lt; oenc &lt;&lt; &quot;; &quot; &lt;&lt; input &lt;&lt; &quot; gave &quot; &lt;&lt; actual
+              &lt;&lt; &quot; instead of &quot; &lt;&lt; expected &lt;&lt; std::endl;
+    return 1;
+}
+</code></pre>
+<h3>Test suite</h3>
+<pre class="lang-c++ prettyprint-override"><code>static const U FAIL = ~0;
+int main() {
+    int e = 0;                        // error count
+    // UTF-8
+    e += test_read(0, { 128 }, FAIL); // unexpected continuation
+    e += test_read(0, { 128, 1 }, FAIL);
+    e += test_read(0, { 128, 128 }, FAIL);
+    e += test_read(0, { 192, 192 }, FAIL); // start without continuation
+    e += test_read(0, { 192, 0 }, FAIL);
+    e += test_read(0, { 224, 0 }, FAIL);
+    e += test_read(0, { 224, 192 }, FAIL);
+    e += test_read(0, { 0xf4, 0x90, 128, 128 }, FAIL); // Unicode maximum+1
+
+    e += test_read(0, { 127 }, 127);
+    e += test_read(0, { 192, 129 }, 1); // We accept overlong UTF-8
+    e += test_read(0, { 0xc2, 128 }, 128);
+    e += test_read(0, { 224, 128, 129 }, 1);
+    e += test_read(0, { 0xef, 128, 128 }, 0xF000);
+    e += test_read(0, { 0xef, 191, 191 }, 0xFFFF);
+    e += test_read(0, { 0xf4, 128, 128, 128 }, 0x100000);
+    e += test_read(0, { 0xf4, 0x8f, 191, 191 }, 0x10FFFF); // Unicode maximum
+
+    e += test_read(0, { 0xEF, 0xBB, 0xBF, 127 }, 127); // byte-order mark
+
+    e += test_write(0, 0, { 0 });
+    e += test_write(0, 127, { 127 });
+    e += test_write(0, 128, { 0xc2, 128 });
+    e += test_write(0, 255, { 0xc3, 191 });
+    e += test_write(0, 0xFFFF, { 0xef, 191, 191 });
+    e += test_write(0, 0x10FFFF, { 0xf4, 0x8f, 191, 191 });
+
+    // UTF-16
+    e += test_read(1, { 0, 1 }, 1);
+    e += test_read(1, { 0xd8, 0, 0xdc, 1 }, 0x10001);
+    e += test_read(1, { 0xdb, 0xff, 0xdf, 0xff }, 0x10ffff);
+
+    e += test_read(1, { 0xd8, 0, 0xd8, 1 }, FAIL); // mismatched surrogate
+    e += test_read(1, { 0xd8, 0, 0, 1 }, FAIL); // mismatched surrogate
+    e += test_read(1, { 0xdc, 0 }, FAIL);
+
+    e += test_write(1, 1, { 0, 1 });
+    e += test_write(1, 256, { 1, 0 });
+    e += test_write(1, 0xffff, { 255, 255 });
+    e += test_write(1, 0x10001, { 0xd8, 0, 0xdc, 1 });
+    e += test_write(1, 0x10ffff, { 0xdb, 0xff, 0xdf, 0xff });
+
+    // UTF-16LE
+    e += test_write(3, 1, { 1, 0 });
+    e += test_write(3, 256, { 0, 1 });
+    e += test_write(3, 0x10001, { 0, 0xd8, 1, 0xdc });
+    e += test_write(3, 0x10fffe, { 0xff, 0xdb, 0xfe, 0xdf });
+
+    // UTF-16 byte-order mark
+    e += test_read(1, { 0xFE, 0xFF, 0x0, 1 }, 1); // byte-order mark
+    e += test_read(1, { 0xFF, 0xFE, 1, 0x0 }, 1); // reversed byte-order mark
+    // disallowed byte-order marks
+    e += test_read(2, { 0xFE, 0xFF }, FAIL);
+    e += test_read(3, { 0xFF, 0xFE }, FAIL);
+    // reversed byte-order mark is an unassigned character - to be treated like regular character, according to question
+    e += test_read(2, { 0xFF, 0xFE }, 0xfffe);
+    e += test_read(3, { 0xFE, 0xFF }, 0xfffe);
+
+    // UTF-32
+    e += test_read(4, { 0, 0, 0, 1 }, 1);
+    e += test_read(4, { 1, 0, 0, 0 }, FAIL);
+    e += test_write(4, 1, { 0, 0, 0, 1 });
+    e += test_write(4, 0x10203, { 0, 1, 2, 3 });
+
+    // UTF-32LE
+    e += test_read(6, { 0, 0, 0, 1 }, FAIL);
+    e += test_read(6, { 1, 0, 0, 0 }, 1);
+
+    // UTF-32 byte-order mark
+    e += test_read(4, { 0, 0, 0xFE, 0xFF,  0, 0, 0, 1 }, 1); // byte-order mark
+    e += test_read(4, { 0xFF, 0xFE, 0, 0,  1, 0, 0, 0 }, 1); // reversed byte-order mark
+    // disallowed byte-order marks
+    e += test_read(5, { 0, 0, 0xFE, 0xFF }, FAIL);
+    e += test_read(5, { 0xFF, 0xFE, 0, 0 }, FAIL);
+    e += test_read(6, { 0, 0, 0xFE, 0xFF }, FAIL);
+    e += test_read(6, { 0xFF, 0xFE, 0, 0 }, FAIL);
+
+    e += test_transcode(1, { 1, 2, 0xFE, 0xFF, 0, 0 }, // That's not a BOM; it's a zwnj when not the first char
+                        1, { 1, 2, 0xFE, 0xFF, 0, 0 });
+    e += test_transcode(1, { 0xFF, 0xFE, 1, 2, 0, 0 }, // reversed byte-order mark implies little-endian
+                        1, { 2, 1, 0, 0 });
+    e += test_transcode(4, { 0xFF, 0xFE, 0, 0, 1, 2, 0, 0, 0, 0 }, // reversed BOM means little-endian
+                        4, { 0, 0, 2, 1, 0, 0, 0, 0 });
+    e += test_transcode(1, { 0xdb, 0xff, 0xdf, 0xff, 0, 0 }, // U+10ffff UTF-16 to UTF-8
+                        0, { 0xf4, 0x8f, 191, 191, 0 });
+
+    return e;
+}
+</code></pre>
+</div>
+<div id="pu2" class="pu"><h2>Python 3, 1138 bytes (UTF-8)</h2>
+
+<p>So it turns out that 14 hours of international travel is a <em>fantastic</em> opportunity to finish off a golfing challenge...</p>
+
+<p>The conversion function is <code>C()</code>. This calls <code>u()</code>, <code>v()</code>, and <code>w()</code> to decode, and <code>U()</code>, <code>V()</code>, and <code>W()</code> to encode, UTF-8, -16 and -32, respectively. None of the encoders will output a BOM, but all of the decoders will correctly handle one. Error conditions result in an exception (usually a <code>ZeroDivisionError</code>, courtesy of the "die-suddenly" function <code>E()</code>).</p>
+
+<pre class="lang-py prettyprint-override"><code>from struct import*
+l=len
+j=''.join
+b=lambda c:[*bin(c)[2:]]
+P,Q,i,o,z,Z='HI10&gt;&lt;'
+B=65279
+O,F,H,L,X=1024,65536,55296,56320,57344
+E=lambda:1/0
+R=lambda y,e,c,n:unpack(([[z,Z][y[:n]==pack(Z+c,B)],e][l(e)])+c*(l(y)//n),y)
+S=lambda d,e:B!=d[0]and d or e and E()or d[1:]
+def u(y,d=(),p=0):
+ while p&lt;l(y):
+  q=b(y[p])
+  if l(q)&gt;7:
+   x=q.index(o);C=1&lt;x&lt;5and q[x+1:]or E();X=x+p;X&gt;l(y)&gt;E();p+=1
+   while p&lt;X:q=b(y[p]);C=l(q)&gt;7and(i,o==q[:2])and(*C,*q[2:])or E();p+=1
+   d=*d,int(j(C),2)
+  else:d=*d,y[p];p+=1
+ return S(d,0)
+def T(p):
+ q=b(p);C=()
+ while l(q)not in(7,11,16,21):q=o,*q
+ while l(q)&gt;6:C=int(i+o+j(q[-6:]),2),*C;q=q[:-6]
+ return bytes(p&lt;128and[p]or[int(i*(7-l(q))+o+j(q),2),*C])
+U=lambda c:b''.join(map(T,c))
+def v(y,e=''):
+ c=R(y,e,P,2);d=[];n=0
+ while n&lt;l(c)-1:h,a=c[n:n+2];D=[(h,a),(F+(h-H)*O+a-L,)][H&lt;=h&lt;L&lt;=a&lt;X];M=3-l(D);n+=M;d+=D[:M]
+ if n&lt;l(c):d=*d,c[n]
+ return S(d,e)
+V=lambda c,e=z:W(sum(map(lambda p:([H+(p-F)//O,L+(p-F)%O],[p])[p&lt;F],c),[]),e,P)
+w=lambda y,e='':S(R(y,e,Q,4),e)
+W=lambda c,e=z,C=Q:pack(e+C*l(c),*c)
+K=(u,U),(v,V),(v,V,z),(v,V,Z),(w,W),(w,W,z),(w,W,Z)
+def C(y,f,t):f,_,*a=K[f];_,t,*b=K[t];return t(f(y,*a),*b)
+</code></pre>
+</div>
+<div id="pu3" class="pu"><h1>Python - 1367 UTF-8 chars</h1>
+
+<p>Alright! This was an extremely difficult question because of the sheer amount of work it took to understand and implement all the specifications, but I think that I have a correct implementation.</p>
+
+<pre class="lang-py prettyprint-override"><code>O,P,Q,R=65536,128,b'\xff\xfe\x00\x00',63
+def A(x,y):assert x;return y
+def B(x):
+    o,c=[],0
+    for b in x:
+        if c:c,v=c-1,A(127&lt;b&lt;192,v&lt;&lt;6)|(b-P)
+        else:
+            c,v=(b&gt;127)+(b&gt;223)+(b&gt;239),b
+            if b&gt;127:v=A(191&lt;b&lt;248,b&amp;(R&gt;&gt;c))
+        o+=[v][c:]
+    return o[o[0]in(65279,O-2):]
+def C(k):
+    def o(x,s=None):
+        for a,b in zip(x[k::2],x[1-k::2]):
+            d=a|(b&lt;&lt;8)
+            if s!=None:yield(A(56319&lt;d&lt;57344,d-56320)|(s&lt;&lt;10))+O;s=None
+            elif 55295&lt;d&lt;57344:s=A(s&lt;1024,d-55296)
+            else:yield d
+    return o
+def D(x):n=(2,3,1)[[Q[:2],Q[1::-1],x[:2]].index(x[:2])];return C(n&amp;1)(x[n&amp;2:])
+E=lambda a,b,c,d:lambda x:[L|(l&lt;&lt;8)|(m&lt;&lt;16) for L,l,m in zip(x[a::4],x[b::4],x[c::4])]
+def F(x):n,m=((1,4),(-1,4),(-1,0))[[Q,Q[::-1],x[:4]].index(x[:4])];return E(*range(4)[::n])(x[m:])
+S=lambda x,s=0,a=255:(x&gt;&gt;s)&amp;a
+G=lambda e:(e,)if e&lt;P else(192|S(e,6),P|(e&amp;R))if e&lt;2048 else(224|S(e,12),P|S(e,6,R),P|(e&amp;R))if e&lt;O else(240|S(e,18),P|S(e,12,R),P|S(e,6,R),P|(e&amp;R))
+H=lambda e:(S(e,8),S(e))if e&lt;O else(216|S(e-O,18),S(e-O,10),220+S((e-O)&amp;1023,8),S(e-O))
+I=lambda e:(S(e),S(e,8))if e&lt;O else(S(e-O,10),216|S(e-O,18),S(e-O),220+S((e-O)&amp;1023,8))
+J=lambda e:(S(e,24),S(e,16),S(e,8),S(e))
+K=lambda e:(S(e),S(e,8),S(e,16),S(e,24))
+convert=lambda d,i,o:bytes(sum(map(L[o],N(list(M[i](d)))),()))if d else d
+L,M=[G,H,H,I,J,J,K],[B,D,C(1),C(0),F,E(3,2,1,0),E(0,1,2,3)]
+N=lambda d:[A(-1&lt;x&lt;1114112 and x&amp;~2047!=55296,x)for x in d]
+</code></pre>
+
+<p><code>convert</code> is the function that takes the data 'bytes' object, the input ID, and the output ID. It seems to work - although python seems to have a slightly broken usage of BOMs when unspecified in the encoding, so using python's builtin encoding to test modes 1 and 4 won't work.</p>
+
+<p>Fun fact: The size is also 555<sub>16</sub> or 10101010101<sub>2</sub>.</p>
+
+<p>773 chars for decoding, 452 for encoding, 59 for verification and 83 for miscellaneous parts.</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/12717/">12717</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
