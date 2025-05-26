@@ -26,11 +26,60 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>064</td><td>Charcoal</td><td>250526T054200Z</td><td><a href="https://codegolf.stackexchange.com/questions/281957/draw-a-hex-grid-of-a-given-size/281968#281968">Neil</a></td></tr>
-<tr d-ix="1"><td>157</td><td>Ruby</td><td>250525T234138Z</td><td><a href="https://codegolf.stackexchange.com/questions/281957/draw-a-hex-grid-of-a-given-size/281963#281963">Level Ri</a></td></tr>
-<tr d-ix="2"><td>072</td><td>Jelly</td><td>250525T204426Z</td><td><a href="https://codegolf.stackexchange.com/questions/281957/draw-a-hex-grid-of-a-given-size/281960#281960">Jonathan</a></td></tr>
+<tr d-ix="0"><td>053</td><td>Jelly</td><td>250525T204426Z</td><td><a href="https://codegolf.stackexchange.com/questions/281957/draw-a-hex-grid-of-a-given-size/281960#281960">Jonathan</a></td></tr>
+<tr d-ix="1"><td>064</td><td>Charcoal</td><td>250526T054200Z</td><td><a href="https://codegolf.stackexchange.com/questions/281957/draw-a-hex-grid-of-a-given-size/281968#281968">Neil</a></td></tr>
+<tr d-ix="2"><td>157</td><td>Ruby</td><td>250525T234138Z</td><td><a href="https://codegolf.stackexchange.com/questions/281957/draw-a-hex-grid-of-a-given-size/281963#281963">Level Ri</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 64 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 53 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
+<p><sup>Perhaps <a href="https://tio.run/##AYAAf/9qZWxsef//4bi2ZOKAmMOGwr0kw5cyLDPhuIJVK8aK4bikKzjFkuG5rOKCrOG7imHigbbCu@KAnOKBueG4jDM24bqhyaDhuJ/igbbigbw24oCZ4bmD4oCcIFwvX@KAncKkczjCpFXhuZrigqzCuy//w4dR4biKJMaHWSlZ//8zNg" rel="nofollow noreferrer" title="Jelly – Try It Online">52 bytes</a>, but maybe cases like <span class="math-container">\$n=14\$</span> aren't compact enough?</sup></p>
+<pre><code>Ḷd½+.ḞƊ×2,3ḂU+ƊḤ+8ŒṬ€Ịa⁶»“⁹Ḍ36ạɠḟ⁶⁼6’ṃ“ \/_”¤s8¤UṚ€»/
+</code></pre>
+<p>A monadic Link that accepts a positive integer, <span class="math-container">\$n\$</span>, and yields a list of lists of characters (lines) representing an area of <span class="math-container">\$n\$</span> hegagons.</p>
+<p><strong><a href="https://tio.run/##AYEAfv9qZWxsef//4bi2ZMK9Ky7huJ7GisOXMiwz4biCVSvGiuG4pCs4xZLhuazigqzhu4ph4oG2wrvigJzigbnhuIwzNuG6ocmg4bif4oG24oG8NuKAmeG5g@KAnCBcL1/igJ3CpHM4wqRV4bma4oKswrsv/8OHUeG4iiTGh1kpWf//MzY" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></strong> (The footer removes all the extra whitespace that would otherwise be present.)</p>
+<h4>How?</h4>
+<p>First create the locations of the hexagons:</p>
+<pre><code>Ḷd½+.ḞƊ×2,3ḂU+ƊḤ - Link: positive integer, N
+Ḷ                - lowered range -&gt; [0..N-1]
+      Ɗ          - last three links as a monad - f(N):
+  ½              -   square-root
+   +.            -   add a half
+     Ḟ           -   floor
+ d               - {[0..N-1]} divmod {rounded root}
+       ×2,3      - multiply these pairs by [2,3]
+              Ɗ  - last three links as a monad - f(those):
+           Ḃ     -   mod two
+            U    -   reverse each
+             +   -   add
+               Ḥ - double
+</code></pre>
+<p>Then convert these locations to canvases of space characters</p>
+<pre><code>+8ŒṬ€Ịa⁶;z⁶Zɗ€⁸U»/ - ...continued chain
++8                 - add eight to all coordinates
+  ŒṬ€              - for each location, make a multidimensional array of zeros with
+                     a 1 at the location (bottom-right)
+     Ị             - insignificant? (convert all zeros to ones)
+      a⁶           - logical AND space character
+</code></pre>
+<p>Now make a single hexagon (with rows in reverse):</p>
+<pre><code>“...’ṃ“ \/_”¤s8¤
+               ¤ - nilad followed by link(s) as a nilad:
+            ¤    -   nilad followed by link(s) as a nilad:
+“...’            -     529086439416644320972805
+     ṃ“ \/_”     -     convert to base 4 with digits 0-4 as &quot;_ \/&quot;
+             s8  -   split into chunks of length eight -&gt; ReversedHexagon
+</code></pre>
+<p>Now format the hexagon into each canvas and merge them together:</p>
+<pre><code>» ^^^ UṚ€»/
+» ^^^       - {canvases} maximum {ReversedHexagon} (vectorises)
+               (making the top-left of each canvas a ReversedHexagon)
+      U     - reverse each row of each
+               (placing it on the right)
+       Ṛ€   - reverse each
+               (placing it at the bottom-right, with rows correctly ordered)
+         »/ - reduce by maximum
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 64 bytes</h1>
 <pre><code>ＮθＷ‹Ｌυθ«→Ｆ⁶Ｆ⁻ⅈ⁼¹κ⊞υ⊕⁺κ÷κ³»Ｆ…υθ«\¶ \×⁴_↗²←↖²←×⁴_↓↙²→Ｍ⁴✳⁻⁸ιＭ⊗﹪ι²✳ι
 </code></pre>
 <p><a href="https://tio.run/##ZZBPS8NAFMTPzadYcnoL66EqovXYeCg0EkTBQ0DS5LVZutlN9k@KiJ897iaBVr3s8oaZH8OUdaFLVYhh2MjW2WfX7FBDRx@jU80FEtiiMf6RB1uDo4x0lJKvaJGqHmH1wg@19d7FXmkCd5SMf8qlM/AO3v3UuUIYWDJypD6YOeMpjGxkqbFBabGCTHjzMWg24T2vMBw33u2539EIXH@WAte1akN2LpBpLi3EeZ5LkudxKDFJr7xBA7eMxB8xPcurt3Zsy8h1EKf@W9zbX5YgzI5Zm5R/0CmfqJO88IbzgvBno/H0iIRrLC1Xch7qnhFOz9BEuZ3wu6SqckIBDzB6meLjMsPwsByuevED" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code. Explanation:</p>
@@ -53,7 +102,7 @@
 </code></pre>
 <p>Take the next step on the path.</p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a>, 157 bytes</h1>
+<div id="pu2" class="pu"><h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a>, 157 bytes</h1>
 
 <pre class="lang-ruby prettyprint-override"><code>-&gt;n{s=&quot;%#{w=9*v=(n**0.5).round}s&quot;%$/*w
 n.times{|i|5.times{|j|s[i%v*6+(j+i%v%2*2+i/v*4)*w+2*k=0**j,m=8&gt;&gt;k]='____ \____/ \      //      \ /    \ '[-j*8,m]}}
@@ -63,49 +112,6 @@ s}
 <p>Anonymous function taking an integer <code>n</code> as an argument and returning a newline-separated string with <code>v=round(sqrt(n))</code> columns of hexagons.</p>
 <p>Fairly straightforward: make a canvas <code>s</code> of <code>w</code> newline separated strings of <code>w-1</code> spaces, and iterate through hexagons, positioning hexagon number <code>i</code> horizontally at (<code>i%v*6</code> , <code>i%v%2*2 + i/v*4</code>) and run through 5 rows with inner <code>j</code> loop replacing the existing spaces with hexagon parts.</p>
 <p>The only wrinkle is that we replace 8 characters for <code>j=1</code> through <code>j=4</code> but only 4 for <code>j=0</code> because we don't want to plot any spurious characters next to the top of the hexagon (they could be either spaces or slashes depending if there are other hexagons above it to the left or right.) Therefore we set up a variable <code>k=0**j</code> which is 1 when <code>j=0</code> (0 otherwise) and use it to reduce the length of the string replaced from 8 to 4 by rightshifting. The string of hexagon parts is indexed with <code>-j*8</code> which picks hexagon parts from the right for <code>j=1</code> through <code>j=4</code> and picks up the short part <code>____</code> from the left for <code>j=0</code>, avoiding any issues with indexing of different length strings.</p>
-</div>
-<div id="pu2" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 72 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
-<pre><code>“o4ƭgf¬vṢDr’ṃ“ _\/”s8ð“¢jỌḤɠ’b7Ḥ_6ŒHxⱮZ€J‘œP&quot;ƊẎẎŻ+\_«/$ḣŒṬ€Ịa⁶;z⁶Zɗ€⁸U»/
-</code></pre>
-<p>A monadic Link that accepts a positive integer, <span class="math-container">\$n\$</span>, and yields a list of lists of characters (lines) representing an area of <span class="math-container">\$n\$</span> hegagons.</p>
-<p><strong><a href="https://tio.run/##y0rNyan8//9Rw5x8k2Nr09MOrSl7uHORS9GjhpkPdzYDhRXiY/QfNcwttji8Acg7tCjr4e6ehzuWnFwAVJFkDmTFmx2d5FHxaOO6qEdNa7weNcw4OjlA6VjXw119QHR0t3ZM/KHV@ioPdyw@OunhzjVANQ93dyU@atxmXQUkok5OB4o8atwRemi3/v/D7VGBD3d0qRxrV3nUuCvy/39DYwA" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></strong> (The footer removes all the extra whitespace that would otherwise be present.)</p>
-<h4>How?</h4>
-<p>First make a single hexagon (with reversed rows):</p>
-<pre><code>“...’ṃ“ _\/”s8ð - Link: positive integer, N
-“...’           - 428065150002962808392365
-     ṃ“ _\/”    - convert to base 4 with digits 0-4 as &quot;/ _\&quot;
-            s8  - split into chunks of length eight -&gt; ReversedHexagon
-              ð - start a dyadic chain - f(ReversedHexagon, N)
-</code></pre>
-<p>Now create the locations of all the hexagons in <span class="math-container">\$n\$</span> concentric circles of hexagons in a spiral order, working outward. Trim this to the first <span class="math-container">\$n\$</span> locations:</p>
-<pre><code>“¢jỌḤɠ’b7Ḥ_6ŒHxⱮZ€J‘œP&quot;ƊẎẎŻ+\_«/$ḣ - chain: f(ReversedHexagon, N)
-“¢jỌḤɠ’b7                          - 9495794160 in base 7
-         Ḥ_6                       - for each: double and subtract six
-            ŒH                     - split into two halves
-                                      -&gt; [[2, 4, 2,-2,-4,-2],  # Row deltas
-                                          [6, 0,-6,-6, 0, 6]]  # Col deltas
-              xⱮ                   - repeat elements by {[1..N]}
-                Z€                 - transpose each
-                  J‘œP&quot;ƊẎ          - remove (j+1)th element from the jth list
-                         Ẏ         - tighten -&gt; a list of [row,col] deltas
-                          Ż        - prefix with a zero
-                           +\      - accumulate by addition
-                             _«/$  - subtract the minimums (to move to non-negative territory)
-                                 ḣ - head to index N
-</code></pre>
-<p>Finally, piece together copies of the hexagon at those locations:</p>
-<pre><code>ŒṬ€Ịa⁶;z⁶Zɗ€⁸U»/ - ...continued chain
-ŒṬ€              - for each location make a multidimensional array of zeros with
-                     a 1 at the location (bottom-right)
-   Ị             - insignificant? (convert all zeros to ones)
-    a⁶           - logical AND space character
-          ɗ€     - for each:
-      ;     ⁸    -   concatenate {ReversedHexagon}
-       z⁶        -     transpose with space as filler
-         Z       -     transpose
-             U   - reverse each row (so the hexagon is at the right-hand side)
-              »/ - reduce by maximum (spaces are minimal)
-</code></pre>
 </div>
 
 <table id="st">
