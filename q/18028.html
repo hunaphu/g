@@ -26,7 +26,7 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>093</td><td>Swift 6</td><td>230723T011016Z</td><td><a href="https://codegolf.stackexchange.com/questions/18028/largest-number-printable/263195#263195">macOSist</a></td></tr>
+<tr d-ix="0"><td>078</td><td>Swift 6</td><td>230723T011016Z</td><td><a href="https://codegolf.stackexchange.com/questions/18028/largest-number-printable/263195#263195">macOSist</a></td></tr>
 <tr d-ix="1"><td>100</td><td>JavaScript Node.js</td><td>240804T231107Z</td><td><a href="https://codegolf.stackexchange.com/questions/18028/largest-number-printable/274683#274683">Andrew B</a></td></tr>
 <tr d-ix="2"><td>047</td><td>Vyxal</td><td>240805T060010Z</td><td><a href="https://codegolf.stackexchange.com/questions/18028/largest-number-printable/274687#274687">emanresu</a></td></tr>
 <tr d-ix="3"><td>000</td><td>brainfuck</td><td>240805T044358Z</td><td><a href="https://codegolf.stackexchange.com/questions/18028/largest-number-printable/274685#274685">Andrew B</a></td></tr>
@@ -124,51 +124,59 @@
 <tr d-ix="95"><td>nan</td><td>GolfScript</td><td>140109T101332Z</td><td><a href="https://codegolf.stackexchange.com/questions/18028/largest-number-printable/18064#18064">Ilmari K</a></td></tr>
 <tr d-ix="96"><td>101</td><td>C++</td><td>140109T014031Z</td><td><a href="https://codegolf.stackexchange.com/questions/18028/largest-number-printable/18042#18042">user1076</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Swift 6, <s>93</s> 90 chars / <s>96</s> 93 bytes, <span class="math-container">\${1.22333444 \times 10^{3839305571017} \over 804357} \approx 10^{10^{12.5842526791}}\$</span></h1>
+<div id="pu0" class="pu"><h1>Swift 6, <s>96</s> <s>93</s> 78 bytes, <span class="math-container">\${1.22333444 × 10^{3.352318 × 10^{39}} \over 474552} ≈ 1.22333444 × 10^{10^{39.52534}}\$</span></h1>
+<p>(dunno how to simplify the score further, if anyone has any tips, please let me know!)</p>
 
-<pre class="lang-swift prettyprint-override"><code>for i in.zero...UnicodeScalar(&quot;􏿿&quot;).value{print(terminator:{String.init}()(&quot;\(i)&quot;,Int(i)))}
+<pre class="lang-swift prettyprint-override"><code>for i in.zero ... ~UInt.zero{print(terminator:{String.init}()(&quot;\(i)&quot;,Int(i)))}
 </code></pre>
-<p>(That's a Unicode <code>\u{10FFFF}</code> in that <code>UnicodeScalar(&quot;􏿿&quot;)</code>, <strong>not</strong> a space. It's private use, but here's what it looks like on your machine anyway: 􏿿)</p>
 <p>Ungolfed and commented:</p>
-<pre class="lang-swift prettyprint-override"><code>// UnicodeScalar(&quot;􏿿&quot;).value == UInt32(0x10FFFF) == UInt32(1114111)
-for i in .zero...UnicodeScalar(&quot;􏿿&quot;).value {
+<pre class="lang-swift prettyprint-override"><code>// ~UInt.zero == UInt.max == 2**64-1 == 18_446_744_073_709_551_615
+for i in .zero ... ~UInt.zero {
   print(
     // {String.init}()(_:_:) is equivalent to String(repeating:count:)
     terminator: {String.init}()(
       &quot;\(i)&quot;, // equivalent to String(describing: i)
-      Int(i) // i is a UInt32, so we need to cast it
+      Int(i) // i is a UInt, so we need to cast it
     ),
   )
 }
 </code></pre>
 <h2>Analysis</h2>
-<p>What we're doing here is taking the string representation of <span class="math-container">\$n\$</span> (where <span class="math-container">\$n:ℕ\$</span>) and concatenating it with itself <span class="math-container">\$n\$</span> times. So, for example, <span class="math-container">\$13\$</span> gets turned in to <span class="math-container">\$13131313131313131313131313\$</span>. We do this all the way up to <code>0x10FFFF</code>, or <span class="math-container">\$1114111\$</span>, and then concatenate all <em>those</em> strings together.</p>
+<p>What we're doing here is taking the string representation of <span class="math-container">\$n\$</span> (where <span class="math-container">\$n ∈ ℕ\$</span>) and concatenating it with itself <span class="math-container">\$n\$</span> times. So, for example, <span class="math-container">\$13\$</span> gets turned in to <span class="math-container">\$13\,131\,313\,131\,313\,131\,313\,131\,313\$</span>. We do this all the way up to <span class="math-container">\$2^{64}-1\$</span>, and then concatenate all <em>those</em> strings together.</p>
 <p>Obviously, this takes a couple of eternities to run. But we <em>can</em> calculate how many digits will be in the final number!</p>
 <p>We can get the number of digits in a single number using base-10 logarithms:</p>
 <p><span class="math-container">$$
 \text{digits}(n) = \cases{
-  \lfloor \log_{10} n \rfloor &amp; \(n&gt;0\) \\
-  0 &amp; \(n=0\)
+  ⌊ \log_{10} n ⌋ + 1 &amp; \( n &gt; 0 \) \\
+  1 &amp; \( n = 0 \)
 }
 $$</span></p>
-<p>In Swift, this looks like:</p>
-<pre class="lang-swift prettyprint-override"><code>import Foundation
-func digitCount(in number: Int) -&gt; Int {
-  number == 0 ? 0 : Int(log10(Double(number))) + 1
-}
-</code></pre>
-<p>We then multiply this digit count by the number itself, and then add up all the counts between <span class="math-container">\$0\$</span><sup>1</sup> and <span class="math-container">\$1114111\$</span>:</p>
+<p>(In Mathematica, this is a built-in called <code>IntegerLength</code>.)</p>
+<p>We then multiply this digit count by the number itself, and then add up all the counts between <span class="math-container">\$0\$</span> and <span class="math-container">\$2^{64}-1\$</span>:<sup>1</sup></p>
 <p><span class="math-container">$$
-S = \sum^{1114111}_{n = 0}{\text{digits}(n) \times n}
+S = \sum^{2^{64} - 1}_{n = 0} {\text{digits}(n) × n}
 $$</span></p>
-<pre class="lang-swift prettyprint-override"><code>let digits = (0...1114111)
-  .map { digitCount(in: $0) * $0 }
-  .reduce(0, +)
+<p>In terms of Mathematica:</p>
+<pre class="lang-mathematica prettyprint-override"><code>Sum[
+  n * IntegerLength[n],
+  {n, 0, 2^64-1}
+]
 </code></pre>
-<p>Running that Swift code in a REPL, it looks like we've got <span class="math-container">\$3839305571017\$</span> digits — just shy of 4 <em>trillion</em> digits.<sup>2</sup></p>
-<p>What this means is that the size of the number itself is on the order of <span class="math-container">\$10^{3839305571017}\$</span>, which (when divided by the code size penalty, <span class="math-container">\$93^3 = 804357\$</span>) gives us a final score of about <span class="math-container">\$10^{10^{12.5842526791}}\$</span>.</p>
-<p><sup>1: Of course, <span class="math-container">\$\text{digits}(0) \times 0 = 0\$</span>. But I need to use zero instead of one in the original code to avoid digit characters (the <a href="https://swiftinit.org/docs/swift/swift/additivearithmetic" rel="nofollow noreferrer"><code>AdditiveArithmetic</code></a> protocol conveniently exposes a <a href="https://swiftinit.org/docs/swift/swift/additivearithmetic.zero?hash=7SS88" rel="nofollow noreferrer"><code>.zero</code></a> static property, but there is no such thing as <code>.one</code>), so we might as well include it in the analysis, too.</sup></p>
-<p><sup>2: Absolutely <em>nothing</em> compared to what's on the leaderboard, but I'm still impressed with myself.</sup></p>
+<blockquote>
+<p>I wasn't able to get this to run to completion on the free plan of Wolfram Cloud that I signed up for just now, but with a little bit of hand optimization, I think I figured it out. Here's what I ended up with:</p>
+<pre class="lang-mathematica prettyprint-override"><code>Sum[
+  Sum[
+    i n,
+    {n, 10^(i-1), Min[10^i-1, 2^64-1]}
+  ],
+  {i, 20}
+]
+</code></pre>
+</blockquote>
+<p>Running this, it looks like we have <span class="math-container">\$3\,352\,318\,618\,704\,334\,129\,404\,329\,138\,631\,091\,648\,905\$</span> digits. That's 3 <em>duodecillion</em> digits. The number of digits in this program's output is <em>itself</em> a 40-digit number.<sup>2</sup></p>
+<p>What this means is that the size of the number itself is on the order of <span class="math-container">\$10^{3.35×10^{39}}\$</span>, which gives us a final score of about <span class="math-container">\$1.22333444 × 10^{10^{39.52534}}\$</span>. (The code size penalty, a meager <span class="math-container">\$78^3 = 474\,552\$</span>, is completely negligible.)</p>
+<p><sup>1: Of course, <span class="math-container">\$\text{digits}(0) × 0 = 0\$</span>. But I need to use zero instead of one in the original code to avoid digit characters (the <a href="https://swiftinit.org/docs/swift/swift/additivearithmetic" rel="nofollow noreferrer"><code>AdditiveArithmetic</code></a> protocol conveniently exposes a <a href="https://swiftinit.org/docs/swift/swift/additivearithmetic.zero?hash=7SS88" rel="nofollow noreferrer"><code>.zero</code></a> static, but there is no such thing as <code>.one</code>), so we might as well include it in the analysis, too.</sup></p>
+<p><sup>2: Absolutely <em>nothing</em> compared to what's on the leaderboard, but hey, I'm still impressed with myself.</sup></p>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 100 bytes</h1>
 <p>score: <span class="math-container">$$ 10↑^{10↑^{10↑^{10}10}10}10 $$</span></p>
