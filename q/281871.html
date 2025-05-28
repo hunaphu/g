@@ -26,8 +26,8 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>019</td><td>Deadfish~</td><td>250522T180947Z</td><td><a href="https://codegolf.stackexchange.com/questions/281871/output-your-user-id/281906#281906">a stone </a></td></tr>
-<tr d-ix="1"><td>014</td><td>MATLAB / Octave</td><td>250524T050709Z</td><td><a href="https://codegolf.stackexchange.com/questions/281871/output-your-user-id/281942#281942">guest430</a></td></tr>
+<tr d-ix="0"><td>014</td><td>MATLAB / Octave</td><td>250524T050709Z</td><td><a href="https://codegolf.stackexchange.com/questions/281871/output-your-user-id/281942#281942">guest430</a></td></tr>
+<tr d-ix="1"><td>019</td><td>Deadfish~</td><td>250522T180947Z</td><td><a href="https://codegolf.stackexchange.com/questions/281871/output-your-user-id/281906#281906">a stone </a></td></tr>
 <tr d-ix="2"><td>068</td><td>Python 3.8+</td><td>250522T161312Z</td><td><a href="https://codegolf.stackexchange.com/questions/281871/output-your-user-id/281903#281903">CrSb0001</a></td></tr>
 <tr d-ix="3"><td>029</td><td>R</td><td>250523T194537Z</td><td><a href="https://codegolf.stackexchange.com/questions/281871/output-your-user-id/281934#281934">Glory2Uk</a></td></tr>
 <tr d-ix="4"><td>nan</td><td>My id is</td><td>250524T042008Z</td><td><a href="https://codegolf.stackexchange.com/questions/281871/output-your-user-id/281941#281941">GammaFun</a></td></tr>
@@ -69,7 +69,66 @@
 <tr d-ix="40"><td>004</td><td>Vyxal 3</td><td>250522T050656Z</td><td><a href="https://codegolf.stackexchange.com/questions/281871/output-your-user-id/281875#281875">lyxal</a></td></tr>
 <tr d-ix="41"><td>005</td><td>Vyxal</td><td>250522T035833Z</td><td><a href="https://codegolf.stackexchange.com/questions/281871/output-your-user-id/281872#281872">lyxal</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/TryItOnline/deadfish-" rel="nofollow noreferrer">Deadfish~</a>, 19 bytes</h1>
+<div id="pu0" class="pu"><h1>MATLAB / <a href="https://www.gnu.org/software/octave/" rel="nofollow noreferrer">Octave</a>, <s>16</s> 14 bytes</h1>
+
+<pre class="lang-matlab prettyprint-override"><code>'Ｚ'*['⦺']'
+</code></pre>
+<p><a href="https://tio.run/##y08uSSxL/f9f/f2eXepa0eqPlu1Sj1X//x8A" rel="nofollow noreferrer" title="Octave – Try It Online">Try it online!</a></p>
+<p>I was inspired by <a href="https://codegolf.stackexchange.com/a/281898">another answer</a> which used matlab's very weak typing to subtract space from a string to get each digit of their id. I figured I could do something even worse: linear algebra with unicode characters!</p>
+<p>matlab thinks of strings as an array of utf-8 bytes, and lets you abuse this without any consequences. read literally, we're taking the matrix product of 'Ｚ' with the transpose of '⦺'  (basically a fancy way of doing a dot product).</p>
+<p>utf-8 needs to represent all of unicode while still being backwards compatible with ascii. if you look at the binary, all ascii looks like <code>0xxxxxxx</code>, where <code>xxxxxxx</code> is the unicode index of that character in binary, so it keeps all of that the same.</p>
+<p>to reach the rest of unicode, utf-8 uses a cute length-thing: <code>110xxxxx</code> means 'this character uses 2 bytes', and <code>1110xxxx</code> means 'this character uses 3 bytes' and so on. all the 'extention' bytes that come after the first byte are marked with <code>10xxxxxx</code> to show that they are part of the previous character. (so unicode characters with an index under 11 bits look like <code>110xxxxx 10xxxxxx</code>, unicode characters with an index under 16 bits look like <code>1110xxxx 10xxxxxx 10xxxxxx</code>, and unicode characters with an index under 21 bits look like <code>11110xxx 10xxxxxx 10xxxxxx 10xxxxxx</code>)</p>
+<p>first, some analysis: with 3 bytes, the ascii range only gets up to 47628, with 4 bytes reaching 63504. neither of these are close to my id (119818). we actually would need at least 8 bytes on both sides if we were limited to ascii chars</p>
+<p>however, non-ascii utf-8 bytes must necessarily have the top bit set, meaning they are much bigger. instead of each number sitting between 32 and 126, continuation bytes are between 128 and 191, the initial byte of 2-byte chars is between 192 and 223, and the initial byte of 3-byte chars is between 224 and 239. this gives us a range of roughly 53k to 86k for 2-byte chars (which includes 119818/2=59909), and 83k to 130k for 3-byte chars (which includes 119818).</p>
+<p>I'm more familiar with julia than matlab, so I searched for 3-byte possibilities over there:</p>
+<pre class="lang-julia prettyprint-override"><code>julia&gt; collect(reinterpret(reshape, Int64, findall(iszero, 
+[[224+a 128+b 128+c]*[224+d;128+e;128+f])[1]-119818 for a=1:15,b=1:63,c=1:63,d=1:15,e=1:63,f=1:63])))
+6×15056 Matrix{Int64}:
+ 14  13  15  14  13  14  13  15  14  13  15  …  13  13  13  13  13  13  13  13  13  13
+ 63  63  63  63  63  62  62  59  63  63  63     22  21  20  19  18  17  16  15  14  13
+ 63  63  62  63  63  63  63  62  63  63  58     54  55  56  57  58  59  60  61  62  63
+ 13  14  15  13  14  13  14  15  13  14  15     14  14  14  14  14  14  14  14  14  14
+ 63  63  59  62  62  63  63  63  61  61  61     63  63  63  63  63  63  63  63  63  63
+ 13  13  14  14  14  14  14  14  15  15  15  …  63  63  63  63  63  63  63  63  63  63
+julia&gt; filter(x-&gt;all(isprint.([x...])), 
+[Char(ans[1,i]&lt;&lt;12+ans[2,i]&lt;&lt;6+ans[3,i])*Char(ans[4,i]&lt;&lt;12+ans[5,i]&lt;&lt;6+ans[6,i]) for i=1:15056])
+8436-element Vector{String}:
+&quot;ᢾ콾&quot;
+...
+</code></pre>
+<p>after filtering down to only pairs of printable characters, we still have 8436 options. 446 pairs have at least one lowercase char, 272 have uppercase, 272 have a punctuation, and there's no digits. 24 pairs have no letters, 1100 have one letter. unicode range is <code>0x18be</code> to <code>0xfffd</code>, with more towards the end of the range; so it's mostly cjk and hangul. ended up picking<br />
+<code>[224+15 128+60 128+58]*[224+2;128+38;128+58] = 119818</code><br />
+or<br />
+<code>[FULLWIDTH LATIN CAPITAL LETTER Z]*[CIRCLE DIVIDED BY HORIZONTAL BAR AND TOP HALF DIVIDED BY VERTICAL BAR]'</code></p>
+<h2>Old answer:</h2>
+<pre class="lang-matlab prettyprint-override"><code>'Ňل'*['ʕł']'
+</code></pre>
+<p><a href="https://tio.run/##y08uSSxL/f9f/dTUo03qWtHqR9tvtqjHqv//DwA" rel="nofollow noreferrer" title="Octave – Try It Online">Try it online!</a></p>
+<p>since my userid is even, I originally aimed for userid/2, looking for 2-byte unicode characters that work. since id/2 is closer to the boundary here, there are only 13 pretty pairs of characters which multiply to half of my userid, so you can see them all: (first four fit in ascii so are invalid, next four have unprintables, then there's some hebrew punctuation character that doesn't show up on stackexchange)</p>
+<pre class="lang-matlab prettyprint-override"><code>18×2 Matrix{Vector}:
+ [69, 1545]   ['E', '؉']
+ [73, 1541]   ['I', '\u605']
+ [80, 344]    ['P', 'Ř']
+ [88, 336]    ['X', 'Ő']
+ [131, 1733]  ['\u83', 'ۅ']
+ [133, 1731]  ['\u85', 'ۃ']
+ [137, 851]   ['\u89', '͓']
+ [147, 841]   ['\u93', '͉']
+ [322, 1604]  ['ł', 'ل']
+ [323, 1478]  ['Ń', '׆']
+ [324, 1602]  ['ń', 'ق']
+ [326, 1475]  ['ņ', '׃']
+ [327, 661]   ['Ň', 'ʕ']
+ [341, 647]   ['ŕ', 'ʇ']
+ [449, 1102]  ['ǁ', 'ю']
+ [462, 1089]  ['ǎ', 'с']
+ [707, 1031]  ['˃', 'Ї']
+ [711, 1027]  ['ˇ', 'Ѓ']
+</code></pre>
+<p>since a dot product is a linear operation, you can stick two pairs next to each other and they add together, so this solution is<br />
+<code>[192+5 128+7]*[192+10;128+21] + [192+25 128+4]*[192+5;128+2]=59909+59909=119818</code></p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/TryItOnline/deadfish-" rel="nofollow noreferrer">Deadfish~</a>, 19 bytes</h1>
 <pre><code>iiisdo{d}oo{iiiii}o
 </code></pre>
 <p><a href="https://tio.run/##S0lNTEnLLM7Q/f8/MzOzOCW/OqU2P786EwRq8///BwA" rel="nofollow noreferrer" title="Deadfish~ – Try It Online">Try it online!</a></p>
@@ -83,38 +142,6 @@
 <pre><code>iiisdoddddddddooiisiiisio
 </code></pre>
 <p><a href="https://tio.run/##S0lNTEnLLM7Q/f8/MzOzOCU/BQry84FckFBm/v//AA" rel="nofollow noreferrer" title="Deadfish~ – Try It Online">Try it online!</a></p>
-</div>
-<div id="pu1" class="pu"><h1>MATLAB / <a href="https://www.gnu.org/software/octave/" rel="nofollow noreferrer">Octave</a>, 14 bytes</h1>
-
-<pre class="lang-matlab prettyprint-override"><code>'Ｚ'*['⦺']'
-</code></pre>
-<p><a href="https://tio.run/##y08uSSxL/f9f/f2eXepa0eqPlu1Sj1X//x8A" rel="nofollow noreferrer" title="Octave – Try It Online">Try it online!</a></p>
-<p>I was inspired by <a href="https://codegolf.stackexchange.com/a/281898">another answer</a> which used matlab's very weak typing to subtract space from a string to get each digit of their id. I figured I could do something even worse: linear algebra with unicode characters!</p>
-<p>matlab thinks of strings as an array of utf-8 bytes, and lets you abuse this without any consequences. read literally, we're taking the matrix product of 'Ｚ' with the transpose of '⦺'  (basically a fancy way of doing a dot product).</p>
-<p>to get a target number, we need a pair of unicode characters which have a utf-8 representation such that the product of the first bytes plus the product of the second bytes is near my user id.</p>
-<p>the first step is checking there are no simple solutions: with 3 bytes, the ascii range only reaches to 47628 (<code>'~~~'*['~~~']'</code>), less than half of my id (119818), so playing with unicode will in fact help us.</p>
-<p>utf-8 needs to represent all of unicode while still being backwards compatible with ascii. if you look at the binary, all ascii looks like <code>0xxxxxxx</code>, where <code>xxxxxxx</code> is the unicode index of that character in binary, so it keeps all of that the same.</p>
-<p>to reach the rest of unicode, utf-8 uses a cute length-thing: <code>110xxxxx</code> means 'this character uses 2 bytes', and <code>1110xxxx</code> means 'this character uses 3 bytes' and so on. all the 'extention' bytes that come after the first byte are marked with <code>10xxxxxx</code> to show that they are part of the previous character. (so unicode characters with an index under 11 bits look like <code>110xxxxx 10xxxxxx</code>, unicode characters with an index under 16 bits look like <code>1110xxxx 10xxxxxx 10xxxxxx</code>, and unicode characters with an index under 21 bits look like <code>11110xxx 10xxxxxx 10xxxxxx 10xxxxxx</code>)</p>
-<p>this lets us make much bigger numbers with our multiplication: instead of <code>a*d+b*e+c*f</code> with a, b, c, d, e, and f between 32 and 126, we can use a,d between 224 and 239, and b,c,e,f between 128 and 191. this gives us a range of 82944 to 130083, which includes 119818.</p>
-<p>I'm more familiar with julia than matlab, so I searched for possibilities over there instead:</p>
-<pre class="lang-julia prettyprint-override"><code>julia&gt; collect(reinterpret(reshape, Int64, findall(iszero, 
-[[224+a 128+b 128+c]*[224+d;128+e;128+f])[1]-119818 for a=1:15,b=1:63,c=1:63,d=1:15,e=1:63,f=1:63])))
-6×15056 Matrix{Int64}:
- 14  13  15  14  13  14  13  15  14  13  15  …  13  13  13  13  13  13  13  13  13  13
- 63  63  63  63  63  62  62  59  63  63  63     22  21  20  19  18  17  16  15  14  13
- 63  63  62  63  63  63  63  62  63  63  58     54  55  56  57  58  59  60  61  62  63
- 13  14  15  13  14  13  14  15  13  14  15     14  14  14  14  14  14  14  14  14  14
- 63  63  59  62  62  63  63  63  61  61  61     63  63  63  63  63  63  63  63  63  63
- 13  13  14  14  14  14  14  14  15  15  15  …  63  63  63  63  63  63  63  63  63  63
-julia&gt; filter(x-&gt;all(isprint.([x...])), 
-[Char(ans[1,i]&lt;&lt;12+ans[2,i]&lt;&lt;6+ans[3,i])*Char(ans[4,i]&lt;&lt;12+ans[5,i]&lt;&lt;6+ans[6,i]) for i=1:15056])
-8436-element Vector{String}:
-...
-</code></pre>
-<p>after filtering down to only pairs of printable characters, we still have 8436 options. 446 pairs have at least one lowercase char, 272 have uppercase, 272 have a punctuation, and there's no digits. 24 pairs have no letters, and 1100 have one letter. it's <code>0x18be</code> to <code>0xfffd</code>, weighted towards the end of the range; so it's mostly cjk and hangul. ended up picking<br />
-<code>[224+15 128+60 128+58]*[224+2;128+38;128+58]</code><br />
-or<br />
-<code>[FULLWIDTH LATIN CAPITAL LETTER Z]*[CIRCLE DIVIDED BY HORIZONTAL BAR AND TOP HALF DIVIDED BY VERTICAL BAR]'</code></p>
 </div>
 <div id="pu2" class="pu"><h1>Python 3.8+, <s>71</s> 68 bytes</h1>
 <pre class="lang-python prettyprint-override"><code>s=str;print(int(s(a:=1*True)+s(b:=a+a)+s(a-a)+s(a)+s(a-a)+s(b*b+a)))
