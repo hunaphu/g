@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::261970</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>nan</td><td>Go</td><td>250529T072658Z</td><td><a href="https://codegolf.stackexchange.com/questions/261970/calculate-max-depth-of-json-data/282033#282033">Ahamad</a></td></tr>
+<tr d-ix="1"><td>nan</td><td></td><td>230714T102300Z</td><td><a href="https://codegolf.stackexchange.com/questions/261970/calculate-max-depth-of-json-data/262792#262792">Ed The &</a></td></tr>
+<tr d-ix="2"><td>011</td><td>GNU AWK</td><td>230620T064127Z</td><td><a href="https://codegolf.stackexchange.com/questions/261970/calculate-max-depth-of-json-data/262012#262012">jared_ma</a></td></tr>
+<tr d-ix="3"><td>715</td><td>Go</td><td>230622T112125Z</td><td><a href="https://codegolf.stackexchange.com/questions/261970/calculate-max-depth-of-json-data/262084#262084">Snaddyvi</a></td></tr>
+<tr d-ix="4"><td>nan</td><td></td><td>230617T164337Z</td><td><a href="https://codegolf.stackexchange.com/questions/261970/calculate-max-depth-of-json-data/261971#261971">Arnauld</a></td></tr>
+<tr d-ix="5"><td>000</td><td>C</td><td>230618T220038Z</td><td><a href="https://codegolf.stackexchange.com/questions/261970/calculate-max-depth-of-json-data/261997#261997">AnttiP</a></td></tr>
+<tr d-ix="6"><td>nan</td><td></td><td>230619T022859Z</td><td><a href="https://codegolf.stackexchange.com/questions/261970/calculate-max-depth-of-json-data/262001#262001">tsh</a></td></tr>
+<tr d-ix="7"><td>035</td><td>Retina 0.8.2</td><td>230619T003458Z</td><td><a href="https://codegolf.stackexchange.com/questions/261970/calculate-max-depth-of-json-data/261998#261998">Neil</a></td></tr>
+<tr d-ix="8"><td>nan</td><td></td><td>230618T003021Z</td><td><a href="https://codegolf.stackexchange.com/questions/261970/calculate-max-depth-of-json-data/261976#261976">138 Aspe</a></td></tr>
+<tr d-ix="9"><td>nan</td><td></td><td>230618T143429Z</td><td><a href="https://codegolf.stackexchange.com/questions/261970/calculate-max-depth-of-json-data/261993#261993">user1183</a></td></tr>
+<tr d-ix="10"><td>621</td><td>JavaScript Node.js</td><td>230618T122816Z</td><td><a href="https://codegolf.stackexchange.com/questions/261970/calculate-max-depth-of-json-data/261990#261990">noodle p</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1><a href="https://golang.org/" rel="nofollow noreferrer">Go</a>, with <a href="https://github.com/bytedance/sonic" rel="nofollow noreferrer"><code>sonic</code></a></h1>
+<pre class="lang-golang prettyprint-override"><code>package main
+
+import (
+    &quot;bufio&quot;
+    &quot;fmt&quot;
+    &quot;os&quot;
+
+    &quot;github.com/bytedance/sonic&quot;
+)
+
+func main() {
+    scanner := bufio.NewScanner(os.Stdin)
+    for scanner.Scan() {
+        line := scanner.Text()
+        var jsonValue interface{}
+        if err := sonic.Unmarshal([]byte(line), &amp;jsonValue); err != nil {
+            jsonValue = nil
+        }
+        fmt.Println(search(jsonValue))
+    }
+    if err := scanner.Err(); err != nil {
+        fmt.Fprintf(os.Stderr, &quot;Error reading input: %v\n&quot;, err)
+    }
+    os.Exit(0)
+}
+
+func search(node interface{}) uint32 {
+    switch v := node.(type) {
+    case map[string]interface{}:
+        maxDepth := uint32(0)
+        for _, value := range v {
+            depth := search(value)
+            if depth &gt; maxDepth {
+                maxDepth = depth
+            }
+        }
+        return 1 + maxDepth
+    case []interface{}:
+        maxDepth := uint32(0)
+        for _, value := range v {
+            depth := search(value)
+            if depth &gt; maxDepth {
+                maxDepth = depth
+            }
+        }
+        return 1 + maxDepth
+    default:
+        return 0
+    }
+}
+</code></pre>
+<pre><code>go env -w GO111MODULE=on   # enable go modules globally (go ver&gt;=1.13)
+go mod init my_module
+# Edit golang file(s)
+go get
+go run main.go
+
+[]  
+1
+[1, 2, 3, 4, 5]
+1
+[ [ 123],   []]
+2
+[{&quot;a&quot;: []}, [&quot;abc&quot;]]
+3
+{&quot;a&quot;: 321}
+1
+{&quot;a&quot;: []}
+2
+&quot;hello&quot;
+0
+[&quot;abc[]bca&quot;]
+1
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://racket-lang.org" rel="nofollow noreferrer">Racket</a></h1>
+<pre class="lang-rkt prettyprint-override"><code>#lang typed/racket/base
+
+(require typed/json)
+
+#|
+
+Calculate the maximum depth of a JSON object read from input
+
+Algorithm:
+
+1. Read user input and parse JSON.
+2. If input has no data, return 0.
+2. Begin `max-depth` with the parsed JSON data and depth of 0.
+   a. If the JSON input is a list, loop over each element of the list and pass
+      the element as an input for `max-depth` and increment the depth. Repeat step 2.
+   b. If the JSON input is a hash table, use each values of the table as the input list
+      for step 2.a.
+   c. If the JSON input is a number, string, boolean, or null, return the depth.
+3. Print the maximum depth.
+
+|#
+
+(: max-depth (-&gt; JSExpr Real Real))
+(define (max-depth input depth)
+  (let ([depth+1 (+ depth 1)])
+    (cond [(list? input)
+           (apply max
+                  (cons depth+1
+                        (map (λ ([elem : JSExpr]) : Real
+                               (max-depth elem depth+1))
+                             input)))]
+          [(hash? input)
+           (apply max
+                  (cons depth+1
+                        (hash-map input
+                                  (λ ([_ : Symbol] [value : JSExpr]) : Real
+                                    (max-depth value depth+1)))))]
+          [else depth])))
+
+(: main (-&gt; (U JSExpr EOF) Real))
+(define (main input)
+  (cond [(equal? eof input) 0]
+        [else (max-depth input 0)]))
+
+(displayln (main (read-json)))
+
+#| Tests [Remove line to run after input, if all pass, nothing will display.]
+
+(require (only-in typed/rackunit check-equal?))
+(check-equal? (main (string-&gt;jsexpr &quot;[]&quot;)) 1)
+(check-equal? (main (string-&gt;jsexpr &quot;[1, 2, 3, 4, 5]&quot;)) 1)
+(check-equal? (main (string-&gt;jsexpr &quot;[ [ 123],   []]&quot;)) 2)
+(check-equal? (main (string-&gt;jsexpr &quot;[{\&quot;a\&quot;: []}, [\&quot;abc\&quot;]]&quot;)) 3)
+(check-equal? (main (string-&gt;jsexpr &quot;{\&quot;a\&quot;: 321}&quot;)) 1)
+(check-equal? (main (string-&gt;jsexpr &quot;{\&quot;a\&quot;: []}&quot;)) 2)
+(check-equal? (main (string-&gt;jsexpr &quot;\&quot;hello\&quot;&quot;)) 0)
+(check-equal? (main (string-&gt;jsexpr &quot;[\&quot;abc[]bca\&quot;]&quot;)) 1)
+
+Tests [Remove line to run after input, if all pass, nothing will display.] |#
+
+</code></pre>
+<h2>Compilation</h2>
+<p>Once Racket is installed one your system, simply run:</p>
+<pre><code>raco exe /path/to/this_file.rkt
+</code></pre>
+<p>Best compiled without the tests.</p>
+<h2>Explanation</h2>
+<p>Racket provides a nice built-in package called <a href="https://docs.racket-lang.org/json/index.html" rel="nofollow noreferrer"><code>json</code></a> that parses JSON expressions (<code>JSExpr</code>). All lists in the JSON expression are parsed into <a href="https://docs.racket-lang.org/guide/pairs.html" rel="nofollow noreferrer">Racket Lists</a> and all dictionaries are parsed into <a href="https://docs.racket-lang.org/guide/hash-tables.html" rel="nofollow noreferrer">Hash Tables</a> where the keys are <a href="https://docs.racket-lang.org/guide/symbols.html" rel="nofollow noreferrer">Symbols</a> and the values are other <code>JSExpr</code>s. The reason I am using Typed Racket is that it is <a href="https://docs.racket-lang.org/ts-reference/Optimization_in_Typed_Racket.html" rel="nofollow noreferrer">potentially faster</a> than the dynamically typed language.</p>
+<h2>Conclusion</h2>
+<p>This is my submission for the challenge, I am not that great at optimizing code, so I don't expect peak performance in its runs. I did do a sample test on my machine with a 64kB minified JSON file which ran (according to <code>time</code>) at about 700ms. As a note though, my CPU is Intel 2 Duo E8500 and 2GB RAM, so I think it should be faster on other machines :)</p>
+<p>Have an amazing weekend!</p>
+</div>
+<div id="pu2" class="pu"><h1><a href="https://www.gnu.org/software/gawk/manual/gawk.html" rel="nofollow noreferrer">GNU AWK</a>, ~11ms</h1>
+<pre><code>BEGIN {
+&#9;FPAT = "(\"([^\"])*\")+|."
+&#9;m = 0
+}
+
+{
+&#9;printf "%s -&gt; ", $0
+&#9;gsub(/'\\'\"[^'\\\"']*'\\'\"/, "", $0)
+&#9;gsub(/\\"/, "\"\"", $0)
+&#9;for (i = 1; i &lt;= NF; i++) {
+&#9;&#9;if ($i == "[" || $i == "{") {
+&#9;&#9;&#9;a++
+&#9;&#9;&#9;m = (a &gt; m ? a : m)
+&#9;&#9;} else if ($i == "]" || $i == "}") {
+&#9;&#9;&#9;a--
+&#9;&#9;}
+&#9;}
+&#9;print m
+&#9;m = 0
+}
+
+Result:
+123 -> 0
+[] -> 1
+[1, 2, 3, 4, 5] -> 1
+[ [ 123],   []] -> 2
+[{"a": []}, ["abc"]] -> 3
+{"a": 321} -> 1
+{"a": []} -> 2
+"hello" -> 0
+["abc[]bca"] -> 1
+["\",[],\""] -> 1
+["",[],""] -> 2
+["\"",[],""] -> 2
+["\"",[],"\""] -> 2
+"[\\" -> 0
+</code></pre>
+<p><a href="https://tio.run/##bVBNT8JAED13fsXLBENLF6GgFxSMJmK8EA/edpdkIVQbqRiq8VD62@u0hYaD2U1m3sfOzoz7/SjLh8en5wVy8uYv96@Ygn3Dvl4atkHPcBAeLpm8VIQhFUTi@9onn98x@CJDfwZW6AzJe8t@Vv6ga0zXsF5KNNy1vQYPFLi2BSefaUgj5yTEuz38RL6JbpDgdorFXJIwDKrWvCSG3xFV2tOMwwFHkHOjey4Mq1D16TvMkOIODhOkUtorsNlmG5wVsedFirZIv1@5qbr1lEjb0csyGo1JW9KRwkhhrHClcC0YGiJZBUBbwTk7nkhaKGh2qzUL2XDjUVRQKxO/b7bbHVPt0na1dizPZSdKWyWbqUCd85H/B9Q21rJQ@gM" rel="nofollow noreferrer" title="AWK – Try It Online">Try it online!</a></p>
+</div>
+<div id="pu3" class="pu"><h1><a href="https://golang.org/" rel="nofollow noreferrer">Go</a>, 715 bytes</h1>
+
+<pre class="lang-go prettyprint-override"><code>package main
+
+import (
+&#9;"bufio"
+&#9;"fmt"
+&#9;"os"
+)
+
+func calcDepth(data string) int {
+&#9;depth, maxDepth := 0, 0
+&#9;inString := false
+&#9;escaped := false
+&#9;for _, r := range data {
+&#9;&#9;switch r {
+&#9;&#9;case '\\':
+&#9;&#9;&#9;escaped = !escaped
+&#9;&#9;case '"':
+&#9;&#9;&#9;if !escaped {
+&#9;&#9;&#9;&#9;inString = !inString
+&#9;&#9;&#9;}
+&#9;&#9;&#9;escaped = false
+&#9;&#9;case '{', '[':
+&#9;&#9;&#9;if !inString {
+&#9;&#9;&#9;&#9;depth++
+&#9;&#9;&#9;&#9;if depth &gt; maxDepth {
+&#9;&#9;&#9;&#9;&#9;maxDepth = depth
+&#9;&#9;&#9;&#9;}
+&#9;&#9;&#9;}
+&#9;&#9;&#9;escaped = false
+&#9;&#9;case '}', ']':
+&#9;&#9;&#9;if !inString &amp;&amp; depth &gt; 0 {
+&#9;&#9;&#9;&#9;depth--
+&#9;&#9;&#9;}
+&#9;&#9;&#9;escaped = false
+&#9;&#9;default:
+&#9;&#9;&#9;escaped = false
+&#9;&#9;}
+&#9;}
+&#9;return maxDepth
+}
+
+func main() {
+&#9;var data string
+
+&#9;scanner := bufio.NewScanner(os.Stdin)
+
+&#9;if scanner.Scan() {
+&#9;&#9;data = scanner.Text()
+&#9;}
+
+&#9;fmt.Println(calcDepth(data))
+}
+
+</code></pre>
+<p><a href="https://tio.run/##hVLRaoMwFH1OvuIuD1WplT4L7mnPY9C9WRmpJm2YRolxLRS/3SXRpS2MDQRz7zn3nBO9x3aaOlp@0iODhgqJsWi6VmkIMSKHgYuWmANvtH21PcERxnyQJZS0Ll9Yp09hRTWFXishjxEIqeGKUWWR2CheHAfSDLYxbDEScueYtsNp3TOMWF/SjlV3Hd4q@IhB2Zai0kRzHkYX9Wehy5OBbFHSnkGw3wepKbxOBk/L0VPIzBDcQ24e3eKYoZ@zBcZHwSXXonYNYgjym6QXmTXd3dfrWZ@DK@H59i1mFvJ1NlNcd/zXfLTmxS/mq5W32t4n2Wz@0KwYp0Ot099RM2QexfSgpM@Px2UD7LqEkbX6ogrutgBjZKSkZO4HuiVKXtl5N/fCtk92uhLSbJK9wUJNLDzLIaeVeeSdXXQY2SxmNRqdvBkTXcvwcQWjyCSbpvxKKEkhL8YYckIPJSmKbw" rel="nofollow noreferrer" title="Go – Try It Online">Try it online!</a></p>
+</div>
+<div id="pu4" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a></h1>
+<p>I honestly have no idea how fast it is.</p>
+<p><em>EDIT: Since the challenge is no longer asking for JSON validation, using <code>JSON.parse()</code> may now seem a bit overkill. But this built-in is apparently reasonably well optimized and still faster than a simpler 100% JS parser.</em></p>
+
+<pre class="lang-javascript prettyprint-override"><code>const readline = require('readline');
+
+// set up the readline interface
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+  terminal: false
+});
+
+// the following callback is invoked when a line is read
+rl.on('line', str =&gt; {
+  let json;
+
+  try {
+    // attempt to parse the line as JSON
+    json = JSON.parse(str);
+  }
+  catch(e) {
+    // if it fails, force the result to null
+    json = null;
+  }
+
+  // recursive function computing the max. depth
+  function search(node) {
+    // look for anything whose typeof is 'object' but is not null
+    if(typeof node == 'object' &amp;&amp; node !== null) {
+      // for an array, use the node itself
+      // for a genuine object, use the list of its values
+      let list = Array.isArray(node) ? node : Object.values(node);
+      // return 1 right away if the list is empty
+      // otherwise, do a recursive call for each element in the list
+      // and return the highest result + 1
+      return list.length ? 1 + Math.max(...list.map(search)) : 1;
+    }
+    // return 0 for non-iterable elements
+    return 0;
+  }
+
+  // initial call to search
+  console.log(search(json));
+
+  // we're supposed to process only one line, so force exit
+  process.exit();
+});
+</code></pre>
+<p><a href="https://tio.run/##XZExb8IwEIX3/IorA3FUapUVlFYdW6ll6IgYjLmAkbFT@4JAiN9OLzZUbYck1nfvvbuct2qvog6mpQfnV3i5aO8iQUC1ssYh1Hz86kxAUd5YWU2L4iqzSZC51HwifHWEoVEaxakAMK7taAJt8BpjlJFWxo2Y@47@Fxj1FXbvjFN2Ao2yEYtz3y5Y6Z0oU/sRRApQP0Gfb5FgG71jDVvDMUFIiEd7@5x9yFaFiII9HARw5kcr0huB1V@x66zNCn41ndNkmEdUgcX9cm560wg6tugb6CnUNZR@uUVNJQyHmd3VOe9myYNawzur4SUEdZQmpu81@Tn7JjBLSXKvbIcxF6fXiIDUBZdSpEW3pg3bxnAP74o2cqcOQkqZqjvVijx4VXHmOCeci18pjz@/2l@ltyitX19Not9Ilfre7gcPhgQTvo3LZX4aqMEE5ovzCOYDtdSDxeIb" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+</div>
+<div id="pu5" class="pu"><h1>C, based on Philx0's answer</h1>
+<p>I tried to remove a few branches. Instead of storing state in a variable I store it... in the state. Namely, there are two loops depending on if we are parsing a string or not. The rest of the comparisons should be branchless when compiled with -O3.</p>
+<p>Edit: Slightly improved version. It's possible to also remove most checks for &quot;\n&quot; by keeping track of whether the current depth is positive, tough I'm not sure how much it would improve performance.</p>
+<pre><code>#include &lt;unistd.h&gt;
+#include &lt;stdio.h&gt;
+
+#define BUFSIZE 4096
+#define unlikely(x) __builtin_expect((x),0)
+
+int main(void) {
+    int depth = 0;
+    int maxdepth = 0;
+
+    char buf[BUFSIZE];
+
+    ssize_t cnt;
+    ssize_t i;
+    ssize_t skip = 0;
+
+    int str = 0;
+
+    while ((cnt = read(0,buf,BUFSIZE))) {
+        i = skip;
+        if (!str) {
+            for (; i &lt; cnt; i++) {
+                if (buf[i] == '&quot;') goto instring;
+                if (unlikely(buf[i] == '\n')) goto print;
+                if (depth &gt; maxdepth) maxdepth = depth;
+                depth+= buf[i] == '{' || buf[i] == '[';
+                depth-= buf[i] == '}' || buf[i] == ']';
+                outstring:;
+            }
+            str = 0;
+        } else {
+            for (; i &lt; cnt; i++) {
+                if (buf[i] == '&quot;') goto outstring;
+                if (unlikely(buf[i] == '\\')) i+=1;
+                instring:;
+            }
+            str = 1;
+        }
+        skip = i - cnt;
+    }
+
+    print:
+
+    printf(&quot;%d\n&quot;, maxdepth);
+    return 0;
+}
+</code></pre>
+</div>
+<div id="pu6" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a></h1>
+
+<pre class="lang-javascript prettyprint-override"><code>const isArray = Array.isArray, objectValues = Object.values, max = Math.max;
+require(&quot;readline&quot;).createInterface({ input: process.stdin, output: process.stdout, terminal: false }).on(&quot;line&quot;, str =&gt; {
+  const depth = JSON.parse(str, (key, value) =&gt; {
+    if (value === null || typeof value !== 'object') return 0;
+    const arr = isArray(value) ? value : objectValues(value);
+    const depth = -~max(...arr);
+    return depth;
+  });
+  console.log(depth);
+  process.exit();
+});
+</code></pre>
+<p><a href="https://tio.run/##XVCxbsIwEN35iqsXHClYnYPSqmMrtQyVuiAG41yKqbFT20EgoL@eHk4itUz2vXvv3t3byr0MyusmzqyrsOuUsyGCDk/eyyOUkF4x1Dm49RZV/JCmxUDdRSrFPtU57OSBwFcZN4K@84nH71Z75MyjrIy2yDKh6B/x2Ub0tVTIT6Bt08YCGu8UhiBCrLQlpzbewgTlQLqdttIUUEsTEC6ZcJazND2HED2UD3CaAPSXVNjEDS318r54E430ATlxcuBfSOekxbNRAaBr4AmDsizBtsbA@Qzx2KCrezLcUWPaxzDNwGNsvYX7eZL3ltLTDmOEfLB4HOTFvwiH7l/1uPDshyLkQggaNxAGs8S4IpeEX2XOoDDuk6dWQsfY8KAjJ4S4Xbc8MckKWK4uOSyZXCu2Wv0C" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<p>The readline part is based on other answers.</p>
+<p>Just in case if you are interesting, it can be golfed into 70 bytes, however, this question is not tagged as code-golf.</p>
+<pre class="lang-javascript prettyprint-override"><code>s=&gt;JSON.parse(s,(_,v)=&gt;Object(v)===v&amp;&amp;-~Math.max(...Object.values(v)))
+</code></pre>
+<p><a href="https://tio.run/##XY9BawIxEIXv/oohB0kg5gfsskKPFVoPhV5EypgdayQm2yS7WMT@9e2w6qE95b2X5M03Rxww2@S6sgixpXG0MeQCLj@lhN/QwHSau9cQd0ey5R19T5lv15M1w@Q1nPDM4QuWg2FZzxJ99S6RFImw9S6QUMayLvQcCqU9WpIXcKHrSwVdipZyNrm0LvCkvvyPOdLA/04uoK9gjz4TXJWJQYqpXQNDLeEyA7jt0VJXDoy0elu/mg5TJpm1/NCDapY3dsmyaYb5fPHz4JbGmD@L8Rul7p3Rk/HxU07Nqub0AUhnVyQnV1WP4@YiUFSw2V41bATurNhufwE" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+</div>
+<div id="pu7" class="pu"><h1><a href="https://github.com/m-ender/retina/wiki/The-Language/a950ad7d925ec9316e3e2fb2cf5d49fd15d23e3d" rel="nofollow noreferrer">Retina 0.8.2</a>, 35 bytes</h1>
+<pre><code>&quot;(\\?.)*?&quot;
+
+T`[]`{}
+[^{}]
+
++`}{
+
+..
+</code></pre>
+<p><a href="https://tio.run/##PYpBCsIwEEX3/xTDgFB1KCTRjZsuvYC76UjSUlAoCuIu5OwxKLj7773/Wt73R6qb7hwrd@M49NvdwMAlqsVcoNdcDNjHkoG@r1UN6oS8UBA6CB0bk5LzwYSI1BpnTnxqswgpp2nmJn8ueFfwz@Dbsq5PxvelNs2J7QM" rel="nofollow noreferrer" title="Retina 0.8.2 – Try It Online">Try it online!</a> Link includes test suite. Probably not going to win any awards for speed. Explanation:</p>
+<pre><code>&quot;(\\?.)*?&quot;
+
+</code></pre>
+<p>Delete all string literals.</p>
+<pre><code>T`[]`{}
+</code></pre>
+<p>Change square brackets into braces.</p>
+<pre><code>[^{}]
+
+</code></pre>
+<p>Delete everything other than braces.</p>
+<pre><code>+`}{
+
+</code></pre>
+<p>Merge adjacent containers at the same depth.</p>
+<pre><code>..
+</code></pre>
+<p>Count the maximum depth.</p>
+</div>
+<div id="pu8" class="pu"><h1>Rust</h1>
+<p>use <code>serde_json</code> crate. I don't know how fast it is.</p>
+<p>upd 2023-06-19  <span class="math-container">\$\quad \$</span> In light of the comment of @lights0123, you can use <code>cargo build --release</code> instead of <code>cargo build</code>. It would likely be significantly faster in release mode.</p>
+<h3><code>src/main.rs</code></h3>
+<pre class="lang-rust prettyprint-override"><code>use std::io::{self, Read, BufRead};
+use serde_json::Value;
+use std::process;
+
+fn main() -&gt; io::Result&lt;()&gt; {
+    let stdin = io::stdin();
+    for line in stdin.lock().lines() {
+        let line = line?;
+        let json_value: Value = serde_json::from_str(&amp;line).unwrap_or(Value::Null);
+        println!(&quot;{}&quot;, search(&amp;json_value));
+    }
+    process::exit(0);
+}
+
+fn search(node: &amp;Value) -&gt; u32 {
+    match node {
+        Value::Object(map) =&gt; {
+            let max_depth = map.values().map(|v| search(v)).max();
+            match max_depth {
+                Some(max) =&gt; 1 + max,
+                None =&gt; 1,
+            }
+        },
+        Value::Array(arr) =&gt; {
+            let max_depth = arr.iter().map(|v| search(v)).max();
+            match max_depth {
+                Some(max) =&gt; 1 + max,
+                None =&gt; 1,
+            }
+        },
+        _ =&gt; 0,
+    }
+}
+</code></pre>
+<h3><code>Cargo.toml</code></h3>
+<pre><code>[package]
+name = &quot;rust_hello&quot;
+version = &quot;0.1.0&quot;
+edition = &quot;2021&quot;
+
+# See more keys and their definitions at https:doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+serde_json = &quot;1.0&quot;
+</code></pre>
+<h3>Build and running</h3>
+<pre><code># win10 environment
+
+$ cargo build --release
+$ target\release\rust_hello.exe
+[{&quot;a&quot;: []}, [&quot;abc&quot;]]
+3
+hello
+0
+{&quot;a&quot;: []}
+2
+{&quot;a&quot;: 321}
+1
+[ [ 123],   []]
+2
+[1, 2, 3, 4, 5]
+1
+[]
+1
+[[]
+0
+</code></pre>
+</div>
+<div id="pu9" class="pu"><h2>A rewrite of noodle man’s solution in C</h2>
+<pre class="lang-c prettyprint-override"><code>#include &lt;stdio.h&gt;
+
+#define BUFSIZE 1024
+
+int main(void) {
+    int str = 0;
+    int escape = 0; //backslash
+
+    int depth = 0;
+    int maxdepth = 0;
+
+    char buf[BUFSIZE];
+
+    while (fgets(buf, BUFSIZE, stdin)) {
+        for (size_t i = 0; buf[i]; i++) {
+            if (buf[i] == '\n') goto print;
+
+            if (escape) {
+                escape = 0;
+                continue;
+            }
+
+            if (buf[i] == '\\') {
+                escape = 1;
+            } else if (buf[i] == '\&quot;') {
+                str = !str;
+            } else if (!str) {
+                if (buf[i] == '{' || buf[i] == '[') {
+                    depth++;
+                    if (depth &gt; maxdepth) maxdepth = depth;
+                } else if (buf[i] == '}' || buf[i] == ']') depth--;
+            }
+        }
+    }
+
+    print:;
+
+    printf(&quot;%d\n&quot;, maxdepth);
+}<span class="math-container">```</span>
+</code></pre>
+</div>
+<div id="pu10" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 621 bytes</h1>
+<pre class="lang-javascript prettyprint-override"><code>require(&quot;readline&quot;).createInterface({ input: process.stdin, output: process.stdout, terminal: false }).on(&quot;line&quot;, file =&gt; {
+  let inString = false;
+  let prevBackslash = false;
+  let depth = 0;
+  let maxDepth = 0;
+  for (const char of file) {
+    if (prevBackslash) {
+      prevBackslash = false;
+      continue;
+    }
+    if (char === &quot;\\&quot;) prevBackslash = true;
+    if (char === '&quot;' &amp;&amp; !prevBackslash) inString = !inString
+    if (inString) continue;
+
+    if (&quot;{[&quot;.includes(char)) {
+      if (++depth &gt; maxDepth) maxDepth++;
+    }
+    if (&quot;]}&quot;.includes(char)) depth--;
+  }
+  console.log(maxDepth);
+  process.exit();
+});
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=dVJLTsMwEJVYcorpLNpESSM-QkKp0gViw5pl24VJxq2FawfHQZWinIRNF3AO7sFpyKcJbSq8Gr95897MaD4-lU5ov__KLZ_e_1xsDb3lwpCDhlgihSJ0g7iKLT0pS4azmJwChEpzG0JqdExZFmQ2EcoHndshXEE-VHVboZgMgTOZEZRuoJWDjboPXEiCaA7FJYAkW2k_WyPUGqKWPjvgqaH3Bxa_ZpJlm2EyodTW4FUHbNnu8Rjj2oATa5VZiDfMgOaNsdvYAggOzolBl4D_fetXKVqh8sO_7LUajyiKAJdLdM80rOlKTsgTnMB4DKNBJ0cbGXVxX9wB7lEvfRKLBQZCxTJPKGt83L_BaoLntZub9wtz-8jzhlPhqjyXawSm05pbM-sda0mB1Gun16yT3VXQTlinQkp31l7d4fj23wUyDJG9xEtMiKO_uL659QtcIoZ35apsab8" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<p>This should be faster since it doesn't check if the JSON is valid, which is no longer required. If checking the JSON was valid was required, a solution like this manually verifying validity while checking the depth might still be faster, but I don't feel like writing a JSON parser.</p>
+<p>All this does is loop over each character of the input, ignoring strings, incrementing a depth counter whenever it encounters a <code>{</code> or <code>[</code>, decrementing the counter when it encounters a <code>}</code> or <code>]</code>, and keeping track of the maximum depth.</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/261970/">261970</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
