@@ -26,16 +26,56 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>116</td><td>Ruby</td><td>250529T202600Z</td><td><a href="https://codegolf.stackexchange.com/questions/282025/print-dyck-paths/282044#282044">Level Ri</a></td></tr>
-<tr d-ix="1"><td>213</td><td>Python 3.8 prerelease</td><td>250529T005809Z</td><td><a href="https://codegolf.stackexchange.com/questions/282025/print-dyck-paths/282028#282028">Lucenapo</a></td></tr>
-<tr d-ix="2"><td>160</td><td>Perl 5 MListUtil=max</td><td>250529T191228Z</td><td><a href="https://codegolf.stackexchange.com/questions/282025/print-dyck-paths/282043#282043">Xcali</a></td></tr>
-<tr d-ix="3"><td>130</td><td>JavaScript V8</td><td>250529T103009Z</td><td><a href="https://codegolf.stackexchange.com/questions/282025/print-dyck-paths/282037#282037">Arnauld</a></td></tr>
+<tr d-ix="0"><td>126</td><td>JavaScript V8</td><td>250529T103009Z</td><td><a href="https://codegolf.stackexchange.com/questions/282025/print-dyck-paths/282037#282037">Arnauld</a></td></tr>
+<tr d-ix="1"><td>116</td><td>Ruby</td><td>250529T202600Z</td><td><a href="https://codegolf.stackexchange.com/questions/282025/print-dyck-paths/282044#282044">Level Ri</a></td></tr>
+<tr d-ix="2"><td>213</td><td>Python 3.8 prerelease</td><td>250529T005809Z</td><td><a href="https://codegolf.stackexchange.com/questions/282025/print-dyck-paths/282028#282028">Lucenapo</a></td></tr>
+<tr d-ix="3"><td>160</td><td>Perl 5 MListUtil=max</td><td>250529T191228Z</td><td><a href="https://codegolf.stackexchange.com/questions/282025/print-dyck-paths/282043#282043">Xcali</a></td></tr>
 <tr d-ix="4"><td>174</td><td>Python 3</td><td>250529T073943Z</td><td><a href="https://codegolf.stackexchange.com/questions/282025/print-dyck-paths/282034#282034">tata</a></td></tr>
 <tr d-ix="5"><td>042</td><td>Charcoal</td><td>250529T072454Z</td><td><a href="https://codegolf.stackexchange.com/questions/282025/print-dyck-paths/282032#282032">Neil</a></td></tr>
 <tr d-ix="6"><td>950</td><td>JavaScript Node.js</td><td>250529T021342Z</td><td><a href="https://codegolf.stackexchange.com/questions/282025/print-dyck-paths/282030#282030">Ahamad</a></td></tr>
 <tr d-ix="7"><td>315</td><td>Python3</td><td>250528T221114Z</td><td><a href="https://codegolf.stackexchange.com/questions/282025/print-dyck-paths/282027#282027">Ajax1234</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a>, 116 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://v8.dev/" rel="nofollow noreferrer">JavaScript (V8)</a>, 126 bytes</h1>
+
+<pre class="lang-javascript prettyprint-override"><code>f=(n,d=0,x=o=[],y=N=n,r=o[y]||`
+`)=&gt;y&gt;N?0:o[o[y]=r.padEnd(++x)+&quot;/\\&quot;[d],--n+N?f(n,0,x,y-!d)|f(n,1,x,y+d):y-N||print(...o),y]=r
+</code></pre>
+<p><a href="https://tio.run/##JYzBDoIwEETvfMVqPNC0RUg8GHDl5JUfKCQQKwnGtKQSY0P5dmxlLzOzu/Oe3ad7380wTvxzXtceY8UkpuyLGkXDLFaomEEtbONcG7UEr/ZalWmuRdihScZO3pSMKf0Suj/W9V7IhnGuaFX2HuZRzPKdJC6kLCQqSW555dxoBjXFSZJowgJr7bWJX48JFCBkhZcLwskrpQTmCGArtNwPHGa1QHAtKfzJ0/@6vXi7rD8" rel="nofollow noreferrer" title="JavaScript (V8) – Try It Online">Try it online!</a></p>
+<h3>Commented</h3>
+<pre class="lang-javascript prettyprint-override"><code>f = (               // f is a recursive function taking:
+  n,                //   n = input
+  d = 0,            //   d = direction (0 = upwards, 1 = downwards)
+  x =               //   x = horizontal position, initially zero'ish
+  o = [],           //   o[] = output
+  y =               //   y = vertical position, initially set to n
+  N = n,            //   N = copy of input
+  r = o[y] || `\n`  //   r = current row, or a newline if undefined
+) =&gt;                //
+y &gt; N ?             // if y goes below the starting row:
+  0                 //   abort
+:                   // else:
+  o[                //
+    o[y] =          //   update the current row:
+      r.padEnd(++x) //     pad it with spaces to reach a width of x
+                    //     where x is incremented beforehand
+      + &quot;/\\&quot;[d],   //     append either '/' or '\' according to d
+    --n + N ?       //   decrement n; if it's not equal to -N:
+      f(            //     do a 1st recursive call:
+        n, 0, x,    //       with d = 0
+        y - !d      //       and y decremented if d was already set to 0
+      ) |           //     end of recursive call
+      f(            //     do a 2nd recursive call:
+        n, 1, x,    //       with d = 1
+        y + d       //       and y incremented if d was already set to 1
+      )             //     end of recursive call
+    :               //   else (n = -N):
+      y - N ||      //     abort if y is not equal to N
+      print(...o),  //     otherwise, print the output
+    y               //   restore the current row ...
+  ] = r             //   ... to r
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a>, 116 bytes</h1>
 
 <pre class="lang-ruby prettyprint-override"><code>-&gt;n{(1&lt;&lt;n*=2).times{|i|q=r=0
 s=(&quot; &quot;*n+$/)*n
@@ -66,7 +106,7 @@ r&gt;0&amp;&amp;q==0&amp;&amp;(puts s)}}
 }}                        #Close i loop an return from function
 </code></pre>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://docs.python.org/3.8/" rel="nofollow noreferrer">Python 3.8 (pre-release)</a>, <s>235</s> <s>234</s> 213 bytes</h1>
+<div id="pu2" class="pu"><h1><a href="https://docs.python.org/3.8/" rel="nofollow noreferrer">Python 3.8 (pre-release)</a>, <s>235</s> <s>234</s> 213 bytes</h1>
 
 <pre class="lang-python prettyprint-override"><code>n=int(input())
 for t in range(4**n):
@@ -77,53 +117,11 @@ for t in range(4**n):
 </code></pre>
 <p><a href="https://tio.run/##NY7NDoIwEITvPEUvpj@AWPBgIOuLLBuDCWoTXQutB315pDEeJ/NN5vPveHtyc/DzsjA4jsqxf0WldXZ5ziIKx2Ie@DqqvTGs20wEQEvdBFgbNiiFpASeVlBupWHKRMpjGk64ozbkELC0lMdNberSFl2sKqh/2FCcE/hxXoUioG1JtxOWD8dqrfSGCSOBrPpe4nA8UxdzsJlAPydVcyrC6EFK/VdQw/2ugobfpTYTLUvzBQ" rel="nofollow noreferrer" title="Python 3.8 (pre-release) – Try It Online">Try it online!</a></p>
 </div>
-<div id="pu2" class="pu"><h1><a href="https://www.perl.org/" rel="nofollow noreferrer">Perl 5</a> <code>-MList::Util=max,all</code> , 160 bytes</h1>
+<div id="pu3" class="pu"><h1><a href="https://www.perl.org/" rel="nofollow noreferrer">Perl 5</a> <code>-MList::Util=max,all</code> , 160 bytes</h1>
 
 <pre class="lang-perl prettyprint-override"><code>map{$l=0;$z=1;$m=max@p=map{$l-$_||($z+=$_);$z*($l=$_)}/../g;{say map$m-abs?$&quot;:/-/?'\\':'/',@p;$m--&amp;&amp;redo}}grep{$t=0;(all{($t+=$_)+1}/../g)*!$t}glob&quot;{+,-}1&quot;x&lt;&gt;x2
 </code></pre>
 <p><a href="https://tio.run/##JY5BDoIwEEWvomRCQSgFjRuw6gF06Y6ElEgISSsNdIFgr24ddTU/Py/vj24GuXdOCb2A5GkBM88KUFyJ6az5v6ZQvV4BzBGHKkRiEyCK0bIkYW2xjOK5QhIUFfV4Ai9nlJ1IWZKcMBKfNfoo9f2huffWtkODToNTgZByCcD8tFH2t4WbNRjbyr72liimNvOmw3HaOrd799p0/WN09LpP0izFe@lGk@c308nvvzH6Pg" rel="nofollow noreferrer" title="Perl 5 – Try It Online">Try it online!</a></p>
-</div>
-<div id="pu3" class="pu"><h1><a href="https://v8.dev/" rel="nofollow noreferrer">JavaScript (V8)</a>, 130 bytes</h1>
-
-<pre class="lang-javascript prettyprint-override"><code>f=(n,d=0,x=o=[],y=N=n,r=o[y]||&quot;&quot;)=&gt;y&gt;N?0:o[o[y]=r.padEnd(x++)+&quot;/\\&quot;[d],--n+N?f(n,0,x,y-!d)|f(n,1,x,y+d):y-N||print(o.join`
-`),y]=r
-</code></pre>
-<p><a href="https://tio.run/##JU1BDoIwELz7ipV4oGmLkngw6srJKx@oJBArCca0pBJjQ3k7bmUvM7O7M/NsPs377rp@kJ/DPLeYGqFxJ75oUVXCY4lGOLTKVyEkCcOLv5TF7mhVXKHL@kZfjU6/nDOebG@3ROlKSGl4WbSURUnCy7VmIao8Kq7Z0csyhN51Zkht9rSdqVc1EzFwbq1LX48BDCDkJ4Izwp6QCmBcASyuWtLAZjQTRFazE52o4o/LC9Fp/gE" rel="nofollow noreferrer" title="JavaScript (V8) – Try It Online">Try it online!</a></p>
-<h3>Commented</h3>
-<pre class="lang-javascript prettyprint-override"><code>f = (               // f is a recursive function taking:
-  n,                //   n = input
-  d = 0,            //   d = direction (0 = upwards, 1 = downwards)
-  x =               //   x = horizontal position, initially zero'ish
-  o = [],           //   o[] = output
-  y =               //   y = vertical position, initially set to n
-  N = n,            //   N = copy of input
-  r = o[y] || &quot;&quot;    //   r = current row, or an empty string if undefined
-) =&gt;                //
-y &gt; N ?             // if y goes below the starting row:
-  0                 //   abort
-:                   // else:
-  o[                //
-    o[y] =          //   update the current row:
-      r.padEnd(x++) //     pad it with spaces to reach a width of x
-                    //     then increment x
-      + &quot;/\\&quot;[d],   //     append either '/' or '\' according to d
-    --n + N ?       //   decrement n; if it's not equal to -N:
-      f(            //     do a 1st recursive call:
-        n, 0, x,    //       with d = 0
-        y - !d      //       and y decremented if d was already set to 0
-      ) |           //     end of recursive call
-      f(            //     do a 2nd recursive call:
-        n, 1, x,    //       with d = 1
-        y + d       //       and y incremented if d was already set to 1
-      )             //     end of recursive call
-    :               //   else (n = -N):
-      y - N ||      //     abort if y is not equal to N
-      print(        //     otherwise, print the output
-        o.join`\n`  //     with newlines between the rows
-      ),            //
-    y               //   restore the current row ...
-  ] = r             //   ... to r
-</code></pre>
 </div>
 <div id="pu4" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a>, 174 bytes</h1>
 
