@@ -26,12 +26,60 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>187</td><td>JavaScript ES6</td><td>250601T183145Z</td><td><a href="https://codegolf.stackexchange.com/questions/282079/rays-intersecting-lines/282085#282085">Arnauld</a></td></tr>
-<tr d-ix="1"><td>059</td><td>Jelly</td><td>250601T181332Z</td><td><a href="https://codegolf.stackexchange.com/questions/282079/rays-intersecting-lines/282084#282084">Jonathan</a></td></tr>
+<tr d-ix="0"><td>044</td><td>Jelly</td><td>250601T181332Z</td><td><a href="https://codegolf.stackexchange.com/questions/282079/rays-intersecting-lines/282084#282084">Jonathan</a></td></tr>
+<tr d-ix="1"><td>187</td><td>JavaScript ES6</td><td>250601T183145Z</td><td><a href="https://codegolf.stackexchange.com/questions/282079/rays-intersecting-lines/282085#282085">Arnauld</a></td></tr>
 <tr d-ix="2"><td>448</td><td>Python 3</td><td>250601T154945Z</td><td><a href="https://codegolf.stackexchange.com/questions/282079/rays-intersecting-lines/282082#282082">Ted</a></td></tr>
 <tr d-ix="3"><td>095</td><td>Charcoal</td><td>250601T112728Z</td><td><a href="https://codegolf.stackexchange.com/questions/282079/rays-intersecting-lines/282080#282080">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>JavaScript (ES6), 187 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, <s> 59 </s> 44 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
+<p>-13 bytes thanks to <a href="https://codegolf.stackexchange.com/users/85334/unrelated-string">Unrelated String</a> (explode the grid first so <code>\</code> always overlaps <code>/</code> at some character).</p>
+<pre><code>K€Z$⁺=Ɱ“-|/\”¹ZŒdŒD4ƭoẸ$€¹ZŒḍŒḌ4ƭƊ€SZṖḊƊ4¡ỊȦ
+</code></pre>
+<p>A monadic Link that accepts a list of lines and yields <code>0</code> if the rays intersect or <code>1</code> if not (i.e. inverted).</p>
+<p><a href="https://tio.run/##y0rNyan8/9/7UdOaKJVHjbtsH21c96hhjm6NfsyjhrmHdkYdnZRydJKLybG1@Q937VABKgOLPdzRCyJ6gOLHuoCCwVEPd057uKPrWJfJoYUPd3edWPb/4e4th9v//9e2RQHaXNEKYKAPoRRiQQIxCD5EQCEGzocKgNSgCihQJoDuMAA" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a> Or see the <strong><a href="https://tio.run/##y0rNyan8/9/7UdOaKJVHjbtsH21c96hhjm6NfsyjhrmHdkYdnZRydJKLybG1@Q937VABKgOLPdzRCyJ6gOLHuoCCwVEPd057uKPrWJfJoYUPd3edWPb/6OSHOxc/atx3aNuhbQ93bzncDtL8/7@2LQrQ5opWAAN9CKUQCxKIQfAhAgoxcD5UAKQGVUCBMgEMh2GKROtjGlJDugAWh@jq6lLZqVgMiSEyRPTJDER96jlVAcktKAL6VItvFAFd0pyqi26ILjVTIv64I96p@him6gMBGQ7RJ0aLPoVpVVcXmgnoEIj61MxWVBKogQGgQAyGipjB5FSql6ugGAGW8DExpHkPrFy/BrVS0FdAFgBXHDWETQUX7vpgA2NgEQDUqh@LogbEAakEK4HIaQMA" rel="nofollow noreferrer" title="Jelly – Try It Online">test-suite</a></strong>.</p>
+<h4>How?</h4>
+<p>Explode the canvas with space characters:</p>
+<pre><code>K€Z$⁺
+   $  - last two links as a monad - f(Canvas):
+K€    -   join each with space characters
+  Z   -   transpose
+    ⁺ - repeat that -&gt; A Canvas with space filling between rows AND columns
+</code></pre>
+<p>Create ray component masks:</p>
+<pre><code>=Ɱ“-|/\” - vectorised equals? mapped across &quot;-|/\&quot;
+</code></pre>
+<p>Extend rays within each of these four masks:</p>
+<pre><code>¹ZŒdŒD4ƭoẸ$€¹ZŒḍŒḌ4ƭƊ€
+                    Ɗ€ - for each {Mask}:
+      4ƭ               -   apply each of these four in turn:
+¹                      -     no-op ('-' uses rows)
+ Z                     -     transpose ('|' uses columns)
+  Œd                   -     anti-diagonals (for '/')
+    ŒD                 -     diagonals (for '\')
+           €           -   for each &quot;Strip&quot;:
+          $            -     last two links as a monad:
+         Ẹ             -       any? -&gt; Strip contains ray segment(s)
+        o              -       {Strip} vectorised logical OR {that}
+                                -&gt; Strip of all ones if any 1s existed, else zeros
+                  4ƭ   -   apply each of these four in turn:
+            ¹          -     no-op
+             Z         -     transpose
+              Œḍ       -     convert back from anti-diagonals
+                ŒḌ     -     convert back from diagonals
+</code></pre>
+<p>Check for crossing rays</p>
+<pre><code>SZṖḊƊ4¡ỊȦ
+S         - sum respective mask values together
+     4¡   - do this four times:
+    Ɗ     -   last three links as a monad:
+ Z        -     transpose
+  Ṗ       -     pop
+   Ḋ      -     dequeue
+       Ị  - insignificant (vectorises) --&gt; 1 at 0 or 1, else 0
+        Ȧ - any and all?
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>JavaScript (ES6), 187 bytes</h1>
 <p>Expects a matrix of characters. Returns a Boolean value.</p>
 
 <pre class="lang-javascript prettyprint-override"><code>m=&gt;m.some((r,y)=&gt;r.some((c,x)=&gt;~(i=&quot;\\/-|&quot;.indexOf(c))&amp;&amp;L.some(([a,b,c])=&gt;[a*C-A*c,c*B-C*b].every((v,i)=&gt;(v/=a*B-A*b)&gt;.5&amp;v&lt;[m,r][i].length-1.5),L.push([A=i%2|-!i,B=i&lt;3,C=A*x+B*y]))),L=[])
@@ -82,66 +130,6 @@
 <span class="math-container">$$y=\frac{aC-Ac}{aB-Ab}$$</span></p>
 <p>and test whether we have <span class="math-container">\$x\in(1/2,W-3/2)\$</span> and <span class="math-container">\$y\in(1/2,H-3/2)\$</span>, where <span class="math-container">\$H\$</span>,<span class="math-container">\$W\$</span> are the dimensions of the matrix.</p>
 <p><strong>NB</strong>: Although the above definitions of <span class="math-container">\$x\$</span> and <span class="math-container">\$y\$</span> are valid only if <span class="math-container">\$aB-Ab\neq0\$</span>, this will also work as-is in the JS implementation for <span class="math-container">\$aB-Ab=0\$</span> (we'll get either <code>NaN</code> or <code>+/-Infinity</code>, which will make the tests fail as expected).</p>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 59 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
-<pre><code>=Ɱ“-|/\”¹ZŒdŒD4ƭoẸ$€¹ZŒḍŒḌ4ƭƊ€;&quot;&quot;/ṖḊ$⁺€µḄZṡ2Ɗ⁺€ḄḄ=13;§&gt;1ƊFẸ
-</code></pre>
-<p>A monadic Link that accepts a list of lines and yields <code>1</code> if the rays intersect or <code>0</code> if not.</p>
-<p><a href="https://tio.run/##y0rNyan8/9/20cZ1jxrm6NboxzxqmHtoZ9TRSSlHJ7mYHFub/3DXDpVHTWvAYg939IKIHqD4sS6goLWSkv7DndMe7uhSedS4C6Rq68MdLVEPdy40AsqDRYB8ILI1NLY@tNzO8FiXG9C8/w93bznc/v@/ti0K0OaKVgADfQilEAsSiEHwIQIKMXA@VACkBlVAgTIBdIcBAA" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a> Or see the <strong><a href="https://tio.run/##y0rNyan8/9/20cZ1jxrm6NboxzxqmHtoZ9TRSSlHJ7mYHFub/3DXDpVHTWvAYg939IKIHqD4sS6goLWSkv7DndMe7uhSedS4C6Rq68MdLVEPdy40AsqDRYB8ILI1NLY@tNzO8FiXG9C8/0cnP9y5@FHjvkPbDm17uHvL4XaQDf//a9uiAG2uaAUw0IdQCrEggRgEHyKgEAPnQwVAalAFFCgTwHAYpki0PqYhNaQLYHGIrq4ulZ2KxZAYIkNEn8xA1KeeUxWQ3IIioE@1@EYR0CXNqbrohuhSMyXijzvinaqPYao@EJDhEH1itOhTmFZ1daGZgA6BqE/NbEUlgRoYAArEYKiIGUxOpXq5CooRYAkfE0Oa98DK9WtQKwV9BWQBcMVRQ9hUcOGuDzYwBhYBQK36sShqQByQSrASiJw2AA" rel="nofollow noreferrer" title="Jelly – Try It Online">test-suite</a></strong>.</p>
-<h4>How?</h4>
-<p>Create ray component masks:</p>
-<pre><code>=Ɱ“-|/\” - vectorised equals? mapped across &quot;-|/\&quot;
-</code></pre>
-<p>Extend rays within each of these four masks:</p>
-<pre><code>¹ZŒdŒD4ƭoẸ$€¹ZŒḍŒḌ4ƭƊ€
-                    Ɗ€ - for each {Mask}:
-      4ƭ               -   apply each of these four in turn:
-¹                      -     no-op ('-' uses rows)
- Z                     -     transpose ('|' uses columns)
-  Œd                   -     anti-diagonals (for '/')
-    ŒD                 -     diagonals (for '\')
-           €           -   for each &quot;Strip&quot;:
-          $            -     last two links as a monad:
-         Ẹ             -       any? -&gt; Strip contains ray segment(s)
-        o              -       {Strip} vectorised logical OR {that}
-                                -&gt; Strip of all ones if any 1s existed, else zeros
-                  4ƭ   -   apply each of these four in turn:
-            ¹          -     no-op
-             Z         -     transpose
-              Œḍ       -     convert back from anti-diagonals
-                ŒḌ     -     convert back from diagonals
-</code></pre>
-<p>Collapse these together and trim the borders:</p>
-<pre><code>;&quot;&quot;/ṖḊ$⁺€
-   /      - reduce {RayExtendedMasks} by:
-  &quot;       -   zip with:
- &quot;        -     zip with:
-;         -       concatenate -&gt; Canvas of vectors of mask values at each pixel
-      $   - last two links as a monad:
-    Ṗ     -   pop
-     Ḋ    -   dequeue
-       ⁺€ - repeat that for each (removes first &amp; last column)
-</code></pre>
-<p>Check for crossing rays</p>
-<pre><code>µḄZṡ2Ɗ⁺€ḄḄ=13;§&gt;1ƊFẸ
-µ                    - start a new monadic chain - f(CanvasOfVectors)
- Ḅ                   - convert all the vectors from binary
-     Ɗ               - last three links as a monad:
-  Z                  -   transpose
-   ṡ                 -   all overlapping slices of length...
-    2                -   ...two
-      ⁺€             - repeat that for each -&gt; list of lists of 2x2s
-        Ḅ            - convert each row of each 2x2 from binary
-         Ḅ           - convert each pair of those from binary
-          =13        - vectorised equals 13? -&gt; \/ ontop of /\ crossings
-                 Ɗ   - last three links as a monad - f(CanvasOfVectors):
-              §      -   sums
-               &gt;     -   is greater than...
-                1    -   ...1? -&gt; same char crossings
-             ;       - {\/ ontop of /\ crossings} concatenate {same char crossings}
-                  F  - flatten
-                   Ẹ - any?
-</code></pre>
 </div>
 <div id="pu2" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a>, 448 bytes</h1>
 
