@@ -42,7 +42,7 @@
 <tr d-ix="13"><td>012</td><td>Vim</td><td>170127T224508Z</td><td><a href="https://codegolf.stackexchange.com/questions/108403/find-the-smallest-file/108422#108422">DJMcMayh</a></td></tr>
 <tr d-ix="14"><td>037</td><td>Ruby</td><td>170127T213616Z</td><td><a href="https://codegolf.stackexchange.com/questions/108403/find-the-smallest-file/108413#108413">anna328p</a></td></tr>
 <tr d-ix="15"><td>013</td><td>Bash + coreutils</td><td>170127T212310Z</td><td><a href="https://codegolf.stackexchange.com/questions/108403/find-the-smallest-file/108407#108407">Riker</a></td></tr>
-<tr d-ix="16"><td>277</td><td>C#</td><td>170201T103452Z</td><td><a href="https://codegolf.stackexchange.com/questions/108403/find-the-smallest-file/108852#108852">Metoniem</a></td></tr>
+<tr d-ix="16"><td>277</td><td>C#</td><td>170201T103452Z</td><td><a href="https://codegolf.stackexchange.com/questions/108403/find-the-smallest-file/108852#108852">Mika</a></td></tr>
 <tr d-ix="17"><td>014</td><td>SH Linux/Unix</td><td>170128T055106Z</td><td><a href="https://codegolf.stackexchange.com/questions/108403/find-the-smallest-file/108447#108447">Abel Tom</a></td></tr>
 <tr d-ix="18"><td>8462</td><td>PHP</td><td>170128T024037Z</td><td><a href="https://codegolf.stackexchange.com/questions/108403/find-the-smallest-file/108441#108441">Cave Joh</a></td></tr>
 <tr d-ix="19"><td>021</td><td>PowerShell</td><td>170127T212924Z</td><td><a href="https://codegolf.stackexchange.com/questions/108403/find-the-smallest-file/108409#108409">AdmBorkB</a></td></tr>
@@ -60,7 +60,35 @@
 <div id="pu0" class="pu"><h1>Swift 6, 194 bytes</h1>
 <pre class="lang-swift prettyprint-override"><code>import Foundation
 let f=FileManager.default
-print(try{f.contentsOfDirectory}()(f.currentDirectoryPath).map{($0,(try{f.attributesOfItem}()($0)as NSDictionary).fileSize())}.sorted{$0.1&lt;$1.1}[0].0)
+print(try{f.contentsOfDirectory}()(f.currentDirectoryPath).map{(try{f.attributesOfItem}()($0)[.size]as!Int,$0)}.sorted(by:&lt;)[0].1)
+</code></pre>
+<p><a href="https://swiftfiddle.com/d7hbnya5vbakbe57ztxqaw33tu" rel="nofollow noreferrer">Try it on SwiftFiddle!</a> (yes, it works on SwiftFiddle)</p>
+<h2>Ungolfed</h2>
+<pre class="lang-swift prettyprint-override"><code>// Foundation import for access to FileManager
+import Foundation
+
+// save bytes when calling methods on the FileManager
+// (this stuff is bridged from Objective-C, so things can
+// get VERY wordy)
+let f = FileManager.default
+
+print(
+  // get the contents of the current directory
+  // (wrap it in a closure first to deal away with
+  // argument labels)
+  try {f.contentsOfDirectory}()(f.currentDirectoryPath).map {
+    // a tuple of the file size and its name, **in that order**
+    (try {f.attributesOfItem}()($0)[.size] as! Int, $0)
+  // sort the tuples, get the first one, and extract the
+  // filename
+  // - the `&lt;` operator on 2-tuples prioritizes the first
+  //   element and falls back to the second
+  // - since tuples can't conform to Comparable, we have to
+  //   provide the operator ourselves (it's declared as a
+  //   global for tuples)
+  }.sorted(by: &lt;)[0].1
+)
+<span class="math-container">```</span>
 </code></pre>
 </div>
 <div id="pu1" class="pu"><h1><a href="http://tcl.tk/" rel="nofollow noreferrer">Tcl</a>, 82 bytes</h1>
