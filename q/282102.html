@@ -26,11 +26,78 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>316</td><td>Python3</td><td>250603T164429Z</td><td><a href="https://codegolf.stackexchange.com/questions/282102/traverse-the-list/282108#282108">Ajax1234</a></td></tr>
-<tr d-ix="1"><td>074</td><td>JavaScript ES6</td><td>250603T150427Z</td><td><a href="https://codegolf.stackexchange.com/questions/282102/traverse-the-list/282106#282106">Arnauld</a></td></tr>
-<tr d-ix="2"><td>017</td><td>Pyth</td><td>250603T142828Z</td><td><a href="https://codegolf.stackexchange.com/questions/282102/traverse-the-list/282104#282104">CursorCo</a></td></tr>
+<tr d-ix="0"><td>066</td><td>Brachylog</td><td>250603T230939Z</td><td><a href="https://codegolf.stackexchange.com/questions/282102/traverse-the-list/282113#282113">DLosc</a></td></tr>
+<tr d-ix="1"><td>316</td><td>Python3</td><td>250603T164429Z</td><td><a href="https://codegolf.stackexchange.com/questions/282102/traverse-the-list/282108#282108">Ajax1234</a></td></tr>
+<tr d-ix="2"><td>074</td><td>JavaScript ES6</td><td>250603T150427Z</td><td><a href="https://codegolf.stackexchange.com/questions/282102/traverse-the-list/282106#282106">Arnauld</a></td></tr>
+<tr d-ix="3"><td>017</td><td>Pyth</td><td>250603T142828Z</td><td><a href="https://codegolf.stackexchange.com/questions/282102/traverse-the-list/282104#282104">CursorCo</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Python3, 316 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://github.com/JCumin/Brachylog" rel="nofollow noreferrer">Brachylog</a>, 66 bytes</h1>
+<pre><code>~c₂↰₁
+kʰc+0|htℕ₁J&amp;{k,0}ʰ;[J]z{↰₅|↔{↔ʰ}ᵐ↰₅↔ᵐ↔}↰
+⟨⟨hⁱ²c{th₎}⟩≡{tb₎}⟩
+</code></pre>
+<p><a href="https://tio.run/##SypKTM6ozMlPN/r/vy75UVPTo7YNj5oaubJPbUjWNqjJKHnUMhXI91KrztYxqD21wTraK7aqGqyoteZR2xQgc8qpDbUPt06AiAG5YPaUWiCf69H8FUCU8ahx46FNydUlGY@a@mofzV/5qHNhdUkSlPP/f7SJjpGOmY6hjnEsAA" rel="nofollow noreferrer" title="Brachylog – Try It Online">Try it online!</a></p>
+<h3>Explanation</h3>
+<p>Performs an actual traversal of the list, replacing visited numbers with 0s and using Brachylog's non-determinism to pick directions.</p>
+<p>Entry point (takes a list of integers as input):</p>
+<pre><code>~c₂↰₁
+~c₂    Un-concatenate the input list into two parts
+   ↰₁  Call the below predicate
+</code></pre>
+<p>Main, recursive predicate:</p>
+<pre><code>kʰc+0|htℕ₁J&amp;{k,0}ʰ;[J]z{↰₅|↔{↔ʰ}ᵐ↰₅↔ᵐ↔}↰
+                                         EITHER:
+kʰ                                       Remove the last element of the first part
+  c                                      Concatenate all remaining elements in one list
+   +0                                    The sum is 0
+                                         (in which case, return success)
+     |                                   OR:
+      ht                                 The last element of the first part
+        ℕ₁                               must be a positive integer (not 0)
+          J                              Store that as J, the jump distance
+           &amp;                             And
+            {   }ʰ                       Modify the first part as follows:
+             k                            Remove the last element
+              ,0                          Concatenate a 0 in its place
+                  ;[J]                   Pair the modified list with [J]
+                      z                  Zip, pairing each of the two parts with J
+                       {              }  Either:
+                        ↰₅                Call the below predicate directly
+                          |              Or:
+                           ↔              Swap the two parts
+                            {↔ʰ}ᵐ         and reverse each part
+                                 ↰₅       Then call the below predicate
+                                   ↔ᵐ     Afterwards, reverse each part
+                                     ↔    and swap the two parts back
+                                       ↰ Call this predicate recursively
+</code></pre>
+<p>Helper predicate that does the jumps (slightly ungolfed so it's easier to explain):</p>
+<pre><code>⟨⟨{hh}c{th₎}⟩≡{tb₎}⟩
+ {hh}              The first part
+      {th₎}        The first J elements of the second part
+ ⟨    c    ⟩        Concatenate those two lists
+                   This is the new first part
+             {tb₎} The second part without the first J elements
+                   This is the new second part
+⟨           ≡     ⟩ Wrap both parts in a list and return it
+</code></pre>
+<p>A partial worked example: Suppose our input list is <code>[5,3,2,6,1,4]</code> and we are starting at the <code>2</code>. After splitting the list at that point, we have <code>[[5,3,2],[6,1,4]]</code>. The main predicate saves off the <code>2</code> in <code>J</code> and replaces it with <code>0</code>, giving <code>[[5,3,0],[6,1,4]]</code>. Pairing with <code>[J]</code> gives <code>[[[5,3,0],[6,1,4]],[2]]</code>. Zipping gives <code>[[[5,3,0],2],[[6,1,4],2]]</code>. Then we call the helper predicate:</p>
+<pre><code>{h }    First element: [[5,3,0],2]
+{ h}    First element of that: [5,3,0]
+
+{t  }   Last element: [[6,1,4],2]
+{ h₎}   If that is of the form [A,B], take the first B elements of A: [6,1]
+
+⟨  c  ⟩  Concatenate those two: [5,3,0,6,1]
+
+{t  }   Last element: [[6,1,4],2]
+{ b₎}   If that is of the form [A,B], remove the first B elements from A: [4]
+
+⟨  ≡  ⟩  Pair those two: [[5,3,0,6,1],[4]]
+</code></pre>
+<p>This represents a jump 2 spots to the right, onto the <code>1</code>. The recursion continues from here, backtracking when it hits a dead end.</p>
+</div>
+<div id="pu1" class="pu"><h1>Python3, 316 bytes</h1>
 <pre class="lang-py prettyprint-override"><code>E=enumerate
 def f(l):
  if(O:=[i for i,a in E(l)if i-a&lt;0 and i+a&gt;=len(l)]):
@@ -44,7 +111,7 @@ def f(l):
 </code></pre>
 <p><a href="https://tio.run/##XVRNb9swDD0vv0LoJVKjFpYsfySotlMPQYP1kptrDA5qYy4SJ7WdAcOw357xic46LIhMiuLjo0jTp5/j92MX56f@cnn0dXc@1H011rPXuhGN3KvVTLSNfF75ohXNsRetrkTbiUc6ahvR3lUPkai6V9Euqs9@X3dkLwES73rwhXwuolIXeJaKlJIOOMoGUd7hSPEFgBvlpwCrvh7PfScMTrf@129IwNYf5AEJaNX9lOtFdfvmPWf4Ri6F0XemVEhsLbrjCNRmtS3WpR/OBxk9@PXi7bZ6YL7/UIj8vqDkn/RmUTyV4fwJIbYg3JLJ@0Pbye39j2p/rgepVHlpD6djP4q@1qIaxtkgvLi5uZkZXZgyPCP6saZtkE5bnWqj47Bb5lpYQyvTwkCPtEgtySUtp0VM9hxSi4Q8ILCSyUorIz1est2Qd0K6iRhpKVIcM0MCFtLTVAtyiWkb26AiB0SOczablCVQOYMQyFFQxIEgTktH2QSMOQWXcwo25b2ZLpFYTgv2BCQJp0DmlI6d42hX93SKGnEqbioRykIii0I1YIVHPtHSOe3IJZss4e60csPkzjAD6oZEUvLJk3IW6SLVTsfUFhN2KBydZyQyx7FQYwO8mySZDFOFkiZ8iTTj0mNv@R5uImVOxxZgUQMUHDdES8BgGY7eo8P0T/8hdTGjUOH4WjbLGUxdc1ngcNd@LNkDGaAKKcdHJXCr0Ios8EAN1BH32SYhfTu9GYHCcbFd6F2oIN8UaSMf6OiIDYXl1oaOR9wExAyvlJlebfdhxxsCuXShBRbTgTni8W8xhX8/UrJp92Pdy6/HjqZuuB9O@3aU85durhR9ID5VWuxoDA/VSdJI3tMhwfbfappaTYN69dfyi38p1FyLVilCDUNNg7w7HveyUsJ7Vhu5U0oLWemdms1OfdsRdKyHcRAnQF7n6vIH" rel="nofollow noreferrer">Try it online!</a></p>
 </div>
-<div id="pu1" class="pu"><h1>JavaScript (ES6), 74 bytes</h1>
+<div id="pu2" class="pu"><h1>JavaScript (ES6), 74 bytes</h1>
 <p>Returns a Boolean value.</p>
 
 <pre class="lang-javascript prettyprint-override"><code>a=&gt;a.some(g=(v,i)=&gt;(v=a[i])?v^=a[i]^=g(a[i]=0,i-v)|g(0,i+v):!a.some(v=&gt;v))
@@ -58,7 +125,7 @@ def f(l):
 </code></pre>
 <p><a href="https://tio.run/##bY3NDoIwEITvvoWc2rAQ/sLBpHjzCbzVEhqEWoKtodjExHevwElj57KTb7IzA7fctJN8zJHS1871xHFS8djoe4cEQRYkJhWyhFPJ8NHWm6mJQOslCcjI4rdAiwktPuxDHg9aqqbBrtXK6LGLRy1QQM/Tc769WIB337xHNGX4nyWLfBwyDy0ggxJSyNfsJwwuip74aHy7JRSQL5@@/Wzrch8" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
 </div>
-<div id="pu2" class="pu"><h1><a href="https://github.com/isaacg1/pyth" rel="nofollow noreferrer">Pyth</a>, 17 bytes</h1>
+<div id="pu3" class="pu"><h1><a href="https://github.com/isaacg1/pyth" rel="nofollow noreferrer">Pyth</a>, 17 bytes</h1>
 <pre><code>sqVmaVtdd.pUQPM.p
 </code></pre>
 <p><a href="https://tio.run/##K6gsyfj/v7gwLDcxrCQlRa8gNDDAV6/g//9oEx0jHTMdQx3jWAA" rel="nofollow noreferrer" title="Pyth – Try It Online">Try it online!</a></p>
