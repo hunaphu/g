@@ -26,22 +26,24 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>097</td><td>Ruby</td><td>250531T085148Z</td><td><a href="https://codegolf.stackexchange.com/questions/282005/when-is-my-coworkers-next-birthday/282072#282072">Value In</a></td></tr>
+<tr d-ix="0"><td>075</td><td>Ruby</td><td>250531T085148Z</td><td><a href="https://codegolf.stackexchange.com/questions/282005/when-is-my-coworkers-next-birthday/282072#282072">Value In</a></td></tr>
 <tr d-ix="1"><td>280</td><td>Python3</td><td>250528T153943Z</td><td><a href="https://codegolf.stackexchange.com/questions/282005/when-is-my-coworkers-next-birthday/282022#282022">Ajax1234</a></td></tr>
 <tr d-ix="2"><td>116</td><td>05AB1E</td><td>250528T141955Z</td><td><a href="https://codegolf.stackexchange.com/questions/282005/when-is-my-coworkers-next-birthday/282020#282020">Kevin Cr</a></td></tr>
 <tr d-ix="3"><td>181</td><td>Bash with GNU date</td><td>250527T145032Z</td><td><a href="https://codegolf.stackexchange.com/questions/282005/when-is-my-coworkers-next-birthday/282009#282009">Toby Spe</a></td></tr>
 <tr d-ix="4"><td>095</td><td>JavaScript Node.js</td><td>250527T124803Z</td><td><a href="https://codegolf.stackexchange.com/questions/282005/when-is-my-coworkers-next-birthday/282007#282007">l4m2</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a>, <s>137</s> 97 bytes</h1>
-<p>Uses the <code>-rdate</code> flag to auto-import the <code>Date</code> library. Input is a Date object, output is a string. Assumes your coworker doesn't need to wait a year to throw a party. <s>Assumes input date has a positive year (aka <em>not</em> BC/BCE) because the Gregorian calendar wasn't adopted until 1582. Takes a while to run for two reasons:</p>
+<div id="pu0" class="pu"><h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a>, <s>137</s> <s>97</s> 75 bytes</h1>
+<p>Uses the <code>-rdate</code> flag to auto-import the <code>Date</code> library. Input is a Date object, output is a <s>string</s> Date object representing the day of the party. Assumes your coworker doesn't need to wait a year to throw a party. <s>Assumes input date has a positive year (aka <em>not</em> BC/BCE) because the Gregorian calendar wasn't adopted until 1582. Takes a while to run for two reasons:</p>
 <ol>
 <li>In order to ensure 2/29 is accounted for, I check every date from the input to 3000 days in the future (since leap years are every 4 years but skipped every 100 years, I figure you should definitely get one within <span class="math-container">\$365*8=2920\$</span> days) because it saves bytes over a <em>sane</em> option like <code>(D.new(4)..D.new(5))</code> that covers only 366 days.</li>
 <li>The shortest way to grab the latest future date is to simply check every year ever starting from year 1 and stopping at the first one whose relevant date is after the input and on a weekday. <code>(d.year..)</code> would be more sane but that's five whole bytes wasted. This is repeated for all 3000 dates checked.</s></li>
 </ol>
 <p><em>-40 bytes (!!) by figuring out I can apply a block to <code>uniq</code> to make it remove duplicated valid dates, eliminating my insane weird method of looking at 3k dates just for their month and day just to make sure February 29 is included, then finding the first valid year for that date, even though most of the month/day combinations would be redundantly checked many, many times and running thousands of unnecessary calculations in the name of saving bytes.</em></p>
-<pre class="lang-ruby prettyprint-override"><code>-&gt;d{D=Date;(d..d+9e3).select{(1..5)===_1.wday}.uniq{[_1.mon,_1.day]}.max_by{_1-d}.strftime'%b%d'}
+<p><em>-7 bytes by realizing I no longer need <code>D=Date;</code> as I am no longer creating fresh Date objects in my code.</em></p>
+<p><em>-15 bytes by leveraging the flexible output requirements that state that any date can be returned as long as the month/date are correct.</em></p>
+<pre class="lang-ruby prettyprint-override"><code>-&gt;d{(d..d+9e3).select{(1..5)===_1.wday}.uniq{[_1.mon,_1.day]}.max_by{_1-d}}
 </code></pre>
-<p><a href="https://ato.pxeger.com/run?1=LY7BisIwEIbvfYpQVlTqDEncLBWJJ9-ilJKadC3YWpsULaVPspdF3Mu-kW-zcfU0M9_Px_xft7bL-98khFYrZ8L0WsifzhUQ3xVs9LCVW4_XM42oo5VZztGag9m5YcYQxVxKmTE8a9WP2NXlaUj8WR3rhR8epiNW6pLl_ZAx0CNa1xaurMx0kk_0dHw9Eud9eTDk0zgbkKZzlrxluNsfqyYKidyQMCqSRwtsVGuND9PA1Popf98jFq840CVQFnDK34Fy4PFjFUAF8I-AM0r_qXg6fw" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<p><a href="https://ato.pxeger.com/run?1=LU5NjoIwGN1zioa4kOD3pS2DQZO6cucRCGnAltFEfqQlSggnmc3EOJu5EbeZzjir95f38j6eXV8M36kPncqt9rNHKb56W0IyH2CnxqVCVOFGRwEafdFHOy4ZYhwIISTDm8qHCfv6fB1TJ6umXjlwZjZhld9lMYySgZqm_8nt7XS-aPKurfFI21tDFhKPp6ZqQ5-IHfHDMt27G9jmndEuzNA20ni6Vq-FzzlkyYYDjYAyj1P-BpQDT35pDDQGvvY4o_TPjV-dHw" rel="nofollow noreferrer">Attempt This Online!</a></p>
 </div>
 <div id="pu1" class="pu"><h1>Python3, 280 bytes</h1>
 <p>Assumes that worker 1 must wait at least 1 year before throwing a party.</p>
