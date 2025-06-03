@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::70090</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>219</td><td>Python 2</td><td>160126T105916Z</td><td><a href="https://codegolf.stackexchange.com/questions/70090/how-many-votes-does-a-state-get/70207#70207">TFeld</a></td></tr>
+<tr d-ix="1"><td>222</td><td>Clean</td><td>160125T101530Z</td><td><a href="https://codegolf.stackexchange.com/questions/70090/how-many-votes-does-a-state-get/70115#70115">user4268</a></td></tr>
+<tr d-ix="2"><td>244</td><td>JavaScript ES6</td><td>160125T085109Z</td><td><a href="https://codegolf.stackexchange.com/questions/70090/how-many-votes-does-a-state-get/70109#70109">Patrick </a></td></tr>
+</table>
+<div id="pu0" class="pu"><h2>Python 2, 219 bytes</h2>
+<pre class="lang-python prettyprint-override"><code>v,s=input()
+n={k:1 for k in s}
+v-=3*len(s)
+l=lambda x:-x[1]
+if'DC'in s:del s['DC']
+while v:A,_=sorted([(a,s[a]/(n[a]**2+n[a])**.5)for a in s],key=l)[0];n[A]+=1;v-=1
+for a in n:n[a]+=2
+print sorted(list(n.items()),key=l)
+</code></pre>
+<p>Takes input as</p>
+<pre><code>420,{'K':123,'L':456,'M':789}
+</code></pre>
+<p>Prints:</p>
+<pre><code>[('M', 241), ('L', 140), ('K', 39)]
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="http://clean.cs.ru.nl/Clean" rel="nofollow">Clean</a>, <strike>263</strike> <strike>244</strike> 222 bytes</h1>
+
+<pre><code>v n s=sortBy(\(a,b)(c,d).b&gt;d)([(t,3.0)\\t&lt;-s|fst t=="DC"]++w(n-3*(length s))[(t,1.0)\\t&lt;-s|fst t&lt;&gt;"DC"])
+w 0s=w 0 s=[(p,r+2.0)\\(p,r)&lt;-s]
+w n s#s=sortBy(\a b.A a&gt;A b)s
+#(p,r)=hd s
+=w(n-1)[(p,r+1.0):tl s]
+A((_,p),r)=p/sqrt(r*r+r)
+</code></pre>
+
+<p>Call like</p>
+
+<pre><code>Start = v 538 [("DC", 1000000.0), ("RH", 1.0)]
+</code></pre>
+
+<p>Ungolfed version, full program (<code>census.icl</code>):</p>
+
+<pre><code>module census
+
+import StdEnv
+
+Start = votes 538 [("DC", 1000000.0), ("RH", 1.0)]
+
+votes n states
+# dc = filter (((==)"DC")o fst) states
+= sortBy (\(a,b)(c,d).b&gt;d) ([(t,3.0) \\ t &lt;- dc] ++ votes` (n-3*length states) [(t,1.0)\\t&lt;-removeMembers states dc])
+where
+    votes` 0 states = map (\(p,r).(p,r+2.0)) states
+    votes` n states
+    # states = sortBy (\a b.A a &gt; A b) states
+    # (p,r) = hd states
+    = votes` (n-1) [(p,r+1.0):tl states]
+
+    A ((_,p),r) = p / sqrt(r*r+r)
+</code></pre>
+</div>
+<div id="pu2" class="pu"><h1>JavaScript ES6, <s>249 bytes</s> 244 bytes</h1>
+
+<pre><code>(r,s)=&gt;{r-=s.length*3;s=s.map(t=&gt;({s:t[0],p:t[1],a:t[1]/(q=Math.sqrt)(2),r:1}));while(r--)(t=&gt;t.a=t.p/q(++t.r)/q(t.r+1))(s.filter(t=&gt;t.s!='DC').sort((a,b)=&gt;b.a-a.a)[0]);return''+s.sort((a,b)=&gt;(r=b.r-a.r)?r:a.s&gt;b.s?1:-1).map(t=&gt;t.s+':'+(t.r+2))}
+</code></pre>
+
+<h2>Test cases</h2>
+
+<p><div class="snippet" data-lang="js" data-hide="false">
+<div class="snippet-code">
+<pre class="snippet-code-js lang-js prettyprint-override"><code>d = (r, s) =&gt; {
+  r -= s.length * 3;
+  s = s.map(t =&gt; ({
+    s: t[0],
+    p: t[1],
+    a: t[1] / (q = Math.sqrt)(2),
+    r: 1
+  }));
+  while (r--)(t =&gt; t.a = t.p / q(++t.r) / q(t.r + 1))(s.filter(t =&gt; t.s != 'DC').sort((a, b) =&gt; b.a - a.a)[0]);
+  return '' + s.sort((a, b) =&gt; (r = b.r - a.r) ? r : a.s &gt; b.s ? 1 : -1).map(t =&gt; t.s + ':' + (t.r + 2))
+};
+
+document.write(
+  '&lt;pre&gt;' +
+  d(135, [
+    ['C', 236841],
+    ['D', 55540],
+    ['G', 70835],
+    ['K', 68705],
+    ['M', 278514],
+    ['Ms', 475327],
+    ['Nh', 141822],
+    ['Nj', 179570],
+    ['Ny', 331589],
+    ['Nc', 353523],
+    ['P', 432879],
+    ['R', 68446],
+    ['Sc', 206236],
+    ['Ve', 85533],
+    ['Vi', 630560]
+  ]) +
+  '&lt;/pre&gt;'
+);</code></pre>
+</div>
+</div>
+</p>
+
+<p>Credit to @Neil for saving 5 bytes!</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/70090/">70090</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
