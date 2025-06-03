@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::282018</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>523</td><td>47 244 577</td><td>250603T175232Z</td><td><a href="https://codegolf.stackexchange.com/questions/282018/maximize-the-number-of-steps-a-brainfuck-program-of-length-13-takes-to-terminate/282110#282110">2014MELO</a></td></tr>
+<tr d-ix="1"><td>nan</td><td></td><td>250602T044255Z</td><td><a href="https://codegolf.stackexchange.com/questions/282018/maximize-the-number-of-steps-a-brainfuck-program-of-length-13-takes-to-terminate/282089#282089">Selvapra</a></td></tr>
+<tr d-ix="2"><td>nan</td><td></td><td>250529T082319Z</td><td><a href="https://codegolf.stackexchange.com/questions/282018/maximize-the-number-of-steps-a-brainfuck-program-of-length-13-takes-to-terminate/282035#282035">Value In</a></td></tr>
+</table>
+<div id="pu0" class="pu"><p>47 244 577 523</p>
+<pre><code>+[&gt;+[[&lt;]&lt;]&gt;-]
+</code></pre>
+<p><a href="https://tio.run/##SypKzMxLK03O/v9fO9pOOzraJtYm1k439v9/AA" rel="nofollow noreferrer" title="brainfuck – Try It Online">Try it online!</a></p>
+<p>To explain how this works we will use the following notation:</p>
+<pre><code>42:     +[&gt;$+[[&lt;]&lt;]&gt;-]     1 {2} 3
+</code></pre>
+<p>Where <code>s:</code> is the number of steps taken to reach this state, <code>$</code> marks where the instruction pointer is (in this case the next instruction is <code>+</code>) and <code>{}</code> marks where the data pointer is. In this example the next state would be <code>43:  +[&gt;+$[[&lt;]&lt;]&gt;-]  1 {3} 3</code>. We will also use <code>&quot;x y&quot;*n</code> to denote <code>n</code> copies of the cells <code>x</code> and <code>y</code>, so the tape <code>1 &quot;2 3&quot;*3 4</code> is <code>1 2 3 2 3 2 3 4</code>.</p>
+<p>These are the first few steps of this program:</p>
+<pre><code>0:      $+[&gt;+[[&lt;]&lt;]&gt;-]     {0}
+2:      +[$&gt;+[[&lt;]&lt;]&gt;-]     {1}
+6:      +[&gt;+[[$&lt;]&lt;]&gt;-]     1 {1}
+8:      +[&gt;+[[$&lt;]&lt;]&gt;-]     {1} 1
+10:     +[&gt;+[[&lt;]$&lt;]&gt;-]     {0} 1 1
+12:     +[&gt;+[[&lt;]&lt;]$&gt;-]     {0} 0 1 1
+15:     +[$&gt;+[[&lt;]&lt;]&gt;-]     0 {-1} 1 1
+</code></pre>
+<p>That last state can be rewritten as <code>15: +[$&gt;+[[&lt;]&lt;]&gt;-] &quot;1 0&quot;*0 {-1} 1 1 0 0</code>. Similar states will show up frequently, so we will denote the states <code>s: +[$&gt;+[[&lt;]&lt;]&gt;-] &quot;1 0&quot;*k {-1} 1 m -n n</code> as <code>(s, k, m, n)</code>. We can take <code>(15, 0, 1, 0)</code> to be our initial state.</p>
+<p>Given one of these <code>(s, k, m, n)</code> states we can compute the what happens until a similar state is reached:</p>
+<pre><code>s:     +[$&gt;+[[&lt;]&lt;]&gt;-]     &quot;-1 0&quot;*k {-1} 1 m -n n
+s+4:   +[&gt;+[[$&lt;]&lt;]&gt;-]     &quot;-1 0&quot;*k -1 {2} m -n n
+s+6:   +[&gt;+[[$&lt;]&lt;]&gt;-]     &quot;-1 0&quot;*k {-1} 2 m -n n
+</code></pre>
+<p>Whenever the program is moving left and it encounters a <code>&quot;-1 0&quot;</code>, it goes trough it and leaves a <code>&quot;0 -1&quot;</code> behind after 5 steps:</p>
+<pre><code>0:  +[&gt;+[[$&lt;]&lt;]&gt;-]     -1 0 {-1}
+2:  +[&gt;+[[&lt;]$&lt;]&gt;-]     -1 {0} -1
+5:  +[&gt;+[[$&lt;]&lt;]&gt;-]     {-1} 0 -1
+</code></pre>
+<p>Repeating this <code>k</code> times we reach the state:</p>
+<pre><code>s+6:      +[&gt;+[[$&lt;]&lt;]&gt;-]     &quot;-1 0&quot;*k {-1} 2 m -n n
+s+5k+6:   +[&gt;+[[$&lt;]&lt;]&gt;-]     {-1} &quot;0 -1&quot;*k 2 m -n n
+s+5k+8:   +[&gt;+[[&lt;]$&lt;]&gt;-]     {0} -1 &quot;0 -1&quot;*k 2 m -n n
+s+5k+10:  +[&gt;+[[&lt;]&lt;]$&gt;-]     {0} 0 -1 &quot;0 -1&quot;*k 2 m -n n
+s+5k+13:  +[$&gt;+[[&lt;]&lt;]&gt;-]     0 {-1} -1 &quot;0 -1&quot;*k 2 m -n n
+</code></pre>
+<p><code>-1 &quot;0 -1&quot;*k</code> can be rewritten as <code>&quot;-1 0&quot;*k -1</code>. Whenever the program is moving right and it encounters a <code>&quot;-1 0&quot;</code>, it goes trough it and leaves a <code>&quot;-1 0&quot;</code> behind after 6 steps:</p>
+<pre><code>0:   +[$&gt;+[[&lt;]&lt;]&gt;-]     {-1} -1 0
+3:   +[&gt;+[[&lt;]&lt;]$&gt;-]     -1 {0} 0
+6:   +[$&gt;+[[&lt;]&lt;]&gt;-]     -1 0 {-1}
+</code></pre>
+<p>Now we repeat this <code>k</code> times:</p>
+<pre><code>s+5k+13:   +[$&gt;+[[&lt;]&lt;]&gt;-]     {-1} &quot;-1 0&quot;*k -1 2 m -n n
+s+11k+13:  +[$&gt;+[[&lt;]&lt;]&gt;-]     &quot;-1 0&quot;*k {-1} -1 2 m -n n
+</code></pre>
+<p>It is worth noting that going from <code>+[&gt;+[[$&lt;]&lt;]&gt;-]   &quot;-1 0&quot;*k {-1}</code> to <code>+[$&gt;+[[&lt;]&lt;]&gt;-]   &quot;-1 0&quot;*k {-1} -1</code> took <code>11k+7</code> steps.</p>
+<pre><code>s+11k+13:  +[$&gt;+[[&lt;]&lt;]&gt;-]     &quot;-1 0&quot;*k {-1} -1 2 m -n n
+s+11k+19:  +[$&gt;+[[&lt;]&lt;]&gt;-]     &quot;-1 0&quot;*k -1 0 {1} m -n n
+s+11k+21:  +[&gt;+$[[&lt;]&lt;]&gt;-]     &quot;-1 0&quot;*k -1 0 1 {m+1} -n n
+</code></pre>
+<p>Now we are testing whether <code>m+1</code> is 0, we will consider the case <code>m-1!=0</code> first:</p>
+<pre><code>s+11k+21:  +[&gt;+$[[&lt;]&lt;]&gt;-]     &quot;-1 0&quot;*k -1 0 1 {m+1} -n n
+s+11k+30:  +[&gt;+[[$&lt;]&lt;]&gt;-]     &quot;-1 0&quot;*k {-1} 0 1 m+1 -n n
+s+22k+37:  +[$&gt;+[[&lt;]&lt;]&gt;-]     &quot;-1 0&quot;*k {-1} -1 0 1 m+1 -n n (skipping the 11k+7 steps)
+s+22k+43:  +[$&gt;+[[&lt;]&lt;]&gt;-]     &quot;-1 0&quot;*k -1 0 {-1} 1 m+1 -n n
+s+22k+43:  +[$&gt;+[[&lt;]&lt;]&gt;-]     &quot;-1 0&quot;*(k+1) {-1} 1 m+1 -n n
+</code></pre>
+<p>So we found out that from the state <code>(s, k, m, n)</code> we reach the state <code>(s+22k+43, k+1, m+1, n)</code> if <code>m+1</code> is not <code>0</code>. If <code>m+1</code> is <code>0</code>, then instead we have:</p>
+<pre><code>s+11k+21:  +[&gt;+$[[&lt;]&lt;]&gt;-]     &quot;-1 0&quot;*k -1 0 1 {0} -n n
+s+11k+24:  +[&gt;+[[&lt;]&lt;]&gt;-$]     &quot;-1 0&quot;*k -1 0 1 0 {-n-1} n
+</code></pre>
+<p>Now we are testing whether <code>-n-1</code> is <code>0</code>. If it is <code>0</code>, then from the state <code>(s, k, 1, 1)</code> we reach the state <code>(s+11k+25, k+1, 0, 0)</code> and halt. If it is not <code>0</code>, then this is what happens:</p>
+<pre><code>s+11k+24:  +[&gt;+[[&lt;]&lt;]&gt;-$]     &quot;-1 0&quot;*k -1 0 1 0 {-n-1} n
+s+11k+41:  +[&gt;+[[$&lt;]&lt;]&gt;-]     &quot;-1 0&quot;*k {-1} 0 1 0 -n-1 n+1
+s+22k+48:  +[$&gt;+[[&lt;]&lt;]&gt;-]     &quot;-1 0&quot;*k {-1} -1 0 1 0 -n-1 n+1
+s+22k+54:  +[$&gt;+[[&lt;]&lt;]&gt;-]     &quot;-1 0&quot;*k -1 0 {-1} 1 0 -n-1 n+1
+s+22k+54:  +[$&gt;+[[&lt;]&lt;]&gt;-]     &quot;-1 0&quot;*(k+1) {-1} 1 0 -(n+1) n+1
+</code></pre>
+<p>So from the state <code>(s, k, m, n)</code> we reach <code>(s+22k+54, k+1, 0, n+1)</code>.</p>
+<p>Now that we understand how the program behaves we can <a href="https://tio.run/##ZY5BDoIwEEX3c4q/cEGFRlqtO07hBQBtQgMtBkhMjHevQ0N0wWQys5j/XqZr5t4OQ4x053Vzb4sK2lyJ2hbZXKAv4AsEQcAHyHyuBGo/Pmr8gFOFEowlAjm0Pva8Lmemc8X8OjZDJoPcG6rNkHClEq7NhpfcAlKia4YlScals9PLzRb72r1hLn9P4O@JfOMC556TCwsOKa9Muq8pQTF@AQ" rel="nofollow noreferrer">compute</a> that it takes 47244577523 steps to halt instead of having to run it. We can also verify that it's correct by changing the cell size to smaller values and confirming that the prediction matches the number of steps.</p>
+</div>
+<div id="pu1" class="pu"><h2>4977</h2>
+<p>Just dropping my 13-byte beast to raise the bar. This ain’t your average tweak — it’s a full-on nested loop chaos generator that wracks up 4,977 steps before calling it quits. Pointer auto-increment + inner loop pointer bounce = mad step inflation.</p>
+<pre><code>-[[&gt;+[&lt;]]&gt;++]
+</code></pre>
+<p>Not messing around here. This one exploits the pointer behavior perfectly, looping 255 times with pointer jumps that make your CPU sweat. Infinite tape, 8-bit wrapping cells, and a step count to make your head spin.</p>
+<p>You can Verify the count <a href="https://onlinegdb.com/a60VPyl5E" rel="nofollow noreferrer">Here</a></p>
+</div>
+<div id="pu2" class="pu"><h1>16808334</h1>
+<p>Just to get things started, though I'm not very good at Brainfuck so someone can probably find something better. Not much to say here, I just took the 9-byte example and shoehorned in a small 4-byte decrement loop <code>-[-]</code> in the middle that adds 512 instructions each time it's reached.</p>
+<pre><code>+[+[&gt;]-[-]-&lt;]
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=VVFNToNAFI7bOcUz0QTEodREY1IGt95hGBMKQ5mmUEKHEFN6Bg_ghoUuvZCn8Q1TUtnN-37e92Xe51fTrt-H4bvVOX3-vfrQSS2BwWtyKPxKduAoVuuGpfu20ixwSbrPDH8T-o1MMrJuZI7j8US6Qu0kKAjBSPydrDa6IJAmBzkiXAkCXSEreOEEYBFzJ96EQdTzt5jHQrh3sVj4ZaLTwjH6e1AuHKEve9hiQunLKnMCly5XYEL5ViCqVpjIUKByMM05dkWcQQCnKQ1j5_Q10oiNznGVaQa4fnJ4OF7kHoPlxNAZQ_8xETIIztThGbO6MeBivmXw8PhEsIW1jD9s30ZZW8De5Xye4cfjHo8E5VTQUFjwDw" rel="noreferrer">Code I wrote up to measure instruction count, not sure if 100% accurate or not</a></p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/282018/">282018</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
