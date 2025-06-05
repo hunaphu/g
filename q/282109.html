@@ -26,12 +26,49 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>099</td><td>Charcoal</td><td>250605T084606Z</td><td><a href="https://codegolf.stackexchange.com/questions/282109/solve-tango-puzzle/282127#282127">Neil</a></td></tr>
-<tr d-ix="1"><td>189</td><td>JavaScript ES6</td><td>250603T233420Z</td><td><a href="https://codegolf.stackexchange.com/questions/282109/solve-tango-puzzle/282114#282114">Arnauld</a></td></tr>
+<tr d-ix="0"><td>177</td><td>JavaScript ES6</td><td>250603T233420Z</td><td><a href="https://codegolf.stackexchange.com/questions/282109/solve-tango-puzzle/282114#282114">Arnauld</a></td></tr>
+<tr d-ix="1"><td>099</td><td>Charcoal</td><td>250605T084606Z</td><td><a href="https://codegolf.stackexchange.com/questions/282109/solve-tango-puzzle/282127#282127">Neil</a></td></tr>
 <tr d-ix="2"><td>264</td><td>Julia</td><td>250604T182610Z</td><td><a href="https://codegolf.stackexchange.com/questions/282109/solve-tango-puzzle/282121#282121">Sort of </a></td></tr>
 <tr d-ix="3"><td>599</td><td>Python3</td><td>250603T223415Z</td><td><a href="https://codegolf.stackexchange.com/questions/282109/solve-tango-puzzle/282112#282112">Ajax1234</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 99 bytes</h1>
+<div id="pu0" class="pu"><h1>JavaScript (ES6), 177 bytes</h1>
+<p>Expects <code>(m)(A)</code>, where <strong>m</strong> is a matrix of characters and <strong>A</strong> is a list of 5-tuples <code>[i,y,x,Y,X]</code> with <strong>i=0</strong> for <em>equal</em> and <strong>i=1</strong> for <em>different</em>.</p>
+<p>Updates the input matrix in-place.</p>
+
+<pre class="lang-javascript prettyprint-override"><code>m=&gt;g=A=&gt;m.some((r,y)=&gt;r.some((c,x)=&gt;c&lt;g?g(A,r[x]=&quot;M&quot;)&amp;&amp;g(A,r[x]=&quot;S&quot;)&amp;&amp;(r[x]=c):!A.every(([i,V,H,Y,X])=&gt;Y-y|X-x|m[V][H]==c^i)|/(\w)((\D*\1){3}|,\1,\1)/.test(r+0+m.map(r=&gt;r[x]))))
+</code></pre>
+<p><a href="https://tio.run/##lZLBauMwEIbveQpvDkVqJ6os2ZftKktgD73oJCgtjgvB64aUqC5O6CZs9tmzGtlRbTcUaozwN2Pp1z8zz4u3xaaoV6/byUv1uzw@qaNV06Waqallm8qWhNSwp2pat1TAzlHxY/lzSWZQZ7tcjfWYXly8o0Ek/rug37/NWPlW1ntCshXcwS08wH3ujniY7A/3k93BZnd5dpsrVTyu6OGazP9QQua/Lucx/Sv/HWAeu5des2252ZL6il9ZZhevpHZXcgrUPcd1uY3szeiJ2EhF2SiKMsbYmGljNBvncApotzDdCZizATPc0g0wo7Vxh45ySrwShyiGGCIBcQ4eJaIE0WyKMS8wLzDvUeKStCgQRUCJmIAMmCCesgn4RaD@qKheNtW6ZOtqSWwf6bAY2lsbODM97y7SKxdzW7QZ/NErly@f6RdDNGZlWwzvTiK2xZCYl8GfaPDrhhgbGDoTMMz0Ahotfb6lCXQNcfA9O3U3Bu@KB38p3j8NvefYn1M2aTAO7v1hPIwCx@rw0F2OzX6fDC/VKnv02TRg6uVDIRv5MDcpKqdhbpIPmAahFK/RRb@I7sy52JkWHf8D" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<h3>Method and performance</h3>
+<p>This simply makes a guess on each empty cell but aborts as soon as an inconsistent state is detected, so it's still pretty fast (a few milliseconds for the test cases).</p>
+<p>It's worth noting that there are only 11,222 valid grids<sup>(1)</sup>. Without any clue given in the input, a slightly modified version of this code can generate all of them in <a href="https://tio.run/##tY6xasMwEIZ3P4WqIdzVspLQralcDB2y1EshJMgqGFUxLlYUZJPaVH12V7SFPEE/brjvH@7@9/pS99q35yE7uTczH8VsRd6IQuSW984aAM8mFLn/M83GaPqheYQGCublqAR9prhYXPWF4u@m8f6m4OZi/AQgW7ZjW3ZgexUvHLIp7LMxWLlTcquE0K8thiVUHwhQPd1Wa/y8@wqsWsfBJR9MP4BPV6nltj6Dj43iB4yEkKbl3JmBlESQ1SY5gkwIkZxzyn@giv1HkCgEqTDR7tS7zvDONVDiZv4G" rel="nofollow noreferrer">~15 seconds on TIO</a>.</p>
+<p><em><sub>(1) as confirmed <a href="https://github.com/zmxv/tangocount" rel="nofollow noreferrer">here</a></sub></em></p>
+<h3>Commented</h3>
+<pre class="lang-javascript prettyprint-override"><code>m =&gt;                            // outer function taking m[]
+g = A =&gt;                        // inner recursive function taking A[]
+m.some((r, y) =&gt;                // for each row r[] at index y in m[]:
+  r.some((c, x) =&gt;              //   for each character c at index x in r[]:
+    c &lt; g ?                     //     if this cell is still empty (c is &quot;.&quot;):
+      g(A, r[x] = &quot;M&quot;) &amp;&amp;       //       recursive call with a moon inserted
+      g(A, r[x] = &quot;S&quot;) &amp;&amp;       //       recursive call with a sun inserted
+      (r[x] = c)                //       restore r[x] to &quot;.&quot;
+    :                           //     else (c is &quot;M&quot; or &quot;S&quot;):
+      !A.every(                 //       for each 5-tuple ...
+        ([i, V, H, Y, X]) =&gt;    //       ... [i, V, H, Y, X] in A[]:
+        Y - y | X - x |         //         tests whether (X, Y) matches (x, y)
+        m[V][H] == c            //         and m[V][H] either does or doesn't
+        ^ i                     //         match c, according to i
+      ) |                       //       end of every()
+      /(\w)((\D*\1){3}|,\1,\1)/ //       look for 4 identical symbols anywhere
+      .test(                    //       or 3 consecutive identical symbols in:
+        r +                     //         either the current row
+        0 +                     //         (use 0 as a separator)
+        m.map(r =&gt; r[x])        //         or the current column
+      )                         //       end of test()
+  )                             //   end of inner some()
+)                               // end of outer some()
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 99 bytes</h1>
 <pre><code>≔Ｅ²Ｅ⪪Ｓ⁴Ｅ⪪λ²⍘ν⁶θ⊞υ⭆⁶ＳＦυＦＥMS⭆ι⎇⁼ν⌕ι.κμ¿¬∨⊙θ⊙λ№⪪§⪪⍘¹⁵⁶MS⁴μ²⭆ν§κπ⊙⁺⪪κ⁶Ｅ⁶⭆⪪κ⁶§νλ⊙MS∨№λ×³ν›№λν³¿№κ.⊞υκ⪪κ⁶
 </code></pre>
 <p><a href="https://tio.run/##VVHBbsMgDL3nK6ycQGKRAl0vPWXTNvXAVon@QNTSNgolaYBp/frMlFRNLSSDn@33bHaneth1tRnHyrnmaImse8IZRKd603iytn3wyg@NPRLKYEHnoGHAMfBWOz2lWAZLisbgQlfZJrgTCQwSGOuWDJ46Usw6dAOQQOHmY1IuVT4vahhs9WDr4Uo@LqE2LtJ8NnYfkbzII13L4ByJoTkA@e48@RlIZa/kwiA6VPreBesn4ZVf273@m14z/eUrKoz806xnmkZ8iEHqezVy9jRNGzk2JripYxvXkDa1nBc/ofc22NE8uqThUX3Si8K3zVk7IhjYmPM16NrrGWwxKGiy2/QJaafVwP0TWroCbZyGDarxcyl0NY5lyUtRCp6VnMfbggu@ECIeNHxmhVRKFpks0GSmZk6loMoKJaUqxpdf8w8" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code. Takes the <code>=</code> and <code>×</code> lists as a concatenated string of digits e.g. <code>(1,1), (2,1), (3,1), (3,2)</code> becomes <code>11213132</code> and outputs all found solutions. Explanation:</p>
@@ -53,46 +90,6 @@
 <pre><code>¿№κ.⊞υκ⪪κ⁶
 </code></pre>
 <p>If there is still a <code>.</code> to process then push the result to the search list otherwise output the result as a grid.</p>
-</div>
-<div id="pu1" class="pu"><h1>JavaScript (ES6), 189 bytes</h1>
-<p>Expects <code>(m)(A)</code>, where <strong>m</strong> is a matrix of characters and <strong>A</strong> is a list of 5-tuples <code>[i,y,x,Y,X]</code> with <strong>i=0</strong> for <em>equal</em> and <strong>i=1</strong> for <em>different</em>.</p>
-<p>Prints all solutions as matrices of characters (only one solution in practice, given the constraints of the challenge).</p>
-
-<pre class="lang-javascript prettyprint-override"><code>m=&gt;g=A=&gt;m.some((r,y)=&gt;r.some((c,x)=&gt;c&lt;g?r[g(A,r[x]=&quot;M&quot;),g(A,r[x]=&quot;S&quot;),x]=c:!A.every(([i,V,H,Y,X])=&gt;Y-y|X-x|m[V][H]==c^i)|/(\w)((\D*\1){3}|,\1,\1)/.test(r+0+m.map(r=&gt;r[x]))))||console.log(m)
-</code></pre>
-<p><a href="https://tio.run/##hZJRT8IwEMff@RSTp1aP2rXbi3EYEh946VMTAxkzIXMuGOfMIAhxfnbsdaNsaHRZSn7/43b3v@vLcrtcp9XqfTN6K5@yw3N0KKJxHk2iccHWZZERUsGeRuOqpRR2htLb/K6KczKBKt4l0VANKZxIGzK/6c3FhGXbrNoTEq/gAaYwh1li0uejfT0b7eoifkjiaRJF6eOK1tdk8UEJWdxfLnz6Kb9qWPjmpddsk603pLriVwUrlu@kMu2YQtQ8dZ2Wb@vyNWOvZU4Kengm8cDzYsbYkCmtFRsmcBSUOZjqCPpXQZ@ndAWmldLmo4OENpU4eD744AnwE7AoESWIJsnHuMC4wLhFiUfQokAUDiViANJhgHiMBmAPgfUHXet00HGurI8zG7pn1Ci92TCTovTZP3qzsbPSfeeicSZb59aKRGydS4xLZ0Y0@E/3jJ11/4ugme4JCvv/O6URut1zsNs47s0Ha4E7MyE2G7qtcpz8MRo06Dur9mPcLZnjKLjbG8c1nnZuS7WVLdpo6DC05d3UmvLuRoRYOXQ3IviBoSsUYhtdtIfo3iaj4VQO3w" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
-<h3>Method and performance</h3>
-<p>This simply makes a guess on each empty cell but aborts as soon as an inconsistent state is detected, so it's still pretty fast (a few milliseconds for the test cases).</p>
-<p>It's worth noting that there are only 11,222 valid grids<sup>(1)</sup>. Without any clue given in the input, this code can generate all of them in <a href="https://tio.run/##tY7BSsQwEIbvfYrY04ydZnfx5ppKwcNe7EVYdkkjlJgtlWazpGVtMT57DSL4BH4MDN8Pw/zvzbUZtO8uY352b2Y5icWKohWlKCwfnDUAnmYUhf81TVM0/dA@etlCSV5OSqTPKdKfvUSLW9/flNxcjZ8BZEd72tGRDiqeH/M5HPIpWLlXcqeE0K8dhhXUHwhQP93WG/y8@wpUb@Lgio9mGMFn68xy21zAxzrxEUZCyLJq6c3IKibYepucQCaMSc55yn9IFf1HkCgEqTDR7jy43vDetVDhdvkG" rel="nofollow noreferrer">~15 seconds on TIO</a>.</p>
-<p><em><sub>(1) as confirmed <a href="https://github.com/zmxv/tangocount" rel="nofollow noreferrer">here</a></sub></em></p>
-<h3>Commented</h3>
-<pre class="lang-javascript prettyprint-override"><code>m =&gt;                            // outer function taking m[]
-g = A =&gt;                        // inner recursive function taking A[]
-m.some((r, y) =&gt;                // for each row r[] at index y in m[]:
-  r.some((c, x) =&gt;              //   for each character c at index x in r[]:
-    c &lt; g ?                     //     if this cell is still empty (c is &quot;.&quot;):
-      r[                        //       process two recursive calls:
-        g(A, r[x] = &quot;M&quot;),       //         one with a moon inserted
-        g(A, r[x] = &quot;S&quot;),       //         one with a sun inserted
-        x                       //       then restore r[x] ...
-      ] = c                     //       ... to &quot;.&quot;
-    :                           //     else (c is &quot;M&quot; or &quot;S&quot;):
-      !A.every(                 //       for each 5-tuple ...
-        ([i, V, H, Y, X]) =&gt;    //       ... [i, V, H, Y, X] in A[]:
-        Y - y | X - x |         //         tests whether (X, Y) matches (x, y)
-        m[V][H] == c            //         and m[V][H] either does or doesn't
-        ^ i                     //         match c, according to i
-      ) |                       //       end of every()
-      /(\w)((\D*\1){3}|,\1,\1)/ //       look for 4 identical symbols anywhere
-      .test(                    //       or 3 consecutive identical symbols in:
-        r +                     //         either the current row
-        0 +                     //         (use 0 as a separator)
-        m.map(r =&gt; r[x])        //         or the current column
-      )                         //       end of test()
-  )                             //   end of inner some()
-)                               // end of outer some()
-|| console.log(m)               // if falsy, print the matrix
-</code></pre>
 </div>
 <div id="pu2" class="pu"><h1><a href="https://julialang.org" rel="nofollow noreferrer">Julia</a>, 264 bytes</h1>
 <pre><code>f(G,E,X)=while true
