@@ -382,6 +382,29 @@ Exits with <code>Bad system call</code>.</p>
   18:   d2401908        eor     x8, x8, #0x7f
   1c:   17fffffc        b       c &lt;_start+0xc&gt;
 </code></pre>
+<h2>Original source</h2>
+<pre><code>.globl _start
+
+_start:
+mov x1,sp  // Stores one-character input 
+mov x2,1   // Length of to input/output
+mov x8,63  // SYS_read
+
+// Main loop 
+1:
+sub x0,x8,63  // 63-63=0 for fd_stdin; 64-63=1 for fd_stdout
+              // (OBTW 127-63=64)
+svc 0         // system call
+              // read() sets 1 or 0 to x0 to indicate number of bytes read
+              // write() sets 1 to x0; I don't think other values would be set
+mul x8,x8,x0  // sets x8 to either 64 or 63 or 0
+eor x8,x8,127 // takes XOR: 63 to 64; 64 to 63; 0 to 127
+b 1b
+</code></pre>
+<p>Obtw AArch64 system call number 127 is <a href="https://man7.org/linux/man-pages/man2/sched_rr_get_interval.2.html" rel="nofollow noreferrer">sched_rr_get_interval</a>; its synopsis is:</p>
+<pre><code>int sched_rr_get_interval(pid_t pid, struct timespec *tp);
+</code></pre>
+<p>On my Termux it had resulted in <code>Bad system call</code>; hope some other users of AArch64 Linux let me know what would happen on your machine for this program.</p>
 <h2>History</h2>
 <p>Began with 36+1=37 bytes</p>
 <p>-5 bytes by porting from Thumb-2 answer</p>
