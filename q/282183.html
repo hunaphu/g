@@ -35,6 +35,28 @@
 <p>A monadic Link that accepts a list of list of comparable values, e.g. integers (region identifiers) and yields a list of solutions, each as a list of coordinate pairs, <code>[row, column]</code> (<code>[1,1]</code> at top-left).</p>
 <p><strong><a href="https://tio.run/##ddAxDsIgFAbgnVOQxpHE8N6bvYOr2Mm4mA6uri7M7Qnq5OJol3arlnvgRZAmTW0rkBAI@fK/P5yOWXZxriveZVecd1uTG23yldFt1RUHW9/Wn@tjI9u7rcu2MtrZ5vnSTikFgstUcCUFx/5EwaE/SXBK@8tU0ELgKGCRIf8yZoIGgSFBiwwMi0nGT@AgINpjJoI9MNIDRkGRKRgWwaYU@TE/JXVJkuyZBAAm/WKIRMxv8u9f" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></strong> (Smaller because it's brute force)</p>
 <p>The first test case runs in just under eight minutes and consumes 12.7 GB of RAM locally (!)</p>
+<h4>How?</h4>
+<pre><code>ŒĠŒpZQƑƇƑ$ƇµŒcạ/€&gt;1§ẠµƇ - Link: list of lists of integers, Grid
+ŒĠ                      - group multidimensional indices of Grid by their values
+  Œp                    - Cartesian product -&gt; all coordinate selections
+                                               of one Queen per region
+          Ƈ             - keep those for which:
+         $              -   last two links as a monad:
+    Z                   -     transpose
+        Ƒ               -     is that invariant under?:
+       Ƈ                -       keep those for which:
+      Ƒ                 -         is that invariant under?:
+     Q                  -           deduplication
+                           -&gt; all Queen coordinate selections with one Queen per
+                              region, per row, and per column
+           µ         µƇ - keep those for which:
+            Œc          -   unordered pairs
+              ạ/€       -   reduce each by absolute difference
+                              -&gt; [[RowDelta, ColumnDelta], ...]
+                 &gt;1     -   greater than one?
+                   §    -   sums
+                    Ạ   -   all? - i.e. no Queens in the same neighbourhood
+</code></pre>
 </div>
 
 <table id="st">
