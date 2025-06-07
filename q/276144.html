@@ -46,50 +46,71 @@
 <tr d-ix="17"><td>022</td><td>05AB1E</td><td>241016T073412Z</td><td><a href="https://codegolf.stackexchange.com/questions/276144/the-shortcut-hint/276146#276146">Kevin Cr</a></td></tr>
 <tr d-ix="18"><td>068</td><td>Google Sheets</td><td>241016T071528Z</td><td><a href="https://codegolf.stackexchange.com/questions/276144/the-shortcut-hint/276145#276145">doubleun</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>AArch64 machine code, .text: 108 + .data: 6 = 114 bytes</h1>
-<pre><code>$ objdump -dh f.o
+<div id="pu0" class="pu"><h1>AArch64 machine code, .text: 104 + .data: 6 = 110 bytes</h1>
+<pre><code>$ objdump -ds f.o
 
 f.o:     file format elf64-littleaarch64
 
-Sections:
-Idx Name          Size      VMA               LMA               File off  Algn
-  0 .text         0000006c  0000000000000000  0000000000000000  00000040  2**2
-                  CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
-  1 .data         00000006  0000000000000000  0000000000000000  000000ac  2**0
-                  CONTENTS, ALLOC, LOAD, DATA
-  2 .bss          00000000  0000000000000000  0000000000000000  000000b2  2**0
-                  ALLOC
+Contents of section .text:
+ 0000 09150038 09144038 a9020034 0f048052  ...8..@8...4...R
+ 0010 22e80171 48485a3a e2479f1a 42840f1b  &quot;..qHHZ:.G..B...
+ 0020 2ae90171 48495a3a ea479f1a 4aa50f1b  *..qHIZ:.G..J...
+ 0030 5f000a6b 61feff54 0a000010 49050039  _..ka..T....I..9
+ 0040 49014079 09250078 02000014 09150038  I.@y.%.x.......8
+ 0050 09144038 c9ffff35 c0035fd6 00000010  ..@8...5.._.....
+ 0060 01040039 fbffff17                    ...9....
+Contents of section .data:                                                         0000 283f2900 5f3f                        (?)._?
+                                                                                  Disassembly of section .text:
+                                                                                  0000000000000000 &lt;f-0x4&gt;:
+   0:   38001509        strb    w9, [x8], #1
 
-Disassembly of section .text:
+0000000000000004 &lt;f&gt;:                                                                4:   38401409        ldrb    w9, [x0], #1
+   8:   340002a9        cbz     w9, 5c &lt;f+0x58&gt;
+   c:   5280040f        mov     w15, #0x20                      // #32
+  10:   7101e822        subs    w2, w1, #0x7a
+  14:   3a5a4848        ccmn    w2, #0x1a, #0x8, mi     // mi = first
+  18:   1a9f47e2        cset    w2, pl  // pl = nfrst
+  1c:   1b0f8442        msub    w2, w2, w15, w1
+  20:   7101e92a        subs    w10, w9, #0x7a
+  24:   3a5a4948        ccmn    w10, #0x1a, #0x8, mi    // mi = first
+  28:   1a9f47ea        cset    w10, pl // pl = nfrst
+  2c:   1b0fa54a        msub    w10, w10, w15, w9
+  30:   6b0a005f        cmp     w2, w10
+  34:   54fffe61        b.ne    0 &lt;f-0x4&gt;  // b.any
+  38:   1000000a        adr     x10, 0 &lt;f-0x4&gt;
+  3c:   39000549        strb    w9, [x10, #1]
+  40:   79400149        ldrh    w9, [x10]
+  44:   78002509        strh    w9, [x8], #2
+  48:   14000002        b       50 &lt;f+0x4c&gt;
+  4c:   38001509        strb    w9, [x8], #1
+  50:   38401409        ldrb    w9, [x0], #1
+  54:   35ffffc9        cbnz    w9, 4c &lt;f+0x48&gt;                                     58:   d65f03c0        ret
+  5c:   10000000        adr     x0, 0 &lt;f-0x4&gt;
+  60:   39000401        strb    w1, [x0, #1]
+  64:   17fffffb        b       50 &lt;f+0x4c&gt;
+</code></pre>
+<h2>Synopsis</h2>
+<pre><code>adr x0,.L.string
+adr x1,.L.char
+ldrb w1,[x1]
+adr x8,.L.buf // Output
+bl f
 
-0000000000000000 &lt;f&gt;:
-   0:   14000002        b       8 &lt;f+0x8&gt;
-   4:   38001509        strb    w9, [x8], #1
-   8:   38401409        ldrb    w9, [x0], #1
-   c:   340002a9        cbz     w9, 60 &lt;f+0x60&gt;
-  10:   5280040f        mov     w15, #0x20                      // #32
-  14:   7101e822        subs    w2, w1, #0x7a
-  18:   3a5a4848        ccmn    w2, #0x1a, #0x8, mi     // mi = first
-  1c:   1a9f47e2        cset    w2, pl  // pl = nfrst
-  20:   1b0f8442        msub    w2, w2, w15, w1
-  24:   7101e92a        subs    w10, w9, #0x7a
-  28:   3a5a4948        ccmn    w10, #0x1a, #0x8, mi    // mi = first
-  2c:   1a9f47ea        cset    w10, pl // pl = nfrst
-  30:   1b0fa54a        msub    w10, w10, w15, w9
-  34:   6b0a005f        cmp     w2, w10
-  38:   54fffe61        b.ne    4 &lt;f+0x4&gt;  // b.any
-  3c:   1000000a        adr     x10, 0 &lt;f&gt;
-  40:   39000549        strb    w9, [x10, #1]
-  44:   79400149        ldrh    w9, [x10]
-  48:   78002509        strh    w9, [x8], #2
-  4c:   14000002        b       54 &lt;f+0x54&gt;
-  50:   38001509        strb    w9, [x8], #1
-  54:   38401409        ldrb    w9, [x0], #1
-  58:   35ffffc9        cbnz    w9, 50 &lt;f+0x50&gt;
-  5c:   d65f03c0        ret
-  60:   10000000        adr     x0, 0 &lt;f&gt;
-  64:   39000401        strb    w1, [x0, #1]
-  68:   17fffffb        b       54 &lt;f+0x54&gt;
+mov x0,1
+adr x1,.L.buf
+mov x2,1024
+mov x8,64
+svc 0
+
+mov x0,0
+mov x8,93
+svc 0
+
+.data
+.L.string: .asciz &quot;Search&quot;
+.L.char = 'S'                                                               
+.bss
+.L.buf: .fill 1024
 </code></pre>
 <h2>Source</h2>
 <pre><code>/// fn (x0: [*:0]const u8, w1: u8, x8: [*:0]u8) void
@@ -98,12 +119,9 @@ Disassembly of section .text:
 ///   @intFromPtr(x8) &gt;= @intFromPtr(x0) + x0.len
 .globl f
 
-f:
-b .L.find
-
 1:
 strb w9,[x8],1
-.L.find:
+f:
 ldrb w9,[x0],1
 cbz w9,.L.NotFound
 
@@ -149,24 +167,24 @@ b .L.CopyRest
 </code></pre>
 <h2>How to test</h2>
 <p>Here is the base64 of my tarball. Save as <code>dist.tar.xz.base64</code>:</p>
-<pre><code>/Td6WFoAAATm1rRGBMCNB4BQIQEWAAAAAAAAADDjReDgJ/8DhV0AMwuKYA5QJwj87SsS4vWGI5bQ
-b8vLTU+txs/5dN3D5QE+5weEXltBhinlQD+2eFTM3gptpFOec357Ggx9PtR4iTBRPpyooXGL3glQ
-Bbe6+I7v/6xHcXG4v/M4S8DnWCHFs2cRUdaQC3CVxEXIsQF6ap0Xx4J4WJiDf56+KZjz5V9U1RjB
-1GHGRlaQ57X0U8fZ5rhmCyv36xeDw/nmzeMRXW6n/46NsAbGSzVB3rGx65grzFsdp2pngClZKok5
-t4mdO3lDPTUjVE81bi3tKNqndwu1GUSSsdJWoniKdgzxkj+udyBKn6c74r7kKYmm6UuPEy1ydtT5
-TgkplEu0q/7ySF1MfoA4nkVY4Jm9c+yLqvp8xQWUNIwOVgJMmGCMqeKV3vm62F1irPM9DIYYU5dD
-W0dhW1R+wCfH0Lw9hAt8k4qnWXazyg++zagCtywZI4icH2LodEbA+jS6hho/UcW0mJb3Ijd5TZqb
-UyB4BKuJju0Jw1Fsj0ijUGn8U5ynSzd+PybHvenljydNmqv//65wIG8dQWCn50cRdtulg1kJcEQF
-TXjYh/JHk3QgqoWs3TchOeL11ujKDOguG/zaC24+q3wISvipvzun9u42HtWUtrigM3wa0zV/9VBq
-UzwJ8PdS84WQptwxQUmezvSbFkc9ptED+iZ3YOrJbY0gnQB90MMSWOsGRa/h9DnZ7gx3aYBriIQ5
-ZPdEjICMBwoO+KQSSRMHAcB5PRj1ZiyUneck/cwYO5Qd1D09xVW6ist9LNZVSED4blhv1UFd8n6n
-ZeBVgeJupFmm0CoYgRB9/qmB6wzFFv/s49HWRki4U16MsMEAUZgWoMLnpqst8iVi/fiApvPw8Sp+
-22K7YKgPGM8YLEoT5k5uMzFH4ahhtECr6vEPny/Q4TRnGQ6bKyEftv/P5jc12noZiLZX68uZKdQ+
-tuHe1Sdt19JDMBQQ5NdPLPxNVuPTazrOMh3pYmu1xwcZGqexrCbg8hHjGZu4ecZiRbpe333aRzPs
-uP0oXcrOMKSB7cUrJg4N4kIOoy+At1ER5TfyH9VPS9xanENooUQ6EHvpUMRRLTxCcXJbaKX1nVXn
-u5sLC8wEV4W4eWsMEGE3tFsoE2mffWdP1SAr8uA4iunIm+LAcySEabl81Fh0cRWiQ2M7mtF26U2r
-ZSS2bBtGPYVniX06vPacyZsKC94sqBxqLEWQHgAAAACfLU4DvQOU5QABqQeAUAAAYNCDzrHEZ/sC
-AAAAAARZWg==
+<pre><code>/Td6WFoAAATm1rRGBMCJB4BQIQEWAAAAAAAAACts6fngJ/8DgV0AMwuKYA5QJwj87SsS4vWGI5bQ
+b8vLTVj6v+rM+PCUEiLfeAlP/ZuvSSeHfT7G0GM/DVvBBJRXGVZ8SyYPk10w7F7K7FHLt/zdjWAJ
+u9XKXBBYoPu9UCwks3dseqsiZvogpXevRO00hGFyG+UEa0qjVpb/PD5Bdai9c0YYRMWp1cRKKIKm
+Cu4WdAawDdqZLjMKIUv1HEB6BfIaFKjibRvWPptOtUMLx47Pa3AxX0OwmL1hfA5Odm7caVBHRelq
+ByQdne967lefm8ffLDhwhDzxsjjlDeZOIKoBi5GivRud+iuDyssflBJdvRGR32zhnN181nZAbUdl
+9UeFZ2f1DcqJx3d1hYu03k6RGEdM8SuLUzZE7opaG9JK52iotv9tcIXwYAUf+6GssapmOsOSYFWO
+A6PCQUz5yunV/uTSGvQdMz8zQsa8Wg1QycwWcxmgBw9V7/9fsHm7zQuwUCPdd28lQh+R0iw319+s
++c84DLcqpHeLGkFt7y+eYqFoCHScoRlFvDgg32mH9BQCcagmyHdKBPf5nHMXQsOI9so+NjeY7T64
+jlcn9pAJTn9XOaK4j3iQrfZhaw1Z3be9xcPPqGgGy+ojA49gJAeVlTcBDfwWX0lZJ4FhhLllUzGL
+xo03Siv+4uUyB+YD7VIqh0Qcg/RzZMmo0anU475/F1sgn40FR3WAZtnlgejxSXqJnaXQwgN9KPLS
+ouAl2htU3N8syPVoSpTgrQGBLdKDgR1jFTCbEFDgcEUemWbBEbxyq1ceamIR/owbN9wiwgs3C0Ai
+bMCPC9pNpcDaKZ4lZ8xV5jWMvVuIH+8/5vkkGPk6g82XnfsDM+wH87/3FH2ueSfuLS+bmVgQ3V26
+IyBfkyHigNV/wuXnwtAbBS+g3kPOlBUMhtTBGJHH6vDKm2B31Gqg/RK13ymAiQpt0MBbp6ppFfqO
++QZ/d3vKBirl+fnXbXg5TMtqkCuGlLjdMB8hZlyUD6lu7PqAxiKFBX+OL9Ualm6Xt4exQ1h8BO4l
+xCqNZlBuARgyfLZx9R/VxYzJSEzmzRRffAymT3HcXupFK7g7KBLEcpfGq5s2slx/zw7nxtv6qMsO
+ZDg7Bj0vC1R+JMcxHC3JOWeT1iLf4Gb2rty6OXjRVJGCrdpC1fGoZcfTmFZ5CyL8ylmYEpzsmFgC
+z4eSxWTvOCfHy6QP01PP2nxsQ5xrTjL6AAAAANRR1S5kq7VzAAGlB4BQAAAbEEG5scRn+wIAAAAA
+BFla
 </code></pre>
 <p>Decode it and extract with mode <code>Jx</code>:</p>
 <pre><code>$ cat dist.tar.xz.base64 | base64 -d | tar Jxf -
@@ -181,16 +199,15 @@ test.sh
 <pre><code>$ as -o f.o f.s &amp;&amp; as -o main.o main.s &amp;&amp; ld -o main f.o main.o
 </code></pre>
 <p>Now you have an executable.
-Finally run a test:</p>
-<pre><code>$ ./test.sh
-</code></pre>
-<p>You will have the following result:</p>
-<pre><code>./main Search S
+Finally run a test; you will have the following result:</p>
+<pre><code>$ ./test.sh | tr -d '\0'
+./main Search S
 _Search
 
 ./main Translate N
 Tra_nslate
-                                                                                  ./main Cut X
+
+./main Cut X
 Cut(X)
 
 ./main Snap 10th 1
@@ -221,6 +238,8 @@ Test(q)
 Test())
 
 </code></pre>
+<h2>History</h2>
+<p>-4 bytes for position of label f</p>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://www.gnu.org/software/gawk/manual/gawk.html" rel="nofollow noreferrer">AWK</a>, 39 bytes</h1>
 <pre><code>$1~$2&amp;&amp;sub($2,&quot;_&quot;$2)||$0=$1&quot;($2)&quot;,$0=$1
