@@ -32,10 +32,46 @@
 </table>
 <div id="pu0" class="pu"><h1>JavaScript (ES11), 165 bytes</h1>
 <p>Expects a square matrix of positive integers. Updates the matrix in-place, putting <span class="math-container">\$0\$</span>'s at queen positions.</p>
+
 <pre class="lang-javascript prettyprint-override"><code>f=(m,N,C,R)=&gt;R+1&gt;&gt;m.length||m.some((r,y)=&gt;r.some((n,x)=&gt;![N&gt;&gt;n,C&gt;&gt;x,R&gt;&gt;y,r[x]=0].some((v,i)=&gt;v&amp;1|m[y+(~i%2|1)]?.[x+1-2%~i]&lt;1)&amp;&amp;f(m,N|1&lt;&lt;n,C|1&lt;&lt;x,R|1&lt;&lt;y)||![r[x]=n]))
 </code></pre>
 <p><a href="https://ato.pxeger.com/run?1=ZVBBasMwELz7FZtAjIQ3onJaKNhWD7nn4KuqQ0nt1MWSiuMGG0Q-0ksOzakv6m8qx26hBAbt7uwwGvbj09jn4nQ6v7fl8v77XGZE4wbXmNNM5BEXQrO6MLv2xTnN9lYXhDTY-2UzTQY7P83kRgiDayE6zIXosZGdym7UJDpg5UWHkDst-4gcq0XsOFUPTHYRX8aLY6VSTsOwHH53PE291VC82VB66txMXiyNonQK-1UXLWjIQAYAEjhC_AdQeCFXCLc4vJ5cXZGr_-SIO48rclQGKgl8RJoEW2v2ti5YbXdEM_30RhrIBDTs1VaGzGFO6dQ-Gt8nY-TfO_8A" rel="nofollow noreferrer">Attempt This Online!</a> (easy test case, instantaneous)</p>
 <p><a href="https://ato.pxeger.com/run?1=dZJPT4MwFMDjlU_RLRlpQ0csMsUA9bD7DlxrD0ZhorQYhgskzb6Ilx3ch9JPY_m3oMTkl7z38n55bV_68Snzp_h4PL2XydL7OiUhFHiD1zhCIY0sQqmws1huy2elhL3LRQxhgWvdLPpK4kpXM7ahVOI1pRWOKK1xwSoeXvJe2uNUS3uTKMFqCx7ShaMI4nc2qyyydBaHlAcEmWbSnK5IEOhRTdDDmlAjpWasHSk5Qt1lvy9es7gEAoSAGQAwQHCDMwVwPAhXLe7AquUsjLvXY2ckuBPBnQg3A_8JU8aCN-neTgTvd_ePcHY6VsMrDO4besfINx5zucuz2M7yLRS2eHiDBQgpKOyXPJVwDuYI9em91Lnf7Xz4KD8" rel="nofollow noreferrer">Attempt This Online!</a> (harder test case, ~20 seconds)</p>
+<h3>Commented</h3>
+<pre class="lang-javascript prettyprint-override"><code>f = (                    // f is a recursive function taking:
+  m,                     //   m[] = input matrix
+  N,                     //   N = bit-mask for regions
+  C,                     //   C = bit-mask for columns
+  R                      //   R = bit-mask for rows
+) =&gt;                     //
+R + 1                    // stop right await if R + 1 is equal to
+&gt;&gt; m.length ||           // 2 ** m.length (success)
+m.some((r, y) =&gt;         // otherwise, for each row r[] at index y in m[]:
+  r.some((n, x) =&gt;       //   for each value n at index x in r[]:
+    ![                   //     we want to know if there's already a queen in:
+      N &gt;&gt; n,            //       the region n
+      C &gt;&gt; x,            //       or the column x
+      R &gt;&gt; y,            //       or the row y
+      r[x] = 0           //     attempt to put a queen at the current position
+    ]                    //
+    .some((v, i) =&gt;      //     for each value v at index i in the above array:
+      v &amp; 1 |            //       test the LSB of v
+      m[                 //       test the diagonally touching square at:
+        y + (~i % 2 | 1) //         y + [ -1, 1, -1, 1 ][i]
+      ]?.[               //
+        x + 1 - 2 % ~i   //         x + [ 1, 1, -1, -1 ][i]
+      ] &lt; 1              //       is it a queen?
+    ) &amp;&amp;                 //     end of some()
+    f(                   //     if true, do a recursive call:
+      m,                 //       pass m[]
+      N | 1 &lt;&lt; n,        //       pass the updated region bit-mask
+      C | 1 &lt;&lt; x,        //       pass the updated column bit-mask
+      R | 1 &lt;&lt; y         //       pass the updated row bit-mask
+    ) ||                 //     end of recursive call
+    ![r[x] = n]          //     if false, restore r[x] to n
+  )                      //   end of inner some()
+)                        // end of outer some()
+</code></pre>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, <s> 23 </s> 18 bytes</h1>
 <p>...brute-force method</p>
