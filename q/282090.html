@@ -26,8 +26,8 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>nan</td><td>awk</td><td>250604T142135Z</td><td><a href="https://codegolf.stackexchange.com/questions/282090/a-broken-clock-is-right-n-times-a-day/282119#282119">jena</a></td></tr>
-<tr d-ix="1"><td>122</td><td>Swift 6</td><td>250603T183914Z</td><td><a href="https://codegolf.stackexchange.com/questions/282090/a-broken-clock-is-right-n-times-a-day/282111#282111">macOSist</a></td></tr>
+<tr d-ix="0"><td>117</td><td>Swift 6</td><td>250603T183914Z</td><td><a href="https://codegolf.stackexchange.com/questions/282090/a-broken-clock-is-right-n-times-a-day/282111#282111">macOSist</a></td></tr>
+<tr d-ix="1"><td>nan</td><td>awk</td><td>250604T142135Z</td><td><a href="https://codegolf.stackexchange.com/questions/282090/a-broken-clock-is-right-n-times-a-day/282119#282119">jena</a></td></tr>
 <tr d-ix="2"><td>046</td><td>Perl 5 p</td><td>250602T183314Z</td><td><a href="https://codegolf.stackexchange.com/questions/282090/a-broken-clock-is-right-n-times-a-day/282096#282096">Xcali</a></td></tr>
 <tr d-ix="3"><td>067</td><td>APL+WIN</td><td>250603T131548Z</td><td><a href="https://codegolf.stackexchange.com/questions/282090/a-broken-clock-is-right-n-times-a-day/282103#282103">Graham</a></td></tr>
 <tr d-ix="4"><td>033</td><td>Charcoal</td><td>250603T074050Z</td><td><a href="https://codegolf.stackexchange.com/questions/282090/a-broken-clock-is-right-n-times-a-day/282101#282101">Neil</a></td></tr>
@@ -39,62 +39,65 @@
 <tr d-ix="10"><td>056</td><td>Retina 0.8.2</td><td>250602T085557Z</td><td><a href="https://codegolf.stackexchange.com/questions/282090/a-broken-clock-is-right-n-times-a-day/282093#282093">Neil</a></td></tr>
 <tr d-ix="11"><td>026</td><td>05AB1E</td><td>250602T075831Z</td><td><a href="https://codegolf.stackexchange.com/questions/282090/a-broken-clock-is-right-n-times-a-day/282092#282092">Kevin Cr</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h2>awk, first stab at golf (<del>162 135</del> 120 bytes)</h2>
-<p>Even newer version abusing ternary operator <em>and</em> without an array:</p>
-<pre class="lang-none prettyprint-override"><code># new attempt = 120 bytes
-BEGIN{FS=&quot;[: ]&quot;}1{o=($1&gt;23||$2&gt;59||(NF&gt;2&amp;&amp;($1&gt;12||$1&lt;1)))?0:(NF&gt;2||(NF&lt;3&amp;&amp;(($1&gt;12&amp;&amp;$1&lt;24)||($1&lt;1&amp;&amp;$2&lt;1))))?1:2;print o}
-# older attempt = 135 bytes
-{split($1,t,&quot;:&quot;);o=(t[1]&gt;23||t[2]&gt;59||(NF&gt;1&amp;&amp;(t[1]&gt;12||t[1]&lt;1)))?0:(NF&gt;1||(NF&lt;2&amp;&amp;((t[1]&gt;12&amp;&amp;t[1]&lt;24)||(t[1]&lt;1&amp;&amp;t[2]&lt;1))))?1:2;print o}
-</code></pre>
-<p>It's still awfully long :( I'm sure I could make it shorter by stealing the trick from top answer, but I can't make it work (getting fatal division by zero).</p>
-<p>Original answer:</p>
-<pre class="lang-none prettyprint-override"><code>{split($1,t,&quot;:&quot;);if(t[1]&gt;23||t[2]&gt;59||(NF&gt;1&amp;&amp;(t[1]&gt;12||t[1]&lt;1)))o=0;else if(NF&gt;1||(NF&lt;2&amp;&amp;((t[1]&gt;12&amp;&amp;t[1]&lt;24)||(t[1]&lt;1&amp;&amp;t[2]&lt;1))))o=1;else if(t[1]&lt;12)o=2;print o}
-</code></pre>
-</div>
-<div id="pu1" class="pu"><h1>Swift 6, 122 bytes</h1>
+<div id="pu0" class="pu"><h1>Swift 6, <s>122</s> 117 bytes</h1>
 
-<pre class="lang-swift prettyprint-override"><code>{{Int($0.1)!&lt;24&amp;&amp;Int($0.2)!&lt;60 ?(1...12~=Int($0.1)! ?1:0)+($0.3&gt;&quot;&quot; ?0:1):0}(($0+&quot;&quot;).matches(of:/(.+):(..)(.*)/)[0])as Int}
+<pre class="lang-swift prettyprint-override"><code>{s in(s+&quot;&quot;).matches(of:/(.+):(..)/).map{Int($0.1)!&gt;23||Int($0.2)!&gt;59 ?0:(1...12~=Int($0.1)! ?1:0)+($0.0==s ?1:0)}[0]}
 </code></pre>
-<p><a href="https://swiftfiddle.com/mkujcyzmmnep7j2qmgalny6vcm" rel="nofollow noreferrer">Try it on SwiftFiddle!</a></p>
+<p><a href="https://swiftfiddle.com/62tygcbcr5fjnf64pkdv2sdn5m" rel="nofollow noreferrer">Try it on SwiftFiddle!</a></p>
 <h2>Explanation</h2>
-<pre class="lang-swift prettyprint-override"><code>{
-  {
-    Int($0.1)! &lt; 24 &amp;&amp; Int($0.2)! &lt; 60
-      ? (1...12 ~= Int($0.1)! ? 1 : 0)
-        + ($0.3 &gt; &quot;&quot; ? 0 : 1)
-      : 0
-  }(
-    ($0 + &quot;&quot;).matches(of: /(.+):(..)(.*)/)[0]
-  ) as Int
+<pre class="lang-swift prettyprint-override"><code>{ s in 
+  (s + &quot;&quot;)
+    .matches(of: /(.+):(..)/)
+    .map {
+      Int($0.1)! &lt; 24 &amp;&amp; Int($0.2)! &lt; 60
+        ? (1...12 ~= Int($0.1)! ? 1 : 0)
+          + ($0.0 == s ? 1 : 0)
+        : 0
+    }[0]
 }
 </code></pre>
 <p>I'll go through this line-by-line.</p>
-<pre class="lang-swift prettyprint-override"><code>{
-  {
+<pre class="lang-swift prettyprint-override"><code>{ s in
 </code></pre>
-<p>Starts two closures. The inner one is used to be able to refer to a value (passed as an argument) multiple times without the overhead of a <code>let</code> statement. (This also means we can put the entire thing in a single expression, allowing for an implicit <code>return</code>.)</p>
-<pre class="lang-swift prettyprint-override"><code>    Int($0.1)! &lt; 24 &amp;&amp; Int($0.2)! &lt; 60
+<p>Start a closure. <code>s</code> is a String containing the clock.</p>
+<pre class="lang-swift prettyprint-override"><code>  (s + &quot;&quot;)
+    .matches(of: /(.+):(..)/)
 </code></pre>
-<p>First, we check that the hour part of the clock (<code>$0.1</code>) is less than 24 and that the minute part (<code>$0.2</code>) is less than 60.</p>
+<p>Extract data from the clock using a regex. (There will always be exactly 1 match.)</p>
+<ul>
+<li>The first capture group picks up one or more characters; in our case, it's always either 1 digit or 2. This is the hour.</li>
+<li>After matching a colon, the next capture group matches exactly 2 characters. This is the minute.</li>
+<li>The AM/PM specifier is intentionally not matched (I'll explain how we detect it later).</li>
+</ul>
+<p>Code later down can use dynamic member lookup on the match result to access the captures.</p>
 <blockquote>
-<p><code>$0</code> here is of type <code>(Substring, Substring, Substring, Substring)</code>. <code>$0.0</code> is the entire input (unused here); <code>$0.1</code> is the hour; <code>$0.2</code> is the minute; and <code>$0.3</code> is everything after the minute.</p>
+<p><code>s + &quot;&quot;</code> serves as a hint to the type checker that <code>s</code> is of type <code>String</code>.</p>
 </blockquote>
-<pre class="lang-swift prettyprint-override"><code>      ? (1...12 ~= Int($0.1)! ? 1 : 0)
-        + ($0.3 &gt; &quot;&quot; ? 0 : 1)
+<pre class="lang-swift prettyprint-override"><code>    .map {
+</code></pre>
+<p>Map over the array of matches (which will only have one element). Doing it like this lets us avoid the overhead of using <code>let</code> to bind the match to a variable (which would then necessitate an explicit <code>return</code>).</p>
+<pre class="lang-swift prettyprint-override"><code>      Int($0.1)! &lt; 24 &amp;&amp; Int($0.2)! &lt; 60
+</code></pre>
+<p>Check that the hour part of the clock (<code>$0.1</code>) is less than 24 and that the minute part (<code>$0.2</code>) is less than 60.</p>
+<blockquote>
+<p><code>$0</code> here is of type <code>(Substring, Substring, Substring)</code>. <code>$0.0</code> is the entire match result; <code>$0.1</code> is the hour; and <code>$0.2</code> is the minute.</p>
+</blockquote>
+<pre class="lang-swift prettyprint-override"><code>        ? (1...12 ~= Int($0.1)! ? 1 : 0)
+          + ($0.0 == s ? 1 : 0)
 </code></pre>
 <p>If the hour and minute are in range, then we do two things:</p>
 <ul>
 <li>Check if the hour is within the range <code>1...12</code> (inclusive on both ends) by <s>ab</s>using the pattern matching operator.</li>
-<li>Check if there's anything after the minute (i.e. AM/PM has been specified) by comparing to an empty string.</li>
+<li>Check if AM/PM was specified by comparing the matched string to the original; if they aren't equal, there's some more text after the minute (i.e. AM/PM).</li>
 </ul>
-<p>Each of these checks returns 1 if it succeeds, or 0 if not. We then add these together and return it as the final score.</p>
+<p>We convert the results of these checks (which are of type <code>Bool</code>) to <code>Int</code> (1 corresponds to <code>true</code>, 0 to <code>false</code>). We then add these together and return it as the final score.</p>
 <blockquote>
 <p>This bit was adapted from @Arnauld's <a href="https://codegolf.stackexchange.com/a/282097/118665">JavaScript answer</a>; I've reproduced his scoring table here for reference.</p>
 <div class="s-table-container"><table class="s-table">
 <thead>
 <tr>
 <th><code>1...12 ~= hour</code></th>
-<th><code>suffix == &quot;&quot;</code></th>
+<th><code>matched == original</code></th>
 <th>Score</th>
 <th>Examples</th>
 </tr>
@@ -127,28 +130,25 @@ BEGIN{FS=&quot;[: ]&quot;}1{o=($1&gt;23||$2&gt;59||(NF&gt;2&amp;&amp;($1&gt;12||
 </tbody>
 </table></div>
 </blockquote>
-<pre class="lang-swift prettyprint-override"><code>      : 0
+<pre class="lang-swift prettyprint-override"><code>        : 0
 </code></pre>
-<p>If the hour and/or minute are <em>not</em> in range, return 0 -- this indicates an invalid clock.</p>
-<pre class="lang-swift prettyprint-override"><code>  }(
-</code></pre>
-<p>End the inner closure and immediately call it.</p>
-<pre class="lang-swift prettyprint-override"><code>    ($0 + &quot;&quot;).matches(of: /(.+):(..)(.*)/)[0]
-</code></pre>
-<p>We grab the <em>outer</em> closure parameter (i.e. the actual input string) and extract data using a regex. (The match will always succeed.)</p>
-<ul>
-<li>The first capture group picks up one or more characters; in our case, it's always either 1 digit or 2. This is the hour.</li>
-<li>After matching a colon, the next capture group matches exactly 2 characters. This is the minute.</li>
-<li>The final capture group sucks up whatever's left, if anything. If AM/PM was specified in the input, this will match <code>&quot; AM&quot;</code> or <code>&quot; PM&quot;</code>; if it wasn't specified, this simply matches the empty string.</li>
-</ul>
-<p>The match result is passed directly to the inner closure, which can use dynamic member lookup to access the captures.</p>
-<blockquote>
-<p><code>$0 + &quot;&quot;</code> serves as a hint to the type checker that <code>$0</code> is of type <code>String</code>.</p>
-</blockquote>
-<pre class="lang-swift prettyprint-override"><code>  ) as Int
+<p>If the hour and/or minute are <em>not</em> in range, return 0 — this indicates an invalid clock.</p>
+<pre class="lang-swift prettyprint-override"><code>    }[0]
 }
 </code></pre>
-<p>Finally, implicitly return the result of the inner closure. <code>as Int</code> is necessary as a type checker hint (though Swift <em>has</em> successfully type-checked far more complicated programs of mine without any <code>as</code> hints, so why it's needed here is beyond me.)</p>
+<p>Finally, get the first (only) element from the mapping and implicitly return it.</p>
+</div>
+<div id="pu1" class="pu"><h2>awk, first stab at golf (<del>162 135</del> 120 bytes)</h2>
+<p>Even newer version abusing ternary operator <em>and</em> without an array:</p>
+<pre class="lang-none prettyprint-override"><code># new attempt = 120 bytes
+BEGIN{FS=&quot;[: ]&quot;}1{o=($1&gt;23||$2&gt;59||(NF&gt;2&amp;&amp;($1&gt;12||$1&lt;1)))?0:(NF&gt;2||(NF&lt;3&amp;&amp;(($1&gt;12&amp;&amp;$1&lt;24)||($1&lt;1&amp;&amp;$2&lt;1))))?1:2;print o}
+# older attempt = 135 bytes
+{split($1,t,&quot;:&quot;);o=(t[1]&gt;23||t[2]&gt;59||(NF&gt;1&amp;&amp;(t[1]&gt;12||t[1]&lt;1)))?0:(NF&gt;1||(NF&lt;2&amp;&amp;((t[1]&gt;12&amp;&amp;t[1]&lt;24)||(t[1]&lt;1&amp;&amp;t[2]&lt;1))))?1:2;print o}
+</code></pre>
+<p>It's still awfully long :( I'm sure I could make it shorter by stealing the trick from top answer, but I can't make it work (getting fatal division by zero).</p>
+<p>Original answer:</p>
+<pre class="lang-none prettyprint-override"><code>{split($1,t,&quot;:&quot;);if(t[1]&gt;23||t[2]&gt;59||(NF&gt;1&amp;&amp;(t[1]&gt;12||t[1]&lt;1)))o=0;else if(NF&gt;1||(NF&lt;2&amp;&amp;((t[1]&gt;12&amp;&amp;t[1]&lt;24)||(t[1]&lt;1&amp;&amp;t[2]&lt;1))))o=1;else if(t[1]&lt;12)o=2;print o}
+</code></pre>
 </div>
 <div id="pu2" class="pu"><h1><a href="https://www.perl.org/" rel="nofollow noreferrer">Perl 5</a> <code>-p</code>, 46 bytes</h1>
 
