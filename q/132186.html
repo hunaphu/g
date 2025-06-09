@@ -26,7 +26,7 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>687</td><td>Python 3.8+</td><td>250608T001516Z</td><td><a href="https://codegolf.stackexchange.com/questions/132186/factorize-a-gaussian-integer/282196#282196">CrSb0001</a></td></tr>
+<tr d-ix="0"><td>577</td><td>Python 3.12+</td><td>250608T001516Z</td><td><a href="https://codegolf.stackexchange.com/questions/132186/factorize-a-gaussian-integer/282196#282196">CrSb0001</a></td></tr>
 <tr d-ix="1"><td>050</td><td>Jelly</td><td>170713T040604Z</td><td><a href="https://codegolf.stackexchange.com/questions/132186/factorize-a-gaussian-integer/132209#132209">fireflam</a></td></tr>
 <tr d-ix="2"><td>036</td><td>Pyth</td><td>190508T090039Z</td><td><a href="https://codegolf.stackexchange.com/questions/132186/factorize-a-gaussian-integer/185306#185306">Sok</a></td></tr>
 <tr d-ix="3"><td>124</td><td>Perl 6</td><td>190508T122654Z</td><td><a href="https://codegolf.stackexchange.com/questions/132186/factorize-a-gaussian-integer/185311#185311">bb94</a></td></tr>
@@ -34,34 +34,26 @@
 <tr d-ix="5"><td>215</td><td>Python 2</td><td>170713T013132Z</td><td><a href="https://codegolf.stackexchange.com/questions/132186/factorize-a-gaussian-integer/132206#132206">mdahmoun</a></td></tr>
 <tr d-ix="6"><td>254</td><td>Ruby</td><td>170712T234640Z</td><td><a href="https://codegolf.stackexchange.com/questions/132186/factorize-a-gaussian-integer/132199#132199">Value In</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Python 3.8+, <s>690</s> 687 bytes</h1>
-<p><sup>-3 bytes</sup></p>
-<pre class="lang-python prettyprint-override"><code>I=int
-O=lambda z:abs(z)**2
+<div id="pu0" class="pu"><h1>Python 3.12+, <s>690</s> <s>687</s> 577 bytes</h1>
+<p><sup>-003 bytes</sup><br><sup>-110 bytes thanks to @ceilingcat and @CrSb0001</sup></p>
+<pre class="lang-python prettyprint-override"><code>A=abs
 R=lambda z:round(z.real)+round(z.imag)*1j
-D=lambda a,b:[q:=R(a/b),a-q*b]
 def G(a,b):
- if O(a)&lt;O(b):a,b=b,a
- return G(b,r)if(r:=D(a,b)[1])else b
-def S(n):
- s=[True]*n;s[0]=s[1]=F=False;s[4::2]=[F]*(-~n//2-2)
- for i in range(3,-~I(n**.5)):
-  if s[i]:s[i*i::2*i]=(~-n+i*(2-i))//(2*i)*[F]
- return[i for i,v in enumerate(s)if v]
-def f(n,a=[]):
- for p in S(n):
-  while n%p&lt;1:n//=p;a+=p,
- return a
+ if A(a)&lt;A(b):a,b=b,a
+ return G(b,r)if(r:=a-R(a/b)*b)else b
 def C(n):
- F,P,*z=f(I(O(n))),1
- while len(F):
-  a=F.pop(0)
-  if a==2:u=1+1j
-  if a%4==3:u=a;F.pop(0)
+ a=[];N=int(A(n)**2);s=[1&gt;0]*N;s[0]=s[1]=F=1&gt;1;s[4::2]=[F]*(N-3&gt;&gt;1)
+ for i in range(3,-~int(N**.5)):
+  if s[i]:s[i*i::2*i]=(~-N+i*(2-i))//2//i*[F]
+ for p in[i for i,v in enumerate(s)if v]:
+  while N%p&lt;1:N//=p;a+=p,
+ F,P,*z=a,1
+ while[]&lt;F:
+  if(a:=F.pop(0))==2:u=1+1j
+  if a%4&gt;2:u=a;F.pop(0)
   else:
-   while P&lt;a:
-    if-~pow(P:=P+1,~-a//2,a)==a:break
-   u=t.conjugate()if O(D(n,t:=G(a,pow(P,~-a//4,a)+1j))[1])else t
+   while P&lt;a!=-~pow(P:=P+1,~-a//2,a):1
+   u=t-t.imag*2jif A(n-R(n/(t:=G(a,pow(P,~-a//4,a)+1j)))*t)else t
   n/=u;z+=R(u),
  return z[:-1]+[z[-1]*R(n)]
 </code></pre>
@@ -69,7 +61,8 @@ def C(n):
 <p>Also I am very glad that <span class="math-container">$$3\cdot3\cdot(2+i)(-1-2i)(4-i)(6+i)(-1+6i)=6840+585i$$</span>and that all factors mentioned above are all prime in <span class="math-container">\$\mathbb Z[i]\$</span>, I would not have enjoyed bug-fixing that.</p>
 <p>The main method I used to factorize the Gaussian integers was to try to look for prime factors in the rectangle<span class="math-container">$$((I+Ji),(-I+Ji),(-I-Ji),(I-Ji))$$</span> where <span class="math-container">\$I,J=|z.\text{real}|,|z.\text{imag}|\$</span>.</p>
 <hr />
-<p><a href="https://tio.run/##VZJBk6IwEIXv/IpcpioJQQR11or2aSy3PGm5e6M4hBWczGpgAszUcvCvux3QdfYC5OX1R790qj/Na2km88perxvQpvG2cFLn7KBIJ1VW045xHnv7h2jL1hxoN7K5OjH/vtJndWQ8evNWd6cSmUzeJeypCjMmVPDOs9Q75AX5TnGPSY/ogmypYsstxSVqkAnlEZs3rTXoyoRluqBWwqqvSKKU5ac6J1mP@UGNg9SQ/LRtnnKzqJNxCjXagK4lrBV6GYpTKeMUknXKaXAxYRgHMfNIUVqiiTbEKnPM6UQElw01nI9mzGFdc3WiU4kPrpHANWIvgfE1p3GgGQtDiiLjCL43negBKz4cODftObeqyWmNOcjHkL6gRihIUvcTZ66c9ZaFfL7qU07MU7WMJHYK1UL5UIl/h6J6xMvgXoud4B0UdEO3qDAmIu9GOOWGrnuigvWoKis6ZkMmBRDLFiIfZzUIT1OACUpq8cXpztmV33i7pepXWBBcqvKT7iTs/EhcAoXnKRQDUDLDK/HbuVpoRr9K89YeXXjWj3mFsRsJbvZ9/VA6xVLshD1m2yDAhNAuOh@vTsse2btEBlHqJ12CL77HxOm1snhl6QuNv/nRDDHeXZh8@X6eT8f@bP7ffjx7Zuz6Fw" rel="nofollow noreferrer">Try it online!</a> Link contains the main test-cases I was most worried about failing.</p>
+<p><a href="https://tio.run/##VZJBk6IwEIXv/IpcpioJQQR11or2aSy3PGm5e6M4hBWczGpgAszUcvCvux3QdfYC5OX1R790qj/Na2km88perxvQpvG2cFLn7KBIJ1VW045xHnv7h2jL1hxoN7K5OjH/vtJndWQ8evNWd6cSmUzeJeypCjMmVPDOs9Q75AX5TnGPSY/ogmypYsstxSVqkAnlEZs3rTXoyoRluqBWwqqvSKKU5ac6J1mP@UGNg9SQ/LRtnnKzqJNxCjXagK4lrBV6GYpTKeMUknXKaXAxYRgHMfNIUVqiiTbEKnPM6UQElw01nI9mzGFdc3WiU4kPrpHANWIvgfE1p3GgGQtDiiLjCL43negBKz4cODftObeqyWmNOcjHkL6gRihIUvcTZ66c9ZaFfL7qU07MU7WMJHYK1UL5UIl/h6J6xMvgXoud4B0UdEO3qDAmIu9GOOWGrnuigvWoKis6ZkMmBRDLFiIfZzUIT1OACUpq8cXpztmV33i7pepXWBBcqvKT7iTs/EhcAoXnKRQDUDLDK/HbuVpoRr9K89YeXXjWj3mFsRsJbvZ9/VA6xVLshD1m2yDAhNAuOh@vTsse2btEBlHqJ12CL77HxOm1snhl6QuNv/nRDDHeXZh8@X6eT8f@bP7ffjx7Zuz6Fw" rel="nofollow noreferrer">Original try it online!</a> Link contains the main test-cases I was most worried about failing.</p>
+<p><a href="https://ideone.com/roZms3" rel="nofollow noreferrer">Try it online!</a></p>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, <s>61</s> <s>55</s> 50 bytes</h1>
 <pre><code>ÆiḤp/-,1p`¤×€×1,ıFs2S€⁸÷ÆiḞƑ$ƇỊÐḟ1;Ṫð,÷@\ḟ1
@@ -193,7 +186,7 @@ def f(*Z):
 
 <p><strong>Some explanation</strong> recursively decompose a complex to two complexes until no decomposition is possible...  </p>
 </div>
-<div id="pu6" class="pu"><h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a>, <s>258</s> <s>256</s> <s>249</s> 246+8 = <s>264</s> <s>257</s> 254 bytes</h1>
+<div id="pu6" class="pu"><h1><a href="https://www.ruby-lang.org/" rel="noreferrer">Ruby</a>, <s>258</s> <s>256</s> <s>249</s> 246+8 = <s>264</s> <s>257</s> 254 bytes</h1>
 
 
 
@@ -206,7 +199,7 @@ def f(*Z):
 <pre class="lang-ruby prettyprint-override"><code>-&gt;c{m=-&gt;x,y{x-y*eval("%d+%di"%(x/y).rect)};a=c.abs2.prime_division.flat_map{|b,e|b%4&lt;2?(1..e).map{k=(2..d=b).find{|n|n**(~-b/2)%b==b-1}**(~-b/4)%b+1i;d,k=k,m[d,k]while k!=0;c/=d=m[c,d]==0?d:d.conj;d}:(c/=b&lt;3?(b=1+1i)**e:b**e/=2;[b]*e)};a[0]*=c;a}
 </code></pre>
 
-<p><a href="https://tio.run/##LY/raoNAGERfJQ0Iu6uul5oSNF98ECviXmy3XtFNqqh99FoT@mcGzsDA6W9s2gp43@wrn2uwr6M1zaM9EXnPK3Q0hGkIdTTQ6EyY9pJrvEY5cJqzwaddr2qZCXVXg2obWlS5zuq8mxdmyYUZwcWPkUepxPRBS0A@pQIYpoVqxLw0S0MI@rGZ42ODATDbW/9BsAPTU5GwSiitOtk7/f5UlTyUL@BG3AEBdcItkQK4sQgF5W3zFYk1RPvGLq8xYuDtD5gQGbI9HPCjhKVEPgQSNyXAo3zdupseDkXytP2QesBUtxlPt7dz4Jqn80n9tp3e5YbN7p@6fw" rel="nofollow noreferrer" title="Ruby – Try It Online">Try it online!</a></p>
+<p><a href="https://tio.run/##LY/raoNAGERfJQ0Iu6uul5oSNF98ECviXmy3XtFNqqh99FoT@mcGzsDA6W9s2gp43@wrn2uwr6M1zaM9EXnPK3Q0hGkIdTTQ6EyY9pJrvEY5cJqzwaddr2qZCXVXg2obWlS5zuq8mxdmyYUZwcWPkUepxPRBS0A@pQIYpoVqxLw0S0MI@rGZ42ODATDbW/9BsAPTU5GwSiitOtk7/f5UlTyUL@BG3AEBdcItkQK4sQgF5W3zFYk1RPvGLq8xYuDtD5gQGbI9HPCjhKVEPgQSNyXAo3zdupseDkXytP2QesBUtxlPt7dz4Jqn80n9tp3e5YbN7p@6fw" rel="noreferrer" title="Ruby – Try It Online">Try it online!</a></p>
 </div>
 
 <table id="st">
