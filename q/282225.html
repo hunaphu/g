@@ -26,9 +26,40 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>024</td><td>Charcoal</td><td>250610T060356Z</td><td><a href="https://codegolf.stackexchange.com/questions/282225/number-of-intersections-between-all-ranges/282228#282228">Neil</a></td></tr>
+<tr d-ix="0"><td>010</td><td>05AB1E</td><td>250610T084554Z</td><td><a href="https://codegolf.stackexchange.com/questions/282225/number-of-intersections-between-all-ranges/282231#282231">Kevin Cr</a></td></tr>
+<tr d-ix="1"><td>024</td><td>Charcoal</td><td>250610T060356Z</td><td><a href="https://codegolf.stackexchange.com/questions/282225/number-of-intersections-between-all-ranges/282228#282228">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 24 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, 10 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
+<pre><code>.Æʒ{`R@θ}g
+</code></pre>
+<p><a href="https://tio.run/##yy9OTMpM/f9f73DbqUnVCUEO53bUpv//Hx1tqGMUqxNtqmMGJA11TIGkiY55bCwA" rel="nofollow noreferrer">Try it online.</a></p>
+<p><strong>Explanation:</strong></p>
+<p>Instead of checking both <span class="math-container">\$L1 \leq L2 \leq R1\$</span> and <span class="math-container">\$L2 \leq L1 \leq R2\$</span> with a logical OR in between them, I first sort the pair of pairs based on the <span class="math-container">\$L\$</span>s:</p>
+<ol>
+<li>If <span class="math-container">\$L1&lt;L2\$</span> → <span class="math-container">\$[[L1,R1],[L2,R2]]\$</span> remains unchanged</li>
+<li>If <span class="math-container">\$L2&lt;L1\$</span> → <span class="math-container">\$[[L1,R1],[L2,R2]]\$</span> becomes <span class="math-container">\$[[L2,R2],[L1,R1]]\$</span></li>
+<li>If <span class="math-container">\$L1=L2\$</span> → Sort based on the <span class="math-container">\$R\$</span>s, so could becomes either</li>
+</ol>
+<p>After which I can simply check for <span class="math-container">\$l2 \leq r1\$</span>.</p>
+
+<pre class="lang-python prettyprint-override"><code>.Æ       # Get all 2-element combinations of the (implicit) input-list
+  ʒ      # Filter this list of pairs of pairs by:
+   {     #  Sort the pair of pairs based on the first elements
+         #  (aka, sort [[L1,R1],[L2,R2]] based on just the L1 &amp; L2)
+         #   let's call this sorted pair [[l1,r1],[l2,r2]]
+    `    #  Pop and push both pairs separated to the stack
+         #   → [l1,r1] and [l2,r2]
+     R   #  Reverse the top/second pair
+         #   → [l1,r1] and [r2,l2]
+      @  #  Do an &gt;= check
+         #   → [l1&gt;=r2,r1&gt;=l2]
+       θ #  Pop and leave the last check of the pair
+         #   → r1&gt;=l2
+  }g     # After the filter: pop and push the length
+         # (which is output implicitly as result)
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 24 bytes</h1>
 <pre><code>ＩΣ⭆θ⭆…θκ¬∨›§ι⁰§λ¹›§λ⁰§ι¹
 </code></pre>
 <p><a href="https://tio.run/##XYpNC8IwEET/yh63sIIVqwdPkoN48AN6DDmEGGxobDSuor8@pkURncvwZp5pdDRB@5T20XWMQl8Z69sJa8583OgzXgi@IJ7GW9GEYW4Lgm1g3EVcRavZRlzyujvYBzqCcX4/6AnKIvO/5n81N2jvLFKSUpYEE0UgK4JZ35mrvqcEc6VUGt39Cw" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code. Explanation:</p>
