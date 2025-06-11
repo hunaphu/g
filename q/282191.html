@@ -27,7 +27,7 @@
     <th class="tlink">Link</th>
   </tr>
 <tr d-ix="0"><td>072</td><td>Python 3</td><td>250611T103332Z</td><td><a href="https://codegolf.stackexchange.com/questions/282191/reverse-nato-phonetic-spelling/282248#282248">user3048</a></td></tr>
-<tr d-ix="1"><td>067</td><td>C gcc</td><td>250611T083747Z</td><td><a href="https://codegolf.stackexchange.com/questions/282191/reverse-nato-phonetic-spelling/282246#282246">user3048</a></td></tr>
+<tr d-ix="1"><td>063</td><td>C gcc</td><td>250611T083747Z</td><td><a href="https://codegolf.stackexchange.com/questions/282191/reverse-nato-phonetic-spelling/282246#282246">user3048</a></td></tr>
 <tr d-ix="2"><td>646</td><td>VBA</td><td>250610T182429Z</td><td><a href="https://codegolf.stackexchange.com/questions/282191/reverse-nato-phonetic-spelling/282239#282239">mc-gwidd</a></td></tr>
 <tr d-ix="3"><td>058</td><td>GNU sed e</td><td>250610T162142Z</td><td><a href="https://codegolf.stackexchange.com/questions/282191/reverse-nato-phonetic-spelling/282238#282238">Toby Spe</a></td></tr>
 <tr d-ix="4"><td>nan</td><td>Commodore 64 Assembler</td><td>250608T195454Z</td><td><a href="https://codegolf.stackexchange.com/questions/282191/reverse-nato-phonetic-spelling/282211#282211">Jani Joe</a></td></tr>
@@ -50,21 +50,22 @@
 </table>
 <div id="pu0" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a>, 72 bytes</h1>
 <p>Function <code>f</code> accepts an upper-case string and returns a lower-case string. This solution uses a slightly different method of compression from other solutions.</p>
-<p>The word sizes are packed into an integer that is treated as a bit vector of 26×3 bits. This bit vector is then encoded to as the magic number <code>0x32430590834CA281800</code> in hexadecimal, which corresponds to the octal string <code>3110301310203231212014000</code>. Note reverse order, which saves one byte in decoding despite the hexadecimal literal being two chars longer than otherwise (<code>0x2108A2D308164304B</code>, 17 digits, for the curious).</p>
+<p>The word sizes are packed into an integer that is treated as a bit vector of 25×3 bits. This bit vector is then encoded in hexadecimal as the magic number <code>0x32430590834CA281800</code>, which corresponds to the octal string <code>3110301310203231212014000</code>. Note reverse order, which saves one byte in decoding despite the hexadecimal literal being two chars longer than otherwise (<code>0x2108A2D308164304B</code>, 17 digits, for the curious).</p>
 <p>The correct length is then extracted from the string by shifting the appropriate amount (3×ordinal) and extracting the three least-significant bits using the modulo operator.</p>
 
 <pre class="lang-python prettyprint-override"><code>f=lambda s:s and s[0]+f(s[4+(0x32430590834CA281800&gt;&gt;ord(s[0])%25*3)%8:])
 </code></pre>
 <p><a href="https://tio.run/##hZFRT8IwEMef3adoSMg24GGykUzMSMroWF23YukQRB5mEDWRsVAeNITPPtcyxTcfmv7vevnfr3fF1@Ftl9tlufE@su3zOgOiL0CWr4FYWqv2xhBLp21Yn3bXsa3ejeXajg@77rVrWYPBbr82ZJnZ7PZattl0@yuzFIf9e/4qgAeW2lXDDyEjGDU6Fw1JADlMxlQlQ8oRQX5ICY6hPHTqQ6ae7lM0RH6a4ICyWJYMGZxRKf66KiuZnGLE2NkZJyMMEzpD8RCxMSWBqpSNZYeAzjmjXIYqP4ETKIP/blUsDWokhf4Q4mmEFjWRgr9LK8W57MtojM7Y0uRCqQBHiHD4mJL0hzTChMpGcwYXMY7QeQDqRzPsc8pq8gVMIoQa2upW04pq2gejtc0K43eBYKMfxQl4A3CsFmie9A6ot2JW6qXw9KdcN8tv" rel="nofollow noreferrer" title="Python 3 – Try It Online">Try it online!</a></p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C (gcc)</a>, 67 bytes</h1>
+<div id="pu1" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C (gcc)</a>, <s>67</s> 63 bytes</h1>
 <p>Similar to many other approaches here, including <a href="https://codegolf.stackexchange.com/a/282195/58974">Arnauld's</a>. Input as a upper-case, widechar string with NUL terminator, output via <code>stdout</code>.</p>
-<p>Length of the phonetic representation is encoded as a string and one character is extracted from the string based on the first character of input. The extracted character is then used to shift the string pointer to the right by its ASCII-encoded value and then the pointer is shifted back to the left by the ASCII-encoded value of the '0' character. Result is a step forwards equal to the length of the phonetic representation corresponding to the character. The function then recurses, passing the pointer to the next invokation.</p>
+<p>Length of the phonetic representation is encoded as a string and one character is extracted from the string based on the first character of input. Following a suggestion from @emanresu, the characters were changed from ASCII-encoding to raw bytes with values in the 4-8 range. The extracted character is then used to shift the string pointer to the right. The function then recurses, passing the pointer to the next invokation.</p>
 <p>Golfy tricks include using <code>&amp;&amp;</code> short circuiting for branching and recursion, rather than <code>for</code>. The return value of <code>putchar()</code> is used inside the array subscript (returns printed char on success). Obviously, widechar string used to shave a single byte off total solution.</p>
 
-<pre class="lang-c prettyprint-override"><code>f(int*s){*s&amp;&amp;f(s+&quot;45754745574448546565767464&quot;[putchar(*s)-65]-48);}
+<pre class="lang-c prettyprint-override"><code>f(int*s){*s&amp;&amp;f(s+"\4\4\4\8\5\4\6\5\6\5\7\6\7\4\6\4\5\7\5\4\7\4\5\5\7"[putchar(*s)%25]);}
 </code></pre>
-<p><a href="https://tio.run/##hU9bT8IwFH6GX9GQKBuXRJNuI5mYlFmksq1YNgSRB7KAjiCQDX2Q8NtrT2Hqmw/NOaff@S4nab4miZRLI93sa7l5qOWXl0sjr1ew5VjYwZblYIxbFrYt23JsB9u4Mt197JO3eWYoQtO2Zk3cMt2jVArofZ5uQArNs9ekgWAL1VT/OZ2Z6FAuLbcZ0niK2ujaVeVGr6quXtcbpV2m8KVRqV7kVdS@RZUG0gLpzHQVDORavs8UP5mv19vEUMN6sTGKJVRH1w2Up1@Lrb7K1LQf45UiXrmF5HQ1c9FKWauVkhJSs8L/gEAFBy1S3F192VRPqtliUaDH8lFKr0eEz2hRid8lEQnvuezxiPrU63GfBQQeH3pEyMeYdqgXh6zLRQBwR5ARh6ZQ0nT4GDIqxEmNhXeMhHxEgw4V99zvSjAC1S4fR4JHMMoBGRBo/qsSiOcIOuZTjw37dHJOoIM@xKqLIvASPKCnmCDwm0yHuqN@RJ5jPy7S9ZnPwWQsyCRgfXo6WF8xYl7ExTnxhIR9Sr8B" rel="nofollow noreferrer" title="C (gcc) – Try It Online">Try it online!</a></p>
+<p><a href="https://tio.run/##hU9LT8JAEL60VPgVGxKgPEzUxBNqspQFVtouLi2KyIE0gCUIpEUPGn77OrNQ9eah2Zl@z4nOl1Gk1MKON/taWv2qpeXywk7rRcMwzkwjZ@ZMK2cZOcO0TMMyTNMqTnbv@@h1ltjAL11dT6vNgwI1eZvFG7Qhs2QZNQhSSA3mj8m0Sr4K@cU2IRqPyS25bMJzo6kw1euakd8lgC/sYqWUVsjtHSk2iDaIIQRgFNfSfQL6aLZebyMblvV8Y2ckUieXDZLGn/OtvqiqZT/BKxBeNDPLyWraJCuIBkoejGAH/A@IUkzQJtnRlZdN5eiazOcZeigclHJ6VLqcZS91OzSgfleongiYy5yecLlH8RNDh0r1ELIWc0Kfd4T0EG5JOhI4ZE5ajj@GnEl5dON@m1NfjJjXYrIr3I7CIHTtiKdAigBXNaADisN/r0LhqYKu@djjwz4bnxroovchTEGAWVJ47FgTDX6b6VJt5gb0OXTDrF2fuwJDniQde7zPjgfrK0bcCYQ8NR5Tv8/YNw" rel="nofollow noreferrer" title="C (gcc) – Try It Online">Try it online!</a></p>
+<p>For purposes of clarity, escape characters are used in the code snippet to represent the raw bytes, which would otherwise be non-graphical. Raw characters are used in the TIO source code.</p>
 </div>
 <div id="pu2" class="pu"><p><strong>VBA, 646 bytes</strong></p>
 <pre><code>Public Function REVERSENATO(itext As String)
