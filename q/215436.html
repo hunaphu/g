@@ -26,7 +26,7 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>435</td><td>C++</td><td>250611T125854Z</td><td><a href="https://codegolf.stackexchange.com/questions/215436/nato-phonetic-spelling-can-take-long/282250#282250">Toby Spe</a></td></tr>
+<tr d-ix="0"><td>320</td><td>C++</td><td>250611T125854Z</td><td><a href="https://codegolf.stackexchange.com/questions/215436/nato-phonetic-spelling-can-take-long/282250#282250">Toby Spe</a></td></tr>
 <tr d-ix="1"><td>246</td><td>Ruby nl</td><td>250611T055302Z</td><td><a href="https://codegolf.stackexchange.com/questions/215436/nato-phonetic-spelling-can-take-long/282245#282245">Value In</a></td></tr>
 <tr d-ix="2"><td>220</td><td>JavaScript Node.js</td><td>250611T014627Z</td><td><a href="https://codegolf.stackexchange.com/questions/215436/nato-phonetic-spelling-can-take-long/282243#282243">l4m2</a></td></tr>
 <tr d-ix="3"><td>130</td><td>Charcoal</td><td>201120T110834Z</td><td><a href="https://codegolf.stackexchange.com/questions/215436/nato-phonetic-spelling-can-take-long/215437#215437">Neil</a></td></tr>
@@ -45,20 +45,115 @@
 <tr d-ix="16"><td>276</td><td>Python 2</td><td>201120T141516Z</td><td><a href="https://codegolf.stackexchange.com/questions/215436/nato-phonetic-spelling-can-take-long/215445#215445">ovs</a></td></tr>
 <tr d-ix="17"><td>094</td><td>Husk</td><td>201120T115319Z</td><td><a href="https://codegolf.stackexchange.com/questions/215436/nato-phonetic-spelling-can-take-long/215438#215438">Dominic </a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>C++, 435 bytes</h1>
-<p>This requires letters to have ASCII-compatible encoding.  It's not easy to adapt for EBCDIC due to the assumption that letters are consecutive.</p>
+<div id="pu0" class="pu"><h1>C++, <s>435</s> 320 bytes</h1>
+
+<p>This requires letters to have ASCII-compatible encoding.  It could be adapted to EBCDIC by changing the constants 32 and 95 (to 64 and 176 respectively), and reversing the comparisons (since uppercase is smaller than lowercase in ASCII but the other way round in EBCDIC).</p>
 <pre class="lang-c++ prettyprint-override"><code>#include&lt;gmpxx.h&gt;
-#include&lt;array&gt;
-#include&lt;string&gt;
-std::string k[]={&quot;LFA&quot;,&quot;RAVO&quot;,&quot;HARLIE&quot;,&quot;ELTA&quot;,&quot;CHO&quot;,&quot;OXTROT&quot;,&quot;OLF&quot;,&quot;OTEL&quot;,&quot;NDIA&quot;,&quot;ULIETT&quot;,&quot;ILO&quot;,&quot;IMA&quot;,&quot;IKE&quot;,&quot;OVEMBER&quot;,&quot;SCAR&quot;,&quot;APA&quot;,&quot;UEBEC&quot;,&quot;OMEO&quot;,&quot;IERRA&quot;,&quot;ANGO&quot;,&quot;NIFORM&quot;,&quot;ICTOR&quot;,&quot;HISKEY&quot;,&quot;RAY&quot;,&quot;ANKEE&quot;,&quot;ULU&quot;};auto f(auto s){std::array&lt;mpz_class,26&gt;a,b;int i=101,j;for(int c:s)++a[c-65];for(;i--;b=a)for(j=0;j&lt;26;++j)for(int c:k[j])a[c-65]+=b[j];mpz_class z;for(auto c:a)z+=c;return z;}
+#include&lt;map&gt;
+auto f(auto s){std::map&lt;char,mpz_class&gt;a,b;for(int
+i=0,C;i&lt;101;++i,b=a)for(int
+c:&quot;aLFAbRAVOcHARLIEdELTAeCHOfOXTROTgOLFhOTELiNDIAjULIETTkILOlIMAmIKEnOVEMBERoSCARpAPAqUEBECrOMEOsIERRAtANGOuNIFORMvICTORwHISKEYxRAYyANKEEzULU&quot;)a[C=c&lt;95?C:c-32]+=i?b[c]:c&gt;95;for(int
+c:s)a[1]+=a[c];return a[1];}
 </code></pre>
 <h2>How it works</h2>
+<p>Most of the function is concerned with building a mapping from letters to their score in the 100th iteration.  Once we have that, we just add up the entries that correspond to the input string.</p>
+<p>This expanded version uses portable functions to test and transform between upper and lower case, so doesn't depend on ASCII as the golfed one does.</p>
+<pre class="lang-c++ prettyprint-override"><code>#include&lt;gmpxx.h&gt;
+#include&lt;cctype&gt;
+#include&lt;map&gt;
+
+auto f(auto s)
+{
+    std::map&lt;char,mpz_class&gt; a; // A → n(A)ᵢ
+    std::map&lt;char,mpz_class&gt; b; // iteration checkpoint
+    for (int i = 0;  i &lt;= 100;  ++i) {
+        char initial;   // called C when golfed
+        for (char c:&quot;aLFA&quot;
+                    &quot;bRAVO&quot;
+                    &quot;cHARLIE&quot;
+                    &quot;dELTA&quot;
+                    &quot;eCHO&quot;
+                    &quot;fOXTROT&quot;
+                    &quot;gOLF&quot;
+                    &quot;hOTEL&quot;
+                    &quot;iNDIA&quot;
+                    &quot;jULIETT&quot;
+                    &quot;kILO&quot;
+                    &quot;lIMA&quot;
+                    &quot;mIKE&quot;
+                    &quot;nOVEMBER&quot;
+                    &quot;oSCAR&quot;
+                    &quot;pAPA&quot;
+                    &quot;qUEBEC&quot;
+                    &quot;rOMEO&quot;
+                    &quot;sIERRA&quot;
+                    &quot;tANGO&quot;
+                    &quot;uNIFORM&quot;
+                    &quot;vICTOR&quot;
+                    &quot;wHISKEY&quot;
+                    &quot;xRAY&quot;
+                    &quot;yANKEE&quot;
+                    &quot;zULU&quot;)
+        {
+            if (std::islower(c)) {
+                // lowercase means initial letter
+                initial = std::toupper(c);
+                if (!i) {
+                    // 0th iteration: count the initial only
+                    a[initial] = 1;
+                }
+                // otherwise, previous iteration already counted
+            } else {
+                // non-initial letter
+                if (i) {
+                    // add previous iteration's count
+                    a[initial] += b[c];
+                }
+            }
+        }
+        b = a;                  // store this iteration
+    }
+
+    // Now, just sum the count of each input letter.
+    mpz_class total; // Previously untouched a[1] is accumulator when golfed.
+    for (auto c: s) {
+        total += a[c];
+    }
+    return total;
+}
+</code></pre>
+<h2>Demo</h2>
+<pre class="lang-c++ prettyprint-override"><code>#include &lt;iostream&gt;
+#include &lt;ranges&gt;
+#include &lt;string&gt;
+int main()
+{
+    for (char c: std::views::iota('A', 'Z'+1)) {
+        std::string s(1, c);
+        std::cout &lt;&lt; s &lt;&lt; &quot; → &quot; &lt;&lt; f(s) &lt;&lt; '\n';
+    }
+    for (std::string s: {&quot;MOUSE&quot;, &quot;CAT&quot;, &quot;DOG&quot;}) {
+        std::cout &lt;&lt; s &lt;&lt; &quot; → &quot; &lt;&lt; f(s) &lt;&lt; '\n';
+    }
+}
+</code></pre>
+<hr />
+<h3>435 bytes</h3>
 <pre class="lang-c++ prettyprint-override"><code>#include&lt;gmpxx.h&gt;
 #include&lt;array&gt;
 #include&lt;string&gt;
+std::string
+k[]={&quot;LFA&quot;,&quot;RAVO&quot;,&quot;HARLIE&quot;,&quot;ELTA&quot;,&quot;CHO&quot;,&quot;OXTROT&quot;,&quot;OLF&quot;,&quot;OTEL&quot;,&quot;NDIA&quot;,&quot;ULIETT&quot;,&quot;ILO&quot;,&quot;IMA&quot;,&quot;IKE&quot;,&quot;OVEMBER&quot;,&quot;SCAR&quot;,&quot;APA&quot;,&quot;UEBEC&quot;,&quot;OMEO&quot;,&quot;IERRA&quot;,&quot;ANGO&quot;,&quot;NIFORM&quot;,&quot;ICTOR&quot;,&quot;HISKEY&quot;,&quot;RAY&quot;,&quot;ANKEE&quot;,&quot;ULU&quot;};auto
+f(auto s){std::array&lt;mpz_class,26&gt;a,b;int i=101,j;for(int
+c:s)++a[c-65];for(;i--;b=a)for(j=0;j&lt;26;++j)for(int
+c:k[j])a[c-65]+=b[j];mpz_class z;for(auto c:a)z+=c;return z;}
 </code></pre>
-<p>We use GMP for large integer support.  <code>std::array</code> gives us high-level copy, unlike native arrays.  And <code>std::string</code> models a range, so we can enumerate it with range-based <code>for</code>.</p>
-<pre class="lang-c++ prettyprint-override"><code>std::string k[]={&quot;LFA&quot;,
+<p>This earlier version took a different approach, maintaining count of each letter as we expand the input string 100 times.</p>
+<pre class="lang-c++ prettyprint-override"><code>#include&lt;gmpxx.h&gt;
+#include&lt;array&gt;
+#include&lt;string&gt;
+
+std::string k[]={&quot;LFA&quot;,
                  &quot;RAVO&quot;,
                  &quot;HARLIE&quot;,
                  &quot;ELTA&quot;,
@@ -84,9 +179,8 @@ std::string k[]={&quot;LFA&quot;,&quot;RAVO&quot;,&quot;HARLIE&quot;,&quot;ELTA&
                  &quot;RAY&quot;,
                  &quot;ANKEE&quot;,
                  &quot;ULU&quot;};
-</code></pre>
-<p>The specified pro-words, with initial letters removed.</p>
-<pre class="lang-c++ prettyprint-override"><code>auto f(auto s)
+
+auto f(auto s)
 {
     std::array&lt;mpz_class,26&gt; a; // accumulator
     std::array&lt;mpz_class,26&gt; b; // temporary storage
@@ -115,20 +209,6 @@ std::string k[]={&quot;LFA&quot;,&quot;RAVO&quot;,&quot;HARLIE&quot;,&quot;ELTA&
         z += c;
     }
     return z;
-}
-</code></pre>
-<h2>Demo</h2>
-<pre class="lang-c++ prettyprint-override"><code>#include &lt;iostream&gt;
-#include &lt;ranges&gt;
-int main()
-{
-    for (char c: std::views::iota('A', 'Z'+1)) {
-        std::string s(1, c);
-        std::cout &lt;&lt; s &lt;&lt; &quot; → &quot; &lt;&lt; f(s) &lt;&lt; '\n';
-    }
-    for (std::string s: {&quot;MOUSE&quot;, &quot;CAT&quot;, &quot;DOG&quot;}) {
-        std::cout &lt;&lt; s &lt;&lt; &quot; → &quot; &lt;&lt; f(s) &lt;&lt; '\n';
-    }
 }
 </code></pre>
 </div>
