@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::217865</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>309</td><td>Python3</td><td>250616T171044Z</td><td><a href="https://codegolf.stackexchange.com/questions/217865/a-graph-and-its-seven-closures/282302#282302">Ajax1234</a></td></tr>
+<tr d-ix="1"><td>024</td><td>Jelly</td><td>210123T175102Z</td><td><a href="https://codegolf.stackexchange.com/questions/217865/a-graph-and-its-seven-closures/217934#217934">PurkkaKo</a></td></tr>
+<tr d-ix="2"><td>066</td><td>Charcoal</td><td>210123T001117Z</td><td><a href="https://codegolf.stackexchange.com/questions/217865/a-graph-and-its-seven-closures/217914#217914">Neil</a></td></tr>
+<tr d-ix="3"><td>7158</td><td>J</td><td>210122T081929Z</td><td><a href="https://codegolf.stackexchange.com/questions/217865/a-graph-and-its-seven-closures/217871#217871">xash</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>Python3, 309 bytes</h1>
+<pre class="lang-py prettyprint-override"><code>def f(v,e):
+ l=[lambda v,e:{*e,*{(x,x)for x in v}},lambda v,e:{*e,*{(y,x)for x,y in e}},lambda v,e:{*e,*{(x,Z)for x,y in e for Y,Z in e if y==Y}}]
+ U=[e]+[(T:=lambda x,v,e:e if[]==x else T(x[1:],v,l[x[0]](v,e)))(i,v,e)for i in[[0],[1],[2],[0,1],[1,2],[0,2],[0,1,2]]]
+ return len({str(sorted(j))for j in U})==8
+</code></pre>
+<p><a href="https://tio.run/##jY9NboMwEIX3nGKW43QW4adVhORbJIvE8iIRRiWigAyNjBBnJx6gUiuy6MKamfc@v7Gbvvusq/jQ2GnKTA45PsiINIBSqvL6dcuu4IV02BnaDejIiby24KCo4DGOtEX6H4R6hsxLyNHlDwQ8nOmyDEUOvZTncdQBnKQy@k3hMZVrjCMOYkppKR2YsjVwRKfCVHurVE7ttZ6/IQQWTM@7Ch@uvEUq9CfyZ0/chbT0q@Kr9nut6b5tBaWpcGg7i21tO5PhXcxZd37oaRRSHqbGFlWHOfogiAhigoTgneDD5yFrggDZ4Mou12TVGRVaiOBXSkQxJZvLW@gfyIucZWnC8PQE" rel="nofollow noreferrer">Try it online!</a></p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, <s>31</s> <s>29</s> <s>27</s> <s>26</s> <s>25</s> 24 bytes</h1>
+<pre><code>,|Z$æ*ⱮLS,Ʋ€Ẏæ*0|,Ʋ€Ẏ¬QƑ
+</code></pre>
+<p><a href="https://tio.run/##y0rNyan8/1@nJkrl8DKtRxvX@QTrHNv0qGnNw119QAGDGjjv0JrAYxP/H24H8v7/j@aKjjbQUTDUUTCAo1gdLoVoCNsQmyBCHCZoiCyOqhKrdpggUBTZejSL0fSgc5E1I@tEVkeJDYaxsVyxAA" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a> (comes with a test harness that runs all test inputs)</p>
+<p>Takes the adjacency matrix and returns <code>1</code> or <code>0</code>.</p>
+<p>I'm very rusty in code golf (especially in Jelly) and this solution tries to stay very safe regarding the specification, so there is very likely room for improvement. (Edit 7 bytes later: yes, there was. For example, just found out about <code>Ƒ</code> when re-reading the docs.)</p>
+<h3>Explanation</h3>
+<ol>
+<li>The main link gets the adjacency matrix.</li>
+<li><code>Z</code> transposes the matrix and <code>|</code> bitwise-ORs it with the original. This gives the symmetric closure. <code>,</code> makes the pair <code>[orig, SC]</code>.</li>
+<li><code>€</code> does the following for each of the two matrices:
+<ol>
+<li><code>L</code> finds the edge length N of the matrix. <code>æ*Ɱ</code> raises the matrix to each power 1…N to find routes of length 1 to N. <code>S</code> sums the resulting matrices together to find all routes. This gives the transitive closure, but the matrix can have values greater than one. <code>,</code> makes the pair <code>[TC, orig]</code>.</li>
+</ol>
+</li>
+<li><code>Ẏ</code> flattens the outermost array, giving <code>[TC, orig, STC, SC]</code>.</li>
+<li><code>€</code> does the following for each of the four matrices:
+<ol>
+<li><code>æ*0</code> gets the zeroth matrix power, i.e. the identity matrix. <code>|</code> bitwise-ORs it with the previous matrix, giving the reflexive closure. <code>,</code> makes the pair <code>[RC, orig]</code>.</li>
+</ol>
+</li>
+<li><code>Ẏ</code> flattens the outermost array, giving <code>[RTC, TC, RC, orig, RSTC, STC, RSC, SC]</code>.</li>
+<li><code>¬</code> logical-NOTs all values in the matrices to turn 0 into 1 and anything else into 0. This makes all nonzero values equal.</li>
+<li><code>Q</code> removes duplicates from that list and <code>Ƒ</code> sees if it stayed the same.</li>
+</ol>
+<h3>Correctness</h3>
+<p>The order of operations here is important. The transitive closure must be performed after the symmetric closure, but the reflexive closure can be performed at any point. I'll try to give a (very hand-wavy) proof of my algorithm's correctness.</p>
+<p>For any path A<sub>1</sub>→…→A<sub>n</sub> in SC(G), A<sub>n</sub>→…→A<sub>1</sub> will also exist, and thus TC(SC(G)) will be symmetric. SC(G) must be a subset of STC(G) (all &quot;new edges&quot; of SC(G) must also be in STC(G)) and TC(SC(G)) is the minimal transitive superset of SC(G). Thus TC(SC(G)) = STC(G).</p>
+<p>RC(STC(G)) is always symmetric and transitive, since the edges added by RC will never break transitivity or symmetricity. STC(G) must be a subset of RSTC(G) (all &quot;new edges&quot; of STC(G) must also be in RSTC(G)) and RC(STC(G)) is the minimal reflexive superset of STC(G), so RC(STC(G)) = RSTC(G).<sup>1</sup></p>
+
+</div>
+<div id="pu2" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 66 bytes</h1>
+<pre><code>⊞υθ⊞υＥθＥι∨λ§§θμκＦ⮌υ⊞υＥιＥκ∨μ⁼νλＦＥυＥιλ«ＦθＵＭιＥλ∨ν⊙λ∧π§§ιρξ⊞υι»⬤υ⁼¹№υι
+</code></pre>
+<p><a href="https://tio.run/##bU49C8IwEJ3Nr7gxgRPq7FTEwUEsrqVD0IrFNGnTpijib4@X2GJBM@TyPu7lna7SnoxU3meuu3KH0Io1m9572fD2MyqEg@UKIe13@lze@TRJrwXCTYSzZhdjgR/LobRdyZ0QMM@qPuMWs2qEbeuk6rhGUPP14PluBAmebBGlVgR6Y@pa6vOUp2IepaT6ESuS1Pw2Jbelpvfxq8XUrCLwYpmtdM9TpQI1FlshbIwjOrrClvd5nicIpNCdFMgAAh6pOU7@4aLwy0G9AQ" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code. Takes input as an adjacency matrix. Explanation: Port of @xash's answer.</p>
+<pre><code>⊞υθ
+</code></pre>
+<p>Push the input to the predefined empty list.</p>
+<pre><code>⊞υＥθＥι∨λ§§θμκ
+</code></pre>
+<p>Logical Or the input with its transpose and push it to the list.</p>
+<pre><code>Ｆ⮌υ⊞υＥιＥκ∨μ⁼νλ
+</code></pre>
+<p>For each matrix in the (reversed) list, logical Or it with the identity matrix and push the result to the list. (The list is reversed because otherwise the For command will attempt to iterate over the new results.)</p>
+<pre><code>ＦＥυＥιλ«
+</code></pre>
+<p>For each shallow cloned matrix in the list...</p>
+<pre><code>Ｆθ
+</code></pre>
+<p>... for as many times as the size of the matrix...</p>
+<pre><code>ＵＭιＥλ∨ν⊙λ∧π§§ιρξ
+</code></pre>
+<p>... logical Or the matrix with its square, and...</p>
+<pre><code>⊞υι
+</code></pre>
+<p>... push the final result to the list.</p>
+<pre><code>»⬤υ⁼¹№υι
+</code></pre>
+<p>Check that all of the matrices are unique.</p>
+</div>
+<div id="pu3" class="pu"><h1><a href="http://jsoftware.com/" rel="noreferrer">J</a>, <sup>71</sup> 58 bytes</h1>
+<p>Takes in the adjacency matrix.</p>
+<pre><code>*/@~:@(,([+./@,#)&quot;#/~^:_&quot;2)@(,s@r,(s=:+.|:),:r=:[+.=@i.@#)
+</code></pre>
+<p><a href="https://tio.run/##y/qvpKeepmBrpaCuoKNgoGAFxLp6Cs5BPm7/tfQd6qwcNHQ0orX19B10lDWVlPXr4qzilYw0gaLFDkU6GsW2Vtp6NVaaOlZFtlZAZbYOmXoOypr/Nbm4UpMz8hXSFJT0rPXijRQ0wEZrchkoGAJtgEAuEGGIzIFx4coMETIoyqAcQtbAbIDpgtMENEL1cVFmjSGX5n8A" rel="noreferrer" title="J – Try It Online">Try it online!</a></p>
+<h3>How it works</h3>
+<p>First the original, <code>s</code>, <code>r</code> and <code>r-&gt;s</code> variants are computed, then all their transitive closures. Albeit the operations are not commutative, I believe calculating the transitive closure last will work here (<code>r-&gt;t</code> is equal to <code>r-&gt;t-&gt;r</code> as <code>r</code> just adds the diagonal, which was already set. <code>s-&gt;t</code> is equal to <code>s-&gt;t-&gt;s</code> as every transition was already symmetric. <code>s-&gt;r</code> is equal to <code>r-&gt;s</code> as every reflexion is symmetric.) Though this might be wrong, and if it is, I'm happy to slap some <code>^:_</code> on there. :-)</p>
+<ul>
+<li><code>r=:+.=@i.@#</code>: original matrix OR the diagonal <code>=@i.@#</code>.</li>
+<li><code>s=:+.|:</code>: original matrix OR its transposition <code>|:</code>.</li>
+<li><code>,s@r,s,:r</code>: original matrix and all its variants in a list.</li>
+<li><code>([+./@,#)&quot;#/~^:_&quot;2</code>: until the result does not change <code>^:_</code>:  for every node: take the neighboring rows <code>#</code>, append them to the current row <code>[ ,</code> and OR them together <code>+./</code>.</li>
+<li><code>*/@~:</code>: <code>~:</code> returns whether each element of the list is unique, then AND <code>*/</code> those booleans.</li>
+</ul>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/217865/">217865</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
