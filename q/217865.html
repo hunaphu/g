@@ -26,12 +26,76 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>309</td><td>Python3</td><td>250616T171044Z</td><td><a href="https://codegolf.stackexchange.com/questions/217865/a-graph-and-its-seven-closures/282302#282302">Ajax1234</a></td></tr>
-<tr d-ix="1"><td>024</td><td>Jelly</td><td>210123T175102Z</td><td><a href="https://codegolf.stackexchange.com/questions/217865/a-graph-and-its-seven-closures/217934#217934">PurkkaKo</a></td></tr>
-<tr d-ix="2"><td>066</td><td>Charcoal</td><td>210123T001117Z</td><td><a href="https://codegolf.stackexchange.com/questions/217865/a-graph-and-its-seven-closures/217914#217914">Neil</a></td></tr>
-<tr d-ix="3"><td>7158</td><td>J</td><td>210122T081929Z</td><td><a href="https://codegolf.stackexchange.com/questions/217865/a-graph-and-its-seven-closures/217871#217871">xash</a></td></tr>
+<tr d-ix="0"><td>036</td><td>APLDyalog Unicode 20</td><td>250617T141126Z</td><td><a href="https://codegolf.stackexchange.com/questions/217865/a-graph-and-its-seven-closures/282322#282322">Mat_rdv</a></td></tr>
+<tr d-ix="1"><td>309</td><td>Python3</td><td>250616T171044Z</td><td><a href="https://codegolf.stackexchange.com/questions/217865/a-graph-and-its-seven-closures/282302#282302">Ajax1234</a></td></tr>
+<tr d-ix="2"><td>024</td><td>Jelly</td><td>210123T175102Z</td><td><a href="https://codegolf.stackexchange.com/questions/217865/a-graph-and-its-seven-closures/217934#217934">PurkkaKo</a></td></tr>
+<tr d-ix="3"><td>066</td><td>Charcoal</td><td>210123T001117Z</td><td><a href="https://codegolf.stackexchange.com/questions/217865/a-graph-and-its-seven-closures/217914#217914">Neil</a></td></tr>
+<tr d-ix="4"><td>7158</td><td>J</td><td>210122T081929Z</td><td><a href="https://codegolf.stackexchange.com/questions/217865/a-graph-and-its-seven-closures/217871#217871">xash</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Python3, 309 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://dyalog.com" rel="nofollow noreferrer">APL(Dyalog Unicode 20)</a>, <sup><s></s></sup>36 bytes <sup><a href="https://github.com/abrudz/SBCS" rel="nofollow noreferrer">SBCS</a></sup></h1>
+<pre><code>{∪⍛≡∨.∧⍨⍛∨⍣≡¨⍛,⍉⍛∨¨⍛,=/¨∘⍳∘⍴⍛∨¨⍛,⊂⍵}
+</code></pre>
+<p><a href="https://razetime.github.io/APLgolf/?h=AwA&amp;c=q37UsepR7@xHnQsfdazQe9Sx/FHvChC/A0guBooeAvF0HvV2QgQhXFt9IN0x41HvZjC5BVnuUVfTo96ttQA&amp;f=S1MwUzB71DbxUe@OR72LD603fNS1SMNQwehRd4uRgjGQNFYwAZImYBETBVNNAA&amp;i=AwA&amp;r=tryapl&amp;l=apl-dyalog&amp;m=dfn&amp;n=f" rel="nofollow noreferrer">Try it on APLgolf!</a></p>
+<p>The graph representation is an adjacency matrix.</p>
+<h2>Explanation</h2>
+<pre><code>
+r ← =/¨∘⍳∘⍴⍛∨    ⍝ reflexive closure
+s ← ⍉⍛∨         ⍝ symmetric closure
+t ← ∨.∧⍨⍛∨⍣≡   ⍝ transitive closure
+
+{∪⍛≡ t¨⍛, s¨⍛, r¨⍛, ⊂⍵}    solution
+                     ⍵     the right argument (adjacency matrix)
+                    ⊂      Enclose: consider the argument as one element
+                  ,        Concatenate
+                 ⍛          Behind: f⍛g Y ←→ (f Y) g Y
+                ¨          Each (apply the function on the left to each cell of array
+                               or to an enclosed value)
+               r¨⍛,        apply r to each and prepend to the original vector
+                           total: (r⍵) ⍵
+          s¨⍛,             total: (s r⍵) (s⍵) (r⍵) ⍵
+     t¨⍛,                  total: (t s r⍵) (t s⍵) (t r⍵) (s r⍵) (s⍵) (r⍵) ⍵
+  ≡                        Match (array equality)
+ ⍛
+∪                          Unique
+∪⍛≡                        whether all elements of a vector are different
+</code></pre>
+<h3>Reflexive closure</h3>
+<pre><code>        ∨   Logical OR
+       ⍛
+      ⍴     Shape: n×n matrix → 2-element vector (n n)
+     ∘      Compose: f∘g Y ←→ f (g Y)
+    ⍳        Index Generator: ⍳ n n → matrix of pairs (i j) in order, where 1≤i≤n, 1≤j≤n
+   ∘
+  ¨         Each
+ /          Reduce
+=
+=/          =/i j ←→ i=j
+=/¨∘⍳∘⍴     identity matrix of same shape as original
+=/¨∘⍳∘⍴⍛∨
+</code></pre>
+<p>This is golfed reflexive closure, practical one would be <code>∘.=⍨∘⍳∘≢⍛∨</code>.</p>
+<h3>Symmetric closure</h3>
+<pre><code>  ∨
+ ⍛
+⍉      Transpose
+⍉⍛∨
+</code></pre>
+<h3>Transitive closure</h3>
+<pre><code>        ≡
+       ⍣    Power operator
+       ⍣≡   fixpoint (do until the argument stop changing)
+      ∨
+     ⍛
+    ⍨      Selfie: f⍨ Y ←→ Y f Y
+  ∧        Logical AND
+ .          Inner product (generalized matrix product)
+∨
+∨.∧⍨       for relation table S← R ∨.∧ R:
+              S[i j] ←→ ∃k: R[i k] and R[k j]
+∨.∧⍨⍛∨⍣≡
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>Python3, 309 bytes</h1>
 <pre class="lang-py prettyprint-override"><code>def f(v,e):
  l=[lambda v,e:{*e,*{(x,x)for x in v}},lambda v,e:{*e,*{(y,x)for x,y in e}},lambda v,e:{*e,*{(x,Z)for x,y in e for Y,Z in e if y==Y}}]
  U=[e]+[(T:=lambda x,v,e:e if[]==x else T(x[1:],v,l[x[0]](v,e)))(i,v,e)for i in[[0],[1],[2],[0,1],[1,2],[0,2],[0,1,2]]]
@@ -39,7 +103,7 @@
 </code></pre>
 <p><a href="https://tio.run/##jY9NboMwEIX3nGKW43QW4adVhORbJIvE8iIRRiWigAyNjBBnJx6gUiuy6MKamfc@v7Gbvvusq/jQ2GnKTA45PsiINIBSqvL6dcuu4IV02BnaDejIiby24KCo4DGOtEX6H4R6hsxLyNHlDwQ8nOmyDEUOvZTncdQBnKQy@k3hMZVrjCMOYkppKR2YsjVwRKfCVHurVE7ttZ6/IQQWTM@7Ch@uvEUq9CfyZ0/chbT0q@Kr9nut6b5tBaWpcGg7i21tO5PhXcxZd37oaRRSHqbGFlWHOfogiAhigoTgneDD5yFrggDZ4Mou12TVGRVaiOBXSkQxJZvLW@gfyIucZWnC8PQE" rel="nofollow noreferrer">Try it online!</a></p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, <s>31</s> <s>29</s> <s>27</s> <s>26</s> <s>25</s> 24 bytes</h1>
+<div id="pu2" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, <s>31</s> <s>29</s> <s>27</s> <s>26</s> <s>25</s> 24 bytes</h1>
 <pre><code>,|Z$æ*ⱮLS,Ʋ€Ẏæ*0|,Ʋ€Ẏ¬QƑ
 </code></pre>
 <p><a href="https://tio.run/##y0rNyan8/1@nJkrl8DKtRxvX@QTrHNv0qGnNw119QAGDGjjv0JrAYxP/H24H8v7/j@aKjjbQUTDUUTCAo1gdLoVoCNsQmyBCHCZoiCyOqhKrdpggUBTZejSL0fSgc5E1I@tEVkeJDYaxsVyxAA" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a> (comes with a test harness that runs all test inputs)</p>
@@ -70,7 +134,7 @@
 <p>RC(STC(G)) is always symmetric and transitive, since the edges added by RC will never break transitivity or symmetricity. STC(G) must be a subset of RSTC(G) (all &quot;new edges&quot; of STC(G) must also be in RSTC(G)) and RC(STC(G)) is the minimal reflexive superset of STC(G), so RC(STC(G)) = RSTC(G).<sup>1</sup></p>
 
 </div>
-<div id="pu2" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 66 bytes</h1>
+<div id="pu3" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 66 bytes</h1>
 <pre><code>⊞υθ⊞υＥθＥι∨λ§§θμκＦ⮌υ⊞υＥιＥκ∨μ⁼νλＦＥυＥιλ«ＦθＵＭιＥλ∨ν⊙λ∧π§§ιρξ⊞υι»⬤υ⁼¹№υι
 </code></pre>
 <p><a href="https://tio.run/##bU49C8IwEJ3Nr7gxgRPq7FTEwUEsrqVD0IrFNGnTpijib4@X2GJBM@TyPu7lna7SnoxU3meuu3KH0Io1m9572fD2MyqEg@UKIe13@lze@TRJrwXCTYSzZhdjgR/LobRdyZ0QMM@qPuMWs2qEbeuk6rhGUPP14PluBAmebBGlVgR6Y@pa6vOUp2IepaT6ESuS1Pw2Jbelpvfxq8XUrCLwYpmtdM9TpQI1FlshbIwjOrrClvd5nicIpNCdFMgAAh6pOU7@4aLwy0G9AQ" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code. Takes input as an adjacency matrix. Explanation: Port of @xash's answer.</p>
@@ -99,7 +163,7 @@
 </code></pre>
 <p>Check that all of the matrices are unique.</p>
 </div>
-<div id="pu3" class="pu"><h1><a href="http://jsoftware.com/" rel="noreferrer">J</a>, <sup>71</sup> 58 bytes</h1>
+<div id="pu4" class="pu"><h1><a href="http://jsoftware.com/" rel="noreferrer">J</a>, <sup>71</sup> 58 bytes</h1>
 <p>Takes in the adjacency matrix.</p>
 <pre><code>*/@~:@(,([+./@,#)&quot;#/~^:_&quot;2)@(,s@r,(s=:+.|:),:r=:[+.=@i.@#)
 </code></pre>
