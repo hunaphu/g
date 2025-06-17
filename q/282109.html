@@ -44,27 +44,27 @@
 <h2>Explanation</h2>
 <p>Iterates over all possible 6x6 grids, finding the first (lexicographically) to satisfy the puzzle constraints. Unfortunately, the normal method of constructing permutations using uiua's <code>⧅</code> doesn't work at this scale of <span class="math-container">\$2^{36}\$</span> (due to a hard limit and also the impossibility of storing this in RAM), so I increment a counter and interpret its bits as a permutation to check.</p>
 <p>Expanded:</p>
-<pre class="lang-none prettyprint-override"><code>  (
-    0 ∞ 0            # initial stack data (condition fail, junk, i=0)
-    ⍢(               # repeat...
-      +1◌◌           # cleanup and inc i
-      ◡(+1 ↯ 6_6⋯₃₆  # convert i's bits to 6*6 permutation
-        /×:⟜⊃[      # test if ALL of the conditions hold:
-          # keep those without XXX
-          ⟜⍉                    # copy + transpose grid
-          ×∩(                   # for both directions,
-            ⊸⬚0⊃↻₁↻₂            # copy+shift grid twice
-            /×♭∨∩⌞≠             # at least one non equal
-          )
-        | /×▽⤙=♭                # permutation matches input (where nonzero)
-        | # equal, diff coords match (or don't)
-          ∩⌞˜⊡⊙◌                # pick indices mentioned as coords
-          ⧋⊓/=/≠               # check equality or inequality
-          /×⊂                   # reduce by and
-        ])
-    )¬            # if condition fails, continue
-    ⋅⊙⋅⋅⋅◌      # clean up stack garbage to output grid
-  )
+<pre><code>(
+  0 ∞ 0            # initial stack data (condition fail, junk, i=0)
+  ⍢(               # repeat...
+    +1◌◌           # cleanup and inc i
+    ◡(+1 ↯ 6_6⋯₃₆  # convert i's bits to 6*6 permutation
+      /×:⟜⊃[      # test if ALL of the conditions hold:
+        # keep those without XXX
+        ⟜⍉                    # copy + transpose grid
+        ×∩(                   # for both directions,
+          ⊸⬚0⊃↻₁↻₂            # copy+shift grid twice
+          /×♭∨∩⌞≠             # at least one non equal
+        )
+      | /×▽⤙=♭                # permutation matches input (where nonzero)
+      | # equal, diff coords match (or don't)
+        ∩⌞˜⊡⊙◌                # pick indices mentioned as coords
+        ⧋⊓/=/≠               # check equality or inequality
+        /×⊂                   # reduce by and
+      ])
+  )¬            # if condition fails, continue
+  ⋅⊙⋅⋅⋅◌      # clean up stack garbage to output grid
+)
 </code></pre>
 </div>
 <div id="pu1" class="pu"><h1>JavaScript (ES6), 176 bytes</h1>
