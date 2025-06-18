@@ -26,14 +26,14 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>058</td><td>Python</td><td>250609T235222Z</td><td><a href="https://codegolf.stackexchange.com/questions/282223/intersection-check-in-the-fewest-operations/282224#282224">Value In</a></td></tr>
+<tr d-ix="0"><td>074</td><td>Python</td><td>250609T235222Z</td><td><a href="https://codegolf.stackexchange.com/questions/282223/intersection-check-in-the-fewest-operations/282224#282224">Value In</a></td></tr>
 <tr d-ix="1"><td>nan</td><td></td><td>250610T025254Z</td><td><a href="https://codegolf.stackexchange.com/questions/282223/intersection-check-in-the-fewest-operations/282226#282226">l4m2</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, <s>88</s> 58</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, <s>88</s> <s>58</s> 74</h1>
 <p>I originally used bool-int conversions in place of if/else/and/or, and then left it as is once the spec was clarified because <a href="https://codegolf.stackexchange.com/a/282226/52194">l4m2's answer</a> used way fewer operations even if I made the switch so it didn't feel worth it, but apparently it was wrong (at time of writing) so I might as well update mine.</p>
 <p>Implements <a href="https://www.geeksforgeeks.org/check-if-two-given-line-segments-intersect/" rel="nofollow noreferrer">this algorithm</a> with all subroutines inlined and slightly streamlined to improve op count as follows:</p>
 <ol>
-<li>If three points are colinear we don't actually need to check if the y-value is in range.</li>
+<li><s>If three points are colinear we don't actually need to check if the y-value is in range.</s> nvm</li>
 <li>Stolen from l4m2's answer: Instead of evaluating the sign of each orientation and comparing those to each other, multiply them, and if ≤ 0 either the signs are different or they're both 0. For the double 0 case, an inequality check is added to prevent the problem l4m2 had with colinear line segments. If I just compared the signs I'd be doing something like <code>(1 if o1 &gt; 0 else -1 if o1 &lt; 0 else 0) != (1 if o2 &gt; 0 else -1 if o2 &lt; 0 else 0)</code> which is 5 operations vs <code>o1*o2 &lt;= 0 and o1 != o2</code> having 3.</li>
 </ol>
 <pre class="lang-python prettyprint-override"><code>def intersect(x1,y1,x2,y2,x3,y3,x4,y4):
@@ -43,16 +43,16 @@
  o4 = (y4-y3)*(x2-x4) - (x4-x3)*(y2-y4)                    # Cost 8
  if o1*o2 &lt;= 0 and o1 != o2 and o3*o4 &lt;= 0 and o3 != o4:   # Cost 6
   return True
- elif o1 == 0 and (x1&lt;=x3&lt;=x2 or x1&gt;=x3&gt;=x2):              # Cost 5
-  return True
- elif o2 == 0 and (x1&lt;=x4&lt;=x2 or x1&gt;=x4&gt;=x2):              # Cost 5
-  return True
- elif o3 == 0 and (x3&lt;=x1&lt;=x4 or x3&gt;=x1&gt;=x4):              # Cost 5
-  return True
- else:
-  return o4 == 0 and (x3&lt;=x2&lt;=x4 or x3&gt;=x2&gt;=x4)            # Cost 5
+ elif o1 == 0 and (x1&lt;=x3&lt;=x2 or x1&gt;=x3&gt;=x2) and (y1&lt;=y3&lt;=y2 or y1&gt;=y3&gt;=y2):
+  return True                                              # Cost 9
+ elif o2 == 0 and (x1&lt;=x4&lt;=x2 or x1&gt;=x4&gt;=x2) and (y1&lt;=y4&lt;=y2 or y1&gt;=y4&gt;=y2):
+  return True                                              # Cost 9
+ elif o3 == 0 and (x3&lt;=x1&lt;=x4 or x3&gt;=x1&gt;=x4) and (y3&lt;=y1&lt;=y4 or y3&gt;=y1&gt;=y4):
+  return True                                              # Cost 9
+ else:                                                     # Cost 9
+  return o4 == 0 and (x3&lt;=x2&lt;=x4 or x3&gt;=x2&gt;=x4) and (y3&lt;=y2&lt;=y4 or y3&gt;=y2&gt;=y4)
 </code></pre>
-<p><a href="https://ato.pxeger.com/run?1=lZNLTsMwEIYlljnFIDZxNZbisVPaqGHDFdghFhUkohJKqjSV7LOw6QYOww3gBByDsUtJ00ZqiR-K_xl_mbEzr-9L1z7X1Wbztm5LOfm6-HgqSlhUbdGsisc2tgqdQkvoCK1Gp9EadEZkEdQKcogdSafEKLZaWhIgIbYkrVeclo6VgecKbutVCxNmUI9hjhjmDIYODPbUnqGkNVsG07zilOSATzBMj0FHDDrNWJR8JCPOaJZDAvPqyZ_QZe5zDAs94q90Nh1sJusY4wigKdp1U8Fdsy4iKF4CE_LdJs5ullvNg6BuwKobXvEgkQ1GlQ4T6ZBoekTzf6LeJ_r4AjUQfXyBej5xVWSd6K-mz6YemwJ7CLz9pT-_53y39xHECSY45fY7C2RNTtF3hQrlNRI3mQaDd06Cc-rbgZb0NN7OfV8l1PyueCZWzYHG7mNUA47JH9JHqJLQ2ZyK6CEqfcZcmjDn01k2XKNxV6cjK8Q2310p_wA" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<p><a href="https://ato.pxeger.com/run?1=rZRBasMwEEUX3fkUE7qxgwTRSJTUxN30Cr1AaRQaKHZwHNCcpZts2ut03Z6mo0mMqyQlLUQgg_Wt7_c_ll_fV9Q9N_V2-7bpFnr6dfUx9wtY1p1v1_6py4NRZFRARaiCVWRVcIpcUWbQGKggJ9RkinEerA5YgIY8oA5xhawmXjkxruG-WXcwZQ9MPNyRh_uDhxUPftJGD6OD23mwW1whoxn4jIdLPPDIA897LBdcyZgTzSqYwGM9jw2NqphRbuyY3zJoVjRXDh43GUDru01bw0O78Rn4F_GEqt_E6WZVsDwRmhaCueM7nlyRyMQysUwiE8vEMjdYptangvw-9ni3PRAeArkEyB0CuQTIXR7I_gSK7QiUAMV2BKoHiu0IlADFdgTqckBrX_5v85FHzxE_yjQXJrnwMBcmuVBy7c7152jV8qHOh4Pt1EQ5ZXgiX7HYP9j_CL4B" rel="nofollow noreferrer">Attempt This Online!</a></p>
 </div>
 <div id="pu1" class="pu"><h1>32</h1>
 
