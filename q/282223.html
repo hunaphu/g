@@ -26,24 +26,33 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>088</td><td>Python</td><td>250609T235222Z</td><td><a href="https://codegolf.stackexchange.com/questions/282223/intersection-check-in-the-fewest-operations/282224#282224">Value In</a></td></tr>
+<tr d-ix="0"><td>058</td><td>Python</td><td>250609T235222Z</td><td><a href="https://codegolf.stackexchange.com/questions/282223/intersection-check-in-the-fewest-operations/282224#282224">Value In</a></td></tr>
 <tr d-ix="1"><td>nan</td><td></td><td>250610T025254Z</td><td><a href="https://codegolf.stackexchange.com/questions/282223/intersection-check-in-the-fewest-operations/282226#282226">l4m2</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 88</h1>
-<p>Abuses boolean-int conversion which may or may not be against the rules but the challenge <s>doesn't say <code>if</code> is allowed either and this was the only way to make it work</s> buried the point about branching inside a paragraph all about how the input can be formatted and I didn't notice it so I guess this solution has extra unnecessary restrictions for fun. Switching bool multiplication/addition to if/else cuts out like 21 operations but that's still far from the other answers so I'm leaving this up as is.</p>
-<p>Implements <a href="https://www.geeksforgeeks.org/check-if-two-given-line-segments-intersect/" rel="nofollow noreferrer">this algorithm</a> with all subroutines inlined and slightly streamlined (if three points are colinear we don't actually need to check if the y-value is in range).</p>
+<div id="pu0" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, <s>88</s> 58</h1>
+<p>I originally used bool-int conversions in place of if/else/and/or, and then left it as is once the spec was clarified because <a href="https://codegolf.stackexchange.com/a/282226/52194">l4m2's answer</a> used way fewer operations even if I made the switch so it didn't feel worth it, but apparently it was wrong (at time of writing) so I might as well update mine.</p>
+<p>Implements <a href="https://www.geeksforgeeks.org/check-if-two-given-line-segments-intersect/" rel="nofollow noreferrer">this algorithm</a> with all subroutines inlined and slightly streamlined to improve op count as follows:</p>
+<ol>
+<li>If three points are colinear we don't actually need to check if the y-value is in range.</li>
+<li>Stolen from l4m2's answer: Instead of evaluating the sign of each orientation and comparing those to each other, multiply them, and if ≤ 0 either the signs are different or they're both 0. For the double 0 case, an inequality check is added to prevent the problem l4m2 had with colinear line segments. If I just compared the signs I'd be doing something like <code>(1 if o1 &gt; 0 else -1 if o1 &lt; 0 else 0) != (1 if o2 &gt; 0 else -1 if o2 &lt; 0 else 0)</code> which is 5 operations vs <code>o1*o2 &lt;= 0 and o1 != o2</code> having 3.</li>
+</ol>
 <pre class="lang-python prettyprint-override"><code>def intersect(x1,y1,x2,y2,x3,y3,x4,y4):
- a1 = (y2-y1)*(x3-x2) - (x2-x1)*(y3-y2)
- o1 = -1 * (a1 &lt; 0) + (a1 &gt; 0)
- a2 = (y2-y1)*(x4-x2) - (x2-x1)*(y4-y2)
- o2 = -1 * (a2 &lt; 0) + (a2 &gt; 0)
- a3 = (y4-y3)*(x1-x4) - (x4-x3)*(y1-y4)
- o3 = -1 * (a3 &lt; 0) + (a3 &gt; 0)
- a4 = (y4-y3)*(x2-x4) - (x4-x3)*(y2-y4)
- o4 = -1 * (a4 &lt; 0) + (a4 &gt; 0)
- return ((o1!=o2)*(o3!=o4) + (o1==0)*((x1&lt;=x3&lt;=x2)+(x1&gt;=x3&gt;=x2)) + (o2==0)*((x1&lt;=x4&lt;=x2)+(x1&gt;=x4&gt;=x2)) + (o3==0)*((x3&lt;=x1&lt;=x4)+(x3&gt;=x1&gt;=x4)) + (o4==0)*((x3&lt;=x2&lt;=x4)+(x3&gt;=x2&gt;=x4))) &gt; 0
+ o1 = (y2-y1)*(x3-x2) - (x2-x1)*(y3-y2)                    # Cost 8
+ o2 = (y2-y1)*(x4-x2) - (x2-x1)*(y4-y2)                    # Cost 8
+ o3 = (y4-y3)*(x1-x4) - (x4-x3)*(y1-y4)                    # Cost 8
+ o4 = (y4-y3)*(x2-x4) - (x4-x3)*(y2-y4)                    # Cost 8
+ if o1*o2 &lt;= 0 and o1 != o2 and o3*o4 &lt;= 0 and o3 != o4:   # Cost 6
+  return True
+ elif o1 == 0 and (x1&lt;=x3&lt;=x2 or x1&gt;=x3&gt;=x2):              # Cost 5
+  return True
+ elif o2 == 0 and (x1&lt;=x4&lt;=x2 or x1&gt;=x4&gt;=x2):              # Cost 5
+  return True
+ elif o3 == 0 and (x3&lt;=x1&lt;=x4 or x3&gt;=x1&gt;=x4):              # Cost 5
+  return True
+ else:
+  return o4 == 0 and (x3&lt;=x2&lt;=x4 or x3&gt;=x2&gt;=x4)            # Cost 5
 </code></pre>
-<p><a href="https://ato.pxeger.com/run?1=bZJBTsMwEEXFNqcYdnY7luLxFChqehHEooJUsKmrkEr2Wdh0A-dhC1dhw9hJlLRFdqzxz_OTE8375z62L353PH4c2q25-7n6fa638Lpr6-atfmpVsBgtBsJIGBxGh4Exsr4vYGOhAhXJRKtnKjgTSIMBFciElERnIukCfOKMhRkoObKCUsM8l2spRUMnGr7QcK-hUUOjhgaNyxqBXdJYE7jTiDAl0Rq5tmjcqHGjxg0aPtHQhYZ6DY8aHjXca5q6PTQ7UMrb68qTHPROCs6Ut1VVSiS3XFXByUN6Lpu1bNZp01E0pXhK8YRyA5U8mUxU8mSyp3hK0ZSijtLp4l0PfH9t5NseClAllriU0a8aJTNLTNOiRXOLJMMs8osElxlepHGWlSeZHJc5TQmd1FZWkpTPMsFv0P4Dyr9-LLa-gSA9Cxvpyn0jzavGBp4FrbvvGnr8Dw" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<p><a href="https://ato.pxeger.com/run?1=lZNLTsMwEIYlljnFIDZxNZbisVPaqGHDFdghFhUkohJKqjSV7LOw6QYOww3gBByDsUtJ00ZqiR-K_xl_mbEzr-9L1z7X1Wbztm5LOfm6-HgqSlhUbdGsisc2tgqdQkvoCK1Gp9EadEZkEdQKcogdSafEKLZaWhIgIbYkrVeclo6VgecKbutVCxNmUI9hjhjmDIYODPbUnqGkNVsG07zilOSATzBMj0FHDDrNWJR8JCPOaJZDAvPqyZ_QZe5zDAs94q90Nh1sJusY4wigKdp1U8Fdsy4iKF4CE_LdJs5ullvNg6BuwKobXvEgkQ1GlQ4T6ZBoekTzf6LeJ_r4AjUQfXyBej5xVWSd6K-mz6YemwJ7CLz9pT-_53y39xHECSY45fY7C2RNTtF3hQrlNRI3mQaDd06Cc-rbgZb0NN7OfV8l1PyueCZWzYHG7mNUA47JH9JHqJLQ2ZyK6CEqfcZcmjDn01k2XKNxV6cjK8Q2310p_wA" rel="nofollow noreferrer">Attempt This Online!</a></p>
 </div>
 <div id="pu1" class="pu"><h1>32</h1>
 
