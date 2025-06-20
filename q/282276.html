@@ -45,11 +45,11 @@
 <tr d-ix="16"><td>028</td><td>JavaScript ES6</td><td>250615T212341Z</td><td><a href="https://codegolf.stackexchange.com/questions/282276/can-we-escape-from-array/282280#282280">Arnauld</a></td></tr>
 <tr d-ix="17"><td>006</td><td>Jelly</td><td>250615T194722Z</td><td><a href="https://codegolf.stackexchange.com/questions/282276/can-we-escape-from-array/282278#282278">Jonathan</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Commodore 64 Assembler, 18 Bytes (6502/KickAssembler)</h1>
+<div id="pu0" class="pu"><h1>Commodore 64 Assembler, 19 Bytes (6502/KickAssembler)</h1>
 <p>I went through the agreed input / output method defaults as per the link mentioned in the comments of the question, and I believe (hope) that my answer is valid. If not, please let me know and I'll adjust accordingly. I'm still pretty new to code golf.</p>
-<h2>Code</h2>
-<pre><code>        lax #0      // 2 Shortest way to reset X and Y: Reset A and X...
-        tay         // 1 ...and transfer A to Y.
+<h2>Code (Routine/Function)</h2>
+<pre><code>CWEFTA: lax #0      // 2 Shortest way to reset X and Y: Reset A and X...
+        tay         // 1 ...and transfer A to Y. Y will be our result.
         clc         // 1 Clear carry flag
 add:    adc array,x // 2 Add array element at index X to A
         tax         // 1 Make it the new array index
@@ -59,7 +59,7 @@ add:    adc array,x // 2 Add array element at index X to A
         cmp length  // 2 Have we gone past the end of the array yet?
         bcc add     // 2 If not, continue moving forward in the array
         iny         // 1 If yes, we've escaped - set Y to 1
-no:     // Here Y register contains either 1 (we escaped) or 0 (we didn't)
+no:     rts         // 1 Return Y = 1 (we escaped) or 0 (we didn't) to caller.
 </code></pre>
 <h2>Explanation</h2>
 <ul>
@@ -70,7 +70,7 @@ no:     // Here Y register contains either 1 (we escaped) or 0 (we didn't)
 <li>The code uses only one trick that could be considered sizecoding to reduce its size: Instead of e.g. <code>LDX #0</code> and <code>LDY #0</code> to zero out both index registers, we use the unintended opcode <code>LAX #0</code> (Load to A and X) accompanied with <code>TAY</code>, which saves us a byte. Otherwise it's plain 6502. The biggest saving comes from storing the array and variables on zero page, which saves us four bytes in comparison to having to use 16bit addressing.</li>
 </ul>
 <h2>Try It Out (in your favourite IDE or CLI)</h2>
-<p>For convenience, here is a program for testing our code. First the array and its length are copied to zero page, then our golfing code is executed, and finally border colour is changed according to the result in Y register: White (1) for successful escape, Black (0) for failure.</p>
+<p>Here is a program for testing the routine. First the array and its length are copied to zero page, then our golfing code routine is called, and finally border colour is changed according to the result in Y register: White (1) for successful escape, Black (0) for failure.</p>
 <pre><code>.const prev = $2    // Temp variable on ZP that holds previous array index
 .const length = $3  // Length of the array is held on ZP address $3
 .const array = $4   // Array itself starts from ZP address $4
@@ -85,7 +85,17 @@ copy:   lda ar-1,x  // Copy array from our program to zero page
         dex
         bne copy
 
-        // Can We Escape From The Array?
+        jsr CWEFTA  // CALL OUR ROUTINE
+
+        sty $d020   // Update border colour to indicate what the result was
+        cli         // Re-enable interrupts...
+        rts         // ...and return to BASIC prompt
+
+ar:     .by 0,4,1,78,2
+le:     .by (le-ar)
+
+
+// Can We Escape From The Array?
 CWEFTA: lax #0      // 2 Shortest way to reset X and Y: Reset A and X...
         tay         // 1 ...and transfer A to Y. Y will be our result.
         clc         // 1 Clear carry flag
@@ -97,17 +107,10 @@ add:    adc array,x // 2 Add array element at index X to A
         cmp length  // 2 Have we gone past the end of the array yet?
         bcc add     // 2 If not, continue moving forward in the array
         iny         // 1 If yes, we've escaped - set Y to 1
-no:     // Here Y register contains either 1 (we escaped) or 0 (we didn't)
+no:     rts         // 1 Return Y = 1 (we escaped) or 0 (we didn't) to caller.
 
-        // Compiler tells us the routine size without us having to count bytes ourselves.
-        .print &quot;ROUTINE SIZE: &quot; + toIntString(* - CWEFTA) + &quot; BYTES&quot;
-
-        sty $d020   // Update border colour to indicate what the result was
-        cli         // Re-enable interrupts...
-        rts         // ...and return to BASIC prompt
-
-ar:     .by 0,4,1,78,2
-le:     .by (le-ar)
+// Compiler tells us the routine size without us having to count bytes ourselves.
+.print &quot;ROUTINE SIZE: &quot; + toIntString(* - CWEFTA) + &quot; BYTES&quot;
 </code></pre>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://stedolan.github.io/jq/" rel="nofollow noreferrer">jq</a>, <s>36</s> 29 bytes</h1>
