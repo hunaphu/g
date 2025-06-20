@@ -26,8 +26,8 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>018</td><td>Nim</td><td>210111T200020Z</td><td><a href="https://codegolf.stackexchange.com/questions/4399/shortest-code-that-raises-a-sigsegv/217514#217514">Adam&#22</a></td></tr>
-<tr d-ix="1"><td>036</td><td>Swift 6</td><td>250618T194701Z</td><td><a href="https://codegolf.stackexchange.com/questions/4399/shortest-code-that-raises-a-sigsegv/282335#282335">macOSist</a></td></tr>
+<tr d-ix="0"><td>011</td><td>Swift 6.1.1</td><td>250618T194701Z</td><td><a href="https://codegolf.stackexchange.com/questions/4399/shortest-code-that-raises-a-sigsegv/282335#282335">macOSist</a></td></tr>
+<tr d-ix="1"><td>018</td><td>Nim</td><td>210111T200020Z</td><td><a href="https://codegolf.stackexchange.com/questions/4399/shortest-code-that-raises-a-sigsegv/217514#217514">Adam&#22</a></td></tr>
 <tr d-ix="2"><td>003</td><td>x86 and x86_64 machine language</td><td>170214T073811Z</td><td><a href="https://codegolf.stackexchange.com/questions/4399/shortest-code-that-raises-a-sigsegv/110015#110015">ceilingc</a></td></tr>
 <tr d-ix="3"><td>043</td><td>Lua LuaJIT</td><td>170215T040440Z</td><td><a href="https://codegolf.stackexchange.com/questions/4399/shortest-code-that-raises-a-sigsegv/110087#110087">ceilingc</a></td></tr>
 <tr d-ix="4"><td>053</td><td>Python</td><td>240218T210057Z</td><td><a href="https://codegolf.stackexchange.com/questions/4399/shortest-code-that-raises-a-sigsegv/270143#270143">RuRo</a></td></tr>
@@ -113,7 +113,28 @@
 <tr d-ix="84"><td>011</td><td>Bash</td><td>111226T160753Z</td><td><a href="https://codegolf.stackexchange.com/questions/4399/shortest-code-that-raises-a-sigsegv/4403#4403">Joey Ada</a></td></tr>
 <tr d-ix="85"><td>019</td><td>19 characters in C</td><td>111226T101030Z</td><td><a href="https://codegolf.stackexchange.com/questions/4399/shortest-code-that-raises-a-sigsegv/4400#4400">saeedn</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="http://nim-lang.org/" rel="nofollow noreferrer">Nim</a>, <s>20</s> 18 bytes</h1>
+<div id="pu0" class="pu"><h1>Swift 6.1.1, <s>36</s> 11 bytes</h1>
+<pre class="lang-swift prettyprint-override"><code>let x:Any=x
+</code></pre>
+<p><a href="https://swiftfiddle.com/afgz6wlocfbrpprrcoej7kdle4" rel="nofollow noreferrer">Try it on SwiftFiddle!</a> (The <code>Any</code> type annotation is required.)</p>
+<p>I'm 99% sure this only works due to a compiler bug, because last time I checked Swift <em>really isn't supposed to let you do this</em>.</p>
+<h2>Other interesting segfaults</h2>
+<h3>Stack overflow, 13 bytes</h3>
+<pre class="lang-swift prettyprint-override"><code>var x:(){x}
+x
+</code></pre>
+<p>Declares a computed variable (of type <code>()</code>, aka <code>Void</code>) that accesses itself, then tries to access the variable. (Swift is smart enough to warn you about this. Twice.)</p>
+<h3>&quot;Null&quot; pointer dereference, 36 bytes</h3>
+<pre class="lang-swift prettyprint-override"><code>UnsafePointer&lt;Any&gt;(bitPattern:1)![0]
+</code></pre>
+<p>Okay, this one's actually kinda wonky.</p>
+<ul>
+<li>If the generic parameter to <code>UnsafePointer</code> is <code>Int</code>, this doesn't segfault.</li>
+<li>But if the whole thing's wrapped in a call to <code>print</code>, it <em>always</em> segfaults (regardless of the generic parameter).</li>
+<li><code>UnsafePointer.init?(bitPattern:)</code> returns <code>nil</code> for an argument of <code>0</code>, but if you give it <em>any other value</em>, it will happily return an invalid pointer.</li>
+</ul>
+</div>
+<div id="pu1" class="pu"><h1><a href="http://nim-lang.org/" rel="nofollow noreferrer">Nim</a>, <s>20</s> 18 bytes</h1>
 <pre><code>proc x=x();x()
 x()
 </code></pre>
@@ -122,17 +143,6 @@ x()
 <pre><code>cast[ptr int](4)[]=2
 </code></pre>
 <p><a href="https://tio.run/##y8vM/f8/ObG4JLqgpEghM68kVsNEMzrW1uj/fwA" rel="nofollow noreferrer" title="Nim – Try It Online">Try it online!</a></p>
-</div>
-<div id="pu1" class="pu"><h1>Swift 6, 36 bytes</h1>
-<pre class="lang-swift prettyprint-override"><code>UnsafePointer&lt;Any&gt;(bitPattern:1)![0]
-</code></pre>
-<p><a href="https://swiftfiddle.com/gaxaibvnonbffohpbxnkbvk6wi" rel="nofollow noreferrer">Try it on SwiftFiddle!</a> (signal 11 corresponds to a segfault)</p>
-<p>This is actually kinda wonky.</p>
-<ul>
-<li>If the generic parameter to <code>UnsafePointer</code> is <code>Int</code>, this doesn't segfault.</li>
-<li>But if the whole thing's wrapped in a call to <code>print</code>, it <em>always</em> segfaults (regardless of the generic parameter).</li>
-<li><code>UnsafePointer.init?(bitPattern:)</code> returns <code>nil</code> for an argument of <code>0</code>, but if you give it <em>any other value</em>, it will happily return an invalid pointer.</li>
-</ul>
 </div>
 <div id="pu2" class="pu"><h1>x86 and x86_64 machine language, 3 bytes</h1>
 <pre><code>0:       50                      push   %eax
@@ -163,7 +173,7 @@ vars(A)&gt;A()&lt;0
 <li>doesn't look like it does anything dangerous/suspicious/illegal at first glance</li>
 <li>showcases an actual interpreter crash rather than just explicitly dereferencing null/execing invalid code/etc</li>
 </ol>
-<p>Btw, don't report this upstream, this issue is already known and closed as &quot;wontfix&quot; in CPython: <a href="https://github.com/python/cpython/issues/88004" rel="nofollow noreferrer">https://github.com/python/cpython/issues/88004</a></p>
+<p>Btw, don't report this upstream, this issue is already known and closed as &quot;wontfix&quot; in CPython: <a href="https://github.com/python/cpython/issues/88004" rel="noreferrer">https://github.com/python/cpython/issues/88004</a></p>
 <h3>Explanation:</h3>
 <p>The important part is essentially</p>
 <pre class="lang-python prettyprint-override"><code>class A:
@@ -178,7 +188,7 @@ AnyClass.__dict__ &gt; A()
 del AnyClass.__dict__[&quot;foo&quot;] # TypeError: 'mappingproxy' object does not support item deletion
 AnyClass.__dict__.clear()    # AttributeError: 'mappingproxy' object has no attribute 'clear'
 </code></pre>
-<p>However, it's possible to circumvent this protection using <a href="https://docs.python.org/3/reference/datamodel.html" rel="nofollow noreferrer">python's data model</a>. Specifically, <code>mappingproxy</code> doesn't reimplement all of the required methods itself, but instead just delegates to the underlying <code>dict</code> implementation.</p>
+<p>However, it's possible to circumvent this protection using <a href="https://docs.python.org/3/reference/datamodel.html" rel="noreferrer">python's data model</a>. Specifically, <code>mappingproxy</code> doesn't reimplement all of the required methods itself, but instead just delegates to the underlying <code>dict</code> implementation.</p>
 <p>So, when we do <code>AnyClass.__dict__ &gt; A()</code> the following happens:</p>
 <ol start="0">
 <li><p><code>m = AnyClass.__dict__</code> is of type <code>mappingproxy</code></p>
