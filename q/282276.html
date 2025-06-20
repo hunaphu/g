@@ -51,26 +51,26 @@
 <pre><code>        lax #0      // 2 Shortest way to reset X and Y: Reset A and X...
         tay         // 1 ...and transfer A to Y.
         clc         // 1 Clear carry flag
-add:    adc $4,x    // 2 Add array element at index X to A
+add:    adc array,x // 2 Add array element at index X to A
         tax         // 1 Make it the new array index
-        cmp $2      // 2 Compare new index with previous index
+        cmp prev    // 2 Compare new index with previous index
         beq no      // 2 If they are equal, element was 0 and we can't escape
-        sta $2      // 2 Otherwise, store the new index as previous on ZP
-        cmp $3      // 2 Have we gone past the end of the array yet?
+        sta prev    // 2 Otherwise, store the new index as previous on ZP
+        cmp length  // 2 Have we gone past the end of the array yet?
         bcc add     // 2 If not, continue moving forward in the array
         iny         // 1 If yes, we've escaped - set Y to 1
 no:     // Here Y register contains either 1 (we escaped) or 0 (we didn't)
 </code></pre>
 <h2>Explanation</h2>
 <ul>
-<li>The array must reside on zero page, starting from address $4.</li>
-<li>We need a way to tell the CPU where our array ends and where other data in the memory starts. Thus the length of the array is defined on ZP address $3.</li>
+<li>The array must reside on zero page.</li>
+<li>We need a way to tell the CPU where our array ends and where other data in the memory starts. Thus the length of the array must also be stored on ZP.</li>
 <li>Starting from the first array element, we add its value to Accumulator, and make it the new array index for the (possible) next round. We then compare the index with index from the previous round. If they're the same, the value in this index was 0, thus we can't escape the array. Then we check if the index is pointing past the end of the array. If it isn't, we continue iterating through the array. If it is, we've successfully escaped the array.</li>
 <li>At the end, Y register contains the result: 1 (we escaped) or 0 (we didn't).</li>
-<li>The code uses only one trick that could be considered sizecoding to reduce its size: Instead of e.g. <code>LDX #0</code> and <code>LDY #0</code> to zero out both index registers, we use the unintended opcode <code>LAX</code> (Load to A and X) accompanied with <code>TAY</code>, which saves us a byte. Otherwise it's plain 6502. The biggest saving comes from storing the array and variables on zero page, which saves us four bytes.</li>
+<li>The code uses only one trick that could be considered sizecoding to reduce its size: Instead of e.g. <code>LDX #0</code> and <code>LDY #0</code> to zero out both index registers, we use the unintended opcode <code>LAX #0</code> (Load to A and X) accompanied with <code>TAY</code>, which saves us a byte. Otherwise it's plain 6502. The biggest saving comes from storing the array and variables on zero page, which saves us four bytes in comparison to having to use 16bit addressing.</li>
 </ul>
-<h2>Test Program</h2>
-<p>For convenience, here is a program for testing our code. First the array and its length are copied to zero page, then our golfing code is executed, and finally border colour is changed according to the result in Y register: White (1) for successful escape, Black (0) for failure. I've also given labels for the zero page addresses for readability.</p>
+<h2>Try It Out (in your favourite IDE or CLI)</h2>
+<p>For convenience, here is a program for testing our code. First the array and its length are copied to zero page, then our golfing code is executed, and finally border colour is changed according to the result in Y register: White (1) for successful escape, Black (0) for failure.</p>
 <pre><code>.const prev = $2    // Temp variable on ZP that holds previous array index
 .const length = $3  // Length of the array is held on ZP address $3
 .const array = $4   // Array itself starts from ZP address $4
