@@ -26,9 +26,9 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>236</td><td>C++ gcc</td><td>250603T163728Z</td><td><a href="https://codegolf.stackexchange.com/questions/37014/interpret-pronounced-slashes/282107#282107">ceilingc</a></td></tr>
-<tr d-ix="1"><td>328</td><td>C++</td><td>140924T042759Z</td><td><a href="https://codegolf.stackexchange.com/questions/37014/interpret-pronounced-slashes/38135#38135">Jerry Je</a></td></tr>
-<tr d-ix="2"><td>222</td><td>Swift 6.1</td><td>250604T162809Z</td><td><a href="https://codegolf.stackexchange.com/questions/37014/interpret-pronounced-slashes/282120#282120">macOSist</a></td></tr>
+<tr d-ix="0"><td>216</td><td>Swift 6.1</td><td>250604T162809Z</td><td><a href="https://codegolf.stackexchange.com/questions/37014/interpret-pronounced-slashes/282120#282120">macOSist</a></td></tr>
+<tr d-ix="1"><td>236</td><td>C++ gcc</td><td>250603T163728Z</td><td><a href="https://codegolf.stackexchange.com/questions/37014/interpret-pronounced-slashes/282107#282107">ceilingc</a></td></tr>
+<tr d-ix="2"><td>328</td><td>C++</td><td>140924T042759Z</td><td><a href="https://codegolf.stackexchange.com/questions/37014/interpret-pronounced-slashes/38135#38135">Jerry Je</a></td></tr>
 <tr d-ix="3"><td>211</td><td>Python 2/3</td><td>190919T184338Z</td><td><a href="https://codegolf.stackexchange.com/questions/37014/interpret-pronounced-slashes/193208#193208">Carlos L</a></td></tr>
 <tr d-ix="4"><td>110</td><td>Ruby</td><td>180309T124412Z</td><td><a href="https://codegolf.stackexchange.com/questions/37014/interpret-pronounced-slashes/157722#157722">Asone Tu</a></td></tr>
 <tr d-ix="5"><td>102</td><td>Pip</td><td>161008T084452Z</td><td><a href="https://codegolf.stackexchange.com/questions/37014/interpret-pronounced-slashes/95651#95651">DLosc</a></td></tr>
@@ -39,7 +39,116 @@
 <tr d-ix="10"><td>3198</td><td>Python 2 236</td><td>140830T160313Z</td><td><a href="https://codegolf.stackexchange.com/questions/37014/interpret-pronounced-slashes/37093#37093">Bruno Le</a></td></tr>
 <tr d-ix="11"><td>190</td><td>Perl</td><td>140830T222053Z</td><td><a href="https://codegolf.stackexchange.com/questions/37014/interpret-pronounced-slashes/37105#37105">faubi</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C++ (gcc)</a>, <s>287 269 262 249 240</s> 236 bytes</h1>
+<div id="pu0" class="pu"><h1>Swift 6.1, <s>222</s> 216 bytes</h1>
+<p>I wanted to challenge myself somewhat with this one. To the best of my knowledge, the closure below is 100% compliant with both specifications (the one on Esolangs and the one in this question). It also avoids any sort of recursion, meaning infinite loops are <em>actually</em> infinite.</p>
+
+<pre class="lang-swift prettyprint-override"><code>{var e=&quot;&quot;,p=$0+e,m=0,b=[e,e,e],f={&quot;\(p.removeFirst())&quot;}
+while e&lt;p{let c=f()
+&quot;/&quot;==c ?{if m&gt;1{while e==b[1]||p != (p.replace(b[1],with:b[2]),p).1{}
+b=[b[0],e,e]}
+m=(m+1)%3}():(b[m]+=&quot;\\&quot;==c ?e&lt;p ?f():e:c)}
+return b[0]}
+</code></pre>
+<p><a href="https://swiftfiddle.com/rzmjhg2j3nei5gqoxceamfudkm" rel="nofollow noreferrer">Try it on SwiftFiddle!</a> Takes the program as a <code>String</code> and returns the output as a <code>String</code>.</p>
+<p>Here it is with whitespace and meaningful identifiers:</p>
+<pre class="lang-swift prettyprint-override"><code>{
+  var empty = &quot;&quot;,
+    program = $0 + empty,
+    mode = 0,
+    buffers = [empty, empty, empty],
+    first = { &quot;\(program.removeFirst())&quot; }
+  while empty &lt; program {
+    let character = first()
+    &quot;/&quot; == character ? {
+      if mode &gt; 1 {
+        while empty == buffers[1] || program != (
+          program.replace(buffers[1], with: buffers[2]),
+          program
+        ).1 { }
+        buffers = [buffers[0], empty, empty]
+      }
+      mode = (mode + 1) % 3
+    }() : (
+      buffers[mode] += &quot;\\&quot; == character
+        ? empty &lt; program
+          ? first()
+          : empty
+        : character
+    )
+  }
+  return buffers[0]
+}
+</code></pre>
+<h2>Breakdown</h2>
+<pre class="lang-swift prettyprint-override"><code>{
+  var empty = &quot;&quot;,
+    program = $0 + empty,
+    mode = 0,
+    buffers = [empty, empty, empty],
+    first = { &quot;\(program.removeFirst())&quot; }
+</code></pre>
+<p>Assign our initial variables:</p>
+<ul>
+<li><code>empty</code> (i.e. <code>e</code>) is simply the empty string. Assigning it to a variable here saves a couple of bytes.</li>
+<li><code>program</code> (i.e. <code>p</code>) is the current working program. It's initially assigned to <code>$0</code>, the implicit closure parameter (we concatenate it with <code>empty</code> to assist the type checker with inference).</li>
+<li><code>mode</code> (i.e. <code>m</code>) is the current mode we're in — <code>0</code> corresponds to print mode, <code>1</code> to pattern mode, and <code>2</code> to replacement mode. (There is no dedicated substitution mode.)</li>
+<li><code>buffers</code> (i.e. <code>b</code>) contains the output, pattern, and replacement buffers, in that order. Using an array to store these lets us assign directly to the appropriate value by subscripting with <code>mode</code>, instead of having to duplicate the assignment logic for each mode.</li>
+<li><code>first</code> (i.e. <code>f</code>) is simply a wrapper around <code>program.removeFirst()</code>. It's called twice, so this saves a few bytes.</li>
+</ul>
+<pre class="lang-swift prettyprint-override"><code>  while empty &lt; program {
+    let character = first()
+</code></pre>
+<p>Loop while the program is non-empty, popping the first character from the program each time. (The empty string compares less than all other strings.)</p>
+<pre class="lang-swift prettyprint-override"><code>    &quot;/&quot; == character ? {
+</code></pre>
+<p>Check if <code>character</code> is a forward slash, i.e. whether we need to switch modes. (Using the ternary operator with a self-executing closure saves a byte over an <code>if</code> statement.)</p>
+<pre class="lang-swift prettyprint-override"><code>      if mode &gt; 1 {
+        while empty == buffers[1] || program != (
+          program.replace(buffers[1], with: buffers[2]),
+          program
+        ).1 { }
+        buffers = [buffers[0], empty, empty]
+      }
+</code></pre>
+<p>If we're in replacement mode (i.e. <code>mode == 2</code>) when we hit a forward slash, perform a substitution:</p>
+<ul>
+<li>Replace every occurence of the pattern (<code>buffers[1]</code>) in <code>program</code> with the replacement (<code>buffers[2]</code>). Repeat this until calling <code>replace</code> stops changing the program.
+<ul>
+<li>We take advantage of the execution order of operator arguments and tuple elements to save some bytes — the lhs of <code>!=(_:_:)</code> is before replacement, and the rhs is after replacement.</li>
+<li>While Swift's <code>replace(_:with:maxReplacements:)</code> method does replace all occurences in the string, it only does one pass, so we still need to loop on it ourselves.</li>
+<li><code>replace</code> does nothing if the pattern is empty. We want to loop forever in that case, so we manually check if the pattern is empty in the loop condition.</li>
+</ul>
+</li>
+<li>Clear the pattern and replacement, while leaving the output intact.</li>
+</ul>
+<pre class="lang-swift prettyprint-override"><code>      mode = (mode + 1) % 3
+</code></pre>
+<p>Increment <code>mode</code>, cycling back to 0 via the modulo operator if needed.</p>
+<pre class="lang-swift prettyprint-override"><code>    }() : (
+      buffers[mode] += &quot;\\&quot; == character
+        ? empty &lt; program
+          ? first()
+          : empty
+        : character
+    )
+</code></pre>
+<p>If <code>character</code> is not a forward slash, update the appropriate buffer as follows:</p>
+<ul>
+<li>If <code>character</code> is a backslash, check whether the program is empty (i.e. if this backslash is the last character):
+<ul>
+<li>If so, do nothing — the closure will return immediately after this anyway.</li>
+<li>Otherwise, pop another character and append that to the buffer, ignoring the backslash.</li>
+</ul>
+</li>
+<li>If <code>character</code> is not a backslash, simply append it to the buffer.</li>
+</ul>
+<pre class="lang-swift prettyprint-override"><code>  }
+  return buffers[0]
+}
+</code></pre>
+<p>If/when the main loop completes, simply return the output buffer.</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C++ (gcc)</a>, <s>287 269 262 249 240</s> 236 bytes</h1>
 
 <pre class="lang-cpp prettyprint-override"><code>#import&lt;regex&gt;
 #define F(x)for(x=&quot;&quot;;(q=u[++p])-47;)x+=u[p+=q==92/!!q];
@@ -71,7 +180,7 @@ main(int,char**g){
 }
 </code></pre>
 </div>
-<div id="pu1" class="pu"><h1>C++ 328</h1>
+<div id="pu2" class="pu"><h1>C++ 328</h1>
 <p><strong>Edits:</strong></p>
 <ul>
 <li><strong>Thanks to @algorithmshark for lots of help making the original shorter</strong></li>
@@ -85,115 +194,6 @@ main(int,char**g){
 char p[198],*q=p,*s=p+99;int i,t;main(int n,char**m){for(std::string o=m[1];o[i];++i){if(!N(3)putchar O putchar(N(4)*q++=O(*q++=N(5)*s++=O*s++=o[i];if(n&gt;4){for(n=2;~(t=o.find(p,i+1));)o.replace(t,strlen(p),s=p+99);bzero(q=p,198);}}}
 </code></pre>
 <p><a href="https://tio.run/##PU9Nb4IwGL77K2q8vKWdjc5lg1pNPO2EiVfwoFC0CbS1dNky4/46K7Ds8n4@eT4Ka58uRdF1M9VY4/z6rHzLWl8WhMyvm8mslJXSEqXwhU2mjpjLupVIVaDX40WIeLn9x@0RmIyQAEzG5@p1qwlJJsX15JDNFvHbkUY3YWnUCkvimCvtkaKeNyeloV807bFR1OB7ZRwEL0nSeqf0BRnRZIsj75l5EMH34GOawjO2H34Q2KO/CVJY4ehGiNjD0FJ4wVHb70MdKPoUm9Uoo8WS/4AXZh5ylGCpIguMOTZzJ219KiR4GlzUUoPFdPSO@flbOgN9nBAM88fj0XUdq4xh77KuDUWfxtXllLFdzvL8MHx2LD/8Ag" rel="nofollow noreferrer" title="C++ (gcc) – Try It Online">Try it online!</a></p>
-</div>
-<div id="pu2" class="pu"><h1>Swift 6.1, 222 bytes</h1>
-<p>I wanted to challenge myself somewhat with this one. To the best of my knowledge, the closure below is 100% compliant with both specifications (the one on Esolangs and the one in this question). It also avoids any sort of recursion, meaning infinite loops are <em>actually</em> infinite.</p>
-
-<pre class="lang-swift prettyprint-override"><code>{var e=&quot;&quot;,p=$0+e,m=0,b=[e,e,e],f={p.removeFirst()}
-while e&lt;p{let c=f()
-if&quot;/&quot;==c{if m&gt;1{while e==b[1]||p != (p.replace(b[1],with:b[2]),p).1{}
-b=[b[0],e,e]}
-m=(m+1)%3}else{b[m]+=&quot;\\&quot;==c ?e&lt;p ?&quot;\(f())&quot;:e:&quot;\(c)&quot;}}
-return b[0]}
-</code></pre>
-<p><a href="https://swiftfiddle.com/ew4vn5oyynhjzec5vr36yiiuu4" rel="nofollow noreferrer">Try it on SwiftFiddle!</a> Takes the program as a <code>String</code> and returns the output as a <code>String</code>.</p>
-<p>Here it is with whitespace and meaningful identifiers:</p>
-<pre class="lang-swift prettyprint-override"><code>{
-  var empty = &quot;&quot;,
-    program = $0 + empty,
-    mode = 0,
-    buffers = [empty, empty, empty],
-    first = { program.removeFirst() }
-  while empty &lt; program {
-    let character = first()
-    if &quot;/&quot; == character {
-      if mode &gt; 1 {
-        while empty == buffers[1] || program != (
-          program.replace(buffers[1], with: buffers[2]),
-          program
-        ).1 { }
-        buffers = [buffers[0], empty, empty]
-      }
-      mode = (mode + 1) % 3
-    } else {
-      buffers[mode] += &quot;\\&quot; == character
-        ? empty &lt; program
-          ? &quot;\(first())&quot;
-          : empty
-        : &quot;\(character)&quot;
-    }
-  }
-  return buffers[0]
-}
-</code></pre>
-<h2>Breakdown</h2>
-<pre class="lang-swift prettyprint-override"><code>{
-  var empty = &quot;&quot;,
-    program = $0 + empty,
-    mode = 0,
-    buffers = [empty, empty, empty],
-    first = { program.removeFirst() }
-</code></pre>
-<p>Assign our initial variables:</p>
-<ul>
-<li><code>empty</code> (i.e. <code>e</code>) is simply the empty string. Assigning it to a variable here saves a couple of bytes.</li>
-<li><code>program</code> (i.e. <code>p</code>) is the current working program. It's initially assigned to <code>$0</code>, the implicit closure parameter (we concatenate it with <code>empty</code> to assist the type checker with inference).</li>
-<li><code>mode</code> (i.e. <code>m</code>) is the current mode we're in — <code>0</code> corresponds to print mode, <code>1</code> to pattern mode, and <code>2</code> to replacement mode. (There is no dedicated substitution mode.)</li>
-<li><code>buffers</code> (i.e. <code>b</code>) contains the output, pattern, and replacement buffers, in that order. Using an array to store these lets us assign directly to the appropriate value by subscripting with <code>mode</code>, instead of having to duplicate the assignment logic for each mode.</li>
-<li><code>first</code> (i.e. <code>f</code>) is simply a wrapper around <code>program.removeFirst()</code>. It's called twice, so this saves a few bytes.</li>
-</ul>
-<pre class="lang-swift prettyprint-override"><code>  while empty &lt; program {
-    let character = first()
-</code></pre>
-<p>Loop while the program is non-empty, popping the first character from the program each time. (The empty string compares less than all other strings.)</p>
-<pre class="lang-swift prettyprint-override"><code>    if &quot;/&quot; == character {
-</code></pre>
-<p>Check if <code>character</code> is a forward slash, i.e. whether we need to switch modes.</p>
-<pre class="lang-swift prettyprint-override"><code>      if mode &gt; 1 {
-        while empty == buffers[1] || program != (
-          program.replace(buffers[1], with: buffers[2]),
-          program
-        ).1 { }
-        buffers = [buffers[0], empty, empty]
-      }
-</code></pre>
-<p>If we're in replacement mode (i.e. <code>mode == 2</code>) when we hit a forward slash, perform a substitution:</p>
-<ul>
-<li>Replace every occurence of the pattern (<code>buffers[1]</code>) in <code>program</code> with the replacement (<code>buffers[2]</code>). Repeat this until calling <code>replace</code> stops changing the program.
-<ul>
-<li>We take advantage of the execution order of operator arguments and tuple elements to save some bytes — the lhs of <code>!=(_:_:)</code> is before replacement, and the rhs is after replacement.</li>
-<li>While Swift's <code>replace(_:with:maxReplacements:)</code> method does replace all occurences in the string, it only does one pass, so we still need to loop on it ourselves.</li>
-<li><code>replace</code> does nothing if the pattern is empty. We want to loop forever in that case, so we manually check if the pattern is empty in the loop condition.</li>
-</ul>
-</li>
-<li>Clear the pattern and replacement, while leaving the output intact.</li>
-</ul>
-<pre class="lang-swift prettyprint-override"><code>      mode = (mode + 1) % 3
-</code></pre>
-<p>Increment <code>mode</code>, cycling back to 0 via the modulo operator if needed.</p>
-<pre class="lang-swift prettyprint-override"><code>    } else {
-      buffers[mode] += &quot;\\&quot; == character
-        ? empty &lt; program
-          ? &quot;\(first())&quot;
-          : empty
-        : &quot;\(character)&quot;
-    }
-</code></pre>
-<p>If <code>character</code> is not a forward slash, update the appropriate buffer as follows:</p>
-<ul>
-<li>If <code>character</code> is a backslash, check whether the program is empty (i.e. if this backslash is the last character):
-<ul>
-<li>If so, do nothing — the closure will return immediately after this anyway.</li>
-<li>Otherwise, pop another character and append that to the buffer, ignoring the backslash.</li>
-</ul>
-</li>
-<li>If <code>character</code> is not a backslash, simply append it to the buffer.</li>
-</ul>
-<pre class="lang-swift prettyprint-override"><code>  }
-  return buffers[0]
-}
-</code></pre>
-<p>If/when the main loop completes, simply return the output buffer.</p>
 </div>
 <div id="pu3" class="pu"><h1>Python 2/3 (211 bytes)</h1>
 
