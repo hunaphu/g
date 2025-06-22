@@ -55,7 +55,8 @@
 <p>This code has been tested to completion at
 <a href="https://esolangpark.vercel.app/ide/brainfuck" rel="nofollow noreferrer">https://esolangpark.vercel.app/ide/brainfuck</a></p>
 <p>Delete the hello world program, set the delay to zero and hit run. Unfortunately the tape is visualised in signed integers, but these are readily converted to signed integers, for example the last prime found is 256-5 = 251.</p>
-<p>Warning: the site appears to use some form of buffering and on my hardware will not run to completion without hanging. Frequent pausing whenever the browser memory reached 2000MB allowed me to run the code to completion.</p>
+<p><strong>Warning: the site appears to use some form of buffering and on my hardware will not run to completion without hanging due to excessive memory use. Frequent pausing whenever the browser memory reached 2000MB allowed me to run the code to completion.</strong></p>
+<p><strong>It will run much faster at sites such as TIO.run, executing its approx 24 million instructions in less than a second. But as there is no output, the tape cannot be visualised.</strong></p>
 <p>I thought this question deserved a fully algorithmic answer. I considered sieves but they seemed too cumbersome to implement. Another algorithm that might work is finding greatest common divisors. For example the numbers 2 x 7 x 11 = 154 and 3 x 5 x 13 = 195 cover all six prime factors that need to be checked. By finding the greatest common divisor of these numbers (for example using Euclid's method of successive subtraction) you could check 3 primes at once.</p>
 <p>I picked trial division because it is easily scalable to any size. Versions of BF using cells larger than 8-bit should be able to run this code with out issue (though it is designed to stop when it reaches 256.)</p>
 <p>Trial division is carried out with factors up to 13. This is enough to prove any number below <code>17**2</code> = 289 is prime, since any non-prime number below 289 must have a prime factor less than 17.</p>
@@ -82,6 +83,38 @@
 &gt;+]b
 &gt;++&gt;+++&lt;
 </code></pre>
+<p><strong>Explanation</strong></p>
+<p>The code starts by forming a foundation for the prime list by adding <code>6 6 12 12</code> to the tape and modifying to <code>5 7 11 13</code>. The first two primes <code>2 3</code> are added to the beginning of the list at the end of the program. It then goes through all numbers starting at <code>N</code>=2 and ending at 255 (after which it wraps round to zero) testing if these numbers are divisible by the natural numbers <code>D</code>=13 or less.</p>
+<p>The tape when searching for a prime looks like this. The three zero cells are necessary for the flow control of the modulo operation.</p>
+<pre><code> 0  0
+ 1  0
+ 2  d  Copy of D
+ 3  D  The divisor being checked
+ 4  n  Copy of N
+ 5  N  The number being checked
+ 6  0
+ 7  F  How many factors found so far
+ 8  5
+ 9  7
+10 11
+11 13
+12 ... Continuation of prime list
+</code></pre>
+<p>The trial division (more accurately called trial modulo) is carried out using the following algorithm. It's copied from <a href="https://esolangs.org/wiki/Brainfuck_algorithms#Modulo" rel="nofollow noreferrer">https://esolangs.org/wiki/Brainfuck_algorithms#Modulo</a> except that the tape is run in reverse.</p>
+<pre><code>[&lt;+     Increment n
+ &lt;-     Decrement D
+ &lt;+     Increment d
+ &gt;[&lt;]&lt;  If D=0 move to d; otherwise move two cells further left
+ [&gt;+&lt;-] If at d; copy the contents of d back to D 
+ &gt;&gt;[&gt;]&lt; Move back to N
+-]      Decrement N and exit if it reaches zero
+</code></pre>
+<p>This moves the number being tested from Cell 5 <code>N</code> to cell 4 <code>N</code>. We move it back to cell 4, then check if cell 3 <code>d</code> is zero. If it is, we increment the factor counter <code>F</code> in cell 7. <code>d+D</code> still adds up to the current divisor, so we move any data in <code>d</code> back to <code>D</code>, then reduce it to carry out the next divisor check.</p>
+<p>Divisor checks are carried out all the way down to divisor of 1. Testing divisibility with 1 always gives a positive result, even for primes. So when the divisor reaches zero, we reduce the value of <code>F</code> by 1. If it is still nonzero the number is composite, so we zero F and move to cell 4. We then move onto the next value of <code>N</code>, incrementing cell 5.</p>
+<p>If <code>F</code> is zero we have found a new prime. We copy <code>N</code> from cell 5 to cell 6. Then we add a 1 to the end of the prime list to mark where we are going to store the new prime*. We then increment both the cell where the new prime is to be stored and cell 5, and decrement cell 6, until cell 6 is depleted, thereby copying N back to cell 5 and simultaneously to the end of the prime list.</p>
+<p>*In order to avoid overshooting the number in the prime list by 1, we temporarily reduce <code>N</code> by 1. We add this 1 back on at the end of the prime-copying code, leaving the pointer in cell 4.</p>
+<p><strong>Commented code</strong></p>
+<p>To follow</p>
 </div>
 <div id="pu1" class="pu"><h1>203 bytes</h1>
 <p>(excluding newlines added for readability)</p>
