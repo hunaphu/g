@@ -136,6 +136,7 @@ v=00000$((1000000000000/10#${v/.}))
 printf %s%.5f\\n &quot;${1//[^-]}&quot; ${v::-6}.${v: -6}
 </code></pre>
 <p>Take a try:</p>
+<p>Showing <code>bc</code>'s results side by side, with my function's results.</p>
 <pre class="lang-bash prettyprint-override"><code>#!/bin/bash
 
 reciprocal() {
@@ -150,7 +151,8 @@ tests=( 0.5134  0.5  2  2.0  0.2  51.2  113.7  1.337
 for i in ${tests[@]};do
     reciprocVal=$(reciprocal $i)
     verifByBc=$(bc -l &lt;&lt;&lt;&quot;1/$i&quot;)
-    printf '%12.4f -&gt; %9.4f  (%9.4f)\n' $i &quot;$reciprocVal&quot; &quot;$verifByBc&quot;
+    printf '%12.4f -&gt; %9.4f  (%9.4f)\n' $i \
+         &quot;$reciprocVal&quot; &quot;$verifByBc&quot;
 done
 </code></pre>
 <pre class="lang-none prettyprint-override"><code>      0.5134 -&gt;    1.9478  (   1.9478)
@@ -167,7 +169,8 @@ done
      -5.0000 -&gt;   -0.2000  (  -0.2000)
 </code></pre>
 <p><a href="https://tio.run/##VVBda4QwEHzPr9hq5PQhifHjjl61lPsRfbm7gnpKA6KHSqBIfrvdWNp6Q9iZZckss2Uxfi6L@yRK1YkSG0KGulL3oa@K1g9gJoC4D6qbGmBag8f3DdBZusysI52HFtT3ZbiBkKFLZy24CYKthTd6PG0ulw4cNBHi/MGuxkFDfTyyveFWAApiCJnqcRpzH0KeyjgBywARPh7aBlUqbZUy5gckHseHdZcFi3gax5aThEvkcK0pBIQ0/QAKVIdr1x3nt6t5ufXr39/070WbU///FkDVTxBdD6o5fZ0qHJcVsBayLHOkoMp5SLrzZMQTPNoreM9WgL9ycOl2aIb5N6scbP@MHXLru5qQZfkG" rel="nofollow noreferrer" title="Bash – Try It Online">Try it online!</a></p>
-<h2>For fun: pure bash, over an array, but without loop 293</h2>
+<h2>For fun: Over an array, but without loop: 293</h2>
+<p>Still <em><strong>pure <a href="/questions/tagged/bash" class="s-tag post-tag" title="show questions tagged &#39;bash&#39;" aria-label="show questions tagged &#39;bash&#39;" rel="tag" aria-labelledby="tag-bash-tooltip-container" data-tag-menu-origin="Unknown">bash</a></strong></em>, without any fork.</p>
 <pre class="lang-bash prettyprint-override"><code>local a t p=printf\ -vt
 $p '%.6f ' ${@#-}
 a=($t)
@@ -206,7 +209,68 @@ reciprocal() {
 reciprocal 0.5134 0.5 2 2.0 0.2 51.2 113.7 1.337 \
            -2.533 -244.1 -0.1 -5
 </code></pre>
+<pre class="lang-none prettyprint-override"><code>              0.5134    1.9478
+              0.5000    2.0000
+              2.0000    0.5000
+              2.0000    0.5000
+              0.2000    5.0000
+             51.2000    0.0195
+            113.7000    0.0088
+              1.3370    0.7479
+             -2.5330   -0.3948
+           -244.1000   -0.0041
+             -0.1000  -10.0000
+             -5.0000   -0.2000
+</code></pre>
 <p><a href="https://tio.run/##bVDLboMwELzzFVvAChy8tjEk6gGV/wipZKKgWoooAisX5G@nBhJC2s5hH97x7Ggr1X@NY/DGKt2wyjWe113Ouu2@z@oaxTCABw7XqQUFBtq87XRj6hLozcyzsIUdwX0NOwiHIqB2flV5FJp4LQd1LE4MbbyRo0qDziP/PgyY4Bu4LrB@/FzBE4582aId/8@amUR6JP3MWTQ/XmAfRD80/oNDfs0mEYJpXTaTjHn948wWjB0/6cn6/xtwLtMayPuqoFazy@WeQk7Cbu8NHDMh0ylBAglyVyWQCReEkHgAgVIeoJzF7qAJZlK6lKYogPIpZN44/gA" rel="nofollow noreferrer" title="Bash – Try It Online">Try it online!</a></p>
+<h3>Without format printing: 241</h3>
+<p>Showing results only, we just have to skip last step.</p>
+<pre class="lang-bash prettyprint-override"><code>local a t p=printf\ -vt
+$p '%.6f ' ${@#-}
+a=($t)
+a=(${a[@]/.})
+local -ai i=(&quot;${a[@]/#/1000000000000/10#}&quot;)
+$p '%020.0f ' ${i[@]}
+a=($t)
+$p '%%s.%s ' ${a[@]/#??????????????}
+$p &quot;$t&quot; ${a[@]/%??????}
+$p '%%s%.4f\n' ${t}
+printf &quot;$t&quot; &quot;${@//[^-]}&quot;
+</code></pre>
+<p>Take a try:</p>
+<pre class="lang-bash prettyprint-override"><code>#!/bin/bash
+
+reciprocal() {
+    local a t p=printf\ -vt
+    $p '%.6f ' ${@#-}
+    a=($t)
+    a=(${a[@]/.})
+    local -ai i=(&quot;${a[@]/#/1000000000000/10#}&quot;)
+    $p '%020.0f ' ${i[@]}
+    a=($t)
+    $p '%%s.%s ' ${a[@]/#??????????????}
+    $p &quot;$t&quot; ${a[@]/%??????}
+    $p '%%s%.4f\n' ${t}
+    printf &quot;$t&quot; &quot;${@//[^-]}&quot;
+}
+
+reciprocal 0.5134  0.5  2  2.0  0.2  51.2  113.7 \
+           1.337  -2.533  -244.1  -0.1  -5
+</code></pre>
+<pre class="lang-none prettyprint-override"><code>1.9478
+2.0000
+0.5000
+0.5000
+5.0000
+0.0195
+0.0088
+0.7479
+-0.3948
+-0.0041
+-10.0000
+-0.2000
+</code></pre>
+<p><a href="https://tio.run/##ZVDBboQgEL3zFVPUrB4cQLR7MvU/1m2Cm5qSbKxRshfDt7uAu61tX8jMPObxBujU/Lmu0Qvr9MA6RwiZPi56nL4u6ppmsBBwuHoGCgyM9TjpwfQt5DcTevEIhwRfezhAvDRRbsOuqtPYZN/lok7NmaHNdna50qDrlD6aERN8B8ciS7OfEbzgyLcp2un/jQmiZMZkDprN8@0X7FNIY0OfmuRPz5skWPbt4G3Mtr89ejvnLtwwdnrPz5YSu/8v4FgJWYLPAIVbyD1xVSV8FELiEdpg@YBAKY8AeYGVlD6XJQqXeYgVIet6Bw" rel="nofollow noreferrer" title="Bash – Try It Online">Try it online!</a></p>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://www.perl.org/" rel="nofollow noreferrer">Perl 5</a> <code>-p</code>, 7 bytes</h1>
 
