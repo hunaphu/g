@@ -115,8 +115,28 @@ The footer produces decimal output and is based on this link <a href="https://es
 <p>Divisor checks are carried out all the way down to divisor of 1. Testing divisibility with 1 always gives a positive result, even for primes. So when the divisor reaches zero, we reduce the value of <code>F</code> by 1. If it is still nonzero the number is composite, so we zero F and move to cell 4. We then move onto the next value of <code>N</code>, incrementing cell 5.</p>
 <p>If <code>F</code> is zero we have found a new prime. We copy <code>N</code> from cell 5 to cell 6. Then we add a 1 to the end of the prime list to mark where we are going to store the new prime*. We then increment both the cell where the new prime is to be stored and cell 5, and decrement cell 6, until cell 6 is depleted, thereby copying N back to cell 5 and simultaneously to the end of the prime list.</p>
 <p>*In order to avoid overshooting the number in the prime list by 1, we temporarily reduce <code>N</code> by 1. We add this 1 back on at the end of the prime-copying code, leaving the pointer in cell 4.</p>
-<p><strong>Commented code</strong></p>
-<p>To follow</p>
+<p><strong>Commented code - based on the fast version</strong></p>
+<pre><code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;++++++[-&gt;+&gt;+&gt;++&gt;++&lt;&lt;&lt;&lt;]  Put 6 6 12 12 on the tape
+&gt;&gt;&gt;&gt;[+&lt;-&lt;]                      Modify to 5 7 11 13
+&lt;&lt;++                            Move to cell 5 and set to N=2
+[+a                             Open loop Increment N by 1
+&lt;&lt;++++++++++++++e               Set divisor D to 14
+[-&gt;&gt;f                           Open loop Decrement D by 1 and start looking for factors
+[&lt;+&lt;-&lt;+&gt;[&lt;]&lt;[&gt;+&lt;-]&gt;&gt;[&gt;]&lt;-]      Modulo algorithm as described above
+&lt;[-&gt;+&lt;]                         Move n in cell 4 back to N in cell 5
+&lt;&lt;[&lt;]&gt;&gt;&gt;                        If cell 2 is nonzero stay in vacant cell 4; if zero move to occupied cell 5
+[&gt;&gt;+&lt;&lt;&lt;]                        If in cell 5 add 1 to F in cell 7 then move to occupoied cell 4
+&lt;&lt;[-&gt;+&lt;]                        Move d from cell 2 back to cell 3 to regenerate divisor D  
+&gt;-]g                            Subtract 1 from divisor D again and loop until D zero
+&gt;&gt;&gt;&gt;-[[-]&lt;]&lt;&lt;                   Move to F in cell 7; if nonzero clear the cell and move back to vacant cell 4; if zero mover to occupied cell 5
+[[-&gt;+&lt;]                         IF in cell 5 we must record prime: move value N to cell 6
+ &gt;&gt;&gt;[&gt;]+[&lt;]&lt;-                   Put a 1 at the end of the prime list and delete 1 from N 
+ [&gt;&gt;[&gt;]&lt;+[&lt;]&lt;&lt;+&gt;-]              Deplete cell 6 and add N-1 to both end of prime list and cell 5           
+ &lt;+&lt;                            Add 1 back to cell 5 and exit IF by leaving pointer in vacant cell 4
+] 
+&gt;+]b                            Increment N by 1 again 
+&gt;++&gt;+++&lt;                        If N wraps round to 256=0 finish the tape with 2 3 and exit
+</code></pre>
 </div>
 <div id="pu1" class="pu"><h1>203 bytes</h1>
 <p>(excluding newlines added for readability)</p>
