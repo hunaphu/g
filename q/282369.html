@@ -26,10 +26,58 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>080</td><td>Python 3</td><td>250624T103820Z</td><td><a href="https://codegolf.stackexchange.com/questions/282369/generate-a-text-shape-with-given-area-and-perimeter/282370#282370">Jitse</a></td></tr>
-<tr d-ix="1"><td>020</td><td>Charcoal</td><td>250624T151142Z</td><td><a href="https://codegolf.stackexchange.com/questions/282369/generate-a-text-shape-with-given-area-and-perimeter/282373#282373">Neil</a></td></tr>
+<tr d-ix="0"><td>162</td><td>Google Sheets</td><td>250624T181614Z</td><td><a href="https://codegolf.stackexchange.com/questions/282369/generate-a-text-shape-with-given-area-and-perimeter/282376#282376">doubleun</a></td></tr>
+<tr d-ix="1"><td>019</td><td>Jelly</td><td>250624T180449Z</td><td><a href="https://codegolf.stackexchange.com/questions/282369/generate-a-text-shape-with-given-area-and-perimeter/282375#282375">Jonathan</a></td></tr>
+<tr d-ix="2"><td>080</td><td>Python 3</td><td>250624T103820Z</td><td><a href="https://codegolf.stackexchange.com/questions/282369/generate-a-text-shape-with-given-area-and-perimeter/282370#282370">Jitse</a></td></tr>
+<tr d-ix="3"><td>020</td><td>Charcoal</td><td>250624T151142Z</td><td><a href="https://codegolf.stackexchange.com/questions/282369/generate-a-text-shape-with-given-area-and-perimeter/282373#282373">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a>, 80 bytes</h1>
+<div id="pu0" class="pu"><h1>Google Sheets, 162 bytes</h1>
+<pre class="lang-none prettyprint-override"><code>=let(_,lambda(x,y,rept(join(&quot;
+&quot;,rept(&quot;#&quot;,y)&amp;&quot;
+&quot;),x)),w,ceiling(B1/4),h,int(B1/4),l,int(A1/w),s,h-l,m,l*w+s-A1,_(l-(m&gt;0),w)&amp;_(abs(m),w-(s-(m&lt;0)=0)-1)&amp;_(s-(m&lt;0),1))
+</code></pre>
+<p>Put <span class="math-container">\$a\$</span> in cell <code>A1</code>, <span class="math-container">\$p\$</span> in <code>B1</code>, and the formula in <code>C1</code>.
+Uses <a href="https://codegolf.stackexchange.com/a/282370/119296">Jitse's</a> dimensions. There are two inline line breaks in the lambda.</p>
+<p><img src="https://i.sstatic.net/6dSGehBM.png" alt="screenshot" /></p>
+<p>Ungolfed:</p>
+<pre class="lang-none prettyprint-override"><code>=let(
+  block_, lambda(x, y, rept(join(char(10), rept(&quot;#&quot;, y) &amp; char(10)), x)),
+  width, ceiling(B1 / 4),
+  height, floor(B1 / 4),
+  numLongRows, floor(A1 / width),
+  numShortRows, height - numLongRows,
+  numMidRows, numLongRows * width + numShortRows - A1,
+  block_(numLongRows - (numMidRows &gt; 0), width) &amp; 
+  block_(abs(numMidRows), width - (numShortRows - (numMidRows &lt; 0) = 0) - 1) &amp; 
+  block_(numShortRows - (numMidRows &lt; 0), 1)
+)
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 19 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
+<pre><code>ŒṗL,`jNƲạƝS⁼ʋƇṪ”#ẋY
+</code></pre>
+<p>A dyadic Link that accepts the area on the left and the perimeter on the right and yields a list of characters, or a full program that prints to stdout.</p>
+<p><strong><a href="https://tio.run/##ATMAzP9qZWxsef//xZLhuZdMLGBqTsay4bqhxp1T4oG8yovGh@G5quKAnSPhuotZ////MjX/Mjg" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></strong></p>
+<h4>How?</h4>
+<pre><code>ŒṗL,`jNƲạƝS⁼ʋƇṪ”#ẋY - Link: Area; Perimeter
+Œṗ                  - integer partitions of {Area}
+             Ƈ      - keep those for which:
+            ʋ       -   last four links as a dyad - f(Partition, Perimeter)
+       Ʋ            -     last four links as a monad - f(Partition):
+  L                 -       length of {Partition}
+   ,`               -       pair with itself -&gt; [L, L]
+      N             -       negate {Partition}
+     j              -       {[L, L]} join {negated Partition}
+        ạƝ          -     absolute differences of the neighbours in {that}
+          S         -     sum {these}
+           ⁼        -     is {that} equal to {Perimeter}?
+              Ṫ     - tail of {that} (one valid partition or 0)
+               ”#ẋ  - repeat '#' {those} many times
+                  Y - join {those} with newline characters
+                    - (if a full program: implicit print)
+</code></pre>
+</div>
+<div id="pu2" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a>, 80 bytes</h1>
 
 <pre class="lang-python prettyprint-override"><code>lambda a,p:'\n'.join('#'*min(p+2&gt;&gt;2,a-p//4-~-p//4*i+1)or'#'for i in range(p//4))
 </code></pre>
@@ -37,7 +85,7 @@
 <p>A perimeter <code>p</code> can be achieved by placing all squares in a partially filled rectangle with size <code>floor(p/4)</code> by <code>ceil(p/4)</code>.</p>
 <p>-2 bytes thanks to Arnauld</p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 20 bytes</h1>
+<div id="pu3" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 20 bytes</h1>
 <pre><code>Ｇ↑÷Ｎ⁴#Ｍ→⪪×#⁻ＮＬＫＡ÷⊖θ⁴
 </code></pre>
 <p><a href="https://tio.run/##XY29CsJAEIR7n@KIzR7EQhGLpBLSBIwEfx4gJktu8bIXL5uAT38eVuLAFAMf87Wm8a1rbAi1s@/eMWT3MVUlS0ELdQglj7Oc5@GBHnSq9rHJOtH5qnILQnah3khctScWuI6WBG404ASRSlVFPE//HyfkXgzUiM@jtaBjfo0Fth4HZMEOXl@l1nkI2506hM1iPw" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code. Takes the perimeter as the first argument and the area as the second. Assumes the perimeter is even. Explanation: Uses @Jitse's observation that the perimeter can be gained from a partial rectangle that then is filled to the appropriate area.</p>
