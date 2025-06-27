@@ -29,20 +29,20 @@
 <tr d-ix="0"><td>nan</td><td>CP1610 machine code</td><td>250627T172433Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282433#282433">Arnauld</a></td></tr>
 <tr d-ix="1"><td>1024</td><td>HTML + CSS + JS</td><td>250627T173537Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282434#282434">A.L</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://en.wikipedia.org/wiki/General_Instrument_CP1600" rel="nofollow noreferrer">CP-1610</a> machine code, 106 DECLEs<sup>1</sup>=132.5 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://en.wikipedia.org/wiki/General_Instrument_CP1600" rel="nofollow noreferrer">CP-1610</a> machine code, 104 DECLEs<sup>1</sup>=130 bytes</h1>
 <p><em><sup>1. CP-1610 instructions are encoded with 10-bit values (0x000 to 0x3FF), known as DECLEs. Although the Intellivision is also able to work on 16-bit data, programs were really stored in 10-bit ROM back then.</sup></em></p>
 <p>This is a full program mapped at $4800. To get the correct delay of 500ms, this should be run on a 60Hz (NTSC) Intellivision.</p>
 <p>We could save 1 DECLE by just incrementing the counter and testing bit #5. The frame change would occur every 32 frames (533.33ms).</p>
 <h2>Source code</h2>
 <pre><code>                        ROMW  10                ; use 10-bit ROM
                         ORG   $4800             ; map our program at $4800
-
+                  
                   BT    EQU   $0200             ; BACKTAB address
                   RTN   EQU   $1014             ; return address of the ISR
                   COPY  EQU   $1730             ; copy routine of the EXEC
                   CLEAR EQU   $1738             ; clear routine of the EXEC
                   GRAM  EQU   $3800             ; GRAM address
-
+                  
                         ;; --------------------------------------------------------- ;;
                         ;;  main code                                                ;;
                         ;; --------------------------------------------------------- ;;
@@ -51,33 +51,33 @@
 4804  240 100           MVO   R0, $100
 4806  040               SWAP  R0
 4807  240 101           MVO   R0, $101
-
+                  
 4809  002               EIS                     ; enable interrupts
-
+                  
 480A  017               DECR  R7                ; spin forever
-
+                  
                         ;; --------------------------------------------------------- ;;
                         ;;  ISR                                                      ;;
                         ;; --------------------------------------------------------- ;;
                   isr   PROC
-
+                  
 480B  2B8 032           MVII  #50, R0           ; clear most STIC registers
 480D  1E4               CLRR  R4
 480E  004 114 338       CALL  CLEAR
-
+                  
 4811  2B8 020           MVII  #32, R0           ; copy the tiles into GRAM
 4813  001               SDBD
 4814  2B9 000 038       MVII  #GRAM, R1
 4817  001               SDBD
-4818  2BC 04A 048       MVII  #tiles, R4
+4818  2BC 048 048       MVII  #tiles, R4
 481B  004 114 330       CALL  COPY
-
+                  
 481E  280 300           MVI   $300, R0          ; R0 = counter
 4820  001               SDBD                    ; add 1092 (approx. 2**16 / 60)
 4821  2F8 044 004       ADDI  #1092, R0
 4824  240 300           MVO   R0, $300          ; save the updated value
 4826  203 00C           BPL   @draw             ; if it's negative looking ...
-
+                  
 4828  33D 00C           SUBI  #12, R5           ; ... R5 = GRAM pointer (from COPY)
 482A  2B8 001           MVII  #%00000001, R0    ; update the right eye
 482C  2B9 0F9           MVII  #%11111001, R1    ; by using these two patterns
@@ -87,63 +87,63 @@
 4831  269               MVO@  R1, R5            ; --- horizontal line + right border 
 4832  268               MVO@  R0, R5            ; \__ right border
 4833  268               MVO@  R0, R5            ; /
-
-4834  001         @draw SDBD                    ; draw the tiles
-4835  2B9 008 000       MVII  #8, R1
-4838  001 2B8 007       MVII  #$807, R0         ; top-left
-483C  240 26D           MVO   R0, BT+109
-483E  0C8               ADDR  R1, R0            ; bottom-left
-483F  240 281           MVO   R0, BT+129
-4841  0C8               ADDR  R1, R0            ; top-right
-4842  240 26E           MVO   R0, BT+110
-4844  0C8               ADDR  R1, R0            ; bottom-right
-4845  240 282           MVO   R0, BT+130
-
-4847  004 310 014       J     RTN               ; return from ISR
-
+                  
+4834  2B9 008     @draw MVII  #8, R1            ; draw the tiles
+4836  001               SDBD
+4837  2B8 007 008       MVII  #$807, R0         ; top-left
+483A  240 26D           MVO   R0, BT+109
+483C  0C8               ADDR  R1, R0            ; bottom-left
+483D  240 281           MVO   R0, BT+129
+483F  0C8               ADDR  R1, R0            ; top-right
+4840  240 26E           MVO   R0, BT+110
+4842  0C8               ADDR  R1, R0            ; bottom-right
+4843  240 282           MVO   R0, BT+130
+                  
+4845  004 310 014       J     RTN               ; return from ISR
+                  
                         ENDP
-
+                  
                         ;; --------------------------------------------------------- ;;
                         ;;  tiles                                                    ;;
                         ;; --------------------------------------------------------- ;;
                   tiles PROC
-
-484A  00F               DECLE %00001111         ; tile #0: top-left quarter
-484B  030               DECLE %00110000
-484C  040               DECLE %01000000
-484D  040               DECLE %01000000
+                  
+4848  00F               DECLE %00001111         ; tile #0: top-left quarter
+4849  030               DECLE %00110000
+484A  040               DECLE %01000000
+484B  040               DECLE %01000000
+484C  084               DECLE %10000100
+484D  084               DECLE %10000100
 484E  084               DECLE %10000100
 484F  084               DECLE %10000100
-4850  084               DECLE %10000100
+                  
+4850  084               DECLE %10000100         ; tile #1: bottom-left quarter
 4851  084               DECLE %10000100
-
-4852  084               DECLE %10000100         ; tile #1: bottom-left quarter
-4853  084               DECLE %10000100
-4854  080               DECLE %10000000
-4855  080               DECLE %10000000
-4856  044               DECLE %01000100
-4857  043               DECLE %01000011
-4858  030               DECLE %00110000
-4859  00F               DECLE %00001111
-
-485A  0F0               DECLE %11110000         ; tile #2: top-right quarter
-485B  00C               DECLE %00001100
-485C  002               DECLE %00000010
-485D  002               DECLE %00000010
+4852  080               DECLE %10000000
+4853  080               DECLE %10000000
+4854  044               DECLE %01000100
+4855  043               DECLE %01000011
+4856  030               DECLE %00110000
+4857  00F               DECLE %00001111
+                  
+4858  0F0               DECLE %11110000         ; tile #2: top-right quarter
+4859  00C               DECLE %00001100
+485A  002               DECLE %00000010
+485B  002               DECLE %00000010
+485C  021               DECLE %00100001
+485D  021               DECLE %00100001
 485E  021               DECLE %00100001
 485F  021               DECLE %00100001
-4860  021               DECLE %00100001
+                  
+4860  021               DECLE %00100001         ; tile #3: bottom-right quarter
 4861  021               DECLE %00100001
-
-4862  021               DECLE %00100001         ; tile #3: bottom-right quarter
-4863  021               DECLE %00100001
-4864  001               DECLE %00000001
-4865  001               DECLE %00000001
-4866  022               DECLE %00100010
-4867  0C2               DECLE %11000010
-4868  00C               DECLE %00001100
-4869  0F0               DECLE %11110000
-
+4862  001               DECLE %00000001
+4863  001               DECLE %00000001
+4864  022               DECLE %00100010
+4865  0C2               DECLE %11000010
+4866  00C               DECLE %00001100
+4867  0F0               DECLE %11110000
+                  
                         ENDP
 </code></pre>
 <h2>Output</h2>
