@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::67289</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>192</td><td>Python</td><td>250627T102358Z</td><td><a href="https://codegolf.stackexchange.com/questions/67289/convolve-integers-in-subquadratic-time/282419#282419">Lucenapo</a></td></tr>
+<tr d-ix="1"><td>079</td><td>J</td><td>160618T215226Z</td><td><a href="https://codegolf.stackexchange.com/questions/67289/convolve-integers-in-subquadratic-time/83259#83259">miles</a></td></tr>
+<tr d-ix="2"><td>214</td><td>Mathematica</td><td>160103T015923Z</td><td><a href="https://codegolf.stackexchange.com/questions/67289/convolve-integers-in-subquadratic-time/68456#68456">njpipeor</a></td></tr>
+<tr d-ix="3"><td>250</td><td>Python 2</td><td>151221T233257Z</td><td><a href="https://codegolf.stackexchange.com/questions/67289/convolve-integers-in-subquadratic-time/67317#67317">xnor</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 192 bytes</h1>
+<pre class="lang-python prettyprint-override"><code>def A(r,s):d=len(r);D=1 .from_bytes;E=b''.join;F=int.to_bytes;e=d.bit_length()+3;f=D(E(F(x,e)for x in r));g=D(E(F(x,e)for x in s));h=F(f*g,e*2*d-e);return[D(h[z*e:z*e+e])for z in range(2*d-1)]
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=bY9NqsJAEISvMju7YxuI-lQcZiHEXCIEMaQnieiMTEZQr-LGjd5C8Brexjx_di5q9VUVVafr9uAra87ny87r3uRxL1iLGThqcFqoNRtwKGMViVA7u1nkB8-NnKu80wlXtjYyUbXxobcfwqoI89ov2mDpK8DuQGoVwxwS2BOjtk7sRW2EQ5TlL9C0oFIJ6KAkDvpB0WOUjv3OmTSGKj0GPG3V5eyVOb7KlqZk-PdGmL1_3Lau3QUzSCPq04CGGaV_NKIxTTLEt-f7-Qk" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<p>Python uses <a href="https://en.wikipedia.org/wiki/Karatsuba_algorithm" rel="nofollow noreferrer">Karatsuba multiplication</a>, which is sub-quadratic.
+My code uses this method:</p>
+<ul>
+<li>Convert from list to bytes then convert the bytes to integer (sub-quadratic time)</li>
+<li>Do a product (sub-quadratic time)</li>
+<li>Convert from integer to bytes then convert from bytes to list (sub-quadratic time)</li>
+</ul>
+</div>
+<div id="pu1" class="pu"><h1>J, 79 bytes, <em>O</em>(<em>n</em> log <em>n</em>)</h1>
+
+<pre><code>f=:_2&amp;(0((+,-)]%_1^i.@#%#)&amp;f/@|:]\)~1&lt;#
+&lt;:@+&amp;#$9(o.f%#)[:+@*/;f@{.&amp;&gt;~2^#@#:@+&amp;#
+</code></pre>
+
+<p>Uses the Convolution theorem which states that the Fourier transform of the convolution of two sequences is equal to the Fourier transform of each sequence multiplied together elementwise.</p>
+
+<pre><code>Fourier( Convolve(a, b) ) = Fourier(a) * Fourier(b)
+Convolve(a, b) = InverseFourier( Fourier(a) * Fourier(b) )
+</code></pre>
+
+<p>Also uses the fact the the inverse Fourier transform can be applied by using the Fourier transform of the conjugate.</p>
+
+<pre><code>InverseFourier(a) = Conjugate( Fourier( Conjugate(a) ) ) / Length(a)
+</code></pre>
+
+<p>I used the FFT implementation from a previous <a href="https://codegolf.stackexchange.com/a/12475/6710">solution</a>. That implementation uses the Cooley-Tukey <a href="https://en.wikipedia.org/wiki/Cooley%E2%80%93Tukey_FFT_algorithm" rel="nofollow noreferrer">algorithm</a> for sequences where the length is a power of 2. Therefore, I have to zero-pad the input sequences to the a power of 2 (typically the minimal value that is valid) such that their lengths are greater than or equal to the sum of the lengths of the input sequences.</p>
+
+<h2>Usage</h2>
+
+<pre><code>   f =: _2&amp;(0((+,-)]%_1^i.@#%#)&amp;f/@|:]\)~1&lt;#
+   g =: &lt;:@+&amp;#$9(o.f%#)[:+@*/;f@{.&amp;&gt;~2^#@#:@+&amp;#
+   1 2 3 4 g 5 6 7 8
+5 16 34 60 61 52 32
+   2 4 5 6 1 g 1 2 4 7
+2 8 21 46 61 61 46 7
+</code></pre>
+
+<p><a href="https://tio.run/##JcpLDoIwFIXhOas4yZWmtVpsfaAVzd2HPAbGok5YgIat14LD853/HWPAxaNzQm6k1Ku1avLOti/DlJMSoeCvb2o12oqyfiorz1rQ4iQHE1Jx85qXxTnwx4jr6FpimoMse9yfAywcttihxx4HlDj@2SWawKbDzquM8Qc" rel="nofollow noreferrer">Try it online!</a></p>
+
+<h2>Explanation</h2>
+
+<p>An explanation for the FFT portion in J is included in my previous <a href="https://codegolf.stackexchange.com/a/12475/6710">solution</a> to a different challenge.</p>
+
+<pre><code>&lt;:@+&amp;#$9(o.f%#)[:+@*/;f@{.&amp;&gt;~2^#@#:@+&amp;#  Input: A on LHS, B on RHS
+                                      #  Get the lengths of A and B
+                                    +&amp;   Sum them
+                                 #:@     Get list of binary digits
+                               #@        Length
+                             2^           Raise 2 to that power, call it N
+                     ;                    Link A and B as a pair of boxed arrays
+                          &amp;&gt;~             For each box
+                        {.                  Take N values, extending with zeros
+                      f@                    Apply FFT to it
+               [:  */                    Reduce using multiplication
+                 +@                      Conjugate
+           f                             Apply FFT
+            %                            Divide by
+             #                           Length
+       9 o.                              Take the real part
+     #                                   Get the lengths of A and B
+   +&amp;                                    Sum them
+&lt;:@                                      Decrement
+      $                                  Shape to that length and return
+</code></pre>
+</div>
+<div id="pu2" class="pu"><h1>Mathematica, 214 bytes, O(n log n)</h1>
+
+<pre><code>f@{a_}:={a}
+f@a_:=#~Join~#+Join[#2,#2]Exp[2.Most@Range[0,1,1/Length@a]Pi I]&amp;@@f/@Thread@Partition[a,2]
+(l=Length@#;RotateLeft[Round[#/Length@#]][[-1;;(1-2l);;-1]]&amp;@f[Times@@(f@PadRight[#,2^Floor[2+Log2@l]]&amp;/@{##})])&amp;
+</code></pre>
+
+<p>Function <code>f</code> performs FFT, which is called several times. No built-in FFT is used here.</p>
+
+<pre><code>%[{1,2,3,4},{5,6,7,8}]
+(* {5,16,34,60,61,52,32} *)
+</code></pre>
+</div>
+<div id="pu3" class="pu"><h2>Python 2, 250 bytes, n^log_2(3)</h2>
+
+<pre class="lang-python prettyprint-override"><code>s=lambda a,b,S=1:[x+y*S for x,y in zip(a,b)]
+def f(a,A):
+ n=len(a);m=n/2
+ if m&lt;1:return[a[0]*A[0]]
+ if n%2:return f([0]+a,[0]+A)[2:]
+ b,c=a[:m],a[m:];B,C=A[:m],A[m:];p=f(b,B);r=f(c,C);z=m*[0];return s(z+z+r,s(z+s(f(s(b,c),s(B,C)),s(p,r),-1)+z,p+z+z))
+</code></pre>
+<p>This isn't well golfed, but more a proof of concept of the algorithm. Let's look at a more readable version.</p>
+<pre class="lang-python prettyprint-override"><code>s=lambda a,b,S=1:[x+y*S for x,y in zip(a,b)]
+
+def f(a,A):
+ n=len(a)
+ if n==1:return[a[0]*A[0]]
+ if n%2:return f([0]+a,[0]+A)[2:]
+ m=n/2
+ b,c=a[:m],a[m:]
+ B,C=A[:m],A[m:]
+ p=f(b,B)
+ r=f(c,C)
+ q=s(f(s(b,c),s(B,C)),s(p,r),-1)
+ z=m*[0]
+ return s(z+z+r,s(z+q+z,p+z+z))
+</code></pre>
+<p>The idea is to divide and conquer adapting the <a href="https://en.wikipedia.org/wiki/Karatsuba_algorithm" rel="noreferrer">Karatsuba multiplication algorithm</a> to do convolution. As before, it runs in time <code>n^log_2(3)</code>, as it makes 3 recursive calls which shrink the input length in half. This isn't as good as the quasilinear of DFT, but still better than quadratic.</p>
+<p>We can think of convolution as multiplication of formal polynomials. Alternatively, if multiplication were done without regrouping, you'd get convolution. So, adapting the algorithm only requires doing vector addition and subtraction instead of the numerical operations. These additions are still linear-time.</p>
+<p>Unfortunately for Python, it doesn't have built-in vector addition and subtraction, so we hack together a function <code>s</code> to do both: addition by default, and subtraction when passed an optional argument of <code>-1</code>. Whenever we add, we make sure to pad with zeroes to avoid truncation.</p>
+<p>We handle odd list lengths by padding with a zero to an even length, removing the extraneous zeroes that result.</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/67289/">67289</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
