@@ -26,23 +26,16 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>7568</td><td>MATL</td><td>250627T203334Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282437#282437">Luis Men</a></td></tr>
-<tr d-ix="1"><td>nan</td><td>CP1610 machine code</td><td>250627T172433Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282433#282433">Arnauld</a></td></tr>
+<tr d-ix="0"><td>nan</td><td>CP1610 machine code</td><td>250627T172433Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282433#282433">Arnauld</a></td></tr>
+<tr d-ix="1"><td>7568</td><td>MATL</td><td>250627T203334Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282437#282437">Luis Men</a></td></tr>
 <tr d-ix="2"><td>nan</td><td>HTML + CSS + JS</td><td>250629T082636Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282465#282465">M. Zhang</a></td></tr>
 <tr d-ix="3"><td>293</td><td>ZX Spectrum Basic</td><td>250627T213317Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282440#282440">Neil</a></td></tr>
 <tr d-ix="4"><td>252</td><td>PowerShell Windows and Core</td><td>250628T000031Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282441#282441">user3141</a></td></tr>
 <tr d-ix="5"><td>1024</td><td>HTML + CSS + JS</td><td>250627T173537Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282434#282434">A.L</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/lmendo/MATL" rel="nofollow noreferrer">MATL</a>, <s>75</S> 68 bytes</h1>
-<pre><code>`TF'#c8Dw;Lv/P/7KMbi('F8:ZaY&quot;8etPv!F85:90(!@o?tP*}F5:'x'+(]!1YG.5Y.T
-</code></pre>
-<p>You can try it at <a href="https://matl.io/?code=%60TF%27%23c8Dw%3BLv%2FP%2F7KMbi%28%27F8%3AZaY%228etPv%21F85%3A90%28%21%40o%3FtP%2a%7DF5%3A%27x%27%2B%28%5D%211YG.5Y.T&amp;inputs=%60TF%27%23c8Dw%3BLv%2FP%2F7KMbi%28%27F8%3AZaY%228etPv%21F85%3A90%28%21%40o%3FtP%2a%7DF5%3A%27x%27%2B%28%5D%211YG.5Y.T&amp;version=22.8.0" rel="nofollow noreferrer">MATL online!</a>, but it's slow. Here's an animated GIF from the offline compiler showing the actual speed:</p>
-<br/>
-<p><a href="https://i.sstatic.net/HSsfkBOy.gif" rel="nofollow noreferrer"><img src="https://i.sstatic.net/HSsfkBOy.gif" alt="enter image description here" /></a></p>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://en.wikipedia.org/wiki/General_Instrument_CP1600" rel="nofollow noreferrer">CP-1610</a> machine code, 91 DECLEs<sup>1</sup>=113.75 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://en.wikipedia.org/wiki/General_Instrument_CP1600" rel="nofollow noreferrer">CP-1610</a> machine code, 90 DECLEs<sup>1</sup>=112.5 bytes</h1>
 <p><em><sup>1. CP-1610 instructions are encoded with 10-bit values (0x000 to 0x3FF), known as DECLEs. Although the Intellivision is also able to work on 16-bit data, programs were really stored in 10-bit ROM back then.</sup></em></p>
-<p>This is a full program mapped at $4800-$485A. To get the correct delay of 500ms, this should be run on a 60Hz (NTSC) Intellivision.</p>
+<p>This is a full program mapped at $4800-$4859. To get the correct delay of 500ms, this should be run on a 60Hz (NTSC) Intellivision.</p>
 <p>We could save 1 DECLE by just incrementing the counter and testing bit #5. The frame change would occur every 32 frames (533.33ms).</p>
 <h2>Source code</h2>
 <pre><code>                        ROMW  10                ; use 10-bit ROM
@@ -88,8 +81,8 @@
 4818  338 100           SUBI  #$100, R0         ; decrement the upper nibble
 481A  223 004           BPL   @copy             ; copy again if still positive
 
-481C  2F9 2AB           ADDI  #683, R1          ; this will make R1 negative-looking
-481E  223 009           BPL   @loop             ; after 21 iterations ($4800 -&gt; $8007)
+481C  2F9 2CD           ADDI  #717, R1          ; this will make R1 negative-looking
+481E  223 009           BPL   @loop             ; after 20 iterations ($4800 -&gt; $8004)
 
 4820  2BA 301           MVII  #$301, R2         ; R2 = address of 16-bit counter
 4822  291               MVI@  R2, R1            ; R1 = said counter
@@ -109,10 +102,10 @@
 
 4832  2B9 008     @draw MVII  #8, R1            ; draw the tiles
 4834  001               SDBD
-4835  2B8 007 008       MVII  #$807, R0         ; top-left
-4838  240 26D           MVO   R0, BT+109
-483A  0C8               ADDR  R1, R0            ; bottom-left
-483B  240 281           MVO   R0, BT+129
+4835  2B8 007 008       MVII  #$807, R0         ; bottom-left
+4838  240 281           MVO   R0, BT+129
+483A  0C8               ADDR  R1, R0            ; top-left
+483B  240 26D           MVO   R0, BT+109
 483D  0C8               ADDR  R1, R0            ; top-right
 483E  240 26E           MVO   R0, BT+110
 4840  0C8               ADDR  R1, R0            ; bottom-right
@@ -128,40 +121,46 @@
                         ;;    BB = byte to write                                     ;;
                         ;; --------------------------------------------------------- ;;
                   tiles PROC
-                        ; tile #0: top-left quarter
-4846  00F               DECLE (0 SHL 8) OR %00001111
-4847  030               DECLE (0 SHL 8) OR %00110000
-4848  140               DECLE (1 SHL 8) OR %01000000
-4849  384               DECLE (3 SHL 8) OR %10000100
+                        ; tile #0: bottom-left quarter
+4846  184               DECLE (1 SHL 8) OR %10000100
+4847  180               DECLE (1 SHL 8) OR %10000000
+4848  044               DECLE (0 SHL 8) OR %01000100
+4849  043               DECLE (0 SHL 8) OR %01000011
+484A  030               DECLE (0 SHL 8) OR %00110000
+484B  10F               DECLE (1 SHL 8) OR %00001111  ; + 1st row of next tile
 
-                        ; tile #1: bottom-left quarter
-484A  184               DECLE (1 SHL 8) OR %10000100
-484B  180               DECLE (1 SHL 8) OR %10000000
-484C  044               DECLE (0 SHL 8) OR %01000100
-484D  043               DECLE (0 SHL 8) OR %01000011
-484E  030               DECLE (0 SHL 8) OR %00110000
-484F  00F               DECLE (0 SHL 8) OR %00001111
+                        ; tile #1: top-left quarter
+484C  030               DECLE (0 SHL 8) OR %00110000
+484D  140               DECLE (1 SHL 8) OR %01000000
+484E  384               DECLE (3 SHL 8) OR %10000100
 
                         ; tile #2: top-right quarter
-4850  0F0               DECLE (0 SHL 8) OR %11110000
-4851  00C               DECLE (0 SHL 8) OR %00001100
-4852  102               DECLE (1 SHL 8) OR %00000010
-4853  321               DECLE (3 SHL 8) OR %00100001
+484F  0F0               DECLE (0 SHL 8) OR %11110000
+4850  00C               DECLE (0 SHL 8) OR %00001100
+4851  102               DECLE (1 SHL 8) OR %00000010
+4852  321               DECLE (3 SHL 8) OR %00100001
 
                         ; tile #3: bottom-right quarter
-4854  121               DECLE (1 SHL 8) OR %00100001
-4855  101               DECLE (1 SHL 8) OR %00000001
-4856  022               DECLE (0 SHL 8) OR %00100010
-4857  0C2               DECLE (0 SHL 8) OR %11000010
-4858  00C               DECLE (0 SHL 8) OR %00001100
-4859  0F0               DECLE (0 SHL 8) OR %11110000
+4853  121               DECLE (1 SHL 8) OR %00100001
+4854  101               DECLE (1 SHL 8) OR %00000001
+4855  022               DECLE (0 SHL 8) OR %00100010
+4856  0C2               DECLE (0 SHL 8) OR %11000010
+4857  00C               DECLE (0 SHL 8) OR %00001100
+4858  0F0               DECLE (0 SHL 8) OR %11110000
 
                         ; pattern for the horizontal eye
-485A  0F9               DECLE (0 SHL 8) OR %11111001
+4859  0F9               DECLE (0 SHL 8) OR %11111001
                         ENDP
 </code></pre>
 <h2>Output</h2>
 <p><a href="https://i.sstatic.net/BSqlU4zu.gif" rel="nofollow noreferrer"><img src="https://i.sstatic.net/BSqlU4zu.gif" alt="output" /></a></p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/lmendo/MATL" rel="nofollow noreferrer">MATL</a>, <s>75</S> 68 bytes</h1>
+<pre><code>`TF'#c8Dw;Lv/P/7KMbi('F8:ZaY&quot;8etPv!F85:90(!@o?tP*}F5:'x'+(]!1YG.5Y.T
+</code></pre>
+<p>You can try it at <a href="https://matl.io/?code=%60TF%27%23c8Dw%3BLv%2FP%2F7KMbi%28%27F8%3AZaY%228etPv%21F85%3A90%28%21%40o%3FtP%2a%7DF5%3A%27x%27%2B%28%5D%211YG.5Y.T&amp;inputs=%60TF%27%23c8Dw%3BLv%2FP%2F7KMbi%28%27F8%3AZaY%228etPv%21F85%3A90%28%21%40o%3FtP%2a%7DF5%3A%27x%27%2B%28%5D%211YG.5Y.T&amp;version=22.8.0" rel="nofollow noreferrer">MATL online!</a>, but it's slow. Here's an animated GIF from the offline compiler showing the actual speed:</p>
+<br/>
+<p><a href="https://i.sstatic.net/HSsfkBOy.gif" rel="nofollow noreferrer"><img src="https://i.sstatic.net/HSsfkBOy.gif" alt="enter image description here" /></a></p>
 </div>
 <div id="pu2" class="pu"><h1>HTML + CSS + JS, <del>588</del> 506 bytes</h1>
 <p>Disclaimer: Entirely based on <a href="https://codegolf.stackexchange.com/a/282434/128774">@A.L's answer</a>.</p>
