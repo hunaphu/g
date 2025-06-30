@@ -26,15 +26,112 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>246</td><td>JS</td><td>250629T131050Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282468#282468">b00t</a></td></tr>
-<tr d-ix="1"><td>432</td><td>HTML + CSS + JS</td><td>250629T082636Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282465#282465">M. Zhang</a></td></tr>
-<tr d-ix="2"><td>nan</td><td>CP1610 machine code</td><td>250627T172433Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282433#282433">Arnauld</a></td></tr>
-<tr d-ix="3"><td>7568</td><td>MATL</td><td>250627T203334Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282437#282437">Luis Men</a></td></tr>
-<tr d-ix="4"><td>293</td><td>ZX Spectrum Basic</td><td>250627T213317Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282440#282440">Neil</a></td></tr>
-<tr d-ix="5"><td>252</td><td>PowerShell Windows and Core</td><td>250628T000031Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282441#282441">user3141</a></td></tr>
-<tr d-ix="6"><td>1024</td><td>HTML + CSS + JS</td><td>250627T173537Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282434#282434">A.L</a></td></tr>
+<tr d-ix="0"><td>nan</td><td>Commodore 64 Assembler</td><td>250630T111126Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282481#282481">Jani Joe</a></td></tr>
+<tr d-ix="1"><td>246</td><td>JS</td><td>250629T131050Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282468#282468">b00t</a></td></tr>
+<tr d-ix="2"><td>432</td><td>HTML + CSS + JS</td><td>250629T082636Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282465#282465">M. Zhang</a></td></tr>
+<tr d-ix="3"><td>nan</td><td>CP1610 machine code</td><td>250627T172433Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282433#282433">Arnauld</a></td></tr>
+<tr d-ix="4"><td>7568</td><td>MATL</td><td>250627T203334Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282437#282437">Luis Men</a></td></tr>
+<tr d-ix="5"><td>293</td><td>ZX Spectrum Basic</td><td>250627T213317Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282440#282440">Neil</a></td></tr>
+<tr d-ix="6"><td>252</td><td>PowerShell Windows and Core</td><td>250628T000031Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282441#282441">user3141</a></td></tr>
+<tr d-ix="7"><td>1024</td><td>HTML + CSS + JS</td><td>250627T173537Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282434#282434">A.L</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>JS, <strike>398</strike> <strike>366</strike> 246 bytes</h1>
+<div id="pu0" class="pu"><h1>Commodore 64 Assembler, 93 Bytes (6502/KickAssembler)</h1>
+<h2>TL;DR</h2>
+<p>The code generates the graphics into a C64 sprite. It first copies the right side of the sprite from the gfx table, mirrors it to the left side, and then toggles between open and winking eye graphics every ~500ms by using an XOR bitmask. There's also some code for cleaning up the unused sprite graphics memory, as C64 sprites are 24x21 pixels and we use only 16x16 pixel area of that.</p>
+<h2>Code</h2>
+<pre><code>.const sprite       = $40   // Sprite graphics will be generated here on zero page
+.const data_ptr     = $80   // Free pointer to $20c9, ie. 1st byte of sprite gfx data
+
+*       = $20c9
+gfx:    .by %11110000   // Right side of the sprite. Mirrored in code for left side.
+        .by %00001100   // Flipped horizontally so that the incrementing data pointer
+        .by %11000010   // will end up pointing to the EOR mask table after gfx data
+        .by %00100010   // has been copied to sprite.
+        .by %00000001
+        .by %00000001
+        .by %00100001
+        .by %00100001
+        .by %00100001
+        .by %00100001
+        .by %00100001
+        .by %00100001
+        .by %00000010
+        .by %00000010
+        .by %00001100
+        .by %11110000
+
+eormask:.by %00100001^%00000001     // These 6 bytes are an EOR mask that toggles
+        .by %00100001^%00000001     // between open and winking eye graphics.
+        .by %00100001^%00000001
+        .by %00100001^%11111001
+        .by %00100001^%00000001
+        .by %00100001^%00000001
+
+                            // Start with SYS 8415
+        ldx #62             // 2 First we need to create 63 (0-62) bytes of sprite data
+        stx $d000           // 3 Save 62 as Sprite #0 X and Y positions (otherwise the
+        stx $d001           // 3 sprite would be hidden in top left, behind the border)
+
+draw:   sty sprite,x        // 2 Y=0 here. Clear rightmost byte of sprite pixel row
+        dex                 // 1 Decrement sprite byte pointer
+        cpx #47             // 2 Repeat until we've cleared sprite pixel rows 17-21
+        bcs draw            // 2 If we still have complete rows to clear, repeat
+        lda (data_ptr),y    // 2 Load byte from sprite graphics data
+        sta sprite,x        // 2 Save as middle byte on sprite pixel row
+        inc data_ptr        // 2 Increment sprite graphics data pointer
+        dex                 // 1 Decrement sprite byte pointer
+
+        bit $2              // 2 Reverses order of bits in a byte. Found from an old
+    !:  php                 // 1 Google groups thread. Just 10 bytes. There's another
+        asl                 // 1 10 byte solution but it uses X register which we need
+        bne !-              // 2 ourselves. Super clever: Pushes the bits from left
+    !:  rol                 // 1 into the carry flag and saves processor flags to stack,
+        plp                 // 1 then pulls the flags and pushes carry to the byte from
+        bne !-              // 2 the right, effectively reversing the order.
+
+        sta sprite,x        // 2 Save mirrored byte (left side of smiley) to sprite
+        dex                 // 1 Decrement sprite byte pointer
+        bpl draw            // 2 Loop back until we've drawn all sprite pixel rows
+
+        iny                 // 1 Increment Y to 1
+        sty $d015           // 3 Sprite enable register - enable Sprite #0
+        sty $07f8           // 3 Sprite #0 pointer - point to the 2nd 64 byte block in memory
+
+anim:   ldy #5              // 2 Animate eye winking: Change 6 bytes of graphics on sprite
+        ldx #12             // 2
+    !:  lda sprite+16,x     // 2 Load an eye byte from sprite
+        eor (data_ptr),y    // 2 EOR it with mask to toggle between open and winking eye
+        sta sprite+16,x     // 2 Save toggled eye byte to sprite
+        dex                 // 1 Decrement sprite byte pointer three times to point to...
+        dex                 // 1 ...the same byte on previous row
+        dex                 // 1
+        dey                 // 1 Decrement EOR mask table index
+        bpl !-              // 2 Loop until all 6 bytes have been changed
+
+delay:  jsr $eeb3           // 3 KERNAL routine: 1ms delay
+        jsr $eeb3           // 3 KERNAL routine: 1ms delay
+        dex                 // 1 X=250 when we enter the delay loop
+        bne delay           // 2 repeat for 250 times
+        beq anim            // 2 Animate, delay, rinse and repeat
+</code></pre>
+<h2>Usage</h2>
+<p>Run the program with <code>SYS 8415</code>.</p>
+<h2>Explanation</h2>
+<p>Quite a few tricks were used to make the code smaller:</p>
+<ul>
+<li>When we init the X index for the sprite generating routine, we reuse that value for moving the sprite to a visible part of the screen (ie. away from far top left, behind the border). Saves 2 bytes.</li>
+<li>Sprite is generated to the first fully available 64 byte block on zero page. This allows us to use 8bit addressing instead of 16bit, saving 5 bytes. It also enables us to use another trick later to save additional 2 bytes.</li>
+<li>As sprite is located on the 2nd 64 byte block of memory (index=1), we can use 1 for both setting the sprite pointer and enabling the sprite. Saves 2 bytes.</li>
+<li>As Y is 0 after the SYS command, we keep it as 0 and use it to clear the redundant bytes of the sprite, saving 2 bytes. Also we later increment Y to 1 for setting the aforementioned sprite pointer and enabling the sprite, saves 1 byte vs. loading an immediate value.</li>
+<li>Sprite graphics table is located to address $20c9, which allows us to use addresses $80-$81 of KERNAL's CHRGET routine on zero page as an indirect pointer to it, saving 2 bytes.</li>
+<li>The sprite drawing routine increments the pointer after reading a byte from the gfx table, meaning that after it's read all the bytes from the table, the pointer conveniently points to the next table in memory (eor mask table). This later saves us a byte in the eye winking routine.</li>
+<li>Instead of defining the 16 left hand side bytes of the smiley gfx, we use a neat little bit reversing routine of just 10 bytes to mirror the right hand side, thus savings of 6 bytes.</li>
+<li>Winking animation is done by toggling the pixels of the right eye with an XOR bitmask (eye is 6 pixels high, thus we need to toggle 6 bytes of the sprite). I don't know what the exact saving is here versus e.g. toggling a pointer between two 6-byte pieces of graphics, but the XOR bitmask method was at least 3-4 bytes smaller than the smallest gfx toggling method I could come up with.</li>
+<li>Delay is implemented by calling the KERNAL's 1ms delay routine twice, and then repeating it 250 times. In the animation routine we take advantage of the 6502 CPU's feature (some call it the page crossing bug): If e.g. we have an instruction <code>STA $ff,x</code>, and X is 2, A is getting saved into address $0001 instead of $0101. For the anim routine, we set the value of X in such a way that it is 250 when we continue from the routine to the delay, and then just compensate the offset in the base address of the <code>STA NN,x</code> instruction. This negates the need to init X for the delay routine, saving 2 bytes.</li>
+</ul>
+<p><a href="https://i.sstatic.net/TM3zvw4J.gif" rel="nofollow noreferrer"><img src="https://i.sstatic.net/TM3zvw4J.gif" alt="enter image description here" /></a></p>
+</div>
+<div id="pu1" class="pu"><h1>JS, <strike>398</strike> <strike>366</strike> 246 bytes</h1>
 <h2>New method</h2>
 <p>Setting image src to a base64 gif of the smiley/winkey.</p>
 <p><div class="snippet" data-lang="js" data-hide="false" data-console="false" data-babel="false" data-babel-preset-react="false" data-babel-preset-ts="false">
@@ -81,7 +178,7 @@ setInterval(
 <li><strike>366</strike> -&gt; <strong>246</strong>: Changed to a simpler solution using base64 gifs.</li>
 </ol>
 </div>
-<div id="pu1" class="pu"><h1>HTML + CSS + JS, <s>588</s> 432 bytes</h1>
+<div id="pu2" class="pu"><h1>HTML + CSS + JS, <s>588</s> 432 bytes</h1>
 <p>Disclaimer: Entirely based on <a href="https://codegolf.stackexchange.com/a/282434/128774">@A.L's answer</a>.</p>
 <p>New version: encoded the bitmap as a base-5 <code>BitInt</code> -- Oops, now below 512 bytes.</p>
 <p><div class="snippet" data-lang="js" data-hide="false" data-console="true" data-babel="false" data-babel-preset-react="false" data-babel-preset-ts="false">
@@ -128,7 +225,7 @@ for(c of l)u.write(`&lt;td class=${c} width=9 height=9&gt;`)})&lt;/script&gt;</c
 </div>
 </p>
 </div>
-<div id="pu2" class="pu"><h1><a href="https://en.wikipedia.org/wiki/General_Instrument_CP1600" rel="nofollow noreferrer">CP-1610</a> machine code, 90 DECLEs<sup>1</sup>=112.5 bytes</h1>
+<div id="pu3" class="pu"><h1><a href="https://en.wikipedia.org/wiki/General_Instrument_CP1600" rel="nofollow noreferrer">CP-1610</a> machine code, 90 DECLEs<sup>1</sup>=112.5 bytes</h1>
 <p><em><sup>1. CP-1610 instructions are encoded with 10-bit values (0x000 to 0x3FF), known as DECLEs. Although the Intellivision is also able to work on 16-bit data, programs were really stored in 10-bit ROM back then.</sup></em></p>
 <p>This is a full program mapped at $4800-$4859. To get the correct delay of 500ms, this should be run on a 60Hz (NTSC) Intellivision.</p>
 <p>We could save 1 DECLE by just incrementing the counter and testing bit #5. The frame change would occur every 32 frames (533.33ms).</p>
@@ -250,14 +347,14 @@ for(c of l)u.write(`&lt;td class=${c} width=9 height=9&gt;`)})&lt;/script&gt;</c
 <h2>Output</h2>
 <p><a href="https://i.sstatic.net/BSqlU4zu.gif" rel="nofollow noreferrer"><img src="https://i.sstatic.net/BSqlU4zu.gif" alt="output" /></a></p>
 </div>
-<div id="pu3" class="pu"><h1><a href="https://github.com/lmendo/MATL" rel="nofollow noreferrer">MATL</a>, <s>75</S> 68 bytes</h1>
+<div id="pu4" class="pu"><h1><a href="https://github.com/lmendo/MATL" rel="nofollow noreferrer">MATL</a>, <s>75</S> 68 bytes</h1>
 <pre><code>`TF'#c8Dw;Lv/P/7KMbi('F8:ZaY&quot;8etPv!F85:90(!@o?tP*}F5:'x'+(]!1YG.5Y.T
 </code></pre>
 <p>You can try it at <a href="https://matl.io/?code=%60TF%27%23c8Dw%3BLv%2FP%2F7KMbi%28%27F8%3AZaY%228etPv%21F85%3A90%28%21%40o%3FtP%2a%7DF5%3A%27x%27%2B%28%5D%211YG.5Y.T&amp;inputs=%60TF%27%23c8Dw%3BLv%2FP%2F7KMbi%28%27F8%3AZaY%228etPv%21F85%3A90%28%21%40o%3FtP%2a%7DF5%3A%27x%27%2B%28%5D%211YG.5Y.T&amp;version=22.8.0" rel="nofollow noreferrer">MATL online!</a>, but it's slow. Here's an animated GIF from the offline compiler showing the actual speed:</p>
 <br/>
 <p><a href="https://i.sstatic.net/HSsfkBOy.gif" rel="nofollow noreferrer"><img src="https://i.sstatic.net/HSsfkBOy.gif" alt="enter image description here" /></a></p>
 </div>
-<div id="pu4" class="pu"><h1>ZX Spectrum Basic, 293 bytes</h1>
+<div id="pu5" class="pu"><h1>ZX Spectrum Basic, 293 bytes</h1>
 <pre><code>   1 OVER SGN PI: LET a$=&quot;2 2 13
  3-13 5 03 3 12 1 23-1 33 0 53 1
  32 2143 3 13 5 03 3-1214 23 1 3
@@ -278,7 +375,7 @@ PI TO i): GO TO VAL a$(i-VAL &quot;4&quot;
 <p><a href="https://i.sstatic.net/TtpiaFJj.png" rel="nofollow noreferrer"><img src="https://i.sstatic.net/TtpiaFJj.png" alt="wink off" /></a></p>
 <p><a href="https://i.sstatic.net/A211CSr8.png" rel="nofollow noreferrer"><img src="https://i.sstatic.net/A211CSr8.png" alt="wink on" /></a></p>
 </div>
-<div id="pu5" class="pu"><h1><a href="https://github.com/TryItOnline/TioSetup/wiki/Powershell" rel="nofollow noreferrer">PowerShell</a> (Windows and Core), <s>277</s> 252 bytes</h1>
+<div id="pu6" class="pu"><h1><a href="https://github.com/TryItOnline/TioSetup/wiki/Powershell" rel="nofollow noreferrer">PowerShell</a> (Windows and Core), <s>277</s> 252 bytes</h1>
 <pre><code>for(cls){-split(&quot;ff0 300c 4002 4002 $(((,8421*6),&quot;$(,8401*3) 84f9 8401 8401&quot;)[++$w%2]) 8001 8001 4422 43c2 300c ff0&quot;)|%{[Convert]::ToString(&quot;0x$_&quot;,2)|% *ft 16 '0'|% T*y|%{' '|Write-Host -B(15*&quot;$_&quot;)-N};''}
 sleep -m 500
 [Console]::SetCursorPosition(0,0)}
@@ -309,7 +406,7 @@ For (;;) {
 }
 </code></pre>
 </div>
-<div id="pu6" class="pu"><h1>HTML + CSS + JS, 1024 bytes</h1>
+<div id="pu7" class="pu"><h1>HTML + CSS + JS, 1024 bytes</h1>
 <p>I didn't try to optimize it much, I just tried to start from an ASCII representation of the pixels (maybe it can help other people), then minimized it to 1 kb.</p>
 <p>The code will draw a HTML table with the different possible states:</p>
 <ul>
