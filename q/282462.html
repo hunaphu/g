@@ -37,6 +37,46 @@
 `)););return s+t}
 </code></pre>
 <p><a href="https://tio.run/##bYxNboMwEEb3nGLwAtkZ86usgobcIBegVIlSSFvAgKEIVNqrU6dRpEaqNJv3Ps17P42n/qzf2sFVzUu@FrTWlHwWjeYHCmJFB0TZE2Oy9vqmzjnXchaU6BuNlIzPvCTlRBvbntC2Z9kilU64Z4Bsx1xksruKyAgwYgEmVZJEG@1VuboMr45t1@mMYSaQc@XTVviRcTpFnDLhfpd@JFtipjNRR0frKBY@74PdQK3skVrs8LgYK2IR63z40Ap6HL7Wc6P6psq9qrnwgqcWQAqBhFBCAJn8xUjC1pg7hvfVygQgsCfFRGz91zGP1/vTCR7xtpqOiNcf" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<h3>Method</h3>
+<p>We use a brute-force search that increments a counter <code>N</code> until its bits represent valid doorways.</p>
+<p>We build the output string <code>s</code> while testing the bits. Each row of the input matrix is turned into two strings <code>p</code> and <code>q</code>, representing horizontal and vertical doorways respectively. The last line is a copy of the first line (saved in <code>t</code>), where all doors are necessarily closed.</p>
+<p>We use 2 bits per cell to encode the doorways to the North and to the West. Therefore, we have 3 cells to test to compute the total number of doorways at a given position:</p>
+<p><a href="https://i.sstatic.net/o9tnGbA4.png" rel="nofollow noreferrer"><img src="https://i.sstatic.net/o9tnGbA4.png" alt="encoding" /></a></p>
+<h3>Commented</h3>
+<pre class="lang-javascript prettyprint-override"><code>m =&gt; {                     // m[] = input matrix
+for(                       // main loop
+  N = 0;                   // start with a counter N set to 0
+  n = N++,                 // copy N to n, then increment N
+  s = &quot;&quot;,                  // start each iteration with s = &quot;&quot;
+  m.some((r, y) =&gt;         // for each row r[] at index y in m[]:
+    r.some(v =&gt;            //   for each value v in r[]:
+      v ^ (                //     compare v against the sum of doorways
+        k = n &amp;            //     k = doorway bitmask of the current cell:
+          2 * !!x +        //       allow bit #1 if x != 0
+          !!y,             //       allow bit #0 if y != 0
+        p += k &amp; 1 ? &quot; +&quot;  //     add &quot; +&quot; to p if bit #0 is set,
+                   : &quot;-+&quot;, //     or &quot;-+&quot; otherwise
+        q += k &amp; 2 ? &quot;  &quot;  //     add &quot;  &quot; to q if bit #1 is set,
+                   : &quot;| &quot;, //     or &quot;| &quot; otherwise
+                           //     test the doorways with touching cells:
+        n &gt;&gt; 2 * r.length  //     1. the cell below
+        &amp; !!m[y + 1]       //        force a door if this is the last row
+      ) + (                //
+        (n /= 4) / 2       //     2. the cell to the right
+        &amp; !!r[++x]         //        force a door if this the last column
+                           //        (we also update n and x)
+      ) - ~k / 2,          //     count the doorways of the current cell
+                           //     (number of bits set in k)
+      p = &quot;+&quot;,             //     start with p = &quot;+&quot;
+      x = q = `\n`         //     start with q = &quot;\n&quot; and x zero'ish
+    ) | (                  //   end of inner some()
+      y ? 0 : t = p,       //   if this is the first row, save p in t
+      s += p + q + `|\n`   //   append p, q, a pipe and a newline to s
+    )                      //
+  );                       // end of outer some()
+);                         // end of for()
+return s + t }             // return s + t
+</code></pre>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, <s>226</s> 165 bytes</h1>
 <pre><code>ＷＳ⊞υιυＵＥ¹¦¹ＦＬυＦＬθ«Ｊ⊖⊗κ⊖⊗ιＢ³¦³»≔⁰ηＷ‹ηＬΣυ«Ｊ⊗﹪ηＬθ⊗÷ηＬθ≔ΦrdΣ⊟ＫＤ³✳κζ≔›ΣＫＫＬζεＷε«≔dζ≦⊖ηＪ⊗﹪ηＬθ⊗÷ηＬθ≔¬∧Σ⊟ＫＤ³↓⁼ -Φ⪫ＫＶω﹪μ³εＰ0ＦΦＥrdＫＤ³✳λ№λ ＵＭλ⎇⊖νＩ⊕μ|Ｐ¶-»ＦΣＫＫＵＭＫＤ³✳§ζκ⎇⊖μＩ⊖λ ≦⊕η 
