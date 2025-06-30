@@ -118,12 +118,17 @@
 </code></pre>
 <p><a href="https://swiftfiddle.com/afgz6wlocfbrpprrcoej7kdle4" rel="nofollow noreferrer">Try it on SwiftFiddle!</a> (The <code>Any</code> type annotation is required.)</p>
 <p>I'm 99% sure this only works due to a compiler bug, because last time I checked Swift <em>really isn't supposed to let you do this</em>.</p>
-<h2>Other interesting segfaults</h2>
+<h2>Other interesting segfaults (sorted by length)</h2>
 <h3>Stack overflow, 13 bytes</h3>
 <pre class="lang-swift prettyprint-override"><code>var x:(){x}
 x
 </code></pre>
 <p>Declares a computed variable (of type <code>()</code>, aka <code>Void</code>) that accesses itself, then tries to access the variable. (Swift is smart enough to warn you about this. Twice.)</p>
+<h3>Deinit abuse, 24 bytes</h3>
+<pre class="lang-swift prettyprint-override"><code>class C{deinit{C()}}
+C()
+</code></pre>
+<p>This ends up recursively calling <code>_swift_release_dealloc</code> in the runtime, ending with a stack overflow.</p>
 <h3>&quot;Null&quot; pointer dereference, 36 bytes</h3>
 <pre class="lang-swift prettyprint-override"><code>UnsafePointer&lt;Any&gt;(bitPattern:1)![0]
 </code></pre>
@@ -133,6 +138,10 @@ x
 <li>But if the whole thing's wrapped in a call to <code>print</code>, it <em>always</em> segfaults (regardless of the generic parameter).</li>
 <li><code>UnsafePointer.init?(bitPattern:)</code> returns <code>nil</code> for an argument of <code>0</code>, but if you give it <em>any other value</em>, it will happily return an invalid pointer.</li>
 </ul>
+<h3>Use-after-free (I think), 43 bytes</h3>
+<pre class="lang-swift prettyprint-override"><code>[withUnsafePointer(to:{}){$0}][0].pointee()
+</code></pre>
+<p>Escapes a pointer to a closure, adds a bit of indirection by stuffing it in an array, then attempts to call the closure via the pointer.</p>
 </div>
 <div id="pu1" class="pu"><h1><a href="http://nim-lang.org/" rel="nofollow noreferrer">Nim</a>, <s>20</s> 18 bytes</h1>
 <pre><code>proc x=x();x()
