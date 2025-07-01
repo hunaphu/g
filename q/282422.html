@@ -26,8 +26,8 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>272</td><td>C gcc</td><td>250630T165023Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282487#282487">jdt</a></td></tr>
-<tr d-ix="1"><td>384</td><td>Java on Windows</td><td>250630T115258Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282483#282483">Kevin Cr</a></td></tr>
+<tr d-ix="0"><td>322</td><td>Java on Windows</td><td>250630T115258Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282483#282483">Kevin Cr</a></td></tr>
+<tr d-ix="1"><td>272</td><td>C gcc</td><td>250630T165023Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282487#282487">jdt</a></td></tr>
 <tr d-ix="2"><td>nan</td><td>Commodore 64 Assembler</td><td>250630T111126Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282481#282481">Jani Joe</a></td></tr>
 <tr d-ix="3"><td>246</td><td>JS</td><td>250629T131050Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282468#282468">b00t</a></td></tr>
 <tr d-ix="4"><td>432</td><td>HTML + CSS + JS</td><td>250629T082636Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282465#282465">M. Zhang</a></td></tr>
@@ -37,7 +37,48 @@
 <tr d-ix="8"><td>252</td><td>PowerShell Windows and Core</td><td>250628T000031Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282441#282441">user3141</a></td></tr>
 <tr d-ix="9"><td>1024</td><td>HTML + CSS + JS</td><td>250627T173537Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282434#282434">A.L</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C (gcc)</a>, <s>295</s> 272 bytes</h1>
+<div id="pu0" class="pu"><h1>Java on Windows, <s>454</s> <s>438</s> <s>384</s> <s>326</s> 322 bytes</h1>
+
+<pre class="lang-java prettyprint-override"><code>v-&gt;{String s=&quot;#              #\n&quot;,t=&quot; #            #\n&quot;,u=&quot;  ##        ##\n&quot;,w=&quot;#    #    %2$c    #\n&quot;,x=&quot;    ########\n&quot;;for(int i=0;;Thread.sleep(500))System.out.printf(&quot;\033[H\033[2J%s#    #    %c    #\n&quot;+w+w+&quot;#    #  %s  #\n&quot;+w+w+s+s+&quot; #   #    #   #\n #    ####    #\n&quot;+u+x,x+u+t+t,35-++i%2*3,i%2&lt;1?&quot;  #  &quot;:&quot;#####&quot;);}
+</code></pre>
+<p>-53 bytes thanks to <em>@jdt</em>, since although printing <code>\033[H\033[2J</code> to clear the Console doesn't work on my local Windows 10 laptop, it does work in this online compiler:<br />
+<a href="https://onlinegdb.com/YYxiwnSC5" rel="nofollow noreferrer">Try it online</a> (click on the maximize icon of the console, and then click run at the top).<br />
+-58 bytes thanks to <em>@WeirdGlyphs</em></p>
+<p>Gif in action:</p>
+<p><a href="https://i.sstatic.net/AJSQdD8J.gif" rel="nofollow noreferrer"><img src="https://i.sstatic.net/AJSQdD8J.gif" alt="enter image description here" /></a></p>
+<p><strong>Explanation:</strong></p>
+<p>Pretty straight-forward.</p>
+<pre class="lang-java prettyprint-override"><code>v-&gt;{                       // Method with empty unused parameter and no return-type
+  String s=&quot;#              #\n&quot;,t=&quot; #            #\n&quot;,u=&quot;  ##        ##\n&quot;,w=&quot;#    #    %2$c    #\n&quot;,x=&quot;    ########\n&quot;;
+                           //  Temp Strings for some repeating parts
+  for(int i=0              //  Integer `i`, starting at 0
+      ;                    //  Loop indefinitely:
+       ;                   //    After every iteration:
+        Thread.sleep(500)) //     Sleep 500 ms
+    System.out.printf(     //     Print:
+      &quot;\033[H\033[2J      &quot;//      Two commands to clear the Console:
+                           //       `33[H` moves the cursor to the top-left;
+                           //       `33[2J` then clears the console
+      &quot;%s#    #    %c    #\n&quot;+w+w+&quot;#    #  %s  #\n&quot;+w+w+s+s+&quot; #   #    #   #\n #    ####    #\n&quot;+u+x,
+                           //      And then print the output-string,
+                           //      and replace the first `%s` with:
+      x+u+t+t,             //      temp Strings `x+u+t+t`
+                           //      Then replace all its `%c` and `%2$c` with:
+      35-                  //       35 minus:
+         ++i               //        Increase `i` by 1 first with `++i`
+            %2             //        Modulo-2
+              *3           //        Multiplied by 3
+                           //       (35/'#' if `i` is now odd;
+                           //        32/' ' if `i` is now even)
+                           //      And finally replace the second `%s` with:
+      i%2&lt;1?               //       If `i` is even:
+            &quot;  #  &quot;        //        Replace the `%s` with &quot;  #  &quot;
+           :               //       Else (`i` is odd)
+            &quot;#####&quot;);}     //        Replace the `%s` with &quot;#####&quot; instead
+</code></pre>
+<p>Perhaps there is a way to compress the String, but knowing Java, I doubt it would be shorter anyway, so I haven't bothered trying..</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C (gcc)</a>, <s>295</s> 272 bytes</h1>
 <p>-23 bytes thanks to @Kevin Cruijssen</p>
 
 <pre class="lang-c prettyprint-override"><code>f(b){int i=0x300C0FF0,j=0x442243C2,k=0x80018001,l=0x40024002,m=0x0FF0300C,a[]={i,j,k,0x84018401,0x840184F9,0x84018401,l,m,i,j,k,0x84218421,0x84218421,0x84218421,l,m};for(i=puts(&quot;\033[H\033[2J&quot;)*32;i--;i%16||puts(&quot;&quot;))putchar(a[i/32+b*8]&amp;1&lt;&lt;i%32?35:32);usleep(2&lt;&lt;18);f(!b);}
@@ -67,42 +108,6 @@
 <li><p>Recursively calls <code>f(!b)</code> to toggle between the two images.</p>
 </li>
 </ul>
-</div>
-<div id="pu1" class="pu"><h1>Java on Windows, <s>454</s> <s>438</s> 384 bytes</h1>
-
-<pre class="lang-java prettyprint-override"><code>v-&gt;{for(int i=0;;Thread.sleep(500))System.out.printf(&quot;\033[H\033[2J    ########\n  ##        ##\n #            #\n #            #\n#    #    %c    #\n#    #    %1$c    #\n#    #    %1$c    #\n#    #  %s  #\n#    #    %1$c    #\n#    #    %1$c    #\n#              #\n#              #\n #   #    #   #\n #    ####    #\n  ##        ##\n    ########&quot;,35-++i%2*3,i%2&lt;1?&quot;  #  &quot;:&quot;#####&quot;);}
-</code></pre>
-<p>-53 bytes thanks to <em>@jdt</em>, since although printing <code>\033[H\033[2J</code> to clear the Console doesn't work on my local Windows 10 laptop, it does work in this online compiler:</p>
-<p><a href="https://onlinegdb.com/4PAnBij8s" rel="nofollow noreferrer">Try it online</a> (click on the maximize icon of the console, and then click run at the top).</p>
-<p>Gif in action:</p>
-<p><a href="https://i.sstatic.net/AJSQdD8J.gif" rel="nofollow noreferrer"><img src="https://i.sstatic.net/AJSQdD8J.gif" alt="enter image description here" /></a></p>
-<p><strong>Explanation:</strong></p>
-<p>Pretty straight-forward.</p>
-<pre class="lang-java prettyprint-override"><code>v-&gt;{                       // Method with empty unused parameter and no return-type
-  for(int i=0              //  Integer `i`, starting at 0
-      ;                    //  Loop indefinitely:
-       ;                   //    After every iteration:
-        Thread.sleep(500)) //     Sleep 500 ms
-    System.out.printf(     //     Print:
-      &quot;\033[H\033[2J      &quot;//      Two commands to clear the Console:
-                           //       `33[H` moves the cursor to the top-left;
-                           //       `33[2J` then clears the console
-      &quot;    ########\n  ##        ##\n #            #\n #            #\n#    #    %c    #\n#    #    %1$c    #\n#    #    %1$c    #\n#    #  %s  #\n#    #    %1$c    #\n#    #    %1$c    #\n#              #\n#              #\n #   #    #   #\n #    ####    #\n  ##        ##\n    ########&quot;,
-                           //      And the output-string,
-                           //      and replace all its `%c` and `%1$c` with:
-      35-                  //       35 minus:
-         ++i               //        Increase `i` by 1 first with `++i`
-            %2             //        Modulo-2
-              *3           //        Multiplied by 3
-                           //       (35/'#' if `i` is now odd;
-                           //        32/' ' if `i` is now even)
-                           //      and replace the `%s` with:
-      i%2&lt;1?               //       If `i` is even:
-            &quot;  #  &quot;        //        Replace the `%s` with &quot;  #  &quot;
-           :               //       Else (`i` is odd)
-            &quot;#####&quot;);}     //        Replace the `%s` with &quot;#####&quot; instead
-</code></pre>
-<p>Perhaps there is a way to compress the String, but knowing Java, I doubt it would be shorter anyway, so I haven't bothered trying..</p>
 </div>
 <div id="pu2" class="pu"><h1>Commodore 64 Assembler, 93 Bytes (6502/KickAssembler)</h1>
 <h2>TL;DR</h2>
