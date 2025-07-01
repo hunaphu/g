@@ -36,20 +36,18 @@
 <tr d-ix="7"><td>040</td><td>JavaScript ES6</td><td>250627T132059Z</td><td><a href="https://codegolf.stackexchange.com/questions/282416/the-array-walker-part-2/282424#282424">Arnauld</a></td></tr>
 <tr d-ix="8"><td>017</td><td>05AB1E</td><td>250627T090652Z</td><td><a href="https://codegolf.stackexchange.com/questions/282416/the-array-walker-part-2/282418#282418">Kevin Cr</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Commodore 64 Assembler, 20 Bytes (6502/KickAssembler)</h1>
+<div id="pu0" class="pu"><h1>Commodore 64 Assembler, <strike>20</strike> 17 Bytes (6502/KickAssembler)</h1>
 <h2>Routine</h2>
 <pre><code>CWEFTA: lax #0      // 2 Reset A and X.
 walk:   dey         // 1 Have we taken more steps than the size of array?
-        bmi no      // 2 If yes, we're stuck in a loop and couldn't escape.
+        bmi end     // 2 If yes, we're stuck in a loop and couldn't escape.
         clc         // 1 Clear the carry flag...
         adc array,x // 3 ...and add the element in current index to A.
         tax         // 1 Make it the new array index.
-        bmi yes     // 2 If the result is negative we've escaped.
+        bmi end     // 2 If the result is negative we've escaped.
         cmp length  // 2 Have we gone past the end of the array yet?
         bcc walk    // 2 If not, continue walking the array.
-yes:    ldy #0      // 2 Y will be 000+1=1 - we've escaped.
-no:     iny         // 1 Y will be 255+1=0 - we didn't escape.
-        rts         // 1 Return to caller.
+end:    rts         // 1 Y is positive (escaped) or negative (didn't escape).
 </code></pre>
 <h2>Explanation</h2>
 <ul>
@@ -57,33 +55,36 @@ no:     iny         // 1 Y will be 255+1=0 - we didn't escape.
 <li>The array can be placed to the beginning of any 256 byte page in memory, excluding the memory locations reserved by the system, this routine, and the program calling it of course.</li>
 <li>Before calling the routine, length of the array is loaded to Y register and stored on zero page.</li>
 <li>If we've taken more steps than there are elements in the array, we know we are stuck in a loop (including zero loop).</li>
-<li>At the end, Y register contains the result: 1 (we escaped) or 0 (we didn't).</li>
+<li>At the end, Y register contains the result: a positive number if we escaped, a negative number if we didn't.</li>
 </ul>
 <h2>Try It Out (in your favourite IDE or CLI)</h2>
-<p>This test program calls our routine and changes the border colour based on result in Y register: White (1) for successful escape, Black (0) for failure.</p>
+<p>This test program calls our routine and changes the border colour based on result in Y register: White for successful escape, Black for failure.</p>
 <pre><code>BasicUpstart2(start)
 start:  ldy #(array_end - array)    // Load length of array to Y
         sty $2                      // Store length on zero page
         jsr CWEFTA                  // CALL OUR ROUTINE
+        cpy #0                      // Is Y positive or negative?
+        bmi nega                    // Jump if negative
+        ldy #WHITE                  // Otherwise, load white
+        .by $2c                     // BIT abs to skip the next two bytes
+nega:   ldy #BLACK                  // Load black
         sty $d020                   // White border=escaped, black=didn't
         rts                         // Return to BASIC prompt
 
 .align $100
-array:  .by 2,-1,-1 ; array_end:
+array:  .by 2,-2,-1 ; array_end:
 
 // Can We Escape From The Array?
 CWEFTA: lax #0      // 2 Reset A and X.
 walk:   dey         // 1 Have we taken more steps than the size of array?
-        bmi no      // 2 If yes, we're stuck in a loop and couldn't escape.
+        bmi end     // 2 If yes, we're stuck in a loop and couldn't escape.
         clc         // 1 Clear the carry flag...
         adc array,x // 3 ...and add the element in current index to A.
         tax         // 1 Make it the new array index.
-        bmi yes     // 2 If the result is negative we've escaped.
+        bmi end     // 2 If the result is negative we've escaped.
         cmp $2      // 2 Have we gone past the end of the array yet?
         bcc walk    // 2 If not, continue walking the array.
-yes:    ldy #0      // 2 Y will be 000+1=1 - we've escaped.
-no:     iny         // 1 Y will be 255+1=0 - we didn't escape.
-        rts         // 1 Return to caller.
+end:    rts         // 1 Y is positive (escaped) or negative (didn't escape).
 </code></pre>
 </div>
 <div id="pu1" class="pu"><h1>x86-64 machine code, 16 bytes</h1>
