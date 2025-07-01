@@ -26,16 +26,67 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>016</td><td>x8664 machine code</td><td>250628T084818Z</td><td><a href="https://codegolf.stackexchange.com/questions/282416/the-array-walker-part-2/282443#282443">m90</a></td></tr>
-<tr d-ix="1"><td>031</td><td>Wolfram Language Mathematica</td><td>250627T141813Z</td><td><a href="https://codegolf.stackexchange.com/questions/282416/the-array-walker-part-2/282427#282427">att</a></td></tr>
-<tr d-ix="2"><td>014</td><td>Jelly</td><td>250627T204219Z</td><td><a href="https://codegolf.stackexchange.com/questions/282416/the-array-walker-part-2/282439#282439">Jonathan</a></td></tr>
-<tr d-ix="3"><td>018</td><td>Charcoal</td><td>250627T203652Z</td><td><a href="https://codegolf.stackexchange.com/questions/282416/the-array-walker-part-2/282438#282438">Neil</a></td></tr>
-<tr d-ix="4"><td>032</td><td>JavaScript Node.js</td><td>250627T163432Z</td><td><a href="https://codegolf.stackexchange.com/questions/282416/the-array-walker-part-2/282431#282431">l4m2</a></td></tr>
-<tr d-ix="5"><td>107</td><td>Maple</td><td>250627T162042Z</td><td><a href="https://codegolf.stackexchange.com/questions/282416/the-array-walker-part-2/282430#282430">dharr</a></td></tr>
-<tr d-ix="6"><td>040</td><td>JavaScript ES6</td><td>250627T132059Z</td><td><a href="https://codegolf.stackexchange.com/questions/282416/the-array-walker-part-2/282424#282424">Arnauld</a></td></tr>
-<tr d-ix="7"><td>017</td><td>05AB1E</td><td>250627T090652Z</td><td><a href="https://codegolf.stackexchange.com/questions/282416/the-array-walker-part-2/282418#282418">Kevin Cr</a></td></tr>
+<tr d-ix="0"><td>nan</td><td>Commodore 64 Assembler</td><td>250701T224417Z</td><td><a href="https://codegolf.stackexchange.com/questions/282416/the-array-walker-part-2/282505#282505">Jani Joe</a></td></tr>
+<tr d-ix="1"><td>016</td><td>x8664 machine code</td><td>250628T084818Z</td><td><a href="https://codegolf.stackexchange.com/questions/282416/the-array-walker-part-2/282443#282443">m90</a></td></tr>
+<tr d-ix="2"><td>031</td><td>Wolfram Language Mathematica</td><td>250627T141813Z</td><td><a href="https://codegolf.stackexchange.com/questions/282416/the-array-walker-part-2/282427#282427">att</a></td></tr>
+<tr d-ix="3"><td>014</td><td>Jelly</td><td>250627T204219Z</td><td><a href="https://codegolf.stackexchange.com/questions/282416/the-array-walker-part-2/282439#282439">Jonathan</a></td></tr>
+<tr d-ix="4"><td>018</td><td>Charcoal</td><td>250627T203652Z</td><td><a href="https://codegolf.stackexchange.com/questions/282416/the-array-walker-part-2/282438#282438">Neil</a></td></tr>
+<tr d-ix="5"><td>032</td><td>JavaScript Node.js</td><td>250627T163432Z</td><td><a href="https://codegolf.stackexchange.com/questions/282416/the-array-walker-part-2/282431#282431">l4m2</a></td></tr>
+<tr d-ix="6"><td>107</td><td>Maple</td><td>250627T162042Z</td><td><a href="https://codegolf.stackexchange.com/questions/282416/the-array-walker-part-2/282430#282430">dharr</a></td></tr>
+<tr d-ix="7"><td>040</td><td>JavaScript ES6</td><td>250627T132059Z</td><td><a href="https://codegolf.stackexchange.com/questions/282416/the-array-walker-part-2/282424#282424">Arnauld</a></td></tr>
+<tr d-ix="8"><td>017</td><td>05AB1E</td><td>250627T090652Z</td><td><a href="https://codegolf.stackexchange.com/questions/282416/the-array-walker-part-2/282418#282418">Kevin Cr</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>x86-64 machine code, 16 bytes</h1>
+<div id="pu0" class="pu"><h1>Commodore 64 Assembler, 20 Bytes (6502/KickAssembler)</h1>
+<h2>Routine</h2>
+<pre><code>CWEFTA: lax #0      // 2 Reset A and X.
+walk:   dey         // 1 Have we taken more steps than the size of array?
+        bmi no      // 2 If yes, we're stuck in a loop and couldn't escape.
+        clc         // 1 Clear the carry flag...
+        adc array,x // 3 ...and add the element in current index to A.
+        tax         // 1 Make it the new array index.
+        bmi yes     // 2 If the result is negative we've escaped.
+        cmp length  // 2 Have we gone past the end of the array yet?
+        bcc walk    // 2 If not, continue walking the array.
+yes:    ldy #0      // 2 Y will be 000+1=1 - we've escaped.
+no:     iny         // 1 Y will be 255+1=0 - we didn't escape.
+        rts         // 1 Return to caller.
+</code></pre>
+<h2>Explanation</h2>
+<ul>
+<li>System limitation: 6502 can only handle signed integers from -128 to 127, where the highest bit determines the sign. In order to keep the routine small (this is code golf after all), we consider a negative array index = escaped. In other words, array's size is limited to 128 elements, as MSB would be set for indexes 128-255, and thus CPU would think these are negative.</li>
+<li>The array can be placed to the beginning of any 256 byte page in memory, excluding the memory locations reserved by the system, this routine, and the program calling it of course.</li>
+<li>Before calling the routine, length of the array is loaded to Y register and stored on zero page.</li>
+<li>If we've taken more steps than there are elements in the array, we know we are stuck in a loop (including zero loop).</li>
+<li>At the end, Y register contains the result: 1 (we escaped) or 0 (we didn't).</li>
+</ul>
+<h2>Try It Out (in your favourite IDE or CLI)</h2>
+<p>This test program calls our routine and changes the border colour based on result in Y register: White (1) for successful escape, Black (0) for failure.</p>
+<pre><code>BasicUpstart2(start)
+start:  ldy #(array_end - array)    // Load length of array to Y
+        sty $2                      // Store length on zero page
+        jsr CWEFTA                  // CALL OUR ROUTINE
+        sty $d020                   // White border=escaped, black=didn't
+        rts                         // Return to BASIC prompt
+
+.align $100
+array:  .by 2,-1,-1 ; array_end:
+
+// Can We Escape From The Array?
+CWEFTA: lax #0      // 2 Reset A and X.
+walk:   dey         // 1 Have we taken more steps than the size of array?
+        bmi no      // 2 If yes, we're stuck in a loop and couldn't escape.
+        clc         // 1 Clear the carry flag...
+        adc array,x // 3 ...and add the element in current index to A.
+        tax         // 1 Make it the new array index.
+        bmi yes     // 2 If the result is negative we've escaped.
+        cmp $2      // 2 Have we gone past the end of the array yet?
+        bcc walk    // 2 If not, continue walking the array.
+yes:    ldy #0      // 2 Y will be 000+1=1 - we've escaped.
+no:     iny         // 1 Y will be 255+1=0 - we didn't escape.
+        rts         // 1 Return to caller.
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>x86-64 machine code, 16 bytes</h1>
 <pre><code>31 C0 8D 4E 01 03 04 87 39 F0 73 03 E2 F7 91 C3
 </code></pre>
 <p><a href="https://tio.run/##TVJNj9owED17fsVsKiqHGJSwtFtB6WXPveypUpaD13HAFTiRbdSgKH@9dAwEVbYmnnlv3nwoqm1nO6UuF@mPyPEt4VCvWNc41LIT0QA7aIlakVc6bzDDYgtuxWRV3Tilq2J0iVN0stsCU8f2nu0NsN/2AzWJNE2LDlin9rs7qjrQK@Z0gDTBdA26C9pZTF4T7I0NWPNop1Jg/Np0PQB8MlYdTpXG7z5UppnvfwD4IINR6IM7qYBB@6Ck1zcNu74my7JYbCl/BH25xQ320BeiL4ZBQP9MD7EU@dX5IvqcnEK8fBOLEV6IWUF3JMyKXFBoKV7uwWENsdRRGstT6IHVtEUuT6HBzwFXj8Z8CoxQ1jqi1zyZGOSJoGnDnEYNc5vSLtgtOwoa6jSnMfBpE1F6ZRlJ/CfgJ4YEEjoZPpmoIUuzvaqMnPTdJjEwAINH8N3@lGpvrEbVVHp1JcSKXawo8Exu1WA/0nGSL35RofOG85P1Zmd1hWov3TSt07LLMio54J@9OWjk59hu3r0@R9GHAqdhP860idiPwI7A4XL5q@qD3PnL7Ph1SYZ@xQ3x9eEf" rel="nofollow noreferrer" title="C++ (gcc) – Try It Online">Try it online!</a></p>
@@ -55,7 +106,7 @@ r:  add eax, [rdi + 4 * rax]    # Add to EAX the array's value at index EAX.
 e:  ret             # Return.
 </code></pre>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://www.wolfram.com/wolframscript/" rel="nofollow noreferrer">Wolfram Language (Mathematica)</a>, <s>36</s> 31 bytes</h1>
+<div id="pu2" class="pu"><h1><a href="https://www.wolfram.com/wolframscript/" rel="nofollow noreferrer">Wolfram Language (Mathematica)</a>, <s>36</s> 31 bytes</h1>
 <pre><code>aHead@a[[i=1;i+=a[[i]]&amp;/@a]]
 </code></pre>
 <p><a href="https://tio.run/##y00syUjNTSzJTE78n2b7P/H9pIUeqYkpDonR0Zm2htaZ2rYgVmysmr5DYmzs/8DSzNQSh4CizLySaGVduzQH5Vi1uuDkxLy66mrDWh2uakMdEx0DEMMAyDDUMbfQMQLxjHR0DYEIxNQ1NNABck10zEECXLX/AQ" rel="nofollow noreferrer" title="Wolfram Language (Mathematica) – Try It Online">Try it online!</a></p>
@@ -66,7 +117,7 @@ e:  ret             # Return.
 <p><a href="https://tio.run/##y00syUjNTSzJTE78n2b7P/H9pIU@mcUlgQ6J0dGZtobWmdq2IFZsrJq@Q2Js7P/A0szUEoeAosy8kmhlXbs0B@VYtbrg5MS8uupqw1odrmpDHRMdAxDDAMgw1DG30DEC8Yx0dA2BCMTUNTTQAXJNdMxBAly1/wE" rel="nofollow noreferrer" title="Wolfram Language (Mathematica) – Try It Online">Try it online!</a></p>
 <p>Returns <code>False</code> if we escape, and <code>True</code> otherwise.</p>
 </div>
-<div id="pu2" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 14 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
+<div id="pu3" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 14 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
 <pre><code>+J;0»0«L$ịÐL`Ḣ
 </code></pre>
 <p>A monadic Link that accepts a list of integers and yields <code>0</code> (falsey) if we will escape or a positive integer (truthy) if we'll get stuck.</p>
@@ -85,7 +136,7 @@ e:  ret             # Return.
              Ḣ - head
 </code></pre>
 </div>
-<div id="pu3" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 18 bytes</h1>
+<div id="pu4" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 18 bytes</h1>
 <pre><code>ＦθＭ∧¬÷ⅈＬθ§θⅈ→¬÷ⅈＬθ
 </code></pre>
 <p><a href="https://tio.run/##S85ILErOT8z5/z8tv0hBo1BTwTe/LFXDMS9Fwy@/RMMzr8QlsywzJVUjQkNTR8EnNS@9JAOoShPIcSzxzEtJrdAo1FEASoJErIIy0zNKNK25Aooy80oIGKBp/f9/dLSRjrmFjoGOiY5hbOx/3bIcAA" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code. Outputs an inverted Charcoal boolean, i.e. nothing if we escape, <code>-</code> if we don't. Explanation:</p>
@@ -99,13 +150,13 @@ e:  ret             # Return.
 </code></pre>
 <p>Output whether the current element is still in the array. (A second <code>¬</code> would be needed to output whether we escape.)</p>
 </div>
-<div id="pu4" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 32 bytes</h1>
+<div id="pu5" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 32 bytes</h1>
 
 <pre class="lang-javascript prettyprint-override"><code>a=&gt;!a.every(_=&gt;1/a[p+=a[p]],p=0)
 </code></pre>
 <p><a href="https://tio.run/##y0osSyxOLsosKNHNy09J/Z9m@z/R1k4xUS@1LLWoUiPe1s5QPzG6QNsWSMTG6hTYGmj@T87PK87PSdXLyU/XSNOINozV1ORCF9Mx0THAIm4AFDfUMbfQMcImidUgOMQia6SjawhEWGR0DQ10gLImOuYQ@f8A" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
 </div>
-<div id="pu5" class="pu"><h1><a href="https://www.maplesoft.com/" rel="nofollow noreferrer">Maple</a>, 107 bytes</h1>
+<div id="pu6" class="pu"><h1><a href="https://www.maplesoft.com/" rel="nofollow noreferrer">Maple</a>, 107 bytes</h1>
 <pre><code>proc(s)i,n:=1,op(1,s);do p:=s[i];s[i]:=0;i+=p;if p=0 then return 0 elif i&lt;1 or i&gt;n then return 1 fi od end;
 </code></pre>
 <p>Returns 0 for false and 1 for true.</p>
@@ -124,14 +175,14 @@ od
 end;
 </code></pre>
 </div>
-<div id="pu6" class="pu"><h1>JavaScript (ES6), 40 bytes</h1>
+<div id="pu7" class="pu"><h1>JavaScript (ES6), 40 bytes</h1>
 <p>Returns a Boolean value.</p>
 
 <pre class="lang-javascript prettyprint-override"><code>f=(a,i=0)=&gt;1/(v=a[i])?f(a,i+v,a[i]=f):!v
 </code></pre>
 <p><a href="https://tio.run/##y0osSyxOLsosKNHNy09J/f8/zVYjUSfT1kDT1s5QX6PMNjE6M1bTPg0kqF2mA@LZpmlaKZb9T87PK87PSdXLyU/XSNOINozV1ORCF9Mx0THAIm4AFDfUMbfQMcIiaaSjawhEWGR0DQ10gLImOuYQ@f8A" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
 </div>
-<div id="pu7" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, 17 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
+<div id="pu8" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, 17 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
 <pre><code>0ˆv¯θDŠè+ˆ}ā&lt;¯å_à
 </code></pre>
 <p><a href="https://tio.run/##yy9OTMpM/f/f4HRb2aH153a4HF1weIX26bbaI402h9YfXhp/eMH//9FGOrqGQBQLAA" rel="nofollow noreferrer">Try it online</a> or <a href="https://tio.run/##yy9OTMpM/V9Waa@k8KhtkoKSfaXLoZX/DU63lR1ad2j9uR0uRxccXqF9uq32SKPNofWHl8YfXvBf59CW/9HRhrE60YY6JjoGQNoASBvqmFvoGAE5Rjq6hkAEZOkaGugAeSY65iB@LAA" rel="nofollow noreferrer">verify all test cases</a>.</p>
