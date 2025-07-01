@@ -26,7 +26,7 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>011</td><td>Swift 6.1.1</td><td>250618T194701Z</td><td><a href="https://codegolf.stackexchange.com/questions/4399/shortest-code-that-raises-a-sigsegv/282335#282335">macOSist</a></td></tr>
+<tr d-ix="0"><td>011</td><td>Swift 6.1.2</td><td>250618T194701Z</td><td><a href="https://codegolf.stackexchange.com/questions/4399/shortest-code-that-raises-a-sigsegv/282335#282335">macOSist</a></td></tr>
 <tr d-ix="1"><td>018</td><td>Nim</td><td>210111T200020Z</td><td><a href="https://codegolf.stackexchange.com/questions/4399/shortest-code-that-raises-a-sigsegv/217514#217514">Adam&#22</a></td></tr>
 <tr d-ix="2"><td>003</td><td>x86 and x86_64 machine language</td><td>170214T073811Z</td><td><a href="https://codegolf.stackexchange.com/questions/4399/shortest-code-that-raises-a-sigsegv/110015#110015">ceilingc</a></td></tr>
 <tr d-ix="3"><td>043</td><td>Lua LuaJIT</td><td>170215T040440Z</td><td><a href="https://codegolf.stackexchange.com/questions/4399/shortest-code-that-raises-a-sigsegv/110087#110087">ceilingc</a></td></tr>
@@ -113,34 +113,44 @@
 <tr d-ix="84"><td>011</td><td>Bash</td><td>111226T160753Z</td><td><a href="https://codegolf.stackexchange.com/questions/4399/shortest-code-that-raises-a-sigsegv/4403#4403">Joey Ada</a></td></tr>
 <tr d-ix="85"><td>019</td><td>19 characters in C</td><td>111226T101030Z</td><td><a href="https://codegolf.stackexchange.com/questions/4399/shortest-code-that-raises-a-sigsegv/4400#4400">saeedn</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Swift 6.1.1, <s>36</s> 11 bytes</h1>
+<div id="pu0" class="pu"><h1>Swift 6.1.2, <s>36</s> 11 bytes</h1>
 <pre class="lang-swift prettyprint-override"><code>let x:Any=x
 </code></pre>
-<p><a href="https://swiftfiddle.com/afgz6wlocfbrpprrcoej7kdle4" rel="nofollow noreferrer">Try it on SwiftFiddle!</a> (The <code>Any</code> type annotation is required.)</p>
+<p><a href="https://swiftfiddle.com/u7nliasa6nfvbkwdtm2jl4iptu" rel="nofollow noreferrer">Try it on SwiftFiddle!</a> (The <code>Any</code> type annotation is required.)</p>
 <p>I'm 99% sure this only works due to a compiler bug, because last time I checked Swift <em>really isn't supposed to let you do this</em>.</p>
 <h2>Other interesting segfaults (sorted by length)</h2>
-<h3>Stack overflow, 13 bytes</h3>
+<h3>Stack overflow (13 bytes)</h3>
 <pre class="lang-swift prettyprint-override"><code>var x:(){x}
 x
 </code></pre>
+<p><a href="https://swiftfiddle.com/4hstvmdtffg2xf6kocnhmecbry" rel="nofollow noreferrer">Try it on SwiftFiddle!</a></p>
 <p>Declares a computed variable (of type <code>()</code>, aka <code>Void</code>) that accesses itself, then tries to access the variable. (Swift is smart enough to warn you about this. Twice.)</p>
-<h3>Deinit abuse, 24 bytes</h3>
+<h3>Suicide (22 bytes on Linux, 23 bytes on macOS)</h3>
+<pre class="lang-swift prettyprint-override"><code>import Glibc
+raise(11)
+</code></pre>
+<p><a href="https://swiftfiddle.com/3iva6dqlijfxvandrn63rvkzlm" rel="nofollow noreferrer">Try it on SwiftFiddle!</a></p>
+<p>Fairly self-explanatory. Replace <code>Glibc</code> with <code>Darwin</code> if running on macOS.</p>
+<h3>Deinit abuse (24 bytes)</h3>
 <pre class="lang-swift prettyprint-override"><code>class C{deinit{C()}}
 C()
 </code></pre>
+<p><a href="https://godbolt.org/z/rd97P93sb" rel="nofollow noreferrer">Try it on Compiler Explorer!</a> (SwiftFiddle doesn't finish backtracing)</p>
 <p>This ends up recursively calling <code>_swift_release_dealloc</code> in the runtime, ending with a stack overflow.</p>
-<h3>&quot;Null&quot; pointer dereference, 36 bytes</h3>
+<h3>&quot;Null&quot; pointer dereference (36 bytes)</h3>
 <pre class="lang-swift prettyprint-override"><code>UnsafePointer&lt;Any&gt;(bitPattern:1)![0]
 </code></pre>
+<p><a href="https://swiftfiddle.com/cals5fleprhuhmpfr5wr2mbwo4" rel="nofollow noreferrer">Try it on SwiftFiddle!</a></p>
 <p>Okay, this one's actually kinda wonky.</p>
 <ul>
 <li>If the generic parameter to <code>UnsafePointer</code> is <code>Int</code>, this doesn't segfault.</li>
 <li>But if the whole thing's wrapped in a call to <code>print</code>, it <em>always</em> segfaults (regardless of the generic parameter).</li>
 <li><code>UnsafePointer.init?(bitPattern:)</code> returns <code>nil</code> for an argument of <code>0</code>, but if you give it <em>any other value</em>, it will happily return an invalid pointer.</li>
 </ul>
-<h3>Use-after-free (I think), 43 bytes</h3>
+<h3>Use-after-free (I think) (43 bytes)</h3>
 <pre class="lang-swift prettyprint-override"><code>[withUnsafePointer(to:{}){$0}][0].pointee()
 </code></pre>
+<p><a href="https://swiftfiddle.com/vzaz5xgjvrgy7gewxk3dvpwaqi" rel="nofollow noreferrer">Try it on SwiftFiddle!</a></p>
 <p>Escapes a pointer to a closure, adds a bit of indirection by stuffing it in an array, then attempts to call the closure via the pointer.</p>
 </div>
 <div id="pu1" class="pu"><h1><a href="http://nim-lang.org/" rel="nofollow noreferrer">Nim</a>, <s>20</s> 18 bytes</h1>
