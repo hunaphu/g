@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::282508</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>052</td><td>05AB1E</td><td>250702T080926Z</td><td><a href="https://codegolf.stackexchange.com/questions/282508/hide-from-the-left-hand-wall-robot/282510#282510">Kevin Cr</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, 52 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
+<pre><code>˜ƶIgäΔ&quot;4F¬ašøí}2Fø€ü3}*€€à&quot;©.V}D®'*K.VZÊI_*εNUεiNX‚,
+</code></pre>
+<p>Now that I've finished this, I feel like it's the wrong/longer approach after all, but whatever.. 05AB1E isn't too suitable for most matrix challenges anyway.</p>
+<p>Input as a matrix of bits with <code>1</code>=wall and <code>0</code>=space; outputs all safe 0-based <span class="math-container">\$[x,y]\$</span> index-pairs on separated newlines.</p>
+<p><a href="https://tio.run/##yy9OTMpM/f//9Jxj2zzTDy85N0XJxO3QmsSjCw/vOLy21sjt8I5HTWsO7zGu1QLSIOYCpUMr9cJqXQ6tU9fy1guLOtzlGa91bqtf6LmtmX4Rjxpm6fz/Hx1tqGOgY4gKY3XAoqgQIgqCBnBsQFAtqrmx/3V18/J1cxKrKgE" rel="nofollow noreferrer">Try it online</a> or <a href="https://tio.run/##yy9OTMpM/V@m5JhcUpqYo5CZV1BaYqWgZF9py6UUUJRaUlKpW1CUmVeSmgKX06n0OrQ75FHDPGWFRw0LdSpdwriU/EtLgJLFINn/p@cc2xaZfnjJuSlKJm6H1iQeXXh4x@G1tUZuh3c8alpzeI9xbaQWkAFiL1A6tFIvrNbl0DqgcZFa3nphUYe7IuO1zm31Cz23NdMv4lHDLJ3/tbW1h7bZ/4@OjjbUMdAxRIWxOmBRVAgRBUEDODYgqBbV3FgdBawWYlhriNVAhD6YEwyxOgFJFUEzcUACTiUivLBBhDfwmWuAZKYh3EOY3kOPAUM0zyN4BkhmGqIFhiGe4DbAMMWAlEAc6kFqSGSQGmAJUnzupGKQxv7X1c3L181JrKoEAA" rel="nofollow noreferrer">verify all test cases</a>.</p>
+<p><strong>Explanation:</strong></p>
+
+<p><em>Step 1:</em> Flood-fill the input-matrix:</p>
+<pre class="lang-python prettyprint-override"><code>˜          # Flatten the (implicit) input-matrix to a list
+ ƶ         # Multiply each value to its 1-based index
+  Ig       # Push the amount of rows of the input-matrix
+    ä      # Split the list into that many parts again
+Δ          # Loop until the matrix no longer changes to flood-fill:
+ &quot;4F¬ašøí}2Fø€ü3}*€€à&quot;
+           #  Push this string
+   ©       #  Store it in variable `®` (without popping)
+    .V     #  Pop and execute it as 05AB1E code:
+  4F¬ašøí} #   Surround the matrix with a border of 0s:
+  4F     } #    Loop 4 times:
+    ¬      #     Push the first row (without popping the matrix)
+     a     #     Transform all its values to 0s with an is_letter check
+      š    #     Prepend that list of 0s to the matrix
+       øí  #     Rotate the matrix once clockwise:
+       ø   #      Zip/transpose; swapping rows/columns
+        í  #      Then reverse each inner row
+  2Fø€ü3}  #   Convert it into overlapping 3x3 blocks:
+  2F    }  #    Loop 2 times:
+    ø      #     Zip/transpose; swapping rows/columns
+     €     #     Map over each inner row
+      ü3   #      Transform it into overlapping triplets
+  *        #   Multiply the 3x3 blocks to the values at the same positions of the
+           #   (implicit) input-matrix, to correct all positions of the 0s
+  €€       #   Nested map over each 3x3 block:
+    à      #     Pop and push the maximum
+}          # Close the until_changes-loop
+</code></pre>
+<p><a href="https://tio.run/##yy9OTMpM/f//9Jxj2zzTDy85N0XJxO3QmsSjCw/vOLy21sjt8I5HTWsO7zGu1QLSIOYCpUMr9cJq//@PjjbUMdAxRIWxOmBRVAgRBUEDODYgqBbV3Nj/urp5@bo5iVWVAA" rel="nofollow noreferrer">Try just step 1 online.</a></p>
+<p><em>Step 2:</em> Do the same flood-fill step one more time, but without the <code>*</code> to correct the 0s:</p>
+<pre class="lang-python prettyprint-override"><code>D          # Duplicate the flood-filled matrix
+ ®         # Push string `®`
+  '*K     '# Remove the &quot;*&quot;
+     .V    # Pop and execute it as 05AB1E code again
+</code></pre>
+<p><a href="https://tio.run/##yy9OTMpM/f//9Jxj2zzTDy85N0XJxO3QmsSjCw/vOLy21sjt8I5HTWsO7zGu1QLSIOYCpUMr9cJqXQ6tU9fy1gv7/z862lDHQMcQFcbqgEVRIUQUBA3g2ICgWlRzY//r6ubl6@YkVlUCAA" rel="nofollow noreferrer">Try just steps 1 and 2 online.</a></p>
+<p><em>Step 3:</em> Mark all safe spots as 1s and everything else as 0s:<br />
+<em>Step 3a:</em> Remove the outer island of the matrix, which is the path the robot has walked including the outer walls itself:</p>
+<pre class="lang-python prettyprint-override"><code>Z          # Push the maximum of the matrix (without popping)
+           # which is the value of the surrounding 'island' of the matrix
+ Ê         # Check for each value in the matrix that it's not equal to this max
+           # (this will mark all inner islands and safe spots as 1s,
+           #  and the surrounding island as 0)
+</code></pre>
+<p><a href="https://tio.run/##yy9OTMpM/f//9Jxj2zzTDy85N0XJxO3QmsSjCw/vOLy21sjt8I5HTWsO7zGu1QLSIOYCpUMr9cJqXQ6tU9fy1guLOtz1/390tKGOgY4hKozVAYuiQogoCBrAsQFBtajmxv7X1c3L181JrKoEAA" rel="nofollow noreferrer">Try just steps 1, 2, and 3a online.</a></p>
+<p><em>Step 3b:</em> Also remove all inner islands:</p>
+<pre class="lang-python prettyprint-override"><code>I          # Push the input-matrix again
+ _         # Invert all bits
+  *        # Multiply the values at the same positions
+</code></pre>
+<p><a href="https://tio.run/##yy9OTMpM/f//9Jxj2zzTDy85N0XJxO3QmsSjCw/vOLy21sjt8I5HTWsO7zGu1QLSIOYCpUMr9cJqXQ6tU9fy1guLOtzlGa/1/390tKGOgY4hKozVAYuiQogoCBrAsQFBtajmxv7X1c3L181JrKoEAA" rel="nofollow noreferrer">Try just steps 1, 2 and 3 online.</a></p>
+<p><em>Step 4:</em> Get all index-pairs of the remaining safe spots, and output those as result:</p>
+<pre class="lang-python prettyprint-override"><code>ε          # Foreach over the rows:
+ NU        #  Store the current 0-based row-index in variable `X`
+ ε         #  Inner foreach over its cells:
+  i        #   If the current value is 1 (aka a safe spot):
+   NX‚     #    Pair the 0-based cell-index with row-index `X`
+      ,    #    Pop and output that pair with trailing newline
+</code></pre>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/282508/">282508</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
