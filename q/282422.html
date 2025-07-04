@@ -26,18 +26,139 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>227</td><td>PowerShell Core 7.4+</td><td>250628T000031Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282441#282441">user3141</a></td></tr>
-<tr d-ix="1"><td>322</td><td>Java on Windows</td><td>250630T115258Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282483#282483">Kevin Cr</a></td></tr>
-<tr d-ix="2"><td>272</td><td>C gcc</td><td>250630T165023Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282487#282487">jdt</a></td></tr>
-<tr d-ix="3"><td>nan</td><td>Commodore 64 Assembler</td><td>250630T111126Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282481#282481">Jani Joe</a></td></tr>
-<tr d-ix="4"><td>246</td><td>JS</td><td>250629T131050Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282468#282468">b00t</a></td></tr>
-<tr d-ix="5"><td>432</td><td>HTML + CSS + JS</td><td>250629T082636Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282465#282465">M. Zhang</a></td></tr>
-<tr d-ix="6"><td>nan</td><td>CP1610 machine code</td><td>250627T172433Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282433#282433">Arnauld</a></td></tr>
+<tr d-ix="0"><td>nan</td><td>CP1610 machine code</td><td>250627T172433Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282433#282433">Arnauld</a></td></tr>
+<tr d-ix="1"><td>227</td><td>PowerShell Core 7.4+</td><td>250628T000031Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282441#282441">user3141</a></td></tr>
+<tr d-ix="2"><td>322</td><td>Java on Windows</td><td>250630T115258Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282483#282483">Kevin Cr</a></td></tr>
+<tr d-ix="3"><td>272</td><td>C gcc</td><td>250630T165023Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282487#282487">jdt</a></td></tr>
+<tr d-ix="4"><td>nan</td><td>Commodore 64 Assembler</td><td>250630T111126Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282481#282481">Jani Joe</a></td></tr>
+<tr d-ix="5"><td>246</td><td>JS</td><td>250629T131050Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282468#282468">b00t</a></td></tr>
+<tr d-ix="6"><td>432</td><td>HTML + CSS + JS</td><td>250629T082636Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282465#282465">M. Zhang</a></td></tr>
 <tr d-ix="7"><td>7568</td><td>MATL</td><td>250627T203334Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282437#282437">Luis Men</a></td></tr>
 <tr d-ix="8"><td>293</td><td>ZX Spectrum Basic</td><td>250627T213317Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282440#282440">Neil</a></td></tr>
 <tr d-ix="9"><td>1024</td><td>HTML + CSS + JS</td><td>250627T173537Z</td><td><a href="https://codegolf.stackexchange.com/questions/282422/make-an-animated-winking-smiley/282434#282434">A.L</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/TryItOnline/TioSetup/wiki/Powershell" rel="nofollow noreferrer">PowerShell</a> Core 7.4+, <s>277</s> <s>252</s> 227 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://en.wikipedia.org/wiki/General_Instrument_CP1600" rel="nofollow noreferrer">CP-1610</a> machine code, 89 DECLEs<sup>1</sup>=111.25 bytes</h1>
+<p><em><sup>1. CP-1610 instructions are encoded with 10-bit values (0x000 to 0x3FF), known as DECLEs. Although the Intellivision is also able to work on 16-bit data, programs were really stored in 10-bit ROM back then.</sup></em></p>
+<p>This is a full program mapped at $4800-$4858. To get the correct delay of 500ms, this should be run on a 60Hz (NTSC) Intellivision.</p>
+<p>We could save 1 DECLE by just incrementing the counter and testing bit #5. The frame change would occur every 32 frames (533.33ms).</p>
+<h2>Source code</h2>
+<pre><code>                        ROMW  10                ; use 10-bit ROM
+                        ORG   $4800             ; map our program at $4800
+
+                  BT    EQU   $0200             ; BACKTAB address
+                  RTN   EQU   $1014             ; return address of the ISR
+                  CLEAR EQU   $1738             ; clear routine of the EXEC
+                  GRAM  EQU   $3800             ; GRAM address
+
+                        ;; --------------------------------------------------------- ;;
+                        ;;  main code                                                ;;
+                        ;; --------------------------------------------------------- ;;
+4800  2B8 00A           MVII  #isr AND $FF, R0  ; set up the interrupt service routine
+4802  240 100           MVO   R0, $100
+4804  2B8 048           MVII  #isr SHR 8, R0
+4806  240 101           MVO   R0, $101
+
+4808  002               EIS                     ; enable interrupts
+
+4809  017               DECR  R7                ; spin forever
+
+                        ;; --------------------------------------------------------- ;;
+                        ;;  ISR                                                      ;;
+                        ;; --------------------------------------------------------- ;;
+                        ;;  NB: called with R1 = $4800 (because of the way the EXEC  ;;
+                        ;;  jumps to the entry point)                                ;;
+                        ;; --------------------------------------------------------- ;;
+                  isr   PROC
+
+480A  2B8 034           MVII  #52, R0           ; clear the STIC registers
+480C  1E4               CLRR  R4
+480D  004 114 338       CALL  CLEAR
+
+4810  0FC               ADDR  R7, R4            ; we now have R4 = 52, which is the
+                                                ; distance from here to the tiles data
+4811  001               SDBD                    ; R5 = pointer into GRAM
+4812  2BD 000 038       MVII  #GRAM, R5
+
+4815  2A0         @loop MVI@  R4, R0            ; R0 = tile data
+4816  268         @copy MVO@  R0, R5            ; write the byte to the GRAM
+4817  338 100           SUBI  #$100, R0         ; decrement the upper nibble
+4819  223 004           BPL   @copy             ; copy again if still positive
+
+481B  2F9 2CD           ADDI  #717, R1          ; this will make R1 negative-looking
+481D  223 009           BPL   @loop             ; after 20 iterations ($4800 -&gt; $8004)
+
+481F  2BA 301           MVII  #$301, R2         ; R2 = address of 16-bit counter
+4821  291               MVI@  R2, R1            ; R1 = said counter
+4822  001 2F9 044       ADDI  #1092, R1         ; add 1092 (approximately 2**16 / 60)
+4826  251               MVO@  R1, R2            ; save the updated value
+4827  203 008           BPL   @draw             ; if it's negative-looking ...
+
+4829  33D 00D           SUBI  #13, R5           ; ... adjust the GRAM pointer
+                                                ; to update the right eye
+482B  26A               MVO@  R2, R5            ; \
+482C  26A               MVO@  R2, R5            ;  }- right border (R2 = %[..]00000001)
+482D  26A               MVO@  R2, R5            ; /
+482E  268               MVO@  R0, R5            ; --- horizontal line + right border
+                                                ;     (R0 = %[..]11111001)
+482F  26A               MVO@  R2, R5            ; \__ right border
+4830  26A               MVO@  R2, R5            ; /
+
+4831  2B9 008     @draw MVII  #8, R1            ; draw the tiles
+4833  001               SDBD
+4834  2B8 007 008       MVII  #$807, R0         ; bottom-left
+4837  240 281           MVO   R0, BT+129
+4839  0C8               ADDR  R1, R0            ; top-left
+483A  240 26D           MVO   R0, BT+109
+483C  0C8               ADDR  R1, R0            ; top-right
+483D  240 26E           MVO   R0, BT+110
+483F  0C8               ADDR  R1, R0            ; bottom-right
+4840  240 282           MVO   R0, BT+130
+
+4842  004 310 014       J     RTN               ; return from ISR
+
+                        ENDP
+
+                        ;; --------------------------------------------------------- ;;
+                        ;;  tiles data in RBB format:                                ;;
+                        ;;    R = number of times to repeat                          ;;
+                        ;;    BB = byte to write                                     ;;
+                        ;; --------------------------------------------------------- ;;
+                  tiles PROC
+                        ; tile #0: bottom-left quarter
+4845  184               DECLE (1 SHL 8) OR %10000100
+4846  180               DECLE (1 SHL 8) OR %10000000
+4847  044               DECLE (0 SHL 8) OR %01000100
+4848  043               DECLE (0 SHL 8) OR %01000011
+4849  030               DECLE (0 SHL 8) OR %00110000
+484A  10F               DECLE (1 SHL 8) OR %00001111  ; + 1st row of next tile
+
+                        ; tile #1: top-left quarter
+484B  030               DECLE (0 SHL 8) OR %00110000
+484C  140               DECLE (1 SHL 8) OR %01000000
+484D  384               DECLE (3 SHL 8) OR %10000100
+
+                        ; tile #2: top-right quarter
+484E  0F0               DECLE (0 SHL 8) OR %11110000
+484F  00C               DECLE (0 SHL 8) OR %00001100
+4850  102               DECLE (1 SHL 8) OR %00000010
+4851  321               DECLE (3 SHL 8) OR %00100001
+
+                        ; tile #3: bottom-right quarter
+4852  121               DECLE (1 SHL 8) OR %00100001
+4853  101               DECLE (1 SHL 8) OR %00000001
+4854  022               DECLE (0 SHL 8) OR %00100010
+4855  0C2               DECLE (0 SHL 8) OR %11000010
+4856  00C               DECLE (0 SHL 8) OR %00001100
+4857  0F0               DECLE (0 SHL 8) OR %11110000
+
+                        ; pattern for the horizontal eye
+4858  0F9               DECLE (0 SHL 8) OR %11111001
+                        ENDP
+</code></pre>
+<h2>Output</h2>
+<p><a href="https://i.sstatic.net/BSqlU4zu.gif" rel="nofollow noreferrer"><img src="https://i.sstatic.net/BSqlU4zu.gif" alt="output" /></a></p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/TryItOnline/TioSetup/wiki/Powershell" rel="nofollow noreferrer">PowerShell</a> Core 7.4+, <s>277</s> <s>252</s> 227 bytes</h1>
 <pre><code>for(cls){-split(&quot;ff0 300c 4002 4002 $(((,8421*6),&quot;$(,8401*3) 84f9 8401 8401&quot;)[++$w%2]) 8001 8001 4422 43c2 300c ff0&quot;)|%{1*&quot;0x$_&quot;|% *g b16|% T*y|%{' '|Write-Host -B(15*&quot;$_&quot;)-N};''}
 sleep -m 500
 [Console]::SetCursorPosition(0,0)}
@@ -82,7 +203,7 @@ For (;;) {
 }
 </code></pre>
 </div>
-<div id="pu1" class="pu"><h1>Java on Windows, <s>454</s> <s>438</s> <s>384</s> <s>326</s> 322 bytes</h1>
+<div id="pu2" class="pu"><h1>Java on Windows, <s>454</s> <s>438</s> <s>384</s> <s>326</s> 322 bytes</h1>
 
 <pre class="lang-java prettyprint-override"><code>v-&gt;{String s=&quot;#              #\n&quot;,t=&quot; #            #\n&quot;,u=&quot;  ##        ##\n&quot;,w=&quot;#    #    %2$c    #\n&quot;,x=&quot;    ########\n&quot;;for(int i=0;;Thread.sleep(500))System.out.printf(&quot;\033[H\033[2J%s#    #    %c    #\n&quot;+w+w+&quot;#    #  %s  #\n&quot;+w+w+s+s+&quot; #   #    #   #\n #    ####    #\n&quot;+u+x,x+u+t+t,35-++i%2*3,i%2&lt;1?&quot;  #  &quot;:&quot;#####&quot;);}
 </code></pre>
@@ -123,7 +244,7 @@ For (;;) {
 </code></pre>
 <p>Perhaps there is a way to compress the String, but knowing Java, I doubt it would be shorter anyway, so I haven't bothered trying..</p>
 </div>
-<div id="pu2" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C (gcc)</a>, <s>295</s> 272 bytes</h1>
+<div id="pu3" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C (gcc)</a>, <s>295</s> 272 bytes</h1>
 <p>-23 bytes thanks to @Kevin Cruijssen</p>
 
 <pre class="lang-c prettyprint-override"><code>f(b){int i=0x300C0FF0,j=0x442243C2,k=0x80018001,l=0x40024002,m=0x0FF0300C,a[]={i,j,k,0x84018401,0x840184F9,0x84018401,l,m,i,j,k,0x84218421,0x84218421,0x84218421,l,m};for(i=puts(&quot;\033[H\033[2J&quot;)*32;i--;i%16||puts(&quot;&quot;))putchar(a[i/32+b*8]&amp;1&lt;&lt;i%32?35:32);usleep(2&lt;&lt;18);f(!b);}
@@ -154,7 +275,7 @@ For (;;) {
 </li>
 </ul>
 </div>
-<div id="pu3" class="pu"><h1>Commodore 64 Assembler, 93 Bytes (6502/KickAssembler)</h1>
+<div id="pu4" class="pu"><h1>Commodore 64 Assembler, 93 Bytes (6502/KickAssembler)</h1>
 <h2>TL;DR</h2>
 <p>The code generates the graphics into a C64 sprite. It first copies the right side of the sprite from the gfx table, mirrors it to the left side, and then toggles between open and winking eye graphics every ~500ms by using an XOR bitmask. There's also some code for cleaning up the unused sprite graphics memory, as C64 sprites are 24x21 pixels and we use only 16x16 pixel area of that.</p>
 <h2>Code</h2>
@@ -250,7 +371,7 @@ delay:  jsr $eeb3           // 3 KERNAL routine: 1ms delay
 </ul>
 <p><a href="https://i.sstatic.net/TM3zvw4J.gif" rel="noreferrer"><img src="https://i.sstatic.net/TM3zvw4J.gif" alt="enter image description here" /></a></p>
 </div>
-<div id="pu4" class="pu"><h1>JS, <strike>398</strike> <strike>366</strike> 246 bytes</h1>
+<div id="pu5" class="pu"><h1>JS, <strike>398</strike> <strike>366</strike> 246 bytes</h1>
 <h2>New method</h2>
 <p>Setting image src to a base64 gif of the smiley/winkey.</p>
 <p><div class="snippet" data-lang="js" data-hide="false" data-console="false" data-babel="false" data-babel-preset-react="false" data-babel-preset-ts="false">
@@ -297,7 +418,7 @@ setInterval(
 <li><strike>366</strike> -&gt; <strong>246</strong>: Changed to a simpler solution using base64 gifs.</li>
 </ol>
 </div>
-<div id="pu5" class="pu"><h1>HTML + CSS + JS, <s>588</s> 432 bytes</h1>
+<div id="pu6" class="pu"><h1>HTML + CSS + JS, <s>588</s> 432 bytes</h1>
 <p>Disclaimer: Entirely based on <a href="https://codegolf.stackexchange.com/a/282434/128774">@A.L's answer</a>.</p>
 <p>New version: encoded the bitmap as a base-5 <code>BitInt</code> -- Oops, now below 512 bytes.</p>
 <p><div class="snippet" data-lang="js" data-hide="false" data-console="true" data-babel="false" data-babel-preset-react="false" data-babel-preset-ts="false">
@@ -343,128 +464,6 @@ for(c of l)u.write(`&lt;td class=${c} width=9 height=9&gt;`)})&lt;/script&gt;</c
 </div>
 </div>
 </p>
-</div>
-<div id="pu6" class="pu"><h1><a href="https://en.wikipedia.org/wiki/General_Instrument_CP1600" rel="nofollow noreferrer">CP-1610</a> machine code, 90 DECLEs<sup>1</sup>=112.5 bytes</h1>
-<p><em><sup>1. CP-1610 instructions are encoded with 10-bit values (0x000 to 0x3FF), known as DECLEs. Although the Intellivision is also able to work on 16-bit data, programs were really stored in 10-bit ROM back then.</sup></em></p>
-<p>This is a full program mapped at $4800-$4859. To get the correct delay of 500ms, this should be run on a 60Hz (NTSC) Intellivision.</p>
-<p>We could save 1 DECLE by just incrementing the counter and testing bit #5. The frame change would occur every 32 frames (533.33ms).</p>
-<h2>Source code</h2>
-<pre><code>                        ROMW  10                ; use 10-bit ROM
-                        ORG   $4800             ; map our program at $4800
-
-                  BT    EQU   $0200             ; BACKTAB address
-                  RTN   EQU   $1014             ; return address of the ISR
-                  CLEAR EQU   $1738             ; clear routine of the EXEC
-                  GRAM  EQU   $3800             ; GRAM address
-
-                        ;; --------------------------------------------------------- ;;
-                        ;;  main code                                                ;;
-                        ;; --------------------------------------------------------- ;;
-4800  001               SDBD                    ; set up the interrupt service routine
-4801  2B8 00B 048       MVII  #isr, R0
-4804  240 100           MVO   R0, $100
-4806  040               SWAP  R0
-4807  240 101           MVO   R0, $101
-
-4809  002               EIS                     ; enable interrupts
-
-480A  017               DECR  R7                ; spin forever
-
-                        ;; --------------------------------------------------------- ;;
-                        ;;  ISR                                                      ;;
-                        ;; --------------------------------------------------------- ;;
-                        ;;  NB: called with R1 = $4800 (because of the way the EXEC  ;;
-                        ;;  jumps to the entry point)                                ;;
-                        ;; --------------------------------------------------------- ;;
-                  isr   PROC
-
-480B  2B8 034           MVII  #52, R0           ; clear the STIC registers
-480D  1E4               CLRR  R4
-480E  004 114 338       CALL  CLEAR
-
-4811  0FC               ADDR  R7, R4            ; we now have R4 = 52, which is the
-                                                ; distance from here to the tiles data
-4812  001               SDBD                    ; R5 = pointer into GRAM
-4813  2BD 000 038       MVII  #GRAM, R5
-
-4816  2A0         @loop MVI@  R4, R0            ; R0 = tile data
-4817  268         @copy MVO@  R0, R5            ; write the byte to the GRAM
-4818  338 100           SUBI  #$100, R0         ; decrement the upper nibble
-481A  223 004           BPL   @copy             ; write again if still positive
-
-481C  2F9 2CD           ADDI  #717, R1          ; this will make R1 negative-looking
-481E  223 009           BPL   @loop             ; after 20 iterations ($4800 -&gt; $8004)
-
-4820  2BA 301           MVII  #$301, R2         ; R2 = address of 16-bit counter
-4822  291               MVI@  R2, R1            ; R1 = said counter
-4823  001 2F9 044       ADDI  #1092, R1         ; add 1092 (approximately 2**16 / 60)
-4827  251               MVO@  R1, R2            ; save the updated value
-4828  203 008           BPL   @draw             ; if it's negative-looking ...
-
-482A  33D 00D           SUBI  #13, R5           ; ... adjust the GRAM pointer
-                                                ; to update the right eye
-482C  26A               MVO@  R2, R5            ; \
-482D  26A               MVO@  R2, R5            ;  }- right border (R2 = %[..]00000001)
-482E  26A               MVO@  R2, R5            ; /
-482F  268               MVO@  R0, R5            ; --- horizontal line + right border
-                                                ;     (R0 = %[..]11111001)
-4830  26A               MVO@  R2, R5            ; \__ right border
-4831  26A               MVO@  R2, R5            ; /
-
-4832  2B9 008     @draw MVII  #8, R1            ; draw the tiles
-4834  001               SDBD
-4835  2B8 007 008       MVII  #$807, R0         ; bottom-left
-4838  240 281           MVO   R0, BT+129
-483A  0C8               ADDR  R1, R0            ; top-left
-483B  240 26D           MVO   R0, BT+109
-483D  0C8               ADDR  R1, R0            ; top-right
-483E  240 26E           MVO   R0, BT+110
-4840  0C8               ADDR  R1, R0            ; bottom-right
-4841  240 282           MVO   R0, BT+130
-
-4843  004 310 014       J     RTN               ; return from ISR
-
-                        ENDP
-
-                        ;; --------------------------------------------------------- ;;
-                        ;;  tiles data in RBB format:                                ;;
-                        ;;    R = number of times to repeat                          ;;
-                        ;;    BB = byte to write                                     ;;
-                        ;; --------------------------------------------------------- ;;
-                  tiles PROC
-                        ; tile #0: bottom-left quarter
-4846  184               DECLE (1 SHL 8) OR %10000100
-4847  180               DECLE (1 SHL 8) OR %10000000
-4848  044               DECLE (0 SHL 8) OR %01000100
-4849  043               DECLE (0 SHL 8) OR %01000011
-484A  030               DECLE (0 SHL 8) OR %00110000
-484B  10F               DECLE (1 SHL 8) OR %00001111  ; + 1st row of next tile
-
-                        ; tile #1: top-left quarter
-484C  030               DECLE (0 SHL 8) OR %00110000
-484D  140               DECLE (1 SHL 8) OR %01000000
-484E  384               DECLE (3 SHL 8) OR %10000100
-
-                        ; tile #2: top-right quarter
-484F  0F0               DECLE (0 SHL 8) OR %11110000
-4850  00C               DECLE (0 SHL 8) OR %00001100
-4851  102               DECLE (1 SHL 8) OR %00000010
-4852  321               DECLE (3 SHL 8) OR %00100001
-
-                        ; tile #3: bottom-right quarter
-4853  121               DECLE (1 SHL 8) OR %00100001
-4854  101               DECLE (1 SHL 8) OR %00000001
-4855  022               DECLE (0 SHL 8) OR %00100010
-4856  0C2               DECLE (0 SHL 8) OR %11000010
-4857  00C               DECLE (0 SHL 8) OR %00001100
-4858  0F0               DECLE (0 SHL 8) OR %11110000
-
-                        ; pattern for the horizontal eye
-4859  0F9               DECLE (0 SHL 8) OR %11111001
-                        ENDP
-</code></pre>
-<h2>Output</h2>
-<p><a href="https://i.sstatic.net/BSqlU4zu.gif" rel="nofollow noreferrer"><img src="https://i.sstatic.net/BSqlU4zu.gif" alt="output" /></a></p>
 </div>
 <div id="pu7" class="pu"><h1><a href="https://github.com/lmendo/MATL" rel="nofollow noreferrer">MATL</a>, <s>75</S> 68 bytes</h1>
 <pre><code>`TF'#c8Dw;Lv/P/7KMbi('F8:ZaY&quot;8etPv!F85:90(!@o?tP*}F5:'x'+(]!1YG.5Y.T
