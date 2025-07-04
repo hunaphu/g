@@ -40,21 +40,27 @@
 </code></pre>
 <p><strong>Explanation:</strong></p>
 <pre><code>Format: [GRID] [WORDS]
-≡₀⨬⋅@ ∘↥⤚⊃(↥⇌∩⌟(≡₀⋕/↧≡(⍜⊡(+@0/◇⬚0↥⊞(□◇˜⦷)⊓□°□)⊓⊚°□◇=)◴⊸◇♭∩₃□≡₁/+⇡⊸△)⊸⇌|/↥⊂≡⍉∩⌟˜≡◇⦷⊸⍉□)⊙(⊂⊸⍚⇌)
-                                                                                                      ⊙(⊂⊸⍚⇌) =&gt; reverse each word and include it in the list of words
-        ⤚⊃(↥⇌∩⌟(≡₀⋕/↧≡(⍜⊡(+@0/◇⬚0↥⊞(□◇˜⦷)⊓□°□)⊓⊚°□◇=)◴⊸◇♭∩₃□≡₁/+⇡⊸△)⊸⇌|/↥⊂≡⍉∩⌟˜≡◇⦷⊸⍉□)           =&gt; (word search)
-                                                                                   /↥⊂≡⍉∩⌟˜≡◇⦷⊸⍉□            =&gt; (row and column search)
-                                                                                         ∩⌟˜≡◇⦷⊸⍉□            =&gt; generate boolean masks for all matches in both rows &amp; columns
-                                                                                   /↥⊂≡⍉                        =&gt; transpose back column matches, and OR them to give a boolean mask
-           ↥⇌∩⌟(≡₀⋕/↧≡(⍜⊡(+@0/◇⬚0↥⊞(□◇˜⦷)⊓□°□)⊓⊚°□◇=)◴⊸◇♭∩₃□≡₁/+⇡⊸△)⊸⇌                                =&gt; (diagonal search)
-                                                                     ≡₁/+⇡⊸△                                    =&gt; generate a table of the indices of the diagonals from the grid shape
-                      ≡(                            ⊓⊚°□◇=)◴⊸◇♭                                               =&gt; find the positions of the diagonal for each unique index
-                        ⍜⊡(+@0/◇⬚0↥⊞(□◇˜⦷)⊓□°□)                                                             =&gt; index the grid at those positions and generate a boolean mask for all matches
-                 ≡₀⋕/↧                                                                                           =&gt; OR all boolean masks from all the diagonals
-           ↥⇌∩⌟(                                                            )⊸⇌                                =&gt; also do this for the anti-diagonal, reverse back after
-≡₀⨬⋅@ ∘↥                                                                                                         =&gt; OR all searches, and keep letters at truthy indices, otherwise fill with spaces
+≡₀⨬⋅@ ∘↥⤚⊃(DA|RC)⊙(⊂⊸⍚⇌)
+                 ⊙(⊂⊸⍚⇌) =&gt; reverse each word and include it in the list of words
+        ⤚⊃(DA|RC)           =&gt; (word search)
+≡₀⨬⋅@ ∘↥                    =&gt; OR all searches, and keep letters at truthy indices
+                                                                                            otherwise fill with spaces
+
+RC: (row &amp; col search)
+/↥⊂≡⍉∩⌟˜≡◇⦷⊸⍉□
+      ∩⌟˜≡◇⦷⊸⍉□ =&gt; generate bool masks for all matches in rows and cols
+/↥⊂≡⍉             =&gt; transpose back col bool masks, then OR them
+
+DA: (diag &amp; anti-diag search)
+↥⇌∩⌟(≡₀⋕/↧≡(⍜⊡(+@0/◇⬚0↥⊞(□◇˜⦷)⊓□°□)⊓⊚°□◇=)◴⊸◇♭∩₃□≡₁/+⇡⊸△)⊸⇌
+                                                          ≡₁/+⇡⊸△     =&gt; generate a table of the idxs of the diags from the grid shape
+           ≡(                            ⊓⊚°□◇=)◴⊸◇♭∩₃□             =&gt; find the positions of the diags for each unique idx
+             ⍜⊡(+@0/◇⬚0↥⊞(□◇˜⦷)⊓□°□)                              =&gt; idx the grid at those positions and generate a boolean mask for all matches
+                                                                          then put each element back into those same positions (Uiua's under-pick)
+     ≡₀⋕/↧                                                             =&gt; OR all boolean masks from all the diags
+↥⇌∩⌟(                                                            )⊸⇌ =&gt; also do this for the anti-diagonal, reverse back after
 </code></pre>
-<p><a href="https://www.uiua.org/pad?src=0_17_0-dev_1__JCBCQUNLU1BBQ0UKJCBCT0xECiQgQ0xPU0UKJCBDT01QQUNURElTQwokIENPUFkKJCBDUFUKJCBDVVJTT1IKJCBERUxFVEUKJCBERVNLVE9QCiQgRFZECiQgRURJVAokIEVOVEVSCiQgRVhJVAokIEZMT1BQWQokIEZPTlQKJCBIQVJEV0FSRQokIElOVEVSTkVUCiQgS0VZQk9BUkQKJCBNT05JVE9SCiQgTU9VU0UKJCBQQVNTV09SRAokIFBBU1RFCiQgUkVUVVJOCiQgU0FWRQokIFNPRlRXQVJFCiQgU1RBUlQKJCBURVhUCiQgVE9XRVIKJCBXT1JEUFJPQ0VTU0lORwokIAokIElBVUVSQVdURk9TSUNQTgokIERHWlBGTE9QUFlBUkZMVQokIFJTTk9DVVJTT1JWWkRCTQokIEFNTklVT01STkhFR1VJTgokIE9UQk5TUk1PTklUT1JOVAokIEJFWVRUU0dQSkJPTERSVAokIFlSUUVBSEVIQVJEV0FSRQokIEVPR1JSTkVDRUNMT1NFUAokIEtJT05UWUtUT0RUT1dFUgokIEVMQ0VOU1VQRVJQREtOTgokIEFUUlRQUllLRUxQVklFSgokIEdJRUFOUE9US1NFRFVTTAokIE5YQ01QQVNTV09SRFJVQwokIFRFRElUQUdWU1dKQ1RPVgokIENXT1lQR1lRS05MVlhNVwo64oipwrDilqHCsOKKn-KKnCjilqHijaPiipziiJjiipzilqHCrOKKuOKmt0BcbinCrOKKuOKmt8uZ4oqCQFxuCgriiaHigoDiqKzii4VAIOKImOKGpeKkmuKKgyjihqXih4ziiKnijJ8o4omh4oKA4ouVL-KGp-KJoSjijZziiqEoK0AwL-KXh-KsmjDihqXiip4o4pah4peHy5ziprcp4oqT4pahwrDilqEp4oqT4oqawrDilqHil4c9KeKXtOKKuOKXh-KZreKIqeKCg-KWoeKJoeKCgS8r4oeh4oq44pazKeKKuOKHjHwv4oal4oqC4omh4o2J4oip4oyfy5ziiaHil4fiprfiirjijYnilqEp4oqZKOKKguKKuOKNmuKHjCkK" rel="nofollow noreferrer">Try this online!</a></p>
+<p><a href="https://www.uiua.org/pad?src=0_17_0-dev_1__JCBCQUNLU1BBQ0UKJCBCT0xECiQgQ0xPU0UKJCBDT01QQUNURElTQwokIENPUFkKJCBDUFUKJCBDVVJTT1IKJCBERUxFVEUKJCBERVNLVE9QCiQgRFZECiQgRURJVAokIEVOVEVSCiQgRVhJVAokIEZMT1BQWQokIEZPTlQKJCBIQVJEV0FSRQokIElOVEVSTkVUCiQgS0VZQk9BUkQKJCBNT05JVE9SCiQgTU9VU0UKJCBQQVNTV09SRAokIFBBU1RFCiQgUkVUVVJOCiQgU0FWRQokIFNPRlRXQVJFCiQgU1RBUlQKJCBURVhUCiQgVE9XRVIKJCBXT1JEUFJPQ0VTU0lORwokIAokIElBVUVSQVdURk9TSUNQTgokIERHWlBGTE9QUFlBUkZMVQokIFJTTk9DVVJTT1JWWkRCTQokIEFNTklVT01STkhFR1VJTgokIE9UQk5TUk1PTklUT1JOVAokIEJFWVRUU0dQSkJPTERSVAokIFlSUUVBSEVIQVJEV0FSRQokIEVPR1JSTkVDRUNMT1NFUAokIEtJT05UWUtUT0RUT1dFUgokIEVMQ0VOU1VQRVJQREtOTgokIEFUUlRQUllLRUxQVklFSgokIEdJRUFOUE9US1NFRFVTTAokIE5YQ01QQVNTV09SRFJVQwokIFRFRElUQUdWU1dKQ1RPVgokIENXT1lQR1lRS05MVlhNVwo64oipwrDilqHCsOKKn-KKnCjilqHijaPiipziiJjiipzilqHCrOKKuOKmt0BcbinCrOKKuOKmt8uZ4oqCQFxuCkRBIOKGkCDihqXih4ziiKnijJ8oCiAg4pe04oq44peH4pmt4oip4oKD4pah4omh4oKBLyvih6HiirjilrMKICDiiaHigoDii5Uv4oan4omhKAogICAg4oqT4oqawrDilqHil4c9CiAgICDijZziiqEoK0AwL-KXh-KsmjDihqXiip4o4pah4peHy5ziprcp4oqT4pahwrDilqEpCiAgKQop4oq44oeMClJDIOKGkCAv4oal4oqC4omh4o2J4oip4oyfy5ziiaHil4fiprfiirjijYnilqEK4omh4oKA4qis4ouFQCDiiJjihqXipJriioMoREF8UkMp4oqZKOKKguKKuOKNmuKHjCkKCiMgRnVsbCBjb2RlOgojIOKJoeKCgOKorOKLhUAg4oiY4oal4qSa4oqDKOKGpeKHjOKIqeKMnyjiiaHigoDii5Uv4oan4omhKOKNnOKKoSgrQDAv4peH4qyaMOKGpeKKnijilqHil4fLnOKmtyniipPilqHCsOKWoSniipPiiprCsOKWoeKXhz0p4pe04oq44peH4pmt4oip4oKD4pah4omh4oKBLyvih6HiirjilrMp4oq44oeMfC_ihqXiioLiiaHijYniiKnijJ_LnOKJoeKXh-Kmt-KKuOKNieKWoSniipko4oqC4oq44o2a4oeMKQo=" rel="nofollow noreferrer">Try this online!</a></p>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://github.com/Vyxal/Vyxal/tree/version-2" rel="nofollow noreferrer">Vyxal</a> <code>j</code>, <s>73</s> <s>69</s> <s>68</s> 65 bytes</h1>
 <pre><code>¤€÷$:RJ£D₍Þ√Þ`ṅ∇∩&quot;Jvƛ¥ve:[¨vƒrꜝfUsn$⁽ɽ¢]ƛaßð;ṅ;ɾ÷∩^Þ„‟Þ‟W∩4/ƛ∩vGṅ
