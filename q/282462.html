@@ -26,12 +26,61 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>456</td><td>Maple</td><td>250702T003055Z</td><td><a href="https://codegolf.stackexchange.com/questions/282462/make-a-floor-plan-given-the-number-of-doorways/282507#282507">dharr</a></td></tr>
-<tr d-ix="1"><td>198</td><td>JavaScript ES6</td><td>250629T235924Z</td><td><a href="https://codegolf.stackexchange.com/questions/282462/make-a-floor-plan-given-the-number-of-doorways/282475#282475">Arnauld</a></td></tr>
-<tr d-ix="2"><td>800</td><td>Python3</td><td>250630T170230Z</td><td><a href="https://codegolf.stackexchange.com/questions/282462/make-a-floor-plan-given-the-number-of-doorways/282488#282488">Ajax1234</a></td></tr>
-<tr d-ix="3"><td>165</td><td>Charcoal</td><td>250629T195013Z</td><td><a href="https://codegolf.stackexchange.com/questions/282462/make-a-floor-plan-given-the-number-of-doorways/282474#282474">Neil</a></td></tr>
+<tr d-ix="0"><td>253</td><td>Perl 5</td><td>250705T140109Z</td><td><a href="https://codegolf.stackexchange.com/questions/282462/make-a-floor-plan-given-the-number-of-doorways/282558#282558">good old</a></td></tr>
+<tr d-ix="1"><td>456</td><td>Maple</td><td>250702T003055Z</td><td><a href="https://codegolf.stackexchange.com/questions/282462/make-a-floor-plan-given-the-number-of-doorways/282507#282507">dharr</a></td></tr>
+<tr d-ix="2"><td>198</td><td>JavaScript ES6</td><td>250629T235924Z</td><td><a href="https://codegolf.stackexchange.com/questions/282462/make-a-floor-plan-given-the-number-of-doorways/282475#282475">Arnauld</a></td></tr>
+<tr d-ix="3"><td>800</td><td>Python3</td><td>250630T170230Z</td><td><a href="https://codegolf.stackexchange.com/questions/282462/make-a-floor-plan-given-the-number-of-doorways/282488#282488">Ajax1234</a></td></tr>
+<tr d-ix="4"><td>165</td><td>Charcoal</td><td>250629T195013Z</td><td><a href="https://codegolf.stackexchange.com/questions/282462/make-a-floor-plan-given-the-number-of-doorways/282474#282474">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.maplesoft.com/" rel="nofollow noreferrer">Maple</a>, <s> 472 </s> 456 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.perl.org/" rel="nofollow noreferrer">Perl 5</a>, 253 bytes</h1>
+
+<pre class="lang-perl prettyprint-override"><code>$_=&quot;@{[&lt;&gt;]}&quot;;$.=@{eval-&gt;[0]};for((@d,$_)=/\d/g;$L&lt;@d;$_=/-|[12]a$|(.a?)\{@d-$.,}[23]/?pop@a:$_.(($n=$d[$L]-/[12]$/-/[23].{$.}$/)==1?!!push@a,$_.3:$n)){($L=y/0-3//)%$.or$_.=a}@a=map{s/\d/_$&amp;/g;&quot;$/|&quot;.y/a3012_/\n|| /r,$y=y/a_2301/++  -/r}/\d+a/g;print$y,@a
+</code></pre>
+<p><a href="https://tio.run/##RY7basMwDEDf9xVp0IZDbCsX9tLUjT8gf@AaY0h3gS4x7jYIjr89c/awIZDQkQ6Su/rb87aBEbkM6nTWMe@ACxmu3/bGzqrSsXuZPSFypGAKgZcRXzsYTnLskoRsVXWjLayE2764BDky4DSqptXYu9lJewTDCYFJwKhg0Ax3ATDVtMMD8AhYCFH3h4P7ur9Jm@7w9ghTUQQCg1iwYi1i8Qh89mkkbJRWfFgX7vszBp7SQzngmvMFbVvVjcHLtK4ZegpL0q1pEsWyzDKGPiaptElx/n36hIVKu23qIctUTf9C0x1UtErNnpt/sKPmF@gf" rel="nofollow noreferrer" title="Perl 5 – Try It Online">Try it online!</a></p>
+<p>Can't get it below 250, better call it quits. Somewhat un-golfed and commented:</p>
+<pre class="lang-perl prettyprint-override"><code># Accept input as string, which happens valid Perl. 
+# Parse it to get row width.
+# Convert string to flat list of digits,
+# clear the default variable.
+$_ = &quot;@{[&lt;&gt;]}&quot;;
+$. = @{ eval-&gt;[0] };
+( @d, $_ ) = /\d/g;
+# Find the solution with brute force.
+# Proceed while solution length is less than number of digits.
+# Go cell by cell, row by row. As dumb as that.
+while ( $L &lt; @d ) {
+# Solution, partial (current or stored in &quot;investigate later&quot; queue)
+# or the final, is a string of chars, 1 is &quot;open the door to the right&quot;, 
+# 3 -- down, 2 -- both, 0 -- none of them. The &quot;a&quot; is for (imaginary) 
+# &quot;guard&quot; column on the right of the plan. Rows are just concatenated.
+# Get number of cells processed.
+    $L = y/0-3//;
+# Append 'a' for guard column.
+    $L % $. or $_ .= a;
+# Look left and up, calculate number of doors remaining to be open.
+    $n = $d[$L] - /[12]$/ - /[23].{$.}$/;
+# Always append it to solution. The check happens at next iteration.
+# Discard current solution if number was negative, or right door was
+# opened in rightmost column, or down door was opened in lowest row.
+# Pop from the queue then. Branching only happens if there is one door 
+# remaining to be open. Try opening to the right 1st.
+    $_= /-|[12]a$|(.a?)\{@d-$.,}[23]/
+        ? pop @a
+        : $_.( $n == 1 ? !!push @a, $_.3 : $n )
+}
+# The final solution happens to have leading 'a' and trailing '0'. 
+# They are golfing artifacts and irrelevant for output.
+# Convert the solution to ASCII plan, one row of 0-3 digits to 
+# two rows of output. Repeat (prepend) final line at the beginning.
+@a = map {
+    s/\d/_$&amp;/g;
+    &quot;$/|&quot;.y/a3012_/\n|| /r,
+    $y=y/a_2301/++  -/r
+} /\d+a/g;
+print $y,@a
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.maplesoft.com/" rel="nofollow noreferrer">Maple</a>, <s> 472 </s> 456 bytes</h1>
 <pre><code>proc(s)m:=nops(s);n:=nops(s[1]);M,N:=2*m+1,2*n+1;X:=Matrix(M,N,(i,j)-&gt;`if`(`and`((i,j)::~odd),&quot;+&quot;,&quot; &quot;));e:=();for p to m do for q to n do i,j:=2*p,2*q;e,=x[i,j-1]+x[i,j+1]+x[i-1,j]+x[i+1,j]=s[p,q]od od;f:={seq([x[1,p],x[M,p]][],p=2..N,2),seq([x[q,1],x[q,N]][],q=2..M,2)}=~0;Z:=subs(f,{e});Y:=indets(Z);assign(subs(x=X,map(d-&gt;`if`(rhs(d)=1,NULL,`if`(op(1,(h:=lhs(d)))::odd,h=&quot;-&quot;,h=&quot;|&quot;)),SMTLIB:-Satisfy({Z[],(Y&gt;=~0)[],(Y&lt;~2)[]})union f)));printf(&quot;%s&quot;,X)end;
 </code></pre>
 <p>For m rows of rooms and n columns of rooms, set up a (2<em>m+1) x (2</em>n+1) matrix X=(x)_{i,j} with an entry for each character in the printout. Set up spaces in room interiors and &quot;+&quot; at the room corners. Set up the walls for the perimeter with values 0 (0 = wall, 1 = door). So for the p,q th room (p = 1,..,m, q = 1,..,n) with given wall number s[p,q], we have x[2<em>p,2</em>q-1]+x[2<em>p,2</em>q+1]+x[2<em>p-1,2</em>q]+x[2<em>p+1,2</em>q] = s[p,q]. Solve these equations and fill in walls of the correct type.</p>
@@ -60,7 +109,7 @@ printf(&quot;%s&quot;,X)                                 # print out as string
 end;
 </code></pre>
 </div>
-<div id="pu1" class="pu"><h1>JavaScript (ES6), 198 bytes</h1>
+<div id="pu2" class="pu"><h1>JavaScript (ES6), 198 bytes</h1>
 <p>Returns a string.</p>
 
 <pre class="lang-javascript prettyprint-override"><code>m=&gt;{for(N=0;n=N++,s=&quot;&quot;,m.some((r,y)=&gt;r.some(v=&gt;v^(k=n&amp;!!y+2*!!x++,p+=k&amp;1?&quot; +&quot;:&quot;-+&quot;,q+=k&amp;2?&quot;  &quot;:&quot;| &quot;,n&gt;&gt;2*r.length&amp;!!m[y+1])+((n/=4)/2&amp;!!r[x])-~k/2,p=&quot;+&quot;,x=q=`
@@ -110,7 +159,7 @@ for(                       // main loop
 return s + t }             // return s + t
 </code></pre>
 </div>
-<div id="pu2" class="pu"><h1>Python3, 800 bytes</h1>
+<div id="pu3" class="pu"><h1>Python3, 800 bytes</h1>
 <pre class="lang-py prettyprint-override"><code>from itertools import*
 E=enumerate
 def f(b):
@@ -132,7 +181,7 @@ def f(b):
 </code></pre>
 <p><a href="https://tio.run/##hVLBjtowEL3nKyz1EDuZVEnpoYpwb4v2strDAgK5PkBIVMPGBhNWS2G/nR07CWwrVSsrycz4vTfPE2@PzW@jBz@29nKprKmJakrbGPO8J6reGttEwR0v9aEu7aIpg1VZkYouWR6QKRdhHEKEr69rozQNkzB6LjVdilQyBliXAZlwsSGVsUQRpcnShxsMxRREeHb0c08nLV057jmUUsZiigo7Lp5yfqKvcGT5ixd4BevU7uiEufQIL21qmaqIi700CgJ6km8o8sBXqmjoH7WlQt387NCqqhDIuQuFkhLE@mqy87t24QbPFPi08EycABnDiAsJKYatrSMY1915BXzHMzjGc@9xBnO/k0HKgCbtJ4Uk85@MSck6CaeOLVpXT14Ld107LJKHrvCT3ud8f6hpIR4l5wh29EdHNozl45i3LgyT/zCH9/mIZ4GrCWSOvfLNIinyiZhJMZe8EBRrrYAtm4PV4S/d/a16saVhG8PETca1GOWF0Y3ShxJz352PcazdeBqvbuql0otGGb2nrf6H3ji9ivZt8VTncKFXJB3Ok4y4aB5nQ3dHJu6K4eyM/YhOOvSsQ896tINK6AeQ/H9sOxzbKYoKiKKTyrtdf1Oatzd52VqlG1pREQj8Z5BKCMQ3@A6ZCzJfCdw1aXHhlzAapH3mWIQgvFtI8WkGA3yuqde9pTfwp7qDv1Uz7wqTDHqvn0hkcF0tM@3cXP2k0Jauji7v" rel="nofollow noreferrer">Try it online!</a></p>
 </div>
-<div id="pu3" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="noreferrer">Charcoal</a>, <s>226</s> 165 bytes</h1>
+<div id="pu4" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="noreferrer">Charcoal</a>, <s>226</s> 165 bytes</h1>
 <pre><code>ＷＳ⊞υιυＵＥ¹¦¹ＦＬυＦＬθ«Ｊ⊖⊗κ⊖⊗ιＢ³¦³»≔⁰ηＷ‹ηＬΣυ«Ｊ⊗﹪ηＬθ⊗÷ηＬθ≔ΦrdΣ⊟ＫＤ³✳κζ≔›ΣＫＫＬζεＷε«≔dζ≦⊖ηＪ⊗﹪ηＬθ⊗÷ηＬθ≔¬∧Σ⊟ＫＤ³↓⁼ -Φ⪫ＫＶω﹪μ³εＰ0ＦΦＥrdＫＤ³✳λ№λ ＵＭλ⎇⊖νＩ⊕μ|Ｐ¶-»ＦΣＫＫＵＭＫＤ³✳§ζκ⎇⊖μＩ⊖λ ≦⊕η 
 </code></pre>
 <p><a href="https://tio.run/##rVPBbtswDD3HXyHoJAMOEDe37ZTV3ZCiLQK02GkXN2ZjIbLkylKTZeu3e6SsIM7W9VQDtkWKfO@RotZ1ademVH2/q6UCJpa69e7eWak3Ik3Zyne18BmT6edkhU4nPK6u9g50JfKM5Wg9GcvEDeiNw1DMGdvPaP9KJte@aR@MKGBtoQHtoBKF8Y8K/9s0zdhbGzJNEXzyxezFPGNzXL8mi66TGy1mGavRjpJvoOtEnbFIee8bknFOHDFvTeWVGQWjPqKP20vtCvkiK/grgnRE6q9SObCC24pnjKhWphUrgG0hLaydNJrUnowtpSPFYYTxzUJJICEdUwUFRLoDrYGCY3UQ6jimcqINWJPbso3OUfeGxkw@sO4j851xYoGH/t@aPxVmpwPs1bMvVSc4m6LY2LBrI3XI@W70Hfim1Fpg6A7fKK6hQx6aBUOBXjnZhqHjMx5cYbQiItYfj@Gd9quAd2k8gqiMccZpMDD10jSooSLnA1hd2p9n06kpq@wctubkbAiL/@bpP/J@6GkQ@JoMEkcne8b2jtKFW@oK9uKQsW0Q/Zas5ihr7FRBFhtknaZipDxOxXCBKRLvUt9f0JNc5PMcv7N8ht/g6acv6g8" rel="noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code. Takes input as a rectangular list of newline-terminated digit strings. Explanation:</p>
