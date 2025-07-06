@@ -26,14 +26,123 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>008</td><td>x8664 machine code</td><td>250706T142741Z</td><td><a href="https://codegolf.stackexchange.com/questions/282561/genshin-elemental-aura-decay/282571#282571">m90</a></td></tr>
-<tr d-ix="1"><td>015</td><td>Google Sheets</td><td>250705T183116Z</td><td><a href="https://codegolf.stackexchange.com/questions/282561/genshin-elemental-aura-decay/282564#282564">doubleun</a></td></tr>
-<tr d-ix="2"><td>018</td><td>Python 2</td><td>250706T045802Z</td><td><a href="https://codegolf.stackexchange.com/questions/282561/genshin-elemental-aura-decay/282568#282568">Lucenapo</a></td></tr>
-<tr d-ix="3"><td>005</td><td>Charcoal</td><td>250705T193158Z</td><td><a href="https://codegolf.stackexchange.com/questions/282561/genshin-elemental-aura-decay/282565#282565">Neil</a></td></tr>
-<tr d-ix="4"><td>002</td><td>Vyxal 3</td><td>250705T181738Z</td><td><a href="https://codegolf.stackexchange.com/questions/282561/genshin-elemental-aura-decay/282563#282563">Themooni</a></td></tr>
-<tr d-ix="5"><td>015</td><td>JavaScript ES6</td><td>250705T165505Z</td><td><a href="https://codegolf.stackexchange.com/questions/282561/genshin-elemental-aura-decay/282562#282562">Arnauld</a></td></tr>
+<tr d-ix="0"><td>nan</td><td>Commodore 64 Assembler</td><td>250706T200830Z</td><td><a href="https://codegolf.stackexchange.com/questions/282561/genshin-elemental-aura-decay/282574#282574">Jani Joe</a></td></tr>
+<tr d-ix="1"><td>008</td><td>x8664 machine code</td><td>250706T142741Z</td><td><a href="https://codegolf.stackexchange.com/questions/282561/genshin-elemental-aura-decay/282571#282571">m90</a></td></tr>
+<tr d-ix="2"><td>015</td><td>Google Sheets</td><td>250705T183116Z</td><td><a href="https://codegolf.stackexchange.com/questions/282561/genshin-elemental-aura-decay/282564#282564">doubleun</a></td></tr>
+<tr d-ix="3"><td>018</td><td>Python 2</td><td>250706T045802Z</td><td><a href="https://codegolf.stackexchange.com/questions/282561/genshin-elemental-aura-decay/282568#282568">Lucenapo</a></td></tr>
+<tr d-ix="4"><td>005</td><td>Charcoal</td><td>250705T193158Z</td><td><a href="https://codegolf.stackexchange.com/questions/282561/genshin-elemental-aura-decay/282565#282565">Neil</a></td></tr>
+<tr d-ix="5"><td>002</td><td>Vyxal 3</td><td>250705T181738Z</td><td><a href="https://codegolf.stackexchange.com/questions/282561/genshin-elemental-aura-decay/282563#282563">Themooni</a></td></tr>
+<tr d-ix="6"><td>015</td><td>JavaScript ES6</td><td>250705T165505Z</td><td><a href="https://codegolf.stackexchange.com/questions/282561/genshin-elemental-aura-decay/282562#282562">Arnauld</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>x86-64 machine code, 8 bytes</h1>
+<div id="pu0" class="pu"><h1>Commodore 64 Assembler, 25 Bytes (6502/KickAssembler)</h1>
+<p>Being a purely 8bit processor, including the registers, 6502 can natively handle integers up to 255. As both strength and ticks can be up to 1000, we need to programmatically handle them as 16bit integers, which unfortunately increases the size of our routine quite a bit. An 8bit version of the routine would have taken just 12 bytes.</p>
+<h3>Input</h3>
+<p>Before calling the routine:</p>
+<ul>
+<li>Load lo byte of <code>initial_strength</code> to Accumulator</li>
+<li>Load hi byte of <code>initial_strength</code> to Y register</li>
+<li>Store <code>decay_per_tick</code> to memory address $2.</li>
+</ul>
+<h3>Output</h3>
+<p>After the routine:</p>
+<ul>
+<li>X register holds the lo byte of the number of ticks</li>
+<li>Memory address $3 holds the hi byte of the number of ticks</li>
+</ul>
+<h2>Routine</h2>
+<pre><code>TICKS:  ldx #0          // 2 Reset 16bit tick count lo byte.
+        stx $3          // 2 Reset 16bit tick count hi byte.
+zcheck: cmp #0          // 2 Is 16bit aura lo byte 0? Also sets Carry.
+        bne tick        // 2 If not, do tick.
+        cpy #0          // 2 If yes, is 16bit aura hi byte 0? Also sets Carry.
+        beq done        // 2 If yes, aura is 0 and we're done.
+tick:   inx             // 1 Increment tick count.
+        bne !+          // 2 Did tick count lo byte roll over?
+        inc $3          // 2 If it did, increment hi byte.
+    !:  sbc $2          // 2 Subtract decay from aura lo (Carry set by zcheck).
+        bcs zcheck      // 2 If aura lo didn't roll under, check if aura=0
+        dey             // 1 If it did, decrement aura hi.
+        bpl zcheck      // 2 If aura hi didn't roll under, check if aura=0
+done:   rts             // 1 X = tick count lo byte, address $3 = hi byte.
+</code></pre>
+<h2>Try It Out (in your favourite IDE or CLI)</h2>
+<p>To test the routine with the cases listed in the question, and some more, I decided to write a small test suite, because why the heck not. :) Two additional cases are for testing boundaries (1000 max aura, 1000 max ticks, 100 max decay).</p>
+<pre><code>BasicUpstart2(tests)
+
+TICKS:  ldx #0          // 2 Reset 16bit tick count lo byte.
+        stx $3          // 2 Reset 16bit tick count hi byte.
+zcheck: cmp #0          // 2 Is 16bit aura lo byte 0? Also sets Carry.
+        bne tick        // 2 If not, do tick.
+        cpy #0          // 2 If yes, is 16bit aura hi byte 0? Also sets Carry.
+        beq done        // 2 If yes, aura is 0 and we're done.
+tick:   inx             // 1 Increment tick count.
+        bne !+          // 2 Did tick count lo byte roll over?
+        inc $3          // 2 If it did, increment hi byte.
+    !:  sbc $2          // 2 Subtract decay from aura lo (Carry set by zcheck).
+        bcs zcheck      // 2 If aura lo didn't roll under, check if aura=0
+        dey             // 1 If it did, decrement aura hi.
+        bpl zcheck      // 2 If aura hi didn't roll under, check if aura=0
+done:   rts             // 1 X = tick count lo byte, address $3 = hi byte.
+
+.print &quot;ROUTINE SIZE: &quot; + toIntString(* - TICKS) + &quot; BYTES&quot;
+
+tests:  test(10,3,4)    // aura, decay, expected ticks
+        test(5,5,1)
+        test(0,10,0)
+        test(1,10,1)
+        test(1000,1,1000)
+        test(1000,100,10)
+        rts
+
+.macro test(aura, decay, expected) {
+GIVEN:  lda #decay      // Load decay to A...
+        sta $2          // ...and store it to ZP address $2.
+        lda #&lt;aura      // Load 16bit aura lo byte to A.
+        ldy #&gt;aura      // Load 16bit aura hi byte to Y.
+WHEN:   jsr TICKS       // CALL OUR ROUTINE.
+THEN:   lda $3          // Load aura hi byte to A
+        cmp #&gt;expected  // Compare with hi byte of expected ticks
+        bne fail        // If no match, branch to fail
+        cpx #&lt;expected  // Compare lo byte of ticks to expected
+        bne fail        // If no match, branch to fail
+succ:   print(s_act)    // Otherwise, print success message.
+        jsr $bdcd       // Call ROM routine to print out 16bit integer.
+        lda #$0d        // Call ROM routine to print out $0d (control
+        jsr $ffd2       // code for pressing RETURN key).
+        jmp done        // Test done.
+fail:   print(f_act)    // Print 1st (actual) part of fail message.
+        jsr $bdcd       // Call ROM routine to print out 16bit integer.
+        print(f_exp)    // Print 2nd (expected) part of fail message.
+        lda #&gt;expected  // Load hi byte of expected ticks to A...
+        ldx #&lt;expected  // ...and lo byte to X.
+        jsr $bdcd       // Call ROM routine to print out 16bit integer.
+        lda #$0d        // Call ROM routine to print out $0d (control
+        jsr $ffd2       // code for pressing RETURN key).
+done:                   // Test completed.
+}
+
+.macro print(message) {
+        pha             // Push A to stack.
+        tya             // Move Y to A...
+        pha             // ...and push it to stack as well.
+        ldy #0          // Y=0
+    !:  lda message,y   // Load char,y from message
+        beq done        // If zero (null), we're done.
+        jsr $ffd2       // Print char.
+        iny             // Increment char index.
+        bne !-          // If not rolled over, keep printing chars.
+done:   pla             // Pull value of Y from stack to A...
+        tay             // ...and move it to Y.
+        pla             // Pull value of A from stack.
+}
+
+f_act:  .te &quot;TEST FAILED! TICKS: &quot; ; .by 0
+f_exp:  .te &quot;, EXPECTED: &quot; ; .by 0
+s_act:  .te &quot;TEST PASSED! TICKS: &quot; ; .by 0
+</code></pre>
+<p><a href="https://i.sstatic.net/FyO6lpoV.png" rel="nofollow noreferrer"><img src="https://i.sstatic.net/FyO6lpoV.png" alt="screenshot after running the test suite" /></a></p>
+</div>
+<div id="pu1" class="pu"><h1>x86-64 machine code, 8 bytes</h1>
 <pre><code>8D 44 37 FF 99 F7 F6 C3
 </code></pre>
 <p><a href="https://tio.run/##XVHLbsIwEDzHX7FNhbDBQQmPHqBw6bmXnioBB8d2gqVg2jxoUJRfb7pOaVV68I521js7XssglbLr7o2VWaU0PBalMqfJYUNuqMzE/7nc2NRxxNgSEuqi4eBAsRURxREovPiUJEsv0wK0qDlsc2VgDHlhIIBoTzyp3omnzBl0YYiX65IwH7CdoH4lS2icnuAQr1oot/M9rKFpopDPWt4s@AJjyKMQIXLQrr7dHIWxvSGRp5KDPIgcRiNMzow0xHMVNHNBsXBFvOSUA637BGq4W8MccTxmxPPe8JFlQv3B1IA7wcbBzvoc3dT7ibhizHEDtwzDV/z27@yzkAdjNciT0kvf1erreHWC5uceDMLpK4pf1pRWtjCp1aq3P2IJ26KpPcNFfBxMpoFenNewfpr9nQR0YCC@lLpgvc26L1alE6HDnR26HPdc5dZNb0nXfcokE2nRBceHOQb8uTVq6ewL" rel="nofollow noreferrer" title="C (gcc) – Try It Online">Try it online!</a></p>
@@ -45,19 +154,19 @@
     ret     # Return.
 </code></pre>
 </div>
-<div id="pu1" class="pu"><h1>Google Sheets, 15 bytes</h1>
+<div id="pu2" class="pu"><h1>Google Sheets, 15 bytes</h1>
 <pre class="lang-none prettyprint-override"><code>=ceiling(A1/B1)
 </code></pre>
 <p>Put <code>initial_strength</code> in cell <code>A1</code>, <code>decay_per_tick</code> in <code>B1</code> and the formula in <code>C1</code>.</p>
 </div>
-<div id="pu2" class="pu"><h1><a href="https://docs.python.org/2/" rel="nofollow noreferrer">Python 2</a>, 18 bytes</h1>
+<div id="pu3" class="pu"><h1><a href="https://docs.python.org/2/" rel="nofollow noreferrer">Python 2</a>, 18 bytes</h1>
 
 <pre class="lang-python prettyprint-override"><code>lambda x,y:-(-x/y)
 </code></pre>
 <p><a href="https://tio.run/##TY1LCoAgFAD3nuItNfovBW/S5lVaQmqYCz29JQQ124GZM4Xd2TErMeUDzbwixDrxhjaxSywr7wwYDDtoczofYJH6IMp5iKAteLSbpEPfM07goYj0E/WnCnhd8m3Qoa3KQQhFnyHLNw" rel="nofollow noreferrer" title="Python 2 – Try It Online">Try it online!</a></p>
 <p><code>x</code> is initial strength, <code>y</code> is decay per tick.</p>
 </div>
-<div id="pu3" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 5 bytes</h1>
+<div id="pu4" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 5 bytes</h1>
 <pre><code>Ｉ⌈∕ＮＮ
 </code></pre>
 <p><a href="https://tio.run/##S85ILErOT8z5/z@gKDOvRMM5sRhIpGbmZOala7hklmWmpGp45hWUlviV5ialFmlo6iigcEHA@v9/QwMF4/@6ZTkA" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code. Explanation: Suffers from potential floating-point inaccuracy.</p>
@@ -77,7 +186,7 @@
 <p><a href="https://tio.run/##S85ILErOT8z5/z@gKDOvRMM5sbhEwy81PbEkVcMzr8QlsywzJRUhUFBa4leam5RapKGpqaOAygcC6///DQ0UjP/rluUAAA" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link it to verbose version of code. Explanation: Negates the numerator, which turns the flooring effect of integer divide into a ceiling effect, then negates the result.</p>
 <p>With all of the above answers, two bytes can be saved by taking input in JSON format e.g. <code>[10, 3]</code> which allows the <code>Ｎ</code>s to be removed.</p>
 </div>
-<div id="pu4" class="pu"><h1><a href="https://github.com/Vyxal/Vyxal/tree/version-3/" rel="nofollow noreferrer">Vyxal 3</a>, 2 bytes</h1>
+<div id="pu5" class="pu"><h1><a href="https://github.com/Vyxal/Vyxal/tree/version-3/" rel="nofollow noreferrer">Vyxal 3</a>, 2 bytes</h1>
 <pre><code>÷⌈
 </code></pre>
 <p><a href="https://vyxal.github.io/latest.html#H4sIAAAAAAAAA6tWSssvyk0sUbIy1lHKSE1MSS1SslJS0lFKzk9JBbIOb3_U0wHkpuXnl8Ck0nIS04uVrKJjdZQy8wpKS0DsaCUTJZ1oJWOgtKGBUmwskG0IEjAFCphC-AYgPlBSRwlZAVjAECgANK0stag4Mz8PaIuxnrmegVItAPZBcPOeAAAA" rel="nofollow noreferrer">Vyxal It Online!</a></p>
@@ -100,7 +209,7 @@
 </div>
 </p>
 </div>
-<div id="pu5" class="pu"><h1>JavaScript (ES6), 15 bytes</h1>
+<div id="pu6" class="pu"><h1>JavaScript (ES6), 15 bytes</h1>
 <p>Expects <code>(initial_strength)(decay_per_tick)</code>.</p>
 
 <pre class="lang-javascript prettyprint-override"><code>s=&gt;d=&gt;~-s/d+1|0
