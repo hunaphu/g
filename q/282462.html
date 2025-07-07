@@ -26,58 +26,39 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>2443</td><td>Perl 5</td><td>250705T140109Z</td><td><a href="https://codegolf.stackexchange.com/questions/282462/make-a-floor-plan-given-the-number-of-doorways/282558#282558">good old</a></td></tr>
+<tr d-ix="0"><td>2242</td><td>Perl 5</td><td>250705T140109Z</td><td><a href="https://codegolf.stackexchange.com/questions/282462/make-a-floor-plan-given-the-number-of-doorways/282558#282558">good old</a></td></tr>
 <tr d-ix="1"><td>456</td><td>Maple</td><td>250702T003055Z</td><td><a href="https://codegolf.stackexchange.com/questions/282462/make-a-floor-plan-given-the-number-of-doorways/282507#282507">dharr</a></td></tr>
 <tr d-ix="2"><td>198</td><td>JavaScript ES6</td><td>250629T235924Z</td><td><a href="https://codegolf.stackexchange.com/questions/282462/make-a-floor-plan-given-the-number-of-doorways/282475#282475">Arnauld</a></td></tr>
 <tr d-ix="3"><td>800</td><td>Python3</td><td>250630T170230Z</td><td><a href="https://codegolf.stackexchange.com/questions/282462/make-a-floor-plan-given-the-number-of-doorways/282488#282488">Ajax1234</a></td></tr>
 <tr d-ix="4"><td>165</td><td>Charcoal</td><td>250629T195013Z</td><td><a href="https://codegolf.stackexchange.com/questions/282462/make-a-floor-plan-given-the-number-of-doorways/282474#282474">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.perl.org/" rel="nofollow noreferrer">Perl 5</a>, 244 (+3) <s> 239 (+3) 253 </s> bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.perl.org/" rel="nofollow noreferrer">Perl 5</a>, 224 (+2) <s> 244 (+3) 239 (+3) 253 </s> bytes</h1>
 
-<pre class="lang-perl prettyprint-override"><code>$.=@{eval-&gt;[0]};for((@d,$_)=/\d/g;$L&lt;@d;$_=/-|[12]\n|(.\n?){@{[@d-$.]},}[23]/?pop@a:$_.(($n=$d[$L]-/[12]$/-/[23].{$.}$/s)==1?!!push@a,$_.3:$n)){($L=y/0-3//)%$.or$_.=$\}s/./ $&amp;/g;$s.=&quot;\n|&quot;.y/3012/|| /r.($y=y/\n 2301/++  -/r)for/.+\n/g;print$y,$s
+<pre class="lang-perl prettyprint-override"><code>@d=/((\d))/g;$c=2*@{eval-&gt;[$_='|']};{s/.{$c}\K$/\n|/;/-|2\n|(\d\D*){@{[@d-$c]},}3/?$_=pop@a:($_.=($n=($d[y/0-3//]//last)-/2$/-/3..{$c}$/s)-1?$n.$n++:30+!push@a,$_.12);redo}$s.=y/0-3/| /r.($y=y/13|02/- +/r)for/.+\n/g;$_=$y.$s
 </code></pre>
-<p><a href="https://tio.run/##FY/RaoQwEEXf@xXZZVoSNDMa6cva1HyAfxDDIrjbLkgUsy2I@uu18Wkud@Zw74y3qX/fd0Btlttv28tPm7mtvA8T56ZL4So0NR19lVB/mK6Eqya52ly5xq8cG1@JxSzWdBLQbelmVeGoGofRtBe4IufgNXQWaifpoIDijDe4AG5AQWidV6fT@BO@TRvTsLiAF2LhUOuZMlkQiVfAYYorDc0WCInB29EnoD7HEmecqchyRevKaEIOcwQbz1Q0KUkYkzSJ@A5h0vjIjdPDP2FOIey7fWHM5mnu0kOoVEXh/obx@Rh82GXvs38" rel="nofollow noreferrer" title="Perl 5 – Try It Online">Try it online!</a></p>
-<p>Had to revert to slightly longer version, sorry. I was wrong (and Perl is right) about that warning. The TIO link has a test case where my previous wrong version had generated bad output; now it's OK.</p>
-<p>&quot;+3&quot; is for CLI switches.</p>
-<p>Somewhat un-golfed and commented:</p>
-<pre class="lang-perl prettyprint-override"><code># Input as string, which is valid Perl, is already in $_.
-# Parse it to get row width.
-# Convert string to flat list of digits,
-# clear the default variable.
-$. = @{ eval-&gt;[0] };
-( @d, $_ ) = /\d/g;
-# Find the solution with brute force.
-# Proceed while solution length is less than number of digits.
-# Go cell by cell, row by row. As dumb as that.
-while ( $L &lt; @d ) {
-# Solution, partial (current or stored in &quot;investigate later&quot; queue)
-# or the final, is a string of chars, 1 is &quot;open the door to the right&quot;, 
-# 3 -- down, 2 -- both, 0 -- none of them. The &quot;\n&quot; is for (imaginary) 
-# &quot;guard&quot; column on the right of the plan. Rows are just concatenated.
-# Get number of cells processed.
-    $L = y/0-3//;
-# Append LF for guard column.
-    $L % $. or $_ .= $\;
-# Look left and up, calculate number of doors remaining to be open.
-    $n = $d[$L] - /[12]$/ - /[23].{$.}$/s;
-# Always append it to solution. The check occurs at next iteration.
-# Discard current solution if number was negative, or right door was
-# opened in rightmost column, or down door was opened in lowest row.
-# Pop from the queue then. Branching only happens if there is one door 
-# remaining to be open. Try opening to the right 1st.
-    $_= /-|[12]\n|(.\n?){@{[@d-$.]},}[23]/
-        ? pop @a
-        : $_.( $n == 1 ? !!push @a, $_.3 : $n )
+<p><a href="https://tio.run/##RY/daoQwEEbv@xQWBtasSSYm9GYl3Vz0ro@gIqL2ByQGsy2I8dVr027pMnwwB@Y7MG6Yx4d9N73GNK16QvC1gE7Lo1mHz3ZkjyU0@hAO9VasHvkK3VY9A1Y2YIEsyLjEWvV0JKtZS9Mz6OqNbgrPsecmZ9pTCg3XKdiYvlxQMIVYI46tvxCGEpCh4r9mQE9YfgbLwWbZSYns3n34N9PSqMglKeahnzbwXF81IcGZp7BEzFUQElmS4Uxephl5VtmfVxoNCwe/7@VdkpSS/k1Nr5hTFfOPIoK44e24/prc5X2yfmdOfAM" rel="nofollow noreferrer" title="Perl 5 – Try It Online">Try it online!</a></p>
+<p>&quot;+2&quot; is for CLI switches.</p>
+<p>Somewhat un-golfed but not commented (there are some comments in previous revisions):</p>
+<pre class="lang-perl prettyprint-override"><code>@d = /((\d))/g;
+$c = 2 * @{ eval-&gt;[ $_ = '|' ]};
+
+{
+    s/.{$c}\K$/\n|/;
+    $n = ( $d[ y/0-3// ] // last ) - /2$/ - /3..{$c}$/s;
+    
+    / - | 2\n | (\d\D*){@{[ @d - $c ]},}3 /x
+        ? $_ = pop @a
+        : ( $_ .= $n - 1
+            ? $n . $n ++
+            : 30 + !push @a, $_.12 );
+    redo
 }
-# The final solution happens to have leading LF and trailing '0'. 
-# They are golfing artifacts and irrelevant for output.
-# Convert the solution to ASCII plan, one row of 0-3 digits to 
-# two rows of output. Repeat (prepend) final line at the beginning.
-s/./ $&amp;/g;
-$s .= &quot;\n|&quot;.y/3012/|| /r
-   . ($y=y/\n 2301/++  -/r)
+
+$s .= y/0-3/| /r
+   .( $y = y/13|02/- +/r)
 for /.+\n/g;
-print $y,$s
+
+$_ = $y . $s
 </code></pre>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://www.maplesoft.com/" rel="nofollow noreferrer">Maple</a>, <s> 472 </s> 456 bytes</h1>
