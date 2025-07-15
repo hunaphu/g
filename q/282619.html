@@ -26,12 +26,65 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>356</td><td>Ruby</td><td>250713T004257Z</td><td><a href="https://codegolf.stackexchange.com/questions/282619/minimalist-pokemon-type-chart/282622#282622">Level Ri</a></td></tr>
-<tr d-ix="1"><td>nan</td><td>05AB1E</td><td>250714T074652Z</td><td><a href="https://codegolf.stackexchange.com/questions/282619/minimalist-pokemon-type-chart/282633#282633">Kevin Cr</a></td></tr>
-<tr d-ix="2"><td>368</td><td>JavaScript ES11</td><td>250712T211227Z</td><td><a href="https://codegolf.stackexchange.com/questions/282619/minimalist-pokemon-type-chart/282620#282620">Arnauld</a></td></tr>
+<tr d-ix="0"><td>365</td><td>JavaScript ES11</td><td>250712T211227Z</td><td><a href="https://codegolf.stackexchange.com/questions/282619/minimalist-pokemon-type-chart/282620#282620">Arnauld</a></td></tr>
+<tr d-ix="1"><td>356</td><td>Ruby</td><td>250713T004257Z</td><td><a href="https://codegolf.stackexchange.com/questions/282619/minimalist-pokemon-type-chart/282622#282622">Level Ri</a></td></tr>
+<tr d-ix="2"><td>nan</td><td>05AB1E</td><td>250714T074652Z</td><td><a href="https://codegolf.stackexchange.com/questions/282619/minimalist-pokemon-type-chart/282633#282633">Kevin Cr</a></td></tr>
 <tr d-ix="3"><td>205</td><td>Charcoal</td><td>250712T214044Z</td><td><a href="https://codegolf.stackexchange.com/questions/282619/minimalist-pokemon-type-chart/282621#282621">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a>, 356 bytes</h1>
+<div id="pu0" class="pu"><h1>JavaScript (ES11), 365 bytes</h1>
+<p>A function that returns an array of strings.</p>
+<pre class="lang-javascript prettyprint-override"><code>_=&gt;[...&quot;       Def0Atk1Normal1dwFire2jka7goWater4gxrs5cElectric152vkn4Grass2zolphgIce2jaogp0Fighting0fstk089Poison28ovf2Ground4836scoFlying6sq8zoPsychic693joBug21c7ajpRock3yoxsskGhost0noddde8Dragon3rDark2im1dSteel2ls6sxyFairy1z6qbvo&quot;.matchAll(/(\D+)([^A-Z]+)/g)].map(([,s,q],_,[,,...a])=&gt;s.padEnd(11)+a.map(a=&gt;a[1][q]||&quot; -+X&quot;[parseInt(q,36)/4**--i&amp;3],i=18).join` `)
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=LZCxbtswGITRNzE0FGQsyaLkKMogAy4cG1mCoB1aVFETlqIoWjR_iaRdy8ibdDGK9in6Jn2aCnVvueG-G-6-_9RQ8fOPOv-1d3WQ_Xmze84XRRiG3uSiFa-jpWvJA5gdVaT6tpaGx9uW3gj4SB03c3E09prdKc6ckYxcx4dWzzeGWhufQHWNuGdjgYLoorUUjZNaRLV1bZTdPoK0oOMMDnW8MbDX1TxLUstgrYYRS22fneDRDqyRLL1NtvBuL2LCbui2ew-sTQY4WttuGrAuGodUFc9WhgrQiVlR08ZyR6oPjnMVK5va47Cm0gzklPZfD-CFO-pYs1QKzdDTaopR8WUZfC6neCZwOYYdQoVv_b70n_3C98dPaInzhQ07Wt3pChGCp_QfR_MFLUhZ9OXrqzcJpp-8oqPG8nvtUO8nKZ7Nr66CQL5NSl_mJMPhFqR-mbzgy-u_GWgLiocKBKrRJUbek_bwf-J8vvhf" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<h2>Encoding</h2>
+<p>Each row is encoded as:</p>
+<ul>
+<li>a label in title case, immediately followed by</li>
+<li>a base-36 value holding the types for this row (2 bits per type), or just <code>0</code>/<code>1</code> for the first two rows</li>
+</ul>
+<p>All rows are joined together into a single data string without explicit separators:</p>
+<pre><code>      +---------------------&gt; label
+      |     +---------------&gt; base-36 value
+      |     |     +---------&gt; label
+      |     |     |     +---&gt; base-36 value
+    __|_  __|_  __|_  __|__
+   /    \/    \/    \/     \
+...Poison28ovf2Ground4836sco...
+</code></pre>
+<p>The fields are extracted with the following regular expression:</p>
+<pre><code>/(\D+)([^A-Z]+)/g
+</code></pre>
+<p>The transitions <em>value -&gt; label</em> are triggered by a letter in upper case.</p>
+<p>The transitions <em>label -&gt; value</em> are triggered by a digit. Most values start with a digit but we occasionally have to force a leading zero, as in:</p>
+<pre>Fighting<b>0</b>fstk089Poison</pre>
+<h2>Commented</h2>
+<pre class="lang-javascript prettyprint-override"><code>_ =&gt;                    // input is ignored
+[                       //
+  ...&quot;[..]Fairy1z6qbvo&quot; // lookup string
+  .matchAll(            // extract all fields from it,
+    /(\D+)([^A-Z]+)/g   // using this regular expression
+  )                     // (as described in the previous section)
+].map((                 // for each pair ...
+  [, s, q],             // ... [ s, q ] = [ label, value ]
+  _,                    // (the index is ignored)
+  [,, ...a]             // with a[] = array without the first 2 entries:
+) =&gt;                    //
+  s.padEnd(11) +        //   append the right-padded label
+  a.map(a =&gt;            //   for each entry a[] in a[]:
+    a[1][q]             //     attempt to extract the 1st or 2nd letter
+                        //     for the abbreviated label at the top
+    ||                  //     if undefined,
+    &quot; -+X&quot;[             //     using this lookup string for types:
+      parseInt(q, 36)   //       convert q from base-36 to decimal
+      / 4 ** --i        //       decrement i and divide by 4 ** i
+      &amp; 3               //       isolate the 2 least significant bits
+    ],                  //     end of lookup
+    i = 18              //     start with i = 18
+  ).join` `             //   end of inner map(); join with spaces
+)                       // end of outer map()
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a>, 356 bytes</h1>
 
 <pre class="lang-ruby prettyprint-override"><code>-&gt;{q=[&quot;%-13dDef&quot;%6]+%w{7pppppAtk
 jjjjdbNormal
@@ -61,7 +114,7 @@ A major rewrite of my original answer.</p>
 <p>The first 6 characters of each line of <code>q</code> contain the information for the data table. 2 bits are extracted giving a number <code>0..3</code> to which we add 47 and convert to ASCII, to give a character in the range <code>/012</code>.</p>
 <p>The first two rows work slightly differently:Where the line begins with a number, this is evaluated and the character <code>q[j+2][k]</code> is displayed, thereby deriving the column labels from the row labels.</p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, 169 (or 168<sup><em>†</em></sup>) <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
+<div id="pu2" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, 169 (or 168<sup><em>†</em></sup>) <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
 <pre><code>.•1ˆL$ζ•™”AtkîÂŠÄ„©–å¼—™Ä¬Ôììí¶°ä ÿš³‰«·ä±Þ–°–ÍÞš”#…Def7úšíTjíD¦¦εS2£}ø•@µš‘ŒìqgÏAδy…ëò¥ìΔΘ˜‡!,RƒTÿΩÆ£iÇßBÃ-иÊ™¹нjïð+ÈHγΘÕ79ÔÙê¾βÙ-γ_ñβ×ª+ñ`×ΘE@ÇõÀ«²b@±Ö•4в18ô3'½:«‚ø€˜»
 </code></pre>
 <p>Uses <code>0½12</code> for <code>X- +</code> (immune; resist; neutral; super effective) respectively.<br />
@@ -102,62 +155,6 @@ D            # Duplicate the list
              # (after which the result is output implicitly)
 </code></pre>
 <p><a href="https://codegolf.stackexchange.com/a/166851/52210">See this 05AB1E tip of mine (all four sections)</a> to understand why <code>.•1ˆL$ζ•</code> is <code>&quot;psychic&quot;</code>; <code>”AtkîÂŠÄ„©–å¼—™Ä¬Ôììí¶°ä ÿš³‰«·ä±Þ–°–ÍÞš”</code> is <code>&quot;Atk Normal Fire Water Electric Grass Ice Fighting Poison Ground Flying ÿ Bug Rock Ghost Dragon Dark Steel Fairy&quot;</code>; <code>•@µš...@±Ö•</code> is <code>389...493</code>; and <code>•@µš...@±Ö•4в</code> is <code>[1,1,1,...,2,3,1]</code>.</p>
-</div>
-<div id="pu2" class="pu"><h1>JavaScript (ES11), 368 bytes</h1>
-<p>A function that returns an array of strings.</p>
-<pre class="lang-javascript prettyprint-override"><code>_=&gt;[...&quot;       Def0Atk1dwNormal2jka7goFire4gxrs5cWater152vkn4Electric2zolphgGrass2jaogp0Ice0fstk089Fighting28ovf2Poison4836scoGround6sq8zoFlying693joPsychic21c7ajpBug3yoxsskRock0noddde8Ghost3rDragon2im1dDark2ls6sxySteel1z6qbvoFairy&quot;.matchAll(/([a-z\d]*)(\D+)/g)].map(([,q,s],j,[,,...a])=&gt;s.padEnd(11)+a.map(a=&gt;j&lt;2?a[2][j]:&quot; -+X&quot;[parseInt(q,36)/4**--i&amp;3],i=18).join` `)
-</code></pre>
-<p><a href="https://ato.pxeger.com/run?1=LZDBjtMwGITFm1Q5IKdN0sTpZrOIFC3qttoLWsEBpDRije04Tlz_qe12m74KlwrBU_AmPA0RZS5zmE8jzXz_qYHxy4-6-HVwdZj_edV_LZZlFEXe5KoVr-N71yXs5QOYHVG47citgLU0fCFOxt7Qz8Rxk9zgY6cXD4pTZyTFZ1B9IzaGWItbAqKPHymPa-u6OL9bS9E4qQXO4VjjJ5AW9CJPM0thY-CgWWb3-RnWahih7C5t4ckOtBlrE3pL2v79QaQDnKztPgLt4nECYzzfNGBdalaGCNBY7hK2IqbDymb2NHxynKvknO2_HWFNpBm8aEccbe6VQnNUkvC8ZdXUR9vVzJ8LvxrTHqEy2Ae2CtqgDILxE1L5xdJGPWEPmqEk8WfkH0eKZfsWvyMlrsq2euNNwtkXr-yJsfxRO7QP0syfL6bTMJSv0yqQRZL7UQtSP0-e_evxvyloC4pHCgSq0TVG3lZ7_n_icrn6Xw" rel="nofollow noreferrer">Attempt This Online!</a></p>
-<h2>Encoding</h2>
-<p>Each row is encoded as:</p>
-<ul>
-<li>a base-36 value storing the types for this row (2 bits per type)</li>
-<li>immediately followed by the label</li>
-</ul>
-<p>All rows are joined together into a single data string without explicit separators:</p>
-<pre><code>      +---------------------&gt; base-36 value
-      |     +---------------&gt; label
-      |     |     +---------&gt; base-36 value
-      |     |     |      +--&gt; label
-    __|_  __|_  __|__  __|_
-   /    \/    \/     \/    \
-...28ovf2Poison4836scoGround...
-</code></pre>
-<p>The fields are extracted with the following regular expression:</p>
-<pre><code>/([a-z\d]*)(\D+)/g
-</code></pre>
-<p>The transitions <em>value -&gt; label</em> are triggered by a letter in upper case.<sup>1</sup></p>
-<p>The transitions <em>label -&gt; value</em> are triggered by a digit. Most values start with a digit but we occasionally have to force a leading zero, as in:</p>
-<pre>Ice<b>0</b>fstk089Fighting</pre>
-<p><em><sub>1. Except for the very 1st row where the value is empty and the label starts with leading spaces.</sub></em></p>
-<h2>Commented</h2>
-<pre class="lang-javascript prettyprint-override"><code>_ =&gt;                    // input is ignored
-[                       //
-  ...&quot;[..]1z6qbvoFairy&quot; // lookup string
-  .matchAll(            // extract all fields from it,
-    /([a-z\d]*)(\D+)/g  // using this regular expression
-  )                     // (as described in the previous section)
-].map((                 // for each pair ...
-  [, q, s],             // ... [ q, s ] = [ value, label ]
-  j,                    // at index j
-  [,, ...a]             // with a[] = array without the first 2 entries:
-) =&gt;                    //
-  s.padEnd(11) +        //   append the right-padded label
-  a.map(a =&gt;            //   for each entry a[] in a[]:
-    j &lt; 2 ?             //     if this is row #0 or row #1:
-      a[2][j]           //       extract the 1st or 2nd letter
-                        //       for the abbreviated label at the top
-    :                   //     else:
-      &quot; -+X&quot;[           //       using this lookup string for types:
-        parseInt(       //         convert q from base-36 to decimal
-          q, 36         //
-        ) / 4 ** --i    //         decrement i and divide by 4 ** i
-        &amp; 3             //         isolate the 2 least significant bits
-      ],                //       end of lookup
-    i = 18              //     start with i = 18
-  ).join` `             //   end of inner map(); join with spaces
-)                       // end of outer map()
-</code></pre>
 </div>
 <div id="pu3" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 205 bytes</h1>
 <pre><code>≔Ｅ⪪”↶±↗ι7%2]BKpη✂@≧Ｗ⁹DAＥ↓α⪫⊙M⍘∕φ↨Ｌβ➙✂+⌕c|7lＬq.‴u↧χε⊞/\`²=Ｙj·xＥＤX◨Ｙ.¦×)℅FΣ×;⊖Z” ⭆ι⎇μλ↥λθＰ↑⪫Ｅθ⮌…ι²¶↘ Ｐ”}∧✂-ηι$δＳ⊕Ｖ℅；⦄e↶rＰ⬤″X⁺β⁹↗u↶Ｄ←w?�≡§\`αφf﹪⪫÷jυＴＴηsNＹⅉ´+χ~∨wÀαK⭆l↙§εGε‖´Ｊ]⦄7μ➙∕&gt;O´À¹⬤8υ➙ρ▶↓λ？c”↖↑ＵＥ¹←feD↓Ｍ⁶←θ
