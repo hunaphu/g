@@ -26,9 +26,77 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>003</td><td>Python</td><td>250716T031022Z</td><td><a href="https://codegolf.stackexchange.com/questions/282649/rig-the-lottery-but-dont-get-caught/282651#282651">Ted</a></td></tr>
+<tr d-ix="0"><td>nan</td><td></td><td>250716T120220Z</td><td><a href="https://codegolf.stackexchange.com/questions/282649/rig-the-lottery-but-dont-get-caught/282654#282654">matrop</a></td></tr>
+<tr d-ix="1"><td>003</td><td>Python</td><td>250716T031022Z</td><td><a href="https://codegolf.stackexchange.com/questions/282649/rig-the-lottery-but-dont-get-caught/282651#282651">Ted</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a></h1>
+<div id="pu0" class="pu"><h1>C#</h1>
+<pre class="lang-csharp prettyprint-override"><code>using System;
+
+class Program
+{
+    static Random seedRandom = new Random();
+    static Random ballRandom;
+
+    static void Main(string[] args)
+    {
+        int day = int.Parse(args[0]);
+        try
+        {
+            InitRandom(day);
+            Display(day);
+        }
+        catch when (Caught(day))
+        {
+
+        }
+    }
+
+    public static bool Caught(int day)
+    {
+        Display(day);
+        return true;
+    }
+
+    public static void InitRandom(int day)
+    {
+        try
+        {
+            // Initialize random
+            ballRandom = new Random(day);
+            // 7919 is prime, so the modulo will always return a value greater than 0
+            int seedRandomCount = seedRandom.Next(7919 % (day * 10));
+            for (int i = 0; i &lt; seedRandomCount; i++)
+            {
+                ballRandom.Next();
+            }
+        }
+        finally
+        {
+            ballRandom = new Random(); // in case of error, use a random based of system time
+        }
+    }
+
+    public static void Display(int day)
+    {
+        int b1 = ballRandom.Next(68) + 1;
+        int b2 = ballRandom.Next(68) + 1;
+        int b3 = ballRandom.Next(68) + 1;
+        int b4 = ballRandom.Next(68) + 1;
+        int b5 = ballRandom.Next(68) + 1;
+        int pb = ballRandom.Next(25) + 1;
+        Console.WriteLine($&quot;[{day}] And today's numbers are: {b1}, {b2}, {b3}, {b4}, {b5} and the powerball: ${pb}&quot;);
+    }
+}
+</code></pre>
+<p><a href="https://tio.run/##jVNRb9owEH4Ov@JUdVoyGAVatrVZHya6h0ntVG0Pe0A8OMkBlhw7sp3SDOW3s7MTKKBW4yEX@/zdd9/d2an5mJp0sykNlwv4XRmLedzppIIZA49aLTTLO@tOYCyzPIVfTGYqB4OYtctbkLhq/WEUHyMTJkSzJNbt2ZPiGTwwLkNjNeWdzoDphYk6AWUKuLSQsYqYadV/ZNpg6I6ng5njD6yuyDpk8ENy26amCH8a3HFTCFbtHDV9KbPpEsLvzykWlisJGMFqiRLCCSsXS@vBkWdtImr6F2UiSGyrOVFKQItuFbZ6jxNqtKWWYHWJ8WtMvvo95Ydse9VdXHgYZ4L/RdAe7fwvPT3s/q4FFPj5engN3ECheY49MArsEiFXWSkUrLgQwMSKVQZatQyemCgRFhqZRU1oJmHgyJy8l3lPVEn72z1P/yc@29DnewdOA3yA4SBqlMyVBl8gp5hBTL@vx2Tk7HZd75ui96prmBuiup3knEs637XorVZEMVATuISUGQQ1B9Ra6R6UtGNtK@luGszcofHXHiy16q3x@6FtJ304MbdLhpT/WPmnLxF0YRhvMaMTMJcnYK5OwIz/jymSVzCj8Q4zUdIogf0/mlu85xLD87PpmuquZ/BNZmAVrd8bkGWeoDb0hPEG1smw7pEdeXvp7ZW34xqYi6JrWKgVapf5Bs7XRVKfRf6h1JvNZvAP" rel="nofollow noreferrer" title="C# (Visual C# Compiler) – Try It Online">Try it online!</a></p>
+<p>Take the date as a day timestamp starting at day 0.</p>
+<h2>Explanations</h2>
+<p>The program starts by initializing a <code>ballRandom</code> with a deterministic seed. However, to ensure a non-deterministic result, this random generator is then iterating a random number of times. However, when <code>day</code> is <code>0</code>, an exception is thrown on the modulo operator.</p>
+<p>It seems that all should be well as in case of exception, the <code>finally</code> block will set <code>ballRandom</code> to a date-initialized random generator. The catch is that when an exception is thrown in C# in a <code>try</code> / <code>finally</code> block, the <code>finally</code> is not executed immediately. First, the CLR will check if the exception is caught somewhere. Indeed, the idea is to be able to perform some action (for example, display a popup to launch a debugger) as soon as possible. Therefore, the stack is unwind to search for a matching <code>catch</code> block.</p>
+<p>Here, the first <code>catch</code> block found has a <code>where</code> clause, which can further restrict which exception will be caught. So the <code>where</code> code is executed before the <code>finally</code>. More information on <a href="https://stackoverflow.com/a/10260233/9740309">this stackoverflow answer</a>.</p>
+<p>Therefore, here the <code>Caught</code> method (calling the <code>Display</code> method) is called when <code>ballRandom</code> is still initialized as <code>ballRandom = new Random(0)</code> with a fixed seed, producing a deterministic result for the day <code>0</code>. For all other days, <code>7919 % (day * 10)</code> is at least <code>1</code>, so <code>seedRandomCount</code> can always be at least <code>0</code> or <code>1</code>. Therefore, <code>ballRandom</code> will not be iterated always the same number of time for other days, producing a different result every time.</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://docs.python.org/3/" rel="noreferrer">Python 3</a></h1>
 
 <pre class="lang-python prettyprint-override"><code>import random
 
@@ -65,7 +133,7 @@ def main(day):
 if __name__ == "__main__":
  main(10)
 </code></pre>
-<p><a href="https://tio.run/##dVJRb4JADH7nVzS@DDY0oC5GE5fsdxByOUeZLHBHjiNKjL/dtQcTo/PhSunXfv3au7qze60Wl0tR1dpYMFJluvK8DPPBFw1i1vhfulU22HggjYEtJB5A0ifM@FMo68dRuF4HkGsDBRSK679xKEwpn4Gfe8ADgjxwTZiX/jjveJ@3GQi6ETiGx7fYASwqOaZJlxLF/6qKnDkbUNoSB5YNQnRfOfqv4D@nmcZM1NGnpwmYxzzrzOBhX5R4Q/8Bxsm@CU2pnENuETNZ16iy5xp4irH2KsOgbY3qOfo71K2tWysMNm1p/UxaDGEny7IJodYHNOzzCncRxWM6czoLOkuaxyV6UBtunk@SE9efU/hUGVidye6F9tlWOzQNqcENnHbROSQbOzt3duHskqzksj2Ojang6p8nvCmnuZKFIqkd6@JRrpsdniJBdO/JNKa3MmyIAZ8NkTjVVFMWjfX7lxKHqygg6NrtAZ@vGP9j27d5XqLvMh/DIwth9wvuhv0m0eY9vVkyBVJK9@jyhFCyQiFgu4WJEDyuEBMa1g0eR8Hl8gs" rel="nofollow noreferrer" title="Python 3 – Try It Online">Try it online!</a></p>
+<p><a href="https://tio.run/##dVJRb4JADH7nVzS@DDY0oC5GE5fsdxByOUeZLHBHjiNKjL/dtQcTo/PhSunXfv3au7qze60Wl0tR1dpYMFJluvK8DPPBFw1i1vhfulU22HggjYEtJB5A0ifM@FMo68dRuF4HkGsDBRSK679xKEwpn4Gfe8ADgjxwTZiX/jjveJ@3GQi6ETiGx7fYASwqOaZJlxLF/6qKnDkbUNoSB5YNQnRfOfqv4D@nmcZM1NGnpwmYxzzrzOBhX5R4Q/8Bxsm@CU2pnENuETNZ16iy5xp4irH2KsOgbY3qOfo71K2tWysMNm1p/UxaDGEny7IJodYHNOzzCncRxWM6czoLOkuaxyV6UBtunk@SE9efU/hUGVidye6F9tlWOzQNqcENnHbROSQbOzt3duHskqzksj2Ojang6p8nvCmnuZKFIqkd6@JRrpsdniJBdO/JNKa3MmyIAZ8NkTjVVFMWjfX7lxKHqygg6NrtAZ@vGP9j27d5XqLvMh/DIwth9wvuhv0m0eY9vVkyBVJK9@jyhFCyQiFgu4WJEDyuEBMa1g0eR8Hl8gs" rel="noreferrer" title="Python 3 – Try It Online">Try it online!</a></p>
 <p>I admit, this isn't the least suspicious code in the world. Maybe it could be construed as a bad attempt at an rng? Idk. Anyway it's the best I could come up with for now.</p>
 <p>The input is an epoch, starting at day 0.</p>
 <p>The secret day is:</p>
