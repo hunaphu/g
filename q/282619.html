@@ -42,7 +42,7 @@
 <li>a label in title case, immediately followed by</li>
 <li>a base-36 value holding the types for this row (2 bits per type), or just <code>0</code>/<code>1</code> for the first two rows</li>
 </ul>
-<p>All rows are joined together into a single data string without explicit separators:</p>
+<p>All encoded rows are joined together into a single data string without explicit separators:</p>
 <pre><code>      +---------------------&gt; label
       |     +---------------&gt; base-36 value
       |     |     +---------&gt; label
@@ -52,15 +52,15 @@
 ...Poison28ovf2Ground4836sco...
 </code></pre>
 <p>The fields are extracted with the following regular expression:</p>
-<pre><code>/(\D+)([^A-Z]+)/g
+<pre class="lang-javascript prettyprint-override"><code>/(\D+)([^A-Z]+)/g
 </code></pre>
-<p>The transitions <em>value -&gt; label</em> are triggered by a letter in upper case.</p>
-<p>The transitions <em>label -&gt; value</em> are triggered by a digit. Most values start with a digit but we occasionally have to force a leading zero, as in:</p>
+<p>The transitions <em>value → label</em> are triggered by a letter in upper case.</p>
+<p>The transitions <em>label → value</em> are triggered by a digit. Most values start with a digit but we occasionally have to force a leading zero, as in:</p>
 <pre>Fighting<b>0</b>fstk089Poison</pre>
 <h2>Commented</h2>
 <pre class="lang-javascript prettyprint-override"><code>_ =&gt;                    // input is ignored
 [                       //
-  ...&quot;[..]Fairy1z6qbvo&quot; // lookup string
+  ...&quot;[..]Fairy1z6qbvo&quot; // data string
   .matchAll(            // extract all fields from it,
     /(\D+)([^A-Z]+)/g   // using this regular expression
   )                     // (as described in the previous section)
@@ -73,7 +73,7 @@
   a.map(a =&gt;            //   for each entry a[] in a[]:
     a[1][q]             //     attempt to extract the 1st or 2nd letter
                         //     for the abbreviated label at the top
-    ||                  //     if undefined,
+    ||                  //     if undefined (q is not number-ish),
     &quot; -+X&quot;[             //     using this lookup string for types:
       parseInt(q, 36)   //       convert q from base-36 to decimal
       / 4 ** --i        //       decrement i and divide by 4 ** i
