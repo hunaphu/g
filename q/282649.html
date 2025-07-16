@@ -26,10 +26,59 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>nan</td><td></td><td>250716T120220Z</td><td><a href="https://codegolf.stackexchange.com/questions/282649/rig-the-lottery-but-dont-get-caught/282654#282654">matrop</a></td></tr>
-<tr d-ix="1"><td>003</td><td>Python</td><td>250716T031022Z</td><td><a href="https://codegolf.stackexchange.com/questions/282649/rig-the-lottery-but-dont-get-caught/282651#282651">Ted</a></td></tr>
+<tr d-ix="0"><td>003</td><td>Python</td><td>250716T031022Z</td><td><a href="https://codegolf.stackexchange.com/questions/282649/rig-the-lottery-but-dont-get-caught/282651#282651">Ted</a></td></tr>
+<tr d-ix="1"><td>nan</td><td></td><td>250716T120220Z</td><td><a href="https://codegolf.stackexchange.com/questions/282649/rig-the-lottery-but-dont-get-caught/282654#282654">matrop</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>C#</h1>
+<div id="pu0" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a></h1>
+
+<pre class="lang-python prettyprint-override"><code>import random
+
+def random_seeds(count):
+ arr = [
+  [random.randint(10,99) for i in range(count)]
+  for j in range(count)
+ ]
+&#32;
+ seeds = []
+ for x in range(count):
+  for y in range(x,x+1):
+   arr[x][y] = random.randint(10,99) if x is not y else 0
+   arr[x][y] = arr[x][y] * (random.randint(10,99) if x-1 is y-1 else 0)
+   r = random.randint(10,99)
+   while arr[x][y] &gt; r:
+    arr[x][y] -= r
+   seeds.append(random.randint(10,99) if not arr[x][y] else 0)
+ return seeds
+
+def output_result(date, balls, powerball):
+ b0, b1, b2, b3, b4 = balls
+ print(f"[{date}] And today's numbers are: {b0}, {b1}, {b2}, {b3}, {b4}, and the powerball: {powerball}")
+ &#32;
+def main(day):
+ seed = random_seeds(day+1)[-1]
+ random.seed(seed)
+ balls = list(range(1,70))
+ powerballs = list(range(1,27))
+ random.shuffle(balls)
+ random.shuffle(powerballs)
+ output_result(day, balls[0:5], powerballs[0])
+&#32;
+if __name__ == "__main__":
+ main(10)
+</code></pre>
+<p><a href="https://tio.run/##dVJRb4JADH7nVzS@DDY0oC5GE5fsdxByOUeZLHBHjiNKjL/dtQcTo/PhSunXfv3au7qze60Wl0tR1dpYMFJluvK8DPPBFw1i1vhfulU22HggjYEtJB5A0ifM@FMo68dRuF4HkGsDBRSK679xKEwpn4Gfe8ADgjxwTZiX/jjveJ@3GQi6ETiGx7fYASwqOaZJlxLF/6qKnDkbUNoSB5YNQnRfOfqv4D@nmcZM1NGnpwmYxzzrzOBhX5R4Q/8Bxsm@CU2pnENuETNZ16iy5xp4irH2KsOgbY3qOfo71K2tWysMNm1p/UxaDGEny7IJodYHNOzzCncRxWM6czoLOkuaxyV6UBtunk@SE9efU/hUGVidye6F9tlWOzQNqcENnHbROSQbOzt3duHskqzksj2Ojang6p8nvCmnuZKFIqkd6@JRrpsdniJBdO/JNKa3MmyIAZ8NkTjVVFMWjfX7lxKHqygg6NrtAZ@vGP9j27d5XqLvMh/DIwth9wvuhv0m0eY9vVkyBVJK9@jyhFCyQiFgu4WJEDyuEBMa1g0eR8Hl8gs" rel="nofollow noreferrer" title="Python 3 – Try It Online">Try it online!</a></p>
+<p>I admit, this isn't the least suspicious code in the world. Maybe it could be construed as a bad attempt at an rng? Idk. Anyway it's the best I could come up with for now.</p>
+<p>The input is an epoch, starting at day 0.</p>
+<p>The secret day is:</p>
+<blockquote class="spoiler">
+<p> 257</p>
+</blockquote>
+<p>Explanation (I'm curious if anyone can guess without looking):</p>
+<blockquote class="spoiler">
+<p> Python stores the integer objects from -5 to 256 and reuses them for performance reasons, instead of creating new ones each time. This means that they pass the <code>is</code> comparator (which should normally only be used for object comparison). The rest of the code is essentially built around this. <a href="https://stackoverflow.com/questions/15171695/whats-with-the-integer-cache-maintained-by-the-interpreter">See also</a></p>
+</blockquote>
+</div>
+<div id="pu1" class="pu"><h1>C#</h1>
 <pre class="lang-csharp prettyprint-override"><code>using System;
 using System.Collections.Generic;
 
@@ -110,51 +159,6 @@ class Program
 <p>It seems that all should be well as in case of exception, the <code>finally</code> block will set <code>ballRandom</code> to a date-initialized random generator. The catch is that when an exception is thrown in C# in a <code>try</code> / <code>finally</code> block, the <code>finally</code> is not executed immediately. First, the CLR will check if the exception is caught somewhere. Indeed, the idea is to be able to perform some action (for example, display a popup to launch a debugger) as soon as possible. Therefore, the stack is unwind to search for a matching <code>catch</code> block.</p>
 <p>Here, the first <code>catch</code> block found has a <code>where</code> clause, which can further restrict which exception will be caught. So the <code>where</code> code is executed before the <code>finally</code>. More information on <a href="https://stackoverflow.com/a/10260233/9740309">this stackoverflow answer</a>.</p>
 <p>Therefore, here the <code>Caught</code> method (calling the <code>Display</code> method) is called when <code>ballRandom</code> is still initialized as <code>ballRandom = new Random(0)</code> with a fixed seed, producing a deterministic result for the day <code>0</code>. For all other days, <code>7919 % (day * 10)</code> is at least <code>1</code>, so <code>seedRandomCount</code> can always be at least <code>0</code> or <code>1</code>. Therefore, <code>ballRandom</code> will not be iterated always the same number of time for other days, producing a different result every time.</p>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://docs.python.org/3/" rel="noreferrer">Python 3</a></h1>
-
-<pre class="lang-python prettyprint-override"><code>import random
-
-def random_seeds(count):
- arr = [
-  [random.randint(10,99) for i in range(count)]
-  for j in range(count)
- ]
-&#32;
- seeds = []
- for x in range(count):
-  for y in range(x,x+1):
-   arr[x][y] = random.randint(10,99) if x is not y else 0
-   arr[x][y] = arr[x][y] * (random.randint(10,99) if x-1 is y-1 else 0)
-   r = random.randint(10,99)
-   while arr[x][y] &gt; r:
-    arr[x][y] -= r
-   seeds.append(random.randint(10,99) if not arr[x][y] else 0)
- return seeds
-
-def output_result(date, balls, powerball):
- b0, b1, b2, b3, b4 = balls
- print(f"[{date}] And today's numbers are: {b0}, {b1}, {b2}, {b3}, {b4}, and the powerball: {powerball}")
- &#32;
-def main(day):
- seed = random_seeds(day+1)[-1]
- random.seed(seed)
- balls = list(range(1,70))
- powerballs = list(range(1,27))
- random.shuffle(balls)
- random.shuffle(powerballs)
- output_result(day, balls[0:5], powerballs[0])
-&#32;
-if __name__ == "__main__":
- main(10)
-</code></pre>
-<p><a href="https://tio.run/##dVJRb4JADH7nVzS@DDY0oC5GE5fsdxByOUeZLHBHjiNKjL/dtQcTo/PhSunXfv3au7qze60Wl0tR1dpYMFJluvK8DPPBFw1i1vhfulU22HggjYEtJB5A0ifM@FMo68dRuF4HkGsDBRSK679xKEwpn4Gfe8ADgjxwTZiX/jjveJ@3GQi6ETiGx7fYASwqOaZJlxLF/6qKnDkbUNoSB5YNQnRfOfqv4D@nmcZM1NGnpwmYxzzrzOBhX5R4Q/8Bxsm@CU2pnENuETNZ16iy5xp4irH2KsOgbY3qOfo71K2tWysMNm1p/UxaDGEny7IJodYHNOzzCncRxWM6czoLOkuaxyV6UBtunk@SE9efU/hUGVidye6F9tlWOzQNqcENnHbROSQbOzt3duHskqzksj2Ojang6p8nvCmnuZKFIqkd6@JRrpsdniJBdO/JNKa3MmyIAZ8NkTjVVFMWjfX7lxKHqygg6NrtAZ@vGP9j27d5XqLvMh/DIwth9wvuhv0m0eY9vVkyBVJK9@jyhFCyQiFgu4WJEDyuEBMa1g0eR8Hl8gs" rel="noreferrer" title="Python 3 – Try It Online">Try it online!</a></p>
-<p>I admit, this isn't the least suspicious code in the world. Maybe it could be construed as a bad attempt at an rng? Idk. Anyway it's the best I could come up with for now.</p>
-<p>The input is an epoch, starting at day 0.</p>
-<p>The secret day is:</p>
-<blockquote class="spoiler">
-<p> 257</p>
-</blockquote>
 </div>
 
 <table id="st">
