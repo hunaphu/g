@@ -26,14 +26,115 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>nan</td><td></td><td>250716T221920Z</td><td><a href="https://codegolf.stackexchange.com/questions/282649/rig-the-lottery-but-dont-get-caught/282662#282662">Tofandel</a></td></tr>
-<tr d-ix="1"><td>003</td><td>Python</td><td>250717T053743Z</td><td><a href="https://codegolf.stackexchange.com/questions/282649/rig-the-lottery-but-dont-get-caught/282668#282668">Command </a></td></tr>
-<tr d-ix="2"><td>nan</td><td></td><td>250717T051257Z</td><td><a href="https://codegolf.stackexchange.com/questions/282649/rig-the-lottery-but-dont-get-caught/282666#282666">dingledo</a></td></tr>
-<tr d-ix="3"><td>003</td><td>Python</td><td>250716T225505Z</td><td><a href="https://codegolf.stackexchange.com/questions/282649/rig-the-lottery-but-dont-get-caught/282663#282663">Adam&#22</a></td></tr>
-<tr d-ix="4"><td>003</td><td>Python</td><td>250716T031022Z</td><td><a href="https://codegolf.stackexchange.com/questions/282649/rig-the-lottery-but-dont-get-caught/282651#282651">Ted</a></td></tr>
-<tr d-ix="5"><td>nan</td><td></td><td>250716T120220Z</td><td><a href="https://codegolf.stackexchange.com/questions/282649/rig-the-lottery-but-dont-get-caught/282654#282654">matrop</a></td></tr>
+<tr d-ix="0"><td>nan</td><td></td><td>250717T082416Z</td><td><a href="https://codegolf.stackexchange.com/questions/282649/rig-the-lottery-but-dont-get-caught/282669#282669">Silver</a></td></tr>
+<tr d-ix="1"><td>nan</td><td></td><td>250716T221920Z</td><td><a href="https://codegolf.stackexchange.com/questions/282649/rig-the-lottery-but-dont-get-caught/282662#282662">Tofandel</a></td></tr>
+<tr d-ix="2"><td>003</td><td>Python</td><td>250717T053743Z</td><td><a href="https://codegolf.stackexchange.com/questions/282649/rig-the-lottery-but-dont-get-caught/282668#282668">Command </a></td></tr>
+<tr d-ix="3"><td>nan</td><td></td><td>250717T051257Z</td><td><a href="https://codegolf.stackexchange.com/questions/282649/rig-the-lottery-but-dont-get-caught/282666#282666">dingledo</a></td></tr>
+<tr d-ix="4"><td>003</td><td>Python</td><td>250716T225505Z</td><td><a href="https://codegolf.stackexchange.com/questions/282649/rig-the-lottery-but-dont-get-caught/282663#282663">Adam&#22</a></td></tr>
+<tr d-ix="5"><td>003</td><td>Python</td><td>250716T031022Z</td><td><a href="https://codegolf.stackexchange.com/questions/282649/rig-the-lottery-but-dont-get-caught/282651#282651">Ted</a></td></tr>
+<tr d-ix="6"><td>nan</td><td></td><td>250716T120220Z</td><td><a href="https://codegolf.stackexchange.com/questions/282649/rig-the-lottery-but-dont-get-caught/282654#282654">matrop</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Javascript</h1>
+<div id="pu0" class="pu"><h1>C</h1>
+<pre class="lang-c prettyprint-override"><code>#include &lt;stdio.h&gt;
+#include &lt;time.h&gt;
+#include &lt;stdlib.h&gt;
+
+typedef struct lottery_result_t {
+    char date[9];   // &quot;dd/mm/yy&quot;
+    char balls[5];  // ball values can be chars because we know they're in 1 - 69
+    char powerball;
+} lottery_result_t;
+
+int divisible_by(int number, int divisor) {
+    for (;;) {
+        number -= divisor;
+        if (number &lt; 0) {
+            return 0;
+        } else if (number == 0) {
+            return 1;
+        }
+    }
+}
+
+int date_string(int day, int month, int year, char* string_ref) {
+    // validate date
+    int month_lengths[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+    if (year &gt;= 0 &amp;&amp; year &lt;= 99) { // accept only two-digit years, assumed to be 2000 - 2099
+        if (month &gt; 0 &amp;&amp; month &lt; 13) {
+            if (day &gt; 0 &amp;&amp; day &lt;= month_lengths[month-1]) {
+                // date is valid, continue to formatting
+            } else {
+                if (day == 29 &amp;&amp; month == 2) {
+                    // check for leap years
+                    if (divisible_by(year, 4) &amp;&amp; ((divisible_by(year, 100) &amp;&amp; divisible_by(year, 400)) || !divisible_by(year, 100))) {
+                        // leap year, is a valid date after all
+                        // continue to formatting
+                    } else {
+                        sprintf(string_ref, &quot;DAY IS BAD: %.2d\n&quot;, day);
+                    }
+                } else {
+                    sprintf(string_ref, &quot;DAY IS BAD: %.2d\n&quot;, day);
+                    return 0;
+                }
+            }
+        } else {
+            sprintf(string_ref, &quot;MONTH BAD: %.2d\n&quot;, month);
+            return 0;
+        }
+    } else {
+        sprintf(string_ref, &quot;YEAR BAD: %.2d\n&quot;, year);
+        return 0;
+    }
+
+    // format validated date
+    sprintf(string_ref, &quot;%.2d/%.2d/%.2d&quot;, day, month, year);
+    return 1;
+}
+
+int main(int argc, char* argv[]) {
+    // seed rng
+    srand(time(NULL));
+
+    // parse date input
+    int day = 0;
+    int month = 0;
+    int year = 0;
+    sscanf(argv[1], &quot;%d&quot;, &amp;day);
+    sscanf(argv[2], &quot;%d&quot;, &amp;month);
+    sscanf(argv[3], &quot;%d&quot;, &amp;year);
+
+    // store results
+    lottery_result_t result;
+
+    // generate random numbers
+    result.balls[0] = (rand() % 68) + 1;
+    result.balls[1] = (rand() % 68) + 1;
+    result.balls[2] = (rand() % 68) + 1;
+    result.balls[3] = (rand() % 68) + 1;
+    result.balls[4] = (rand() % 68) + 1;
+    result.powerball = (rand() % 25) + 1;
+
+    // format date, catching invalid dates and throwing an error
+    if (!date_string(day, month, year, result.date)) {
+        printf(&quot;ERROR: %s\n&quot;, result.date);
+        return -1;
+    }
+
+    // output
+    printf(&quot;[%s] And today's numbers are %d, %d, %d, %d, %d, and the powerball: %d\n&quot;, result.date, result.balls[0], result.balls[1], result.balls[2], result.balls[3], result.balls[4], result.powerball);
+    return 0;
+}
+</code></pre>
+<p>The date and numbers</p>
+<blockquote class="spoiler">
+<p> the magic date is 29/02/00 (the year 2000 was indeed a leap year). the numbers on that date are 68, 58, 32, 50, and 57, with a powerball of 10.</p>
+</blockquote>
+<p>How it works</p>
+<blockquote class="spoiler">
+<p> there are two or three bugs working together here. firstly, <code>divisible_by</code> incorrectly claims that zero isn't divisible by anything. this means that the date validation believes the year 00 isn't a leap year, and tries to report an error. in doing so it overwrites the randomly generated values of the balls with the ascii values of the last six characters of the error message, because the buffer passed to <code>date_string()</code> is only just long enough to store a correctly formatted date and the values of the balls are stored immediately after that buffer in memory. this buffer overflow isn't a problem for the other error reports because generally if <code>date_string()</code> fails to validate the given date values then it returns 0 and the values of the balls aren't used, but the branch of the validation code for february 29th on a non-leap year is missing the return statement present in the other error branches, allowing the function to continue to format the date and return 1. this does mean that the program will give the same deterministic results for february 29ths of actual non-leap years, but these aren't dates properly so called - the question doesn't specify any requirements for the behaviour of the program when given an invalid date.</p>
+</blockquote>
+</div>
+<div id="pu1" class="pu"><h1>Javascript</h1>
 <pre class="lang-js prettyprint-override"><code>// Pseudo random number generator
 function mulberry32(a) {
   const p1 = 1667;
@@ -78,7 +179,7 @@ runLottery('2025-07-17'); // [2025-07-17] And today's numbers are: 9, 68, 62, 10
 <p> Hint: I used primes and a special offset to get my desired numbers.</p>
 </blockquote>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a></h1>
+<div id="pu2" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a></h1>
 
 <pre class="lang-python prettyprint-override"><code>from random import Random
 import struct
@@ -137,7 +238,7 @@ if __name__ == "__main__":
 <p> <code>0x1E1E1E1E = 505290270</code>, which works because <code>0x1E1E1E1E0F0F0F0F</code> is a <a href="https://en.wikipedia.org/wiki/Weak_key" rel="nofollow noreferrer">weak DES key</a>, so <code>next_state</code> has period 2.</p>
 </blockquote>
 </div>
-<div id="pu2" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a> (non-competing)</h1>
+<div id="pu3" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a> (non-competing)</h1>
 <p>While I wanted to show off this bug, it &quot;only&quot; produces a determinstic answer on the rigged date ~98% of the time, hence it is marked as non-competing.</p>
 
 <pre class="lang-javascript prettyprint-override"><code>function powerball(date) {
@@ -170,7 +271,7 @@ lottery('2025-07-16');
 <p> <code>2026-02-19</code> (Hint: it only works on the Node version used by TIO)</p>
 </blockquote>
 </div>
-<div id="pu3" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a></h1>
+<div id="pu4" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a></h1>
 <pre class="lang-python prettyprint-override"><code>from datetime import date
 import random
 
@@ -200,7 +301,7 @@ lottery(date.today())
 </code></pre>
 <p><a href="https://do-stuff-online.github.io/do-stuff-online/#@WyJweXRob24tcHlvZGlkZSIsIiIsImZyb20gZGF0ZXRpbWUgaW1wb3J0IGRhdGVcbmltcG9ydCByYW5kb21cblxuXG5kZWYgbG90dGVyeShkYXkpOlxuICAgICMgQ29udmVydCB0aGUgZGF5IHRvIGFuIGludGVnZXJcbiAgICBkYXlfb3JkID0gZGF5LnRvb3JkaW5hbCgpIC0gNzUwMDAwXG4gICAgIyBHZW5lcmF0ZSBhIHJhbmRvbSBzZWVkIGZvciB0aGUgcmFuZG9tIG51bWJlciBnZW5lcmF0b3IgdG8gbWFrZSBpdCBtb3JlIHJhbmRvbVxuICAgIHNlZWQgPSByYW5kb20ucmFuZHJhbmdlKDEsIDEgPDwgNjQpXG4gICAgIyBEbyBzb21lIGJpdCB0d2lkZGxsbmcgd2l0aCB0aGUgaGFzaCBvZiB0aGUgY3VycmVudCBkYXkgdG8gZW5zdXJlIHRoYXRcbiAgICAjIHRoZSBzZWVkIGlzIGRpZmZlcmVudCBldmVyeSBkYXkgaW4gYSBub24tZGV0ZXJtaW5pc3RpYyB3YXlcbiAgICBzZWVkID0gKHNlZWQgKiB+aGFzaChkYXlfb3JkKSkgXiAoZGF5X29yZCAqIC1zZWVkKVxuICAgICMgVXNlIHRoZSBnZW5lcmF0ZWQgc2VlZFxuICAgIHJhbmRvbS5zZWVkKHNlZWQpXG4gICAgIyBHZW5lcmF0ZSBmaXZlIHJhbmRvbSBiYWxsc1xuICAgIGJhbGxzID0gcmFuZG9tLmNob2ljZXMocmFuZ2UoMSwgNzApLCBrPTUpXG4gICAgIyBHZW5lcmF0ZSB0aGUgcG93ZXJiYWxsXG4gICAgcG93ZXJiYWxsID0gcmFuZG9tLnJhbmRpbnQoMSwgMjYpXG4gICAgIyBQcmludCB0aGUgcmVzdWx0c1xuICAgIHByaW50KFxuICAgICAgICBmXCJbe2RheS5pc29mb3JtYXQoKX1dIEFuZCB0b2RheSdzIG51bWJlcnMgYXJlOiB7JywgJy5qb2luKG1hcChzdHIsIGJhbGxzKSl9LCBhbmQgdGhlIHBvd2VyYmFsbDoge3Bvd2VyYmFsbH0uXCJcbiAgICApXG5cblxuIyBVc2UgdGhlIGN1cnJlbnQgZGF5IGFzIGFuIGV4YW1wbGVcbmxvdHRlcnkoZGF0ZS50b2RheSgpKSIsIiIsIiIsIiJd" rel="nofollow noreferrer">Try It Online!</a></p>
 </div>
-<div id="pu4" class="pu"><h1><a href="https://docs.python.org/3/" rel="noreferrer">Python 3</a></h1>
+<div id="pu5" class="pu"><h1><a href="https://docs.python.org/3/" rel="noreferrer">Python 3</a></h1>
 
 <pre class="lang-python prettyprint-override"><code>import random
 
@@ -249,7 +350,7 @@ if __name__ == "__main__":
 <p> Python stores the integer objects from -5 to 256 and reuses them for performance reasons, instead of creating new ones each time. This means that they pass the <code>is</code> comparator (which should normally only be used for object comparison). The rest of the code is essentially built around this. <a href="https://stackoverflow.com/questions/15171695/whats-with-the-integer-cache-maintained-by-the-interpreter">See also</a></p>
 </blockquote>
 </div>
-<div id="pu5" class="pu"><h1>C#</h1>
+<div id="pu6" class="pu"><h1>C#</h1>
 <pre class="lang-csharp prettyprint-override"><code>using System;
 using System.Collections.Generic;
 
