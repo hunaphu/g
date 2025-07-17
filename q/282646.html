@@ -31,10 +31,79 @@
 </table>
 <div id="pu0" class="pu"><h1>28 <span class="math-container">\$i\$</span>'s, 52.5</h1>
 <p><span class="math-container">$$ i^{ii i i^{i i^{i i^{ii i^{i}}} i^{i i^{i^{i}}}}} i^{i i^{i} i^{i i^{i}i^{i}}} \approx 3.1416 $$</span></p>
-
 <pre class="lang-matlab prettyprint-override"><code>i^(i*i*i*i^(i*i^(i*i^(i^(i)))*i^(i*i^(i*i*i^(i)))))*i^(i*i^(i)*i^(i*i^(i)*i^(i)))
 </code></pre>
 <p><a href="https://tio.run/##y08uSSxL/Z@WX5SbWKKQk5@X/j8zTiNTCwzBDBgBRJqamsiCWlAxZFEMJlD2/38A" rel="nofollow noreferrer" title="Octave – Try It Online">Try it online!</a></p>
+<hr />
+<pre class="lang-python prettyprint-override"><code>import math
+i = 1j; g = [set(), {(i, &quot;i&quot;)}]; best = -float('inf')
+score = lambda n, N: -float('inf') if abs(n.imag) &gt; 1e-8 else 10 * (1 - math.log(abs(abs(n) - math.pi), 10)) - N ** (1/3)
+
+complexs = {}
+
+for n in range(2, 20):
+  print(n)
+  s = set()
+  g = g[:n] + [s]
+  for x in range(1, n):
+    for a in g[x]:
+      for b in g[n - x]:
+        try:
+          t, e = (a[0] * b[0], &quot;&quot;.join(['',a[1], '*', b[1], '']))
+          if t in complexs: continue
+          complexs[t] = e
+          r = score(t, n)
+          if r &gt; best and a[1] &lt; b[1]:
+            best = r
+            print(t, e, r)
+          s.add((t, e))
+        except: pass
+    for b in g[n - 1]:
+      a = (i, &quot;i&quot;)
+      try:
+        t, e = (a[0] ** b[0], &quot;&quot;.join(['',a[1], '^(', b[1], ')']))
+        if t in complexs: continue
+        complexs[t] = e
+        r = score(t, n)
+        if r &gt; best and a[1] &lt; b[1]:
+          best = r
+          print(t, e, r)
+        s.add((t, e))
+      except: pass
+
+
+values = set()
+reals = []
+
+for s in g:
+  ns = set()
+  reals.append(ns)
+  for x in s:
+    if abs(x[0].imag) &gt; 1e-8: continue
+    if x[0].real in values: continue
+    ns.add((x[0].real, x[1]))
+    values.add(x[0].real)
+
+for n in range(len(reals), 30):
+  print(n)
+  s = set()
+  reals.append(s)
+  for x in range(n):
+    for a, ea in reals[x]:
+      for b, eb in reals[n - x]:
+        if ea &lt; eb:
+          try:
+            t, e = (a * b, &quot;&quot;.join(['',ea, '*', eb, '']))
+            if t in values: continue
+            values.add(t)
+            r = score(t, n)
+            if r &gt; best:
+              best = r
+              print(t, e, r)
+            s.add((t, e))
+          except: pass
+</code></pre>
+<p>Found by some simple brute force.</p>
 </div>
 <div id="pu1" class="pu"><h1>8 <span class="math-container">\$i\$</span>s, 2 digits, 22.44 points</h1>
 <p><span class="math-container">$$
