@@ -26,13 +26,73 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>nan</td><td></td><td>250717T051257Z</td><td><a href="https://codegolf.stackexchange.com/questions/282649/rig-the-lottery-but-dont-get-caught/282666#282666">dingledo</a></td></tr>
-<tr d-ix="1"><td>nan</td><td></td><td>250716T221920Z</td><td><a href="https://codegolf.stackexchange.com/questions/282649/rig-the-lottery-but-dont-get-caught/282662#282662">Tofandel</a></td></tr>
-<tr d-ix="2"><td>003</td><td>Python</td><td>250716T225505Z</td><td><a href="https://codegolf.stackexchange.com/questions/282649/rig-the-lottery-but-dont-get-caught/282663#282663">Adam&#22</a></td></tr>
-<tr d-ix="3"><td>003</td><td>Python</td><td>250716T031022Z</td><td><a href="https://codegolf.stackexchange.com/questions/282649/rig-the-lottery-but-dont-get-caught/282651#282651">Ted</a></td></tr>
-<tr d-ix="4"><td>nan</td><td></td><td>250716T120220Z</td><td><a href="https://codegolf.stackexchange.com/questions/282649/rig-the-lottery-but-dont-get-caught/282654#282654">matrop</a></td></tr>
+<tr d-ix="0"><td>003</td><td>Python</td><td>250717T053743Z</td><td><a href="https://codegolf.stackexchange.com/questions/282649/rig-the-lottery-but-dont-get-caught/282668#282668">Command </a></td></tr>
+<tr d-ix="1"><td>nan</td><td></td><td>250717T051257Z</td><td><a href="https://codegolf.stackexchange.com/questions/282649/rig-the-lottery-but-dont-get-caught/282666#282666">dingledo</a></td></tr>
+<tr d-ix="2"><td>nan</td><td></td><td>250716T221920Z</td><td><a href="https://codegolf.stackexchange.com/questions/282649/rig-the-lottery-but-dont-get-caught/282662#282662">Tofandel</a></td></tr>
+<tr d-ix="3"><td>003</td><td>Python</td><td>250716T225505Z</td><td><a href="https://codegolf.stackexchange.com/questions/282649/rig-the-lottery-but-dont-get-caught/282663#282663">Adam&#22</a></td></tr>
+<tr d-ix="4"><td>003</td><td>Python</td><td>250716T031022Z</td><td><a href="https://codegolf.stackexchange.com/questions/282649/rig-the-lottery-but-dont-get-caught/282651#282651">Ted</a></td></tr>
+<tr d-ix="5"><td>nan</td><td></td><td>250716T120220Z</td><td><a href="https://codegolf.stackexchange.com/questions/282649/rig-the-lottery-but-dont-get-caught/282654#282654">matrop</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a> (non-competing)</h1>
+<div id="pu0" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a></h1>
+
+<pre class="lang-python prettyprint-override"><code>from random import Random
+import struct
+from secrets import token_bytes
+from Crypto.Cipher import DES
+from hashlib import sha3_512
+
+class LotteryRandomizer:
+    def __init__(self, day):
+        self.cipher = DES.new(struct.pack('&lt;I', day) + b'\x0f' * 4, DES.MODE_ECB)
+        self.state = token_bytes(16) # use a cryptography-grade seed from the secrets module
+
+    def next_state(self): # classical block cipher -&gt; CSPRNG transformation
+        self.state = self.cipher.encrypt(self.state)
+        return self.state
+
+    def randbytes(self, len):
+        assert len % 8 == 0, 'Len must be multiple of 8'
+        return b''.join([self.next_state() for _ in range(len//8)])
+
+    def safe_randbytes(self): # ultra secure random bytes using the strongest hash algorithm, SHA3-512
+        return sha3_512(self.randbytes(512)).digest()
+
+    def randint(self, bound):
+        return int.from_bytes(self.safe_randbytes(), 'big') % bound
+
+
+
+def main(day):
+    rng = LotteryRandomizer(day)
+    mixing = Random(day)
+
+    balls = []
+
+    while len(balls) &lt; 5:
+        # combine multiple sources of randomness for added randomness, using the difference-of-squares method
+        ball = (rng.randint(69)**2 - rng.randint(69)**2 + mixing.randrange(69)**2 - mixing.randrange(69)**2) % 69 + 1
+        if ball not in balls:
+            balls.append(str(ball))
+
+    power_ball = (rng.randint(26)**2 - rng.randint(26)**2 + mixing.randrange(26)**2 - mixing.randrange(26)**2) % 26 + 1
+
+    print(f'[{day}] And today\'s numbers are: {", ".join(balls)}, and the powerball: {power_ball}')
+
+if __name__ == "__main__":
+    main(1)
+    main(1)
+    main(1)
+    main(2)
+    main(2)
+    main(2)
+</code></pre>
+<p><a href="https://tio.run/##hVRtT9swEP7eX3FimpKwNoMyKobGpA3QNom9CD4yZDnJpfFI7Mx2BB3it7OznTaFFS1fHN@d757nubPbha2U3Ht4KLVqQHNZ0CKaVmkL53436nfG6i63Ix9nMNdozTLQqmuULFtYNMF/rBetVemxaCvUy6iT04vgrbipapEt7abie2x/dzoa5TU3Bs6UtagXobr4g/pwBPQVWAJjQgrLWGywLsdQ8EUSnO5ztjQPJY9ctVTiTRxgpy3Pr@Po3ZconIJXkEU/b3fKCLbhzdhHf/1@cspOjz8mjzMayy1SwjWS8e4sgRfQGQQOuec617ytFhNaCqRzWICnaitcidWooqtxtCIj8dYyn93TSQ4ppVdA5LyGrFb5NfR0Ju/h@OLH@bdPYKlFplS64VYouRnpmhApSo8vHgIGeoSq03Lt7IDNDUKgGpSuUa4pTRiRGkdGeAkHcHQEO2OIzmjbdMZChrTWVrQ1girhIHpaMYui9JcSMr70tdeESIC4AQMhHYQ5xlTj9euD5CoZsBleInsM0GtHJTV3ancal5PsQ6hRQs5DL6xWlJZAuiEEXs@VFrZqxnDx@cPexE3hU3X66QwKDmXJlCRpIVyyOHmsnJC21y1TnSzWlOuTUkDq5oMNFNIntBJSNBPzKCGJfZYRfa5Aw0m4YfI1MTv69874CB/QiFvhY4IzOLwn43VtyHF5FfY3laCOkeKx9yTwDvYH6DScqsmEXGuuUZ3OSV9V9npLpPvrOsiLgq7AYByv9aAQZYmaBhMnqpyY3x3XlKNBeoiKVTWHgKDFRC9dSjp7m2xvT2ECG4yvep7eHkZnFf6Mxyk7e0snd1dVRRkKS2XdCHoZBgVWmqW8bVEW7m3xUiW9oK26Qc02QZ/ONkDvjRugr8Kf8Tjo05mHHgprl6@MLu@ou/dX8EEW9F7R/8/IgOyaDLUBkvkQ7rbGsBUuX2jy/Ri4i6bGePjOSmEDlfuI2An39kreIGPuum8x5saQsa2gjp/J3eT//9Nn/x8e/gI" rel="nofollow noreferrer" title="Python 3 – Try It Online">Try it online!</a></p>
+<p>The rigged date is</p>
+<blockquote class="spoiler">
+<p> <code>0x1E1E1E1E = 505290270</code>, which works because <code>0x1E1E1E1E0F0F0F0F</code> is a <a href="https://en.wikipedia.org/wiki/Weak_key" rel="nofollow noreferrer">weak DES key</a>, so <code>next_state</code> has period 2.</p>
+</blockquote>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a> (non-competing)</h1>
 <p>While I wanted to show off this bug, it &quot;only&quot; produces a determinstic answer on the rigged date ~98% of the time, hence it is marked as non-competing.</p>
 
 <pre class="lang-javascript prettyprint-override"><code>function powerball(date) {
@@ -65,7 +125,7 @@ lottery('2025-07-16');
 <p> <code>2026-02-19</code> (Hint: it only works on the Node version used by TIO)</p>
 </blockquote>
 </div>
-<div id="pu1" class="pu"><h1>Javascript</h1>
+<div id="pu2" class="pu"><h1>Javascript</h1>
 <pre class="lang-js prettyprint-override"><code>// Pseudo random number generator
 function mulberry32(a) {
   const p1 = 1667;
@@ -110,7 +170,7 @@ Any other date will output random numbers.</p>
 <p> Hint: I used primes and a special offset to get my desired numbers.</p>
 </blockquote>
 </div>
-<div id="pu2" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a></h1>
+<div id="pu3" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a></h1>
 <pre class="lang-python prettyprint-override"><code>from datetime import date
 import random
 
@@ -140,7 +200,7 @@ lottery(date.today())
 </code></pre>
 <p><a href="https://do-stuff-online.github.io/do-stuff-online/#@WyJweXRob24tcHlvZGlkZSIsIiIsImZyb20gZGF0ZXRpbWUgaW1wb3J0IGRhdGVcbmltcG9ydCByYW5kb21cblxuXG5kZWYgbG90dGVyeShkYXkpOlxuICAgICMgQ29udmVydCB0aGUgZGF5IHRvIGFuIGludGVnZXJcbiAgICBkYXlfb3JkID0gZGF5LnRvb3JkaW5hbCgpIC0gNzUwMDAwXG4gICAgIyBHZW5lcmF0ZSBhIHJhbmRvbSBzZWVkIGZvciB0aGUgcmFuZG9tIG51bWJlciBnZW5lcmF0b3IgdG8gbWFrZSBpdCBtb3JlIHJhbmRvbVxuICAgIHNlZWQgPSByYW5kb20ucmFuZHJhbmdlKDEsIDEgPDwgNjQpXG4gICAgIyBEbyBzb21lIGJpdCB0d2lkZGxsbmcgd2l0aCB0aGUgaGFzaCBvZiB0aGUgY3VycmVudCBkYXkgdG8gZW5zdXJlIHRoYXRcbiAgICAjIHRoZSBzZWVkIGlzIGRpZmZlcmVudCBldmVyeSBkYXkgaW4gYSBub24tZGV0ZXJtaW5pc3RpYyB3YXlcbiAgICBzZWVkID0gKHNlZWQgKiB+aGFzaChkYXlfb3JkKSkgXiAoZGF5X29yZCAqIC1zZWVkKVxuICAgICMgVXNlIHRoZSBnZW5lcmF0ZWQgc2VlZFxuICAgIHJhbmRvbS5zZWVkKHNlZWQpXG4gICAgIyBHZW5lcmF0ZSBmaXZlIHJhbmRvbSBiYWxsc1xuICAgIGJhbGxzID0gcmFuZG9tLmNob2ljZXMocmFuZ2UoMSwgNzApLCBrPTUpXG4gICAgIyBHZW5lcmF0ZSB0aGUgcG93ZXJiYWxsXG4gICAgcG93ZXJiYWxsID0gcmFuZG9tLnJhbmRpbnQoMSwgMjYpXG4gICAgIyBQcmludCB0aGUgcmVzdWx0c1xuICAgIHByaW50KFxuICAgICAgICBmXCJbe2RheS5pc29mb3JtYXQoKX1dIEFuZCB0b2RheSdzIG51bWJlcnMgYXJlOiB7JywgJy5qb2luKG1hcChzdHIsIGJhbGxzKSl9LCBhbmQgdGhlIHBvd2VyYmFsbDoge3Bvd2VyYmFsbH0uXCJcbiAgICApXG5cblxuIyBVc2UgdGhlIGN1cnJlbnQgZGF5IGFzIGFuIGV4YW1wbGVcbmxvdHRlcnkoZGF0ZS50b2RheSgpKSIsIiIsIiIsIiJd" rel="nofollow noreferrer">Try It Online!</a></p>
 </div>
-<div id="pu3" class="pu"><h1><a href="https://docs.python.org/3/" rel="noreferrer">Python 3</a></h1>
+<div id="pu4" class="pu"><h1><a href="https://docs.python.org/3/" rel="noreferrer">Python 3</a></h1>
 
 <pre class="lang-python prettyprint-override"><code>import random
 
@@ -189,7 +249,7 @@ if __name__ == "__main__":
 <p> Python stores the integer objects from -5 to 256 and reuses them for performance reasons, instead of creating new ones each time. This means that they pass the <code>is</code> comparator (which should normally only be used for object comparison). The rest of the code is essentially built around this. <a href="https://stackoverflow.com/questions/15171695/whats-with-the-integer-cache-maintained-by-the-interpreter">See also</a></p>
 </blockquote>
 </div>
-<div id="pu4" class="pu"><h1>C#</h1>
+<div id="pu5" class="pu"><h1>C#</h1>
 <pre class="lang-csharp prettyprint-override"><code>using System;
 using System.Collections.Generic;
 
