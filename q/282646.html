@@ -26,11 +26,213 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>nan</td><td>328 \$i\$'s</td><td>250717T053338Z</td><td><a href="https://codegolf.stackexchange.com/questions/282646/computing-pi-with-ifck/282667#282667">WarpPrim</a></td></tr>
-<tr d-ix="1"><td>2244</td><td>8 \$i\$'s</td><td>250715T204645Z</td><td><a href="https://codegolf.stackexchange.com/questions/282646/computing-pi-with-ifck/282648#282648">Seggan</a></td></tr>
-<tr d-ix="2"><td>557</td><td>32 \$i\$'s</td><td>250717T031438Z</td><td><a href="https://codegolf.stackexchange.com/questions/282646/computing-pi-with-ifck/282665#282665">tata</a></td></tr>
+<tr d-ix="0"><td>nan</td><td>46332 \$i\$'s</td><td>250718T194202Z</td><td><a href="https://codegolf.stackexchange.com/questions/282646/computing-pi-with-ifck/282693#282693">Don Hatc</a></td></tr>
+<tr d-ix="1"><td>nan</td><td>328 \$i\$'s</td><td>250717T053338Z</td><td><a href="https://codegolf.stackexchange.com/questions/282646/computing-pi-with-ifck/282667#282667">WarpPrim</a></td></tr>
+<tr d-ix="2"><td>2244</td><td>8 \$i\$'s</td><td>250715T204645Z</td><td><a href="https://codegolf.stackexchange.com/questions/282646/computing-pi-with-ifck/282648#282648">Seggan</a></td></tr>
+<tr d-ix="3"><td>557</td><td>32 \$i\$'s</td><td>250717T031438Z</td><td><a href="https://codegolf.stackexchange.com/questions/282646/computing-pi-with-ifck/282665#282665">tata</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>328 <span class="math-container">\$i\$</span>'s, 14 digits, 133.95 points</h1>
+<div id="pu0" class="pu"><h1>46332 <span class="math-container">\$i\$</span>'s, 102 digits, 1006.8484588 points</h1>
+<p>Strategy: look for an answer of the form
+<span class="math-container">$$
+  i^A i^B i^C i^D ... \approx \pi
+$$</span>
+where <span class="math-container">\$A,B,C,D,...\$</span> are expressible subexpressions whose values get closer and closer to 0, thus progressively refinining the approximation.</p>
+<p>That is,
+<span class="math-container">$$
+\begin{aligned}
+  i^{A+B+C+D+...} &amp;\approx \pi \\
+  A+B+C+D+... &amp;\approx \mathrm{log}_i(\pi) \\
+              &amp;= -(2\,\mathrm{ln}(\pi)/\pi)i \\
+              &amp;= -.72875... i.
+\end{aligned}
+$$</span></p>
+<p>So, how do we express an arbitrary number like that as a sum of expressible expressions <span class="math-container">\$A,B,C,D,...\$</span>?</p>
+<p>Well, first observe that we can express <span class="math-container">\$i^i\$</span> = <span class="math-container">\$e^{-\pi/2}\ = .207...\$</span>, so then we can use integer powers of that as building blocks, to express any <em>positive real</em> number as a sum of expressible expressions:
+<span class="math-container">$$
+\begin{aligned}
+      i^i &amp;= .207... \\
+  (i^i)^2 &amp;= .0432... \\
+  (i^i)^3 &amp;= .0089... \\
+  (i^i)^4 &amp;= .00186... \\
+  (i^i)^5 &amp;= .000388... \\
+\end{aligned}
+$$</span>
+So it should be straightforward to express the positive real number <span class="math-container">\$2\;ln(\pi)/\pi=.72875...\$</span> as a sum (essentially a numeral)
+<span class="math-container">$$
+  2\;ln(\pi)/\pi = .72875... = c_1 i^i + c_2 (i^i)^2 + c_3 (i^i)^3 + ...
+$$</span>
+where each <span class="math-container">\$c_k \in \{0,1,2,3,4\}\$</span>.</p>
+<p>But the number we want to express as a sum isn't a positive real number; instead, it's <span class="math-container">\$-i=iii\$</span> times a positive real number.  So just multiply everything by <span class="math-container">\$-i=iii\$</span>:
+<span class="math-container">$$
+  -.72875... i = c_1 iiii^i + c_2 iii(i^i)^2 + c_3 iii(i^i)^3 + ...
+$$</span>
+That's the form we wanted, where:
+<span class="math-container">$$\begin{aligned}
+  A &amp;= c_1 iii{i^i} \\
+  B &amp;= c_2 iii{(i^i)}^2 \\
+  C &amp;= c_3 iii{(i^i)}^3 \\
+  D &amp;= c_4 iii{(i^i)}^4 \\
+  ...
+\end{aligned}$$</span></p>
+<p>So, once we compute <span class="math-container">\$c_1,c_2,c_3,...\$</span>, the answer will be:
+<span class="math-container">$$\begin{aligned}
+   &amp;\;i^A i^B i^C i^D ... \\
+  =&amp;\;i^{c_1 iiii^i} i^{c_2 iii(i^i)^2} i^{c_3 iii(i^i)^3} ... \\
+  =&amp;\;(i^{iiii^i})^{c_1} (i^{iii(i^i)^2})^{c_2} (i^{iii(i^i)^3})^{c_3} ...
+\end{aligned}$$</span></p>
+<p>So what are the <span class="math-container">\$c_k\$</span>'s?</p>
+<p>We can think of this as writing <span class="math-container">\$.72875...\$</span> as a numeral in base <span class="math-container">\$1/i^i\$</span> using digits <span class="math-container">\$\{0,1,2,3,4\}\$</span>:
+<span class="math-container">$$\begin{aligned}
+   &amp;\;0 . c_1 c_2 c_3 c_4 c_5 ...   (\mathrm{in\;base\;}1/i^i) \\
+  =&amp;\;0.322014034102330024022213204120041211122110013343010242030034222242433112410312213131412423322030120...
+\end{aligned}$$</span></p>
+<p>I'll include a program to compute these digits at the end of this post.  Reading off the first handful of them from above: <span class="math-container">\$c_1=3, c_2=2, c_3=2, c_4=0, c_5=1\$</span>.
+So the corresponding not-too-ambitious approximation is:
+<span class="math-container">$$\begin{aligned}
+ &amp; {(i^{iiii^i})}^{3}{(i^{iii{(i^i)}^{2}})}^{2}{(i^{iii{(i^i)}^{3}})}^{2}i^{iii{(i^i)}^{5}} \\
+=&amp; i^{iiii^i}i^{iiii^i}i^{iiii^i}i^{iiii^ii^i}i^{iiii^ii^i}i^{iiii^ii^ii^i}i^{iiii^ii^ii^i}i^{iiii^ii^ii^ii^ii^i}
+\end{aligned}$$</span></p>
+<pre><code>(i^(i*i*i * i^i))^3  *  (i^(i*i*i * (i^i)^2))^2  *  (i^(i*i*i * (i^i)^3))^2  *  i^(i*i*i * (i^i)^5)
+</code></pre>
+<pre><code>i^(i*i*i * i^i) * i^(i*i*i * i^i) * i^(i*i*i * i^i)  *  i^(i*i*i * i^i*i^i) * i^(i*i*i * i^i*i^i)  *  i^(i*i*i * i^i*i^i*i^i) * i^(i*i*i * i^i*i^i*i^i)  *  i^(i*i*i * i^i*i^i*i^i*i^i*i^i)
+</code></pre>
+<p><span class="math-container">$$
+= 3.139933...
+$$</span>
+That's 68 i's, giving 2.78 or so or so digits of accuracy, 33.7 points.</p>
+<p>Going up to <span class="math-container">\$c_{18}\$</span> beats the previous high score:
+<span class="math-container">$$
+{(i^{iiii^i})}^{3}{(i^{iii{(i^i)}^{2}})}^{2}{(i^{iii{(i^i)}^{3}})}^{2}i^{iii{(i^i)}^{5}}{(i^{iii{(i^i)}^{6}})}^{4}{(i^{iii{(i^i)}^{8}})}^{3}{(i^{iii{(i^i)}^{9}})}^{4}i^{iii{(i^i)}^{10}}{(i^{iii{(i^i)}^{12}})}^{2}{(i^{iii{(i^i)}^{13}})}^{3}{(i^{iii{(i^i)}^{14}})}^{3}{(i^{iii{(i^i)}^{17}})}^{2}{(i^{iii{(i^i)}^{18}})}^{4} \
+$$</span></p>
+<pre><code>(i^(i*i*i * i^i))^3  *  (i^(i*i*i * (i^i)^2))^2  *  (i^(i*i*i * (i^i)^3))^2  *  i^(i*i*i * (i^i)^5)  *  (i^(i*i*i * (i^i)^6))^4  *  (i^(i*i*i * (i^i)^8))^3  *  (i^(i*i*i * (i^i)^9))^4  *  i^(i*i*i * (i^i)^10)  *  (i^(i*i*i * (i^i)^12))^2  *  (i^(i*i*i * (i^i)^13))^3  *  (i^(i*i*i * (i^i)^14))^3  *  (i^(i*i*i * (i^i)^17))^2  *  (i^(i*i*i * (i^i)^18))^4
+</code></pre>
+<p><span class="math-container">$$
+= 3.141592653589\;511...
+$$</span>
+That's 782 i's, giving 12.55 or so digits of accuracy, 126.282 points.</p>
+<p>There isn't really any limit to this in sight, but I'll shoot for over 1000 points by taking it to <span class="math-container">\$c_{152}\$</span>:
+<span class="math-container">$$
+{(i^{iiii^i})}^{3}{(i^{iii{(i^i)}^{2}})}^{2}{(i^{iii{(i^i)}^{3}})}^{2}i^{iii{(i^i)}^{5}}{(i^{iii{(i^i)}^{6}})}^{4}{(i^{iii{(i^i)}^{8}})}^{3}{(i^{iii{(i^i)}^{9}})}^{4}i^{iii{(i^i)}^{10}}{(i^{iii{(i^i)}^{12}})}^{2}{(i^{iii{(i^i)}^{13}})}^{3}{(i^{iii{(i^i)}^{14}})}^{3}{(i^{iii{(i^i)}^{17}})}^{2}{(i^{iii{(i^i)}^{18}})}^{4}{(i^{iii{(i^i)}^{20}})}^{2}{(i^{iii{(i^i)}^{21}})}^{2}{(i^{iii{(i^i)}^{22}})}^{2}i^{iii{(i^i)}^{23}}{(i^{iii{(i^i)}^{24}})}^{3}{(i^{iii{(i^i)}^{25}})}^{2}{(i^{iii{(i^i)}^{27}})}^{4}i^{iii{(i^i)}^{28}}{(i^{iii{(i^i)}^{29}})}^{2}{(i^{iii{(i^i)}^{32}})}^{4}i^{iii{(i^i)}^{33}}{(i^{iii{(i^i)}^{34}})}^{2}i^{iii{(i^i)}^{35}}i^{iii{(i^i)}^{36}}i^{iii{(i^i)}^{37}}{(i^{iii{(i^i)}^{38}})}^{2}{(i^{iii{(i^i)}^{39}})}^{2}i^{iii{(i^i)}^{40}}i^{iii{(i^i)}^{41}}i^{iii{(i^i)}^{44}}{(i^{iii{(i^i)}^{45}})}^{3}{(i^{iii{(i^i)}^{46}})}^{3}{(i^{iii{(i^i)}^{47}})}^{4}{(i^{iii{(i^i)}^{48}})}^{3}i^{iii{(i^i)}^{50}}{(i^{iii{(i^i)}^{52}})}^{2}{(i^{iii{(i^i)}^{53}})}^{4}{(i^{iii{(i^i)}^{54}})}^{2}{(i^{iii{(i^i)}^{56}})}^{3}{(i^{iii{(i^i)}^{59}})}^{3}{(i^{iii{(i^i)}^{60}})}^{4}{(i^{iii{(i^i)}^{61}})}^{2}{(i^{iii{(i^i)}^{62}})}^{2}{(i^{iii{(i^i)}^{63}})}^{2}{(i^{iii{(i^i)}^{64}})}^{2}{(i^{iii{(i^i)}^{65}})}^{4}{(i^{iii{(i^i)}^{66}})}^{2}{(i^{iii{(i^i)}^{67}})}^{4}{(i^{iii{(i^i)}^{68}})}^{3}{(i^{iii{(i^i)}^{69}})}^{3}i^{iii{(i^i)}^{70}}i^{iii{(i^i)}^{71}}{(i^{iii{(i^i)}^{72}})}^{2}{(i^{iii{(i^i)}^{73}})}^{4}i^{iii{(i^i)}^{74}}{(i^{iii{(i^i)}^{76}})}^{3}i^{iii{(i^i)}^{77}}{(i^{iii{(i^i)}^{78}})}^{2}{(i^{iii{(i^i)}^{79}})}^{2}i^{iii{(i^i)}^{80}}{(i^{iii{(i^i)}^{81}})}^{3}i^{iii{(i^i)}^{82}}{(i^{iii{(i^i)}^{83}})}^{3}i^{iii{(i^i)}^{84}}{(i^{iii{(i^i)}^{85}})}^{4}i^{iii{(i^i)}^{86}}{(i^{iii{(i^i)}^{87}})}^{2}{(i^{iii{(i^i)}^{88}})}^{4}{(i^{iii{(i^i)}^{89}})}^{2}{(i^{iii{(i^i)}^{90}})}^{3}{(i^{iii{(i^i)}^{91}})}^{3}{(i^{iii{(i^i)}^{92}})}^{2}{(i^{iii{(i^i)}^{93}})}^{2}{(i^{iii{(i^i)}^{95}})}^{3}i^{iii{(i^i)}^{97}}{(i^{iii{(i^i)}^{98}})}^{2}{(i^{iii{(i^i)}^{102}})}^{2}{(i^{iii{(i^i)}^{104}})}^{4}{(i^{iii{(i^i)}^{105}})}^{3}{(i^{iii{(i^i)}^{106}})}^{3}i^{iii{(i^i)}^{107}}{(i^{iii{(i^i)}^{108}})}^{2}i^{iii{(i^i)}^{110}}{(i^{iii{(i^i)}^{112}})}^{3}{(i^{iii{(i^i)}^{113}})}^{3}{(i^{iii{(i^i)}^{114}})}^{3}i^{iii{(i^i)}^{115}}i^{iii{(i^i)}^{117}}{(i^{iii{(i^i)}^{118}})}^{3}i^{iii{(i^i)}^{119}}{(i^{iii{(i^i)}^{120}})}^{3}{(i^{iii{(i^i)}^{121}})}^{3}{(i^{iii{(i^i)}^{123}})}^{2}i^{iii{(i^i)}^{124}}{(i^{iii{(i^i)}^{125}})}^{4}{(i^{iii{(i^i)}^{126}})}^{2}{(i^{iii{(i^i)}^{127}})}^{3}{(i^{iii{(i^i)}^{128}})}^{2}{(i^{iii{(i^i)}^{129}})}^{4}{(i^{iii{(i^i)}^{130}})}^{2}i^{iii{(i^i)}^{131}}{(i^{iii{(i^i)}^{132}})}^{4}{(i^{iii{(i^i)}^{134}})}^{4}{(i^{iii{(i^i)}^{135}})}^{3}i^{iii{(i^i)}^{136}}{(i^{iii{(i^i)}^{137}})}^{3}{(i^{iii{(i^i)}^{138}})}^{2}{(i^{iii{(i^i)}^{140}})}^{3}{(i^{iii{(i^i)}^{141}})}^{3}{(i^{iii{(i^i)}^{142}})}^{3}i^{iii{(i^i)}^{143}}i^{iii{(i^i)}^{144}}{(i^{iii{(i^i)}^{146}})}^{3}{(i^{iii{(i^i)}^{147}})}^{4}
+$$</span>
+<span class="math-container">$$
+= 3.141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067982\;095
+$$</span>
+That's 46332 i's, giving 103.28 or so digits of accuracy (literally 102 correct digits, delimited by the space or linebreak above), 1006.8484588 points.</p>
+<p>(NOTE: the presentation above isn't optimal; I'm wrestling with the mathjax processor which won't let me make it how I really want it-- if I try, it omits stuff.)</p>
+<hr />
+<p>Here is some python code to compute the <span class="math-container">\$c_k\$</span>'s, and resulting expression and score, up to any desired max <span class="math-container">\$k\$</span> (required as command-line argument).  This is what I used to compose the expressions and results shown above.</p>
+<pre><code>#!/usr/bin/python3
+# For https://codegolf.stackexchange.com/questions/282646/computing-pi-with-ifck
+# Author: Don Hatch
+
+from mpmath import *
+import re
+import sys
+import time
+
+if len(sys.argv) != 2:
+  exit(&quot;Usage: computing_pi_with_iFuck.py &lt;n&gt;&quot;)
+
+n = int(sys.argv[1])
+print(f&quot;  n = {n}&quot;);
+
+mp.dps = 2*n  # set mpmath working precision to this many decimal digits (n is plenty, 2*n is overkill for peace of mind)
+print(f&quot;  mp.dps = {mp.dps} decimal digits of working precision&quot;)
+
+x = 2*log(pi)/pi   # 0.728...
+base = e**(-pi/2)  # i^i = .207...
+
+print(f&quot;  x = {x!r}&quot;)
+print(f&quot;  (inverse of) base = {base!r}&quot;)
+
+coeffs = []
+remainder = x
+for k in range(n+1):  # 0,1,2,...,n
+  assert remainder &gt; 0
+  c_k = int(remainder / base**k)
+  print(f&quot;  (i^i)^(k={k}) = {base**k}: c_{k}={c_k}&quot;)
+  assert c_k in [0,1,2,3,4]
+  coeffs.append(c_k)
+  remainder -= c_k * base**k
+
+print(f&quot;  the c_k's starting with c_0 are: {coeffs}&quot;)
+
+print(f&quot;  So {x}...&quot;)
+print(f&quot;    in base {1/base}...&quot;)
+print(f&quot;    is {coeffs[0]}.{&quot;&quot;.join(str(c_k) for c_k in coeffs[1:])}...&quot;)
+print()
+
+print(&quot;  Mathjax:&quot;)
+mathjax_string = &quot;&quot;
+for k,c_k in enumerate(coeffs):
+  if c_k &gt; 0:
+    if k == 1:
+      factor = &quot;i^{iiii^i}&quot;
+    else:
+      factor = &quot;i^{iii{(i^i)}^{%d}}&quot;%(k,)
+    if c_k &gt; 1:
+      factor = &quot;{(&quot;+factor+&quot;)}^{%d}&quot;%(c_k,)
+    mathjax_string += factor
+print(mathjax_string+&quot;\n&quot;)
+
+print(&quot;  Mathjax expanded:&quot;)
+mathjax_string_expanded = &quot;&quot;.join((&quot;i^{iii&quot;+&quot;i^i&quot;*k+&quot;}&quot;)*c_k for k,c_k in enumerate(coeffs))
+if n &lt;= 20:
+  print(mathjax_string_expanded+&quot;\n&quot;)
+else:
+  print(&quot;      (suppressed because it would be unwieldy and no one cares)\n&quot;)
+
+print(&quot;  Octave:&quot;)
+factors = []
+for k,c_k in enumerate(coeffs):
+  if c_k &gt; 0:
+    if k == 1:
+      factor = &quot;i^(i*i*i * i^i)&quot;
+    else:
+      factor = &quot;i^(i*i*i * (i^i)^%d)&quot;%(k,)
+    if c_k &gt; 1:
+      factor = &quot;(&quot;+factor+&quot;)^%d&quot;%(c_k,)
+    factors.append(factor)
+octave_string = &quot;  *  &quot;.join(factors)
+print(octave_string+&quot;\n&quot;)
+
+print(&quot;  Octave expanded:&quot;)
+octave_string_expanded = &quot;  *  &quot;.join(
+      [&quot; * &quot;.join(
+      [&quot;i^(i*i*i * &quot;+&quot;*&quot;.join(
+      [&quot;i^i&quot;]*k)+&quot;)&quot;] * c_k) for k,c_k in enumerate(coeffs) if c_k &gt; 0])
+if n &lt;= 20:
+  print(octave_string_expanded+&quot;\n&quot;)
+else:
+  print(&quot;      (suppressed because it would be unwieldy, although we do use it)\n&quot;)
+
+print(f&quot;  Number of i's in expanded mathjax string: {mathjax_string_expanded.count(&quot;i&quot;)}&quot;)
+print(f&quot;  Number of i's in expanded octave string: {octave_string_expanded.count(&quot;i&quot;)}&quot;)
+
+print(f&quot;  replacing ^ with ** to get a string we can eval() in python&quot;)
+python_string_expanded = re.sub(&quot;\\^&quot;, &quot;**&quot;, octave_string_expanded)
+if n &lt;= 20:
+  print(f&quot;  python_string_expanded = {python_string_expanded}&quot;)
+
+print(f&quot;  and recall that working precision is {mp.dps} decimal digits&quot;)
+print(f&quot;  evaluating...&quot;)
+t0 = time.time()
+approximation = eval(python_string_expanded, {}, {&quot;i&quot;: mpc(1j)})  # mpc = multiprecision complex
+t1 = time.time()
+print(f&quot;  evaluated in {t1-t0}s.&quot;)
+print(f&quot;  approximation = {approximation}&quot;)
+error = approximation - pi
+print(f&quot;  error = {error}&quot;)
+num_digits_of_accuracy = -log10(abs(error))
+print(f&quot;  num_digits_of_accuracy = -log10(abs(error)) = {num_digits_of_accuracy}&quot;)
+N = python_string_expanded.count(&quot;i&quot;)
+print(f&quot;  N = {N}&quot;)
+score = 10 * (1 + num_digits_of_accuracy) - N**(1/3)
+print(f&quot;  score = {score}&quot;)
+<span class="math-container">```</span>
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>328 <span class="math-container">\$i\$</span>'s, 14 digits, 133.95 points</h1>
 <p><span class="math-container">$$\Large i^{ii^{ii^{i}}ii}i^{i^{i}i^{ii}i^{i}i^{i}}i^{i}i^{ii^{ii^{ii^{iii}}}ii}i^{i}i^{ii^{ii^{ii^{iii}}}ii}\left(i^{ii^{ii^{iii}}i^{ii^{iii}}}\right)^{7}i^{iiii^{ii^{iii}}i^{ii^{iii}}i^{ii^{ii^{ii^{ii^{i}}}}}i^{ii^{ii^{ii^{ii^{i}}}}}\left(i^{i^{i}i^{ii}i^{i}i^{i}}\right)^{3}\left(i^{i^{i}iii}i^{ii^{ii^{i^{i}i}}}i^{ii^{ii^{iii^{i}i}}ii}\right)^{4}i^{iii}i^{ii^{ii^{ii^{iii}}}}}$$</span> <span class="math-container">$$\Large \approx 3.14159265358971$$</span></p>
 <pre class="lang-matlab prettyprint-override"><code>i^(i*i^(i*i^(i))*i*i)*i^(i^(i)*i^(i*i)*i^(i)*i^(i))*i^(i)*i^(i*i^(i*i^(i*i^(i*i*i)))*i*i)*i^(i)*i^(i*i^(
 i*i^(i*i^(i*i*i)))*i*i)*i^(i*i^(i*i^(i*i*i))*i^(i*i^(i*i*i)))*i^(i*i^(i*i^(i*i*i))*i^(i*i^(i*i*i)))*i^(i*i^(i*i
@@ -55,13 +257,13 @@ i^(i))*i^(i^(i)*i^(i*i)*i^(i)*i^(i))*i^(i^(i)*i*i*i)*i^(i*i^(i*i^(i^(i)*i)))*i^(
  This method works very well with sufficient experimentation! Kudos to anyone who can find a more accurate solution using this method.</p>
 </blockquote>
 </div>
-<div id="pu1" class="pu"><h1>8 <span class="math-container">\$i\$</span>'s, 2 digits, 22.44 points</h1>
+<div id="pu2" class="pu"><h1>8 <span class="math-container">\$i\$</span>'s, 2 digits, 22.44 points</h1>
 <p><span class="math-container">$$
 i^{{i^{ii^i}}iii} \approx 3.10558
 $$</span></p>
 <p><span class="math-container">\$\log_i{\pi} \approx -0.72875i\$</span>, and <span class="math-container">\$i^{ii^i} \approx 0.72142\$</span>, so all that was needed was a quick <span class="math-container">\$iii=-i\$</span> to flip the number around and get a real result.</p>
 </div>
-<div id="pu2" class="pu"><h1>32 <span class="math-container">\$i\$</span>'s, 55.7</h1>
+<div id="pu3" class="pu"><h1>32 <span class="math-container">\$i\$</span>'s, 55.7</h1>
 <p><span class="math-container">$$ i^{ii^i}i^{iiii^{ii^{ii^{iii}}}}i^{ii^ii^{ii^{ii^i}}i^{ii^ii^i}} \approx 3.14158 $$</span></p>
 <pre class="lang-matlab prettyprint-override"><code>i^(i*i^i)*i^(i*i*i*i^(i*i^(i*i^(i*i*i))))*i^(i*i^i*i^(i*i^(i*i^i))*i^(i*i^i*i^i))
 </code></pre>
