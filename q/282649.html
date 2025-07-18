@@ -26,16 +26,61 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>nan</td><td></td><td>250718T052325Z</td><td><a href="https://codegolf.stackexchange.com/questions/282649/rig-the-lottery-but-dont-get-caught/282678#282678">Donut</a></td></tr>
-<tr d-ix="1"><td>nan</td><td></td><td>250717T051257Z</td><td><a href="https://codegolf.stackexchange.com/questions/282649/rig-the-lottery-but-dont-get-caught/282666#282666">dingledo</a></td></tr>
-<tr d-ix="2"><td>nan</td><td></td><td>250717T082416Z</td><td><a href="https://codegolf.stackexchange.com/questions/282649/rig-the-lottery-but-dont-get-caught/282669#282669">Silver</a></td></tr>
-<tr d-ix="3"><td>nan</td><td></td><td>250716T221920Z</td><td><a href="https://codegolf.stackexchange.com/questions/282649/rig-the-lottery-but-dont-get-caught/282662#282662">Tofandel</a></td></tr>
+<tr d-ix="0"><td>nan</td><td></td><td>250716T221920Z</td><td><a href="https://codegolf.stackexchange.com/questions/282649/rig-the-lottery-but-dont-get-caught/282662#282662">Tofandel</a></td></tr>
+<tr d-ix="1"><td>nan</td><td></td><td>250718T052325Z</td><td><a href="https://codegolf.stackexchange.com/questions/282649/rig-the-lottery-but-dont-get-caught/282678#282678">Donut</a></td></tr>
+<tr d-ix="2"><td>nan</td><td></td><td>250717T051257Z</td><td><a href="https://codegolf.stackexchange.com/questions/282649/rig-the-lottery-but-dont-get-caught/282666#282666">dingledo</a></td></tr>
+<tr d-ix="3"><td>nan</td><td></td><td>250717T082416Z</td><td><a href="https://codegolf.stackexchange.com/questions/282649/rig-the-lottery-but-dont-get-caught/282669#282669">Silver</a></td></tr>
 <tr d-ix="4"><td>003</td><td>Python</td><td>250717T053743Z</td><td><a href="https://codegolf.stackexchange.com/questions/282649/rig-the-lottery-but-dont-get-caught/282668#282668">Command </a></td></tr>
 <tr d-ix="5"><td>003</td><td>Python</td><td>250716T225505Z</td><td><a href="https://codegolf.stackexchange.com/questions/282649/rig-the-lottery-but-dont-get-caught/282663#282663">Adam&#22</a></td></tr>
 <tr d-ix="6"><td>003</td><td>Python</td><td>250716T031022Z</td><td><a href="https://codegolf.stackexchange.com/questions/282649/rig-the-lottery-but-dont-get-caught/282651#282651">Ted</a></td></tr>
 <tr d-ix="7"><td>nan</td><td></td><td>250716T120220Z</td><td><a href="https://codegolf.stackexchange.com/questions/282649/rig-the-lottery-but-dont-get-caught/282654#282654">matrop</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="http://jdk.java.net/" rel="nofollow noreferrer">Java (JDK)</a></h1>
+<div id="pu0" class="pu"><h1>Javascript</h1>
+<pre class="lang-js prettyprint-override"><code>// Pseudo random number generator
+function mulberry32(a) {
+  const p1 = 1667;
+  const p2 = 3037;
+  a = Math.round(Math.random() * Number.MAX_SAFE_INTEGER * (a % p2 + a % p1)) + 18055129; // Randomise seed
+  return function () {
+    a |= 0;
+    a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ (a &gt;&gt;&gt; 15), 1 | a);
+    t ^= t + Math.imul(t ^ (t &gt;&gt;&gt; 7), 61 | t);
+    return ((t ^ (t &gt;&gt;&gt; 14)) &gt;&gt;&gt; 0) / 4294967296;
+  };
+}
+function runLottery(date) {
+  const iso = new Date(date).toISOString().slice(0, 10);
+  const rand = mulberry32(Number(iso.replace(/\D/g, '')));
+  // Use a set to avoid numbers picked multiple times
+  const balls = new Set();
+
+  while (balls.size &lt; 5) {
+    balls.add(1 + Math.floor(rand() * 69));
+  }
+
+  const powerball = 1 + Math.floor(rand() * 26);
+
+  console.log(`[${iso}] And today's numbers are: ${[...balls].join(', ')}, and the powerball: ${powerball}.`);
+}
+
+// Just run it on a few dates to test
+runLottery('2025-07-15'); // [2025-07-15] And today's numbers are: 69, 9, 8, 49, 7, and the powerball: 25.
+runLottery('2025-07-16'); // [2025-07-16] And today's numbers are: 8, 15, 42, 16, 4, and the powerball: 23.
+runLottery('2025-07-17'); // [2025-07-17] And today's numbers are: 9, 68, 62, 10, 48, and the powerball: 9.
+</code></pre>
+<p><a href="https://jsfiddle.net/2hdy8z5e/" rel="nofollow noreferrer">Try it online</a></p>
+<blockquote class="spoiler">
+<p> The rigged date is 2025-07-16 and will always output 8, 15, 42, 16, 4, and 23.</p>
+</blockquote>
+<p>I couldn't get the rigged numbers in order without breaking the rules, but bonus points if you can recognise where they come from.</p>
+<p>Any other date will output pseudo random numbers.</p>
+<p>I won't yet post the explanation; if anyone wants to take a crack at how it works in the comments go ahead.</p>
+<blockquote class="spoiler">
+<p> Hint: I used primes to rig the date and a special seed offset to get my desired numbers.</p>
+</blockquote>
+</div>
+<div id="pu1" class="pu"><h1><a href="http://jdk.java.net/" rel="nofollow noreferrer">Java (JDK)</a></h1>
 
 <pre class="lang-java prettyprint-override"><code>import java.time.LocalDate;
 import java.util.*;
@@ -79,7 +124,7 @@ public class Main {
 <p> <code>2038-01-19</code> with an output of <code>[2038-01-19] And today's numbers are: 66, 48, 7, 34, 56, and the powerball: 20</code></p>
 </blockquote>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a> (non-competing)</h1>
+<div id="pu2" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a> (non-competing)</h1>
 <p>While I wanted to show off this bug, it &quot;only&quot; produces a determinstic answer on the rigged date ~98% of the time, hence it is marked as non-competing.</p>
 
 <pre class="lang-javascript prettyprint-override"><code>function powerball(date) {
@@ -121,7 +166,7 @@ lottery('2025-07-16');
  The rigged date is only 98% deterministic because there is small chance the NaN bug never gets hit after <code>1e9</code> iterations.</p>
 </blockquote>
 </div>
-<div id="pu2" class="pu"><h1>C</h1>
+<div id="pu3" class="pu"><h1>C</h1>
 <pre class="lang-c prettyprint-override"><code>#include &lt;stdio.h&gt;
 #include &lt;time.h&gt;
 #include &lt;stdlib.h&gt;
@@ -219,51 +264,6 @@ int main(int argc, char* argv[]) {
 <p>How it works</p>
 <blockquote class="spoiler">
 <p> there are two or three bugs working together here. firstly, <code>divisible_by</code> incorrectly claims that zero isn't divisible by anything. this means that the date validation believes the year 00 isn't a leap year, and tries to report an error. in doing so it overwrites the randomly generated values of the balls with the ascii values of the last six characters of the error message, because the buffer passed to <code>date_string()</code> is only just long enough to store a correctly formatted date and the values of the balls are stored immediately after that buffer in memory. this buffer overflow isn't a problem for the other error reports because generally if <code>date_string()</code> fails to validate the given date values then it returns 0 and the values of the balls aren't used, but the branch of the validation code for february 29th on a non-leap year is missing the return statement present in the other error branches, allowing the function to continue to format the date and return 1. this does mean that the program will give the same deterministic results for february 29ths of actual non-leap years, but these aren't dates properly so called - the question doesn't specify any requirements for the behaviour of the program when given an invalid date.</p>
-</blockquote>
-</div>
-<div id="pu3" class="pu"><h1>Javascript</h1>
-<pre class="lang-js prettyprint-override"><code>// Pseudo random number generator
-function mulberry32(a) {
-  const p1 = 1667;
-  const p2 = 3037;
-  a = Math.round(Math.random() * Number.MAX_SAFE_INTEGER * (a % p2 + a % p1)) + 18055129; // Randomise seed
-  return function () {
-    a |= 0;
-    a = a + 0x6D2B79F5 | 0;
-    let t = Math.imul(a ^ (a &gt;&gt;&gt; 15), 1 | a);
-    t ^= t + Math.imul(t ^ (t &gt;&gt;&gt; 7), 61 | t);
-    return ((t ^ (t &gt;&gt;&gt; 14)) &gt;&gt;&gt; 0) / 4294967296;
-  };
-}
-function runLottery(date) {
-  const iso = new Date(date).toISOString().slice(0, 10);
-  const rand = mulberry32(Number(iso.replace(/\D/g, '')));
-  // Use a set to avoid numbers picked multiple times
-  const balls = new Set();
-
-  while (balls.size &lt; 5) {
-    balls.add(1 + Math.floor(rand() * 69));
-  }
-
-  const powerball = 1 + Math.floor(rand() * 26);
-
-  console.log(`[${iso}] And today's numbers are: ${[...balls].join(', ')}, and the powerball: ${powerball}.`);
-}
-
-// Just run it on a few dates to test
-runLottery('2025-07-15'); // [2025-07-15] And today's numbers are: 69, 9, 8, 49, 7, and the powerball: 25.
-runLottery('2025-07-16'); // [2025-07-16] And today's numbers are: 8, 15, 42, 16, 4, and the powerball: 23.
-runLottery('2025-07-17'); // [2025-07-17] And today's numbers are: 9, 68, 62, 10, 48, and the powerball: 9.
-</code></pre>
-<p><a href="https://jsfiddle.net/2hdy8z5e/" rel="noreferrer">Try it online</a></p>
-<blockquote class="spoiler">
-<p> The rigged date is 2025-07-16 and will always output 8, 15, 42, 16, 4, and 23.</p>
-</blockquote>
-<p>I couldn't get the rigged numbers in order without breaking the rules, but bonus points if you can recognise where they come from.</p>
-<p>Any other date will output pseudo random numbers.</p>
-<p>I won't yet post the explanation; if anyone wants to take a crack at how it works in the comments go ahead.</p>
-<blockquote class="spoiler">
-<p> Hint: I used primes and a special offset to get my desired numbers.</p>
 </blockquote>
 </div>
 <div id="pu4" class="pu"><h1><a href="https://docs.python.org/3/" rel="noreferrer">Python 3</a></h1>
