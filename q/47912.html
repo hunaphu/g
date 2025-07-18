@@ -26,13 +26,63 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>131</td><td>Python 2.7</td><td>150318T223640Z</td><td><a href="https://codegolf.stackexchange.com/questions/47912/calculate-%cf%80-with-quadratic-convergence/47960#47960">primo</a></td></tr>
-<tr d-ix="1"><td>043</td><td>bc and Newton's method</td><td>150319T194904Z</td><td><a href="https://codegolf.stackexchange.com/questions/47912/calculate-%cf%80-with-quadratic-convergence/47995#47995">Niklaus </a></td></tr>
-<tr d-ix="2"><td>156</td><td>R</td><td>150317T163556Z</td><td><a href="https://codegolf.stackexchange.com/questions/47912/calculate-%cf%80-with-quadratic-convergence/47914#47914">Alex A.</a></td></tr>
-<tr d-ix="3"><td>099</td><td>dc</td><td>150317T174836Z</td><td><a href="https://codegolf.stackexchange.com/questions/47912/calculate-%cf%80-with-quadratic-convergence/47921#47921">Digital </a></td></tr>
+<tr d-ix="0"><td>099</td><td>dc</td><td>150317T174836Z</td><td><a href="https://codegolf.stackexchange.com/questions/47912/calculate-%cf%80-with-quadratic-convergence/47921#47921">Digital </a></td></tr>
+<tr d-ix="1"><td>131</td><td>Python 2.7</td><td>150318T223640Z</td><td><a href="https://codegolf.stackexchange.com/questions/47912/calculate-%cf%80-with-quadratic-convergence/47960#47960">primo</a></td></tr>
+<tr d-ix="2"><td>043</td><td>bc and Newton's method</td><td>150319T194904Z</td><td><a href="https://codegolf.stackexchange.com/questions/47912/calculate-%cf%80-with-quadratic-convergence/47995#47995">Niklaus </a></td></tr>
+<tr d-ix="3"><td>156</td><td>R</td><td>150317T163556Z</td><td><a href="https://codegolf.stackexchange.com/questions/47912/calculate-%cf%80-with-quadratic-convergence/47914#47914">Alex A.</a></td></tr>
 <tr d-ix="4"><td>214</td><td>Python 2</td><td>150317T191553Z</td><td><a href="https://codegolf.stackexchange.com/questions/47912/calculate-%cf%80-with-quadratic-convergence/47925#47925">Logic Kn</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h2>Python (2.7) - 131 bytes</h2>
+<div id="pu0" class="pu"><h1>dc, 99 bytes</h1>
+<p>Golfed:</p>
+<pre><code>2?dsi1+^k1dddsa2v/sb4/stsp[lalb*vlalb+2/dla-d*lp*ltr-stsasblp2*spli1-dsi0&lt;m]dsmxK2/1-klalb+d*4lt*/p
+</code></pre>
+<p><a href="https://tio.run/##HYxBCsMwDAT/o2BkiRwLfUCfEFKws5cQGURlQn/vprnMZZjBNoY@EbtM70MARNGTo84cPXyxYpXOPydlWEkgc7L@SZcuUc2Vwm2XdC3yo62I9n0pSzruCDRbJ/YxJP8A" rel="nofollow noreferrer" title="dc – Try It Online">Try it online!</a></p>
+<p>With whitespace and comments for &quot;readability&quot;:</p>
+<pre><code>2?dsi               # Push 2. push input n, duplicate and store in i
+1+^k                # Set calculation precision to 2^(n+1)
+1dddsa              # Push four 1s. Store 1st in a
+2v/sb               # Store 1/sqrt(2) in b
+4/st                # Store 1/4 in t
+sp                  # Store 1 in p
+[                   # Start iteration loop macro
+lalb*v              # Save sqrt(a*b) on stack
+lalb+2/d            # Save a[i+1] = (a[i]+b[i])/2 on stack and duplicate
+la-d*lp*ltr-        # Save t-p(a[i]-a[i+1])^2 on the stack
+st                  # Store t result from stack
+sa                  # Store a result from stack
+sb                  # Store b result from stack
+lp2*sp              # Store 2p in p
+li1-dsi0&lt;m]         # Decrement iteration counter i; recurse into macro if &lt; 0
+dsmx                # Duplicate, store and run macro
+K2/1-k              # Set display precision to 2^n-1
+lalb+d*4lt*/        # Save (a+b)^2/4t on stack
+p                   # Print result
+</code></pre>
+<p><code>dc</code> needs to be told how many digits of precision should be used.  The calculation precision needs to be higher than the final display precision, so the calculation precision is set to be <code>2^(n+1)</code> digits.  I have verified the accuracy of the output with n=10 against <a href="http://www.angio.net/pi/digits/pi1000000.txt" rel="nofollow noreferrer">http://www.angio.net/pi/digits/pi1000000.txt</a>.</p>
+<p>This slows down dramatically for larger n; n=12 takes 1.5 mins on my VM.  Running a few different samples shows the time complexity is O(e^n) (not surprising).  Extrapolating this to n=20 would have a runtime of 233 days.  Oh well.  Better than heat-death-of-the-universe at least.</p>
+<p>This is moderately golfed - the stack is used to eliminate temporary variables during the calculations of each iteration, but there is possibly more use of the stack to shorten this more.</p>
+<pre><code>$ dc glpi.dc &lt;&lt;&lt; 1
+3.1
+$ dc glpi.dc &lt;&lt;&lt; 2
+3.141
+$ dc glpi.dc &lt;&lt;&lt; 5
+3.1415926535897932384626433832795
+$ time dc glpi.dc &lt;&lt;&lt; 7
+3.1415926535897932384626433832795028841971693993751058209749445923078\
+164062862089986280348253421170679821480865132823066470938446
+
+real    0m0.048s
+user    0m0.039s
+sys 0m0.000s
+$ 
+</code></pre>
+<p>If you don't like <code>dc</code> wrapping output at 70 chars, you can set the environment variable <code>DC_LINE_LENGTH</code> to 0:</p>
+<pre><code>$ DC_LINE_LENGTH=0 dc glpi.dc &lt;&lt;&lt; 8
+3.141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067982148086513282306647093844609550582231725359408128481117450284102701938521105559644622948954930381964428810975665933446128475648233786783165271201909145648
+$ 
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h2>Python (2.7) - 131 bytes</h2>
 
 <pre class="lang-python prettyprint-override"><code>from gmpy import*
 n=input()
@@ -71,7 +121,7 @@ $ echo 10 | python pi-borwein.py
 3.141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067982148086513282306647093844609550582231725359408128481117450284102701938521105559644622948954930381964428810975665933446128475648233786783165271201909145648566923460348610454326648213393607260249141273724587006606315588174881520920962829254091715364367892590360011330530548820466521384146951941511609433057270365759591953092186117381932611793105118548074462379962749567351885752724891227938183011949129833673362440656643086021394946395224737190702179860943702770539217176293176752384674818467669405132000568127145263560827785771342757789609173637178721468440901224953430146549585371050792279689258923542019956112129021960864034418159813629774771309960518707211349999998372978049951059731732816096318595024459455346908302642522308253344685035261931188171010003137838752886587533208381420617177669147303598253490428755468731159562863882353787593751957781857780532171226806613001927876611195909216420198938095257201065485863278
 </code></pre>
 </div>
-<div id="pu1" class="pu"><h1>bc and Newton's method, 43 bytes</h1>
+<div id="pu2" class="pu"><h1>bc and Newton's method, 43 bytes</h1>
 <p><a href="http://en.wikipedia.org/wiki/Newton%27s_method" rel="nofollow noreferrer">Newton's method</a> for finding zeros of any function converges quadratically and the algorithm is way simpler than for Gauss-Legendre. It basically boils down to:</p>
 <p><img src="https://i.sstatic.net/kddwx.png" alt="xnew = xold - f(xold)/f'(xold)" /></p>
 <p>So here goes the according snippet:</p>
@@ -95,7 +145,7 @@ while(n--)
 </code></pre>
 <p>To test this, run <code>bc -l</code> in a shell and paste the above snippet. Be prepared to wait for a while; <code>n=20</code> has been running for about 5min now and no end in sight, yet. <code>n=10</code> takes about 40s.</p>
 </div>
-<div id="pu2" class="pu"><h1>R, 156 bytes</h1>
+<div id="pu3" class="pu"><h1>R, 156 bytes</h1>
 
 
 
@@ -148,55 +198,6 @@ cat(Rmpfr::format(o, 2^i))
 <hr>
 
 <p>I had to rewrite a lot of this but I still have to acknowledge that Peter Taylor helped me knock <em>70 bytes</em> off of my first score. In the words of DigitalTrauma, "boom."</p>
-</div>
-<div id="pu3" class="pu"><h1>dc, 99 bytes</h1>
-<p>Golfed:</p>
-<pre><code>2?dsi1+^k1dddsa2v/sb4/stsp[lalb*vlalb+2/dla-d*lp*ltr-stsasblp2*spli1-dsi0&lt;m]dsmxK2/1-klalb+d*4lt*/p
-</code></pre>
-<p>With whitespace and comments for &quot;readability&quot;:</p>
-<pre><code>2?dsi               # Push 2. push input n, duplicate and store in i
-1+^k                # Set calculation precision to 2^(n+1)
-1dddsa              # Push four 1s. Store 1st in a
-2v/sb               # Store 1/sqrt(2) in b
-4/st                # Store 1/4 in t
-sp                  # Store 1 in p
-[                   # Start iteration loop macro
-lalb*v              # Save sqrt(a*b) on stack
-lalb+2/d            # Save a[i+1] = (a[i]+b[i])/2 on stack and duplicate
-la-d*lp*ltr-        # Save t-p(a[i]-a[i+1])^2 on the stack
-st                  # Store t result from stack
-sa                  # Store a result from stack
-sb                  # Store b result from stack
-lp2*sp              # Store 2p in p
-li1-dsi0&lt;m]         # Decrement iteration counter i; recurse into macro if &lt; 0
-dsmx                # Duplicate, store and run macro
-K2/1-k              # Set display precision to 2^n-1
-lalb+d*4lt*/        # Save (a+b)^2/4t on stack
-p                   # Print result
-</code></pre>
-<p><code>dc</code> needs to be told how many digits of precision should be used.  The calculation precision needs to be higher than the final display precision, so the calculation precision is set to be <code>2^(n+1)</code> digits.  I have verified the accuracy of the output with n=10 against <a href="http://www.angio.net/pi/digits/pi1000000.txt" rel="noreferrer">http://www.angio.net/pi/digits/pi1000000.txt</a>.</p>
-<p>This slows down dramatically for larger n; n=12 takes 1.5 mins on my VM.  Running a few different samples shows the time complexity is O(e^n) (not surprising).  Extrapolating this to n=20 would have a runtime of 233 days.  Oh well.  Better than heat-death-of-the-universe at least.</p>
-<p>This is moderately golfed - the stack is used to eliminate temporary variables during the calculations of each iteration, but there is possibly more use of the stack to shorten this more.</p>
-<pre><code>$ dc glpi.dc &lt;&lt;&lt; 1
-3.1
-$ dc glpi.dc &lt;&lt;&lt; 2
-3.141
-$ dc glpi.dc &lt;&lt;&lt; 5
-3.1415926535897932384626433832795
-$ time dc glpi.dc &lt;&lt;&lt; 7
-3.1415926535897932384626433832795028841971693993751058209749445923078\
-164062862089986280348253421170679821480865132823066470938446
-
-real    0m0.048s
-user    0m0.039s
-sys 0m0.000s
-$ 
-</code></pre>
-<p>If you don't like <code>dc</code> wrapping output at 70 chars, you can set the environment variable <code>DC_LINE_LENGTH</code> to 0:</p>
-<pre><code>$ DC_LINE_LENGTH=0 dc glpi.dc &lt;&lt;&lt; 8
-3.141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067982148086513282306647093844609550582231725359408128481117450284102701938521105559644622948954930381964428810975665933446128475648233786783165271201909145648
-$ 
-</code></pre>
 </div>
 <div id="pu4" class="pu"><h1>Python 2, 214 bytes</h1>
 
