@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::27041</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>nan</td><td>If you can create your own data</td><td>160105T063322Z</td><td><a href="https://codegolf.stackexchange.com/questions/27041/pathological-sorting/68596#68596">Dave P.</a></td></tr>
+<tr d-ix="1"><td>101</td><td>It's been a pretty long time</td><td>140514T194547Z</td><td><a href="https://codegolf.stackexchange.com/questions/27041/pathological-sorting/27053#27053">Tal</a></td></tr>
+</table>
+<div id="pu0" class="pu"><p>If you can create your own data, then it's pretty straightforward - get data that looks random, but includes a key for faster sorting. All other data uses the original sorting method, so the <em>average</em> times are better.</p>
+
+<p>One easy way is to make sure each data item has a unique key, and then just hash the keys. Take for example a list with the numbers from 1-10,000, all multiplied by 16, and with a random number from 0-15 added to it (see <strong>fillArray()</strong> below). They will look random, but each one has a unique sequential key. For sorting, divide by 16 (in C the >>4 is very fast) and then just place the number into an array using the resulting key as the index. One pass and you're done. In testing, I found quicksort was 30 times slower on ten million numbers.</p>
+
+<pre><code>void fillArray(int *a,int len)
+{
+  for (int i=0;i&lt;len;++i)
+    a[i]=(i&lt;&lt;4)|(rand()&amp;0xF);
+  // shuffle later
+}
+void sortArray(int *a,int len)
+{
+  int key=0;
+  int *r=new int[len];
+  for (int i=0;i&lt;len;++i)
+  {
+    key=a[i]&gt;&gt;4;
+    r[key]=a[i];
+  }
+  memcpy(a,r,len*sizeof(int));
+  delete[] r;
+}
+void shuffleArray(int *a,int len)
+{
+  int swap=0, k=0;
+  for (int i=0;i&lt;len;++i)
+  {
+    k=rand()%len;
+    swap=a[k];
+    a[k]=a[i];
+    a[i]=swap;
+  }
+}
+int qCompare(const void*a,const void*b)
+{
+  int result=*((int*)a)-*((int*)b);
+  return result;
+}
+void main()
+{
+  int aLen=10000;
+  int *a=new int[aLen];
+  srand (time(NULL));
+  fillArray(a,aLen);
+  // time them
+  long t0=0, d0=0, d1=0;
+  // qsort
+  shuffleArray(a,aLen);
+  t0=::GetTickCount();
+  qsort(a,aLen,sizeof(int),&amp;qCompare);
+  d0=::GetTickCount()-t0;
+  // oursort
+  shuffleArray(a,aLen);
+  t0=::GetTickCount();
+  sortArray(a,aLen);
+  d1=::GetTickCount()-t0;
+  delete[] a;
+}
+</code></pre>
+
+<p>Anything that has a unique key can be sorted this way - if you have the memory to store it, of course. For example, many databases use a unique numeric customer id - if the list is small/sequential enough this could be held in memory. Or some other way to translate a record into a unique number. For more info, research Hash Sorts, since that's what this is...</p>
+</div>
+<div id="pu1" class="pu"><p>It's been a pretty long time, but I remember back in Algorithms 101 we were taught some sorting algorithm that used randomization. I wasn't a very good student so I don't really remember how it went or why it worked quickly on average.</p>
+
+<p>Nevertheless, I've decided that this problem calls for a solution that uses randomization, which will hopefully work in my favor on average.</p>
+
+<pre><code>import random
+
+def arrayIsSorted (arr) :
+    for i in range(len(arr)-1) :
+        if arr[i]&gt;arr[i+1] : return False
+    return True
+
+def rSort (arr) :
+    random.seed (42)
+    counter = 0
+    while not arrayIsSorted(arr) :
+        random.shuffle (arr)
+        counter+=1
+    print ("Sorted in %d iterations." % counter)
+    return arr
+</code></pre>
+
+<p>Since true randomization is important, I make sure to seed the RNG with the answer to Life, the Universe and Everything. After a bit of testing it turns out that that was a smart move! Check out how fast these 2 completely arbitrary lists get sorted:</p>
+
+<pre><code>rSort ([6,1,4,2,3,7,5])
+rSort ([8,9,6,1,4,7,2,3,5])
+</code></pre>
+
+<p>Both of these get sorted in only 1 iteration - you couldn't possibly ask for a faster function than that!</p>
+
+<p>Now, admittedly, some other lists produce slightly worse results...</p>
+
+<pre><code>rSort ([5,1,4,2,3,7,6])
+rSort ([8,9,6,1,4,7,2,5,3])
+</code></pre>
+
+<p>These get sorted in 4,176 and 94,523 iterations respectively, which actually takes more than a second... but let's just keep that fact to ourselves so as not to distract anyone from how amazing this algorithm is!</p>
+
+<p>Edit:</p>
+
+<p>I've been asked to prove my algorithm's efficiency on a list of 100 items, so here you go:</p>
+
+<pre><code>rSort ([70, 6, 52, 97, 85, 61, 62, 48, 30, 3, 11, 88, 39, 91, 98, 8, 54, 92, 44, 65, 69, 21, 58, 41, 60, 76, 27, 82, 93, 81, 20, 94, 22, 29, 49, 95, 40, 19, 55, 42, 43, 1, 0, 67, 35, 15, 51, 31, 16, 25, 5, 53, 37, 74, 86, 12, 13, 72, 56, 32, 47, 46, 59, 33, 80, 4, 45, 63, 57, 89, 7, 77, 14, 10, 34, 87, 18, 79, 9, 66, 24, 99, 64, 26, 78, 38, 90, 28, 83, 75, 68, 2, 17, 73, 96, 71, 23, 84, 36, 50])
+</code></pre>
+
+<p>Even this long and completely arbitrary list gets sorted instantly! Truly I must have stumbled upon the best sorting algorithm in the world!</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/27041/">27041</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
