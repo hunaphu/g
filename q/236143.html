@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::236143</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>1058</td><td>Lean 4 noncompeting</td><td>250720T062425Z</td><td><a href="https://codegolf.stackexchange.com/questions/236143/lean-golf-balanced-bracket-sequence/282711#282711">Command </a></td></tr>
+</table>
+<div id="pu0" class="pu"><h2><a href="https://lean-lang.org/" rel="nofollow noreferrer">Lean 4</a> (non-competing), 1058 bytes</h2>
+<p>This is non-competing due to using Lean 4, instead of Lean 3 as required in the question. Specifically this utilizes the builtin <code>grind</code> tactic a lot, which was only released at the beginning of this month. I am not counting the size of the formalized statement in the byte count, only stuff I added (and the <code>import Mathlib</code> line).</p>
+<pre class="lang-none prettyprint-override"><code>import Mathlib
+
+inductive bracket_t
+| left
+| right
+
+inductive balanced : List bracket_t → Prop
+| empty : balanced []
+| wrap (initial : List bracket_t) : balanced initial → balanced ([bracket_t.left] ++ initial ++ [bracket_t.right])
+| append (initial1 initial2 : List bracket_t) : balanced initial1 → balanced initial2 → balanced (initial1 ++ initial2)
+
+def balance_factor : ∀ length : ℕ, ∀ string : List bracket_t, ℤ
+| 0, _ =&gt; 0
+| _, [] =&gt; 0
+| n + 1, bracket_t.left::rest =&gt; 1 + balance_factor n rest
+| n + 1, bracket_t.right::rest =&gt; -1 + balance_factor n rest
+
+def balance_factor_predicate (string : List bracket_t) := balance_factor string.length string = 0 ∧ ∀ n : ℕ, n &lt; string.length → 0 ≤ balance_factor n string
+
+attribute [grind,simp] balance_factor balance_factor_predicate
+macro &quot;g&quot;:tactic=&gt;`(tactic|first|grind|simp_all)
+@[simp,grind]
+theorem A:∀n≤a.length,balance_factor n (a++b)=balance_factor n a:=by
+induction' a with a
+g
+rintro(_|_)&lt;;&gt;cases a&lt;;&gt;g
+@[simp,grind]
+lemma B:∀n&gt;a.length,balance_factor n (a++b)=balance_factor a.length a+balance_factor (n-a.length) b:=by
+induction' a with a
+g
+rintro(_|_)&lt;;&gt;cases a&lt;;&gt;g
+lemma X (string : List bracket_t) : balanced string ↔ balance_factor_predicate string :=
+⟨λh↦by induction h;g;simp_all;rintro(_|_)_&lt;;&gt;g;g,λh↦by
+by_cases H:∃n&lt;string.length,0&lt;n∧balance_factor n string=0
+obtain⟨n,o,t⟩:=H
+obtain⟨a,b,rfl,rfl⟩:∃a b,a++b=_∧a.length=n:= ⟨_,_,string.take_append_drop n,by g⟩
+simp at o h
+apply balanced.append&lt;;&gt;(rw[X];g;intro n;have:=h.2 n;have:=h.2 (a.length + n);g)
+rcases string with _|⟨a,b⟩&lt;;&gt;simp_all[balanced.empty]
+have:0≤balance_factor 1 (a::b):=by g
+cases a&lt;;&gt;g
+cases b using List.reverseRecOn&lt;;&gt;g
+rename_i b a
+cases a
+have:=h.2 (b.length+1)
+g
+apply balanced.wrap
+rw [X]
+g
+intro n
+have:=h.2 (n+1)
+g⟩
+termination_by string.length
+decreasing_by
+g;g;g
+</code></pre>
+<p><a href="https://live.lean-lang.org/#codez=JYWwDg9gTgLgBAWQIYwBYBtgCMBQPgB2AJgK4DGMwAbgKZxZRJkDWNMA+jDgD5zo0AzLryjAA5qi75i5SrXpJ0SAmRpE4ALjgAZYAGd4DJqw7xASYRwAClAhgecGuBgBPTQqUq1cANoBdewDujGBwABSEwJSKbroG9IwsbJwAlG5Yisqq6hFR6HAW6R5ZYd5GiaYAdPxCvnAA1HVwOcDRDT5lJpwVohIwvsn2SGBgNMRhzYoAjE0EkS3oAEwx+oYJnTCpWoWZXhPo0wUZntmzuUuHRV7hp/PTbXsLAzhEgu477AJMMNBugABEfKMxGg3IBUQgANHB/gZRAQxMs4h0kjAIYASQnsAAYIew4ABeAB8cHR9nYEL8uIJRN4BHqcEmEMRlWqMA0GigNDi+NpNO2ng+Xx+1LZBns1MadPixiR3XEkhZQvgnIAtHc3rzPhQBXB5XgXgJVao+RqoOwwGyiMAyCg6KFoYQ4VpYqtJaZNjj9TRDd8oHBbbCqoDgb64W70XBAOREkLg1K04KjcAAPD6YDCxP7YcCLKHACZE7s9mqDeBQyewJBgdG8YhhRDBelAYFqPIN6q9ueb0BNZotVpwICYNjgACIxAONDAvhb8QADUJjigW7gCYBQAzcSuEIjcWvgdiKdADAAC3i3YDBa+I/jQNGgjjgAEENL8CFmkGmgagwY2PW3vdTQkgGlgyQ4p+eY/nASAaMBzjSKQc4QAQADk4FwAEkSoOBOBiDgMLJhAoTsNw7DJPGADceKWno7LgaReJYYex6nlW/j8CAvZwAAQg+BB4i+/Dpu+IHfnGf4AUBgn8t6vEBuh/7iUaYQEIqUn8akWCQVg0HrrIwDwUhSAoWhGFYThNj4YRxFkRRVFIDRWEsWxAAaYRBvCTrlCkaRHMULmACmErYSR2ahdmWSYppoOI4IAF+SAN3AqCAGWEGkzLBlDwXAqAkWIJHHju6DoCRJl4QRRHsLZGVgrFCXQRp7BWXocAABIaIAwEQEPGQavmgYLovGBBhnJLbUkGOJEhAWBjoQkUEGCEBgjAgCX5JB9U4KN40EJFSAfmCUACOgW07QtTX6VgYL/nUWA4uwYbKW+OIEJBcCRSSJLtWOrA7sMoxEOwRA2CEU2JWIc04Me4HwBAaU4EMYDoK4n5EBUUOfTRoRQAE3gOb4GUkYQuFRiRqBILQkGoBUSwEPjhM0MTpNhNdwKNAQyQZQMUC1aFdoGcCBHrR+c00dlu6lF5agVI4YAuP4BNE+iWb9T80x/iygHqa4WFszZZFq0glF1VgcAkLWsI6Cs3Q0LQy40AASjQZAAPKtZr2GjEgIAesA9AYerOBS1TOIk0soRYB1qB1JMAxYVDMPuvDQRDNhAQ+BjmHSLjBDe5T1MBwQofh0DZZQCAhAoDpBDsIl7V8W+zw22y2t2mX0GZU3QA" rel="nofollow noreferrer">Try it online!</a></p>
+<h3>Ungolfed:</h3>
+<pre class="lang-none prettyprint-override"><code>import Mathlib
+
+inductive bracket_t
+| left
+| right
+
+inductive balanced : List bracket_t → Prop
+| empty : balanced []
+| wrap (initial : List bracket_t) : balanced initial → balanced ([bracket_t.left] ++ initial ++ [bracket_t.right])
+| append (initial1 initial2 : List bracket_t) : balanced initial1 → balanced initial2 → balanced (initial1 ++ initial2)
+
+def balance_factor : ℕ → List bracket_t → ℤ
+| 0, _ =&gt; 0
+| _, [] =&gt; 0
+| n + 1, bracket_t.left::rest =&gt; 1 + balance_factor n rest
+| n + 1, bracket_t.right::rest =&gt; -1 + balance_factor n rest
+
+def balance_factor_predicate (string : List bracket_t) := balance_factor string.length string = 0 ∧ ∀ n : ℕ, n &lt; string.length → 0 ≤ balance_factor n string
+
+attribute [grind,simp] balance_factor balance_factor_predicate
+
+@[simp,grind]
+lemma balance_factor_of_le  : ∀ n ≤ a.length, balance_factor n (a ++ b) = balance_factor n a := by
+  induction' a with a _
+  · simp
+  · rintro (_|_) &lt;;&gt; cases a &lt;;&gt; grind
+
+@[simp,grind]
+lemma balance_factor_of_lt : ∀ n &gt; a.length, balance_factor n (a ++ b) = balance_factor a.length a + balance_factor (n - a.length) b := by
+  induction' a with a _
+  · simp
+  · rintro (_|_) &lt;;&gt; cases a &lt;;&gt; grind
+
+lemma X (string : List bracket_t) : balanced string ↔ balance_factor_predicate string := by
+  constructor &lt;;&gt; intro h
+  · induction h
+    · grind
+    · simp_all
+      rintro (_|_) _ &lt;;&gt; grind
+    · grind
+  · by_cases hs : ∃ n &lt; string.length, 0 &lt; n ∧ balance_factor n string = 0
+    · obtain ⟨n, h1, h2⟩ := hs
+      obtain ⟨a, b, rfl, rfl⟩ : ∃ a b, a ++ b = string ∧ a.length = n := ⟨_, _, string.take_append_drop n, by grind⟩
+      simp at h1
+      apply balanced.append &lt;;&gt; rw [X]
+      · simp at h
+        simp_all
+        intro n
+        have := h.2 n
+        grind
+      · simp at h
+        simp_all
+        intro n
+        have := h.2 (a.length + n)
+        grind
+    · rcases string with _|⟨a,b⟩ &lt;;&gt; simp_all [balanced.empty]
+      have : 0 ≤ balance_factor 1 (a :: b) := by grind
+      cases a &lt;;&gt; simp_all
+      cases b using List.reverseRecOn &lt;;&gt; simp_all [-List.cons_append_fun, ← List.cons_append]
+      rename_i b a
+      cases a
+      · have := h.2 (b.length + 1) (by grind)
+        grind
+      · apply balanced.wrap
+        rw [X]
+        simp_all
+        intro n _
+        have := h.2 (n + 1) (by grind)
+        grind
+termination_by string.length
+decreasing_by
+  all_goals grind
+</code></pre>
+<p><a href="https://live.lean-lang.org/#codez=JYWwDg9gTgLgBAWQIYwBYBtgCMBQPgB2AJgK4DGMwAbgKZxZRJkDWNMA+jDgD5zo0AzLryjAA5qi75i5SrXpJ0SAmRpE4ALjgAZYAGd4DJqw7xASYRwAClAhgecGuBgBPTQqUq1cANoBdewDujGBwABSEwJSKbroG9IwsbJwAlG5Yisqq6hFR6HAW6R5ZYd5GiaYAdPxCvnAA1HVwOcDRDT5lJpwVohIwvsn2SGBgNMRhzYoAjE0EkS3oAEwx+oYJnTCpWoWZXhPo0wUZntmzuUuHRV7hp/PTbXsLAzhEgu477AJMMNBugKiE+ToVvFjElzHBACSE9gADAAaODsOAAXgAfHAofZ2HC/EjUejeAR6nBJnCOqCqoIYBoNFAaHEUUTCdtPB8vj8CTSDPYCY1icDyl0epIqRz4PSALR3N7Mz4UNlwEV4F4CKWqFmyqDsMA0ojAMgoOihAyiAhiZZxUmmTaIlU0NXfKBwI2EMTkk1oR0wY2m61QuCAciI4IAAIjgBK0vzhBIAPB6va6xO6LL7ACZENrtcqdJrwKE92BIMDo3jExqIML0oDAtSZqpl9tTNegmu1uv1eAAAt4y+AYUXCER/PwQCAkHXWRqIAJ2Pw4G5gwSU0g42gSUdq6OQ2Fh20sKlrVXbfWHQThxpd84cNPe7JgBACAByODDgKRVAP+HnuAAdsd5ffX+NnogMJ2G4dhUkjABuVE9T0WlXwg1Ee2INsO3Lbti37RwhxHdV2HHSd4C0Wc4FRBd+DdVBl0uNNDw3epGm3JFsNrUjRnjF9NyYn5QgJMUH0XVBUiwTRT3fS8KGvO9Xyfd1h3YX9v3AeT/xsICQLAyC4Gg2Dh3guBEKIPABywgANMIM1NLRYlWEFLTSFcvHMuBABTCTiNS1NRm3zGNnWE+gz2nMgbyNWQfl0wgALgVB5LEygb0i99py/fSEs/BSwHYRR0BS6dlMA0JgNA+E4F05Lp0SvTi3krBnHYLS9Ei+qtEAYCJ12jcz+LhX1owJAM92o9dHJ9FKvwgLAYCQQg4EAC/ICDhVBeVQBZAEvyXzUD0bK4FG8bJqmpASThKABHQA6jpW5rXywOFN3oxjHIDFjyMY0NrSmzF4ThdrxtYDLhlGIh2CIGwQlmvyKt7JaNs7EIUEiyYNqGMB0FcPciAqBG/uKjSoACHxjP8Mqyq/KGH3gKKCYJqGMvQLLybK8KVIIDbp1QJB5BPSKKiWRnaenUryaJ8sSfinm0qpmmefpwDuZ5lm2etVBOY3fjCQIAYRb58qoDq7yTTgaSX2A3aYSwFbdMpzL2ns1HHDAFx8fJ2W6C0ZNXIZUJjy2K1QY1srtZ0jTzepjbtaEkgy11qzuhoWgoBggAlGgyAAeSjAPyzFnwxUjwKCD0H6RmID4SBBwAEwkBAwKhzvP0eIe2CZpAgkBAW1gHoB9g6QGD6qQDav0d1bFdCLBlZ5VIh9cfS1Z5n3yoRpGbVRoIhiZ+Uce8PGV8D8Xacl9c5JF/v2YVpZuMJSYx+qsHiCn2nkvzKAQEIFAJPYS/2rItjnkTmlO+dV//IfNTdgYgICKHqvpIAA" rel="nofollow noreferrer">Try it online!</a></p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/236143/">236143</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
