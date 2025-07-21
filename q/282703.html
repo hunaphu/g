@@ -26,12 +26,69 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>018</td><td>Jelly</td><td>250720T172339Z</td><td><a href="https://codegolf.stackexchange.com/questions/282703/output-shortest-string-containing-all-input-strings/282717#282717">Jonathan</a></td></tr>
-<tr d-ix="1"><td>383</td><td>Python3</td><td>250719T160138Z</td><td><a href="https://codegolf.stackexchange.com/questions/282703/output-shortest-string-containing-all-input-strings/282708#282708">Ajax1234</a></td></tr>
-<tr d-ix="2"><td>138</td><td>JavaScript ES6</td><td>250720T001936Z</td><td><a href="https://codegolf.stackexchange.com/questions/282703/output-shortest-string-containing-all-input-strings/282710#282710">Arnauld</a></td></tr>
+<tr d-ix="0"><td>138</td><td>JavaScript ES6</td><td>250720T001936Z</td><td><a href="https://codegolf.stackexchange.com/questions/282703/output-shortest-string-containing-all-input-strings/282710#282710">Arnauld</a></td></tr>
+<tr d-ix="1"><td>018</td><td>Jelly</td><td>250720T172339Z</td><td><a href="https://codegolf.stackexchange.com/questions/282703/output-shortest-string-containing-all-input-strings/282717#282717">Jonathan</a></td></tr>
+<tr d-ix="2"><td>383</td><td>Python3</td><td>250719T160138Z</td><td><a href="https://codegolf.stackexchange.com/questions/282703/output-shortest-string-containing-all-input-strings/282708#282708">Ajax1234</a></td></tr>
 <tr d-ix="3"><td>099</td><td>Charcoal</td><td>250719T210528Z</td><td><a href="https://codegolf.stackexchange.com/questions/282703/output-shortest-string-containing-all-input-strings/282709#282709">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 18 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
+<div id="pu0" class="pu"><h1>JavaScript (ES6), 138 bytes</h1>
+<p>Expects a list of words in title case.</p>
+
+<pre class="lang-javascript prettyprint-override"><code>f=(a,p=o=0)=&gt;a.map(w=&gt;f(a.filter(W=&gt;W!=w),(p+0+w).replace(/(.?(.*))(?:(.*)0\1$|0\1)/i,(_,a,b,c)=&gt;[w[-!a*!c]]+b+[c])))+a||p[o.length]?o:o=p
+</code></pre>
+<p><a href="https://tio.run/##bU9BTsMwELzzi0Yc7CZ1y7WSUzVFiAOIAxUVChHaGCc1OLHlmEZI/XtYN5xQLjMj7czu7CecoBNOWb9ozYcchooTSCw3fEV5CqwBS3qeVgRYpbSXjhx4epjxnibExqu4p8xJq0FIsiRsQ9icUrJZB1693VyfEehSJeQ9gaRMBO7M@3wxg/lMFEVcxrkoKKUxnM82N0zLtvbHYmPWhttBmLYzWjJtalKRPNqZPkqirdaqBm8c6mcJGunJQVt/e2gjXHb1P3anuiOa7qHpsD@qR@VlCB@daiyKW1Mj7sAj7qVrwnhq0ejYBpdplRgz2GTU@3HqJ6OZ/Eu@SPeD9Cq1vnyTSThhqclz2oivDj0PyJOObRkOZwIuVcpwQgTM4FKuhJAafgE" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<h2>Method</h2>
+<p>For each permutation <span class="math-container">\$[w_1,w_2,\dots,w_n]\$</span> of the input list:</p>
+<ul>
+<li>we start with an empty string <span class="math-container">\$p\$</span></li>
+<li>for each word <span class="math-container">\$w_i\$</span>, we do <span class="math-container">\$p\gets p\oplus w_i\$</span></li>
+</ul>
+<p>Where the operator <span class="math-container">\$\oplus\$</span> will either:</p>
+<ul>
+<li><p>If a full occurrence of <span class="math-container">\$w_i\$</span> already exists in <span class="math-container">\$p\$</span> (case insensitive): capitalize the leading letter of <span class="math-container">\$w_i\$</span> in <span class="math-container">\$p\$</span>.</p>
+<p>Example: <span class="math-container">\$``\text{Clocks"}\oplus``\text{Lock"}=``\text{C}\color{red}{\text{L}}\text{ocks"}\$</span></p>
+</li>
+<li><p>If <span class="math-container">\$p\$</span> ends with a prefix of <span class="math-container">\$w_i\$</span> (case insensitive): capitalize the leading letter of <span class="math-container">\$w_i\$</span> in <span class="math-container">\$p\$</span> and append the missing letters.</p>
+<p>Example: <span class="math-container">\$``\text{Fish"}\oplus``\text{Shrimp"}=``\text{Fi}\color{red}{\text{S}}\text{h}\color{red}{\text{rimp"}}\$</span></p>
+</li>
+<li><p>Otherwise: append <span class="math-container">\$w_i\$</span> to <span class="math-container">\$p\$</span> (standard concatenation).</p>
+<p>Example: <span class="math-container">\$``\text{Cat"}\oplus``\text{Dog"}=``\text{Cat}\color{red}{\text{Dog}}\text{"}\$</span></p>
+</li>
+</ul>
+<p>The output is the shortest <span class="math-container">\$p\$</span>.</p>
+<h2>Implementation of <span class="math-container">\$\oplus\$</span></h2>
+<pre class="lang-javascript prettyprint-override"><code>(p + 0 + w)                    // we work on the concatenation of p, &quot;0&quot; and w
+.replace(                      //
+  /(.?(.*))(?:(.*)0\1$|0\1)/i, // /(.?(.*))  capture a reference substring in p
+                               //            with the leading letter apart
+                               // (?:        followed by either:
+                               //   (.*)0\1$ an optional padding string,
+                               //            the separator,
+                               //            the reference substring,
+                               //            the end of the string
+                               //            (i.e. the reference substring is
+                               //            a full occurrence of w)
+                               //   |        or:
+                               //   0\1      the separator,
+                               //            the reference substring
+                               //            (i.e. the reference substring is
+                               //            a suffix of p and a prefix of w)
+                               // )/i        case insensitive
+  (                            //
+    _,                         // the full match is ignored
+    a,                         // a = ref. substring
+    b,                         // b = ref. substring without its leading letter
+    c                          // c = padding string
+  ) =&gt;                         //
+    [w[-!a]] +                 // if a is defined, append the leading letter of w
+                               // (which is capitalized)
+    b +                        // append the other letters of the ref. substring
+    [c]                        // append the padding string
+                               // (or an empty string if undefined)
+)                              //
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 18 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
 <pre><code>FṗⱮL$ṚẎẇ@ⱮÞ⁸ṪŒuwⱮ¦
 </code></pre>
 <p>A (very inefficient!) monadic Link that accepts a non-empty list of non-empty lists of <em>lowercase</em> characters and yields a list of characters.</p>
@@ -58,7 +115,7 @@ F                  - flatten {Words} -&gt; Chars
              Œu    - ...apply: convert to uppercase
 </code></pre>
 </div>
-<div id="pu1" class="pu"><h1>Python3, 383 bytes</h1>
+<div id="pu2" class="pu"><h1>Python3, 383 bytes</h1>
 <pre class="lang-py prettyprint-override"><code>S=str.capitalize
 L=str.lower
 def f(w):
@@ -69,32 +126,6 @@ def f(w):
  return min(r,key=len)
 </code></pre>
 <p><a href="https://tio.run/##fVI9b9swEN31K7iJrM9Ggy6FChbImMBABo@ChqN8sqlQpExRVVwjv909OugHOnghjo/v3Xt34HhOx@C/fB3j9brTU4qbFkeb0NmfVGxvgAsLxWJPnejkoqpCnCDqWu6kVbCsL/ZddSEKK6wXSwN1U4h8RzAZOTFf2E74kISp4krX2Hxrg0/Wz8RPJ0Yk1pV8qfR6wDdpxZ9uEf2BpCMve7V6UNxly1S5toIZGUalqkZp3deVbdRfsFmV5aYP1svH7D1r/TlL5u/6RqhfWEVuInEr67nJljM8ZlPy80ARE/GAvVLsKp8rvc11noEZHOK3upJP@Q3Vxvo9vcnn7L1jh6dGrfhcPVQNmPWl/9hRn@WGFxQpzdGLgRNGeKVzzqWuY7Q@yU5ePpVtWACdswdMIcJE6CDkdcwJfbmZRmeTLKFU70oV/8g6Ox3hiMOUKMJgE8F0jHYYYR8O0GICxjN8p0VmIaTgbZsV@FGljKY7MkOs@kHxDGdy/GPAEPL1npEL7esEt/MODU0LpkXOYgBbAwY5l8H/FNdf" rel="nofollow noreferrer">Try it online!</a></p>
-</div>
-<div id="pu2" class="pu"><h1>JavaScript (ES6), 138 bytes</h1>
-<p>Expects a list of words in title case.</p>
-
-<pre class="lang-javascript prettyprint-override"><code>f=(a,p=o=0)=&gt;a.map(w=&gt;f(a.filter(W=&gt;W!=w),(p+0+w).replace(/(.?(.*))(?:(.*)0\1$|0\1)/i,(_,a,b,c)=&gt;[w[-!a*!c]]+b+[c])))+a||p[o.length]?o:o=p
-</code></pre>
-<p><a href="https://tio.run/##bU9BTsMwELzzi0Yc7CZ1y7WSUzVFiAOIAxUVChHaGCc1OLHlmEZI/XtYN5xQLjMj7czu7CecoBNOWb9ozYcchooTSCw3fEV5CqwBS3qeVgRYpbSXjhx4epjxnibExqu4p8xJq0FIsiRsQ9icUrJZB1693VyfEehSJeQ9gaRMBO7M@3wxg/lMFEVcxrkoKKUxnM82N0zLtvbHYmPWhttBmLYzWjJtalKRPNqZPkqirdaqBm8c6mcJGunJQVt/e2gjXHb1P3anuiOa7qHpsD@qR@VlCB@daiyKW1Mj7sAj7qVrwnhq0ejYBpdplRgz2GTU@3HqJ6OZ/Eu@SPeD9Cq1vnyTSThhqclz2oivDj0PyJOObRkOZwIuVcpwQgTM4FKuhJAafgE" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
-<h2>Method</h2>
-<p>For each permutation <span class="math-container">\$[w_1,w_2,\dots,w_n]\$</span> of the input list:</p>
-<ul>
-<li>we start with an empty string <span class="math-container">\$p\$</span></li>
-<li>for each word <span class="math-container">\$w_i\$</span>, we do <span class="math-container">\$p\gets p\oplus w_i\$</span></li>
-</ul>
-<p>Where the operator <span class="math-container">\$\oplus\$</span> will either:</p>
-<ul>
-<li><p>If a full occurrence of <span class="math-container">\$w_i\$</span> already exists in <span class="math-container">\$p\$</span> (case insensitive): capitalize the leading letter of <span class="math-container">\$w_i\$</span> in <span class="math-container">\$p\$</span>.</p>
-<p>Example: <span class="math-container">\$``\text{Clocks"}\oplus``\text{Lock"}=``\text{C}\color{red}{\text{L}}\text{ocks"}\$</span></p>
-</li>
-<li><p>If <span class="math-container">\$p\$</span> ends with a prefix of <span class="math-container">\$w_i\$</span> (case insensitive): capitalize the leading letter of <span class="math-container">\$w_i\$</span> in <span class="math-container">\$p\$</span> and append the missing letters.</p>
-<p>Example: <span class="math-container">\$``\text{Fish"}\oplus``\text{Shrimp"}=``\text{Fi}\color{red}{\text{S}}\text{h}\color{red}{\text{rimp"}}\$</span></p>
-</li>
-<li><p>Otherwise: append <span class="math-container">\$w_i\$</span> to <span class="math-container">\$p\$</span> (standard concatenation).</p>
-<p>Example: <span class="math-container">\$``\text{Cat"}\oplus``\text{Dog"}=``\text{Cat}\color{red}{\text{Dog}}\text{"}\$</span></p>
-</li>
-</ul>
-<p>The output is the shortest <span class="math-container">\$p\$</span>.</p>
 </div>
 <div id="pu3" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 99 bytes</h1>
 <pre><code>ＷＳ⊞υι≔Συη≔⟦ω⟧θＦθ¿⬤υ№ικＦ‹ＬιＬη≔ιηＦΦυ¬№ικＦＬκＦ²«Ｆ⁼✂⎇μκι⁻Ｌ⎇μκιλＬ⎇μκι¹✂⎇μικ⁰λ¹⊞θ⁺⎇μκι✂⎇μικλ»⭆η⎇⊙υ⁼κ⌕ηλ↥ιι
