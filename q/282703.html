@@ -26,13 +26,37 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>135</td><td>JavaScript ES6</td><td>250720T001936Z</td><td><a href="https://codegolf.stackexchange.com/questions/282703/output-shortest-string-containing-all-input-strings/282710#282710">Arnauld</a></td></tr>
-<tr d-ix="1"><td>019</td><td>05AB1E</td><td>250721T083416Z</td><td><a href="https://codegolf.stackexchange.com/questions/282703/output-shortest-string-containing-all-input-strings/282723#282723">Kevin Cr</a></td></tr>
-<tr d-ix="2"><td>018</td><td>Jelly</td><td>250720T172339Z</td><td><a href="https://codegolf.stackexchange.com/questions/282703/output-shortest-string-containing-all-input-strings/282717#282717">Jonathan</a></td></tr>
-<tr d-ix="3"><td>383</td><td>Python3</td><td>250719T160138Z</td><td><a href="https://codegolf.stackexchange.com/questions/282703/output-shortest-string-containing-all-input-strings/282708#282708">Ajax1234</a></td></tr>
-<tr d-ix="4"><td>099</td><td>Charcoal</td><td>250719T210528Z</td><td><a href="https://codegolf.stackexchange.com/questions/282703/output-shortest-string-containing-all-input-strings/282709#282709">Neil</a></td></tr>
+<tr d-ix="0"><td>194</td><td>jq</td><td>250721T124224Z</td><td><a href="https://codegolf.stackexchange.com/questions/282703/output-shortest-string-containing-all-input-strings/282725#282725">GammaFun</a></td></tr>
+<tr d-ix="1"><td>135</td><td>JavaScript ES6</td><td>250720T001936Z</td><td><a href="https://codegolf.stackexchange.com/questions/282703/output-shortest-string-containing-all-input-strings/282710#282710">Arnauld</a></td></tr>
+<tr d-ix="2"><td>019</td><td>05AB1E</td><td>250721T083416Z</td><td><a href="https://codegolf.stackexchange.com/questions/282703/output-shortest-string-containing-all-input-strings/282723#282723">Kevin Cr</a></td></tr>
+<tr d-ix="3"><td>018</td><td>Jelly</td><td>250720T172339Z</td><td><a href="https://codegolf.stackexchange.com/questions/282703/output-shortest-string-containing-all-input-strings/282717#282717">Jonathan</a></td></tr>
+<tr d-ix="4"><td>383</td><td>Python3</td><td>250719T160138Z</td><td><a href="https://codegolf.stackexchange.com/questions/282703/output-shortest-string-containing-all-input-strings/282708#282708">Ajax1234</a></td></tr>
+<tr d-ix="5"><td>099</td><td>Charcoal</td><td>250719T210528Z</td><td><a href="https://codegolf.stackexchange.com/questions/282703/output-shortest-string-containing-all-input-strings/282709#282709">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>JavaScript (ES6), 135 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://stedolan.github.io/jq/" rel="nofollow noreferrer">jq</a>, 194 bytes</h1>
+<pre><code>def p:.[]as$x|[$x]+(.-[$x]|p//[]);[p|reduce.[]as$x(&quot;&quot;;[.+$x[range(length;-1;-1):]|select(ascii_downcase|contains($x))][0]|sub(&quot;(?&lt;m&gt;\($x))&quot;;($x[:1]|ascii_upcase)+.m[1:];&quot;i&quot;))]|sort_by(length)[0]
+</code></pre>
+<p><a href="https://tio.run/##PY7dboMwDIXv9xRVxEVQV7rewrQ9SBZVTnAhW0gYCSuVeHeWH1TJ0rGPvmP7@3fbWrwdxrpiHFyxrKxY@JFWp6jreD4zXjZsXCdsZ4k7RAlpWHUsFjaB6ZBqNJ3vm9MlVFnz1aFG6Sk4qdS1tXcjweEqrfGgjKPFUpacvQVuFpTQz/fh4yuZpAnC6gtfc3QeY7A8VgO71LwhioTg6uzkr@KxXy3Dom1jRGorfxx5PZDYEP4SLHuPM2itOvB2ioND0FFt/Hz2YBJ5U66Pbg@D85jAQXlMgX5Swxi71nZRJPgoAUtIOpQtSL41Su4cPAe/Ez7xAp/4H06PqA/UOr8rEIKZOBApLCTkhSLFZBIB@YqAjALknfwf" rel="nofollow noreferrer" title="jq – Try It Online">Try it online!</a></p>
+<p>Ungolfed:</p>
+<pre><code>def permutations:
+    .[] as $first | [$first] + (. - [$first] | permutations // []);
+
+[ permutations | reduce .[] as $word (        # for each permutation, fold:
+    &quot;&quot;;                                       # starting with empty string
+    [
+    . + $word[range(length;-1;-1):]           # append &quot;&quot;, &quot;d&quot;, &quot;rd&quot;, &quot;ord&quot;, &quot;word&quot;
+    | select(ascii_downcase|contains($word))  # filter to when the full word appears
+    ][0]                                      # get first (i.e. shortest)
+    | sub(
+        &quot;(?&lt;m&gt;\($word))&quot;;                     # capture word as .m
+        ($word[:1] | ascii_upcase) + .m[1:];  # uppercase first letter
+        &quot;i&quot;                                   # match case insensitively
+    )
+)] | sort_by(length)[0]                       # shortest final string
+</code></pre>
+<p>The inner <code>[ .. ][0]</code> seems like it should be able to be removed, but it can't. This is because <code>reduce</code> iterates with the <em>last</em> object generated, rather than every one.</p>
+</div>
+<div id="pu1" class="pu"><h1>JavaScript (ES6), 135 bytes</h1>
 <p>Expects a list of words in title case.</p>
 
 <pre class="lang-javascript prettyprint-override"><code>f=(a,p=o=0)=&gt;a.map(w=&gt;f(a.filter(W=&gt;W!=w),(p+0+w).replace(/(.?(.*))(?:(.*)0\1$|0\1)/i,(_,a,b,c)=&gt;[w[-!a]]+b+[c])))+a||p[o.length]?o:o=p
@@ -89,7 +113,7 @@
 )                              //
 </code></pre>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, 19 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
+<div id="pu2" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, 19 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
 <pre><code>œJJæé.ΔIåP}ÐIk©èu®ǝ
 </code></pre>
 <p>Based on <a href="https://codegolf.stackexchange.com/a/282717/52210"><em>@JonathanAllan</em>'s Jelly answer</a>, but even slower. 😅</p>
@@ -120,7 +144,7 @@
                  # (after which the result is output implicitly)
 </code></pre>
 </div>
-<div id="pu2" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 18 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
+<div id="pu3" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 18 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
 <pre><code>FṗⱮL$ṚẎẇ@ⱮÞ⁸ṪŒuwⱮ¦
 </code></pre>
 <p>A (very inefficient!) monadic Link that accepts a non-empty list of non-empty lists of <em>lowercase</em> characters and yields a list of characters.</p>
@@ -147,7 +171,7 @@ F                  - flatten {Words} -&gt; Chars
              Œu    - ...apply: convert to uppercase
 </code></pre>
 </div>
-<div id="pu3" class="pu"><h1>Python3, 383 bytes</h1>
+<div id="pu4" class="pu"><h1>Python3, 383 bytes</h1>
 <pre class="lang-py prettyprint-override"><code>S=str.capitalize
 L=str.lower
 def f(w):
@@ -159,7 +183,7 @@ def f(w):
 </code></pre>
 <p><a href="https://tio.run/##fVI9b9swEN31K7iJrM9Ggy6FChbImMBABo@ChqN8sqlQpExRVVwjv909OugHOnghjo/v3Xt34HhOx@C/fB3j9brTU4qbFkeb0NmfVGxvgAsLxWJPnejkoqpCnCDqWu6kVbCsL/ZddSEKK6wXSwN1U4h8RzAZOTFf2E74kISp4krX2Hxrg0/Wz8RPJ0Yk1pV8qfR6wDdpxZ9uEf2BpCMve7V6UNxly1S5toIZGUalqkZp3deVbdRfsFmV5aYP1svH7D1r/TlL5u/6RqhfWEVuInEr67nJljM8ZlPy80ARE/GAvVLsKp8rvc11noEZHOK3upJP@Q3Vxvo9vcnn7L1jh6dGrfhcPVQNmPWl/9hRn@WGFxQpzdGLgRNGeKVzzqWuY7Q@yU5ePpVtWACdswdMIcJE6CDkdcwJfbmZRmeTLKFU70oV/8g6Ox3hiMOUKMJgE8F0jHYYYR8O0GICxjN8p0VmIaTgbZsV@FGljKY7MkOs@kHxDGdy/GPAEPL1npEL7esEt/MODU0LpkXOYgBbAwY5l8H/FNdf" rel="nofollow noreferrer">Try it online!</a></p>
 </div>
-<div id="pu4" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 99 bytes</h1>
+<div id="pu5" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 99 bytes</h1>
 <pre><code>ＷＳ⊞υι≔Συη≔⟦ω⟧θＦθ¿⬤υ№ικＦ‹ＬιＬη≔ιηＦΦυ¬№ικＦＬκＦ²«Ｆ⁼✂⎇μκι⁻Ｌ⎇μκιλＬ⎇μκι¹✂⎇μικ⁰λ¹⊞θ⁺⎇μκι✂⎇μικλ»⭆η⎇⊙υ⁼κ⌕ηλ↥ιι
 </code></pre>
 <p><a href="https://tio.run/##dZFNSwMxEIbP5lfMcQIR1GtPRSwIVgrVk3hI17QJnWZ389GyiL99nWy/0OohIbPzvs@@mVRWh6rW1Pc768gAPvomp3kKzq9QSpjlaDErcHIkxjG6lcd53mCWCuz509vuXUHL9bIOgK0EtwQcExXnfZ19QqdgLZk3CJ5MjLz5VbLomHQ42iI4EN3AB0PR7D0TR8mEAnyuE/6AnqgDZX2s7yR8iqvh@NBmTRHn5CqDLyZ4HTrcsLtcTMHU@XwK9LvNfTpn/KN7y@uCPERTcMPmojhOslUwI/7XZYb/CMTekfgSM36RhPuHmeoGrYKjeOy7MpfDJZk3cf6jCIpXwWvTmFDpaIZZc@RR3y@M0GJrQic6Q1TvxMJoLkV/vaVv" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code. Takes input as a list of newline-terminated lower case strings. Explanation:</p>
