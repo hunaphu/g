@@ -26,33 +26,49 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>120</td><td>Google Sheets</td><td>250722T190513Z</td><td><a href="https://codegolf.stackexchange.com/questions/282742/make-a-mulen%c3%a8re-encryption-program/282743#282743">doubleun</a></td></tr>
-<tr d-ix="1"><td>012</td><td>Jelly</td><td>250722T190627Z</td><td><a href="https://codegolf.stackexchange.com/questions/282742/make-a-mulen%c3%a8re-encryption-program/282745#282745">Jonathan</a></td></tr>
+<tr d-ix="0"><td>012</td><td>Jelly</td><td>250722T190627Z</td><td><a href="https://codegolf.stackexchange.com/questions/282742/make-a-mulen%c3%a8re-encryption-program/282745#282745">Jonathan</a></td></tr>
+<tr d-ix="1"><td>120</td><td>Google Sheets</td><td>250722T190513Z</td><td><a href="https://codegolf.stackexchange.com/questions/282742/make-a-mulen%c3%a8re-encryption-program/282743#282743">doubleun</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Google Sheets, 120 bytes</h1>
-<pre class="lang-none prettyprint-override"><code>=sort(let(s,sequence(len(A2)),d,code(mid(A2,s,1)),k,code(mid(A3,mod(s-1,len(A3))+1,1)),join(,char(if(A1=&quot;e&quot;,d*k,d/k)))))
+<div id="pu0" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 12 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
+<pre><code>O×,:ɗṁ@¥/⁹ịỌ
 </code></pre>
-<p>Put the input in cells <code>A1:A3</code> and the formula in <code>B1</code>.</p>
-<p>If we change identifiers from <code>e</code> and <code>d</code> to <code>1</code> and <code>-1</code> (<strong>100 bytes</strong>):</p>
-<pre class="lang-none prettyprint-override"><code>=sort(let(s,sequence(len(A2)),join(,char(code(mid(A2,s,1))*code(mid(A3,mod(s-1,len(A3))+1,1))^A1))))
+<p>A dyadic Link that accepts a list of two lists of characters, <code>[plaintext/ciphertext, key]</code>, on the left and an integer*, <code>0</code> = encode or <code>1</code> = decode, on the right and yields the result.</p>
+<p>* Really, any even integer will work for encode and any odd integer will work for decode.</p>
+<p><strong><a href="https://tio.run/##y0rNyan8/9//8HQdq5PTH@5sdDi0VP9R486Hu7sf7u75//9/tJIHUEm@ko6Cknt@TppS7H9DAA" rel="nofollow noreferrer" title="Jelly – Try It Online">Encode online!</a></strong></p>
+<p><strong><a href="https://tio.run/##AT4Awf9qZWxsef//T8OXLDrJl@G5gUDCpS/igbnhu4vhu4z///9bIuGPuOKvi@K2kOKsiOG7iSIsICJHb2xmIl3/MA" rel="nofollow noreferrer" title="Jelly – Try It Online">Decode online!</a></strong></p>
+<h4>How?</h4>
+<pre><code>O×,:ɗṁ@¥/⁹ịỌ - Link: [Plaintext/Ciphertext, Key]; Encode/Decode
+O            - convert {[Plaintext/Ciphertext, Key]} to ordinals
+        /    - reduce {that} by:
+       ¥     -   last two links as a dyad
+                 - f(PlainOrdinals/CipherOrdinals, KeyOrdinals):
+      @      -     with swapped arguments:
+     ṁ       -       mould {KeyOrdinals} like {PlainOrdinals/CipherOrdinals}
+    ɗ        -     last three links as a dyad
+                   - f(PlainOrdinals/CipherOrdinals, MouldedKeyOrdinals)
+ ×           -       {PlainOrdinals/CipherOrdinals} multiply {MouldedKeyOrdinals}
+   :         -       {PlainOrdinals/CipherOrdinals} div {MouldedKeyOrdinals}
+  ,          -       pair {those}
+         ⁹   - chain's right argument -&gt; Encode/Decode (even = encode; odd = decode)
+          ị  - {that} 1-index, cyclically, into {the pair we calculated}
+           Ọ - convert {that} from ordinals to characters
 </code></pre>
-<p><img src="https://i.sstatic.net/DXAwIj4E.png" alt="screenshot" /></p>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 12 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
-<pre><code>:
-×
-O⁴ŀṁ@¥/Ọ
-</code></pre>
-<p>A full program that accepts a list of strings, <code>[plaintext/ciphertext, key]</code>, and an integer, <code>0</code> = encode or <code>1</code> = decode, and prints the result to stdout.</p>
-<p><strong><a href="https://tio.run/##y0rNyan8/9@K6/B0Lv9HjVuONjzc2ehwaKn@w909////j1byACrIV9JRUHLPz0lTiv1vAAA" rel="nofollow noreferrer" title="Jelly – Try It Online">Encode online!</a></strong></p>
-<p><strong><a href="https://tio.run/##ATwAw/9qZWxsef//OgrDlwpP4oG0xYDhuYFAwqUv4buM////WyLhj7jir4vitpDirIjhu4kiLCAiR29sZiJd/zE" rel="nofollow noreferrer" title="Jelly – Try It Online">Decode online!</a></strong></p>
 <h2><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a> 11 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a>, but...</h2>
 <p>...using a choice of encode/decode identifier to aid the golf.</p>
 <pre><code>“O“ṁ@¥/Ọ”jv
 </code></pre>
-<p>A dyadic Link that accepts a list, as above, but the encode/decode identifiers are: <code>&quot;×&quot;</code> = encode, and <code>&quot;:&quot;</code> = decode.</p>
+<p>As above, but the arguments are swapped and the encode/decode identifiers are: <code>&quot;×&quot;</code> = encode, and <code>&quot;:&quot;</code> = decode.</p>
 <p><strong><a href="https://tio.run/##y0rNyan8//9Rwxx/IH64s9Hh0FL9h7t7HjXMzSr7//@/0uHpSv@jlTyAyvKVdBSU3PNz0pRiAQ" rel="nofollow noreferrer" title="Jelly – Try It Online">Encode online!</a></strong></p>
 <p><strong><a href="https://tio.run/##AT8AwP9qZWxsef//4oCcT@KAnOG5gUDCpS/hu4zigJ1qdv///yI6Iv9bIuGPuOKvi@K2kOKsiOG7iSIsICJHb2xmIl0" rel="nofollow noreferrer" title="Jelly – Try It Online">Decode online!</a></strong></p>
+</div>
+<div id="pu1" class="pu"><h1>Google Sheets, 120 bytes</h1>
+<pre class="lang-none prettyprint-override"><code>=sort(let(s,sequence(len(A2)),d,code(mid(A2,s,1)),k,code(mid(A3,mod(s-1,len(A3))+1,1)),join(,char(if(A1=&quot;e&quot;,d*k,d/k)))))
+</code></pre>
+<p>Put the input in cells <code>A1:A3</code> and the formula in <code>B1</code>.</p>
+<p>If we change identifiers from <code>e</code> and <code>d</code> to <code>1</code> and <code>-1</code> (<strong>100 bytes</strong>):</p>
+<pre class="lang-none prettyprint-override"><code>=sort(let(_,lambda(v,code(mid(v,mod(sequence(len(A2))-1,len(v))+1,1))),join(,char(_(A2)*_(A3)^A1))))
+</code></pre>
+<p><img src="https://i.sstatic.net/DXAwIj4E.png" alt="screenshot" /></p>
 </div>
 
 <table id="st">
