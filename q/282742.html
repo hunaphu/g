@@ -27,7 +27,8 @@
     <th class="tlink">Link</th>
   </tr>
 <tr d-ix="0"><td>012</td><td>Jelly</td><td>250722T190627Z</td><td><a href="https://codegolf.stackexchange.com/questions/282742/make-a-mulen%c3%a8re-encryption-program/282745#282745">Jonathan</a></td></tr>
-<tr d-ix="1"><td>120</td><td>Google Sheets</td><td>250722T190513Z</td><td><a href="https://codegolf.stackexchange.com/questions/282742/make-a-mulen%c3%a8re-encryption-program/282743#282743">doubleun</a></td></tr>
+<tr d-ix="1"><td>095</td><td>Google Sheets</td><td>250722T195139Z</td><td><a href="https://codegolf.stackexchange.com/questions/282742/make-a-mulen%c3%a8re-encryption-program/282746#282746">z..</a></td></tr>
+<tr d-ix="2"><td>120</td><td>Google Sheets</td><td>250722T190513Z</td><td><a href="https://codegolf.stackexchange.com/questions/282742/make-a-mulen%c3%a8re-encryption-program/282743#282743">doubleun</a></td></tr>
 </table>
 <div id="pu0" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 12 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
 <pre><code>O×,:ɗṁ@¥/⁹ịỌ
@@ -57,11 +58,31 @@ O            - convert {[Plaintext/Ciphertext, Key]} to ordinals
 <p>...using a choice of encode/decode identifier to aid the golf.</p>
 <pre><code>“O“ṁ@¥/Ọ”jv
 </code></pre>
-<p>As above, but the arguments are swapped and the encode/decode identifiers are: <code>&quot;×&quot;</code> = encode, and <code>&quot;:&quot;</code> = decode.</p>
+<p>As above, but the arguments are swapped and the encode/decode identifiers are: <code>&quot;×&quot;</code> = encode, and <code>&quot;:&quot;</code> = decode (can be either a single character or a list containing a single character).</p>
 <p><strong><a href="https://tio.run/##y0rNyan8//9Rwxx/IH64s9Hh0FL9h7t7HjXMzSr7//@/0uHpSv@jlTyAyvKVdBSU3PNz0pRiAQ" rel="nofollow noreferrer" title="Jelly – Try It Online">Encode online!</a></strong></p>
 <p><strong><a href="https://tio.run/##AT8AwP9qZWxsef//4oCcT@KAnOG5gUDCpS/hu4zigJ1qdv///yI6Iv9bIuGPuOKvi@K2kOKsiOG7iSIsICJHb2xmIl0" rel="nofollow noreferrer" title="Jelly – Try It Online">Decode online!</a></strong></p>
+<h4>How?</h4>
+<pre><code>“O“ṁ@¥/Ọ”jv - Link: [Plaintext/Ciphertext, Key]; Encode/Decode
+“O“ṁ@¥/Ọ”   - literal -&gt; [&quot;O&quot;, &quot;ṁ@¥/Ọ&quot;]
+         j  - join {that} with {Encode/Decode}
+          v - evaluate {that} with argument {[Plaintext/Ciphertext, Key]}
+
+e.g. Decode (Encode/Decode = &quot;:&quot;), evaluates:
+O:ṁ@¥/Ọ
+O       - convert {[Plaintext/Ciphertext, Key]} to ordinals
+     /  - reduce by:
+    ¥   -   last two links as a dyad - f(PlainOrdinals/CipherOrdinals, KeyOrdinals):
+  ṁ@    -     mould {KeyOrdinals} like {PlainOrdinals/CipherOrdinals}
+ :      -     {PlainOrdinals/CipherOrdinals} div {MouldedKeyOrdinals}
+      Ọ - convert {that} from ordinals to characters
+</code></pre>
 </div>
-<div id="pu1" class="pu"><h1>Google Sheets, 120 bytes</h1>
+<div id="pu1" class="pu"><h1>Google Sheets, 95 bytes</h1>
+<p>Expects encode/decode in <code>A1</code> (1 for encode, -1 for decode), input in <code>A2</code> and key in <code>A3</code></p>
+<pre class="lang-cpp prettyprint-override"><code>=REDUCE(,SEQUENCE(LEN(A2)),LAMBDA(a,i,a&amp;CHAR(CODE(MID(A2,i,1))*CODE(MID(REPT(A3,99),i,1))^A1)))
+</code></pre>
+</div>
+<div id="pu2" class="pu"><h1>Google Sheets, 120 bytes</h1>
 <pre class="lang-none prettyprint-override"><code>=sort(let(s,sequence(len(A2)),d,code(mid(A2,s,1)),k,code(mid(A3,mod(s-1,len(A3))+1,1)),join(,char(if(A1=&quot;e&quot;,d*k,d/k)))))
 </code></pre>
 <p>Put the input in cells <code>A1:A3</code> and the formula in <code>B1</code>.</p>
