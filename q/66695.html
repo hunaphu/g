@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::66695</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>nan</td><td></td><td>151216T175702Z</td><td><a href="https://codegolf.stackexchange.com/questions/66695/an-executable-script-file-that-runs-on-posix-and-windows/66812#66812">jez</a></td></tr>
+<tr d-ix="1"><td>nan</td><td>0 cruft lines</td><td>151215T180730Z</td><td><a href="https://codegolf.stackexchange.com/questions/66695/an-executable-script-file-that-runs-on-posix-and-windows/66700#66700">jimmy230</a></td></tr>
+<tr d-ix="2"><td>nan</td><td>I'll already post the solution I had been using</td><td>151215T213115Z</td><td><a href="https://codegolf.stackexchange.com/questions/66695/an-executable-script-file-that-runs-on-posix-and-windows/66715#66715">jez</a></td></tr>
+<tr d-ix="3"><td>032</td><td>Score 0 cruft + 4 infra lines + 32 infra chars.  LF & CRLF OK.</td><td>151215T180312Z</td><td><a href="https://codegolf.stackexchange.com/questions/66695/an-executable-script-file-that-runs-on-posix-and-windows/66698#66698">Digital </a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>Summary/synthesis of answers and discussion</h1>
+<p>This was fun, and I learned a lot.</p>
+<p>Some Windows-specific cruft is inevitable if, on your POSIX system, you need to start your script with a <code>#!</code> line. If you have no alternative but to do this, then this line:</p>
+<pre><code>#!/bin/sh # 2&gt;NUL
+</code></pre>
+<p>or possibly, if your OS is stricter, this line:</p>
+<pre><code>#!/usr/bin/env -S sh # 2&gt;NUL
+</code></pre>
+<p>is probably the best it can get.  It causes one blank line and one line of cruft to be output on the Windows console.   However, you <em>may</em> be able to get away without a <code>#!</code> line: on most systems, one of the usual shell interpreters will end up executing the script (the problem is that it's not universally predictable which interpreter that will be - it depends on, but will not necessarily be identical to, the shell you use to invoke the command).</p>
+<p>Beyond that tricky first line, there were some really ingenious cruftless solutions.  The winning submission by <a href="https://codegolf.stackexchange.com/users/25180/jimmy23013">jimmy23013</a> consisted of only two short infrastructure lines, and made use of the dual role of the <code>:</code> character to implement a &quot;silent&quot; line on both platforms (as a <em>de-facto</em> no-op in <code>sh</code> and friends, and as a label marker in <code>cmd.exe</code>):</p>
+<pre><code>:&lt;&lt;@exit/b
+
+:: Arbitrary Windows code goes here
+
+@exit/b
+#
+# Arbitrary POSIX code goes here 
+</code></pre>
+<p>It <em>is</em> possible to make such a script run on POSIX systems even despite CRLF line-endings, but to do this for most interpreters you have to end <em>every</em> line of your POSIX section (even blank lines) with a comment or comment character.</p>
+<p>Finally, here are two variants on a solution I have developed based on everybody's input. They might be <em>almost</em> the best of all worlds, in that they minimize the damage from the lack of <code>#!</code> and make CRLF-compatibility even smoother.  Two extra infrastructure lines are needed. Only one (standardized) line has to be interpreted by the unpredictable POSIX shell, and that line allows you to select the shell for the rest of the script (<code>bash</code> in the following example):</p>
+<pre><code>:&lt;&lt;@GOTO:Z
+
+@echo Hello Windows!
+
+@GOTO:Z
+bash &quot;$@&quot;&lt;&lt;:Z
+#
+echo &quot;Hello POSIX!&quot; #
+ps # let's throw this into the payload to keep track of which shell is being used
+#
+:Z
+</code></pre>
+<p>Part of the beauty of these heredoc solutions is that they are still CRLF-robust: as long as <code>&lt;&lt;:Z</code> comes at the <em>end</em> of the line, the heredoc processor will actually be looking for, and will find, the token <code>:Z\r</code></p>
+<p>As a final twist, you can get rid of those pesky end-of-line comments and still retain CRLF-robustness, by stripping the <code>\r</code> characters out before passing the lines to the shell.  This places slightly more faith in the unpredictable shell (it would be nice to use <code>{ tr -d \\r|bash;}</code> instead of <code>(tr -d \\r|bash)</code> but curly brackets are bash-only syntax):</p>
+<pre><code>:&lt;&lt;@GOTO:Z
+
+@echo Hello Windows!
+
+@GOTO:Z
+(tr -d \\r|bash &quot;$@&quot;)&lt;&lt;:Z
+
+echo &quot;Hello POSIX!&quot;
+ps
+
+:Z
+</code></pre>
+<p>Of course, this approach sacrifices the ability to pipe stdin input into the script.</p>
+</div>
+<div id="pu1" class="pu"><h1>0 cruft lines, 0 cruft chars, 2 infra. lines, 21 infra. chars, CRLF ok</h1>
+<pre><code>:&lt;&lt;@goto:eof
+@echo Hello Windows!
+@goto:eof
+echo &quot;Hello POSIX!&quot; #
+</code></pre>
+<p>Removed the other solution.</p>
+<p>17 characters using <code>exit /b</code> from Digital Trauma's answer:</p>
+<pre><code>:&lt;&lt;@exit/b
+@echo Hello Windows!
+@exit/b
+echo &quot;Hello POSIX!&quot; #
+</code></pre>
+</div>
+<div id="pu2" class="pu"><p>I'll already post the solution I had been using, since it has already been beaten. It's courtesy of a colleague of mine who I think must have read the same blog entry as <a href="https://codegolf.stackexchange.com/users/11259/digital-trauma">Digital Trauma</a>.</p>
+
+<pre><code>#!/bin/sh # &gt;NUL 2&gt;&amp;1
+echo \
+@goto c \
+&gt;/dev/null
+echo "Hello Posix!"
+exit
+:c
+@echo Hello Windows!
+</code></pre>
+
+<ul>
+<li>Windows cruft: 5 lines (of which two are blank) / 30 chars</li>
+<li>OSX cruft: 0</li>
+<li>Infrastucture: 6 lines / 52 chars</li>
+<li>CRLF compatibility:  only if the interpreter named on the <code>#!</code> line doesn't care (so for standard interpreters like <code>sh</code> and friends, it fails)</li>
+</ul>
+</div>
+<div id="pu3" class="pu"><h1>Score 0 cruft + 4 infra lines + 32 infra chars.  LF &amp; CRLF OK.</h1>
+<p>This is based off what I found at <a href="http://stardot.org.uk/forums/viewtopic.php?t=2564" rel="nofollow noreferrer">this blog</a>, with the Amiga bits and other unnecessary lines taken out.  I hid the DOS lines in commented quotes instead of using <code>\</code> line continues, so that this can work with both CRLF and LF.</p>
+<pre><code>@REM ()(:) #
+@REM &quot;
+@ECHO Hello Windows!
+@EXIT /B
+@REM &quot;
+echo Hello POSIX!
+</code></pre>
+<p>With either DOS CRLF or *nix LF line endings, it works on Ubuntu, OSX and wine:</p>
+<pre><code>ubuntu@ubuntu:~$ ./dosix.bat
+Hello POSIX!
+ubuntu@ubuntu:~$ wine cmd.exe
+Wine CMD Version 5.1.2600 (1.6.2)
+
+Z:\home\ubuntu&gt;dosix.bat
+Hello Windows!
+
+Z:\home\ubuntu&gt;exit
+ubuntu@ubuntu:~$ 
+</code></pre>
+<p>To create this exactly (with CRLFs) on a *nix machine (including OSX), paste the following to a terminal:</p>
+<pre><code>[ $(uname) = Darwin ] &amp;&amp; decode=-D || decode=-d
+ubuntu@ubuntu:~$ base64 $decode &gt; dosix.bat &lt;&lt; EOF
+QFJFTSAoKSg6KSAjDQpAUkVNICINCkBFQ0hPIEhlbGxvIFdpbmRvd3MhDQpARVhJVCAvQg0KQFJF
+TSAiDQplY2hvIEhlbGxvIFBPU0lYIQ0K
+EOF
+</code></pre>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/66695/">66695</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
