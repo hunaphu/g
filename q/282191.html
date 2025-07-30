@@ -26,8 +26,8 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>nan</td><td>Turing Machine Code</td><td>250714T222737Z</td><td><a href="https://codegolf.stackexchange.com/questions/282191/reverse-nato-phonetic-spelling/282636#282636">ErikDaPa</a></td></tr>
-<tr d-ix="1"><td>048</td><td>ARM64 machine code</td><td>250714T021445Z</td><td><a href="https://codegolf.stackexchange.com/questions/282191/reverse-nato-phonetic-spelling/282629#282629">Nate Eld</a></td></tr>
+<tr d-ix="0"><td>048</td><td>ARM64 machine code</td><td>250714T021445Z</td><td><a href="https://codegolf.stackexchange.com/questions/282191/reverse-nato-phonetic-spelling/282629#282629">Nate Eld</a></td></tr>
+<tr d-ix="1"><td>nan</td><td>Turing Machine Code</td><td>250714T222737Z</td><td><a href="https://codegolf.stackexchange.com/questions/282191/reverse-nato-phonetic-spelling/282636#282636">ErikDaPa</a></td></tr>
 <tr d-ix="2"><td>073</td><td>Swift 6</td><td>250710T180457Z</td><td><a href="https://codegolf.stackexchange.com/questions/282191/reverse-nato-phonetic-spelling/282601#282601">macOSist</a></td></tr>
 <tr d-ix="3"><td>032</td><td>Japt</td><td>250609T163353Z</td><td><a href="https://codegolf.stackexchange.com/questions/282191/reverse-nato-phonetic-spelling/282221#282221">Shaggy</a></td></tr>
 <tr d-ix="4"><td>nan</td><td>CP1610 machine code</td><td>250617T091851Z</td><td><a href="https://codegolf.stackexchange.com/questions/282191/reverse-nato-phonetic-spelling/282316#282316">Arnauld</a></td></tr>
@@ -53,7 +53,55 @@
 <tr d-ix="24"><td>163</td><td>TinyAPL</td><td>250607T235629Z</td><td><a href="https://codegolf.stackexchange.com/questions/282191/reverse-nato-phonetic-spelling/282194#282194">RubenVer</a></td></tr>
 <tr d-ix="25"><td>158</td><td>Google Sheets / Excel</td><td>250607T233623Z</td><td><a href="https://codegolf.stackexchange.com/questions/282191/reverse-nato-phonetic-spelling/282192#282192">z..</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://morphett.info/turing/turing.html" rel="nofollow noreferrer">Turing Machine Code</a>, 34 / 121 rules</h1>
+<div id="pu0" class="pu"><h1>ARM64 machine code, 48 bytes</h1>
+<p>Takes pointer to null-terminated input in <code>x0</code>, pointer to output buffer (which must be large enough) in <code>x1</code>, following standard AAPCS calling conventions for
+<code>void nato(const char *in, char *out);</code>.</p>
+<p>Little-endian hex words:</p>
+<pre><code>58000143
+38404402
+38001422
+d37ff844
+9ac42065
+8b45f800
+7101385f
+9a801400
+35ffff22
+d65f03c0
+267b2000
+074c5c0d
+</code></pre>
+<p>Assembly:</p>
+<pre><code>nato:
+    ldr   x3, table
+again:
+    ldrb  w2, [x0], #4 // skip 4 bytes automatically
+    strb  w2, [x1], #1
+    lsl   x4, x2, #1 // 2 bits per table entry
+    lslv  x5, x3, x4
+    add   x0, x0, x5, lsr #62
+    cmp   w2, #'N'
+    cinc  x0, x0, eq
+    cbnz  w2, again
+    ret
+table:
+    .xword 0x074c5c0d267b2000
+</code></pre>
+<p>Approach is similar to <a href="https://codegolf.stackexchange.com/a/282318/14678">x86 solution by l4m2</a> (but I thought of it mostly independently).  We use a 2-bit lookup table in a register to find the length of the mnemonic minus 4.  There is special code to handle <code>N</code>.</p>
+<p>Comments:</p>
+<ul>
+<li><p>The post-increment load lets us skip the first 4 bytes for free.</p>
+</li>
+<li><p><code>lslv</code> automatically masks the shift count to 6 bits, so we can simply double the input byte and use it directly as a shift count.</p>
+</li>
+<li><p>We left-shift the desired bits to the <em>top</em> bits (<code>lslv x5, x3, x4</code>) so that the subsequent <code>add</code> can use a free right-shift to get it back to the low bits.  If we had initially right-shifted the desired bits to the bottom bits, we'd need an extra instruction to mask off the others.</p>
+</li>
+<li><p>I couldn't think of a more clever way to handle <code>N</code>, so the table has its length as 7, and we spend two instructions (8 bytes) to conditionally increment the pointer if the byte was <code>N</code>.</p>
+</li>
+<li><p>I only intended to handle upper-case input, but I realized that it automatically handles lower-case as well, since it only looks at the low 5 bits of each byte.</p>
+</li>
+</ul>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://morphett.info/turing/turing.html" rel="nofollow noreferrer">Turing Machine Code</a>, 34 / 121 rules</h1>
 <pre><code>0 A * r 3
 0 B * r 4
 0 C * r 6
@@ -228,52 +276,6 @@ A=[L[x]H(L,x)forx=[1...L.count]]
 f(I)=A[A&gt;0]+64                                          =&gt; keep head letters and convert back to letters (as codepoints)
 </code></pre>
 <p><a href="https://www.desmos.com/calculator/d04h9u6byt" rel="nofollow noreferrer">Try this online!</a></p>
-</div>
-<div id="pu1" class="pu"><h1>ARM64 machine code, 48 bytes</h1>
-<p>Handles upper-case input only.  Takes pointer to null-terminated input in <code>x0</code>, pointer to output buffer (which must be large enough) in <code>x1</code>, following standard AAPCS calling conventions for
-<code>void nato(const char *in, char *out);</code>.</p>
-<p>Little-endian hex words:</p>
-<pre><code>58000143
-38404402
-38001422
-d37ff844
-9ac42065
-8b45f800
-7101385f
-9a801400
-35ffff22
-d65f03c0
-267b2000
-074c5c0d
-</code></pre>
-<p>Assembly:</p>
-<pre><code>nato:
-    ldr   x3, table
-again:
-    ldrb  w2, [x0], #4 // skip 4 bytes automatically
-    strb  w2, [x1], #1
-    lsl   x4, x2, #1 // 2 bits per table entry
-    lslv  x5, x3, x4
-    add   x0, x0, x5, lsr #62
-    cmp   w2, #'N'
-    cinc  x0, x0, eq
-    cbnz  w2, again
-    ret
-table:
-    .xword 0x074c5c0d267b2000
-</code></pre>
-<p>Approach is similar to <a href="https://codegolf.stackexchange.com/a/282318/14678">x86 solution by l4m2</a> (but I thought of it mostly independently).  We use a 2-bit lookup table in a register to find the length of the mnemonic minus 4.  There is special code to handle <code>N</code>.</p>
-<p>Comments:</p>
-<ul>
-<li><p>The post-increment load lets us skip the first 4 bytes for free.</p>
-</li>
-<li><p><code>lslv</code> automatically masks the shift count to 6 bits, so we can simply double the input byte and use it directly as a shift count.</p>
-</li>
-<li><p>We left-shift the desired bits to the <em>top</em> bits (<code>lslv x5, x3, x4</code>) so that the subsequent <code>add</code> can use a free right-shift to get it back to the low bits.  If we had initially right-shifted the desired bits to the bottom bits, we'd need an extra instruction to mask off the others.</p>
-</li>
-<li><p>I couldn't think of a more clever way to handle <code>N</code>, so the table has its length as 7, and we spend two instructions (8 bytes) to conditionally increment the pointer if the byte was <code>N</code>.</p>
-</li>
-</ul>
 </div>
 <div id="pu2" class="pu"><h1>Swift 6, 73 bytes</h1>
 <pre class="lang-swift prettyprint-override"><code>{($0+&quot;&quot;).replacing(/(?=(.))([BDHIORT]|[QSVY].|N?[CFJOUW]..)?..../){$0.1}}
