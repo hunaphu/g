@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::5450</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>090</td><td>Dyalog APL</td><td>250801T205309Z</td><td><a href="https://codegolf.stackexchange.com/questions/5450/anti-aliasing-ascii-art/282913#282913">Aaron</a></td></tr>
+<tr d-ix="1"><td>241</td><td>Python</td><td>120604T003919Z</td><td><a href="https://codegolf.stackexchange.com/questions/5450/anti-aliasing-ascii-art/6195#6195">edwkar</a></td></tr>
+<tr d-ix="2"><td>207</td><td>Ruby</td><td>120601T125207Z</td><td><a href="https://codegolf.stackexchange.com/questions/5450/anti-aliasing-ascii-art/6125#6125">Cristian</a></td></tr>
+<tr d-ix="3"><td>168</td><td>Ruby</td><td>120604T090703Z</td><td><a href="https://codegolf.stackexchange.com/questions/5450/anti-aliasing-ascii-art/6200#6200">Howard</a></td></tr>
+<tr d-ix="4"><td>563</td><td>C#</td><td>120412T160704Z</td><td><a href="https://codegolf.stackexchange.com/questions/5450/anti-aliasing-ascii-art/5468#5468">Cristian</a></td></tr>
+<tr d-ix="5"><td>257</td><td>PHP</td><td>120412T200208Z</td><td><a href="https://codegolf.stackexchange.com/questions/5450/anti-aliasing-ascii-art/5497#5497">Rusty Fa</a></td></tr>
+<tr d-ix="6"><td>259</td><td>Python</td><td>120412T210145Z</td><td><a href="https://codegolf.stackexchange.com/questions/5450/anti-aliasing-ascii-art/5499#5499">Keith Ra</a></td></tr>
+<tr d-ix="7"><td>410</td><td>Javascript</td><td>120412T160156Z</td><td><a href="https://codegolf.stackexchange.com/questions/5450/anti-aliasing-ascii-art/5467#5467">Ed James</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>Dyalog APL, 90 chars</h1>
+<pre><code>{g⊣g[x]←⍵[x]⊣x←⍸'x'=g←{' ;&lt;d&gt;b@xV&gt;YxFxxx'⌷⍨1+(6×p∧c=0)+(p←5⌷,⍵)×c←2⊥(⊂2×⍳4)⌷,⍵}⌺3 3⊢' '≠⍵}
+</code></pre>
+<p>Bit of a doozy this one, but was fun and I feel like I, for once, applied stencil correctly</p>
+<p>Explanation, separating out magic string for clarity:</p>
+<pre><code>m←' ;&lt;d&gt;b@xV&gt;YxFxxx'
+{g⊣g[x]←⍵[x]⊣x←⍸'x'=g←{m⌷⍨1+(6×p∧c=0)+(p←5⌷,⍵)×c←2⊥(⊂2×⍳4)⌷,⍵}⌺3 3⊢' '≠⍵}
+                                                                    ' '≠⍵ Find the non-whitespace
+                      {                                       }⌺3 3⊢      Stencil over with a 3x3 window
+                                                    (⊂2×⍳4)⌷,⍵            Get the N, S, E, and W indices (corresponding to 2 4 6 8 in the 3x3 window
+                                                c←2⊥                      Decode that as if it were binary and store in c (check) 
+                                       (p←5⌷,⍵)                           Get the center of the stencil (the element being examined) and store in p (present)
+                                               ×                          Multiply these (as in, if it was whitespace, always map to zero)
+                              (6×p∧c=0)                                   Pull out the edge case there the element is present but all the surroundings were not and multiply by 6 (for indexing into the magic string)
+                                       +                                  Add those (it will always be one or the other from the `p` check)
+                        m⌷⍨1+                                             Add one for indexing sake and pull from the magic string
+                     g←                                                   Store all that in g for a minute
+                 'x'=                                                     Find those which became 'x', the &quot;untouched&quot;
+              x←⍸                                                         Get the indices of those elements, aptly stored in x
+   g[x]←⍵[x]⊣                                                             Replace all of those indices with the corresponding element from the original input
+ g⊣                                                                       And finally show that sucker
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>Python, <strike>246</strike> 241</h1>
+
+<pre><code>H=input();W=1+input()
+S=' '
+o=W*S
+F=o+'\n'.join((raw_input()+o)[:W-1]for k in range(H))+o
+print ''.join((16*x+'@;&lt;d&gt;b'+2*x+'V'+x+'Y'+x+'F'+3*x)[
+16*(x&gt;S)|8*(a&gt;S)|4*(l&gt;S)|2*(r&gt;S)|(b&gt;S)]for
+x,a,l,r,b in zip(F[W:-W],F,F[W-1:],F[W+1:],F[2*W:]))
+</code></pre>
+
+<p>WC and test on sample 2, diffed with the output of the Ruby solution at the top: </p>
+
+<pre><code>t:~$ wc trans.py &amp;&amp; python trans.py &lt; lala2 &gt; o &amp;&amp; diff -q o ruby_out2_sample
+  2 11 241 trans.py
+t:~$
+</code></pre>
+</div>
+<div id="pu2" class="pu"><h3>Ruby <s>275</s> <s>265</s> <s>263</s> <s>261</s> <s>258</s> <s>254</s> <s>244</s> <s>243</s> <s>214</s> <s>212</s> 207</h3>
+<pre class="lang-ruby prettyprint-override"><code>H=0...gets.to_i
+W=0...gets.to_i
+G=readlines
+z=-&gt;x,y{(H===y&amp;&amp;W===x&amp;&amp;' '!=G[y][x])?1:0}
+H.map{|j|W.map{|i|l=G[j][i]
+G[j][i]=&quot;@V;#{l}&gt;Fb#{l}&lt;Yd#{l*5}&quot;[z[i+1,j]*8+z[i-1,j]*4+z[i,j+1]*2+z[i,j-1]]if' '!=l}}
+puts G
+</code></pre>
+<p>Sample 1: <a href="http://ideone.com/PfNMA" rel="nofollow noreferrer">http://ideone.com/PfNMA</a></p>
+<p>Sample 2: <a href="http://ideone.com/sWijD" rel="nofollow noreferrer">http://ideone.com/sWijD</a></p>
+</div>
+<div id="pu3" class="pu"><h3>Ruby, <strike>180</strike> 168 characters</h3>
+<pre class="lang-rb prettyprint-override"><code>gets
+w=1+gets.to_i
+f=*(readlines*&quot;&quot;).chars
+f.zip(f[1..-1]+s=[&quot; &quot;],s+f,s*w+f,f[w..-1]+s*w){|a,*b|$&gt;&lt;&lt;&quot;@;V#{a}&gt;bF#{a}&lt;dY#{a*5}&quot;[a&gt;&quot; &quot;?(b.map{|y|y&gt;&quot; &quot;?1:0}*&quot;&quot;).to_i(2):3]}
+</code></pre>
+<p>Another Ruby implementation which takes a zip approach. You can see the second example <a href="http://ideone.com/HShcb" rel="noreferrer">running online</a>.</p>
+<p><em>Edit:</em> Using <code>readlines</code> saves 12 characters.</p>
+</div>
+<div id="pu4" class="pu"><h2>C# <s>591</s> 563</h2>
+
+<pre><code>string A(string t){var s=new StringReader(t);var h=int.Parse(s.ReadLine());var w=int.Parse(s.ReadLine());var lines=s.ReadToEnd().Split(new[]{"\r\n"},StringSplitOptions.None).Select(x=&gt;x.ToCharArray()).ToArray();for(var i=0;i&lt;h;i++)for(var j=0;j&lt;w;j++){var c=lines[i][j];if(c==' ')continue;var n=(i&gt;0?(lines[i-1][j]!=' '?1:0):0)+(i&lt;h-1?(lines[i+1][j]!=' '?2:0):0)+(j&gt;0?(lines[i][j-1]!=' '?4:0):0)+(j&lt;w-1?(lines[i][j+1]!=' '?8:0):0);lines[i][j]=new[]{'@','V',';',c,'&gt;','F','b',c,'&lt;','Y','d',c,c,c,c,c}[n];}return string.Join("\r\n",lines.Select(l=&gt;new string(l)));}
+</code></pre>
+</div>
+<div id="pu5" class="pu"><h2>PHP - <s>359</s> <s>330</s> <s>282</s> <s>268</s> 257 characters</h2>
+
+<pre><code>&lt;?php
+$i=fgets(STDIN)+0;$w=fgets(STDIN)+1;$s='';$m='@&lt;;d&gt;0b0VY00F000';
+for(;$i--;)$s.=fgets(STDIN);
+for(;++$i&lt;strlen($s);){
+$b=trim($s[$i])?0:15;
+foreach(array($i+1,$i+$w,$i-1,$i-$w)as$k=&gt;$x)
+$b|=pow(2,$k)*(isset($s[$x])&amp;&amp;trim($s[$x]));
+echo $m[$b]?$m[$b]:$s[$i];}
+</code></pre>
+</div>
+<div id="pu6" class="pu"><h2>Python, 259 chars</h2>
+
+<pre><code>H=input()
+W=input()+1
+I=' '.join(raw_input()for i in' '*H)
+for i in range(H):print''.join(map(lambda(s,a,b,c,d):(s*5+'dY&lt;'+s+'bF&gt;'+s+';V@'+' '*16)[16*(s==' ')+8*(a==' ')+4*(b==' ')+2*(c==' ')+(d==' ')],zip(I,I[1:]+' ',' '+I,I[W:]+' '*W,' '*W+I))[i*W:i*W+W-1])
+</code></pre>
+
+<p>The program reads the input into a single string <code>I</code> (with spaces separating the lines), zips up a list of 5-tuples containing the character and its four surrounding characters, then looks up the result character using string indexing.</p>
+</div>
+<div id="pu7" class="pu"><p>Javascript, 410 characters:</p>
+
+<pre><code>function(t){m={"10110":"b","11100":"d","01101":"Y","00111":"F","10100":";","00101":"V","00110":"&gt;","01100":"&lt;","00100":"@"},d="join",l="length",t=t.split('\n').splice(2),t=t.map(function(x)x.split('')),f=function(i,j)t[i]?(t[i][j]||' ')==' '?0:1:0;for(o=t[l];o--;){for(p=t[o][l];p--;){y=[f(o+1,p),f(o,p+1),f(o,p),f(o,p-1),f(o-1,p)],t[o][p]=m[y[d]('')]||t[o][p]}}t=t.map(function(x)x[d](''))[d]('\n');return t;}
+</code></pre>
+
+<p>ungolfed:</p>
+
+<pre><code>function(t){
+    m={
+        "10110":"b",
+        "11100":"d",
+        "01101":"Y",
+        "00111":"F",
+        "10100":";",
+        "00101":"V",
+        "00110":"&gt;",
+        "01100":"&lt;",
+        "00100":"@"
+    },
+    d="join",
+    l="length",
+    t=t.split('\n').splice(2),
+    t=t.map(function(x) x.split('')),
+    f=function(i,j) t[i]?(t[i][j]||' ')==' '?0:1:0;
+
+    for(o=t[l];o--;){
+        for(p=t[o][l];p--;){
+            y=[f(o+1,p),f(o,p+1),f(o,p),f(o,p-1),f(o-1,p)],
+
+            t[o][p]=m[y[d]('')]||t[o][p]
+        }
+    }
+    t=t.map(function(x)x[d](''))[d]('\n');
+    return t;
+}
+</code></pre>
+
+<p>Original, <del>440 characters</del>:</p>
+
+<pre><code>function (t){m={"10110":"b","11100":"d","01101":"Y","00111":"F","10100":";","00101":"V","00110":"&gt;","01100":"&lt;","00100":"@"},s="split",d="join",l="length",t=t[s]('\n').splice(2),t=t.map(function(x) x[s]('')),f=function(i,j)i&lt;0||i&gt;=t[l]?0:(j&lt;0||j&gt;=t[i][l]?0:t[i][j]==' '?0:1);for(o=t[l];o--;){for(p=t[o][l];p--;){y=[f(o+1,p),f(o,p+1),f(o,p),f(o,p-1),f(o-1,p)],h=m[y[d]('')];if(h){t[o][p]=h}}}t=t.map(function(x) x[d](''))[d]('\n');return t;}
+</code></pre>
+
+<p>N.B. I've assumed that the first two input lines are actually irrelevant and the size of the following lines are a correct. I'm also reckoning I might be able to chop a few more chars off this when I get a chance!</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/5450/">5450</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
