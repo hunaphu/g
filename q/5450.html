@@ -26,7 +26,7 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>090</td><td>Dyalog APL</td><td>250801T205309Z</td><td><a href="https://codegolf.stackexchange.com/questions/5450/anti-aliasing-ascii-art/282913#282913">Aaron</a></td></tr>
+<tr d-ix="0"><td>079</td><td>Dyalog APL</td><td>250801T205309Z</td><td><a href="https://codegolf.stackexchange.com/questions/5450/anti-aliasing-ascii-art/282913#282913">Aaron</a></td></tr>
 <tr d-ix="1"><td>241</td><td>Python</td><td>120604T003919Z</td><td><a href="https://codegolf.stackexchange.com/questions/5450/anti-aliasing-ascii-art/6195#6195">edwkar</a></td></tr>
 <tr d-ix="2"><td>207</td><td>Ruby</td><td>120601T125207Z</td><td><a href="https://codegolf.stackexchange.com/questions/5450/anti-aliasing-ascii-art/6125#6125">Cristian</a></td></tr>
 <tr d-ix="3"><td>168</td><td>Ruby</td><td>120604T090703Z</td><td><a href="https://codegolf.stackexchange.com/questions/5450/anti-aliasing-ascii-art/6200#6200">Howard</a></td></tr>
@@ -35,27 +35,26 @@
 <tr d-ix="6"><td>259</td><td>Python</td><td>120412T210145Z</td><td><a href="https://codegolf.stackexchange.com/questions/5450/anti-aliasing-ascii-art/5499#5499">Keith Ra</a></td></tr>
 <tr d-ix="7"><td>410</td><td>Javascript</td><td>120412T160156Z</td><td><a href="https://codegolf.stackexchange.com/questions/5450/anti-aliasing-ascii-art/5467#5467">Ed James</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Dyalog APL, 90 chars</h1>
-<pre><code>{g⊣g[x]←⍵[x]⊣x←⍸'x'=g←{' ;&lt;d&gt;b@xV&gt;YxFxxx'⌷⍨1+(6×p∧c=0)+(p←5⌷,⍵)×c←2⊥(⊂2×⍳4)⌷,⍵}⌺3 3⊢' '≠⍵}
+<div id="pu0" class="pu"><h1>Dyalog APL, <s>90</s> 79 chars</h1>
+<pre><code>{g⊣g[x]←⍵[x]⊣x←⍸'x'=g←{' @;&lt;d&gt;bxxV&gt;YxFxxx'⌷⍨1+(5⌷,⍵)×1+2⊥(⊂2×⍳4)⌷,⍵}⌺3 3⊢' '≠⍵}
 </code></pre>
 <p>Bit of a doozy this one, but was fun and I feel like I, for once, applied stencil correctly</p>
 <p>Explanation, separating out magic string for clarity:</p>
-<pre><code>m←' ;&lt;d&gt;b@xV&gt;YxFxxx'
-{g⊣g[x]←⍵[x]⊣x←⍸'x'=g←{m⌷⍨1+(6×p∧c=0)+(p←5⌷,⍵)×c←2⊥(⊂2×⍳4)⌷,⍵}⌺3 3⊢' '≠⍵}
-                                                                    ' '≠⍵ Find the non-whitespace
-                      {                                       }⌺3 3⊢      Stencil over with a 3x3 window
-                                                    (⊂2×⍳4)⌷,⍵            Get the N, S, E, and W indices (corresponding to 2 4 6 8 in the 3x3 window
-                                                c←2⊥                      Decode that as if it were binary and store in c (check) 
-                                       (p←5⌷,⍵)                           Get the center of the stencil (the element being examined) and store in p (present)
-                                               ×                          Multiply these (as in, if it was whitespace, always map to zero)
-                              (6×p∧c=0)                                   Pull out the edge case there the element is present but all the surroundings were not and multiply by 6 (for indexing into the magic string)
-                                       +                                  Add those (it will always be one or the other from the `p` check)
-                        m⌷⍨1+                                             Add one for indexing sake and pull from the magic string
-                     g←                                                   Store all that in g for a minute
-                 'x'=                                                     Find those which became 'x', the &quot;untouched&quot;
-              x←⍸                                                         Get the indices of those elements, aptly stored in x
-   g[x]←⍵[x]⊣                                                             Replace all of those indices with the corresponding element from the original input
- g⊣                                                                       And finally show that sucker
+<pre><code>m←' @;&lt;d&gt;bxxV&gt;YxFxxx'
+{g⊣g[x]←⍵[x]⊣x←⍸'x'=g←{m⌷⍨1+(5⌷,⍵)×1+2⊥(⊂2×⍳4)⌷,⍵}⌺3 3⊢' '≠⍵}
+                                                        ' '≠⍵ Find the non-whitespace
+                       {                          }⌺3 3⊢      Stencil over with a 3x3 window
+                                        (⊂2×⍳4)⌷,⍵            Get the N, S, E, and W indices (corresponding to 2 4 6 8 in the 3x3 window
+                                      2⊥                      Decode that as if it were binary
+                                    1+                        Add 1 because a zero here will screw me up later
+                             (5⌷,⍵)                           Get the center of the stencil (the element being examined)
+                                   ×                          Multiply these (as in, if it was whitespace, always map to zero)
+                        m⌷⍨1+                                 Add one for indexing sake and pull from the magic string
+                     g←                                       Store all that in g for a minute
+                 'x'=                                         Find those which became 'x', the &quot;untouched&quot;
+              x←⍸                                             Get the indices of those elements, aptly stored in x
+   g[x]←⍵[x]⊣                                                 Replace all of those indices with the corresponding element from the original input
+ g⊣                                                           And finally show that sucker
 </code></pre>
 </div>
 <div id="pu1" class="pu"><h1>Python, <strike>246</strike> 241</h1>
