@@ -26,13 +26,51 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>113</td><td>Perl 5 pl</td><td>250801T231611Z</td><td><a href="https://codegolf.stackexchange.com/questions/282899/whats-left-after-repeatedly-removing-palindromes/282916#282916">good old</a></td></tr>
-<tr d-ix="1"><td>132</td><td>JavaScript ES6</td><td>250801T102802Z</td><td><a href="https://codegolf.stackexchange.com/questions/282899/whats-left-after-repeatedly-removing-palindromes/282903#282903">Arnauld</a></td></tr>
+<tr d-ix="0"><td>132</td><td>JavaScript ES6</td><td>250801T102802Z</td><td><a href="https://codegolf.stackexchange.com/questions/282899/whats-left-after-repeatedly-removing-palindromes/282903#282903">Arnauld</a></td></tr>
+<tr d-ix="1"><td>113</td><td>Perl 5 pl</td><td>250801T231611Z</td><td><a href="https://codegolf.stackexchange.com/questions/282899/whats-left-after-repeatedly-removing-palindromes/282916#282916">good old</a></td></tr>
 <tr d-ix="2"><td>233</td><td>Python3</td><td>250801T153528Z</td><td><a href="https://codegolf.stackexchange.com/questions/282899/whats-left-after-repeatedly-removing-palindromes/282907#282907">Ajax1234</a></td></tr>
 <tr d-ix="3"><td>214</td><td>JavaScript Node.js</td><td>250801T084636Z</td><td><a href="https://codegolf.stackexchange.com/questions/282899/whats-left-after-repeatedly-removing-palindromes/282902#282902">rydwolf</a></td></tr>
 <tr d-ix="4"><td>014</td><td>Nekomata</td><td>250801T034829Z</td><td><a href="https://codegolf.stackexchange.com/questions/282899/whats-left-after-repeatedly-removing-palindromes/282900#282900">alephalp</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.perl.org/" rel="nofollow noreferrer">Perl 5</a> <code>-pl</code>, 113 bytes</h1>
+<div id="pu0" class="pu"><h1>JavaScript (ES6), 132 bytes</h1>
+<p>I/O format: arrays of characters.</p>
+
+<pre class="lang-javascript prettyprint-override"><code>f=(s,_=o=s)=&gt;s.map((n,i)=&gt;s.map(_=&gt;s.slice(i,++n/2+i).some(c=&gt;c!=s[--j],j=i+n)||f(q=[...s],q.splice(i,n)),n=2),s[o.length]?0:o=s)&amp;&amp;o
+</code></pre>
+<p><a href="https://tio.run/##bZHBbsMgDIbvfQqWQwUKpVOPq@hOe4ooqhxCErLETkO0alPfPYOm2rqpBktY//cbC1r4AG9GN0wbpNLOc6W5l0dN2gt98KqHgXOU7qc4xoPvnLHcyTTF7S51QnnqLTf6YJ60zzabNpetdimKy6XiJ50ppXwuT8oPNyMKIVHvhPQZqc5iPTX56/NLvHW9pnmfrRhLCvgieocC@sIhJZLdxXbLFvmqLXQPXUhDhoq/cKS57Yfpk/lpdFiLq4GoGolGMNbAiAAYioqoDObYvoxQTf8X0vnWPUDnyCAN0Dksx/AI3uHUOE9oFygwj@VoNIAQsqSpCSNg2L9zB6OBOyXyAQ5RJOxBxIlX@UpVNL6Babhn@sAMoafOqo5qXvHlG4RqySFPEiHEfv4G" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<h3>Commented</h3>
+<pre class="lang-javascript prettyprint-override"><code>f = (                // f is a recursive function taking:
+  s,                 //   s[] = input
+  _ = o = s          //   o[] = output, initialized to the input
+) =&gt;                 //
+s.map((n, i) =&gt;      // for each character at index i in s[],
+                     // with n ignored but declared in this scope:
+  s.map(_ =&gt;         //   for each character in s[]:
+    s.slice(         //     extract the slice of s:
+      i,             //       which starts at i
+      ++n / 2 + i    //       of length n / 2 (implicitly floored)
+    )                //       where n is pre-incremented
+    .some(c =&gt;       //     for each character c of this slice:
+      c != s[--j],   //       decrement j and compare c with s[j]
+                     //       in order to test if we have a palindrome
+                     //       of length n (NB: if n is odd, the middle
+                     //       character can be anything)
+      j = i + n      //       starting with j = i + n
+    ) ||             //     end of some()
+    f(               //     if falsy, do a recursive call:
+      q = [...s],    //       q[] = copy of s[]
+      q.splice(i, n) //       remove the palindrome from q[]
+    ),               //     end of recursive call
+    n = 2            //     start with n = 2
+  ),                 //   end of inner map()
+  s[o.length] ?      //   if s[] is longer than o[]:
+    0                //     do nothing
+  :                  //   else:
+    o = s            //     update o[] to s[]
+) &amp;&amp; o               // end of outer map(); return o[]
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.perl.org/" rel="nofollow noreferrer">Perl 5</a> <code>-pl</code>, 113 bytes</h1>
 
 <pre class="lang-perl prettyprint-override"><code>chomp(@a=$s=$_);(pop@a)=~/(((.)(?2)\3|(.)(.)\5?\4)(?{push@a,$`.$'})|(?{length$s&gt;pos?$s=$_:1}))(*F)/ while@a;$_=$s
 </code></pre>
@@ -52,41 +90,6 @@
 /x while @a;
 
 $_ = $s
-</code></pre>
-</div>
-<div id="pu1" class="pu"><h1>JavaScript (ES6), 132 bytes</h1>
-<p>I/O format: arrays of characters.</p>
-
-<pre class="lang-javascript prettyprint-override"><code>f=(s,_=o=s)=&gt;s.map((j,i)=&gt;s.map(_=&gt;s.slice(i,++j/2+i).some(c=&gt;c!=s[--k],k=j+i)||f(q=[...s],q.splice(i,j)),j=2),s[o.length]?0:o=s)&amp;&amp;o
-</code></pre>
-<p><a href="https://tio.run/##bZHBbsIwDIbvPEXWA0pECBPHocBpT1FVyE3TNqW1S1MNbeLdu4SijU04sRTr/37HShr4AG8G149rpMJOU6m5l0dN2gu996qDnvNGup/iGA@@dcZyJ1erZrNdOaE8dZYbvTcv2qfr9SmTJ90E4Xot@VmnSimfybPy/d3YCCEbvRXSp6Rai9VYZ4fXt3jrcknTLl0wluTwRXSCHLrcISWSPcRmw2b5ps10B21IQ4byv3Ckue368ZP5cXBYiZuBqByIBjDWwIAAGIqSqAjm2L6IUEX/F9Ll3j1Al8gg9dA6LIbwCN7hWDtPaGcoMM/laDSAELKgsQ4jYNi/cwejgQcl8gEOkSfsScSJF9lClTS8g6m5Z3rPDKGn1qqWKl7y@RuEasghTxIhxG76Bg" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
-<h3>Commented</h3>
-<pre class="lang-javascript prettyprint-override"><code>f = (                // f is a recursive function taking:
-  s,                 //   s[] = input
-  _ = o = s          //   o[] = output, initialized to the input
-) =&gt;                 //
-s.map((j, i) =&gt;      // for each character at index i in s[]:
-  s.map(_ =&gt;         //   for each character in s[]:
-    s.slice(         //     extract the slice of s:
-      i,             //       which starts at i
-      ++j / 2 + i    //       of length j / 2 (implicitly floored)
-    )                //       where j is pre-incremented
-    .some(c =&gt;       //     for each character c of this slice:
-      c != s[--k],   //       decrement k and compare c with s[k]
-                     //       to test if it's a palindrome
-      k = j + i      //       starting with k = j + i
-    ) ||             //     end of some()
-    f(               //     if falsy, do a recursive call:
-      q = [...s],    //       q[] = copy of s[]
-      q.splice(i, j) //       remove the palindrome from q[]
-    ),               //     end of recursive call
-    j = 2            //     start with j = 2
-  ),                 //   end of inner map()
-  s[o.length] ?      //   if s[] is longer than o[]:
-    0                //     do nothing
-  :                  //   else:
-    o = s            //     update o[] to s[]
-) &amp;&amp; o               // end of outer map(); return o[]
 </code></pre>
 </div>
 <div id="pu2" class="pu"><h1>Python3, 233 bytes</h1>
