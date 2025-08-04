@@ -26,15 +26,45 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>018</td><td>Uiua</td><td>250721T030636Z</td><td><a href="https://codegolf.stackexchange.com/questions/182319/terrain-reachability/282722#282722">nyxbird</a></td></tr>
-<tr d-ix="1"><td>280</td><td>Python3</td><td>250720T174220Z</td><td><a href="https://codegolf.stackexchange.com/questions/182319/terrain-reachability/282718#282718">Ajax1234</a></td></tr>
-<tr d-ix="2"><td>038</td><td>Jelly</td><td>190401T230139Z</td><td><a href="https://codegolf.stackexchange.com/questions/182319/terrain-reachability/182524#182524">Jonathan</a></td></tr>
-<tr d-ix="3"><td>191</td><td>TSQL query</td><td>190328T155837Z</td><td><a href="https://codegolf.stackexchange.com/questions/182319/terrain-reachability/182384#182384">t-clause</a></td></tr>
-<tr d-ix="4"><td>059</td><td>Jelly</td><td>190328T132056Z</td><td><a href="https://codegolf.stackexchange.com/questions/182319/terrain-reachability/182376#182376">Nick Ken</a></td></tr>
-<tr d-ix="5"><td>113</td><td>JavaScript ES7</td><td>190328T020921Z</td><td><a href="https://codegolf.stackexchange.com/questions/182319/terrain-reachability/182356#182356">Arnauld</a></td></tr>
-<tr d-ix="6"><td>220</td><td>Python 2</td><td>190327T220350Z</td><td><a href="https://codegolf.stackexchange.com/questions/182319/terrain-reachability/182345#182345">Chas Bro</a></td></tr>
+<tr d-ix="0"><td>085</td><td>Dyalog APL</td><td>250804T224405Z</td><td><a href="https://codegolf.stackexchange.com/questions/182319/terrain-reachability/282956#282956">Aaron</a></td></tr>
+<tr d-ix="1"><td>018</td><td>Uiua</td><td>250721T030636Z</td><td><a href="https://codegolf.stackexchange.com/questions/182319/terrain-reachability/282722#282722">nyxbird</a></td></tr>
+<tr d-ix="2"><td>280</td><td>Python3</td><td>250720T174220Z</td><td><a href="https://codegolf.stackexchange.com/questions/182319/terrain-reachability/282718#282718">Ajax1234</a></td></tr>
+<tr d-ix="3"><td>038</td><td>Jelly</td><td>190401T230139Z</td><td><a href="https://codegolf.stackexchange.com/questions/182319/terrain-reachability/182524#182524">Jonathan</a></td></tr>
+<tr d-ix="4"><td>191</td><td>TSQL query</td><td>190328T155837Z</td><td><a href="https://codegolf.stackexchange.com/questions/182319/terrain-reachability/182384#182384">t-clause</a></td></tr>
+<tr d-ix="5"><td>059</td><td>Jelly</td><td>190328T132056Z</td><td><a href="https://codegolf.stackexchange.com/questions/182319/terrain-reachability/182376#182376">Nick Ken</a></td></tr>
+<tr d-ix="6"><td>113</td><td>JavaScript ES7</td><td>190328T020921Z</td><td><a href="https://codegolf.stackexchange.com/questions/182319/terrain-reachability/182356#182356">Arnauld</a></td></tr>
+<tr d-ix="7"><td>220</td><td>Python 2</td><td>190327T220350Z</td><td><a href="https://codegolf.stackexchange.com/questions/182319/terrain-reachability/182345#182345">Chas Bro</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://uiua.org" rel="nofollow noreferrer">Uiua</a>, 18 bytes</h1>
+<div id="pu0" class="pu"><h1>Dyalog APL, ⎕IO←0, 85 chars</h1>
+<pre><code>{f[⊂{⊃⍸c∊⊂⍵}¨1↓⍺]≤⊃⍺⊣f←d{⍺⌊.+⍵}⍣≡d←∘.{⍺≡⍵:0⋄1≥|⍺-⍥{{⍺+⍵×0J1}/⍵}⍵:m[⊂⍵]⋄101}⍨c←,⍳⍴m←⍵}
+</code></pre>
+<p>Expects the speed, start coords, and end coords as a triplet on the left and the terrain map (matrix) on the right with unreachables as 101.</p>
+<p>Explanation:</p>
+<pre><code>{f[⊂{⊃⍸c∊⊂⍵}¨1↓⍺]≤⊃⍺⊣f←d{⍺⌊.+⍵}⍣≡d←∘.{⍺≡⍵:0⋄1≥|⍺-⍥{{⍺+⍵×0J1}/⍵}⍵:m[⊂⍵]⋄101}⍨c←,⍳⍴m←⍵}
+                                                                                m←⍵  Save the input map for later
+                                                                           c←,⍳⍴     Ravel the indices of its rank, store in c for later; i.e. a 2x3 matrix would give (0 0) (0 1) (0 2) (1 0) (1 1) (1 2)
+                                 d←∘.{                                   }⍨          Apply to both sides of this outer product, storing in d
+                                      ⍺≡⍵:0                                          For each combo of indices
+                                                                                         If its the same index, return 0 (distance to myself is 0)
+                                            1≥|⍺-⍥{{⍺+⍵×0J1}/⍵}⍵:m[⊂⍵]                   If its one of my four neighbors, return the value from the original map
+                                                                       101               Else return 101 (unreachable)
+                     f←d{⍺⌊.+⍵}⍣≡d                                                   Do a minimum-sum inner product on this distances map until the results converge, store in f
+                 ≤⊃⍺                                                                 Test if my speed is greater than
+ f[             ]                                                                        the final value in my distances map at
+             1↓⍺                                                                         the start and end coordinates
+   ⊂{⊃⍸c∊⊂⍵}¨                                                                            converted to their indices on the distances map
+</code></pre>
+<p>I kinda liked this for finding the orthogonal neighbors.  Left and right args are coordinates (a pair of numbers), so to check that they are neighbors without worrying about bounds, I convert to complex numbers:</p>
+<pre><code>1≥|⍺-⍥{{⍺+⍵×0J1}/⍵}⍵
+
+1≥|                    The magnitude of the number is less than/equal to 1
+   ⍺-⍥{           }⍵   their difference over the slight modification of
+                /⍵         between the elements of the argument
+       {⍺+⍵×0J1}           add left to right multiplied by i, effectively, making it a complex number
+       
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://uiua.org" rel="nofollow noreferrer">Uiua</a>, 18 bytes</h1>
 <pre><code>≥◌path(⤚𝄐⬚∞⊡⧋+A₂)≍
 </code></pre>
 <p>Takes inputs as <code>start end grid speed</code><br />
@@ -46,7 +76,7 @@
 ≥◌      # is the speed ≥ the cost?
 </code></pre>
 </div>
-<div id="pu1" class="pu"><h1>Python3, 280 bytes</h1>
+<div id="pu2" class="pu"><h1>Python3, 280 bytes</h1>
 <pre class="lang-py prettyprint-override"><code>E=enumerate
 def f(b,s,e,m):
  d={(x,y):int([0,v][v!='X'])for x,r in E(b)for y,v in E(r)}
@@ -59,7 +89,7 @@ def f(b,s,e,m):
 </code></pre>
 <p><a href="https://tio.run/##jZLBjpswEIbP9VNMc4ndTFY4JN1VJPe21x4jVhRVSTEt0mKIcaKgqs@eeozJ9tBIK4Ttmfn@34NNN7hfrUmfOnu9PittTo22e6dZqSuo@AF71NiILYNS/eYXHMS2No7nCZ6L/PxRzbN5IarWwgUt1Aae@SGEA57H0Io/DI4q5596bDDvC1EwGAWDT3REHb091FWwV0pT5ENovqhka7U7WQOScj9a42pz0n59XJDlDptlme8K7BZ@DBtn@OItcy4xEciX45SgDONSisIblw8/teO7reKXRYbD4kWIvSlhB6Z11E8HFI7Wvofi2ktQMJvNmAQJK/9mjGZaSRZGWrMM6PFrRmy/iqIUPgckg/VNvoGbQahI2LAp@icbc2nIpqOevTHrSeH3oPrmtpOvjU2ksYnYJSPM24Ui3bFrvx/avS157y/5QzztvH7ou9facRGuqqZDqepXpy3/2hqN0Mf6/JuZC3@jrLP0W1T8zc6fOPAVQkpzgkDxRoh3kuv7ZCQmxf89V0Sk5DOSpHh8N7m@T0qEp0g@3vWcviSJCvJM75ORmBSevP4F" rel="nofollow noreferrer">Try it online!</a></p>
 </div>
-<div id="pu2" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 38 bytes</h1>
+<div id="pu3" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 38 bytes</h1>
 
 <pre><code>ạƝṢ€Ḅ’¬Ạ
 ŒṪ’ḟŒPŒ!€ẎW€j¥@€ÇƇḊ€‘œị⁸§Ṃ’&lt;⁵
@@ -73,7 +103,7 @@ def f(b,s,e,m):
 
 <p>Creates a list of all permutations of each of the power-set of "all terrain locations except the start &amp; end", surrounds each of these with the start &amp; end, filters to those which make only orthogonal moves of distance one, drops the start from each, indexes back into the terrain, sums each, takes the minimum, subtracts one and tests that this is less than the speed.</p>
 </div>
-<div id="pu3" class="pu"><h1>TSQL query, <s>205</s> 191 bytes</h1>
+<div id="pu4" class="pu"><h1>TSQL query, <s>205</s> 191 bytes</h1>
 <p>Input is a table variable @t</p>
 <p>@x=start xpos, @y=start ypos
 @i=end xpos  , @j=end ypos
@@ -98,7 +128,7 @@ max(iif(S&gt;=0and f=@j and r=@i,1,0))FROM c
 </code></pre>
 <p><strong><a href="https://data.stackexchange.com/stackoverflow/query/1019423/terrain-reachability" rel="nofollow noreferrer">Try it online</a></strong> ungolfed version</p>
 </div>
-<div id="pu4" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 59 bytes</h1>
+<div id="pu5" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 59 bytes</h1>
 
 <pre><code>+2¦µ_2ịæ.Ø½œị$Ʋ+5ịƲ$4¦01Ñḣ3Ḋ⁼/Ɗ?ḣ2=/ẸƊoF&lt;0ẸƊƊ?
 çⱮØ.,U$;N$¤Ẹ
@@ -140,7 +170,7 @@ max(iif(S&gt;=0and f=@j and r=@i,1,0))FROM c
            Ẹ  | Check if any are true
 </code></pre>
 </div>
-<div id="pu5" class="pu"><h1>JavaScript (ES7), <s> 116 </s> 113 bytes</h1>
+<div id="pu6" class="pu"><h1>JavaScript (ES7), <s> 116 </s> 113 bytes</h1>
 <p>Takes input as <code>(matrix)([endRow, endCol])(speed, startRow, startCol)</code>. Expects large values for unreachable squares. Returns <span class="math-container">\$0\$</span> or <span class="math-container">\$1\$</span>.</p>
 
 <pre class="lang-javascript prettyprint-override"><code>m=&gt;e=&gt;o=g=(s,y,x)=&gt;m.map((r,Y)=&gt;r.map((v,X)=&gt;r[s&lt;v|(x-X)**2+(y-Y)**2-1||g(s-v,Y,X,r[X]=1/0),X]=v),o|=y+[,x]==e)|o
@@ -172,7 +202,7 @@ e =&gt;                        // e[] = target coordinates
     ) | o                   // end of outer map(); return o
 </code></pre>
 </div>
-<div id="pu6" class="pu"><h1><a href="https://docs.python.org/2/" rel="nofollow noreferrer">Python 2</a>, 220 bytes</h1>
+<div id="pu7" class="pu"><h1><a href="https://docs.python.org/2/" rel="nofollow noreferrer">Python 2</a>, 220 bytes</h1>
 
 
 
