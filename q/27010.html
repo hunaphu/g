@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::27010</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>128</td><td>2 2048 256</td><td>250805T022813Z</td><td><a href="https://codegolf.stackexchange.com/questions/27010/play-a-perfect-game-of-2048/282958#282958">user1291</a></td></tr>
+<tr d-ix="1"><td>3340</td><td>Ruby</td><td>140729T201423Z</td><td><a href="https://codegolf.stackexchange.com/questions/27010/play-a-perfect-game-of-2048/35350#35350">Martin E</a></td></tr>
+</table>
+<div id="pu0" class="pu"><p>2 2048 256 128
+128 64 16 32
+2 8 4 8
+0 0 0 0</p>
+</div>
+<div id="pu1" class="pu"><h2>Ruby, Into the Corner, Score: 3340</h2>
+
+<p>Here is a very simple strategy to kick this off. I do have an idea for a (near) perfect score, but I'm having trouble formalising it, so here is something simple to get things going.</p>
+
+<pre><code>def slide board, dir
+    case dir
+    when 'U'
+        i0 = 0
+        i_stride = 1
+        i_dist = 4
+    when 'D'
+        i0 = 15
+        i_stride = -1
+        i_dist = -4
+    when 'L'
+        i0 = 0
+        i_stride = 4
+        i_dist = 1
+    when 'R'
+        i0 = 15
+        i_stride = -4
+        i_dist = -1
+    end
+
+    4.times do |x|
+        column = []
+        top_merged = false
+        4.times do |y|
+            tile = board[i0 + x*i_stride + y*i_dist]
+            next if tile == 0
+            if top_merged || tile != column.last
+                column.push tile
+                top_merged = false
+            else
+                column[-1] *= 2
+                top_merged = true
+            end
+        end
+
+        4.times do |y|
+            board[i0 + x*i_stride + y*i_dist] = column[y] || 0
+        end
+    end
+
+    board
+end
+
+def advance board
+    if board.reduce(:*) &gt; 0
+        return board, board
+    end
+
+    16.times do |i|
+        if board[15-i] == 0
+            board[15-i] = 4
+            break
+        end
+    end
+
+    spawned = board.clone
+
+    # Attention, dirty dirty hand-tweaked edge cases to avoid
+    # the inevitable for a bit longer. NSFS!
+    if board[11] == 8 &amp;&amp; (board[12..15] == [32, 16, 4, 4] ||
+                          board[12..15] == [16, 16, 4, 4] &amp;&amp; board[8..10] == [256,64,32]) || 
+       board[11] == 16 &amp;&amp; (board[12..15] == [32, 8, 4, 4] || 
+                           board[12..15] == [4, 32, 8, 8] || 
+                           board[12..15] == [4, 32, 0, 4])
+
+        dir = 'R'
+    elsif board[11] == 16 &amp;&amp; board[12..15] == [4, 4, 32, 4] ||
+          board[11] == 8 &amp;&amp; board[12..15] == [0, 4, 32, 8]
+        dir = 'U'
+    else
+        dir = (board.reduce(:+)/4).even? ? 'U' : 'L'
+    end
+
+    board = slide(board, dir)
+
+    if board == spawned
+        dir = dir == 'U' ? 'L' : 'U'
+        board = slide(board, dir)
+    end
+    return spawned, board
+end
+</code></pre>
+
+<p>The <code>advance</code> function is the one your asking for. It takes a board as 1d array and returns the board after the tile has been spawned and after the move has been made.</p>
+
+<p>You can test it with this snippet</p>
+
+<pre><code>board = [0]*16
+loop do
+    spawned, board = advance(board)
+    board.each_slice(4) {|row| puts row*' '}
+    puts
+    break if board[15] &gt; 0
+end
+
+puts "Score: #{board.reduce :+}"
+</code></pre>
+
+<p>The strategy is very simple, and is the one I actually used to skip to the 128 when I was playing 2048 myself: just alternate between <strong>up</strong> and <strong>left</strong>. To make this work for as long as possible, new <code>4</code>s are spawned in the bottom right corner.</p>
+
+<p><strong>EDIT:</strong> I've added a hard coded switch to go right a few times at specific steps just before the end, which actually lets me reach 1024. This is getting somewhat out of hand though, so I'll stop with this for now and think about a generally better approach tomorrow. (Honestly, the fact that I can increase my score by a factor of 4 by adding hand-tweaked hacks only tells me that my strategy is crap.)</p>
+
+<p>This is the board you end up with</p>
+
+<pre><code>1024 512 256 128
+ 512 256 128  16
+ 256 128  64   8
+   8  32   8   4
+</code></pre>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/27010/">27010</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
