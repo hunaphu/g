@@ -26,7 +26,7 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>085</td><td>Dyalog APL</td><td>250804T224405Z</td><td><a href="https://codegolf.stackexchange.com/questions/182319/terrain-reachability/282956#282956">Aaron</a></td></tr>
+<tr d-ix="0"><td>063</td><td>Dyalog APL</td><td>250804T224405Z</td><td><a href="https://codegolf.stackexchange.com/questions/182319/terrain-reachability/282956#282956">Aaron</a></td></tr>
 <tr d-ix="1"><td>018</td><td>Uiua</td><td>250721T030636Z</td><td><a href="https://codegolf.stackexchange.com/questions/182319/terrain-reachability/282722#282722">nyxbird</a></td></tr>
 <tr d-ix="2"><td>280</td><td>Python3</td><td>250720T174220Z</td><td><a href="https://codegolf.stackexchange.com/questions/182319/terrain-reachability/282718#282718">Ajax1234</a></td></tr>
 <tr d-ix="3"><td>038</td><td>Jelly</td><td>190401T230139Z</td><td><a href="https://codegolf.stackexchange.com/questions/182319/terrain-reachability/182524#182524">Jonathan</a></td></tr>
@@ -35,33 +35,26 @@
 <tr d-ix="6"><td>113</td><td>JavaScript ES7</td><td>190328T020921Z</td><td><a href="https://codegolf.stackexchange.com/questions/182319/terrain-reachability/182356#182356">Arnauld</a></td></tr>
 <tr d-ix="7"><td>220</td><td>Python 2</td><td>190327T220350Z</td><td><a href="https://codegolf.stackexchange.com/questions/182319/terrain-reachability/182345#182345">Chas Bro</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Dyalog APL, ⎕IO←0, 85 chars</h1>
-<pre><code>{f[⊂{⊃⍸c∊⊂⍵}¨1↓⍺]≤⊃⍺⊣f←d{⍺⌊.+⍵}⍣≡d←∘.{⍺≡⍵:0⋄1≥|⍺-⍥{{⍺+⍵×0J1}/⍵}⍵:m[⊂⍵]⋄101}⍨c←,⍳⍴m←⍵}
+<div id="pu0" class="pu"><h1>Dyalog APL, ⎕IO←0, <s>85</s> 63 chars</h1>
+<pre><code>{⊃⍺≥({⊃⍸c∊⊂⍵}¨1↓⍺)⌷⌊.+⍣≡⍨∘.{(⍺≢⍵)×m[⊂⍵]+101×1≠+/|⍺-⍵}⍨c←,⍳⍴m←⍵}
 </code></pre>
 <p>Expects the speed, start coords, and end coords as a triplet on the left and the terrain map (matrix) on the right with unreachables as 101.</p>
 <p>Explanation:</p>
-<pre><code>{f[⊂{⊃⍸c∊⊂⍵}¨1↓⍺]≤⊃⍺⊣f←d{⍺⌊.+⍵}⍣≡d←∘.{⍺≡⍵:0⋄1≥|⍺-⍥{{⍺+⍵×0J1}/⍵}⍵:m[⊂⍵]⋄101}⍨c←,⍳⍴m←⍵}
-                                                                                m←⍵  Save the input map for later
-                                                                           c←,⍳⍴     Ravel the indices of its rank, store in c for later; i.e. a 2x3 matrix would give (0 0) (0 1) (0 2) (1 0) (1 1) (1 2)
-                                 d←∘.{                                   }⍨          Apply to both sides of this outer product, storing in d
-                                      ⍺≡⍵:0                                          For each combo of indices
-                                                                                         If its the same index, return 0 (distance to myself is 0)
-                                            1≥|⍺-⍥{{⍺+⍵×0J1}/⍵}⍵:m[⊂⍵]                   If its one of my four neighbors, return the value from the original map
-                                                                       101               Else return 101 (unreachable)
-                     f←d{⍺⌊.+⍵}⍣≡d                                                   Do a minimum-sum inner product on this distances map until the results converge, store in f
-                 ≤⊃⍺                                                                 Test if my speed is greater than
- f[             ]                                                                        the final value in my distances map at
-             1↓⍺                                                                         the start and end coordinates
-   ⊂{⊃⍸c∊⊂⍵}¨                                                                            converted to their indices on the distances map
-</code></pre>
-<p>I kinda liked this for finding the orthogonal neighbors.  Left and right args are coordinates (a pair of numbers), so to check that they are neighbors without worrying about bounds, I convert to complex numbers:</p>
-<pre><code>1≥|⍺-⍥{{⍺+⍵×0J1}/⍵}⍵
-
-1≥|                    The magnitude of the number is less than/equal to 1
-   ⍺-⍥{           }⍵   their difference over the slight modification of
-                /⍵         between the elements of the argument
-       {⍺+⍵×0J1}           add left to right multiplied by i, effectively, making it a complex number
-       
+<pre><code>{⊃⍺≥({⊃⍸c∊⊂⍵}¨1↓⍺)⌷⌊.+⍣≡⍨∘.{(⍺≢⍵)×m[⊂⍵]+101×1≠+/|⍺-⍵}⍨c←,⍳⍴m←⍵}
+                                                          m←⍵  Save the input map for later
+                                                      c←,⍳⍴     Ravel the indices of its rank, store in c for later; i.e. a 2x3 matrix would give (0 0) (0 1) (0 2) (1 0) (1 1) (1 2)
+                         ∘.{                        }⍨          Apply to both sides of this outer product to make a matrix of distances between each node
+                                        101×1≠+/|⍺-⍵            Find the absolute difference of coords and ensure it's 1 or multiply by 101 (to mean unreachable)
+                                  m[⊂⍵]+                   Add that to the corresponding place from the original input
+                            (⍺≢⍵)×                         Zero out the whole thing if the left and right argument match in this outer product
+                   ⌊.+                                     Apply a minimum-sum inner product
+                      ⍣≡                                       until the results converge
+                        ⍨                                      with the right arg duplicated for to the left for the first run
+     (           )⌷                         Select from that final distances matrix
+              1↓⍺                               the second and third left arguments (start and end coords)
+      {      }¨                                 mapped to the saved off coordinates list
+       ⊃⍸c∊⊂⍵                                   by finding the index of where this coordinate appears in the list of saved coordinates
+   ⊃⍺≥                                      And finally check if my original speed is greater than the returned distance
 </code></pre>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://uiua.org" rel="nofollow noreferrer">Uiua</a>, 18 bytes</h1>
