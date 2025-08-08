@@ -26,7 +26,7 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>087</td><td>JavaScript ES6</td><td>250806T103734Z</td><td><a href="https://codegolf.stackexchange.com/questions/282973/longest-streak-of-new-animal-every-day/282974#282974">Arnauld</a></td></tr>
+<tr d-ix="0"><td>083</td><td>JavaScript ES6</td><td>250806T103734Z</td><td><a href="https://codegolf.stackexchange.com/questions/282973/longest-streak-of-new-animal-every-day/282974#282974">Arnauld</a></td></tr>
 <tr d-ix="1"><td>094</td><td>Python 3</td><td>250807T053958Z</td><td><a href="https://codegolf.stackexchange.com/questions/282973/longest-streak-of-new-animal-every-day/283007#283007">tata</a></td></tr>
 <tr d-ix="2"><td>006</td><td>Nekomata</td><td>250807T021100Z</td><td><a href="https://codegolf.stackexchange.com/questions/282973/longest-streak-of-new-animal-every-day/283005#283005">alephalp</a></td></tr>
 <tr d-ix="3"><td>109</td><td>Python 3</td><td>250806T200922Z</td><td><a href="https://codegolf.stackexchange.com/questions/282973/longest-streak-of-new-animal-every-day/282992#282992">Jonathan</a></td></tr>
@@ -35,37 +35,40 @@
 <tr d-ix="6"><td>010</td><td>Jelly</td><td>250806T165726Z</td><td><a href="https://codegolf.stackexchange.com/questions/282973/longest-streak-of-new-animal-every-day/282984#282984">Jonathan</a></td></tr>
 <tr d-ix="7"><td>037</td><td>Charcoal</td><td>250806T165346Z</td><td><a href="https://codegolf.stackexchange.com/questions/282973/longest-streak-of-new-animal-every-day/282983#282983">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>JavaScript (ES6), 87 bytes</h1>
+<div id="pu0" class="pu"><h1>JavaScript (ES6), 83 bytes</h1>
+<p><em>-4 thanks to <a href="https://codegolf.stackexchange.com/users/127096/tata">@tata</a></em></p>
 
-<pre class="lang-javascript prettyprint-override"><code>f=([a=[],...b],o=f,n=0)=&gt;Math.max(n,b+b&amp;&amp;f(b),...a.map(s=&gt;o[s]||f(b,{...o,[s]:1},n+1)))
+<pre class="lang-javascript prettyprint-override"><code>f=([a,...b],o=f,n=0)=&gt;a?Math.max(n,f(b),...a.map(s=&gt;o[s]||f(b,{...o,[s]:1},n+1))):n
 </code></pre>
-<p><a href="https://tio.run/##fVLLTsMwELz3K3KqHdWkLSAOIPfGkS@wfNikdhKaeis7ojzKtxcnjmlDASmKZ2dn9hHnGV7AFbbetVcG1@p41JwK4EKyLMtyyZBrZvgi5asnaKtsC6/UsHyWT6ea5mknAk/uqOMrFE4eDp5mH55G5sP75Sczs2WapscHMUkSIcgaSyIlS@bzZNkzksUnsIug24ApwSISRjYIDRCfFQNk5F3ldkQFGD1DqZtQSteu8p41mo1686BC65Q/C9x7nxjiDnXMWR7a3lb6d1lb0Fqd6VlUw9a1yo4zvTNm/nbHnj@9w/x3Yf49NrqXfC9Shn3/jUfhUJZdaMKkoUNoenu6p7hIU6Mh4ZKC/3cw6nsCoex1KHv6prH7xSmDXE4yjfYRiopCwldJgcZho7IGS6opdP/UFw" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<p><a href="https://tio.run/##fVLLTsMwELz3K3KzI0zaAuJQlHLiyBdYPmxTOwlNvZUdUR7l24ObjSmhgBTFs7Mz@4jzBM/gC1fv2kuLa911JucSRJZlKyUwN8LmszRfwv0jtFW2hRduheGr9KiAEO@4z5covTocAi3eA40ihIv5h7AX8zRNF7a7k5MkkZKtsWRKiWQ6TeY9o0R8iJ2RbgO2BIfIBNsgNMBCVg5QsDe9ciOKYPQMpa6plKl9FTxrtBv9GkCFzutwFrgPPjnER3RkvuWh7W1leJe1A2P0N72Iatj6VrtxpnfGzN/u2POnd5j/lubfY2N6ydciJe37bzwKh7LiTEOTUgdqenO6p7hIU6NldEnk/x2M@p4Alb2isqdvGrufnYrkapIZdA9QVBySfJkUaD02Omuw5IZD@Ku6Tw" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
 <h3>Commented</h3>
-<pre class="lang-javascript prettyprint-override"><code>f = (           // f is a recursive function taking:
-  [             //
-    a = [],     //   a[] = next list of animals (empty by default)
-    ...b        //   b[] = array of remaining lists
-  ],            //
-  o = f,        //   o = object to store selected animals
-  n = 0         //   n = number of animals in o
-) =&gt;            //
-Math.max(       // get the maximum of:
-  n,            //   the current value of n
-  b + b &amp;&amp;      //   if b[] is not empty:
-    f(b),       //     the result of a recursive call with b[]
-                //     (previous values of o and n are discarded)
-  ...a.map(s =&gt; //   for each animal s in a[]:
-    o[s] ||     //     abort if this animal was already selected (*)
-    f(          //     otherwise, do a recursive call:
-      b,        //       pass b[]
-      {         //       build a new object with:
-        ...o,   //         the content of o
-        [s]: 1  //         a new entry with key s and value 1
-      },        //
-      n + 1     //       increment n
-    )           //     end of recursive call
-  )             //   end of map()
-)               // end of Math.max()
+<pre class="lang-javascript prettyprint-override"><code>f = (             // f is a recursive function taking:
+  [               //
+    a,            //   a[] = next list of animals
+    ...b          //   b[] = array of remaining lists
+  ],              //
+  o = f,          //   o = object to store selected animals
+  n = 0           //   n = number of animals in o
+) =&gt;              //
+a ?               // if a[] is defined:
+  Math.max(       //   get the maximum of:
+    n,            //     the current value of n
+    f(b),         //     the result of a recursive call with b[]
+                  //     (previous values of o and n are discarded)
+    ...a.map(s =&gt; //     for each animal s in a[]:
+      o[s] ||     //       abort if this animal was already selected (*)
+      f(          //       otherwise, do a recursive call:
+        b,        //         pass b[]
+        {         //         build a new object with:
+          ...o,   //           the content of o
+          [s]: 1  //           a new entry with key s and value 1
+        },        //   
+        n + 1     //         increment n
+      )           //       end of recursive call
+    )             //     end of map()
+  )               //   end of Math.max()
+:                 // else:
+  n               //   return n
 </code></pre>
 <p><em><sub>(*) We return 1 if we abort. This is safe because reaching that part of the code means that there's at least one non-empty list of animals and the answer is at least 1.</sub></em></p>
 </div>
