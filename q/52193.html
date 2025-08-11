@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::52193</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>156</td><td>C++ with pthreads</td><td>150714T072914Z</td><td><a href="https://codegolf.stackexchange.com/questions/52193/too-many-pawns-on-a-chess-board/53088#53088">Reto Kor</a></td></tr>
+<tr d-ix="1"><td>087</td><td>Java</td><td>150625T171648Z</td><td><a href="https://codegolf.stackexchange.com/questions/52193/too-many-pawns-on-a-chess-board/52224#52224">feersum</a></td></tr>
+<tr d-ix="2"><td>nan</td><td></td><td>150625T183014Z</td><td><a href="https://codegolf.stackexchange.com/questions/52193/too-many-pawns-on-a-chess-board/52228#52228">Cain</a></td></tr>
+<tr d-ix="3"><td>nan</td><td></td><td>150625T152044Z</td><td><a href="https://codegolf.stackexchange.com/questions/52193/too-many-pawns-on-a-chess-board/52217#52217">cmxu</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>C++ with pthreads, n = <s>147</s> 156</h1>
+
+<p>The latest result is from running the same code as before on a beefier machine. This was now run on a desktop with a quad-core i7 (Core i7-4770), which got to n=156 in 120 seconds. The result is:</p>
+
+<blockquote>
+  <p>7858103688882482349696225090648142317093426691269441606893544257091315906431773702676266198643058148987365151560565922891852481847049321541347582728793175114543840164406674137410614843200</p>
+</blockquote>
+
+<p>This is using a dynamic programming algorithm. I initially pondered approaches where the result would be built row by row, but I could never come up with a way to expand the solution without tracking a ton of state.</p>
+
+<p>The key insights that enabled a reasonably efficient solution were:</p>
+
+<ul>
+<li>Since pawns on black squares can only attack pawns on other black squares, and the same is true for white squares, the black and white squares are independent, and can be processed separately. And since they are equivalent, we only need to process one of the two.</li>
+<li>The problem gets much easier when processing the board diagonal by diagonal.</li>
+</ul>
+
+<p>If you look at one diagonal of a valid configuration, it always consists of a sequence of black pawns followed by a sequence of white pawns (where either sequence can also be empty). In other words, each diagonal can be fully characterized by its number of black pawns.</p>
+
+<p>Therefore, the state tracked for each diagonal is the number of valid pawn configurations for each combination of:</p>
+
+<ul>
+<li>Number of black pawns in the row (or in other words, the position within the diagonal that separates the black pawns from the white pawns).</li>
+<li>Total count of black pawns used. We need to track the whole thing per pawn count because we only need the equal number of black pawns and white pawns at the very end. While processing the diagonals, the counts can be different, and still result in valid solutions in the end.</li>
+</ul>
+
+<p>When stepping from one diagonal to the next one, there is another constraint to build valid solutions: The position that separates black pawns from white pawns can not increase. So the number of valid configurations is calculated as the sum of the valid configurations of the previous diagonal for positions that are equal or larger.</p>
+
+<p>The basic DP step is then very simple. Each value in a diagonal is just a sum of values from the previous diagonal. The only somewhat painful part is calculating the indices and loop ranges correctly. Since we're working on diagonals, the length increases during the first half of the calculation, and decreases for the second half, which makes the calculation of the loop ranges more cumbersome. There's also some considerations for the values at the boundary of the board, since they only have diagonal neighbors on one side when stepping from diagonal to diagonal.</p>
+
+<p>The amount of memory used is O(n^3). I keep two copies of the state data, and ping pong between them. I believe it would be possible to operate with a single instance of the state data. But you would have to be very careful that no values are updated before the old values are fully consumed. Also, it would not work well for the parallel processing I introduced.</p>
+
+<p>Runtime complexity is... polynomial. There are 4 nested loops in the algorithm, so at first sight it would look like O(n^4). But you obviously need bigints at these sizes, and the numbers themselves also get longer at larger sizes. The number of digits in the result seems to increase roughly proportionally to n, which would make the whole thing O(n^5). On the other hand, I found some performance improvements, which avoids going through the full range of all loops.</p>
+
+<p>So while this is still a fairly expensive algorithm, it gets much farther than the algorithms that enumerate solutions, which are all exponential.</p>
+
+<p>Some notes on the implementation:</p>
+
+<ul>
+<li>While there can be up to 2*n^2 black pawns on the black squares, I only calculate the configuration numbers up to n^2 black pawns. Since there's a symmetry between black and white pawns, the configuration count for k and 2*n^2-k are the same.</li>
+<li>The number of solutions is calculated at the end from the configuration counts on the black squares based on a similar symmetry. The total number of solutions (which need to have 2*n^2 pawns of each color) is the number of configurations for k black pawns on one color of squares multiplied by the number of configurations for 2*n^2-k black pawns on the other color of squares, summed over all k.</li>
+<li>In addition to just storing the configuration counts per diagonal position and pawn count, I also store the range of pawn counts that have valid configurations per position. This allows cutting down the range of the inner loop substantially. Without this, I found that a lot of zeros were being added. I got a very substantial performance improvement from this.</li>
+<li>The algorithm parallelizes fairly well, particularly at large sizes. The diagonals have to be processes sequentially, so there is a barrier at the end of each diagonal. But the positions within the diagonal can be processed in parallel.</li>
+<li>Profiling shows that the bottleneck is clearly in adding bigint values. I played around with some variations of the code, but it's not heavily optimized. I suspect that there could be a significant improvement from inline assembly to use 64-bit additions with carry.</li>
+</ul>
+
+<p>Main algorithm code. <code>THREADS</code> controls the number of threads used, where the number of CPU cores should be a reasonable starting point:</p>
+
+<pre><code>#ifndef THREADS
+#define THREADS 2
+#endif
+
+#if THREADS &gt; 1
+#include &lt;pthread.h&gt;
+#endif
+
+#include &lt;vector&gt;
+#include &lt;iostream&gt;
+#include &lt;sstream&gt;
+
+#include "BigUint.h"
+
+typedef std::vector&lt;BigUint&gt; BigUintVec;
+typedef std::vector&lt;int&gt; IntVec;
+
+static int N;
+static int NPawn;
+static int NPos;
+
+static BigUintVec PawnC[2];
+static IntVec PawnMinC[2];
+static IntVec PawnMaxC[2];
+
+#if THREADS &gt; 1
+static pthread_mutex_t ThreadMutex;
+static pthread_cond_t ThreadCond;
+static int BarrierCount;
+#endif
+
+#if THREADS &gt; 1
+static void ThreadBarrier()
+{
+    pthread_mutex_lock(&amp;ThreadMutex);
+
+    --BarrierCount;
+    if (BarrierCount)
+    {
+        pthread_cond_wait(&amp;ThreadCond, &amp;ThreadMutex);
+    }
+    else
+    {
+        pthread_cond_broadcast(&amp;ThreadCond);
+        BarrierCount = THREADS;
+    }
+
+    pthread_mutex_unlock(&amp;ThreadMutex);
+}
+#endif
+
+static void* countThread(void* pData)
+{
+    int* pThreadIdx = static_cast&lt;int*&gt;(pData);
+    int threadIdx = *pThreadIdx;
+
+    int prevDiagMin = N - 1;
+    int prevDiagMax = N;
+
+    for (int iDiag = 1; iDiag &lt; 2 * N; ++iDiag)
+    {
+        BigUintVec&amp; rSrcC = PawnC[1 - iDiag % 2];
+        BigUintVec&amp; rDstC = PawnC[iDiag % 2];
+
+        IntVec&amp; rSrcMinC = PawnMinC[1 - iDiag % 2];
+        IntVec&amp; rDstMinC = PawnMinC[iDiag % 2];
+
+        IntVec&amp; rSrcMaxC = PawnMaxC[1 - iDiag % 2];
+        IntVec&amp; rDstMaxC = PawnMaxC[iDiag % 2];
+
+        int diagMin = prevDiagMin;
+        int diagMax = prevDiagMax;;
+        if (iDiag &lt; N)
+        {
+            --diagMin;
+            ++diagMax;
+        }
+        else if (iDiag &gt; N)
+        {
+            ++diagMin;
+            --diagMax;
+        }
+
+        int iLastPos = diagMax;
+        if (prevDiagMax &lt; diagMax)
+        {
+            iLastPos = prevDiagMax;
+        }
+
+        for (int iPos = diagMin + threadIdx; iPos &lt;= iLastPos; iPos += THREADS)
+        {
+            int nAdd = iPos - diagMin;
+
+            for (int iPawn = nAdd; iPawn &lt; NPawn; ++iPawn)
+            {
+                rDstC[iPos * NPawn + iPawn] = 0;
+            }
+
+            rDstMinC[iPos] = NPawn;
+            rDstMaxC[iPos] = -1;
+
+            int iFirstPrevPos = iPos;
+            if (!nAdd)
+            {
+                iFirstPrevPos = prevDiagMin;
+            }
+
+            for (int iPrevPos = iFirstPrevPos;
+                 iPrevPos &lt;= prevDiagMax; ++iPrevPos)
+            {
+                int iLastPawn = rSrcMaxC[iPrevPos];
+                if (iLastPawn + nAdd &gt;= NPawn)
+                {
+                    iLastPawn = NPawn - 1 - nAdd;
+                }
+
+                if (rSrcMinC[iPrevPos] &gt; iLastPawn)
+                {
+                    continue;
+                }
+
+                if (rSrcMinC[iPrevPos] &lt; rDstMinC[iPos])
+                {
+                    rDstMinC[iPos] = rSrcMinC[iPrevPos];
+                }
+
+                if (iLastPawn &gt; rDstMaxC[iPos])
+                {
+                    rDstMaxC[iPos] = iLastPawn;
+                }
+
+                for (int iPawn = rSrcMinC[iPrevPos];
+                     iPawn &lt;= iLastPawn; ++iPawn)
+                {
+                    rDstC[iPos * NPawn + iPawn + nAdd] += rSrcC[iPrevPos * NPawn + iPawn];
+                }
+            }
+
+            if (rDstMinC[iPos] &lt;= rDstMaxC[iPos])
+            {
+                rDstMinC[iPos] += nAdd;
+                rDstMaxC[iPos] += nAdd;
+            }
+        }
+
+        if (threadIdx == THREADS - 1 &amp;&amp; diagMax &gt; prevDiagMax)
+        {
+            int pawnFull = (iDiag + 1) * (iDiag + 1);
+            rDstC[diagMax * NPawn + pawnFull] = 1;
+            rDstMinC[diagMax] = pawnFull;
+            rDstMaxC[diagMax] = pawnFull;
+        }
+
+        prevDiagMin = diagMin;
+        prevDiagMax = diagMax;
+
+#if THREADS &gt; 1
+        ThreadBarrier();
+#endif
+    }
+
+    return 0;
+}
+
+static void countPawns(BigUint&amp; rRes)
+{
+    NPawn = N * N + 1;
+    NPos = 2 * N;
+
+    PawnC[0].resize(NPos * NPawn);
+    PawnC[1].resize(NPos * NPawn);
+
+    PawnMinC[0].assign(NPos, NPawn);
+    PawnMinC[1].assign(NPos, NPawn);
+
+    PawnMaxC[0].assign(NPos, -1);
+    PawnMaxC[1].assign(NPos, -1);
+
+    PawnC[0][(N - 1) * NPawn + 0] = 1;
+    PawnMinC[0][N - 1] = 0;
+    PawnMaxC[0][N - 1] = 0;
+
+    PawnC[0][N * NPawn + 1] = 1;
+    PawnMinC[0][N] = 1;
+    PawnMaxC[0][N] = 1;
+
+#if THREADS &gt; 1
+    pthread_mutex_init(&amp;ThreadMutex, 0);
+    pthread_cond_init(&amp;ThreadCond, 0);
+
+    BarrierCount = THREADS;
+
+    int threadIdxA[THREADS] = {0};
+    pthread_t threadA[THREADS] = {0};
+    for (int iThread = 0; iThread &lt; THREADS; ++iThread)
+    {
+        threadIdxA[iThread] = iThread;
+        pthread_create(threadA + iThread, 0, countThread, threadIdxA + iThread);
+    }
+
+    for (int iThread = 0; iThread &lt; THREADS; ++iThread)
+    {
+        pthread_join(threadA[iThread], 0);
+    }
+
+    pthread_cond_destroy(&amp;ThreadCond);
+    pthread_mutex_destroy(&amp;ThreadMutex);
+#else
+    int threadIdx = 0;
+    countThread(&amp;threadIdx);
+#endif
+
+    BigUint solCount;
+    BigUintVec&amp; rResC = PawnC[1];
+    for (int iPawn = 0; iPawn &lt; NPawn; ++iPawn)
+    {
+        BigUint nComb = rResC[(N - 1) * NPawn + iPawn];
+
+        nComb *= nComb;
+        if (iPawn &lt; NPawn - 1)
+        {
+            nComb *= 2;
+        }
+
+        solCount += nComb;
+    }
+
+    std::string solStr;
+    solCount.toDecString(solStr);
+    std::cout &lt;&lt; solStr &lt;&lt; std::endl;
+}
+
+int main(int argc, char* argv[])
+{
+    std::istringstream strm(argv[1]);
+    strm &gt;&gt; N;
+
+    BigUint res;
+    countPawns(res);
+
+    return 0;
+}
+</code></pre>
+
+<p>This also needs a bigint class that I wrote for this purpose. Note that this is not a general purpose bigint class. It does just enough to support the operations used by this specific algorithm:</p>
+
+<pre><code>#ifndef BIG_UINT_H
+#define BIG_UINT_H
+
+#include &lt;cstdint&gt;
+#include &lt;string&gt;
+#include &lt;vector&gt;
+
+class BigUint
+{
+public:
+    BigUint()
+      : m_size(1),
+        m_cap(MIN_CAP),
+        m_valA(m_fixedValA)
+    {
+        m_valA[0] = 0;
+    }
+
+    BigUint(uint32_t val)
+      : m_size(1),
+        m_cap(MIN_CAP),
+        m_valA(m_fixedValA)
+    {
+        m_valA[0] = val;
+    }
+
+    BigUint(const BigUint&amp; rhs)
+      : m_size(rhs.m_size),
+        m_cap(MIN_CAP),
+        m_valA(m_fixedValA)
+    {
+        if (m_size &gt; MIN_CAP)
+        {
+            m_cap = m_size;
+            m_valA = new uint32_t[m_cap];
+        }
+
+        for (int iVal = 0; iVal &lt; m_size; ++iVal)
+        {
+            m_valA[iVal] = rhs.m_valA[iVal];
+        }
+    }
+
+    ~BigUint()
+    {
+        if (m_cap &gt; MIN_CAP)
+        {
+            delete[] m_valA;
+        }
+    }
+
+    BigUint&amp; operator=(uint32_t val)
+    {
+        m_size = 1;
+        m_valA[0] = val;
+
+        return *this;
+    }
+
+    BigUint&amp; operator=(const BigUint&amp; rhs)
+    {
+        if (rhs.m_size &gt; m_cap)
+        {
+            if (m_cap &gt; MIN_CAP)
+            {
+                delete[] m_valA;
+            }
+
+            m_cap = rhs.m_size;
+            m_valA = new uint32_t[m_cap];
+        }
+
+        m_size = rhs.m_size;
+
+        for (int iVal = 0; iVal &lt; m_size; ++iVal)
+        {
+            m_valA[iVal] = rhs.m_valA[iVal];
+        }
+
+        return *this;
+    }
+
+    BigUint&amp; operator+=(const BigUint&amp; rhs)
+    {
+        if (rhs.m_size &gt; m_size)
+        {
+            resize(rhs.m_size);
+        }
+
+        uint64_t sum = 0;
+        for (int iVal = 0; iVal &lt; m_size; ++iVal)
+        {
+            sum += m_valA[iVal];
+            if (iVal &lt; rhs.m_size)
+            {
+                sum += rhs.m_valA[iVal];
+            }
+            m_valA[iVal] = sum;
+            sum &gt;&gt;= 32u;
+        }
+
+        if (sum)
+        {
+            resize(m_size + 1);
+            m_valA[m_size - 1] = sum;
+        }
+
+        return *this;
+    }
+
+    BigUint&amp; operator*=(const BigUint&amp; rhs)
+    {
+        int resSize = m_size + rhs.m_size - 1;
+        uint32_t* resValA = new uint32_t[resSize];
+
+        uint64_t sum = 0;
+
+        for (int iResVal = 0; iResVal &lt; resSize; ++iResVal)
+        {
+            uint64_t carry = 0;
+
+            for (int iLhsVal = 0;
+                 iLhsVal &lt;= iResVal &amp;&amp; iLhsVal &lt; m_size; ++iLhsVal)
+            {
+                int iRhsVal = iResVal - iLhsVal;
+                if (iRhsVal &lt; rhs.m_size)
+                {
+                    uint64_t prod = m_valA[iLhsVal];
+                    prod *= rhs.m_valA[iRhsVal];
+                    uint64_t newSum = sum + prod;
+                    if (newSum &lt; sum)
+                    {
+                        ++carry;
+                    }
+                    sum = newSum;
+                }
+            }
+
+            resValA[iResVal] = sum &amp; UINT64_C(0xFFFFFFFF);
+            sum &gt;&gt;= 32u;
+            sum += carry &lt;&lt; 32u;
+        }
+
+        if (resSize &gt; m_cap)
+        {
+            if (m_cap &gt; MIN_CAP)
+            {
+                delete[] m_valA;
+            }
+
+            m_cap = resSize;
+            m_valA = resValA;
+        }
+        else
+        {
+            for (int iVal = 0; iVal &lt; resSize; ++iVal)
+            {
+                m_valA[iVal] = resValA[iVal];
+            }
+
+            delete[] resValA;
+        }
+
+        m_size = resSize;
+
+        if (sum)
+        {
+            resize(m_size + 1);
+            m_valA[m_size - 1] = sum;
+        }
+
+        return *this;
+    }
+
+    void divMod(uint32_t rhs, uint32_t&amp; rMod)
+    {
+        uint64_t div = 0;
+        for (int iVal = m_size - 1; iVal &gt;= 0; --iVal)
+        {
+            div &lt;&lt;= 32u;
+            div += m_valA[iVal];
+
+            uint64_t val = div / rhs;
+            div -= val * rhs;
+
+            if (val || iVal == 0 || iVal &lt; m_size - 1)
+            {
+                m_valA[iVal] = val;
+            }
+            else
+            {
+                --m_size;
+            }
+        }
+
+        rMod = div;
+    }
+
+    void toDecString(std::string&amp; rStr) const
+    {
+        std::vector&lt;char&gt; digits;
+
+        BigUint rem(*this);
+        while (rem.m_size &gt; 1 || rem.m_valA[0])
+        {
+            uint32_t digit = 0;
+            rem.divMod(10, digit);
+            digits.push_back(digit);
+        }
+
+        if (digits.empty())
+        {
+            rStr = "0";
+        }
+        else
+        {
+            rStr.clear();
+            rStr.reserve(digits.size());
+
+            for (int iDigit = digits.size() - 1; iDigit &gt;= 0; --iDigit)
+            {
+                rStr.append(1, '0' + digits[iDigit]);
+            }
+        }
+    }
+
+private:
+    static const int MIN_CAP = 8;
+
+    void resize(int newSize)
+    {
+        if (newSize &gt; m_cap)
+        {
+            uint32_t* newValA = new uint32_t[newSize];
+
+            for (int iVal = 0; iVal &lt; m_size; ++iVal)
+            {
+                newValA[iVal] = m_valA[iVal];
+            }
+
+            if (m_cap &gt; MIN_CAP)
+            {
+                delete[] m_valA;
+            }
+
+            m_cap = newSize;
+            m_valA = newValA;
+        }
+
+        for (int iVal = m_size; iVal &lt; newSize; ++iVal)
+        {
+            m_valA[iVal] = 0;
+        }
+
+        m_size = newSize;
+    }
+
+    int m_size;
+    int m_cap;
+
+    uint32_t* m_valA;
+    uint32_t m_fixedValA[MIN_CAP];
+};
+
+#endif // BIG_UINT_H
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>Java, n=87 on my machine</h1>
+<p>The result for n=87 is</p>
+<pre><code>62688341832480765224168252369740581641682638216282495398959252035334029997073369148728772291668336432168
+</code></pre>
+<br>
+
+<pre class="lang-java prettyprint-override"><code>import java.math.BigInteger;
+
+public class NonattackingPawns {
+
+    static BigInteger count(int n) {
+        BigInteger[][] a0 = new BigInteger[n+1][n*n+1], a1 = new BigInteger[n+1][n*n+1], tm;
+
+        for(int h = 0; h &lt;= n; h++) a0[h][0] = h%2==0? BigInteger.ONE: BigInteger.ZERO;
+        
+        for(int c = 1; c &lt;= 2*n; c++) {     
+            int minp = 0;
+            for(int h = 0; h &lt;= n; h++) {
+                java.util.Arrays.fill(a1[h], BigInteger.ZERO);
+                if(h&gt;0) minp += c &gt;= 2*h-c%2 ? 2*h - c%2 : c;
+
+                int maxp = Math.min(n*(c-1)+h, n*n);
+                for(int p = minp; p &lt;= maxp; p++) {
+                    BigInteger sum = a0[h][p-h];
+
+                    if(c%2==1 &amp;&amp; h&gt;0) 
+                        sum = sum.add(a0[h-1][p-h]);
+                    else if(c%2==0 &amp;&amp; h&lt;n) 
+                        sum = sum.add(a0[h+1][p-h]);
+
+                    a1[h][p] = sum;
+                }
+            }
+            tm=a0; a0=a1; a1=tm;
+        }
+        BigInteger[] s = new BigInteger[n*n+1];
+        for(int p = 0; p &lt;= n*n; p++) {
+            BigInteger sum = BigInteger.ZERO;
+            for(int h = 0; h &lt;= n; h++) sum = sum.add(a0[h][p]);
+            s[p] = sum;
+
+        }
+        
+        BigInteger ans = BigInteger.ZERO;
+        for(int p = 0; p &lt; n*n; p++) ans = ans.add(s[p].multiply(s[p]));
+        return ans.shiftLeft(1).add(s[n*n].multiply(s[n*n]));
+    }
+
+    public static void main(String[] args) {
+        for(int n = 0;; n++) {
+            System.out.println(n + &quot; &quot; + count(n));
+        }
+    }
+
+}
+</code></pre>
+<p>This currently uses a dynamic programming scheme taking O(n^4) operations to calculate the ways to place <code>p</code> pawns on the squares of one color for <code>0 &lt;= p &lt;= n^2</code>. I think it should be possible to do this much more efficiently.</p>
+<p><a href="http://ideone.com/uFx1s2" rel="nofollow noreferrer">Check out the results here.</a></p>
+<h3>Explanation</h3>
+<p>In a valid solution, the lowermost white pawns in each column must form a zigzagging line like this:</p>
+<p><img src="https://i.sstatic.net/dwbdc.png" alt="pawn line" /></p>
+<p>That is, the height of the line in column <em>c</em> must be +/- 1 from its position in column <em>c - 1</em>. The line can also go onto two imaginary rows above the top of the board.</p>
+<p>We can use dynamic programming to find the number of ways to draw a line on the first <em>c</em> columns that includes <em>p</em> pawns on those columns, is at height <em>h</em> on the <em>c</em>th column, using the results for column <em>c - 1</em>, heights <em>h +/- 1</em>, and number of pawns <em>p - h</em>.</p>
+</div>
+<div id="pu2" class="pu"><h2><a href="http://fantom.org/" rel="nofollow">Fantom</a></h2>
+
+<p>Here's an initial post that sets up the framework. I think the procedure is a relatively good one, but the implementation right now kind of sucks. I need to probably try to minimize the number of calculations I'm doing, and instead just pass more constants. </p>
+
+<h1>Strategy</h1>
+
+<p>Basically, each white pawn must be attacking other white pawns. So I start by placing a white pawn, placing pawns in each place it attacks, and essentially filling in the board with all the places a white pawn HAS to go. I stop if I've added too many white pawns already. If, at the end of this, I have exactly 2n^2 pawns, it's a solution. If less than that, add another white pawn somewhere, fill out all his required places, and count again. I recursively split every time a fill with less than 2n^2 is found, and calculate number of solutions with and without the last pawn I added.</p>
+
+<h1>Code</h1>
+
+<pre><code>class main
+{
+  public  Void main(){
+
+    echo(calculate(1))
+    echo(calculate(2))
+    echo(calculate(3))
+    echo(calculate(4))
+    echo(calculate(5))
+
+  }
+
+  public static  Int calculate(Int n){
+
+    n *= 2
+    //Initialize the array -  Definitely a weakpoint, but only runs once
+    Bool[][] white := [,]
+    n.times{ 
+      row := [,]
+      n.times{ row.add(false) }
+      white.add(row)
+    }
+
+    return recurse(white, -1, 0, n, n*n/2)
+  }
+
+  private static  Int recurse(Bool[][] white, Int lastPlacement, Int numWhites, Int n, Int totalWhite){
+    if(totalWhite - numWhites &gt; n*n - 1 - lastPlacement) return 0
+    lastPlacement++
+    Int row := lastPlacement / n
+    Int col := lastPlacement % n
+    if(white[row][col]){ return recurse(white, lastPlacement, numWhites, n, totalWhite)}
+    Bool[][] whiteCopy := copy(white)
+    whiteCopy[row][col] = true
+    Int result := fillIn(whiteCopy, numWhites + 1, totalWhite)
+    if(result == -1){
+      return recurse(white, lastPlacement, numWhites,n, totalWhite);
+    }
+    else if(result == totalWhite){
+      //echo("Found solution")
+      //echo("WhiteCopy = $whiteCopy")
+      return recurse(white, lastPlacement, numWhites,n, totalWhite) + 1;
+    }
+    else return recurse(whiteCopy, lastPlacement, result,n, totalWhite) + recurse(white, lastPlacement, numWhites,n, totalWhite)
+
+
+  }
+
+  //Every white must be attacking other whites, so fill in the grid with all necessary points
+  //Stop if number of whites used goes too high
+  private static Int fillIn(Bool[][] white, Int count, Int n){
+    white[0..-2].eachWhile |Bool[] row, Int rowIndex -&gt; Bool?| {
+      return row.eachWhile |Bool isWhite, Int colIndex -&gt; Bool?|{
+        if(isWhite){
+          //Catching index out of bounds is faster than checking index every time
+          try{
+            if(colIndex &gt; 0 &amp;&amp; !white[rowIndex + 1][colIndex - 1]){
+              white[rowIndex + 1][colIndex - 1] = true
+              count++
+            }
+            if(!white[rowIndex + 1][colIndex + 1]){
+              white[rowIndex + 1][colIndex + 1] = true
+              count++
+            }
+          } catch {}
+        }
+        if(count &gt; n){ count = -1; return true}
+        return null
+      }//End row.each
+    }//End white.each
+    return count
+  }
+
+  private static Bool[][] copy(Bool[][] orig){
+    Bool[][] copy := [,]
+    orig.each{
+      copy.add(it.dup)
+    }
+    return copy
+  }
+
+}
+</code></pre>
+
+<h1>Output</h1>
+
+<p>Only makes it to 5 right now, but I think most of the issue is in implementation.</p>
+
+<pre><code>3
+30
+410
+6148
+96120
+</code></pre>
+
+<h1><a href="http://www.fanzy.net/" rel="nofollow">Test</a></h1>
+</div>
+<div id="pu3" class="pu"><h1>Java</h1>
+
+<p>Currently, my code is very long and tedious, I'm working on making it faster. I use a recursive method in order to find the values. It computes the first 5 within 2 or 3 seconds, but it gets much slower afterwards. Also, I'm not sure yet if the numbers are right, but the first few seem to line up with the comments. Any suggestions are welcome.</p>
+
+<p><strong>Output</strong></p>
+
+<pre><code>2x2:    3
+4x4:    30
+6x6:    410
+8x8:    6148
+10x10:  96120
+</code></pre>
+
+<p><strong>Explanation</strong></p>
+
+<p>The basic idea is recursion. Essentially you start with an empty board, a board with all zeros. The recursive method just checks to see if it can put a black or white pawn in the next position, if it can only put one color, it puts it there and calls itself. If it can put both colors it calls itself twice, one with each color. Each time it calls itself it decreases the squares left and the appropriate color left. When it has filled the entire board it returns the the current count + 1. If it finds out that there is no way to put a black or white pawn in the next position, it returns 0, which means it's a dead path.</p>
+
+<p><strong>Code</strong></p>
+
+<pre class="lang-java prettyprint-override"><code>public class Chess {
+    public static void main(String[] args){
+        System.out.println(solve(1));
+        System.out.println(solve(2));
+        System.out.println(solve(3));
+        System.out.println(solve(4));
+        System.out.println(solve(5));
+    }
+    static int solve(int n){
+        int m =2*n;
+        int[][] b = new int[m][m];
+        for(int i = 0; i &lt; m; i++){
+            for(int j = 0; j &lt; m; j++){
+                b[i][j]=0;
+            }
+        }
+        return count(m,m*m,m*m/2,m*m/2,0,b);
+    }
+    static int count(int n,int sqLeft, int bLeft, int wLeft, int count, int[][] b){
+        if(sqLeft == 0){
+            /*for(int i = 0; i &lt; n; i++){
+                for(int j = 0; j &lt; n; j++){
+                    System.out.print(b[i][j]);
+                }
+                System.out.println();
+            }
+            System.out.println();*/
+            return count+1;
+        }
+        int x=(sqLeft-1)%n;
+        int y=(sqLeft-1)/n;
+        if(wLeft==0){
+            if(y!=0){
+                if ((x==0?true:b[x-1][y-1]!=1)&amp;&amp;(x==n-1?true:b[x+1][y-1]!= 1)) {
+                    b[x][y] = 2;
+                    return count(n, sqLeft-1, bLeft-1, wLeft, count, b);
+                } else {
+                    return 0;
+                }
+            } else {
+                b[x][y]=2;
+                return count(n,sqLeft-1,bLeft-1,wLeft,count,b);
+            }
+        } else if(bLeft==0){
+            if(y!=n-1){
+                if((x==0?true:b[x-1][y+1]!=2)&amp;&amp;(x==n-1?true:b[x+1][y+1]!=2)){
+                    b[x][y]=1;
+                    return count(n,sqLeft-1,bLeft,wLeft-1,count,b);
+                } else {
+                    return 0;
+                }
+            } else {
+                b[x][y]=1;
+                return count(n,sqLeft-1,bLeft,wLeft-1,count,b);
+            }
+        } else{
+            if(y==0){
+                if((x==0?true:b[x-1][y+1]!=2)&amp;&amp;(x==n-1?true:b[x+1][y+1]!=2)){
+                    int[][] c=new int[n][n];
+                    for(int i = 0; i &lt; n; i++){
+                        System.arraycopy(b[i], 0, c[i], 0, n);
+                    }
+                    b[x][y]=2;
+                    c[x][y]=1;
+                    return count(n,sqLeft-1,bLeft,wLeft-1,count,c)+count(n,sqLeft-1,bLeft-1,wLeft,count,b);
+                } else {
+                    b[x][y]=2;
+                    return count(n,sqLeft-1,bLeft-1,wLeft,count,b);
+                }
+            }else if(y==n-1){
+                if((x==0?true:b[x-1][y-1]!=1)&amp;&amp;(x==n-1?true:b[x+1][y-1]!=1)){
+                    int[][] c=new int[n][n];
+                    for(int i = 0; i &lt; n; i++){
+                        System.arraycopy(b[i], 0, c[i], 0, n);
+                    }
+                    b[x][y]=2;
+                    c[x][y]=1;
+                    return count(n,sqLeft-1,bLeft,wLeft-1,count,c)+count(n,sqLeft-1,bLeft-1,wLeft,count,b);
+                } else {
+                    b[x][y]=1;
+                    return count(n,sqLeft-1,bLeft,wLeft-1,count,b);
+                }
+            }else{
+                if(((x==0?true:b[x-1][y-1]!=1)&amp;&amp;(x==n-1?true:b[x+1][y-1]!=1))&amp;&amp;((x==0?true:b[x-1][y+1]!=2)&amp;&amp;(x==n-1?true:b[x+1][y+1]!=2))){
+                    int[][] c=new int[n][n];
+                    for(int i = 0; i &lt; n; i++){
+                        System.arraycopy(b[i], 0, c[i], 0, n);
+                    }
+                    b[x][y]=2;
+                    c[x][y]=1;
+                    return count(n,sqLeft-1,bLeft,wLeft-1,count,c)+count(n,sqLeft-1,bLeft-1,wLeft,count,b);
+                } else if ((x==0?true:b[x-1][y-1]!=1)&amp;&amp;(x==n-1?true:b[x+1][y-1]!=1)){
+                    b[x][y]=2;
+                    return count(n,sqLeft-1,bLeft-1,wLeft,count,b);
+                } else if ((x==0?true:b[x-1][y+1]!=2)&amp;&amp;(x==n-1?true:b[x+1][y+1]!=2)){
+                    b[x][y]=1;
+                    return count(n,sqLeft-1,bLeft,wLeft-1,count,b);
+                } else {
+                    return 0;
+                }
+            }
+        }
+    }
+}
+</code></pre>
+
+<p><a href="http://ideone.com/CH26vk" rel="nofollow">Try it here</a> <em>(Doesn't run fast enough for Ideone so the last value doesn't print, looks like my solution isn't very good!)</em></p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/52193/">52193</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
