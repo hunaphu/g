@@ -26,19 +26,76 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>052</td><td>JavaScript</td><td>160513T091944Z</td><td><a href="https://codegolf.stackexchange.com/questions/42638/area-under-a-curve/79852#79852">ericw314</a></td></tr>
-<tr d-ix="1"><td>027</td><td>CJam</td><td>141223T093156Z</td><td><a href="https://codegolf.stackexchange.com/questions/42638/area-under-a-curve/42703#42703">jimmy230</a></td></tr>
-<tr d-ix="2"><td>043</td><td>CJam</td><td>141223T072520Z</td><td><a href="https://codegolf.stackexchange.com/questions/42638/area-under-a-curve/42700#42700">Optimize</a></td></tr>
-<tr d-ix="3"><td>071</td><td>R</td><td>141221T230913Z</td><td><a href="https://codegolf.stackexchange.com/questions/42638/area-under-a-curve/42639#42639">Alex A.</a></td></tr>
+<tr d-ix="0"><td>115</td><td>Pascal</td><td>250818T000001Z</td><td><a href="https://codegolf.stackexchange.com/questions/42638/area-under-a-curve/283170#283170">Kai Burg</a></td></tr>
+<tr d-ix="1"><td>052</td><td>JavaScript</td><td>160513T091944Z</td><td><a href="https://codegolf.stackexchange.com/questions/42638/area-under-a-curve/79852#79852">ericw314</a></td></tr>
+<tr d-ix="2"><td>027</td><td>CJam</td><td>141223T093156Z</td><td><a href="https://codegolf.stackexchange.com/questions/42638/area-under-a-curve/42703#42703">jimmy230</a></td></tr>
+<tr d-ix="3"><td>043</td><td>CJam</td><td>141223T072520Z</td><td><a href="https://codegolf.stackexchange.com/questions/42638/area-under-a-curve/42700#42700">Optimize</a></td></tr>
+<tr d-ix="4"><td>071</td><td>R</td><td>141221T230913Z</td><td><a href="https://codegolf.stackexchange.com/questions/42638/area-under-a-curve/42639#42639">Alex A.</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>JavaScript, 52 bytes</h1>
+<div id="pu0" class="pu"><h2>Pascal, 115 B (non‐competing)<sup>†</sup></h2>
+<p>Declaring and defining your own function in Pascal introduces a ton of overhead;
+it is shorter to expand the integral:
+<span class="math-container">$$
+\begin{align}
+\int_{d}^{e} \! \left( a \, x^{2} + b \, x + c \right) \mathrm{d}x =&amp;
+   \int_{d}^{e} \! \left( a \, x^{2} \right) \mathrm{d}x +
+   \int_{d}^{e} \! \left( b \, x^{1} \right) \mathrm{d}x +
+   \int_{d}^{e} \! \left( c \, x^{0} \right) \mathrm{d}x   \\
+=&amp;\;
+   a \int_{d}^{e} \! \left(x^{2} \right) \mathrm{d}x +
+   b \int_{d}^{e} \! \left(x^{1} \right) \mathrm{d}x +
+   c \int_{d}^{e} \! \left(x^{0} \right) \mathrm{d}x   \\
+=&amp;\;
+   a \left( \left. \frac{x^3}{3} + p \right) \right|_{d}^{e} +
+   b \left( \left. \frac{x^2}{2} + q \right) \right|_{d}^{e} +
+   c \left( \left. \frac{x^1}{1} + r \right) \right|_{d}^{e} \\
+=
+&amp;\;a \left( \left(\frac{e^3}{3} + p \right) - \left(\frac{d^3}{3} + p \right) \right) + \\
+&amp;\;b \left( \left(\frac{e^2}{2} + q \right) - \left(\frac{d^2}{2} + q \right) \right) + \\
+&amp;\;c \left( \left(\frac{e^1}{1} + r \right) - \left(\frac{d^1}{1} + r \right) \right)   \\
+=
+&amp;\;a \left( \frac{e^3}{3} + p - \frac{d^3}{3} - p \right) + \\
+&amp;\;b \left( \frac{e^2}{2} + q - \frac{d^2}{2} - q \right) + \\
+&amp;\;c \left( \frac{e^1}{1} + r - \frac{d^1}{1} - r \right)   \\
+=&amp;\;
+   a \left( \frac{e^3}{3} - \frac{d^3}{3} \right) +
+   b \left( \frac{e^2}{2} - \frac{d^2}{2} \right) +
+   c \left( \frac{e^1}{1} - \frac{d^1}{1} \right)   \\
+=&amp;\;
+   a \left( \frac{e^3 - d^{3}}{3} \right) +
+   b \left( \frac{e^2 - d^{2}}{2} \right) +
+   c \left( \frac{e^1 - d^{1}}{1} \right)   \\
+=&amp;\;
+   \frac{a \left( e^3 - d^{3} \right) }{3} +
+   \frac{b \left( e^2 - d^{2} \right) }{2} +
+   c \left( e - d \right)
+\end{align}
+$$</span></p>
+<pre class="lang-pascal prettyprint-override"><code>program p(input,output);var a,b,c,d,e:real;begin
+read(a,b,c,d,e);write(a*(e*e*e-d*d*d)/3+b*(e*e-d*d)/2+c*(e-d))end.
+</code></pre>
+<p>Pretty‐printed:</p>
+<pre class="lang-pascal prettyprint-override"><code>program areaUnderACurve(input, output);
+    var
+        a, b, c, d, e: real;
+    begin
+        readLn(a, b, c, d, e);
+        writeLn(a * (e * e * e - d * d * d) / 3 +
+                b * (e * e     - d * d    ) / 2 +
+                c * (e         - d        )     )
+    end.
+</code></pre>
+<p><sup>†</sup>Pascal’s built‐in data type <code>real</code> provides only an <em>implementation‐defined “reasonable” approximation</em> of the actual mathematically correct and precise result, hence it is impossible to establish a precision of ±10<sup>−3</sup>.
+In practice values of large magnitude lead to errors exceeding the required grade of precision.</p>
+</div>
+<div id="pu1" class="pu"><h1>JavaScript, 52 bytes</h1>
 
 <pre><code>(a,b,c,d,e)=&gt;a*e^3/3+b*e^2/2+c*e-a*d^3/3-b*d^2/2-c*d
 </code></pre>
 
 <p>Calculates the indefinite integral at <code>e</code> and <code>d</code>, then subtract.</p>
 </div>
-<div id="pu1" class="pu"><h1>CJam, 27 bytes</h1>
+<div id="pu2" class="pu"><h1>CJam, 27 bytes</h1>
 <pre><code>q~W%2/~~[2*\~3*\6*0]fb:-6d/
 </code></pre>
 <p>Example input:</p>
@@ -48,7 +105,7 @@
 <pre><code>209.33333333333334
 </code></pre>
 </div>
-<div id="pu2" class="pu"><h1>CJam, <s>46</s> 43 bytes</h1>
+<div id="pu3" class="pu"><h1>CJam, <s>46</s> 43 bytes</h1>
 <pre><code>l~\:D-A3#:K*),])\f{\dK/D+\~\Z$*+@_*@*+K/}:+
 </code></pre>
 <p>The arguments are read via STDIN like</p>
@@ -60,7 +117,7 @@
 <p>You can increase the precision by changing the <code>3</code> in <code>A3#:K</code> to a higher number. The higher the number, the longer the program will take to finish.</p>
 <p><a href="http://cjam.aditsu.net/" rel="nofollow noreferrer">Try it online here</a></p>
 </div>
-<div id="pu3" class="pu"><h1>R, 71 bytes</h1>
+<div id="pu4" class="pu"><h1>R, 71 bytes</h1>
 <p>If the input is a vector <code>x &lt;- c(a, b, c, d, e)</code> then you can compute the integral directly as per @feersum's comment.</p>
 <pre><code>e=x[5];d=x[4];x[1]*e^3/3+x[2]*e^2/2+x[3]*e-x[1]*d^3/3-x[2]*d^2/2-x[3]*d
 </code></pre>
