@@ -26,24 +26,23 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>016</td><td>PARI/GP</td><td>150430T180230Z</td><td><a href="https://codegolf.stackexchange.com/questions/48037/prime-polynomials/49494#49494">Charles</a></td></tr>
+<tr d-ix="0"><td>120</td><td>PARI/GP</td><td>150430T180230Z</td><td><a href="https://codegolf.stackexchange.com/questions/48037/prime-polynomials/49494#49494">Charles</a></td></tr>
 <tr d-ix="1"><td>224</td><td>Mathematica</td><td>160120T095958Z</td><td><a href="https://codegolf.stackexchange.com/questions/48037/prime-polynomials/69746#69746">njpipeor</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h2>PARI/GP, 16 bytes, cheap as hell</h2>
-<p>For some reason this wasn't disallowed (noting that the command doesn't factor or equation-solve):</p>
-<pre><code>polisirreducible
+<div id="pu0" class="pu"><h2>PARI/GP, <s>155</s> <s>148</s> <s>135</s> <s>130</s> 120 bytes</h2>
+<p>This returns the truthy value <code>1</code> when a polynomial is irreducible and the special falsy value <code>gnil</code> (which is treated as <code>0</code> when you try to use it) when the polynomial is reducible.</p>
+<pre><code>(P,d=poldegree(P),B=3^d*norml2(P)*pollead(P),t=B*2+1)-&gt;for(i=0,t^d,Q=Pol([n-B|n&lt;-digits(i,t)])&amp;&amp;i%t-B&amp;&amp;P%Q==0&amp;&amp;return);1
 </code></pre>
 <p>Test case</p>
 <pre><code>%(x^2+x+1)
 </code></pre>
 <p>returns <code>1</code> (true). The other examples work similarly.</p>
-<p>But to show that this is solvable the hard way, here's a full solution.</p>
-<h2>Lightly golfed, <s>155</s> <s>148</s> <s>135</s> 130 bytes</h2>
-<p>This is even slower than the ungolfed version below. It returns the truthy value <code>1</code> when a polynomial is irreducible and the special falsy value <code>gnil</code> (which is treated as <code>0</code> when you try to use it) when the polynomial is reducible.</p>
-<pre><code>(P,d=poldegree(P),B=3^d*norml2(P)*pollead(P),t=B*2+1)-&gt;for(i=0,t^d,Q=Pol(apply(n-&gt;n-B,digits(i,t)));if(Q&amp;&amp;i%t!=B&amp;&amp;P%Q&lt;1,return));1
+<h2>PARI/GP, 16 bytes, cheap as hell</h2>
+<p>Technically not disallowed (noting that the command doesn't factor or equation-solve):</p>
+<pre><code>polisirreducible
 </code></pre>
-<h2>Ungolfed, very slow</h2>
-<p>This version checks all possible factors up to the Beauzamy bound.</p>
+<h2>Ungolfed version of #1</h2>
+<p>This version checks all possible factors up to the Beauzamy bound, so it's very slow. It's still faster than the golfed version, which checks further to save characters.</p>
 <pre><code>Beauzamy(P)=
 {
   my(d=poldegree(P),s,c);
@@ -66,7 +65,6 @@ irr(P)=
   factorpol(P)==0
 }
 </code></pre>
-<p>Edit: Commenters have pointed out that the first method is disallowed by good taste, the spirit of the rules, the Geneva Convention, standard loophole rules, etc. I don't agree, but in any case I posted other versions which are valid under a strict interpretation.</p>
 </div>
 <div id="pu1" class="pu"><h1>Mathematica, 224 bytes</h1>
 <pre><code>f@p_:=(e=p~Exponent~x;r=Range[⌈e/-4⌉,(e+2)/4];e&lt;2||FreeQ[PolynomialRemainder[p,Thread@{r,#}~InterpolatingPolynomial~x,x]&amp;/@Tuples[#~Join~-#&amp;[Join@@Position[#/Range@Abs@#,_Integer]]&amp;/@#]~DeleteCases~{(a_)..},0|{}]&amp;[p/.x-&gt;r])
