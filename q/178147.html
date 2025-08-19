@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::178147</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>118</td><td>Python3</td><td>250819T181150Z</td><td><a href="https://codegolf.stackexchange.com/questions/178147/find-equally-weighted-complete-graphs/283218#283218">Ajax1234</a></td></tr>
+<tr d-ix="1"><td>090</td><td>Wolfram Language Mathematica</td><td>181231T220330Z</td><td><a href="https://codegolf.stackexchange.com/questions/178147/find-equally-weighted-complete-graphs/178198#178198">Kelly Lo</a></td></tr>
+<tr d-ix="2"><td>168</td><td>Python 2</td><td>181231T034047Z</td><td><a href="https://codegolf.stackexchange.com/questions/178147/find-equally-weighted-complete-graphs/178161#178161">CCB60</a></td></tr>
+<tr d-ix="3"><td>152</td><td>Clean</td><td>181230T222632Z</td><td><a href="https://codegolf.stackexchange.com/questions/178147/find-equally-weighted-complete-graphs/178157#178157">Οurous</a></td></tr>
+<tr d-ix="4"><td>015</td><td>Jelly</td><td>181230T174730Z</td><td><a href="https://codegolf.stackexchange.com/questions/178147/find-equally-weighted-complete-graphs/178149#178149">Jonathan</a></td></tr>
+<tr d-ix="5"><td>016</td><td>Jelly</td><td>181230T202815Z</td><td><a href="https://codegolf.stackexchange.com/questions/178147/find-equally-weighted-complete-graphs/178154#178154">Erik the</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>Python3, 118 bytes</h1>
+<pre class="lang-py prettyprint-override"><code>lambda g,n:sum(all(g[x][y]for x in i for y in i if x!=y)for i in combinations(range(len(g)),n))
+from itertools import*
+</code></pre>
+<p><a href="https://tio.run/##jY2xDsIgEIZ3nwI3MAw0XYxJnwQZqBa8BA5CMSlPj6UadXAwl8t99w3/H0u@BeyPMVUznKvTfrxqYjme5run2jlq5aJkUSYkshBAAqRheSIYsuyHwpqCpi7Bj4A6Q8CZJo12om5CahnjyNjOpOAJ5CnlENxMwMeQ8qHGBJipoVIK3q0juFBctrvtxq9vZfHlxdsr3q8F/yd1P5K6T1J9AA" rel="nofollow noreferrer">Try it online!</a></p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.wolfram.com/wolframscript/" rel="nofollow noreferrer">Wolfram Language (Mathematica)</a>, 90 bytes</h1>
+
+<p>There is probably some room to further golf this, after some test cases are posted.</p>
+
+<p>We construct a graph from the unitized adjacency matrix, and then use the <code>FindClique</code> function with <code>All</code> as the third argument to list out the vertices with complete subgraphs.  We then select the submatrices of the original input corresponding to the cliques (which will have zeros along the diagonal) and count the number of distinct elements which should be 2 if the weights are equal.</p>
+
+<p>In this implementation, self connections can have a weight other than zero and the graph will still be considered complete and equal weighted, so long as the weights of all self connections in the subgraph are identical.</p>
+
+<pre><code>Count[Length@*Union@@@(b[[#,#]]&amp;/@FindClique[AdjacencyGraph[Unitize/@(b=#)],{#2},All]),2]&amp;
+</code></pre>
+
+<p><a href="https://tio.run/##TUw9C8IwFPwxgWLlQUPAsZBS0MXBxSlkiG1qImmqJR005LfH1@Igj3v3wXGjCkaPKthO5aHO7bT4IM7a34Ph@6u3k@ec725CECBSFhU/Wt@3zr4WLZr@oTrtu/dpVk8jsB3sR1dYr0kpIRKWoHFOlsBkkS@zxelBxEjhgEeBJogrr2Cb/jnU9C/HDxtSwiWZvw" rel="nofollow noreferrer" title="Wolfram Language (Mathematica) – Try It Online">Try it online!</a></p>
+</div>
+<div id="pu2" class="pu"><h1><a href="https://docs.python.org/2/" rel="nofollow noreferrer">Python 2</a>, <strike>195 bytes</strike> <strike>178 bytes</strike> 168 bytes</h1>
+
+<p>I'm sure there's a lot more golfing possible here, but for a change I want to get an entry in before there are dozens of other ones. I've provided a couple of test cases on TIO, but would love more examples.</p>
+
+<p>First round of suggested golf steps:  Remove some spaces, be smarter about the import. Shorter way of testing if the single link value in a set is zero (Thanks  to M. XCoder).</p>
+
+<p>Second round: ElPedro points out that in this case a program is shorter than the function.  I was hoping to find a way to package this as a lambda, so was thinking "function" from the start. Thanks.</p>
+
+
+
+<pre class="lang-python prettyprint-override"><code>from itertools import*
+r=set()
+M,n=input()
+for g in set(combinations(range(len(M)),n)):
+ s={M[i][j]for i in g for j in g if i&gt;j}
+ if len(s)==1and{0}!=s:r.add(g)
+print r
+</code></pre>
+
+<p><a href="https://tio.run/##jY7BasMwDIbvfgrtFLuY4XS3gvsGeQKTQ5Y4mUIjBduFjtJn9@K2lB12GELo0y/@H63f6Ytpn3sePFioqiqPgRfA5ENiPkXAZeWQdiLY6JNUotFkkdZz4ZEDTIAE5dTz8onUJWSKMnQ0eXnyJBulNCl1EBDttXHYurktPiy@CQrOD8QR8DjfRIHijMrauqPham5vNh7CezcMclJiDUgJQt6eFf7ie1meV7CDfZbOGV1vZbRptSvz3nd@bhubX7p56a3SH@IfCfUfCfUrIef8Aw" rel="nofollow noreferrer" title="Python 2 – Try It Online">Try it online!</a></p>
+
+<p>A slightly ungolfed version, to clarify logic:</p>
+
+<pre class="lang-python prettyprint-override"><code>from itertools import combinations
+def f3(M,n):
+  r = set()
+  groups = set(combinations(range(len(M)), n)) # all possible combinations of indexes
+  for group in groups:
+      # Generate a set of link values associated with the current combination
+      # This selects only non-diagonal indexes, assuming matrix symmetry.
+      s = {M[i][j]for i in group for j in group if i&gt;j}
+      # If the set has only one member, and that's not zero, you have
+      # a connected subgraph. 
+      if len(s) == 1 and 0 not in s:  
+          r.add(group)
+  return r
+</code></pre>
+</div>
+<div id="pu3" class="pu"><h1><a href="https://github.com/Ourous/curated-clean-linux" rel="nofollow noreferrer">Clean</a>, 152 bytes</h1>
+
+<pre><code>import StdEnv,Data.List
+$m n=sum[1\\i&lt;-subsequences[0..size m-1]|length i==n,j&lt;-permutations i|case[m.[x,y]\\x&lt;-i&amp;y&lt;-j]of[u:v]=all((==)u)v&amp;&amp;u&gt;0;_=1&lt;0]/2
+</code></pre>
+
+<p><a href="https://tio.run/##dVJbi9pAFH5OfsVBF3HBaLT4YpOFUvsgSLegbzHImBx1lrnYzIyXrvvXm56JCqVQAplz/b7znZlCIFO11KUTCJJxVXN50JWFhS2/qWNvyizrz7mx4ZMElRons@FqxZPIuI3Bnw5VgSaL@33DfxFANMyvAtXO7oGnqeq9JdEBK@kss1wrA/xaMIOZ7Gfn3iVfrc5JxDuXJHrL9TZzk2OeMiG63TR9ds/HTse9xJ/X6TCJ88GoHgzA7tEgsAphqyvYoLVYwXL2ClwdnA0fo1@MRdmfvfYe5lctJVPlnCsMCeaiHRRMwYEZ4zFh61ThBwRGO7AVP8OJkwTphOUHgVHJd9zCkQmHpgcbZ0FpS52Vdrs9LJbT2fdwYRlxn8KgDd1sPWHVzuQ9OD1DCju0f01wq6E8Zfw2vGlAb8MgyFROQatnihjIX5PHNl5Ta6aInpegnNyQaL31bU6isqbVcAqCNnfCCln5RQjPZm50JIvi7@33dqNl2VAUsFrRL4km4Ls/vOsNijSn@QiDFJ6aZmILT3usMAz@RX@w38mRBqUrIdEPtcH1DvsCLRq2aajQ2P9MGxBpN/MdE/BlzRobFE2XVZ24wUdRk6rj8TiOw3E8jkfh2B9h3NjxiL760@9iK9jO1NFsXk8vikle3Jwfgll6SPIP" rel="nofollow noreferrer" title="Clean – Try It Online">Try it online!</a></p>
+
+<p>TIO driver takes <code>n</code> as a command-line argument and the matrix through STDIN (weights up to 9).</p>
+
+<p>The actual function <code>$ :: {#{#Int}} Int -&gt; Int</code> works with any size weights.</p>
+</div>
+<div id="pu4" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, <s> 18 16 </s> 15 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
+<p>Assumes self-connections may be any weight (i.e. they are not necessarily only either <span class="math-container">\$0\$</span> or the equal weight).</p>
+<pre><code>Jœcṗ2EÐḟœị³EƲ€S
+</code></pre>
+<p><strong><a href="https://tio.run/##y0rNyan8/9/r6OTkhzunG7kenvBwx/yjkx/u7j602fXYpkdNa4L///8fHW2pY6hjpGOsYxSrw6UQbahjoWMOhIZgnhGQZQbEEDljsIyJjjFUDqLPIJYr9r8xAA" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></strong><br />
+the two subsets of size 3 being ACE and BCD<br />
+<a href="https://tio.run/##y0rNyan8/9/r6OTkhzunG7kenvBwx/yjkx/u7j602fXYpkdNa4L///8fHW2pY6hjpGOsYxSrw6UQbahjoWMOhIZgnhGQZQbEEDljsIyJjjFUDqLPIJYr9r8RAA" rel="nofollow noreferrer" title="Jelly – Try It Online">With n=2</a> all 10 subsets of size 2 work as its symmetric.</p>
+<h3>How?</h3>
+<pre><code>Jœcṗ2EÐḟœị³EƲ€S - Link: list of lists of integers, M; integer, n
+J               - range of length of M = [1,2,3,...,length(M)]
+ œc             - Combinations of length n e.g. [[1,2,3],[1,2,4],[1,3,4],[2,3,4]]
+             €  - for each:
+            Ʋ   -   last four links as a monad:
+   ṗ2           -     Cartesian power with 2
+      Ðḟ        -     discard if:
+     E          -       all-equal (i.e. diagonal co-ordinates like [3,3])
+        œị      -     multi-dimensional index into:
+          ³     -       program's 3rd argument (1st input), M
+           E    -     all equal?
+              S - sum
+</code></pre>
+</div>
+<div id="pu5" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 16 bytes</h1>
+
+<pre><code>ịⱮịŒDḊẎE
+Jœcç€⁸S
+</code></pre>
+
+<p><a href="https://tio.run/##y0rNyan8///h7u5HG9cByaOTXB7u6Hq4q8@Vy@vo5OTDyx81rXnUuCP4////0dGWOoY6RjrGOkaxOlwK0YY6FjrmQGgI5hkBWWZADJEzBsuY6BhD5SD6DGK5Yv8bAwA" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/178147/">178147</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
