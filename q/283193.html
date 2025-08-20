@@ -26,16 +26,49 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>010</td><td>05AB1E</td><td>250819T082203Z</td><td><a href="https://codegolf.stackexchange.com/questions/283193/pennies-to-dollars/283202#283202">Kevin Cr</a></td></tr>
-<tr d-ix="1"><td>013</td><td>Jelly</td><td>250820T114129Z</td><td><a href="https://codegolf.stackexchange.com/questions/283193/pennies-to-dollars/283239#283239">Jonathan</a></td></tr>
-<tr d-ix="2"><td>084</td><td>JavaScript ES6</td><td>250819T094002Z</td><td><a href="https://codegolf.stackexchange.com/questions/283193/pennies-to-dollars/283205#283205">Arnauld</a></td></tr>
+<tr d-ix="0"><td>083</td><td>JavaScript ES6</td><td>250819T094002Z</td><td><a href="https://codegolf.stackexchange.com/questions/283193/pennies-to-dollars/283205#283205">Arnauld</a></td></tr>
+<tr d-ix="1"><td>010</td><td>05AB1E</td><td>250819T082203Z</td><td><a href="https://codegolf.stackexchange.com/questions/283193/pennies-to-dollars/283202#283202">Kevin Cr</a></td></tr>
+<tr d-ix="2"><td>013</td><td>Jelly</td><td>250820T114129Z</td><td><a href="https://codegolf.stackexchange.com/questions/283193/pennies-to-dollars/283239#283239">Jonathan</a></td></tr>
 <tr d-ix="3"><td>083</td><td>Wolfram Language Mathematica</td><td>250820T024216Z</td><td><a href="https://codegolf.stackexchange.com/questions/283193/pennies-to-dollars/283232#283232">Greg Mar</a></td></tr>
 <tr d-ix="4"><td>256</td><td>Python3</td><td>250819T152255Z</td><td><a href="https://codegolf.stackexchange.com/questions/283193/pennies-to-dollars/283212#283212">Ajax1234</a></td></tr>
 <tr d-ix="5"><td>045</td><td>Charcoal</td><td>250819T091020Z</td><td><a href="https://codegolf.stackexchange.com/questions/283193/pennies-to-dollars/283203#283203">Neil</a></td></tr>
 <tr d-ix="6"><td>011</td><td>Nekomata</td><td>250819T033049Z</td><td><a href="https://codegolf.stackexchange.com/questions/283193/pennies-to-dollars/283198#283198">alephalp</a></td></tr>
 <tr d-ix="7"><td>013</td><td>Vyxal</td><td>250819T004348Z</td><td><a href="https://codegolf.stackexchange.com/questions/283193/pennies-to-dollars/283194#283194">lyxal</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, 10 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
+<div id="pu0" class="pu"><h1>JavaScript (ES6), 83 bytes</h1>
+<p>Expects <code>(L)(B)</code> and returns the first solution found.</p>
+
+<pre class="lang-javascript prettyprint-override"><code>L=&gt;B=&gt;(g=(v,n,[q,...b]=L)=&gt;q*v&gt;0?g(v,n,b)||g(v-q,-~n):v?n*g(!~~v*n):n==B)(100*B+.5)
+</code></pre>
+<p><a href="https://tio.run/##lVLdaoMwFL7fU2R3iYs2v@oGseB130C8aLtWVkqs6/Cq@OruJDrounRjQuBLzveTc@Jh3a/P2/e300ds29fduDfjyhSlKXBjcE8trTqaJMmmNitiii7qC7ZsfGFDLhdAcUfjwZKXfmmjBj8OQx/BzhpTEswZi8qnRJNx29pze9wlx7bBe1xpijirCc4JQYFvsUA5e7jRCIq@ZCIgA434TSPDGhnSSIqEvJ9TCTAVKUUqre8lAiF0U6d2RQ487lwcEbBzlIAV@8tRhhwdIbtyU5OjyCZX6XrSzh0WYAVYA05/pnFQXQVOPHjHuRffvR8QRMAEsonI@feW4I9xB66ivc@/gtQcpHx9Sskper7JknOOdGqp/fRYPX4C" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<h3>Commented</h3>
+<p>The recursive function <span class="math-container">\$g\$</span> is called a first time to find a list of <span class="math-container">\$n\$</span> coins that sum to <span class="math-container">\$100B\$</span> (with no constraint on <span class="math-container">\$n\$</span>) and a second time to find a list of <span class="math-container">\$B\$</span> coins that sum to <span class="math-container">\$n\$</span>. We add <span class="math-container">\$0.5\$</span> to the target sum in the first pass to distinguish it from the second.</p>
+<pre class="lang-javascript prettyprint-override"><code>L =&gt;            // outer function taking the list L[]
+B =&gt; (          // inner function taking B
+g = (           // g = recursive function taking:
+  v,            //   v = target value
+  n,            //   n = counter
+  [ q,          //   q = next value from L[]
+    ...b ] = L  //   b[] = remaining values in L[]
+) =&gt;            //
+q * v &gt; 0 ?     // if q is defined and v is positive:
+  g(v, n, b) || //   1st recursive call with q ignored,
+                //   using b[] for the next values
+  g(v - q, -~n) //   2nd recursive call with q subtracted
+                //   from v and n incremented, restarting
+                //   from L[]
+:               // else (end of pass):
+  v ?           //   if v is not 0:
+    n *         //     multiply by n the result of ...
+    g(!~~v * n) //     ... a recursive call with either
+                //     n if v is 0.5 (successful 1st pass)
+                //     0 otherwise (which will return 0)
+  :             //   else (successful 2nd pass):
+    n == B      //     test whether n is equal to B
+)(100 * B + .5) // initial call with 100*B+0.5 as the target
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, 10 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
 <pre><code>ãOʒãOт/¹Qà
 </code></pre>
 <p>Inputs in the order <span class="math-container">\$B,list\$</span>. Output isn't sorted and contains possibly duplicated values.</p>
@@ -56,7 +89,7 @@
            # (after which the filtered list is output implicitly as result)
 </code></pre>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 13 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
+<div id="pu2" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 13 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
 <pre><code>ṗ§Q³ṗ§÷ȷ2iʋɗƇ
 </code></pre>
 <p>A full program that accepts the list of denominations and the initial coin count <span class="math-container">\$B\$</span> and prints a list of all valid coin counts <span class="math-container">\$A\$</span> (to only print one, add <code>Ḣ</code> for 1 byte).</p>
@@ -76,40 +109,6 @@
        ȷ2     -       ...10^2 = 100
          i    -       first 1-index of {B} in that or 0
               - implicit print
-</code></pre>
-</div>
-<div id="pu2" class="pu"><h1>JavaScript (ES6), 84 bytes</h1>
-<p>Expects <code>(L)(B)</code> and returns the first solution found.</p>
-
-<pre class="lang-javascript prettyprint-override"><code>L=&gt;B=&gt;(g=(v,n,[q,...b]=L)=&gt;q*v&gt;0?g(v,n,b)||g(v-q,-~n):~~v?0:v?n*g(n):n==B)(100*B+.5)
-</code></pre>
-<p><a href="https://tio.run/##lVLdaoMwFL7fU@QycdHmV10hCl73DcSLtmtlo8S5Dq@Kr@5OooOuSzcmBL7kfD85J75uh@15//7y9hHb7vkwHc20MUVlCtwaPFBL654mSbJrzIaYoo@GgpWtL@zI5QIo7mk8WrIex6Fk66G0UYtha42pCOaMRdVjosm07@y5Ox2SU9fiI641RZw1BOeEoMC3WqGcPdxoBEVfMhGQgUb8ppFhjQxpJEVC3s@pBZiKlCKVNvcSgRC6qVO7Igcedy6OCNg5SsCK/eUoQ46OkF25qdlRZLOrdD1p5w4LsAKsAac/0ziorgJnHrzj0ovv3g8IImAC2Uzk/HtL8Mu4A1fR3udfQWoJUr4@p@QUPd1kySVHOrXUfnqsmT4B" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
-<h3>Commented</h3>
-<p>The recursive function <span class="math-container">\$g\$</span> is called a first time to find a list of <span class="math-container">\$n\$</span> coins that sum to <span class="math-container">\$100B\$</span> (with no constraint on <span class="math-container">\$n\$</span>) and a second time to find a list of <span class="math-container">\$B\$</span> coins that sum to <span class="math-container">\$n\$</span>. We add <span class="math-container">\$0.5\$</span> to the target sum in the first pass to distinguish it from the second.</p>
-<pre class="lang-javascript prettyprint-override"><code>L =&gt;            // outer function taking the list L[]
-B =&gt; (          // inner function taking B
-g = (           // g = recursive function taking:
-  v,            //   v = target value
-  n,            //   n = counter
-  [ q,          //   q = next value from L[]
-    ...b ] = L  //   b[] = remaining values in L[]
-) =&gt;            //
-q * v &gt; 0 ?     // if q is defined and v is positive:
-  g(v, n, b) || //   1st recursive call with q ignored,
-                //   using b[] for the next values
-  g(v - q, -~n) //   2nd recursive call with q subtracted
-                //   from v and n incremented, restarting
-                //   from L[]
-:               // else (end of pass):
-  ~~v ?         //   if floor(v) is not 0:
-    0           //     target not reached: do nothing
-  :             //   else:
-    v ?         //     if v is still equal to 0.5 (1st pass):
-      n * g(n)  //       recursive call with n as the target
-                //       the result is multiplied by n
-    :           //     else (2nd pass):
-      n == B    //       test whether n is equal to B
-)(100 * B + .5) // initial call with 100*B+0.5 as the target
 </code></pre>
 </div>
 <div id="pu3" class="pu"><h1><a href="https://www.wolfram.com/wolframscript/" rel="nofollow noreferrer">Wolfram Language (Mathematica)</a>, 83 bytes</h1>
