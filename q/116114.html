@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::116114</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>334</td><td>Haskell</td><td>171129T032221Z</td><td><a href="https://codegolf.stackexchange.com/questions/116114/draw-boxes-from-box-drawing-characters/149433#149433">Hjulle</a></td></tr>
+<tr d-ix="1"><td>536</td><td>Node</td><td>170413T202436Z</td><td><a href="https://codegolf.stackexchange.com/questions/116114/draw-boxes-from-box-drawing-characters/116421#116421">Neil</a></td></tr>
+<tr d-ix="2"><td>129</td><td>CJam</td><td>170413T023500Z</td><td><a href="https://codegolf.stackexchange.com/questions/116114/draw-boxes-from-box-drawing-characters/116308#116308">aditsu q</a></td></tr>
+<tr d-ix="3"><td>632</td><td>Python 3</td><td>170412T212331Z</td><td><a href="https://codegolf.stackexchange.com/questions/116114/draw-boxes-from-box-drawing-characters/116287#116287">hyperneu</a></td></tr>
+<tr d-ix="4"><td>820</td><td>PHP>=7.1</td><td>170412T011014Z</td><td><a href="https://codegolf.stackexchange.com/questions/116114/draw-boxes-from-box-drawing-characters/116197#116197">J&#246;r</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>Haskell, <s>388</s> <s>340</s> <s>338</s> 334</h1>
+<p>-52 (!) bytes thanks to <a href="https://codegolf.stackexchange.com/users/66041/%c3%98rjan-johansen">Ørjan Johansen</a></p>
+<pre class="lang-hs prettyprint-override"><code>import Data.Bits
+import Data.Array
+(&amp;)=(,)
+z=maximum
+r x=[minimum x..z x-1]
+l=map(+1).r
+e(a:b:c:d:q)=[x&amp;y&amp;n|((f,g),n)&lt;-[id&amp;l&amp;1,id&amp;r&amp;2,l&amp;id&amp;4,r&amp;id&amp;8],x&lt;-f[a,b],y&lt;-g[c,d]]++e q;e[]=[]
+f a|l&lt;-[1..z a]=unlines[[&quot; UD│L┘┐┤R└┌├─┴┬┼&quot;!!(accumArray(.|.)0(1&amp;1,z a&amp;z a)(e a)!(x,y))|x&lt;-l]|y&lt;-l]
+main=interact$f.map read.words
+</code></pre>
+<p><a href="https://tio.run/##TU@xTsMwFNz9Fa8VimzVtepShCjNAOrIhMRkeXATt1jEaeukIqk6IGYGBg8MjIyMjHyNfyS4DIjh3bs7PZ3e3avqQRdF1xm7Wbsa5qpW7NrUFfpvXDmnWoQTkmJK0D61qjF2Z5GDJhXWlEcBDWN7aIZcoiIebPCAE@aQxmq6mGbTfLolqWiSNikPuKR4SVeEzIZ7sxEjxqQweVLQCI4WicmpiyBpMxsuhaILSdvZcCUymks5GGjYXmohUyHREtTBxhRQ6a4sTKkrIfpwNw/@@Sb4t@Bfg/@4Dd4H/xL8e/BPwX8F/xn8d7/XwyrLdva3HFS6jrVhhHnCqU0swRoU6eGGtoQc4iOCM2alPLR/FFllytSUtXYqq0@WLLYGp1XOHtcur7ruAsYcxjABjvhpXGPgHM5QHODnR87RrxXFJPo/" rel="nofollow noreferrer" title="Haskell – Try It Online">Try it online!</a></p>
+<p><strong>Ungolfed</strong></p>
+<pre class="lang-hs prettyprint-override"><code>import Data.Bits
+import Data.Array
+import Data.List.Split
+
+(&amp;) = (,) -- Alias for tuples
+
+-- Given [a,b], returns a list of all x: a &lt;= x &lt; b 
+halfOpenLeft x = [minimum x..maximum x-1::Int]
+r = halfOpenLeft
+
+-- Same as above, but for all x: a &lt; x &lt;= b
+halfOpenRight = map(+1).halfOpenLeft
+l = halfOpenRight
+
+up    = ((id, halfOpenRight), 0) -- Coordinates that should have a line upwards
+down  = ((id, halfOpenLeft),  1) -- Coordinates that should have a line downwards
+left  = ((halfOpenRight, id), 2) -- Coordinates that should have a line leftwards
+right = ((halfOpenLeft, id),  3) -- Coordinates that should have a line rightwards
+-- [up, down, left, right] = [id&amp;l&amp;1,id&amp;r&amp;2,l&amp;id&amp;4,r&amp;id&amp;8]
+
+-- Create a map between coordinates and line-segments. Each coordinate can have multiple line-segments.
+lineSegments :: [[Int]] -&gt; [((Int,Int),Int)]
+lineSegments rects = [ ((x,y),n) | [x1,x2,y1,y2] &lt;- rects, ((f,g),n) &lt;- [up,down,left,right], x &lt;- f [x1,x2], y &lt;- g [y1,y2]]
+
+-- Convert an array of bit-fields into a list of lines. 
+printBitfieldArray :: Int -&gt; Array (Int,Int) Int -&gt; [String]
+printBitfieldArray size a = [[&quot; UD│L┘┐┤R└┌├─┴┬┼&quot;!!(a!(x,y))|x&lt;-[1..size]]|y&lt;-[1..size]]
+
+-- Merge all the line-segments for each coordinate into a bitfield
+createBitFieldArray :: Int -&gt; [((Int,Int),Int)] -&gt; Array (Int,Int) Int
+createBitFieldArray m = accumArray setBit 0 ((1,1),(m,m))
+
+-- First split the input for each rectangle,
+-- then create a list of pairs of coordinates and directions,
+-- then merge all directions for each coordinate into a bitfield
+-- and finally use the bitfield as an index to find out which shape to draw.
+drawRectangles :: Int -&gt; [Int] -&gt; [String]
+drawRectangles m=printBitFieldArray m.createBitFieldArray m.lineSegments.chunksOf 4
+
+-- Parse the input, solve the problem and format the output. Use the largest number as both width and height.
+main=interact$unlines.(drawRectangles=&lt;&lt;maximum).map read.words
+</code></pre>
+<h2>Explanation</h2>
+<ol>
+<li>First, <code>lineSegments</code> (or <code>d</code> in the golfed version) will loop over all rectangles, all directions and all coordinates that should have a line-segment in that direction from that rectangle and create a list of coordinates paired with directions.</li>
+<li>Then <code>createBitFieldArry</code> merges all entries with identical coordinates into an array of bitfields. Here, the 0th bit means up, 1st means down, 2nd means left and the 3rd means right. In other words, 5 is rendered as &quot;┘&quot;, 0 is &quot; &quot; and 15 is &quot;┼&quot;.</li>
+<li>Lastly, <code>printBitFieldArray</code> (or <code>p</code>) converts the bitfields into box-drawing characters by using them as indices.</li>
+</ol>
+</div>
+<div id="pu1" class="pu"><h2>Node, 536 bytes</h2>
+
+<pre><code>s=''
+with(process.stdin){setEncoding('utf8')
+on('readable',_=&gt;s+=read()||'')
+on('end',_=&gt;{a=s.match(/(\d+\s+){3}\d+/g).map(s=&gt;s.match(/\d+/g).map(m=&gt;+m)).map(([m,n,o,p])=&gt;[m&gt;n?n:m,m&gt;n?m:n,o&gt;p?p:o,o&gt;p?o:p])
+m=i=&gt;[...Array(Math.max(...a.map(a=&gt;a[i])))]
+console.log(m(3).map((_,y)=&gt;m(1).map((_,x)=&gt;' ??┘?│┐┤?└─┴┌├┬┼'[x++,a.some(([m,n,o,p])=&gt;x==m|x==n&amp;&amp;y&gt;o&amp;y&lt;=p)+2*a.some(([m,n,o,p])=&gt;y==o|y==p&amp;&amp;x&gt;m&amp;x&lt;=n)+4*a.some(([m,n,o,p])=&gt;x==m|x==n&amp;&amp;y&gt;=o&amp;y&lt;p)+8*a.some(([m,n,o,p])=&gt;y==o|y==p&amp;&amp;x&gt;=m&amp;x&lt;n)],y++).join``).join`\n`)})}
+</code></pre>
+
+<p>Directly calculates the correct character at each coordinate. Input is annoying to perform in Node...</p>
+</div>
+<div id="pu2" class="pu"><h1>CJam, 129</h1>
+
+<pre><code>0a80*a25*[q~]4/{:(2/:$_::-+e_534915808 6b3/\ff=C2b.+{):A;)z{_A)+\[A!A].+_A)4*+\}*;}%{~:A;_3$=@_2$=A|tt}/}/"   ┌ ─┐┬ └│├┘┴┤┼"ff=N*
+</code></pre>
+
+<p><a href="http://cjam.aditsu.net/#code=0a80*a25*%5Bq~%5D4%2F%7B%3A(2%2F%3A%24_%3A%3A-%2Be_534915808%206b3%2F%5Cff%3DC2b.%2B%7B)%3AA%3B)z%7B_A)%2B%5C%5BA!A%5D.%2B_A)4*%2B%5C%7D*%3B%7D%25%7B~%3AA%3B_3%24%3D%40_2%24%3DA%7Ctt%7D%2F%7D%2F%22%20%20%20%E2%94%8C%20%E2%94%80%E2%94%90%E2%94%AC%20%E2%94%94%E2%94%82%E2%94%9C%E2%94%98%E2%94%B4%E2%94%A4%E2%94%BC%22ff%3DN*&amp;input=1%207%201%0A5%204%2010%0A3%207" rel="nofollow noreferrer">Try it online</a></p>
+
+<p>Notes:</p>
+
+<ul>
+<li>If the boxes don't look quite right, it's possible that your browser is using a fallback font for box drawing characters.</li>
+<li>CJam doesn't specify an encoding for source files. In UTF-8, this code has 151 bytes, but you can save it using CP437 or CP850 instead (and run it with the same encoding), then it will use 1 byte/character.</li>
+</ul>
+
+<p><strong>Overview:</strong></p>
+
+<p><code>0a80*a25*</code> creates a matrix of 80×25 zeros<br>
+<code>[q~]4/</code> reads the input, converts to numbers and splits into quadruplets<br>
+<code>:(2/:$_::-+e_</code> converts an [x1 x2 y1 y2] quadruplet to [xmin xmax ymin ymax -width -height] (negative values will be corrected later)<br>
+<code>534915808 6b3/</code> generates [[1 2 5] [0 2 5] [0 3 4] [0 2 4]], to be used as indices in the previous array for extracting data about the 4 sides of the current box<br>
+<code>\ff=</code> extracts the data for each side, e.g. [1 2 5] -> [xmax ymin -height] for the right side<br>
+<code>C2b.+</code> appends 1, 1, 0, 0 respectively to the arrays for the 4 sides (right, left, bottom, top); this number indicates the direction (0=horizontal, 1=vertical)<br>
+<code>):A;)z{_A)+\[A!A].+_A)4*+\}*;</code> generates line pieces for a side, as [x y bitmask] triplets; each piece is a line going from the center of the cell to one of 4 directions: 1=right, 2=bottom, 4=left, 8=top; e.g. [4 2 -3 0] (a horizontal line of length 3 starting at x=4, y=2) results in [4 2 1] [5 2 4] [5 2 1] [6 2 4] [6 2 1] [7 2 4]<br>
+<code>{~:A;_3$=@_2$=A|tt}/</code> bitwise-OR's all these line pieces into the matrix, resulting in bitmasks from 0..15<br>
+<code>"   ┌ ─┐┬ └│├┘┴┤┼"ff=</code> converts these bitmasks to the corresponding box-drawing characters<br>
+<code>N*</code> joins with newlines for display</p>
+</div>
+<div id="pu3" class="pu"><h1>Python 3, 632 bytes</h1>
+
+<pre><code>i=input()
+j=''
+while i:j+=i+' ';i=input()
+c=[int(k)-1for k in j.split()]
+c=[c[k:k+4]for k in range(0,len(c),4)]
+for q in c:
+    for v,w in[(0,1),(2,3)]:
+        if q[w]&lt;q[v]:t=q[w];q[w]=q[v];q[v]=t
+d=list(zip(*c))
+w=max(d[1])+1
+h=max(d[3])+1
+g=[0]*w*h
+def i(a,b,f):
+    for k in b:
+        for l in a:g[k*w+l]|=f[0];f=f[1:]
+def p(k,l,m,n,o,j=0):
+    for i in range(m,n,o):l[i]|=k
+    if j:p(k,l,m+j,n+j,o)
+for q in c:i(q[:2],q[2:],[6,12,3,9]);p(10,g,q[0]+1+q[2]*w,q[1]+q[2]*w,1,(q[3]-q[2])*w);p(5,g,q[0]+q[2]*w+w,q[0]+q[3]*w,w,q[1]-q[0])
+print('\n'.join(map(lambda k: ''.join(map(lambda x: '   └ │┌├ ┘─┴┐┤┬┼'[x], k)),[g[x:x+w]for x in range(0,len(g),w)])))
+</code></pre>
+</div>
+<div id="pu4" class="pu"><h1>PHP>=7.1, 820 Bytes</h1>
+
+<pre><code>&lt;?preg_match_all("#(\d+(\s+\d+){3})#s",$_GET[0],$t);$r=($w="array_fill")(1,25,$w(1,80," "));function u($n,$y,$x){global$r;$u=[$z=[" ","│",$c="┤","┐","└",$d="┴",$e="┬",$b="├","─","┘","┌",$a="┼"],["│",$c,$b,$a],[$c,$a],["┐",$c,$e,$a],["└",$d,$b,$a],[$d,$a],[$e,$a],[$b,$a],["─",$d,$e,$a],["┘",$c,$d,$a],["┌",$e,$b,$a],[$a]];$o=$r[$y][$x];$s=array_intersect($u[($k="array_search")($n,$z)],$u[$k($o,$z)]);$r[$y][$x]=reset($s);}foreach($t[1]as$e){[$a,$b,$c,$d]=explode(" ",preg_replace("#\s+#"," ",$e));u("┌",$h=min($c,$d),$f=min($a,$b));u("┐",$h,$g=max($a,$b));u("└",$i=max($c,$d),$f);u("┘",$i,$g);foreach(($l="array_slice")(range($f,$g),1,-1)as$x){u("─",$h,$x);u("─",$i,$x);}foreach($l(range($h,$i),1,-1)as$y){u("│",$y,$f);u("│",$y,$g);}}foreach($r as$v)echo join($v)."\n";
+</code></pre>
+
+<p>-6 Bytes for use <code>"array_fill"</code>,<code>"array_search"</code>, <code>"array_slice"</code> without <code>"</code></p>
+
+<p>+19 Bytes <code>echo ltrim(rtrim(join($v))."\n","\n");</code> instead of <code>echo join($v)."\n";</code> to print only the necessary Chars</p>
+
+<p><a href="http://sandbox.onlinephpfunctions.com/code/c32d2d88c6252d82b1663c679620072a1621ae85" rel="nofollow noreferrer">Online Version</a> </p>
+
+<p>Expanded</p>
+
+<pre><code>preg_match_all("#(\d+(\s+\d+){3})#s",$_GET[0],$t); # find all rects
+$r=($w="array_fill")(1,25,$w(1,80," ")); # fill a empty 2 D array with spaces 
+function u($n,$y,$x){ # Char , Y Coordinate, X Coordinate as parameter
+global$r; # result array must be global to make changes
+# The following array based on Set Theory
+$u=[
+$z=[" ","│",$c="┤","┐","└",$d="┴",$e="┬",$b="├","─","┘","┌",$a="┼"],
+["│",$c,$b,$a],
+[$c,$a],
+["┐",$c,$e,$a],
+["└",$d,$b,$a],
+[$d,$a],
+[$e,$a],
+[$b,$a],
+["─",$d,$e,$a],
+["┘",$c,$d,$a],
+["┌",$e,$b,$a]
+,[$a]];
+$o=$r[$y][$x]; # old value for YX
+$s=array_intersect($u[($k="array_search")($n,$z)],$u[$k($o,$z)]); # make the Cut quantity
+$r[$y][$x]=reset($s); # Take the first value Cut quantity and set it as new value
+}
+foreach($t[1]as$e){ # for each rect
+[$a,$b,$c,$d]=explode(" ",preg_replace("#\s+#"," ",$e)); #split the four coordinates
+# next 4 rows make edges and set minimum and maximum for X an Y values
+u("┌",$h=min($c,$d),$f=min($a,$b)); 
+u("┐",$h,$g=max($a,$b));
+u("└",$i=max($c,$d),$f);
+u("┘",$i,$g);
+foreach(($l="array_slice")(range($f,$g),1,-1)as$x){u("─",$h,$x);u("─",$i,$x);} # make the X lines
+foreach($l(range($h,$i),1,-1)as$y){u("│",$y,$f);u("│",$y,$g);} # make the  Y lines
+}
+foreach($r as$v)echo join($v)."\n"; # Output
+</code></pre>
+
+<h2>Order of the array Set Theory</h2>
+
+<pre><code>foreach($u as $k0=&gt;$v0)
+foreach($u as $k1=&gt;$v1)
+echo "\n\n'".$z[$k0]."' + '".$z[$k1]."' = '". join("','",array_intersect($v0,$v1))."'";
+</code></pre>
+
+<p><a href="http://sandbox.onlinephpfunctions.com/code/d392d24132e677f6250ca6b1820fbaa7a10cd43a" rel="nofollow noreferrer">Examples Set Theory all possible values</a></p>
+
+<p>The array without the use of variables to short it</p>
+
+<pre><code>$u=[
+$z=[" ","│","┤","┐","└","┴","┬","├","─","┘","┌","┼"],
+["│","┤","├","┼"],
+["┤","┼",],
+["┐","┤","┬","┼"],
+["└","┴","├","┼"],
+["┴","┼"],
+["┬","┼"],
+["├","┼"],
+["─","┴","┬","┼"],
+["┘","┤","┴","┼"],
+["┌","┬","├","┼"]
+,["┼"]];');
+</code></pre>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/116114/">116114</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
