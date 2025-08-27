@@ -35,21 +35,26 @@
 <tr d-ix="6"><td>nan</td><td>bc driven by bash</td><td>140219T205625Z</td><td><a href="https://codegolf.stackexchange.com/questions/21438/shortest-program-to-solve-a-quartic-equation/21459#21459">Digital </a></td></tr>
 <tr d-ix="7"><td>340</td><td>C —</td><td>140219T202226Z</td><td><a href="https://codegolf.stackexchange.com/questions/21438/shortest-program-to-solve-a-quartic-equation/21455#21455">user1525</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>APL(NARS), 204 chars, score 229(+25 for numerical penality)</h1>
-<pre><code>r←(h NTN)p;t;x;xp;c
-x←∞⋄c←0⋄→3
-r←p⋄→4×⍳0=h r⋄r←∅⋄→4
-→2×⍳0=t←h∂p⋄→4×⍳p=r←p-t÷⍨h p⋄xp←x⋄→2×⍳xp&lt;x←∣p-r⋄p←r⋄→2×⍳1e5&lt;c+←1⋄→3
+<div id="pu0" class="pu"><h1>APL(NARS), 258 chars, score 283(+25 for numerical penality)</h1>
+<pre><code>r←(h NTN)pp;t;x;xp;c;e;⎕ct;p
+(p t)←pp⋄→3×⍳t&gt;⌊⎕FPC÷3.323v⋄x←∞⋄c←0⋄⎕ct←0⋄e←÷10v*t⋄→4
+r←p⋄→5×⍳0=h r
+r←∅⋄→5
+→2×⍳0=t←h∂p⋄→5×⍳e&gt;∣p-r←p-t÷⍨h p⋄xp←x⋄→2×⍳xp&lt;x←∣p-r⋄p←r⋄→2×⍳1e5&lt;c+←1⋄→4
 ⎕←'NTN c=',c
 
-f←{⎕ct←0⋄⎕fpc←256⋄w←⍵⋄h←{⍵⊥w}⋄0=h 0:0⋄20⍕h NTN{1e¯3&lt;∣h∂⍵:⍵⋄∇⍵+1}-h 0v}
+f←{⎕fpc←256⋄w←⍵⋄h←{⍵⊥w}⋄0=h 0:0⋄20⍕h NTN({1e¯3&lt;∣h∂⍵:⍵⋄∇⍵+1}-h 0v),40}
 </code></pre>
-<p>// +/ 20 11 21 68 13 71=204, 204+25=229</p>
+<p>// +/ 29 54 14 7 71 13 70 =258</p>
 <p>f has as input a array that means one polynomial of degree at last 1, and return one real root of that polynomial
 or if it fails and return the value ∅ (not a number).</p>
 <p>NTN function would apply the Newton method for find the numbers where the function is 0, and has as input one
-function h, and a start value p, with p: 0!=h∂p or better said 0!=h'(p) and would return one number r with
-h(r)=0. If it fails it return the value ∅ (not a number).</p>
+function h, a start value p and a precision value m called as</p>
+<pre><code>h NTN p m
+</code></pre>
+<p>with p: 0!=h∂p or better said 0!=h'(p) and m is less of digits sys precision, and would return one number r with
+h(r)=0. If it fails it return the value ∅ (not a number). It seems that if n is the number of digit to show,
+it is not safe make m≠(2n)&lt;⌊(⎕FPC÷3.323).</p>
 <p>For search the initial value of the Newton function I use</p>
 <pre><code>{1e¯3&lt;∣h∂⍵:⍵⋄∇⍵+1}-h 0
 </code></pre>
@@ -58,42 +63,37 @@ with h∂c&gt;0, starting from the value -h 0 (that is coefficient of polynomial
 <p>I think h polynomials that has h(0)=0 has some problems with Newton method, so I eliminate them
 in the start of f before the call to NTN function.</p>
 <p>&quot;fail&quot; means &quot;this method not find the solution, even if it could exist&quot;.</p>
-<p>The only fail case that has the solution it seems was because too few precision for 32 or 64 bits
-so i increase the value of precision and to use big float 256 bits. I have checked solution until about 6 digits for all less for this number: ¯0.70710678118654752440 that it seems all ok.</p>
 <p>Test:</p>
 <pre><code>  f 1 0 ¯1 0 0.25
 NTN c= 126
 ¯0.70710678118654752440
-  f 1 0 ¯2
-NTN c= 7
-1.41421356237309504880
-  f 1 2 3 4 5
-NTN c= 4
-∅
-  f 1 2 3 4 ¯5
-NTN c= 12
-0.68412431945306971025
-  f 1 2 3 4 ¯5
-NTN c= 12
-0.68412431945306971025
-  f ¯1 2 3 4 5
-NTN c= 12
-¯1.11029075952058816916
-  f ¯1 2 3 4 ¯5
+  f 1 ¯2 5 ¯12 4
+NTN c= 10
+0.38829144100474453558
+  f 1 1 ¯2 ¯1 ¯1
 NTN c= 9
-3.18247782305742776918
-  f 1 2 0 0 1
-NTN c= 0
-¯1.00000000000000000000
+1.37313285317645592754
   f ¯1 ¯1 ¯1 ¯1 ¯1
 NTN c= 1
 ∅
-  f 1 1 ¯2 ¯1 ¯1
-NTN c= 10
-1.37313285317645592754
-  f 1 ¯2 5 ¯12 4
+  f 1 2 0 0 1
+NTN c= 0
+¯1.00000000000000000000
+  f ¯1 2 3 4 ¯5
+NTN c= 9
+3.18247782305742776918
+  f 1 2 3 4 ¯5
 NTN c= 11
-0.38829144100474453558
+0.68412431945306971025
+  f 1 2 3 4 5
+NTN c= 4
+∅
+  f 1 0 ¯2
+NTN c= 6
+1.41421356237309504880
+  f 1 0 ¯2 2
+NTN c= 6
+¯1.76929235423863141524
 </code></pre>
 </div>
 <div id="pu1" class="pu"><h2>Javascript/ES6 148</h2>
