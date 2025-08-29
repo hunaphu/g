@@ -26,11 +26,40 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>434</td><td>Python 3</td><td>250829T014821Z</td><td><a href="https://codegolf.stackexchange.com/questions/283358/chinese-periodic-table-of-elements-%e5%85%83%e7%b4%a0%e5%91%a8%e6%9c%9f%e8%a1%a8/283376#283376">Ted</a></td></tr>
-<tr d-ix="1"><td>269</td><td>Charcoal</td><td>250828T095410Z</td><td><a href="https://codegolf.stackexchange.com/questions/283358/chinese-periodic-table-of-elements-%e5%85%83%e7%b4%a0%e5%91%a8%e6%9c%9f%e8%a1%a8/283369#283369">Neil</a></td></tr>
-<tr d-ix="2"><td>471</td><td>JavaScript Node.js</td><td>250828T043552Z</td><td><a href="https://codegolf.stackexchange.com/questions/283358/chinese-periodic-table-of-elements-%e5%85%83%e7%b4%a0%e5%91%a8%e6%9c%9f%e8%a1%a8/283364#283364">Arnauld</a></td></tr>
+<tr d-ix="0"><td>464</td><td>JavaScript Node.js</td><td>250828T043552Z</td><td><a href="https://codegolf.stackexchange.com/questions/283358/chinese-periodic-table-of-elements-%e5%85%83%e7%b4%a0%e5%91%a8%e6%9c%9f%e8%a1%a8/283364#283364">Arnauld</a></td></tr>
+<tr d-ix="1"><td>434</td><td>Python 3</td><td>250829T014821Z</td><td><a href="https://codegolf.stackexchange.com/questions/283358/chinese-periodic-table-of-elements-%e5%85%83%e7%b4%a0%e5%91%a8%e6%9c%9f%e8%a1%a8/283376#283376">Ted</a></td></tr>
+<tr d-ix="2"><td>269</td><td>Charcoal</td><td>250828T095410Z</td><td><a href="https://codegolf.stackexchange.com/questions/283358/chinese-periodic-table-of-elements-%e5%85%83%e7%b4%a0%e5%91%a8%e6%9c%9f%e8%a1%a8/283369#283369">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a>, 434 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 464 bytes</h1>
+<p>Outputs the table in Simplified Chinese (with fixed erbium).</p>
+<pre class="lang-javascript prettyprint-override"><code>j=&gt;`f605gy
+186304qumvkihedu9u
+ei0t04d72eoojakyia
+rube01iyca8ajvlo0rne65cr5o8takol86n8iq
+oroc013e305nqyd85m7vl6ob4de3f07wmfavb6
+l7eyhp3vi59moq7e9n2yrfd9ju8bgrm5gtizrei2qz3gm3177tdf4r2j5756pheq
+jekd9o62gd0b6lbu2l98jg6ksc2596b0pnjlk1k1k1k172dsjl9ake8g31dsjyji`.replace(/../g,s=&gt;(n=parseInt(s,36))&lt;9?'　'.repeat(n*6|8):Buffer([49/(&quot;338887777&quot;[i=n&amp;15]||5)|224,&quot;444453333011226&quot;[i]+&quot;348982345789013&quot;[i]^128,128+n/16,...i&lt;2?[[,49,,57,17,60,54,39,45,61][j=-~j]^138]:[]]))
+</code></pre>
+<p><a href="https://tio.run/##JZDJbpxAGITvPMYcYojbTO@LZWwptzwDmsgNNEw3S0OzRFijyO@aB5lg5Sv9UqlUdfmd3vRcBjsuT4OvzL3O7i57fa85ZM0eIckJpNPab629mmpVa2QsXCCtBDbeO93uVkdhLQxEdi@11G7rPAyD4awMzMtFt76TfJB2inzwJUTEEMiGaa8k68XWcV/QypAait99rbeCR50w@3Ukm2Wq95MwasB7qCvlVlk0oWfNYj@CsXj6IE1PkBBLVdOAHROMj1czRc60lfIcNxUseFesuFPSNbydS8wUL@A4uK5F/yVwNbtO6dbIhqDD786@p8GMnS5NfE7TcwPm7DUeslGH2fwclngGhCfJi3p7@Pv5@fDVNXqJh@/8JpPnH2tdmxDnVJ3jEyFSSnFwym02fEPscrux5IYxBSd6wMgBRAhjfjQujydCpZKYUCakOj71Ff5CWILjHocz4iBNU/uC3/IcUAUAEwAJwCFgFBAFKAMcXXKXPf1xx47Iy3N@uSTJvfTD7DuTdr6J6/gI/gE" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<h3>Encoding</h3>
+<p>For each element name, the Unicode code point is broken down into:</p>
+<ul>
+<li>a 2-byte prefix</li>
+<li>a 3rd byte in the range <span class="math-container">\$[128\dots191]\$</span></li>
+<li>an optional 4th byte</li>
+</ul>
+<p>There are 15 distinct prefixes.</p>
+<p>Hence the following encoding on 10 bits:</p>
+<pre><code>vvvvvvpppp
+\____/\__/
+   |    |
+   |    '--&gt; prefix identifier
+   '-------&gt; value of 3rd byte, minus 128
+</code></pre>
+<p>This 10-bit value is encoded as 2 characters in base 36. Special values lower than 9 are used for repeated whitespace.</p>
+<p>If the prefix identifier is either 0 or 1, a 4th byte is taken from a separate lookup table.</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a>, 434 bytes</h1>
 
 <pre class="lang-python prettyprint-override"><code>import zlib,base64;exit(zlib.decompress(base64.b85decode(b'c$}q&gt;TTTK&amp;5Jmr4g-aD8puCi-ZUqrxPz0Gl8bJsO&amp;ThJM{#b&amp;&amp;0uo{+H&gt;pSNsY-b_y7)(U_g27^(B`?$knF=~&lt;=uyO6YmDz-4~D{ws&lt;ZG?T4fsUbZ1gy&lt;2$q9znlI_oPW?NDmP-!#K2vtg%h&gt;3DdwT&lt;{=CtQvCPYyIBF&lt;Vm7CdRZInKAbU(7X`pRnfo`xj=m3*o+F|q=Mjh|E5xGDT&gt;;%2WP7#Z2kvlXd5p=*tO2+sL9b=c+F&amp;fW4AX7B%sG&gt;`&gt;M78ag&amp;u9%TqjjVnhCA&lt;)_=Xfa$3$Ec`-)y-TgW4}j4_xL)57G~D&lt;qa3ba%|MpJO(!MXjQGQ5*8xV&gt;;N!(VX0n&amp;yT52u$9={l4s=UANzqFas')).decode())
 </code></pre>
@@ -39,7 +68,7 @@
 <p>An obvious answer, but quite efficient on bytes! (The uncompressed table is 687 bytes.)</p>
 <p>Note: the output in TIO doesn't handle the spaces and the chinese characters properly, so it looks wonky. I am using the ascii spaces x2 instead of each ideographic space. When I run it in a normal terminal it looks correct.</p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, <s>275</s> 269 bytes</h1>
+<div id="pu2" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, <s>275</s> 269 bytes</h1>
 <pre><code>⪪⭆Ｉ⪪”}““p⟦｜nＤ9⁼KＵU⊟V≕λＧＮ¦Φ⌈∨﹪2_↔U⊖Ｒ#5⎚⮌⟧εy∧≧Ｖü&gt;C\Ｗγ*⁴vÀ“§⦄℅JＸ？‖ρ⁷q⦃3∨∕ï'¹ＺＩl,)✂⁷◧⁵↙h″◨ρ∕ＧΠmＨCＩ↧⁷Ｄ➙Ｃ№r2ïa⌕XＨ↙→﹪b¬κς⌊⌈Ｒ[⁵C″⊙▷↥,}~jψ≔=⁵§ς⁶¦¤hl↶⦃∕b⬤Ｗ⁹ γτＴ↶ＱM&lt;Y⁻ＱＪd@ 9⁴✂'ê≦↔Ｉn⊗Πⅉ⟧´A∕]«ez≧¦$⟧⌕ia6σ/↙⌈~Þ…Yr⎚↨ηü¹XＺ0？V＆ê¡ê\ＢＩHyoⅉ(；H～ς⦃¦À⧴Fς⁴êy↗¿w⟧Ｓa@)8⬤XêY⧴℅⊕0“dξ⁷∨4◧Ａ▶⍘yV\”⁶℅ι³²
 </code></pre>
 <p><a href="https://tio.run/##1VTRSgQxDPyV5Z7uQKFN0qbBR58FwS9YDtGDQ@U8/P01M8VPEPRluk3TZpqZ7vF1vRzf1/O2PV5Ob9f908f5lHjNycvD@rG/Xz9/gjvxHnWpImP8M0zmoy/qvQJN9c8x1DLMgBFgG0bODnRGvCRzHS3Ru/w9/t56JH@vnhgdOIT8oxEFnTfcwmr9JQ5WG9HQq6b4zn6m7gPfYZXqA0cFtoLV5soI0BtUyAH8iywyNDmDP5g3DeaUX@KvKnQpbyHs2MBdfARXlRzg4cwi/7kKbMa9YJ5aKL1EX7nQP9xrzvsiJ8JZBXtD6C4o6NbRGTVqaqzFjnUom6XYwzp7O3N4WkPcZ6RwdXo1jP1HvJeZzxMaTlOBt92mN6hgJytqpwoXucz3y/MLMKhCb5MzWTmZK6tMp@m8aWFdvvpgXeoYTXjrwTPx7cwPZkZyrr1rNjqHbAUGWAszyeBwdiqMPKjZoOdszFdKP1Eny0wrkR5K1NjdLLtldzjcLPf5412P1@fL/oSpyuFwt23b7df5Gw" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code. Outputs in Traditional Chinese. Explanation:</p>
@@ -53,35 +82,6 @@
                 Implicitly print
 </code></pre>
 <p>Edit: Saved 6 bytes by removing the spaces from my compressed string. Notes on the previous 275-byte version: Simplified Chinese is 9 bytes longer. I can print null bytes and then set the background to the ideographic space but that doesn't save any bytes. I even tried printing vertically (because that way I don't even have to print the null bytes) but that was actually 10 bytes longer. And I also tried encoding the differences between successive characters but that was 26 bytes longer.</p>
-</div>
-<div id="pu2" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 471 bytes</h1>
-<p>Outputs the table in Simplified Chinese.</p>
-<pre class="lang-javascript prettyprint-override"><code>_=&gt;`f605gy
-186304qumvkihedu9u
-ei0t04d72eoojakyia
-rube01iyca8ajvlo0rne65cr5o8takol86n8iq
-oroc013e305nqyd85m7vl6ob4de3f07wmfavb6
-l7eyhp3vi59moq7e9n2yrfd9junygrm5gtizrei2qz3gm3177tdf4r2j5756pheq
-jekd9o62gd0b6lbu2l98jg6ksc2596b0pnjlk1k1k1k173dsjl9bkf8g31dsjzjj`.replace(/../g,s=&gt;(n=parseInt(s,36))&lt;9?'　'.repeat(n*6|8):Buffer([&quot;9900011113333333&quot;[i=n&amp;15]*1.2+230,&quot;4444533330112236&quot;[i]+&quot;3489823457890173&quot;[i]^128,128+n/16,...i&lt;2?[[49,0,41,17,44,50,35,29,45][j++]+138]:[]]),j=0)
-</code></pre>
-<p><a href="https://tio.run/##JY7LbpwwFIb38xizaCC4jO/YUUik7voMiDYGDIMBG8ylYtRF3rUPMmWU79eRjs7/LY5Rm5pL347Ld@sqfa/T@@/07aPmkDX7CQlOIJ3WYevaq65WuZ50CxdIqwRr54zq9lad/FpoiNq9VEKZrXfQW81Z6ZkTi@pcL7gV7XRy3pUQEU0gs9NeCTYkW89dQStNapj8GWq1FfzUJ3q/jmRrmRzclGhp8e7rSprV7o0fWLO0N69bPN1IMxCUJEtVU48NSxgfr3o6Gd1V0nHcVLDgfbHiXgrT8G4uMZO8gKM1fYe@kpBqNr0sulo0BB37zZiP2OuxV6UOLnF8acCcvgU2HZWf9U@7BDMgPAxf5fvTv8/Pp4er1RLYZ/5XhC8/1rrWPsjOUkII0QH54py1qf2GWP6MYhxhAsGZHrBHd3gYE34oeXQmVEiBCWWJkPD473H9hbAAx0T2gjiI47h9xe9ZRiWAgCKAEkApYBAQBrAElOWZiaI8QkTkL1meh8CkMLyXzs6u13HvmqAOwvD@Hw" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
-<h3>Encoding</h3>
-<p>For each element name, the Unicode code point is broken down into:</p>
-<ul>
-<li>a 2-byte prefix</li>
-<li>a 3rd byte in the range <span class="math-container">\$[128\dots191]\$</span></li>
-<li>an optional 4th byte.</li>
-</ul>
-<p>Conveniently, there are exactly 16 distinct prefixes.</p>
-<p>Hence the following encoding on 10 bits:</p>
-<pre><code>vvvvvvpppp
-\____/\__/
-   |    |
-   |    '--&gt; prefix identifier
-   '-------&gt; value of 3rd byte, minus 128
-</code></pre>
-<p>This 10-bit value is encoded as 2 characters in base 36. Special values lower than 9 are used for repeated whitespace.</p>
-<p>If the prefix identifier is either 0 or 1, a 4th byte is taken from a separate lookup table.</p>
 </div>
 
 <table id="st">
