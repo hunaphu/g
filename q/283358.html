@@ -26,13 +26,28 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>222</td><td>Jelly</td><td>250831T172333Z</td><td><a href="https://codegolf.stackexchange.com/questions/283358/chinese-periodic-table-of-elements-%e5%85%83%e7%b4%a0%e5%91%a8%e6%9c%9f%e8%a1%a8/283408#283408">Jonathan</a></td></tr>
-<tr d-ix="1"><td>nan</td><td>sqlite3 + sqlean extensions</td><td>250830T185948Z</td><td><a href="https://codegolf.stackexchange.com/questions/283358/chinese-periodic-table-of-elements-%e5%85%83%e7%b4%a0%e5%91%a8%e6%9c%9f%e8%a1%a8/283403#283403">DPenner1</a></td></tr>
+<tr d-ix="0"><td>482</td><td>sqlite3</td><td>250830T185948Z</td><td><a href="https://codegolf.stackexchange.com/questions/283358/chinese-periodic-table-of-elements-%e5%85%83%e7%b4%a0%e5%91%a8%e6%9c%9f%e8%a1%a8/283403#283403">DPenner1</a></td></tr>
+<tr d-ix="1"><td>222</td><td>Jelly</td><td>250831T172333Z</td><td><a href="https://codegolf.stackexchange.com/questions/283358/chinese-periodic-table-of-elements-%e5%85%83%e7%b4%a0%e5%91%a8%e6%9c%9f%e8%a1%a8/283408#283408">Jonathan</a></td></tr>
 <tr d-ix="2"><td>432</td><td>JavaScript Node.js</td><td>250828T043552Z</td><td><a href="https://codegolf.stackexchange.com/questions/283358/chinese-periodic-table-of-elements-%e5%85%83%e7%b4%a0%e5%91%a8%e6%9c%9f%e8%a1%a8/283364#283364">Arnauld</a></td></tr>
 <tr d-ix="3"><td>434</td><td>Python 3</td><td>250829T014821Z</td><td><a href="https://codegolf.stackexchange.com/questions/283358/chinese-periodic-table-of-elements-%e5%85%83%e7%b4%a0%e5%91%a8%e6%9c%9f%e8%a1%a8/283376#283376">Ted</a></td></tr>
 <tr d-ix="4"><td>269</td><td>Charcoal</td><td>250828T095410Z</td><td><a href="https://codegolf.stackexchange.com/questions/283358/chinese-periodic-table-of-elements-%e5%85%83%e7%b4%a0%e5%91%a8%e6%9c%9f%e8%a1%a8/283369#283369">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 222 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
+<div id="pu0" class="pu"><h1><a href="https://sqlite.org/docs.html" rel="nofollow noreferrer">sqlite3</a>, <s>497</s> <s>494</s> 482 bytes</h1>
+<p>Traditional Chinese table. Uses the <a href="https://github.com/nalgeon/sqlean/blob/main/docs/regexp.md" rel="nofollow noreferrer">regexp extension</a>; place <code>regexp.so</code> in the relevant library path.</p>
+<pre><code>.load regexp
+PRAGMA encoding=utf16;SELECT unhex(regexp_replace(hex(base85(format('3plw,%.53c-6&amp;;PT;O1kVQ%.40c%%PxM_o#VXV-17JlQfeA-%.42c,nwjgDRf54HJU,K:v;%.26ciM+UV`BDK7=f`KVwvBhBfM&gt;^@X1BM5[U&lt;xGeO1:%.22c-Ryug*AGX]nnYO2c`cR:Lr=b=O71_,1R:aFxD_5X5e4KbicS\&lt;2::iD&lt;Z]RT;\SGs-qnZ;HLyRMJe=-QFvXCI6^cJ4UpsYlg42+yfHGUS^1rk^\^cK1.44dRlxRW6iSE+MeET&amp;&gt;&amp;&amp;wq@w@ERPu138k1D3=s2Llm3%%%%8mi^9PmNC11mghx3UV;tZUF&amp;/fU5G0vU8jm1$p','#','#','#','#','#'))),'11.*A|(\w\w)(\w)(?=.*11.*\2(\w\w)A)','${1:+$1$3}'));
+</code></pre>
+<p><em>(Edit: I'm not a regular, took me a bit to understand the general rules on using external libraries + byte count, I think I got it now, but let me know if I've done anything wrong)</em></p>
+<h2>Explanation</h2>
+<p>I thought a UTF-16(LE) based approach might be more efficient for Chinese characters. The Traditional Chinese table's UTF-16 code units have 16 distinct leading bytes, so I compressed each code unit to 1.5 bytes (3 hex digits), using a lookup table. Crucially, <code>0x30</code> is mapped to <code>0</code> so that the ideographic spaces are just consecutive zeroes for the base85 encoding + string format.</p>
+<p>The last bit of the table where surrogates start contains rare leading bytes and ended up being more efficient to leave as-is. The lookup table is inserted before this and a regular expression does the substitutions. The lookup table starts with <code>11</code>, which does not otherwise appear in the encoded text and entries are separated by <code>A</code> which does not occur past the lookup table.</p>
+<h2>Possible areas for improvement</h2>
+<ul>
+<li>Encoding: The <a href="https://sqlite.org/cli.html#the_no_utf8_and_utf8_command_line_options" rel="nofollow noreferrer">sqlite3 CLI documentation</a> led me to believe that on Windows, UTF-16 would be the default console output, but I was not personally able to get that to work, so the <code>PRAGMA</code> was necessary. Additionally, the utf16 pragma defaults to native endianness. Big endian might shave one byte as it resulted in one less <code>%</code> that needed to be escaped in the surrogate part.</li>
+<li>Based on the pragma, library import and <code>regexp_replace</code> not being that short, I started to wonder whether <code>perl</code> or some <code>sqlite3</code> + <code>perl</code> solution might have a lower byte count with my method. Feel free to steal this idea, I might not get to it in a bit!</li>
+</ul>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 222 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
 <pre><code>“V&amp;ḟhẆɠWƒ©Ñ?~ŒufṪ'Æw{_ṅµ®v(Ṅọ8Ẉɦ*ṗUÑȮḄȤẒọ6⁹ṣµʠṗ⁵ȥ~’ṃ“nƬqƲⱮċɲḅẎ{‘&gt;200ḤżƊ;&quot;“ṾṚ^ⱮĖẈṂȥƑ]m'ḳMḞẒ0Ẏ:+&quot;|ĊQDọlƈẉʂı4ZȦN)çƝ\LḌ÷a?⁶ḳoḲƙƘzḌ⁷İ¶1ẋXẏ%G eæ⁽ḣ&lt;bu¬ṫzM8⁼Ƥ¹ROṗZU[ññỌ;¤ʠøṡPṛ*ḍƥẈƒẆḅ$ƭ⁹crɓ³ƒƙḄUɼḂ⁵ẹʂȦẒ‘ḅØ⁵“¤¿Œ%7W‘œṖz⁽-%Zṙ&quot;“¢©©ÑÑ‘ỌY
 </code></pre>
 <p>A niladic Link that yields a list of characters, or a full program that prints to stdout.</p>
@@ -57,28 +72,6 @@
                                                Ọ  - cast to characters
                                                 Y - join with newline characters
 </code></pre>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://sqlite.org/docs.html" rel="nofollow noreferrer">sqlite3</a> + <a href="https://github.com/nalgeon/sqlean/blob/main/README.md" rel="nofollow noreferrer">sqlean extensions</a>, <s>459+38=497</s> 455+39 = 494 bytes</h1>
-<p>Traditional Chinese table. The +39 bytes was deeply frustrating environment set-up that I wasn't able to overcome.</p>
-<pre><code>PRAGMA encoding='utf16';
-.load /sqlean
-SELECT unhex(left(regexp_replace(hex(base85(format('3plw,%.53c-6&amp;;PT;O1kVQ%.40c%%PK._o#VXV-17JlQfeA-%.42c,nwjgA`f54HJU,K:v;%.26ciM+UV`BDK7:CJ+VwvBhBfM&gt;Y@OX_R5[U&lt;xGeO1:%.22c-Ryug*AGX]nnYO2c`cR:Lr=b=O%%,ED[&amp;?aFxD]5X5_2KbicS\&lt;2::iD&lt;Z]RT;\3Gs-qnZ;HLyRMJe=-QFvXCI6^cJ4%%RnYlg40+yfHGUS^1rk^\^cK1.44Z:IK0W6hGxEf%%&gt;oe?*5SwfSkf@,]huWv_UiLl.M/r-Z.I#x\5;FlJ`UHmD5#FYvf#Q6h\aW:XeFFzX&lt;=Y9_D+I@Flp&gt;X9\','#','#','#','#','#'))),'(\w\w)(\w)(?=.*66\2(\w\w))','$1$3'),-93));
-</code></pre>
-<p>For minimal byte count, the sqlean.so extension file must be placed at root and remove the extension from the filename. I personally just tested in Linux outside root with <code>.load ./sqlean</code>. <em>(I've not counted the &quot;sqlean&quot; filename in my above byte count. My understanding of default rules is that <a href="https://codegolf.meta.stackexchange.com/a/1072/8954">if a filename stores data it has to count</a>. But to me this isn't storing data, it's more like when you call a command like <code>gcc</code>, presumably there's some file named <code>gcc</code> behind that. If I'm wrong, +6 bytes.)</em></p>
-<h2>Explanation</h2>
-<p>I thought a UTF-16(LE) based approach might be more efficient for Chinese characters. The Traditional Chinese table's UTF-16 code units have 16 distinct leading bytes, so I compressed each code unit to 1.5 bytes (3 hex digits), using a lookup table. Crucially, <code>0x30</code> is mapped to <code>0</code> so that the ideographic spaces are just consecutive zeroes for the base85 encoding + string format.</p>
-<p>The lookup table is tacked onto the end of the hex string, and a regular expression does the substitutions. The lookup table's entries are separated by <code>66</code>, this is simply a two-digit hex string that does not otherwise appear in the encoded text.</p>
-<h2>Possible areas for improvement</h2>
-<ul>
-<li>I initially thought I could get away with no environment set-up bytes:
-<ul>
-<li>The <a href="https://sqlite.org/cli.html#the_no_utf8_and_utf8_command_line_options" rel="nofollow noreferrer">sqlite3 CLI documentation</a> led me to believe that on Windows, UTF-16 would be the default console output, but I was not personally able to get that to work, so the <code>PRAGMA</code> was necessary.</li>
-<li>The creator of the sqlean extensions also provides a pre-loaded <a href="https://github.com/nalgeon/sqlean/blob/main/docs/shell.md" rel="nofollow noreferrer"><code>sqlite3</code> + <code>sqlean</code> shell</a>, but this doesn't appear to support <code>PRAGMA encoding='utf16'</code>. Having tried a few things, this <em>feels</em> buggy, as it seems to be the loading of the <code>sqlean</code> extension bundle which causes the issue, but it works to set the encoding before load.</li>
-</ul>
-</li>
-<li>I tried a Python version, but the functions were too wordy. However, I was able to append <code>|.*</code> to the regex and for reasons I don't fully understand, that also did the substring to remove the lookup table. It did not do so for this <code>regexp</code> extension, though perhaps a similar change to the regex might be less bytes than the <code>left</code> function.</li>
-<li>Based on all the environment set-up bytes, and <code>regexp_replace</code> not being that short, I suspect a lower byte-count might be achievable by taking the sqlite output after the <code>hex</code> call and piping it to some <code>perl</code> regex shenanigans, but my brain is dead at this point, and a pure sqlite solution seems like a good stopping point for me.</li>
-</ul>
 </div>
 <div id="pu2" class="pu"><h1><a href="https://nodejs.org" rel="nofollow noreferrer">JavaScript (Node.js)</a>, 432 bytes</h1>
 <p>Outputs the table in Simplified Chinese. The source contains some unprintable characters.</p>
