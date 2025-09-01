@@ -56,7 +56,44 @@
 <p>The upper 8 bits and the lower 2 bits of these 10-bit values are packed into two separate byte streams.</p>
 <p>Special values lower than 9 are used for line-feeds and repeated whitespace.</p>
 <p>If the prefix identifier is either 0 or 1, a 4th byte is taken from a separate lookup table.</p>
-<p>All data streams are concatenated into a single byte array, which is encoded in Base64.</p>
+<h3>Byte array</h3>
+<p>All data streams are concatenated into a single byte array, which is encoded in Base64:</p>
+<div class="s-table-container"><table class="s-table">
+<thead>
+<tr>
+<th style="text-align: center;">Range</th>
+<th>Description</th>
+<th style="text-align: center;">Pointer</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;"><code>0-128</code></td>
+<td>the upper 8 bits of the 10-bit values</td>
+<td style="text-align: center;"><code>k</code></td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>129-137</code></td>
+<td>the fourth bytes</td>
+<td style="text-align: center;"><code>j</code></td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>138-170</code></td>
+<td>the lower 2 bits of the 10-bit values</td>
+<td style="text-align: center;"><code>k</code></td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>171-185</code></td>
+<td>the 2nd bytes of the prefixes</td>
+<td style="text-align: center;"><code>i</code></td>
+</tr>
+</tbody>
+</table></div>
+<h3>First bytes of the prefixes</h3>
+<p>The first bytes of the prefixes are not stored in the byte array. They're computed with a dedicated formula instead:</p>
+<pre class="lang-javascript prettyprint-override"><code>&quot;553339999&quot;[i]*5%31^233
+</code></pre>
+<p><code>5</code>, <code>3</code> and <code>9</code> are converted to <code>0xF0</code>, <code>0xE6</code> and <code>0xE7</code> respectively. The default value for <code>i&gt;8</code> is <code>0xE9</code>.</p>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a>, 433 bytes</h1>
 
