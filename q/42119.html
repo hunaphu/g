@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::42119</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>020</td><td>Julia</td><td>150628T015123Z</td><td><a href="https://codegolf.stackexchange.com/questions/42119/compute-the-shortest-decimal-representation-of-a-ieee-754-double-precision-binar/52366#52366">M L</a></td></tr>
+<tr d-ix="1"><td>045</td><td>C</td><td>141202T171458Z</td><td><a href="https://codegolf.stackexchange.com/questions/42119/compute-the-shortest-decimal-representation-of-a-ieee-754-double-precision-binar/42128#42128">user1525</a></td></tr>
+<tr d-ix="2"><td>138</td><td>Common Lisp</td><td>141202T163917Z</td><td><a href="https://codegolf.stackexchange.com/questions/42119/compute-the-shortest-decimal-representation-of-a-ieee-754-double-precision-binar/42127#42127">coredump</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>Julia, 20 characters</h1>
+
+<pre><code>r(h)=hex2num(hex(h))
+</code></pre>
+
+<p>Function to test the results for correctness:</p>
+
+<pre><code>function decrep()
+    tests=[0x4000CCCCCCCCCCCD 0x3DDB7CDFD9D7BDBB 0x40934A456D5CFAAD 0x3FEFFFFFFAA19C47 0xC088A8CF13CEE9DD]
+    results=[2.1 1e-10 1234.5678 0.99999999 -789.101112]
+
+    for i=1:length(tests)
+        println("input   : $(hex(tests[i]))")
+        println("result  : $(r(tests[i]))")
+        println("expected: $(results[i])")
+        println("$(r(tests[i]) == results[i])")
+    end
+end
+</code></pre>
+
+<p>Executing the test function:</p>
+
+<pre><code>julia&gt; decrep()
+input   : 4000cccccccccccd
+result  : 2.1
+expected: 2.1
+true
+input   : 3ddb7cdfd9d7bdbb
+result  : 1.0e-10
+expected: 1.0e-10
+true
+input   : 40934a456d5cfaad
+result  : 1234.5678
+expected: 1234.5678
+true
+input   : 3feffffffaa19c47
+result  : 0.99999999
+expected: 0.99999999
+true
+input   : c088a8cf13cee9dd
+result  : -789.101112
+expected: -789.101112
+true
+</code></pre>
+
+<p>If the output absolutely has to be a string, then the solution would be:</p>
+
+<pre><code>s(h)=string(hex2num(hex(h)))
+</code></pre>
+
+<p>with 28 characters.</p>
+
+<pre><code>julia&gt; h=0x4000cccccccccccd
+0x4000cccccccccccd
+
+julia&gt; s(h)=string(hex2num(hex(h)))
+s (generic function with 1 method)
+
+julia&gt; s(h)
+"2.1"
+</code></pre>
+
+<p>Summary: Julia rocks, too ;)</p>
+</div>
+<div id="pu1" class="pu"><h1>C - <s>47</s> 45 characters</h1>
+
+<p>Counting just the function <code>f</code>, and not including <code>#include</code>s and <code>main</code>.</p>
+
+<p>In C, the <code>%g</code> <code>fprintf</code> specifier will always choose the shortest format. Add a precision specifier equal to the usual maximum precision of <code>double</code> and a bit of casting hocus-pocus to coerce <code>int64</code> to <code>double</code> and Bob's your uncle.</p>
+
+<pre><code>#include &lt;assert.h&gt;
+#include &lt;stdint.h&gt;
+#include &lt;stdio.h&gt;
+
+// The following line is what I'm counting...
+f(int64_t u){printf("%.14g\n",*(double*)&amp;u);}
+
+int main()
+{
+    assert(sizeof(int64_t) == sizeof(double));
+
+    f(0x4000CCCCCCCCCCCD);
+    f(0x3DDB7CDFD9D7BDBB);
+    f(0x40934A456D5CFAAD);
+    f(0x3FEFFFFFFAA19C47);
+    f(0xC088A8CF13CEE9DD);
+
+    return 0;
+}
+</code></pre>
+
+<p>Output is as per specs:</p>
+
+<pre><code>2.1
+1e-10
+1234.5678
+0.99999999
+-789.101112
+</code></pre>
+
+<p>Summary: <code>C</code> rocks!</p>
+</div>
+<div id="pu2" class="pu"><h2>Common Lisp - 138 bytes</h2>
+
+<pre><code> (ql:quickload'(ieee-floats cl-ppcre))(lambda(x)(#1=ppcre:regex-replace"e0$"(#1#"\\.?d"(format()"~a"(ieee-floats:decode-float64 x))"e")""))
+</code></pre>
+
+<p>(138 = 101 for the actual function + 37 for quickload'ing libraries)</p>
+
+<h2>Ungolfed</h2>
+
+<p>The default representation of floating-points in CL is already quite close to the requested output. However, there are some discrepancies. For example, double-precisions numbers are written with a <code>d</code> exponent character (e.g., <code>2.10d0</code>).
+That is why I modify the output of the formatted string with regexes:</p>
+
+<pre class="lang-lisp prettyprint-override"><code>(ql:quickload '(ieee-floats cl-ppcre))
+(lambda (x)
+  (cl-ppcre:regex-replace  ; remove "e0" at end of string
+     "e0$" 
+     (cl-ppcre:regex-replace ; change ".d" and "d" to "e"
+       "\\.?d"
+       (format nil "~a" (ieee-floats:decode-float64 x))
+       "e")
+     ""))
+</code></pre>
+
+<h2>Example</h2>
+
+<pre class="lang-lisp prettyprint-override"><code>;; NB: * is set by the REPL to the last returned value. 
+;; Here, we store the previously defined lambda:
+(defparameter *fun* *) 
+
+;; Test cases
+(defparameter *sample*
+  '(#x4000CCCCCCCCCCCD
+    #x3DDB7CDFD9D7BDBB
+    #x40934A456D5CFAAD
+    #x3FEFFFFFFAA19C47
+    #xC088A8CF13CEE9DD))
+
+;; Default representation
+(mapcar #'ieee-floats:decode-float64 *sample*)
+=&gt; (2.1d0 1.d-10 1234.5678d0 0.99999999d0 -789.101112d0)
+
+;; Custom conversion
+(mapcar *fun* *sample*)
+=&gt; ("2.1" "1e-10" "1234.5678" "0.99999999" "-789.101112")
+</code></pre>
+
+<h2>Round-trip</h2>
+
+<p>Here, we convert the printed representations back to IEEE-754 doubles.</p>
+
+ <pre class="lang-lisp prettyprint-override"><code>;; read values as double-precision numbers
+(let ((*read-default-float-format* 'double-float))
+  (mapcar #'read-from-string *))
+=&gt; (2.1 1.e-10 1234.5678 0.99999999 -789.101112)
+
+;; Encode
+(mapcar #'ieee-floats:encode-float64 *)
+=&gt; (4611911198408756429 4457293557087583675 4653144502051863213 4607182418709945415 13873524259458836957)
+
+;; Check
+(equal * *sample*)
+=&gt; T
+</code></pre>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/42119/">42119</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
