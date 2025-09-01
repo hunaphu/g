@@ -99,6 +99,67 @@
 <pre class="lang-javascript prettyprint-override"><code>&quot;553339999&quot;[i]*5%31^233
 </code></pre>
 <p><code>5</code>, <code>3</code> and <code>9</code> are converted to <code>0xF0</code> (240), <code>0xE6</code> (230) and <code>0xE7</code> (231) respectively. The default value for <span class="math-container">\$9\le i\le15\$</span> is <code>0xE9</code> (233).</p>
+<h3>Encoder</h3>
+<p>This code generates the Base64 data string.</p>
+<pre class="lang-javascript prettyprint-override"><code>const A = [...
+  &quot;氢　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　氦\n&quot; +
+  &quot;锂铍　　　　　　　　　　　　　　　　　　　　　　　　硼碳氮氧氟氖\n&quot; +
+  &quot;钠镁　　　　　　　　　　　　　　　　　　　　　　　　铝硅磷硫氯氩\n&quot; +
+  &quot;钾钙　　　　　　　　　　　　　　钪钛钒铬锰铁钴镍铜锌镓锗砷硒溴氪\n&quot; +
+  &quot;铷锶　　　　　　　　　　　　　　钇锆铌钼锝钌铑钯银镉铟锡锑碲碘氙\n&quot; +
+  &quot;铯钡镧铈镨钕钷钐铕钆铽镝钬铒铥镱镥铪钽钨铼锇铱铂金汞铊铅铋钋砹氡\n&quot; +
+  &quot;钫镭锕钍镤铀镎钚镅锔锫锎锿镄钔锘铹𬬻𬭊𬭳𬭛𬭶鿏𫟼𬬭鿔鿭𫓧镆𫟷鿬鿫&quot;
+];
+
+const pfxSet = new Set;
+
+for(const c of A) {
+  if(c != '　' &amp;&amp; c != '\n') {
+    pfxSet.add(getPrefixKey(Buffer.from(c)));
+  }
+}
+
+const pfx = [...pfxSet].sort();
+const _10bit = [];
+const byte4 = [];
+
+for(let i = 0; i &lt; A.length; i++) {
+  const c = A[i];
+
+  if(c == '　') {
+    let j = i;
+    while(A[i + 1] == '　') {
+      i++;
+    }
+    _10bit.push(({ 13: 1, 23: 4, 29: 5 })[i - j]);
+  }
+  else if(c == '\n') {
+    _10bit.push(0);
+  }
+  else {
+    const a = Buffer.from(c);
+    const pfxId = pfx.indexOf(getPrefixKey(a));
+    _10bit.push(pfxId | a[2] - 128 &lt;&lt; 4);
+    if(pfxId &lt; 2) {
+      byte4.push(a[3]);
+    }
+  }
+}
+
+const _2bit = _10bit.flatMap((_, i) =&gt;
+  i &amp; 3 ? [] : [ 3, 2, 1, 0 ].reduce((p, v) =&gt; p &lt;&lt; 2 | _10bit[i + v] &amp; 3, 0)
+);
+const _8bit = _10bit.map((n, i) =&gt; n &gt;&gt; 2 ^ _2bit[i &gt;&gt; 2] &gt;&gt; i % 4 * 2 + 2);
+const byte2 = pfx.map(s =&gt; +s.split(&quot;/&quot;)[2]);
+const data = [ ..._8bit, ...byte4, ..._2bit, ...byte2 ];
+
+console.log(Buffer.from(data).toString(&quot;base64&quot;));
+
+function getPrefixKey(a) {
+  return [ a.length == 4 ? 0 : 1, a[0], a[1] ].join(&quot;/&quot;);
+}
+</code></pre>
+<p><a href="https://tio.run/##tVNtb9tUFP6eX3GIRGuTzCRpQKNpiso3hBCT9jEzlZvYravMjhyn6zQidRNdYWu31deGjTHaFEbHklKXTa0GHfkxSI7Ot/6Dcq7tLg58mrRJvr4v59znec7LXVSWlGbV0hv2OcOsqaenVdNo2jADZahIkpQCSAf@zj8rK2/pC/xfLxlpyHAidG8g23hTyIPO8WDnWeD/Hvi7gb8V@N8NiZxt9K6/KSJkjwad1cHPR4NON/D3A/@3BNHf6Dx4DSjnKToP0XGQ9dD1kV1H5zl6G8h@RHcdPYbu94NtInKCP58H/tMhETtC9/B1iNbQvYlsHZ1jdB@hs45sE519ZIfofYtsC90OupuDnT8GO/cD/0GCaB@dDnq7yL5B7wk6HjpH6NxDRgsCfIkeofWQUQiP0TtA7zEyCuolOk@QEdcasgNkN3BtMzj4CdktZKvIbqNze7D9IvA7idR10dtDl2A30PsF2Qp6d9D5Ab1VdF10u@jeQbeP3tfo0PY@shcnvd5fJ729WzSe0XhI4xD7d0@6W8dk2sO@i/29ky7bRe8mHR5hv4f9bjoll1KpqO0b2vJF1abeN9QrQCsyaKYlRMYqmBrMiHCN5OmaUIV3yjBOuRyHsTGIdpeM8cgOMZSk1GrCvGpfsFRNX/5MvSp80tI01ZI0y7wsVEVRLJF3O9VOKIifXgQgS03TsgVyi@yz@dyczhVW5LOjuau2WoxPQrl1CkGng1yJpimYkeqqMW8v0C6TieSdBVSGmYrOr8URleOIzoLgSIvkpZfC7ZUFva4KdAUykJf/5w2cIPJsh/9IrNRoNRcE4RrkJyYhn4UCTUWaPpqED6AtEto5WJTjRACo9aY6VJPIaBItN@oeOURRKaR3NMmlhJWy@mmNPGiWdKOmLn@hjdZHEWP/JF106ytQKgWZ1OYL52FqCoqxJ4mNHKagMMxFWJboulKZkMVhYhLlni1E1YzJtLpif640BGE2C7oI5WleGBiDCfiYyguTUIEJylyWpzEHsmSptVZVFYRGFpa4OzS4rgIpjQDDSi3JHIEuiKlhG50f4b3MOY2YEwyYniaQLyN1hMG3Mv/r8C4U4T0yZijUZAMW4pxypCYHyTSlZqOu20L6/bRIaXvlXVNsXqIKUI@HMrJ8FWYrXIWkr84KcPY6zboq1c35kQfEsUTJNi/alm7MC@k5pal@WEzzEqa0llG1ddOA/5Q3LJCl2i3LIBFK/Dh4sxUpyzkIe1Sp5GT@py6XpUVTN8IwSqn26em/" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a>, 433 bytes</h1>
 
