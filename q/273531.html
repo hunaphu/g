@@ -26,7 +26,7 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>016</td><td>Pip</td><td>250902T230409Z</td><td><a href="https://codegolf.stackexchange.com/questions/273531/find-characters-common-among-all-strings/283448#283448">DLosc</a></td></tr>
+<tr d-ix="0"><td>012</td><td>Pip</td><td>250902T230409Z</td><td><a href="https://codegolf.stackexchange.com/questions/273531/find-characters-common-among-all-strings/283448#283448">DLosc</a></td></tr>
 <tr d-ix="1"><td>023</td><td>Dyalog APL</td><td>250902T205638Z</td><td><a href="https://codegolf.stackexchange.com/questions/273531/find-characters-common-among-all-strings/283446#283446">Aaron</a></td></tr>
 <tr d-ix="2"><td>004</td><td>TinyAPL</td><td>250505T115232Z</td><td><a href="https://codegolf.stackexchange.com/questions/273531/find-characters-common-among-all-strings/279520#279520">RubenVer</a></td></tr>
 <tr d-ix="3"><td>122</td><td>AWK</td><td>241104T153104Z</td><td><a href="https://codegolf.stackexchange.com/questions/273531/find-characters-common-among-all-strings/276502#276502">xrs</a></td></tr>
@@ -53,23 +53,32 @@
 <tr d-ix="24"><td>040</td><td>Retina 0.8.2</td><td>240609T005734Z</td><td><a href="https://codegolf.stackexchange.com/questions/273531/find-characters-common-among-all-strings/273540#273540">Neil</a></td></tr>
 <tr d-ix="25"><td>003</td><td>Jelly</td><td>240608T220501Z</td><td><a href="https://codegolf.stackexchange.com/questions/273531/find-characters-common-among-all-strings/273535#273535">Luis Men</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/dloscutoff/pip" rel="nofollow noreferrer">Pip</a>, 16 bytes</h1>
-<pre><code>_X N{aN_M\g}MUQa
+<div id="pu0" class="pu"><h1><a href="https://github.com/dloscutoff/pip" rel="nofollow noreferrer">Pip</a>, <s>16</s> 12 bytes</h1>
+<pre><code>@SS_Mg@X*UQa
 </code></pre>
-<p>Takes the strings as command-line arguments. <a href="https://ato.pxeger.com/run?1=m724ILNgwYKlpSVpuhYb4iMU_KoT_eJ9Y9JrfUMDEyHCUNmb2tFKyYklJTmpSjoKSiUZRfkwNoiVmgcWzS8qSs0rUYqF6gEA" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<p>Takes the strings as command-line arguments. <a href="https://ato.pxeger.com/run?1=m724ILNgwYKlpSVpuhZrHIKD433THSK0QgMTIUJQmZva0UrJiSUlOalKOgpKJRlF-TA2iJWaBxbNLypKzStRioXqAQA" rel="nofollow noreferrer">Attempt This Online!</a></p>
 <h3>Explanation</h3>
 <p>Pip doesn't have multiset builtins, so we have to do it by hand:</p>
-<pre><code>_X N{aN_M\g}MUQa
-               a  Take the first string (by convenience; could be any of them)
-             UQ   Uniquify
-            M     Map to each character:
-        M          Map this function to
-         \g        the list of command-line arguments:
-     aN_            Count occurrences of that character in that argument
-   N{      }       Minimum number of occurrences of that character
-_X                 String-repeat that character that many times
-                  Concatenate and autoprint (implicit)
+<pre><code>@SS_Mg@X*UQa
+           a  Take the first string (by convenience; could be any of them)
+         UQ   Uniquify
+       X*     Convert each character to a regex matching that character
+      @       For each of those, find all matches in
+     g        Each command-line argument
+    M         Map this function to each list of lists of matches:
+ SS_           Sort using string comparison (in this case, since the characters
+               are all the same, this means shortest first)
+@              Get the first (shortest) one
+              Concatenate and autoprint (implicit)
 </code></pre>
+<p>For example, with inputs <code>&quot;cattle&quot; &quot;throttle&quot; &quot;rotten&quot; &quot;torrent&quot;</code>:</p>
+<pre><code>         UQa  &quot;catle&quot;
+       X*     [`c`;`a`;`t`;`l`;`e`]
+     g@       [[[&quot;c&quot;];[];[];[]];[[&quot;a&quot;];[];[];[]];[[&quot;t&quot;;&quot;t&quot;];[&quot;t&quot;;&quot;t&quot;;&quot;t&quot;];[&quot;t&quot;;&quot;t&quot;];[&quot;t&quot;;&quot;t&quot;]];[[&quot;l&quot;];[&quot;l&quot;];[];[]];[[&quot;e&quot;];[&quot;e&quot;];[&quot;e&quot;];[&quot;e&quot;]]]
+ SS_M         [[[];[];[];[&quot;c&quot;]];[[];[];[];[&quot;a&quot;]];[[&quot;t&quot;;&quot;t&quot;];[&quot;t&quot;;&quot;t&quot;];[&quot;t&quot;;&quot;t&quot;];[&quot;t&quot;;&quot;t&quot;;&quot;t&quot;]];[[];[];[&quot;l&quot;];[&quot;l&quot;]];[[&quot;e&quot;];[&quot;e&quot;];[&quot;e&quot;];[&quot;e&quot;]]]
+@             [[];[];[&quot;t&quot;;&quot;t&quot;];[];[&quot;e&quot;]]
+</code></pre>
+<p>which outputs <code>tte</code>.</p>
 </div>
 <div id="pu1" class="pu"><h1>Dyalog APL, <s>25</s> 23 bytes</h1>
 <p>Well, not having a built-in multiset (that I know of (using TryAPL...)) here's a much longer solution.  I couldn't quite mold ∩ to give me the multiset functionality I needed, but I'm not convinced it is not possible.</p>
