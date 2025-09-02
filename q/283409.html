@@ -31,9 +31,42 @@
 </table>
 <div id="pu0" class="pu"><h1>JavaScript (ES6), 177 bytes</h1>
 
-<pre class="lang-javascript prettyprint-override"><code>f=(a,s=m=a)=&gt;a.map((p,i)=&gt;p&amp;&amp;a.map((q,j)=&gt;i-j&amp;&amp;q.replace(RegExp(p,'g'),(_,k)=&gt;f(b=[...a],b[i]=q.slice(b[j]=q.slice(k+s[i]),k)))),m=(v=Math.max(...s=a.map(s=&gt;s.length)))&gt;m?m:v)|m
+<pre class="lang-javascript prettyprint-override"><code>f=(a,s=m=a)=&gt;a.map((p,i)=&gt;p&amp;&amp;a.map((q,j)=&gt;i-j&amp;&amp;q.replace(RegExp(p,'g'),(_,k)=&gt;f(b=[...a],b[i]=q.slice(b[j]=q.slice(k+s[i]),k)))),M=Math.max(...s=a.map(s=&gt;s.length)),M&gt;m?0:m=M)|m
 </code></pre>
-<p><a href="https://tio.run/##fVJLbtswEN37FAMvLAqmlbTIKgadVZbZdCsIBSVTFh3SlEVGSND2BgW66bK9R8@TC/QIzkhkZEd1KgKceZ/h8KMtb7ktGlm7xc6sxeFQMsKpZZrxmK14onlNSE0lgno2C3hPt4jlYjub7ZNG1IoXgnwSm9vHGr3RJoop@Uzv0VOSnKVJkvCM5qnM2D6xSqI5T7dHcD@3qMVYgB/VjLTsjrsKez0SrLXMt7VsZRMldhtXoW@lb/R1G3/Vh2U6AUghzShcQkY9mPIp4g@nmIInL/8hX5VTe36OLbg7VrjzojsrVoI3vdIlXcxDHOie7NPRJofSUFH5Lv8xvdO6CFGH2AW0Xo3vIy/WfjchhuBnMVpdKKHFzg3S1TvSq/7xqJfcOmGPl4a4t9nx4ZRphXrqNNVPCEe7OLMU4rfL4Mm67@TJR1Nww8UFWKlrJUsp1uAM8NZITKQWC/PghufOh9Hflv9ligA9//YcSD0Nz9zlXp5kk6Q0zS0vKkJS4BSwC2QxsBV8gcLsrINGWGBQEh4ve8YokSizIR0/hymOOfSAsb76BqK/f348//qJcwTXED3//h7FWPwtXh5eAA" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<p><a href="https://tio.run/##fVJLbtswEN37FAMvLAqmGbfIKgadVZbedCsIBSVTFh3SlEXGSND2BgW66bK9R8@TC/QI7khiZEd1IgKceZ/h8KOtOAiX16rys51dy@Ox4ERQxw0XMV8KZkRFSEUVgmoyCXhPt4jVbDuZ7FktKy1yST7Jzd1jhd5oE8WUfKb36ClIxhPGmEhplqiU75nTCs1Zsj2B@6lDLcYC/OiKr4QvsdEjwULHu56OLx3TcrfxZeNZmtv5jeGr@Ks5LpIRQAJJSmEOKe3AWIwRfzjHFDpy/h/5opzbs0tsLvypwl8W/UWxlKJulSZpYhZiT7dkmw422ZeGirLr8o7pjdZ5iCbEJqD1engfWb7udhNiCN0sB6tLLY3c@V66fkN60T@e9EI4L93p0hC3Njc8nLYHqZ8aTbcTwsEuLiyF@PUyeLLmO3vywRTccHUFTplKq0LJNXgL4mAVJsrImX3w/XNn/Whvq/tl8gA7/vU5kHrqn7nJO3mUjlhh6zuRl4QkIChgF0hj4Ev4ArndOQ@1dMChICJetIzVkmm7IQ0/hTGOKbSA87b6FqK/f348//qJcwQ3ED3//h7FWPwtXhz/AQ" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<h3>Commented</h3>
+<pre class="lang-javascript prettyprint-override"><code>f = (                     // f is a recursive function taking:
+  a,                      //   a[] = input array
+  s =                     //   s = variable reserved in this scope
+  m = a                   //   m = the minimum value we're looking for,
+) =&gt;                      //       initially NaN'ish
+a.map((p, i) =&gt;           // for each word p at index i in a[]:
+  p &amp;&amp;                    //   abort if p is empty
+  a.map((q, j) =&gt;         //   for each word q at index j in a[]:
+    i - j &amp;&amp;              //     abort if i = j
+    q.replace(            //     search in q ...
+      RegExp(p, 'g'),     //       ... all occurrences of p
+      (_, k) =&gt;           //       for each match at position k,
+      f(                  //       do a recursive call:
+        b = [...a],       //         with b[] = copy of a[] where:
+        b[i] = q.slice(   //           b[i] = string before the match
+          b[j] = q.slice( //           b[j] = string after the match
+            k + s[i]      //         using s[i] for the length of p
+          ),              //         b[j] is zero'ish and can therefore
+          k               //         be used as the 1st argument of the
+        )                 //         other slice()
+      )                   //       end of recursive call
+    )                     //     end of replace()
+  ),                      //   end of inner map()
+  M = Math.max(           //   M is the maximum value in:
+    ...s = a.map(s =&gt;     //     the array s[] which contains:
+      s.length            //       the lengths of the strings in a[]
+    )                     //     end of map()
+  ),                      //   end of Math.max()
+  M &gt; m ? 0               //   do nothing if M &gt; m
+        : m = M           //   otherwise, update m to M
+) | m                     // end of outer map(); return m
+</code></pre>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 67 bytes</h1>
 <pre><code>⊞υＡＦυＦＬιＦΦＬι⁻μκＦ⌕Ａ§ικ§ιλ⊞υ⁺Φι∧⁻ξκ⁻ξλΦ⟦…§ικμ✂§ικ⁺μＬ§ιλ⟧νＩ⌊Ｅυ∧Ｌι⌈ＥιＬλ
