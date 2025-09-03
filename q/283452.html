@@ -26,9 +26,32 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>128</td><td>Python</td><td>250903T095228Z</td><td><a href="https://codegolf.stackexchange.com/questions/283452/decompose-a-palindromic-polynomial/283459#283459">Ted</a></td></tr>
+<tr d-ix="0"><td>026</td><td>x8664 machine code</td><td>250903T133736Z</td><td><a href="https://codegolf.stackexchange.com/questions/283452/decompose-a-palindromic-polynomial/283468#283468">m90</a></td></tr>
+<tr d-ix="1"><td>128</td><td>Python</td><td>250903T095228Z</td><td><a href="https://codegolf.stackexchange.com/questions/283452/decompose-a-palindromic-polynomial/283459#283459">Ted</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 128 bytes</h1>
+<div id="pu0" class="pu"><h1>x86-64 machine code, 26 bytes</h1>
+<pre><code>AD 31 C9 EB 08 FF C1 F7 F9 29 44 CE FC F7 EF FF CF 39 F9 7C F0 01 CF 79 E7 C3
+</code></pre>
+<p><a href="https://tio.run/##lVPBbtswDD2bX8FlKGAncpsmQRHESy8777LTAC8HVZITGbZcSHLmwMivL6Pspgu60yBY5nskH0nJFuleiMuFuxpj/D6JodhEVSOdhKhrLCrRsbBBVNavyMFuIm3EyGipj6Pl2hfMrdM4w/XUig5TXO0oj3fAKaFuK1RSQySVGA1BYqN0QGWFFiIuZYDXcsZhAZFVHpJJksGx0RKLWBuPkmF4TTnRn6mbqpUKvzgvdXN/eAZw3rbCo1fOC@4U9iGa52vqyGTnDERjnMePUb7Kd7jFHvr@8cyQnmCxBdmLq82WhJZvaMWebtCcpYsbOCzCqzecUi5LVzfM/HYRvx54MgJ4ePDK1tpw31igliGMUHNthgPgdi8YigO3OJ0SOCbQQ1TQdQ1uTWPMszCQ3t2bDPVslkBEEdE/MwsKHeIy8r4LlKNAiZ/IK4JESRL4aslZxJM7jRMWHDwvd8mQGYcwuvXHkR/Ia3j6PEn@Rx7v9Af5q@enGZTOcMN84@KgjULRSLUZ3KFEF0owPBGUDfZ/peeLHyR@2sZxa5zeGyWHc5wmRZJ3sxnVO@Ovg64UxqfQ37z7ugyi7woxTf9yohNMqBuGXXDSR9paQzPB@XL5LYqK790lrZ9WtNGPtaVUVf0B" rel="nofollow noreferrer" title="C (gcc) – Try It Online">Try it online!</a></p>
+<p>Following the standard calling convention for Unix-like systems (from the System V AMD64 ABI), this takes <span class="math-container">\$n\$</span> in EDI and the address of an array of signed 32-bit integers in RSI (the first <span class="math-container">\$n+1\$</span> coefficients), and modifies the array in place.</p>
+<p>This works by subtracting <span class="math-container">\$\binom{n}{i}a_0\$</span> from <span class="math-container">\$a_{2i}\$</span> for <span class="math-container">\$0 &lt; i \leq \frac{n}{2}\$</span> (those are the coefficients from expanding <span class="math-container">\$a_0(x+\frac{1}{x})^n\$</span>), and repeating the process on the subarray without the first element. Each value of <span class="math-container">\$\binom{n}{i}a_0\$</span> is calculated from the previous one, by multiplying by <span class="math-container">\$(n - i + 1)\$</span> and dividing by <span class="math-container">\$i\$</span>.</p>
+<p>In assembly:</p>
+<pre><code>f:  lodsd           # Load the first value into EAX, advancing RSI.
+    xor ecx, ecx    # Set ECX to 0.
+    jmp a           # Jump into the middle of the loop.
+r:  inc ecx                     # Add 1 to ECX.
+    idiv ecx                    # Divide the product by ECX (quotient in EAX).
+    sub [rsi + 8*rcx - 4], eax  # Subtract EAX from the appropriate value in memory.
+a:  imul edi        # Multiply EAX by EDI (initially the degree).
+    dec edi         # Subtract 1 from EDI.
+    cmp ecx, edi    # Compare ECX and EDI.
+    jl r            # Jump if ECX is lesser.
+    add edi, ecx    # Add ECX to EDI. EDI is 1 less than it was initially.
+    jns f           # Jump back to the start if that value is nonnegative.
+    ret             # Return.
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 128 bytes</h1>
 <pre class="lang-python prettyprint-override"><code>lambda p,n:map(round,numpy.polyfit(r:=range(3,2*n+4),[sum(c*((a+(a**2-4)**.5)/2)**(i-n)for i,c in p)for a in r],n))
 import numpy
 </code></pre>
