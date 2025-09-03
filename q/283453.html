@@ -37,6 +37,32 @@
 <pre class="lang-javascript prettyprint-override"><code>s=&gt;s.replace(/e/g,_=&gt;"aeiou"[Buffer("&#27;3S&#7;&amp;#&#15;$S&#30;A~VOM&#16;~\\eV[=&#18;O&#27;&#28;s~~~#&#26;&#21;&#25;&#26;:;g&#26;.&#25;&#26;:;g\0~&#23;V*#l:Pw(\0~]&#14;&#25;S&#29;&#1;&#16;~&#7;&#25;\r1&#5;~~&#18;sUfP&lt;&#8;~~uQ\\NKsS&#15;vK,L&#5;0&#2;~&#18;Bs=&#26;&#28;&amp;&#23;tF&#1;)&#18;".split`~`[s.length%130%19])[k/3|0]/5**(k++%3)%5|0],k=0)
 </code></pre>
 <p><a href="https://tio.run/##lVTdbtxEFFaRqqJc0CoSqpIWdOSQejc1zkZRL5rgVFSCmwItisjN7oqO7WN7anvGnZ@1LMBPgMQNl/AePE9fgEcIZ2xvlFtudjwz53znO9/5dt6xDdOJ4o35UsgUr7PoWkcXOlTYVCzB2TEe58HP0YXHkEvrLV/aLEM18x6dXt57cnD/i8vPv@6vXn//oF@t8GoZ7b5@9Fj3fX@w/@ne/tl5vh8Oy2rRP7w6OqjO3rQz@l5/snf52Z0H/b29lTq52/e7@qfszVcf9739cbX64ZW@vL95FXx3d/FRv/tSR/uPnzw0396Z73qhbipu3vZvlzqsUOSmODw5XRyePF/Pl@Xx6a@L9fGzo6NZ@fTp4en88BntgzJazK/PlzsAXlugAC4glTY2AWjWgZCm4CIHJlKo5QZBitALxmBmgGeAG1QdpKwLps/C1kxAwVJgcAINqgSFgaRgIqH0DGJ0gMYqgSlVM5LiaFciIbgyI8p48j9hhtIvRn5ErZMWWlQIuRxiJbRSlbQSWxgSMpYY6aq5Zly4bB0c3VUUIrMMWFW5anSnQBuWZQHUHSRMEZatUicQUSEAHA4ps2YljoDvpGPXEbtJM@6TgqxqWaehZcKMpUqelMQltbTYZoBiSuOUM1SmupgYLmk8eihZIxPUU4VaDzUxgMYKoiwwBA66cLxT3Lhk1xdzg0Tl5jTh5lKmITRK2tRlsBo0NdCBbsjVNGuhDapwTCYJK2Tl9jKuZLztyImihkaIttO15aYALWucvOODQRbe3rgekOluK1YIGVeaDJejGTML6rBlVD9wsAJYmm4BbtxHnpPTKNvt9BIynjbctS6dkRm8t46dciNkUNON07BD0ndrEwoVvoFSyJaAyIMxJsxqBG587fR0uaaQ2g2VJNfA/XqYQSKFUWQgS1qT8nHFczaNNHGSsVhaM/EVMpZpd2voDqscQwbpKl5zd6WYyIeSGWFpaKTWPK4QMkn@s0lBbegGySkUMv7TUquNa9ah0FNlnKkn0uRJqWupQ29nvRMSxDcsKWYaogv4hVglbsiU2hCHCG49acvhLVvTwwYeevPzm1hFlCLIZkPOzbmsMKxkPqPbYAwhNHgB/r///PHhrz/p14cz8D/8/btPOb/Nr/8D" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<h3>Method</h3>
+<p>The quote is identified by its length <span class="math-container">\$n\$</span>, which is turned into a lookup index with the modulo chain <span class="math-container">\$(n\bmod 130)\bmod 19\$</span>.</p>
+<p>The vowels of each quote are stored by groups of 3, with <code>aeiou</code> mapped to <span class="math-container">\$0\$</span>, <span class="math-container">\$1\$</span>, <span class="math-container">\$2\$</span>, <span class="math-container">\$3\$</span>, <span class="math-container">\$4\$</span>. Each group is encoded with an ASCII character in the range <span class="math-container">\$[0\dots5^3-1]=[0\dots124]\$</span>. Only a few characters need to be escaped.</p>
+<p>We use <code>~</code> (ASCII code 126) as a delimiter in the lookup string.</p>
+<h3>Commented</h3>
+<pre class="lang-javascript prettyprint-override"><code>s =&gt;                 // s = input string
+s.replace(           // replace in s ...
+  /e/g,              // ... each vowel 'e'
+  _ =&gt;               // with:
+  &quot;aeiou&quot;[           //   another vowel
+    Buffer(          //   turn into a Buffer:
+      &quot;...&quot;          //     this is the lookup string
+      .split`~`[     //     split it at '~'
+        s.length     //     apply the modulo chain to the
+        % 130 % 19   //     length of the input string
+      ]              //     to pick the right part
+    )                //   end of Buffer()
+    [k / 3 | 0]      //   get the ASCII code at floor(k / 3)
+    / 5 ** (k++ % 3) //   divide it by 5 ** (k mod 3)
+                     //   (then increment k)
+    % 5              //   reduce modulo 5
+    | 0              //   coerce to an integer
+  ],                 //
+  k = 0              //   starting with k = 0
+)                    // end of replace()
+</code></pre>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://github.com/Vyxal/Vyxal/tree/version-2" rel="nofollow noreferrer">Vyxal</a>, 115 bytes</h1>
 <pre><code>β«+ẇḟ`Ṁ∞¶)=:ŀiMcṫż₅Ŀ%⁽XPK0Ċτ.⁋@⁽Ġ†ẇǎkḣ[/…‹ẇ4@ṫ⟩×U√C₃ṫ5Ċ]ɾhǍ∩4Z꘍GṘ∴₅æʁİ†aa‛₀»‟j9ġlZṖ½ʁ«⌈inβ3τ2€vB?⌈ƛf\ekvVΠµøDL}¨£iṄ
