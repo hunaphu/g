@@ -26,16 +26,36 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>009</td><td>Jelly</td><td>250905T191049Z</td><td><a href="https://codegolf.stackexchange.com/questions/283512/exit-a-pinball-board/283540#283540">Jonathan</a></td></tr>
-<tr d-ix="1"><td>070</td><td>Python 3.8 prerelease</td><td>250905T132959Z</td><td><a href="https://codegolf.stackexchange.com/questions/283512/exit-a-pinball-board/283524#283524">V_R</a></td></tr>
-<tr d-ix="2"><td>081</td><td>Google Sheets</td><td>250905T072810Z</td><td><a href="https://codegolf.stackexchange.com/questions/283512/exit-a-pinball-board/283513#283513">doubleun</a></td></tr>
+<tr d-ix="0"><td>073</td><td>Google Sheets</td><td>250905T072810Z</td><td><a href="https://codegolf.stackexchange.com/questions/283512/exit-a-pinball-board/283513#283513">doubleun</a></td></tr>
+<tr d-ix="1"><td>009</td><td>Jelly</td><td>250905T191049Z</td><td><a href="https://codegolf.stackexchange.com/questions/283512/exit-a-pinball-board/283540#283540">Jonathan</a></td></tr>
+<tr d-ix="2"><td>070</td><td>Python 3.8 prerelease</td><td>250905T132959Z</td><td><a href="https://codegolf.stackexchange.com/questions/283512/exit-a-pinball-board/283524#283524">V_R</a></td></tr>
 <tr d-ix="3"><td>057</td><td>JavaScript ES6</td><td>250905T103750Z</td><td><a href="https://codegolf.stackexchange.com/questions/283512/exit-a-pinball-board/283520#283520">Arnauld</a></td></tr>
 <tr d-ix="4"><td>067</td><td>R</td><td>250905T095624Z</td><td><a href="https://codegolf.stackexchange.com/questions/283512/exit-a-pinball-board/283519#283519">pajonk</a></td></tr>
 <tr d-ix="5"><td>059</td><td>Retina 0.8.2</td><td>250905T092708Z</td><td><a href="https://codegolf.stackexchange.com/questions/283512/exit-a-pinball-board/283517#283517">Neil</a></td></tr>
 <tr d-ix="6"><td>060</td><td>05AB1E</td><td>250905T084154Z</td><td><a href="https://codegolf.stackexchange.com/questions/283512/exit-a-pinball-board/283515#283515">Kevin Cr</a></td></tr>
 <tr d-ix="7"><td>034</td><td>Charcoal</td><td>250905T083453Z</td><td><a href="https://codegolf.stackexchange.com/questions/283512/exit-a-pinball-board/283514#283514">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 9 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
+<div id="pu0" class="pu"><h1>Google Sheets, 73 bytes</h1>
+<pre class="lang-none prettyprint-override"><code>=reduce(,A:A,lambda(p,r,iferror(find(&quot;o&quot;,r),p+find(mid(r,p,1),&quot;/ \&quot;)-2)))
+</code></pre>
+<p>Outputs the 1-indexed final x-coordinate position of the ball on the board, including borders.</p>
+<p><img src="https://i.sstatic.net/oJ53ZusA.png" alt="screenshot" /></p>
+<p>Ungolfed:</p>
+<pre class="lang-none prettyprint-override"><code>=reduce(, A:A, lambda(p, r, 
+  iferror(find(&quot;o&quot;, r),
+    p + find(mid(r, p, 1), &quot;/ \&quot;) - 2
+  )
+))
+</code></pre>
+<p>Errors produced by spreadsheet functions are handled differently from many other programming languages. They don't get thrown immediately. Instead, they propagate up the evaluation chain, and can be caught with <code>iferror()</code> and friends.</p>
+<p>While <code>reduce()</code> goes through each row <code>r</code> in turn, the first <code>find()</code> gets an error until an <code>o</code> is found. At that point, the <code>lambda()</code> returns without evaluating the second <code>find()</code> that would otherwise output an error. This pattern is a sort of <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_operators#short-circuit_evaluation" rel="nofollow noreferrer">short-circuit evaluation</a>.</p>
+<p>From the <code>o</code> row on, the first <code>find()</code> will continue to get errors, because there are no more <code>o</code>s, making <code>iferror()</code> evaluate the second <code>find()</code>. The ball position <code>p</code> will at that point be a number &gt;= 1, so the <code>mid()</code> will be error-free, and <code>find() - 2</code> will get <code>-1</code>, <code>0</code> or <code>1</code>. The value of <code>p</code> therefore remains unchanged unless the character at index <code>p</code> in the current row is <code>/</code> or <code>\</code>.</p>
+<p>The formula expects that there's no <code>###########</code> line at the bottom, and that the bottom of the sheet meets the last row of data. To handle data with a bottom border on a taller sheet, use this (<strong>81 bytes</strong>):</p>
+<pre class="lang-none prettyprint-override"><code>=reduce(,A:A,lambda(p,r,iferror(find(&quot;o&quot;,r),p+switch(mid(r,p,1),&quot;\&quot;,1,&quot;/&quot;,-1,))))
+</code></pre>
+<p><img src="https://i.sstatic.net/TMLPr1sJ.png" alt="screenshot" /></p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 9 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
 <pre><code>ẒaSṙ@»ð/M
 </code></pre>
 <p>A monadic Link that accepts a list of lists of integers where <code>-1</code>, <code>0</code>, <code>1</code>, and <code>2</code> are <code>\</code>, <code> </code>, <code>/</code>, and <code>o</code>, respectively (no borders) and yields a singleton list containing the 1-index of the column at which the ball leaves.</p>
@@ -102,7 +122,7 @@
 </tbody>
 </table></div>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://docs.python.org/3.8/" rel="nofollow noreferrer">Python 3.8 (pre-release)</a>, 70 <s>71</s> bytes</h1>
+<div id="pu2" class="pu"><h1><a href="https://docs.python.org/3.8/" rel="nofollow noreferrer">Python 3.8 (pre-release)</a>, 70 <s>71</s> bytes</h1>
 <p>Expects input as a one-dimensional list <code>l</code> where <code>&quot;#&quot;</code> is <code>3</code>, <code>&quot;o&quot;</code> is <code>2</code>, <code>&quot;\&quot;</code> is <code>1</code>, <code>&quot; &quot;</code> is <code>0</code>, and <code>&quot;/&quot;</code> is <code>-1</code>, plus the width of the grid <code>w</code> to disambiguate e.g. 13x7 from 7x13 grids. Outputs the 0-based index into <code>l</code> where the ball exits.</p>
 
 <pre class="lang-python prettyprint-override"><code>f=lambda l,w,i=0:i*(2&lt;l[(i:=max(i,l.index(2)))+w])or f(l,w,i+w+l[i+w])
@@ -116,26 +136,6 @@
 <p>When the function is called the first time, the input <code>i</code> for the index of the location of the ball is not given, so we set it to <code>l.index(2)</code>. Then we recursively call the function:</p>
 <p>If moving down one row (adding <code>w</code> to our index) gets us to <code>&quot;#&quot;</code>, encoded as <code>3</code> (<code>if 2&lt;l[i+w]</code>), then the current position is our exit point, so <code>return i</code>.</p>
 <p>Else, call <code>f()</code> with the same <code>l</code> and <code>w</code> (i.e. same grid), but manually set the location of the ball to its current position <code>i</code> moved down one row (<code>+w</code>) and shifted either to the left or right or not shifted at all depending on which character is immediately below the ball (at <code>l[i+w]</code>). The encoding values for <code>&quot;/ \&quot;</code> were set so that the left bumper moves us left, space doesn't move us at all, and the right bumper moves us right. This gives the final new position of the ball as <code>i+w+l[i+w]</code>.</p>
-</div>
-<div id="pu2" class="pu"><h1>Google Sheets, 81 bytes</h1>
-<pre class="lang-none prettyprint-override"><code>=reduce(,A:A,lambda(p,r,iferror(find(&quot;o&quot;,r),p+switch(mid(r,p,1),&quot;\&quot;,1,&quot;/&quot;,-1,))))
-</code></pre>
-<p>Outputs the 1-indexed final x-coordinate position of the ball on the board, including borders.</p>
-<p><img src="https://i.sstatic.net/TMLPr1sJ.png" alt="screenshot" /></p>
-<p>Ungolfed:</p>
-<pre class="lang-none prettyprint-override"><code>=reduce(, A:A, lambda(p, r, 
-  iferror(find(&quot;o&quot;, r),
-    p + switch(mid(r, p, 1),
-      &quot;\&quot;, 1,
-      &quot;/&quot;, -1,
-      0
-    )
-  )
-))
-</code></pre>
-<p>In spreadsheet formulas, errors don't get thrown immediately. Instead, they propagate up the evaluation chain, and can be caught with <code>iferror()</code> and friends.</p>
-<p>While <code>reduce()</code> goes through each row <code>r</code> in turn, <code>find()</code> gets an error until an <code>o</code> is found. At that point, the <code>lambda()</code> returns without evaluating the <code>switch()</code> that would otherwise output an error. This pattern is a sort of <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_operators#short-circuit_evaluation" rel="nofollow noreferrer">short-circuit evaluation</a>.</p>
-<p>From the <code>o</code> row on, <code>find()</code> will continue to get errors, because there are no more <code>o</code>s, making <code>iferror()</code> evaluate the <code>switch()</code>. The ball position <code>p</code> will at that point be a number &gt;= 1, so the <code>mid()</code> will be error-free, and <code>switch()</code> will get 1, -1 or 0. The value of <code>p</code> remains unchanged unless the character at index <code>p</code> in the current row is <code>/</code> or <code>\</code>.</p>
 </div>
 <div id="pu3" class="pu"><h1>JavaScript (ES6), 57 bytes</h1>
 <p>Expects a matrix of ASCII codes and returns the 0-indexed column at which the ball exits.</p>
