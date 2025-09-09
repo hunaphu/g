@@ -26,9 +26,27 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>212</td><td>JavaScript ES6</td><td>250909T103734Z</td><td><a href="https://codegolf.stackexchange.com/questions/283596/output-the-colour-code-of-a-given-resistance/283597#283597">Arnauld</a></td></tr>
+<tr d-ix="0"><td>300</td><td>Google Sheets</td><td>250909T222604Z</td><td><a href="https://codegolf.stackexchange.com/questions/283596/output-the-colour-code-of-a-given-resistance/283612#283612">doubleun</a></td></tr>
+<tr d-ix="1"><td>212</td><td>JavaScript ES6</td><td>250909T103734Z</td><td><a href="https://codegolf.stackexchange.com/questions/283596/output-the-colour-code-of-a-given-resistance/283597#283597">Arnauld</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>JavaScript (ES6), 212 bytes</h1>
+<div id="pu0" class="pu"><h1>Google Sheets, 300 bytes</h1>
+<pre class="lang-none prettyprint-override"><code>=sort(let(f,lambda(k,n,xlookup(k,n,tocol(split(&quot;Black0Brown0Red0Orange0Yellow0Green0Blue0Violet0Grey0White0Gold0Silver0None&quot;,0)))),g,lambda(n,index(split(text(A1,&quot;0.0#e+0&quot;),&quot;.e&quot;),n)),{f({g(1),g(2),if(g(3)=-1,11,g(3)-(g(1)&gt;0))},row(1:13)-1),f(B1,tocol(split(&quot;919293949.59.259.19.05995910920&quot;,9,,)))}))
+</code></pre>
+<p>Put resistance in <code>A1</code> and tolerance in <code>B1</code>. Outputs four strings.</p>
+<p><img src="https://i.sstatic.net/GPbjdIKQ.png" alt="screenshot" /></p>
+<p>This matches all current test cases but doesn't observe what's said in the question's comments.</p>
+<p>Ungolfed:</p>
+<pre class="lang-none prettyprint-override"><code>=arrayformula(let(
+  c, tocol(split(&quot;Black0Brown0Red0Orange0Yellow0Green0Blue0Violet0Grey0White0Gold0Silver0None&quot;, 0)),
+  m, tocol(split(&quot;,1,2,3,4,.5,.25,.1,.05,,5,10,20&quot;, &quot;,&quot;,,)),
+  i, sequence(13) - 1,
+  f, lambda(k, n, xlookup(k, n, c)),
+  g, lambda(n, index(split(text(A1, &quot;0.0#e+0&quot;), &quot;.e&quot;), n)),
+  { f({ g(1), g(2), if(g(3) = -1, 11, g(3) - (g(1) &gt; 0)) }, i), f(B1, m) }
+))
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>JavaScript (ES6), 212 bytes</h1>
 <p>Expects <code>(r)(t)</code> and returns an array of 4 strings.</p>
 
 <pre class="lang-javascript prettyprint-override"><code>r=&gt;t=&gt;[!([[x,,y],e]=r.toExponential().split`e`,z=r&lt;.1)*x,z?x:~~y,z?r&amp;&amp;11:--e&lt;0?9-e:e,&quot;0x&quot;+&quot;ED29F31764&quot;[t*20%52%11]^5].map(n=&gt;&quot;BlackBrownRedOrangeYellowGreenBlueVioletGreyWhiteGoldSilverNone&quot;.match(/.[a-z]+/g)[n])
@@ -53,13 +71,13 @@ t =&gt;                  // inner function taking t
     : --e &lt; 0 ? 9 - e //    or 9 - e if e is negative once decremented
               : e,    //    or e otherwise
   &quot;0x&quot; +              // 4) hexadecimal prefix
-  &quot;ED29F31764&quot;[       //    read the lookup string at ...
+  &quot;ED29F31764&quot;[       //    read this lookup string at ...
     t * 20 % 52 % 11  //    ... the relevant index computed from t
   ] ^ 5               //    XOR 5
 ].map(n =&gt;            // for each entry n computed above:
   &quot;BlackBrown...None&quot; //   color lookup string
   .match(             //   split by words
-    /.[a-z]+/g        //
+    /.[a-z]+/g        //   (using title case)
   )[n]                //   take the n-th entry
 )                     // end of map()
 </code></pre>
