@@ -26,10 +26,47 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>300</td><td>Google Sheets</td><td>250909T222604Z</td><td><a href="https://codegolf.stackexchange.com/questions/283596/output-the-colour-code-of-a-given-resistance/283612#283612">doubleun</a></td></tr>
-<tr d-ix="1"><td>212</td><td>JavaScript ES6</td><td>250909T103734Z</td><td><a href="https://codegolf.stackexchange.com/questions/283596/output-the-colour-code-of-a-given-resistance/283597#283597">Arnauld</a></td></tr>
+<tr d-ix="0"><td>211</td><td>JavaScript ES6</td><td>250909T103734Z</td><td><a href="https://codegolf.stackexchange.com/questions/283596/output-the-colour-code-of-a-given-resistance/283597#283597">Arnauld</a></td></tr>
+<tr d-ix="1"><td>300</td><td>Google Sheets</td><td>250909T222604Z</td><td><a href="https://codegolf.stackexchange.com/questions/283596/output-the-colour-code-of-a-given-resistance/283612#283612">doubleun</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Google Sheets, 300 bytes</h1>
+<div id="pu0" class="pu"><h1>JavaScript (ES6), 211 bytes</h1>
+<p><em>-1 thanks to <a href="https://codegolf.stackexchange.com/users/17602/neil">@Neil</a></em></p>
+<p>Expects <code>(r)(t)</code> and returns an array of 4 strings.</p>
+
+<pre class="lang-javascript prettyprint-override"><code>r=&gt;t=&gt;[!([[x,,y],e]=r.toExponential(1).split`e`,z=r&lt;.1)*x,z?x:y,z?r&amp;&amp;11:--e&lt;0?9-e:e,&quot;0x&quot;+&quot;ED29F31764&quot;[t*20%52%11]^5].map(n=&gt;&quot;BlackBrownRedOrangeYellowGreenBlueVioletGreyWhiteGoldSilverNone&quot;.match(/.[a-z]+/g)[n])
+</code></pre>
+<p><a href="https://tio.run/##XY9va8IwEMbf71O4gpJomib@2xSrIFPfbbDBxigdhnpqtywpMWr1y3exZYx5L@44uN/zPPcpDmKXmDSzvtIrKNZhYcKxDcfRLYqinJBTTCAODbV6lmdagbKpkIhjustkapewJOfQjCjHzZycJ/nw5LppNDgf@j6M2GTgwxCIx3Kv5c0e2oN5h9/1u15km21W77XrnMcfvZh@iwypcOxNpUi@pkYf1TOsnoxQG3gHKfVxYQDUVO7hNdUSrFtPb9vUwkLL1UsqD2AeXTrPCdlkiwIaCf8ct4INjlSMi0SrncOo1Bu0RgyjLsa1qoKgVpqSq1HZ3vwn77uMOZqXtCMvMX5PSa3K6xQu@a9IRvsd7DrrObb03MMfUX1ASr3iBw" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<h3>Commented</h3>
+<pre class="lang-javascript prettyprint-override"><code>r =&gt;                   // outer function taking r
+t =&gt;                   // inner function taking t
+[                      //
+  !(                   //
+    [[x,,              // x = 1st significant digit of r as a character
+          y],          // y = next digit as a character
+              e] =     // e = signed exponent string (e.g. &quot;+2&quot;)
+    r.toExponential(1) // extracted from r.toExponential(1) ...
+    .split`e`,         // ... split on 'e'
+    z = r &lt; .1         // set z to 'true' if r is less than 0.1
+  ) * x,               // 1) use 0 if z is set or x otherwise
+  z ? x                // 2) use x if z is set
+    : y,               //    or y otherwise
+  z ? r                // 3) use 0 if z is set and r is 0
+      &amp;&amp; 11            //    or 11 if z is set and r is not 0
+    : --e &lt; 0 ? 9 - e  //    or 9 - e if e is negative once decremented
+              : e,     //    or e otherwise
+  &quot;0x&quot; +               // 4) hexadecimal prefix
+  &quot;ED29F31764&quot;[        //    read this lookup string at ...
+    t * 20 % 52 % 11   //    ... the relevant index computed from t
+  ] ^ 5                //    XOR 5
+].map(n =&gt;             // for each entry n computed above:
+  &quot;BlackBrown...None&quot;  //   color lookup string
+  .match(              //   split by words
+    /.[a-z]+/g         //   (using title case)
+  )[n]                 //   take the n-th entry
+)                      // end of map()
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>Google Sheets, 300 bytes</h1>
 <pre class="lang-none prettyprint-override"><code>=sort(let(f,lambda(k,n,xlookup(k,n,tocol(split(&quot;Black0Brown0Red0Orange0Yellow0Green0Blue0Violet0Grey0White0Gold0Silver0None&quot;,0)))),g,lambda(n,index(split(text(A1,&quot;0.0#e+0&quot;),&quot;.e&quot;),n)),{f({g(1),g(2),if(g(3)=-1,11,g(3)-(g(1)&gt;0))},row(1:13)-1),f(B1,tocol(split(&quot;919293949.59.259.19.05995910920&quot;,9,,)))}))
 </code></pre>
 <p>Put resistance in <code>A1</code> and tolerance in <code>B1</code>. Outputs four strings.</p>
@@ -44,42 +81,6 @@
   g, lambda(n, index(split(text(A1, &quot;0.0#e+0&quot;), &quot;.e&quot;), n)),
   { f({ g(1), g(2), if(g(3) = -1, 11, g(3) - (g(1) &gt; 0)) }, i), f(B1, m) }
 ))
-</code></pre>
-</div>
-<div id="pu1" class="pu"><h1>JavaScript (ES6), 212 bytes</h1>
-<p>Expects <code>(r)(t)</code> and returns an array of 4 strings.</p>
-
-<pre class="lang-javascript prettyprint-override"><code>r=&gt;t=&gt;[!([[x,,y],e]=r.toExponential().split`e`,z=r&lt;.1)*x,z?x:~~y,z?r&amp;&amp;11:--e&lt;0?9-e:e,&quot;0x&quot;+&quot;ED29F31764&quot;[t*20%52%11]^5].map(n=&gt;&quot;BlackBrownRedOrangeYellowGreenBlueVioletGreyWhiteGoldSilverNone&quot;.match(/.[a-z]+/g)[n])
-</code></pre>
-<p><a href="https://tio.run/##XY9fa8IwFMXf9ylcQUk0TRP/bYpVkDnfNthgY5QOQ71qtywpMWr1wa/exZYxtvtwLxfu75xzP8RebBOTZtZXegnFKixMOLbhOLpGUZQTcowJxKGhVs/yTCtQNhUSYbrNZGoXsCCn0Iwox82cnCb58Hw@umkaDc6Hvg8jNhn4MATisdxrebO79uC@w2/6XS@yzTar99p1zuP3Xky/RIZUOPamUiSfU6MP6gmWj0aoNbyBlPowNwBqKnfwkmoJ1q3H101qYa7l8jmVezAPLp7nhGyyQQGNhH@KW8EaRyrGRaLV1mFU6jVaIYZRF@NaVUFQK03Jv1HZXv0lb7uMOZqXtCMvMX5OSa3K6xQu@f@RjPY72HXWc2zpuYNfovqAlHrFNw" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
-<h3>Commented</h3>
-<pre class="lang-javascript prettyprint-override"><code>r =&gt;                  // outer function taking r
-t =&gt;                  // inner function taking t
-[                     //
-  !(                  //
-    [[x,,             // x = 1st significant digit of r as a character
-          y],         // y = 2nd significant digit of r as a character
-              e] =    // e = signed exponent string (e.g. &quot;+2&quot;)
-    r.toExponential() // extracted from r.toExponential() ...
-    .split`e`,        // ... split on 'e'
-    z = r &lt; .1        // set z to 'true' if r is less than 0.1
-  ) * x,              // 1) use 0 if z is set or x otherwise
-  z ? x               // 2) use x if z is set
-    : ~~y,            //    or y otherwise (forced to an integer)
-  z ? r               // 3) use 0 if z is set and r is 0
-      &amp;&amp; 11           //    or 11 if z is set and r is not 0
-    : --e &lt; 0 ? 9 - e //    or 9 - e if e is negative once decremented
-              : e,    //    or e otherwise
-  &quot;0x&quot; +              // 4) hexadecimal prefix
-  &quot;ED29F31764&quot;[       //    read this lookup string at ...
-    t * 20 % 52 % 11  //    ... the relevant index computed from t
-  ] ^ 5               //    XOR 5
-].map(n =&gt;            // for each entry n computed above:
-  &quot;BlackBrown...None&quot; //   color lookup string
-  .match(             //   split by words
-    /.[a-z]+/g        //   (using title case)
-  )[n]                //   take the n-th entry
-)                     // end of map()
 </code></pre>
 </div>
 
