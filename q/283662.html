@@ -26,11 +26,101 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>526</td><td>JavaScript → JavaScript</td><td>250913T125808Z</td><td><a href="https://codegolf.stackexchange.com/questions/283662/a-million-and-one-constants/283667#283667">Arnauld</a></td></tr>
-<tr d-ix="1"><td>000</td><td>Python → Brainfuck 500</td><td>250912T181645Z</td><td><a href="https://codegolf.stackexchange.com/questions/283662/a-million-and-one-constants/283664#283664">Charles</a></td></tr>
-<tr d-ix="2"><td>nan</td><td>This is a trivial example which generates</td><td>250912T181429Z</td><td><a href="https://codegolf.stackexchange.com/questions/283662/a-million-and-one-constants/283663#283663">Charles</a></td></tr>
+<tr d-ix="0"><td>nan</td><td>Python 3 → Charcoal</td><td>250913T154011Z</td><td><a href="https://codegolf.stackexchange.com/questions/283662/a-million-and-one-constants/283668#283668">Neil</a></td></tr>
+<tr d-ix="1"><td>526</td><td>JavaScript → JavaScript</td><td>250913T125808Z</td><td><a href="https://codegolf.stackexchange.com/questions/283662/a-million-and-one-constants/283667#283667">Arnauld</a></td></tr>
+<tr d-ix="2"><td>000</td><td>Python → Brainfuck 500</td><td>250912T181645Z</td><td><a href="https://codegolf.stackexchange.com/questions/283662/a-million-and-one-constants/283664#283664">Charles</a></td></tr>
+<tr d-ix="3"><td>nan</td><td>This is a trivial example which generates</td><td>250912T181429Z</td><td><a href="https://codegolf.stackexchange.com/questions/283662/a-million-and-one-constants/283663#283663">Charles</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h2>JavaScript → JavaScript, 5,887,526 bytes</h2>
+<div id="pu0" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a> → <a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 4982032 bytes</h1>
+<p>Charcoal doesn't have a compressed number syntax, so mostly savings are achieved by taking the ordinal of a character: <code>℅d</code>...<code>℅~</code> (2 bytes), <code>℅✑</code>...<code>℅✲</code> (4 bytes) and <code>℅𘚢</code>...<code>℅󴈾</code> (5 bytes) all save a byte over a numeric literal. This saves over <code>900000</code> bytes.</p>
+<p>Otherwise, the only option is to get creative with the predefined variables <code>χ</code> <code>c</code> <code>10</code> and <code>φ</code> <code>f</code> <code>1000</code>, and the operators <code>⊕</code> <code>Incremented</code>, <code>⊖</code> <code>Decremented</code>, <code>⊗</code> <code>Doubled</code>, <code>⊘</code> <code>Halved</code>, <code>⁺</code> Plus, <code>×</code> <code>Times</code> and <code>Ｘ</code> <code>Power</code>. There are only a limited number of these so they have been hard-coded in the program. Where two numeric literals are exponentiated, this unfortunately then requires an extra <code>¦</code> as a separator, reducing the number of opportunities where this can be used.</p>
+<p>Although not required here, for numbers over <code>1000000</code>, except when there are special cases, taking ordinals is the most efficient up to <code>1114111</code>, after which you need to switch to base <code>95</code> conversion. Note that if the base <code>95</code> encoding would start with <code>-</code> you need to prefix a space to get it to decode correctly, so for instance <code>11145874</code> would encode as <code>⍘,~~~γ</code> but <code>11145875</code> would encode as <code>⍘ -   γ</code> although that still saves a byte.</p>
+<p>There are also some extra special cases to consider for large values because string compression can sometimes result in short compressed strings if there are patterns in the number e.g. <code>1111111111</code> compresses to <code>Ｉ”|↓⦄”</code> or <code>1100110011</code> compresses to <code>Ｉ”)∧⧴;”</code>. (For random numbers string compression won't win until the numbers are at least <code>50</code> digits long; I haven't measured this value exactly.)</p>
+<p>Note that although I have used numeric literals when there isn't a saving to be made, it's possible that you need two numeric literals in a row, so an alternative same-length representation for one of the literals could avoid a <code>¦</code> separator thus saving a byte. I haven't tried to show these alternatives here.</p>
+<p>The program starts by printing the total length of all the literals (in Charcoal's code page). It does not show all <code>1000001</code> literals as this would not fit in TIO's output buffer, instead it collapses similar ranges e.g. <code>99900</code> is found in the <code>99001 ... 99998 ⁹⁹⁰⁰¹ ... ⁹⁹⁹⁹⁸</code> range indicating that it would be represented as <code>⁹⁹⁹⁰⁰</code>.</p>
+
+<pre class="lang-python prettyprint-override"><code>d = &quot;⁰¹²³⁴⁵⁶⁷⁸⁹&quot;
+a = [''.join(d[int(c)]for c in str(i))for i in range(1000001)]
+for i in range(100, 127):
+ a[i] = &quot;℅&quot; + chr(i)
+for i in range(10000, 16512):
+ a[i] = &quot;℅&quot; + chr(i)
+for i in range(100000, 999999):
+ a[i] = &quot;℅&quot; + chr(i)
+for c in &quot;；∧∨“⊞⊟➙⧴″‴＆｜↶↷⟲←↑→↓⎇‽↧↥⌊⌈↖↗↘↙⭆？⪫⪪℅◧◨⮌≡№⊙⸿⬤≔≕▷▶✂↨⍘✳↔≦≧ⅈⅉ⌕⊕⊖⊗⊘⎚₂﹪⁺⁻⁰⁴⁵⁶⁷⁸⁹‖‹⁼›ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺ⟦∕⟧…⦃⦄～�&quot;:
+ a[ord(c)] = &quot;℅´&quot; + c
+ if len(a[ord(c) - 1]) &gt; 4:
+  a[ord(c) - 1] = &quot;⊖℅´&quot; + c
+ if len(a[ord(c) + 1]) &gt; 4:
+  a[ord(c) + 1] = &quot;⊕℅´&quot; + c
+a[10] = &quot;χ&quot;
+a[500] = &quot;⊘φ&quot;
+a[999] = &quot;⊖φ&quot;
+a[1000] = &quot;φ&quot;
+a[1001] = &quot;⊕φ&quot;
+for i in range(2, 11):
+ a[1000 + i] = &quot;⁺φ&quot; + a[i]
+ a[1000 * i] = &quot;×φ&quot; + a[i]
+a[1024] = &quot;Ｘ²χ&quot;
+a[1998] = &quot;⊗⊖φ&quot;
+a[1999] = &quot;⊖⊗φ&quot;
+a[2000] = &quot;⊗φ&quot;
+a[2001] = &quot;⊕⊗φ&quot;
+a[2002] = &quot;⊗⊕φ&quot;
+a[16807] = &quot;Ｘ⁷¦⁵&quot;
+for i in range(17, 127):
+ a[i * 1000] = &quot;×φ&quot; + a[i]
+a[19683] = &quot;Ｘ³¦⁹&quot;
+a[32768] = &quot;Ｘ⁸¦⁵&quot;
+a[46656] = &quot;Ｘ⁶¦⁶&quot;
+a[59048] = &quot;⊖Ｘ³χ&quot;
+a[59049] = &quot;Ｘ³χ&quot;
+a[59050] = &quot;⊕Ｘ³χ&quot;
+a[65536] = &quot;Ｘ⁴¦⁸&quot;
+a[78125] = &quot;Ｘ⁵¦⁷&quot;
+a[99999] = &quot;⊖Ｘχ⁵&quot;
+a[100000] = &quot;Ｘχ⁵&quot;
+a[100001] = &quot;⊕Ｘχ⁵&quot;
+a[117649] = &quot;Ｘ⁷¦⁶&quot;
+a[200000] = &quot;⊗Ｘχ⁵&quot;
+a[262144] = &quot;Ｘ⁴¦⁹&quot;
+a[279936] = &quot;Ｘ⁶¦⁷&quot;
+a[390625] = &quot;Ｘ⁵¦⁸&quot;
+a[500000] = &quot;×φ⊘φ&quot;
+a[531441] = &quot;Ｘ⁹¦⁶&quot;
+a[823543] = &quot;Ｘ⁷¦⁷&quot;
+a[999000] = &quot;×φ⊖φ&quot;
+a[999999] = &quot;⊖×φφ&quot;
+a[1000000] = &quot;×φφ&quot;
+print(sum(4+(s[1]&gt;&quot;䁿&quot;)if s[0] == &quot;℅&quot; and s[1] &gt; &quot;´&quot; else len(s)for s in a))
+b = 0
+c = &quot;⁰&quot;
+for i in range(1000001):
+ if a[i][:2] == c:
+  continue
+ if len(a[i]) == 2 and a[i][0] == &quot;℅&quot; and c == &quot;℅&quot;:
+  continue
+ if all(c in d for c in a[i]) and c == &quot;⁰&quot;:
+  continue
+ if c:
+  if b &lt; i - 1:
+   print(b, &quot;...&quot;, i - 1, a[b], &quot;...&quot;, a[i - 1])
+  else:
+   print(b, a[b])
+ b = i
+ if a[i][:2] == &quot;℅´&quot; or a[i][:2] == &quot;⁺φ&quot;:
+  c = a[i][:2]
+ elif len(a[i]) == 2 and a[i][0] == &quot;℅&quot;:
+  c = &quot;℅&quot;
+ elif all(c in d for c in a[i]):
+  c = &quot;⁰&quot;
+ else:
+  c = &quot;&quot;
+  print(i, a[i])
+</code></pre>
+<p><a href="https://tio.run/##lVXdbhpHFL7nKUZ7E7Ym1u7CLmC1eZEVFxhIs5ULETgXvWNdew3IjdomgN1aRmkTcMlvDebHHcsSfQC/w1Hv5xHcM7O/QBK1KyQ055vv/Hxz5szj73YfVcrJu7si@YpIYH9YzBcXixHYY7AvwZ6APQV7BvZciuVxh3nv3uY3FascL5pWeTdekHMPK1VSIFaZ1HarcUuW@dri62q@/HUprir8U@VcbB1IEFVLy1sxkjetnAi/fyCRDVJ4xD3FPuYJKYauav@PhKys@D5PE1VIjP4KjQE0zqF@Cq0zaPXg7AQGY6iPoD5m1GHXp@BMwJlC7wKcH8H5CZyfwXkGTw@hfg3OAJxXcNSCowY4HXC64ByDcwJvHUZ7MHwNwyGGhu4Auufw7giaL2C/A60TmN3Am5fQfA7NNnSm0JnA6R445/DDMZyOwEF7H5oDOGjAQROO2tDCHxK70DqGp7/A3h6bD8G@AvsvPMX184N6B@pzsCnUrxh9wehvjP7O6EtGXzHaZ3TA6DmjfzA6ZPQ1o28YfcvoO0bfM/qB0T8ZvWB0xCgqcMnohNEpozNG54xeQa8PjTb0BlDvQ/976O@z6zN2cy0JtSvVIm8TT/LFWIgeI9ZDslMqx32c3CdqTiYPSApJZMkqmFjpZ8gbHyVvBOR2hJw3VUWYbw@xpU1dUbxNx7cON2Cb@CFdA28hl@AvA7fcstJwGnao6vYZJ2JIr93sK9yNS95/AfqFh/7djYAc01LCjhovLtxE1Ww248XthrlFskW7a9SUoKbQEkoRMWqhw7bn0MgoaT809s6ij220VqSajl5drCLQaLWQrJFJBpWMuDc@SMykljYyYZiZFyZvpgxDN0JgwoGJOKeskvLr7whn3vmhPRtGCIy6L0E7Yjd0PRnxPubeZxxIZ1RND4FLDky9bggVRuz20EvUHSw@ZdmsRkKHiJo2wkw9aSf@eYUnFuVohqamUisJCwG1dDabXBVKZJzMKsZaLTOv1aPHFHS8nsQgasiYB5lltKSeSq7k7Ouy7KsT3J6IYBwKL1GUwK2Pq/wJqT35Np7aiNdMNfdA@se@kWS83TWTb/WndL5cJBzHGy7xa1zaqZXEAKiJ16bGGzMvy7Ft9K7ECt5DJsU@8RRtiQHCO9Tc0kSYAp8bhUp51yo/KUXGi4VTBWFNZCAIq2kVguWai/zOTlw8KUUSvC6uywgR01wjimzwf5t8ienjCORr4qq1nSDS5uamlHCRBHrczgU2fhnFIEUCF2mZyLciwlWy1iTwhzNmumwWc0vkiDwfiqH7/6aSzxQLj/ZJZcLN/PiCEoQJ114pVsLdfXf3Lw" rel="nofollow noreferrer" title="Python 3 – Try It Online">Try it online!</a></p>
+</div>
+<div id="pu1" class="pu"><h2>JavaScript → JavaScript, 5,887,526 bytes</h2>
 
 <pre class="lang-javascript prettyprint-override"><code>const expr = [];
 
@@ -73,14 +163,14 @@ function tryExpression(e) {
 <p><a href="https://tio.run/##hVLbboJAEH3nK6YJtYsoFZu0jYBvfoGP1kQKo9KQXS4rqSF8O53lotaE@LSbOWf2zJk9P37h50EWJXLKRYh1HQieS8DfJAMPNltH0/YiYzFK4FSYOXS4Htj4TjfTNKDUoGFv@JZwbkmxllnED8xwtOranBA4d@hwwZ7RK0nf2xPSlpASYU542uMAMjuvSADzPBKc7fQyqcZjvUyrHUkMEFz3Sqju57AvcwwN8tYOYj8cBB/M0eCvn4rRUHoR0Y4hOhFxFRl@ZqqX4qI1TDNvaVXvX32riNGKxYHt1oHIcAF6qT7OyjA8BciYnAAa4C1BggnERH6QxwnMjAq@zxLzL97YaHrIx8oPjozhBLhqUimAp/8BgNEIbnVvMSvxwxUP2YdBYi8LeFGahqYE9iceSPJ05xDbDbX5LGh/WPgxVZXRaM8KWFI8lWTRBbS9P4MNXof0pmjrTWSLbVfol99V1eNdcur6Dw" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
 <p>(literal numbers in their standard decimal form are omitted in the output)</p>
 </div>
-<div id="pu1" class="pu"><h2>Python → Brainfuck (500,000,500,000 bytes)</h2>
+<div id="pu2" class="pu"><h2>Python → Brainfuck (500,000,500,000 bytes)</h2>
 <pre><code>for i in range(1000001):
     print('+' * i)
 </code></pre>
 <p>This assumes an idealized version of Brainfuck which allows constants greater than 255 in a cell. (Without this, Brainfuck is excluded as unable to store large enough numbers, though you could consider a version storing the numbers in multiple cells.)</p>
 <p>This can be greatly improved and should not be remotely competitive.</p>
 </div>
-<div id="pu2" class="pu"><p>This is a trivial example which generates, e.g., &quot;101&quot; for 101. This is valid in many languages besides C, of course. For most languages, this is the baseline which you aim to improve.</p>
+<div id="pu3" class="pu"><p>This is a trivial example which generates, e.g., &quot;101&quot; for 101. This is valid in many languages besides C, of course. For most languages, this is the baseline which you aim to improve.</p>
 <h2>Python → C (5,888,897 bytes)</h2>
 <pre><code>for i in range(1000001):
     print(i)
