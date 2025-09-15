@@ -26,17 +26,99 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>526</td><td>JavaScript → JavaScript</td><td>250913T125808Z</td><td><a href="https://codegolf.stackexchange.com/questions/283662/a-million-and-one-constants/283667#283667">Arnauld</a></td></tr>
-<tr d-ix="1"><td>nan</td><td>Excel VBA → Excel</td><td>250915T141505Z</td><td><a href="https://codegolf.stackexchange.com/questions/283662/a-million-and-one-constants/283687#283687">Engineer</a></td></tr>
-<tr d-ix="2"><td>947</td><td>05AB1E → 05AB1E</td><td>250915T141434Z</td><td><a href="https://codegolf.stackexchange.com/questions/283662/a-million-and-one-constants/283686#283686">Kevin Cr</a></td></tr>
-<tr d-ix="3"><td>nan</td><td>Vyxal 3 > Vyxal 3</td><td>250913T180801Z</td><td><a href="https://codegolf.stackexchange.com/questions/283662/a-million-and-one-constants/283669#283669">pacman25</a></td></tr>
-<tr d-ix="4"><td>nan</td><td>Python 3 → !@#$%^&*_+</td><td>250915T125901Z</td><td><a href="https://codegolf.stackexchange.com/questions/283662/a-million-and-one-constants/283680#283680">Fmbalbue</a></td></tr>
-<tr d-ix="5"><td>608</td><td>C++ → C++</td><td>250914T145543Z</td><td><a href="https://codegolf.stackexchange.com/questions/283662/a-million-and-one-constants/283675#283675">Toby Spe</a></td></tr>
+<tr d-ix="0"><td>607</td><td>C++ → C++</td><td>250914T145543Z</td><td><a href="https://codegolf.stackexchange.com/questions/283662/a-million-and-one-constants/283675#283675">Toby Spe</a></td></tr>
+<tr d-ix="1"><td>526</td><td>JavaScript → JavaScript</td><td>250913T125808Z</td><td><a href="https://codegolf.stackexchange.com/questions/283662/a-million-and-one-constants/283667#283667">Arnauld</a></td></tr>
+<tr d-ix="2"><td>nan</td><td>Excel VBA → Excel</td><td>250915T141505Z</td><td><a href="https://codegolf.stackexchange.com/questions/283662/a-million-and-one-constants/283687#283687">Engineer</a></td></tr>
+<tr d-ix="3"><td>947</td><td>05AB1E → 05AB1E</td><td>250915T141434Z</td><td><a href="https://codegolf.stackexchange.com/questions/283662/a-million-and-one-constants/283686#283686">Kevin Cr</a></td></tr>
+<tr d-ix="4"><td>nan</td><td>Vyxal 3 > Vyxal 3</td><td>250913T180801Z</td><td><a href="https://codegolf.stackexchange.com/questions/283662/a-million-and-one-constants/283669#283669">pacman25</a></td></tr>
+<tr d-ix="5"><td>nan</td><td>Python 3 → !@#$%^&*_+</td><td>250915T125901Z</td><td><a href="https://codegolf.stackexchange.com/questions/283662/a-million-and-one-constants/283680#283680">Fmbalbue</a></td></tr>
 <tr d-ix="6"><td>nan</td><td>Python 3 → Charcoal</td><td>250913T154011Z</td><td><a href="https://codegolf.stackexchange.com/questions/283662/a-million-and-one-constants/283668#283668">Neil</a></td></tr>
 <tr d-ix="7"><td>000</td><td>Python → Brainfuck 500</td><td>250912T181645Z</td><td><a href="https://codegolf.stackexchange.com/questions/283662/a-million-and-one-constants/283664#283664">Charles</a></td></tr>
 <tr d-ix="8"><td>nan</td><td>This is a trivial example which generates</td><td>250912T181429Z</td><td><a href="https://codegolf.stackexchange.com/questions/283662/a-million-and-one-constants/283663#283663">Charles</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>JavaScript → JavaScript, 5,887,526 bytes</h1>
+<div id="pu0" class="pu"><h1>C++ → C++, <s>5,887,608</s> 5,887,607 bytes</h1>
+
+<p>We use scientific notation for multiples of powers of ten¹ (and for small offsets from those) and shift-left operator for multiples of powers of two.</p>
+<pre class="lang-c++ prettyprint-override"><code>#include &lt;algorithm&gt;
+#include &lt;bit&gt;
+#include &lt;format&gt;
+#include &lt;string&gt;
+#include &lt;vector&gt;
+
+std::string shortest_repr(unsigned i)
+{
+    std::vector&lt;std::string&gt; candidates{std::to_string(i)};
+    if (i) {
+        // can we use scientific notation?
+        for (auto e = 3u, m = 1000u;  i % m == 0;  ++e, m *= 10) {
+            candidates.push_back(std::format(&quot;{}e{}&quot;, i/m, e));
+        }
+        // scientific notation with a small offset
+        for (auto e = 5u, m = 100'000u, a = 10u;  m &lt; i+a;  ++e, m *= 10, a *= 10) {
+            if (i % m &lt; a) {
+                candidates.push_back(std::format(&quot;{}e{}+{}&quot;, i/m, e, i % m));
+            } else if (m - i%m &lt; a) {
+                candidates.push_back(std::format(&quot;{}e{}-{}&quot;, (i+a)/m, e, m - i%m));
+            }
+        }
+        // ⅛ of large number
+        if (8 * i % 100'000 == 0) {
+            candidates.push_back(std::format(&quot;{}/8&quot;, shortest_repr(8*i)));
+        }
+        // bit shift
+        if (auto z = std::countr_zero(i);  z &gt; 10) {
+            candidates.push_back(std::format(&quot;{}&lt;&lt;{}&quot;, shortest_repr(i &gt;&gt; z), z));
+        }
+    }
+    return *std::ranges::min_element(candidates, {}, &amp;std::string::size);
+}
+</code></pre>
+<p>With this function, we can create a view by transforming suitable input.  So to write one item per line to standard output, we have</p>
+<pre class="lang-c++ prettyprint-override"><code>#include &lt;iostream&gt;
+#include &lt;ranges&gt;
+
+int main()
+{
+    auto const strings
+        = std::views::iota(0u, 1'000'001u)
+        | std::views::transform(shortest_repr);
+
+    std::ranges::copy(strings, std::ostream_inserter&lt;std::string&gt;(std::cout, '\n');
+}
+</code></pre>
+<p>Similarly, to count the output size:</p>
+<pre class="lang-c++ prettyprint-override"><code>    std::locale::global(std::locale(&quot;&quot;));
+    std::println(&quot;Total: {:L}&quot;, std::ranges::fold_left(strings
+                                    | std::views::transform(&amp;std::string::size),
+                                0uz, std::plus&lt;&gt;{}));
+</code></pre>
+<p>If we wish to do both in the same program, I recommend materialising into a collection.  This one prints the values that are shorter than just writing the literal number, as well as the total size of all the strings:</p>
+<pre class="lang-c++ prettyprint-override"><code>#include &lt;cmath&gt;
+#include &lt;iostream&gt;
+#include &lt;iterator&gt;
+#include &lt;print&gt;
+#include &lt;ranges&gt;
+
+int main()
+{
+    auto const strings
+        = std::views::iota(0u, 1'000'001u)
+        | std::views::transform(shortest_repr)
+        | std::ranges::to&lt;std::vector&gt;();
+
+    std::ranges::copy(strings | std::views::enumerate
+                      | std::views::filter([](auto e){ auto&amp; [n,s] = e; return n &amp;&amp; s.size() &lt;= std::log10(n);})
+                      | std::views::values,
+                      std::ostream_iterator&lt;std::string&gt;(std::cout, &quot;\n&quot;));
+
+    std::locale::global(std::locale(&quot;&quot;));
+    std::println(&quot;Total: {:L}&quot;, std::ranges::fold_left(strings | std::views::transform(&amp;std::string::size), 0uz, std::plus&lt;&gt;{}));
+}
+</code></pre>
+<hr />
+<p>¹ Although scientific notation produces a floating-point type, this will be exact for the small numbers used in this question and will therefore result in exactly-correct values when parsed in integer context.</p>
+</div>
+<div id="pu1" class="pu"><h1>JavaScript → JavaScript, 5,887,526 bytes</h1>
 <h3>Method</h3>
 <p>We use the following patterns:</p>
 <div class="s-table-container"><table class="s-table">
@@ -113,7 +195,7 @@ function tryExpression(e) {
 <p><a href="https://tio.run/##hVLbboJAEH3nK6YJtYsoFZu0jYBvfoGP1kQKo9KQXS4rqSF8O53lotaE@LSbOWf2zJk9P37h50EWJXLKRYh1HQieS8DfJAMPNltH0/YiYzFK4FSYOXS4Htj4TjfTNKDUoGFv@JZwbkmxllnED8xwtOranBA4d@hwwZ7RK0nf2xPSlpASYU542uMAMjuvSADzPBKc7fQyqcZjvUyrHUkMEFz3Sqju57AvcwwN8tYOYj8cBB/M0eCvn4rRUHoR0Y4hOhFxFRl@ZqqX4qI1TDNvaVXvX32riNGKxYHt1oHIcAF6qT7OyjA8BciYnAAa4C1BggnERH6QxwnMjAq@zxLzL97YaHrIx8oPjozhBLhqUimAp/8BgNEIbnVvMSvxwxUP2YdBYi8LeFGahqYE9iceSPJ05xDbDbX5LGh/WPgxVZXRaM8KWFI8lWTRBbS9P4MNXof0pmjrTWSLbVfol99V1eNdcur6Dw" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
 <p>(literal numbers in their standard decimal form are omitted in the output)</p>
 </div>
-<div id="pu1" class="pu"><h1>Excel VBA → Excel, <s>5888896</s> 5888673</h1>
+<div id="pu2" class="pu"><h1>Excel VBA → Excel, <s>5888896</s> 5888673</h1>
 <p>OP clarified that the snippets need to resolve to the correct value without relying on the code that generates the snippets placing them in the correct place. With that in mind, I have an even less clever solution that nonetheless uses less bytes in the output.</p>
 <p>Yes, that is one better than the benchmark.</p>
 <pre class="lang-vb prettyprint-override"><code>Sub MillionAndOneConstants()
@@ -263,7 +345,7 @@ End Sub
 </code></pre>
 <p>It fills in regular integers for all the values and then replaces certain values with a exponential representation if it's shorter. This list of values could also be generated by the program but, in this case, I worked them out separately but it was easier than writing and debugging the VBA solution.</p>
 </div>
-<div id="pu2" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a> → 05AB1E,  3,934,947 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
+<div id="pu3" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a> → 05AB1E,  3,934,947 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
 <pre><code>6°Ýε
  &quot;T₂₆₃т₅₁₄&quot;©.V)ćkDdi®sèDˆ
  ëyg3‹iyDˆ
@@ -373,7 +455,7 @@ End Sub
 </ul>
 <p>Resulting in a total of <span class="math-container">\$18 + 287\times2 + 64429\times3 + 935267\times4 = 3934947\$</span> bytes.</p>
 </div>
-<div id="pu3" class="pu"><h1><a href="https://github.com/Vyxal/Vyxal/tree/version-3/" rel="nofollow noreferrer">Vyxal 3</a> -&gt; Vyxal 3, <s>4868748</s> 4791344 bytes</h1>
+<div id="pu4" class="pu"><h1><a href="https://github.com/Vyxal/Vyxal/tree/version-3/" rel="nofollow noreferrer">Vyxal 3</a> -&gt; Vyxal 3, <s>4868748</s> 4791344 bytes</h1>
 <pre><code>&quot;①②③④⑤⑥⑦&quot;f
 &quot;k0k1k2k3k4k①k②k③k④k⑤k⑥k⑧k⑦&quot;²
 &quot;17E18E19E&quot;³
@@ -426,7 +508,7 @@ k4ƛÞw:ᴥn=:a[▲h|k1&lt;[n|n#c]            # ‎⁤⁣if the number is in the
 </code></pre>
 <p>Created with the help of <a href="https://vyxal.github.io/Luminespire" rel="nofollow noreferrer">Luminespire</a>.</p>
 </div>
-<div id="pu4" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a> → <a href="https://github.com/ConorOBrien-Foxx/ecndpcaalrlp" rel="nofollow noreferrer">!@#$%^&amp;*()_+</a>, 3932313 bytes</h1>
+<div id="pu5" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a> → <a href="https://github.com/ConorOBrien-Foxx/ecndpcaalrlp" rel="nofollow noreferrer">!@#$%^&amp;*()_+</a>, 3932313 bytes</h1>
 
 <pre class="lang-python prettyprint-override"><code>for i in range(1000001):
 &#9;# print(str(i) + ":", end = "") # This is used for indicating which number to print for the code snippet
@@ -442,84 +524,6 @@ k4ƛÞw:ᴥn=:a[▲h|k1&lt;[n|n#c]            # ‎⁤⁣if the number is in the
 <p>There are 128 1-byte characters, 1920 2-byte characters, 61440 3-byte characters, and at least one million 4-byte characters. There are 8 special numbers that take two more bytes to print, 4 special numbers that take one more byte to print. So by considering these things, if I'm right, the byte count is:</p>
 <p><span class="math-container">$$8×3+5×2+(128−8−5)×1+1920×2+63488×3+(1000001−128−1920−63488)×4$$</span></p>
 <p>Which is 3932313, and is pretty cool but also a bit boring.</p>
-</div>
-<div id="pu5" class="pu"><h1>C++ → C++, 5,887,608 bytes</h1>
-
-<p>We use scientific notation for multiples of powers of ten¹ (and for small offsets from those) and shift-left operator for multiples of powers of two.</p>
-<pre class="lang-c++ prettyprint-override"><code>#include &lt;algorithm&gt;
-#include &lt;bit&gt;
-#include &lt;format&gt;
-#include &lt;string&gt;
-#include &lt;vector&gt;
-
-std::string shortest_repr(unsigned i)
-{
-    std::vector&lt;std::string&gt; candidates{std::to_string(i)};
-    if (i) {
-        // can we use scientific notation?
-        for (auto e = 3u, m = 1000u;  i % m == 0;  ++e, m *= 10) {
-            candidates.push_back(std::format(&quot;{}e{}&quot;, i/m, e));
-        }
-        // scientific notation with a small offset
-        for (auto e = 5u, m = 100'000u, a = 10u;  m &lt; i+a;  ++e, m *= 10, a *= 10) {
-            if (i % m &lt; a) {
-                candidates.push_back(std::format(&quot;{}e{}+{}&quot;, i/m, e, i % m));
-            } else if (m - i%m &lt; a) {
-                candidates.push_back(std::format(&quot;{}e{}-{}&quot;, (i+a)/m, e, m - i%m));
-            }
-        }
-        // bit shift
-        if (auto z = std::countr_zero(i);  z &gt; 3) {
-            candidates.push_back(std::format(&quot;{}&lt;&lt;{}&quot;, i &gt;&gt; z, z));
-        }
-    }
-    return *std::ranges::min_element(candidates, {}, &amp;std::string::size);
-}
-</code></pre>
-<p>With this function, we can create a view by transforming suitable input.  So to write one item per line to standard output, we have</p>
-<pre class="lang-c++ prettyprint-override"><code>#include &lt;iostream&gt;
-#include &lt;ranges&gt;
-
-int main()
-{
-    auto const strings
-        = std::views::iota(0u, 1'000'001u)
-        | std::views::transform(shortest_repr);
-
-    std::ranges::copy(strings, std::ostream_inserter&lt;std::string&gt;(std::cout, '\n');
-}
-</code></pre>
-<p>Similarly, to count the output size:</p>
-<pre class="lang-c++ prettyprint-override"><code>    std::locale::global(std::locale(&quot;&quot;));
-    std::println(&quot;Total: {:L}&quot;, std::ranges::fold_left(strings
-                                    | std::views::transform(&amp;std::string::size),
-                                0uz, std::plus&lt;&gt;{}));
-</code></pre>
-<p>If we wish to do both in the same program, I recommend materialising into a collection.  This one prints the values that are shorter than just writing the literal number, as well as the total size of all the strings:</p>
-<pre class="lang-c++ prettyprint-override"><code>#include &lt;cmath&gt;
-#include &lt;iostream&gt;
-#include &lt;iterator&gt;
-#include &lt;print&gt;
-#include &lt;ranges&gt;
-
-int main()
-{
-    auto const strings
-        = std::views::iota(0u, 1'000'001u)
-        | std::views::transform(shortest_repr)
-        | std::ranges::to&lt;std::vector&gt;();
-
-    std::ranges::copy(strings | std::views::enumerate
-                      | std::views::filter([](auto e){ auto&amp; [n,s] = e; return n &amp;&amp; s.size() &lt;= std::log10(n);})
-                      | std::views::values,
-                      std::ostream_iterator&lt;std::string&gt;(std::cout, &quot;\n&quot;));
-
-    std::locale::global(std::locale(&quot;&quot;));
-    std::println(&quot;Total: {:L}&quot;, std::ranges::fold_left(strings | std::views::transform(&amp;std::string::size), 0uz, std::plus&lt;&gt;{}));
-}
-</code></pre>
-<hr />
-<p>¹ Although scientific notation produces a floating-point type, this will be exact for the small numbers used in this question and will therefore result in exactly-correct values when parsed in integer context.</p>
 </div>
 <div id="pu6" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a> → <a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 4982032 bytes</h1>
 <p>Charcoal doesn't have a compressed number syntax, so mostly savings are achieved by taking the ordinal of a character: <code>℅d</code>...<code>℅~</code> (2 bytes), <code>℅✑</code>...<code>℅✲</code> (4 bytes) and <code>℅𘚢</code>...<code>℅󴈾</code> (5 bytes) all save a byte over a numeric literal. This saves over <code>900000</code> bytes.</p>
