@@ -26,14 +26,78 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>132</td><td>JavaScript ES7</td><td>250911T232937Z</td><td><a href="https://codegolf.stackexchange.com/questions/283641/how-does-the-nsdt-program-end/283647#283647">Arnauld</a></td></tr>
-<tr d-ix="1"><td>226</td><td>Python 3</td><td>250912T102159Z</td><td><a href="https://codegolf.stackexchange.com/questions/283641/how-does-the-nsdt-program-end/283653#283653">A. Helme</a></td></tr>
-<tr d-ix="2"><td>389</td><td>APLNARS</td><td>250915T074504Z</td><td><a href="https://codegolf.stackexchange.com/questions/283641/how-does-the-nsdt-program-end/283679#283679">Rosario</a></td></tr>
+<tr d-ix="0"><td>380</td><td>APLNARS</td><td>250915T074504Z</td><td><a href="https://codegolf.stackexchange.com/questions/283641/how-does-the-nsdt-program-end/283679#283679">Rosario</a></td></tr>
+<tr d-ix="1"><td>132</td><td>JavaScript ES7</td><td>250911T232937Z</td><td><a href="https://codegolf.stackexchange.com/questions/283641/how-does-the-nsdt-program-end/283647#283647">Arnauld</a></td></tr>
+<tr d-ix="2"><td>226</td><td>Python 3</td><td>250912T102159Z</td><td><a href="https://codegolf.stackexchange.com/questions/283641/how-does-the-nsdt-program-end/283653#283653">A. Helme</a></td></tr>
 <tr d-ix="3"><td>086</td><td>Charcoal</td><td>250914T072709Z</td><td><a href="https://codegolf.stackexchange.com/questions/283641/how-does-the-nsdt-program-end/283670#283670">Neil</a></td></tr>
 <tr d-ix="4"><td>062</td><td>05AB1E</td><td>250912T170723Z</td><td><a href="https://codegolf.stackexchange.com/questions/283641/how-does-the-nsdt-program-end/283659#283659">Kevin Cr</a></td></tr>
 <tr d-ix="5"><td>362</td><td>Python3</td><td>250912T023212Z</td><td><a href="https://codegolf.stackexchange.com/questions/283641/how-does-the-nsdt-program-end/283650#283650">Ajax1234</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>JavaScript (ES7), 132 bytes</h1>
+<div id="pu0" class="pu"><h1>APL(NARS), 380 chars</h1>
+<pre><code>r←f w;a;b;i;l;c;t;p;q;np;G
+G←⍬
+w←,w⋄r←G⍳⊂w⋄→4×⍳r≤≢G⋄G,←⊂w⋄→6
+r←0⋄→0
+r←1⋄→0
+r←2⋄→0
+np←i←1⋄p←q←r←a←b←''⋄l←≢w
+→3×⍳i&gt;l⋄a←w[i]⋄i+←1⋄→10×⍳a='('
+→3×⍳i&gt;l⋄c←w[i]⋄i+←1
+→12×⍳∼c='('
+p←'('⋄q←')'
+→3×⍳i&gt;l⋄c←w[i]⋄i+←1⋄np+←c=p⋄np-←c=q⋄→13×⍳np=0⋄b,←c⋄→11
+b←,c
+t←b⋄→15×⍳a='('⋄→5×⍳(np=1)∧(a='T')∧'T'=↑,b⋄→5×⍳(a='T')∧'ST'≡b
+t←{a='N':''⋄a='S':b⋄a='D':b,p,b,q⋄a='T':b,p,b,q,p,b,q⋄'Fail'}
+w←t,(i-1)↓w⋄→2
+</code></pre>
+<p>// +/ 27 4 30 7 7 7 25 31 20 12 12 55 5 61 62 15=380</p>
+<p>f function has as input one string of chars, and return 0 for function terminate, 1 if function meets a repeat state (this means a loop),
+2 if the function find a loop with no repeat state, this means that if f is not stopped it will go of out of memory in a future time.</p>
+<p>f function puts in an array G, the state, that is each input, that would be the string array in w in each loop inside f function.
+If some state is repeated (find the w is already in G) than retun 1 because there is detected an infinite loop.
+If else function terminate it return 0. Else return 2 in the case it finds in the start of w the strings TT or T(ST) that it seems
+generate always differents states tha will have as effect the go out of memory in the future. I don't know if these string are the only
+one that generate always differents states.</p>
+<p>The only test fail for 'T(TN)' that here result 0 instead than 1.</p>
+<p>Here expand 'T(TN)' as</p>
+<pre><code>T(TN) TN(TN)(TN) NNN(TN)(TN) N(TN)(TN) (TN) TN NNN N
+</code></pre>
+<p>test:</p>
+<pre><code>  f¨('N')('NT')('SS')('S(TNT)')('D(D(NN)N)')
+0 0 0 0 0 
+  f¨('TN')('TS')('TNT')('T(NTDS)T')('T(T(T(NTDS)))')
+0 0 0 0 0 
+  f¨('DD')('D(SD)')('TDD')('D(NSDD)')
+1 1 1 1 
+  f¨('DD(TT)')('T(TN)')('S(TSD(TSD))')
+1 0 1 
+  f¨('TT')('ST(ST)')('NTTT')('NT(DT)')('ST(ST)N')('TTD')('D(T(TT)T)NSNS')
+2 2 2 2 2 2 2 
+  f 'TTD'
+2
+  
+</code></pre>
+<p>f ungolfed with label numbers</p>
+<pre><code>    r←f w;a;b;i;l;c;t;p;q;np;G
+ 1: G←⍬
+ 2: w←,w⋄r←G⍳⊂w⋄→4×⍳r≤≢G⋄G,←⊂w⋄→6
+ 3: r←0⋄→0
+ 4: r←1⋄→0
+ 5: r←2⋄→0
+ 6: np←i←1⋄p←q←r←a←b←''⋄l←≢w
+ 7: →3×⍳i&gt;l⋄a←w[i]⋄i+←1⋄→10×⍳a='('
+ 8: →3×⍳i&gt;l⋄c←w[i]⋄i+←1
+ 9: →12×⍳∼c='('
+10: p←'('⋄q←')'
+11: →3×⍳i&gt;l⋄c←w[i]⋄i+←1⋄np+←c=p⋄np-←c=q⋄→13×⍳np=0⋄b,←c⋄→11
+12: b←,c
+13: t←b⋄→15×⍳a='('⋄→5×⍳(np=1)∧(a='T')∧'T'=↑,b⋄→5×⍳(a='T')∧'ST'≡b
+14: t←{a='N':''⋄a='S':b⋄a='D':b,p,b,q⋄a='T':b,p,b,q,p,b,q⋄'Fail'}
+15: w←t,(i-1)↓w⋄→2
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>JavaScript (ES7), 132 bytes</h1>
 <p>Expects the input as a nested array, such as <code>['D',['D',['N','N'],'N']]</code> for <code>D(D(NN)N)</code>.</p>
 <p>Returns <strong>0</strong>, <strong>1</strong> or <strong>2</strong> for <em>extending</em>, <em>non-extending</em> and <em>halting</em> respectively.</p>
 
@@ -82,7 +146,7 @@
 )(a)                       // initial call to g
 </code></pre>
 </div>
-<div id="pu1" class="pu"><h1>Python 3 - 226 bytes</h1>
+<div id="pu2" class="pu"><h1>Python 3 - 226 bytes</h1>
 <pre><code>def f(S):
  R,H=S,[]
  while(len(R)&gt;1):
@@ -111,66 +175,6 @@ The code runs each step, extracts the 2 first elements of the list and applies t
 by
 <code>if h in[R[1:],R[:len(h)]]:return 2</code>
 to handle the case where the code expands to the left, for example with TTD.</p>
-</div>
-<div id="pu2" class="pu"><h1>APL(NARS), 389 chars</h1>
-<pre><code>r←f w;a;b;i;l;c;t;p;q;np;G
-G←⍬
-w←,w⋄r←G⍳⊂w⋄→4×⍳r≤≢G⋄G,←⊂w⋄→6
-r←0⋄→0
-r←1⋄→0
-r←2⋄→0
-i←1⋄r←a←b←''⋄l←≢w⋄np←1⋄p←q←''
-→3×⍳i&gt;l⋄a←w[i]⋄i+←1⋄→10×⍳a='('
-→3×⍳i&gt;l⋄c←w[i]⋄i+←1
-→11×⍳∼c='('⋄p←'('⋄q←')'
-→3×⍳i&gt;l⋄c←w[i]⋄i+←1⋄np+←c='('⋄np-←c=')'⋄→12×⍳np=0⋄b,←c⋄→10
-b←,c
-t←b⋄→14×⍳a='('⋄→5×⍳(np=1)∧(a='T')∧'T'=↑,b⋄→5×⍳(a='T')∧'ST'≡b
-t←{a='N':''⋄a='S':b⋄a='D':b,p,b,q⋄a='T':b,p,b,q,p,b,q⋄'Fail'}
-w←t,(i-1)↓w⋄→2
-</code></pre>
-<p>//  +/ 27 4 30 7 7 7 30 31 20 24 59 5 61 62 15=389</p>
-<p>f function has as input one string of chars, and return 0 for program terminate, 1 if there is a loop with a repeat state,
-2 if the loop has the conseguence of out of memory for the program in a future time.</p>
-<p>f function puts in the global array G, the state each input, that would be the string array in w in each loop inside f function.
-If some state is repeated than retun 1 because there is detected an infinite loop.
-If else function terminate it return 0. Else return 2 in the case it finds strings TT or T(ST) at beginning of w variable.</p>
-<p>The only test fail for 'T(TN)' that here result 0 instead than 1.</p>
-<p>Here expand 'T(TN)' as</p>
-<pre><code>T(TN) TN(TN)(TN) NNN(TN)(TN) N(TN)(TN) (TN) TN NNN N
-</code></pre>
-<p>test:</p>
-<pre><code>  f¨('N')('NT')('SS')('S(TNT)')('D(D(NN)N)')
-0 0 0 0 0 
-  f¨('TN')('TS')('TNT')('T(NTDS)T')('T(T(T(NTDS)))')
-0 0 0 0 0 
-  f¨('DD')('D(SD)')('TDD')('D(NSDD)')
-1 1 1 1 
-  f¨('DD(TT)')('T(TN)')('S(TSD(TSD))')
-1 0 1 
-  f¨('TT')('ST(ST)')('NTTT')('NT(DT)')('ST(ST)N')('TTD')('D(T(TT)T)NSNS')
-2 2 2 2 2 2 2 
-  f 'TTD'
-2
-  
-</code></pre>
-<p>f ungolfed with label numbers</p>
-<pre><code>    r←f w;a;b;i;l;c;t;p;q;np;G
-1:  G←⍬
-2:  w←,w⋄r←G⍳⊂w⋄→4×⍳r≤≢G⋄G,←⊂w⋄→6
-3:  r←0⋄→0
-4:  r←1⋄→0
-5:  r←2⋄→0
-6:  i←1⋄r←a←b←''⋄l←≢w⋄np←1⋄p←q←''
-7:  →3×⍳i&gt;l⋄a←w[i]⋄i+←1⋄→10×⍳a='('
-8:  →3×⍳i&gt;l⋄c←w[i]⋄i+←1
-9:  →11×⍳∼c='('⋄p←'('⋄q←')'
-10:     →3×⍳i&gt;l⋄c←w[i]⋄i+←1⋄np+←c='('⋄np-←c=')'⋄→12×⍳np=0⋄b,←c⋄→10
-11: b←,c
-12: t←b⋄→14×⍳a='('⋄→5×⍳(np=1)∧(a='T')∧'T'=↑,b⋄→5×⍳(a='T')∧'ST'≡b
-13: t←{a='N':''⋄a='S':b⋄a='D':b,p,b,q⋄a='T':b,p,b,q,p,b,q⋄'Fail'}
-14: w←t,(i-1)↓w⋄→2
-</code></pre>
 </div>
 <div id="pu3" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 86 bytes</h1>
 <pre><code>≔Ｘ³ＬΦ⭆¹θ№αιηＷ∧‹¹Ｌθ∧¬№υθ‹Ｌυη«⊞υθ≔⁺Ｅ⌕NSDT§θ⁰§θ¹✂θ²Ｌθ¹θＷ∧θ⁼§θ⁰⁺⟦⟧§θ⁰≔⁺§θ⁰Φθμθ»Ｉ∧‹¹Ｌθ∨№υθ²
