@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::52287</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>002</td><td>Axiom</td><td>161119T183254Z</td><td><a href="https://codegolf.stackexchange.com/questions/52287/solve-the-diophantine-pell-equation/100482#100482">user5898</a></td></tr>
+<tr d-ix="1"><td>nan</td><td></td><td>150626T144749Z</td><td><a href="https://codegolf.stackexchange.com/questions/52287/solve-the-diophantine-pell-equation/52301#52301">Pulga</a></td></tr>
+<tr d-ix="2"><td>1300</td><td>Python</td><td>150626T130622Z</td><td><a href="https://codegolf.stackexchange.com/questions/52287/solve-the-diophantine-pell-equation/52294#52294">Tim</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>Axiom, 0.02 sec</h1>
+<pre><code>v(c)==
+  local m
+  if c rem 2=0 then
+        m:INT:=c/2
+        if m rem 2~=0 then return [0,0]
+        else return reverse sort  [(c/4)-1,(c/4)+1]
+  reverse sort [1+(c-1)/2, (c-1)/2]
+
+f()==for i in [6,17,489,1270453,92,3343,74721,3920] repeat output[i, v(i)]
+
+
+(4) -&gt; f()
+   [6,[0,0]]
+   [17,[8,9]]
+   [489,[244,245]]
+   [1270453,[635226,635227]]
+   [92,[22,24]]
+   [3343,[1671,1672]]
+   [74721,[37360,37361]]
+   [3920,[979,981]]
+                                                               Type: Void
+                                               Time: 0.02 (EV) = 0.02 sec
+</code></pre>
+<p>When integer equation b^2-a^2=c is not soluble in N+{0} return [0,0]
+one has to note there is no loop few remender and division
+so it is O(1)</p>
+<pre><code>-&gt; v(6),v(17),v(489),v(1270453),v(92),v(3343),v(74721),v(3920)
+ Compiling function v with type PositiveInteger -&gt; List Fraction
+    Integer
+
+ [[0,0], [9,8], [245,244], [635227,635226], [24,22], [1672,1671],
+  [37361,37360], [981,979]]
+</code></pre>
+<p>add some test</p>
+<pre><code>(13) -&gt; r:=[6,17,489,1270453,92,3343,74721,3920,613352373758390083167447227749,5
+82316870718762711394729885483949672964468220019,97658628223769028234818028188353
+8549090329]
+
+    (13)
+   [6, 17, 489, 1270453, 92, 3343, 74721, 3920, 613352373758390083167447227749,
+    582316870718762711394729885483949672964468220019,
+    976586282237690282348180281883538549090329]
+                                                   Type: List PositiveInteger
+(14) -&gt; a:=[v(i)  for i in r]
+
+   (14)
+   [[0,0], [9,8], [245,244], [635227,635226], [24,22], [1672,1671],
+    [37361,37360], [981,979],
+    [306676186879195041583723613875,306676186879195041583723613874],
+
+     [291158435359381355697364942741974836482234110010,
+      291158435359381355697364942741974836482234110009]
+     ,
+
+     [488293141118845141174090140941769274545165,
+      488293141118845141174090140941769274545164]
+     ]
+                                         Type: List List Fraction Integer
+(15) -&gt; [a.i.1^2-a.i.2^2-r.i  for i in 1..#a]
+
+   (15)  [- 6,0,0,0,0,0,0,0,0,0,0]
+                                                  Type: List Fraction Integer
+</code></pre>
+</div>
+<div id="pu1" class="pu"><p><strong>nasm x64 i7 - 2 - 5 milliseconds</strong> </p>
+
+<pre><code>    extern  printf      
+    section .bss
+
+    section .data   
+        fmt:           db "%i - %i", 10, 0      
+        NumberToTestF  dq 5609331.0 ; put the number to test in floating
+        NumberToTestI  dq 0         ; format, ie not 489, but 489.0 
+        Counter        dq 0
+        OutsideLoop    dq 0
+        Divide1        dq 2
+        Divide2        dq 1.7 
+    section .text           
+
+    global main     
+    main:               
+        push    rbp      
+        mov rbp, rsp
+        sub rsp, 32
+
+        ; convert from float to int for faster cmp
+        fld qword [NumberToTestF]   
+        movq xmm0, qword [NumberToTestF]
+        cvttsd2si rax, xmm0
+        mov [NumberToTestI], rax
+
+        ; Make 1st counter convert result to int
+        fdiv qword [Divide2]
+        fstp qword [OutsideLoop]
+        movq xmm1, [OutsideLoop]
+        cvttsd2si rax, xmm1
+        mov [OutsideLoop], rax
+
+        ; make counter
+        mov r8, [Divide1]
+        xor rdx, rdx
+        mov rax, [NumberToTestI]
+        idiv r8
+        mov [Counter], rax
+
+        ; initialize locals
+        mov dword [rbp - 8], eax
+        mov dword [rbp - 20], edi
+        mov qword [rbp - 32], rsi
+        jmp .l00p 
+
+     .t0p:
+        mov eax, [Counter]
+        mov dword [rbp - 4], eax 
+        jmp .b0tt0m  
+     .inn3r:
+
+        ; square &amp; subtract each
+        ; number 
+        mov eax, dword [rbp - 8]
+        mov edx, eax
+        imul edx, dword [rbp - 8]
+        mov eax, dword [rbp - 4]
+        imul eax, dword [rbp - 4]
+        mov ecx, edx
+        sub ecx, eax
+        mov eax, ecx
+
+        ; final comparison
+        ; if cmp == true print value
+        ; &amp; exit, if not keep looping
+        cmp eax, [NumberToTestI]
+        jnz .k33p0n
+        mov eax, fmt
+        mov edx, dword [rbp - 4]
+        mov ecx, dword [rbp - 8]
+        mov esi, ecx
+        mov rdi, rax
+        mov eax, 0
+        call printf
+        jmp .d0n3
+    .k33p0n:        
+        add dword [rbp - 4], 1
+    .b0tt0m:
+        mov eax, [OutsideLoop] 
+        cmp dword [rbp-4], eax
+        jle .inn3r 
+        add dword [rbp - 8], 1  
+    .l00p:  
+        mov eax, [OutsideLoop]
+        cmp dword [rbp-8], eax
+        jle .t0p        
+    .d0n3:
+        mov eax,0       
+        leave
+        ret
+
+Compile/link:
+     nasm -f elf64 -o Break.o Break.asm
+     gcc -o Break Break.o
+</code></pre>
+</div>
+<div id="pu2" class="pu"><h1>Python, 130.0 Miliseconds</h1>
+
+<pre class="lang-python prettyprint-override"><code>k=False
+c = q
+for i in range (int(c/2),int(c/1.7)):
+    if k:
+        break
+    for x in range (int(c/2),int(c/1.7)):
+        if i**2-x**2 == c: 
+            print i,x
+            k=True
+            break
+</code></pre>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/52287/">52287</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
