@@ -26,8 +26,8 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>086</td><td>TSQL</td><td>250922T150830Z</td><td><a href="https://codegolf.stackexchange.com/questions/264687/calculate-the-distance-to-a-line-segment/283806#283806">jdt</a></td></tr>
-<tr d-ix="1"><td>105</td><td>APLNARS</td><td>250922T111203Z</td><td><a href="https://codegolf.stackexchange.com/questions/264687/calculate-the-distance-to-a-line-segment/283803#283803">Rosario</a></td></tr>
+<tr d-ix="0"><td>095</td><td>APLNARS</td><td>250922T111203Z</td><td><a href="https://codegolf.stackexchange.com/questions/264687/calculate-the-distance-to-a-line-segment/283803#283803">Rosario</a></td></tr>
+<tr d-ix="1"><td>086</td><td>TSQL</td><td>250922T150830Z</td><td><a href="https://codegolf.stackexchange.com/questions/264687/calculate-the-distance-to-a-line-segment/283806#283806">jdt</a></td></tr>
 <tr d-ix="2"><td>141</td><td>JavaScript Node.js</td><td>230828T151700Z</td><td><a href="https://codegolf.stackexchange.com/questions/264687/calculate-the-distance-to-a-line-segment/264707#264707">Someone</a></td></tr>
 <tr d-ix="3"><td>033</td><td>Mathematica Wolfram Language</td><td>230905T194421Z</td><td><a href="https://codegolf.stackexchange.com/questions/264687/calculate-the-distance-to-a-line-segment/264948#264948">dirvine</a></td></tr>
 <tr d-ix="4"><td>033</td><td>R</td><td>230828T151609Z</td><td><a href="https://codegolf.stackexchange.com/questions/264687/calculate-the-distance-to-a-line-segment/264706#264706">Dominic </a></td></tr>
@@ -35,19 +35,14 @@
 <tr d-ix="6"><td>061</td><td>Charcoal</td><td>230828T090536Z</td><td><a href="https://codegolf.stackexchange.com/questions/264687/calculate-the-distance-to-a-line-segment/264695#264695">Neil</a></td></tr>
 <tr d-ix="7"><td>032</td><td>J</td><td>230828T044641Z</td><td><a href="https://codegolf.stackexchange.com/questions/264687/calculate-the-distance-to-a-line-segment/264692#264692">Bubbler</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://learn.microsoft.com/en-us/sql/t-sql/language-reference?view=sql-server-ver17" rel="nofollow noreferrer">T-SQL</a>, 86 bytes</h1>
-<pre><code>CREATE FUNCTION f(@ geometry,@g geometry)RETURNS real BEGIN RETURN @.STDistance(@g)END
-</code></pre>
-</div>
-<div id="pu1" class="pu"><h1>APL(NARS), 105 chars</h1>
-<pre><code>{(a b c)←⍵⋄(A B C)←{∣&lt;↑-/⍵}¨(a b)(a c)(b c)⋄b≡c:A⋄(C&gt;∣&lt;A B)∨B&gt;∣&lt;A C:A⌊B⋄C÷⍨2×{√×/(4⍴(+/⍵)÷2)-(0,⍵)}A,B,C}
+<div id="pu0" class="pu"><h1>APL(NARS), 95 chars</h1>
+<pre><code>{(A B C)←m←{∣&lt;↑-/⍵}¨⍵[⍳2]⍵[1,3]⍵[2,3]⋄C=0:A⋄(C&gt;∣&lt;A B)∨B&gt;∣&lt;A C:A⌊B⋄C÷⍨2×{√×/(4⍴(+/⍵)÷2)-(0,⍵)}m}
 </code></pre>
 <p>Input a, b, c are 3 points of the plane each as array 2 numbers, output one number.</p>
 <p>It would calculate the distance of the segment bc from the point a, that would be the
 min of A=distance(a,b), B=distance(a,c), if h (the height of the triangle abc for the base bc)
-is out the segment bc (or b≡c) else return h that would be as value</p>
-<pre><code>Area(abc triangle)x2/distance(b,c)
-</code></pre>
+is out the segment bc (or b≡c) else return h (that would be as value Area(abc triangle)x2/C
+where C=distance(b,c)).</p>
 <p>I use the one possible false proposition: if abc is a right-angle triangle of ipotenuse ac than
 (ac)^2-(ab)^2=(bc)^2 and the h is inside the segment bc. If (ac)^2-(ab)^2&gt;(bc)^2 than h
 is out the segment bc (so the distance is not h in that case).</p>
@@ -57,11 +52,12 @@ is out the segment bc (so the distance is not h in that case).</p>
 <pre><code>S←{√×/(4⍴(+/⍵)÷2)-(0,⍵)}
 </code></pre>
 <p>S would find the area, in a triangle note A B C sides lenght (using Erone formula).</p>
-<p>∣&lt;A B</p>
+<pre><code>∣&lt;A B
+</code></pre>
 <p>it translate the cople of numbers A and B in one complex number A+JB and than
 find sqrt(A^2+B^2).</p>
 <p>test:</p>
-<pre><code>  f←{(a b c)←⍵⋄(A B C)←{∣&lt;↑-/⍵}¨(a b)(a c)(b c)⋄b≡c:A⋄(C&gt;∣&lt;A B)∨B&gt;∣&lt;A C:A⌊B⋄C÷⍨2×{√×/(4⍴(+/⍵)÷2)-(0,⍵)}A,B,C}
+<pre><code>  f←{(A B C)←m←{∣&lt;↑-/⍵}¨⍵[⍳2]⍵[1,3]⍵[2,3]⋄C=0:A⋄(C&gt;∣&lt;A B)∨B&gt;∣&lt;A C:A⌊B⋄C÷⍨2×{√×/(4⍴(+/⍵)÷2)-(0,⍵)}m}
   f (0 2)(0 2)(9 9)
 0
   f (5,5)(10,0)(10,10)
@@ -70,14 +66,20 @@ find sqrt(A^2+B^2).</p>
 5
   f (0,10)(0,0)(10,10)
 7.071067812
-  f (0,0)(2,2)(4,8)
-2.828427125
   f (10,0)(0,0)(10,10)
 7.071067812
+  f (0,0)(2,2)(4,8)
+2.828427125
   f (0 2)(1 2)(0 2)
 0
   f (0 0)(3 0)(3 0)
 3
+  f (3 0)(3 0)(3 0)
+0
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://learn.microsoft.com/en-us/sql/t-sql/language-reference?view=sql-server-ver17" rel="nofollow noreferrer">T-SQL</a>, 86 bytes</h1>
+<pre><code>CREATE FUNCTION f(@ geometry,@g geometry)RETURNS real BEGIN RETURN @.STDistance(@g)END
 </code></pre>
 </div>
 <div id="pu2" class="pu"><h1><a href="https://nodejs.org/en" rel="nofollow noreferrer">JavaScript (Node.js)</a>, <s>146</s> <s>144</s> <s>140</s> <s>156</s> 141 bytes</h1>
