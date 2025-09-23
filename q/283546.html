@@ -26,8 +26,8 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>020</td><td>Dyalog APL</td><td>250907T052921Z</td><td><a href="https://codegolf.stackexchange.com/questions/283546/sum-of-neighbours-in-a-2d-grid/283563#283563">Aaron</a></td></tr>
-<tr d-ix="1"><td>048</td><td>Mathematica</td><td>250908T212125Z</td><td><a href="https://codegolf.stackexchange.com/questions/283546/sum-of-neighbours-in-a-2d-grid/283593#283593">thecomme</a></td></tr>
+<tr d-ix="0"><td>041</td><td>Wolfram Language Mathematica</td><td>250908T212125Z</td><td><a href="https://codegolf.stackexchange.com/questions/283546/sum-of-neighbours-in-a-2d-grid/283593#283593">thecomme</a></td></tr>
+<tr d-ix="1"><td>020</td><td>Dyalog APL</td><td>250907T052921Z</td><td><a href="https://codegolf.stackexchange.com/questions/283546/sum-of-neighbours-in-a-2d-grid/283563#283563">Aaron</a></td></tr>
 <tr d-ix="2"><td>087</td><td>Python 3</td><td>250909T154119Z</td><td><a href="https://codegolf.stackexchange.com/questions/283546/sum-of-neighbours-in-a-2d-grid/283601#283601">G&#225;b</a></td></tr>
 <tr d-ix="3"><td>028</td><td>Octave</td><td>250908T090134Z</td><td><a href="https://codegolf.stackexchange.com/questions/283546/sum-of-neighbours-in-a-2d-grid/283574#283574">ojdo</a></td></tr>
 <tr d-ix="4"><td>117</td><td>R</td><td>250908T041934Z</td><td><a href="https://codegolf.stackexchange.com/questions/283546/sum-of-neighbours-in-a-2d-grid/283570#283570">M--</a></td></tr>
@@ -42,7 +42,28 @@
 <tr d-ix="13"><td>004</td><td>Vyxal 3</td><td>250906T074509Z</td><td><a href="https://codegolf.stackexchange.com/questions/283546/sum-of-neighbours-in-a-2d-grid/283550#283550">lyxal</a></td></tr>
 <tr d-ix="14"><td>048</td><td>Google Sheets</td><td>250906T071721Z</td><td><a href="https://codegolf.stackexchange.com/questions/283546/sum-of-neighbours-in-a-2d-grid/283548#283548">doubleun</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Dyalog APL, <s>30</s> 20 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.wolfram.com/wolframscript/" rel="nofollow noreferrer">Wolfram Language (Mathematica)</a>, <strike>49</strike> <strike>48</strike> 41 bytes</h1>
+<p><em>-7 bytes thanks to simplification from <a href="https://codegolf.stackexchange.com/users/81203/att">att</a></em></p>
+<pre><code>ArrayFilter[#~Total~2&amp;,#,1,Padding-&gt;0]-#&amp;
+</code></pre>
+<p><a href="https://tio.run/##ZY89C4MwEIb3/oqA4PQKvfg9WOzS2aFb6RCqWEEtSJYS4l9PT6mlYCAk4bn3ucug9LMZlO4eyrWFO0@Tel@6XjfTzZuvL636WfrwQKhUXXdjG5yO98DzXTV1oy6NaEUpjCFIhBYmQoyEzxQZcmtFUSyQQDlo4TJEdIRM@UopwgVYi4P4rj8ZIq5hGVj1E4WQktOgjCErM7CQor0i5/4ph@MtmoESrgRJnm/fcRmN9/qFLSLXB0yyAiuscx8" rel="nofollow noreferrer" title="Wolfram Language (Mathematica) – Try It Online">Try it online!</a></p>
+<h2>Explanation</h2>
+<p>The default behavior of</p>
+<pre class="lang-mathematica prettyprint-override"><code>ArrayFilter[f, array, r]
+</code></pre>
+<p>is to apply <code>f</code> to all overlapping <code>(2r+1)×(2r+1)×…</code> blocks of elements in <code>array</code>. The <code>Padding</code> option specifies how to handle the cases near the edge of <code>array</code>, where you cannot form a full block; <code>Padding → </code><em>value</em> indicates that the &quot;missing&quot; elements around the edge should be filled in with <em>value</em> for the purposes of the calculation. For example,</p>
+<pre class="lang-mathematica prettyprint-override"><code>ArrayFilter[f, {{1,2,3},
+                {4,5,6},
+                {7,8,9}}, 1, Padding → 0]
+</code></pre>
+<p>produces</p>
+<blockquote>
+<p><a href="https://i.sstatic.net/ZoH9wqmS.png" rel="nofollow noreferrer"><img src="https://i.sstatic.net/ZoH9wqmS.png" alt="A 3x3 matrix whose elements are the function f applied to each padded 3x3 submatrix of the input matrix." /></a></p>
+</blockquote>
+<p>In this case, I've chosen the function <code>f</code> to be the 2D-total of the argument, <code>Total[#, 2] &amp;</code>.</p>
+<p>But in doing so, we've summed all 9 cells in the submatrix, and we were only supposed to include the surrounding 8, not the center value itself. Thus, as a final step, subtract off the original input matrix from the result.</p>
+</div>
+<div id="pu1" class="pu"><h1>Dyalog APL, <s>30</s> 20 bytes</h1>
 <pre><code>{{+/,⍵}⌺(3∨1=⍴⍵)⍛-⍵}
 </code></pre>
 <p>-10 bytes thanks to @Mat_rdv who removed the need for the commute (<code>⍨</code>), the need to separate the operand argument (<code>⊢</code>), and a much more concise version of the special hanlding of 1xN matrices (<code>(3∨1=⍴⍵)</code>).</p>
@@ -68,36 +89,6 @@
 └─────┴─────┴─────┘
 </code></pre>
 <p>but alas, the slightly longer answer above considers this.</p>
-</div>
-<div id="pu1" class="pu"><h1>Mathematica, <strike>49</strike> 48 bytes</h1>
-<pre class="lang-mathematica prettyprint-override"><code>ArrayFilter[#~Total~2-#[[2,2]]&amp;,#,1,Padding-&gt;0]&amp;
-</code></pre>
-<p>The default behavior of</p>
-<pre class="lang-mathematica prettyprint-override"><code>ArrayFilter[f, array, r]
-</code></pre>
-<p>is to apply <code>f</code> to all overlapping <code>(2r+1)×(2r+1)×…</code> blocks of elements in <code>array</code>. The <code>Padding</code> option specifies how to handle the cases near the edge of <code>array</code>, where you cannot form a full block; <code>Padding → </code><em>value</em> indicates that the &quot;missing&quot; elements around the edge should be filled in with <em>value</em> for the purposes of the calculation. For example,</p>
-<pre class="lang-mathematica prettyprint-override"><code>ArrayFilter[f, {{1,2,3},
-                {4,5,6},
-                {7,8,9}}, 1, Padding → 0]
-</code></pre>
-<p>produces</p>
-<blockquote>
-<p><a href="https://i.sstatic.net/ZoH9wqmS.png" rel="nofollow noreferrer"><img src="https://i.sstatic.net/ZoH9wqmS.png" alt="A 3x3 matrix whose elements are the function f applied to each padded 3x3 submatrix of the input matrix." /></a></p>
-</blockquote>
-<p>In this case, I've chosen the function <code>f</code> to be the 2D-total of the argument, minus the 〚2, 2〛 element of the argument:</p>
-<pre class="lang-mathematica prettyprint-override"><code>Total[#, 2] - #〚2,2〛 &amp;
-</code></pre>
-<p>Demonstration of test-cases:</p>
-<pre class="lang-mathematica prettyprint-override"><code>g=ArrayFilter[#~Total~2-#[[2,2]]&amp;,#,1,Padding-&gt;0]&amp;;
-
-{ g @ {{1,2,3},{4,5,6},{7,8,9}} == {{11,19,13},{23,40,27},{17,31,19}},
-  g @ {{1,2,3,4},{5,6,7,8}} == {{13,22,27,18},{9,18,23,14}},
-  g @ {{9,8,7,6,5}} == {{8,16,14,12,6}},
-  g @ {{1},{2},{3},{4}} == {{2},{4},{6},{3}} }
-</code></pre>
-<blockquote>
-<p><code>{true, true, true, true}</code></p>
-</blockquote>
 </div>
 <div id="pu2" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python 3</a>, 87 bytes</h1>
 <h3>Probably non-competing because:</h3>
