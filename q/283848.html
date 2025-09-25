@@ -26,10 +26,68 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>nan</td><td>Python</td><td>250925T120444Z</td><td><a href="https://codegolf.stackexchange.com/questions/283848/verify-a-chinese-id-number/283849#283849">ojdo</a></td></tr>
-<tr d-ix="1"><td>167</td><td>Excel ms365</td><td>250925T140051Z</td><td><a href="https://codegolf.stackexchange.com/questions/283848/verify-a-chinese-id-number/283850#283850">JvdV</a></td></tr>
+<tr d-ix="0"><td>068</td><td>05AB1E</td><td>250925T152027Z</td><td><a href="https://codegolf.stackexchange.com/questions/283848/verify-a-chinese-id-number/283851#283851">Kevin Cr</a></td></tr>
+<tr d-ix="1"><td>nan</td><td>Python</td><td>250925T120444Z</td><td><a href="https://codegolf.stackexchange.com/questions/283848/verify-a-chinese-id-number/283849#283849">ojdo</a></td></tr>
+<tr d-ix="2"><td>167</td><td>Excel ms365</td><td>250925T140051Z</td><td><a href="https://codegolf.stackexchange.com/questions/283848/verify-a-chinese-id-number/283850#283850">JvdV</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, <del>178</del> <del>177</del> 173 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, <s>70</s> 68 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
+<pre><code>2ô4LÌè`UV«т‰0Kθ4ÖT*•Ωâн•+RºS₂+YD13‹×&lt;èX@×¨©13ö·(&gt;11%®Dd×g17Q×T'X:IθQ
+</code></pre>
+<p>Outputs a 05AB1E truthy/falsey result (only <code>1</code> is truthy in 05AB1E).<br />
+Or to be more precise: outputs <code>1</code> for truthy and <code>0</code> or a list of thirteen <code>0</code>s as falsey.</p>
+<p><a href="https://tio.run/##AYAAf/9vc2FiaWX//zLDtDRMw4zDqGBVVsKr0YLigLAwS864NMOWVCrigKLOqcOi0L3igKIrUsK6U@KCgitZRDEz4oC5w5c8w6hYQMOXwqjCqTEzw7bCtyg@MTElwq5EZMOXZzE3UcOXVCdYOknOuFH//zExMDEwNTE5NDkxMjMxMDAyWA" rel="nofollow noreferrer">Try it online</a> or <a href="https://tio.run/##yy9OTMpM/V9Waa@k8KhtkoKSfeXhCYcn/Dc6vMXE53DP4RUJoWGHVl9setSwwcD73A6Tw9NCtB41LDq38vCiC3uBDO2gQ7uCHzU1aUe6GBo/ath5eLrN4RURDoenH1pxaKWh8eFth7Zr2Bkaqh5a55JyeHq6oXng4ekh6hFWled2BP7X@R@tZGhoYGhgamhpaWAAYhkYmyvpwAVNLA2NjIGCRhFIgnCVlsiClobGIEETUxRBAzNjLIIgQ42MIaJGxo5OQMLS1NDCyckZyFKKBQA" rel="nofollow noreferrer">verify all test cases</a>.</p>
+<p><strong>Explanation:</strong></p>
+
+<pre class="lang-python prettyprint-override"><code>2ô                   # Split the (implicit) input-string into pairs
+  4L                 # Push list [1,2,3,4]
+    Ì                # Add 2 to each: [3,4,5,6]
+     è               # Get the pairs at those 0-based indices
+      `              # Pop and push all four pairs to the stack
+       UV            # Pop the top two, and store them in variables `X` and `Y`
+«                    # Merge the remaining two together
+ т‰0Kθ4Ö             # Check that it's a leap year:
+ т‰                  #  Divmod-100
+   0K                #  Remove a potential 0
+     θ               #  Pop and keep the last value
+      4Ö             #  Check that it's divisible by 4
+        T*           # Multiply this check by 10
+          •Ωâн•      # Push compressed integer 5454525
+            +        # Add the 10 or 0 to it
+             R       # Reverse it
+              º      # Mirror it
+               S     # Convert it to a list of digits
+                ₂+   # Add 26 to each:
+                     #  [31,28 or 29,31,30,31,30,31,31,30,31,30,31,28 or 29,31]
+         Y           # Push month `Y`
+          D          # Duplicate it
+           13‹       # Check that it's smaller than 13
+              ×      # Repeat `Y` that many times (becomes &quot;&quot; if month &gt;= 13)
+               &lt;     # Decrease it by 1 (no-op on &quot;&quot;)
+                è    # Use it to index into the list (no-op for &quot;&quot;)
+                 X@  # Check for each if it's &gt;= day `X`
+                     # (if the month was &gt;=13, we now have a list of fourteen 1s)
+                   × # Repeat the (implicit) input that many times
+                     # (resulting in the input if the date was valid;
+                     #  an empty string if the day was invalid;
+                     #  or a list of 14 times the input if the month was invalid)
+¨                    # Remove the last character (or item)
+ ©                   # Store this in variable `®` (without popping)
+  13ö                # Convert from base-13 to a base-10 integer
+     ·               # Double it
+      (              # Negate it
+       &gt;             # Increase it by 1
+        11%          # Modulo-11
+ ®D                  # Push two copies of `®` again
+   d×                # If it doesn't consist of just digits: make it &quot;&quot;
+   g17Q×             # If it's length is NOT 17: make the checksum &quot;&quot;
+   T'X:             '# Replace 10 with &quot;X&quot;
+       IθQ           # Check that it equals the last character of the input
+                     # (after which the result is output implicitly)
+</code></pre>
+<p><a href="https://codegolf.stackexchange.com/a/166851/52210">See this 05AB1E tip of mine (section <em>How to compress large integers?</em>)</a> to understand why <code>•Ωâн•</code> is <code>5454525</code>.</p>
+<p>The leap year check was taken from <a href="https://codegolf.stackexchange.com/a/177019/52210">this 05AB1E answer of mine</a> (minor note: the top 6 bytes solution of that answer would need a <code>D</code>uplicate before it, since we use the input twice, but the <code>т‰0Kθ4Ö</code> above could alternatively have been <code>DтÖoooÖ</code> for the same byte-count: <a href="https://tio.run/##AX4Agf9vc2FiaWX//zLDtDRMw4zDqGBVVsKrRNGCw5Zvb2/DllQq4oCizqnDotC94oCiK1LCulPigoIrWUQxM@KAucOXPMOoWEDDl8KowqkxM8O2wrcoPjExJcKuRGTDl2cxN1HDl1QnWDpJzrhR//8xMTAxMDUxOTQ5MTIzMTAwMlg" rel="nofollow noreferrer">Try it online</a> or <a href="https://tio.run/##yy9OTMpM/V9Waa@k8KhtkoKSfeXhCYcn/Dc6vMXE53DP4RUJoWGHVrtcbDo8LT8///C0EK1HDYvOrTy86MJeIEM76NCu4EdNTdqRLobGjxp2Hp5uc3hFhMPh6YdWHFppaHx426HtGnaGhqqH1rmkHJ6ebmgeeHh6iHqEVeW5HYH/df5HKxkaGhgamBpaWhoYgFgGxuZKOnBBE0tDI2OgoFEEkiBcpSWyoKWhMUjQxBRF0MDMGIsgyFAjY4iokbGjE5CwNDW0cHJyBrKUYgE" rel="nofollow noreferrer">verify all test cases</a>.</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, <del>178</del> <del>177</del> 173 bytes</h1>
 <p>Returns <code>True</code> for Valid, but one of <code>False</code>,<code>0</code> for Invalid. Heavy lifting is done by the standard library. Checksum copy &amp; pasted directly from the challenge text.</p>
 <pre class="lang-python prettyprint-override"><code>from datetime import*
 def f(s):
@@ -45,7 +103,7 @@ def f(s):
 <li>-4 <code>..c&gt;9or</code> @KevinCruijssen</li>
 </ul>
 </div>
-<div id="pu1" class="pu"><h1>Excel ms365, 167 bytes</h1>
+<div id="pu2" class="pu"><h1>Excel ms365, 167 bytes</h1>
 <pre><code>=LET(i,ROW(1:17),x,MOD,y,MID,s,A1,IFERROR(--AND(DATE(y(s,7,4),y(s,11,2),y(s,13,2)),TEXT(x(1-2*x(SUM(y(s,i,1)*x(2^(17-i),11)),11),11),&quot;[=10]X;0&quot;)=RIGHT(s),LEN(s)=18),))
 </code></pre>
 <p>Expects input in <code>A1</code> and will output a <code>1</code> for valid or <code>0</code> for invalid.</p>
