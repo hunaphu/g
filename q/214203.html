@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::214203</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>011</td><td>Rust</td><td>201108T231337Z</td><td><a href="https://codegolf.stackexchange.com/questions/214203/gluing-tetrahedra-together/214928#214928">wastl</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1><a href="https://www.rust-lang.org/" rel="nofollow noreferrer">Rust</a>, 11 (hopefully correct) terms</h1>
+
+<pre class="lang-rust prettyprint-override"><code>
+use ::std::ops::{Add, Sub, Mul};
+use ::std::rc::Rc;
+use ::std::hash::{Hash, Hasher};
+use ::std::collections::HashSet;
+use ::std::iter;
+use ::std::fmt::{self, Formatter, Display};
+use ::std::time::Instant;
+
+type Coord = i128;
+
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+struct Vec3([Coord; 3]);
+
+impl Vec3 {
+    fn dot(self, other: Vec3) -&gt; Coord {
+        self.0.iter().zip(other.0.iter()).map(|(a, b)| a * b).sum()
+    }
+}
+
+impl Display for Vec3 {
+    fn fmt(&amp;self, f: &amp;mut Formatter) -&gt; fmt::Result {
+        write!(f, "({}, {}, {})", self.0[0], self.0[1], self.0[2])
+    }
+}
+
+impl Mul&lt;Vec3&gt; for Coord {
+    type Output = Vec3;
+
+    fn mul(self, mut vec: Vec3) -&gt; Vec3 {
+        for i in &amp;mut vec.0 {
+            *i *= self;
+        }
+        vec
+    }
+}
+
+impl Add for Vec3 {
+    type Output = Vec3;
+
+    fn add(mut self, other: Vec3) -&gt; Vec3 {
+        for (i, n) in self.0.iter_mut().enumerate() {
+            *n += other.0[i];
+        }
+        self
+    }
+}
+
+impl Sub for Vec3 {
+    type Output = Vec3;
+
+    fn sub(self, other: Vec3) -&gt; Vec3 {
+        self + (-1 * other)
+    }
+}
+
+#[derive(Clone, Debug)]
+struct Tetrahedron([Vec3; 4]);
+
+impl Default for Tetrahedron {
+    fn default() -&gt; Tetrahedron {
+        Tetrahedron([
+            Vec3([-1, -1, -1]),
+            Vec3([-1,  1,  1]),
+            Vec3([ 1, -1,  1]),
+            Vec3([ 1,  1, -1]),
+        ])
+    }
+}
+
+impl Display for Tetrahedron {
+    fn fmt(&amp;self, f: &amp;mut Formatter) -&gt; fmt::Result {
+        write!(f, "Tetrahedron({}, {}, {}, {})", self.0[0], self.0[1], self.0[2], self.0[3])
+    }
+}
+
+impl Tetrahedron {
+    fn collides(&amp;self, other: &amp;Tetrahedron) -&gt; bool {
+        let mut othervecs = [3 * self.0[1], 3 * self.0[2], 3 * self.0[3]];
+        let sum = self.0[0] + self.0[1] + self.0[2] + self.0[3];
+        let mut same = 0;
+
+        for (i, &amp;vec) in self.0.iter().enumerate() {
+            let sum = sum - vec;
+            let vec = 3 * vec;
+            let through = vec - sum;
+            for (j, &amp;u) in other.0.iter().enumerate() {
+                let u = 3 * u;
+                if u == vec { same += 1 }
+                let up = (sum - u).dot(through);
+                for &amp;v in &amp;other.0[j+1..] {
+                    let v = 3 * v;
+                    let edge = v - u;
+                    let ep = edge.dot(through);
+
+                    if up.signum() != ep.signum() || up.abs() &gt;= ep.abs() {
+                        continue
+                    }
+
+                    let intersection = ep * u + up * edge;
+                    if othervecs.iter().enumerate().all(|(i, &amp;ov)| {
+                        let mid = othervecs[(i+1)%3] + othervecs[(i+2)%3];
+                        let ov = 2 * ov - mid;
+                        (2 * intersection - ep * mid).dot(ep * ov) &gt; 0
+                    }) {
+                        return true
+                    }
+                }
+            }
+
+            if i != 3 { othervecs[i] = vec; }
+        }
+        if same == 4 { panic!("EQUAL TETRAHEDRA IN .collides()"); }
+        false
+    }
+
+    // Mirroring also scales by 3
+    fn mirror(&amp;self, i: usize) -&gt; Tetrahedron {
+        let mut sum = Vec3([0; 3]);
+        for (j, &amp;vec) in self.0.iter().enumerate() {
+            if j != i { sum = sum + vec; }
+        }
+
+        let mut copy = self.clone();
+        copy.scale();
+
+        copy.0[i] = 2 * sum - copy.0[i];
+        copy.swap(i, 3);
+        copy.rotate_left(i);
+
+        copy
+    }
+
+    fn scale(&amp;mut self) {
+        for vec in self.0.iter_mut() {
+            *vec = 3 * *vec;
+        }
+    }
+
+    fn rotate_left(&amp;mut self, n: usize) {
+        self.0[..3].rotate_left(n)
+    }
+
+    fn swap(&amp;mut self, a: usize, b: usize) {
+        self.0.swap(a, b)
+    }
+
+    fn reverse(&amp;mut self) {
+        self.0.reverse()
+    }
+}
+
+type EndpointIter&lt;'a&gt; = Box&lt;dyn Iterator&lt;Item = Endpoint&gt; + 'a&gt;;
+
+#[derive(Debug, Clone)]
+struct Endpoint {
+    tree: Rc&lt;TetraTree&gt;,
+    hedron: Rc&lt;Tetrahedron&gt;,
+}
+
+impl Endpoint {
+    fn iter_endpoints(&amp;self) -&gt; EndpointIter {
+        let mut hedron = Rc::clone(&amp;self.hedron);
+        //Rc::make_mut(&amp;mut hedron).swap(0, 3);
+        Rc::make_mut(&amp;mut hedron).reverse();
+
+        Box::new(self.clone().into_iter_directions()
+            .chain(self.tree.iter_endpoints(
+                Rc::new(TetraTree {
+                    subtrees: [None, None, None],
+                    hedron,
+                })
+            ))
+        )
+    }
+
+    fn into_iter_directions(self) -&gt; EndpointIter&lt;'static&gt; {
+        Box::new(iter::successors(Some(self), |this| {
+            let mut this = this.clone();
+            Rc::make_mut(&amp;mut this.tree).rotate_left(1);
+            Rc::make_mut(&amp;mut this.hedron).0[1..].rotate_left(1);
+            Some(this)
+        }).take(3))
+    }
+
+    fn iter_extensions(&amp;self) -&gt; EndpointIter {
+        let mut tree = self.tree.as_ref().clone();
+        tree.scale();
+
+        let mut hedron = self.hedron.as_ref().clone();
+        //hedron.swap(0, 3);
+        hedron.reverse();
+        hedron.scale();
+
+        Box::new(Endpoint {
+            tree: Rc::new(tree),
+            hedron: Rc::clone(&amp;self.hedron),
+        }.into_iter_directions().filter_map(|endpoint| {
+            let mut new = endpoint.hedron.mirror(3);
+            new.swap(0, 3);
+            if endpoint.tree.collides(&amp;new) {
+                None
+            } else {
+                let mut hedron = endpoint.hedron;
+                Rc::make_mut(&amp;mut hedron).scale();
+
+                Some(Endpoint {
+                    tree: Rc::new(TetraTree {
+                        subtrees: [Some(endpoint.tree), None, None],
+                        hedron,
+                    }),
+                    hedron: Rc::new(new),
+                })
+            }
+        }).chain(self.tree.iter_extensions(Rc::new(TetraTree {
+            subtrees: [None, None, None],
+            hedron: Rc::new(hedron),
+        }))))
+    }
+
+    fn iter_tetrahedra&lt;'a&gt;(&amp;'a self)
+      -&gt; Box&lt;dyn Iterator&lt;Item = &amp;Tetrahedron&gt; + 'a&gt; {
+        Box::new(
+          iter::once(self.hedron.as_ref()).chain(self.tree.iter_tetrahedra())
+        )
+    }
+}
+
+impl Default for Endpoint {
+    fn default() -&gt; Endpoint {
+        Endpoint::from(Tetrahedron::default())
+    }
+}
+
+impl From&lt;Tetrahedron&gt; for Endpoint {
+    fn from(mut hedron: Tetrahedron) -&gt; Endpoint {
+        let mirrored = hedron.mirror(0);
+        hedron.scale();
+
+        Endpoint {
+            tree: Rc::new(TetraTree {
+                subtrees: [None, None, None],
+                hedron: Rc::new(mirrored),
+            }),
+            hedron: Rc::new(hedron),
+        }
+    }
+}
+
+impl Hash for Endpoint {
+    fn hash&lt;H: Hasher&gt;(&amp;self, hasher: &amp;mut H) {
+        let mut stuff: Vec&lt;_&gt; = self.tree.hash_helper(1).collect();
+        stuff.push(self.tree.len());
+        stuff.sort();
+        stuff.hash(hasher);
+    }
+}
+
+impl PartialEq for Endpoint {
+    fn eq(&amp;self, other: &amp;Endpoint) -&gt; bool {
+        self.iter_endpoints().any(|ep| ep.tree == other.tree)
+    }
+}
+
+impl Eq for Endpoint {}
+
+#[derive(Debug, Clone)]
+struct TetraTree {
+    subtrees: [Option&lt;Rc&lt;TetraTree&gt;&gt;; 3],
+    hedron: Rc&lt;Tetrahedron&gt;,
+}
+
+impl TetraTree {
+    fn iter_endpoints&lt;'x&gt;(&amp;'x self, behind: Rc&lt;TetraTree&gt;) -&gt; EndpointIter&lt;'x&gt; {
+        let mut iterator = self.subtrees.iter().enumerate()
+          .filter_map(|(i, opt)| opt.as_ref().map(|some| (i, some)));
+
+        if let Some(first) = iterator.next() {
+            let closure = move |(i, subtree): (usize, &amp;'x Rc&lt;TetraTree&gt;)| -&gt; EndpointIter&lt;'x&gt; {
+                let mut behind = behind.as_ref().clone();
+                behind.rotate_left(3-i);
+
+                let mut this = self.clone();
+                this.rotate_left(i);
+
+                Rc::make_mut(&amp;mut this.hedron).reverse();
+
+                this.subtrees.swap(1, 2);
+                this.subtrees[0] = Some(Rc::new(behind));
+
+                for (j, subtree) in this.subtrees.iter_mut().enumerate().skip(1)
+                  .filter_map(|(j, s)| s.as_mut().map(|s| (j, s))) {
+                    Rc::make_mut(subtree).rotate_left(j);
+                }
+
+                subtree.iter_endpoints(Rc::new(this))
+            };
+            Box::new(closure(first).chain(iterator.flat_map(closure)))
+        } else {
+            let mut hedron = self.hedron.as_ref().clone();
+            //hedron.swap(0, 3);
+            hedron.reverse();
+            Endpoint {
+                tree: Rc::clone(&amp;behind),
+                hedron: Rc::new(hedron),
+            }.into_iter_directions()
+        }
+    }
+
+    fn rotate_left(&amp;mut self, i: usize) {
+        self.subtrees.rotate_left(i);
+        Rc::make_mut(&amp;mut self.hedron).rotate_left(i);
+    }
+
+    fn collides(&amp;self, hedron: &amp;Tetrahedron) -&gt; bool {
+        self.hedron.collides(hedron) ||
+          self.subtrees.iter()
+            .filter_map(Option::as_ref)
+            .any(|subtree| subtree.collides(hedron))
+    }
+
+    fn scale(&amp;mut self) {
+        for subtree in self.subtrees.iter_mut().filter_map(Option::as_mut) {
+            Rc::make_mut(subtree).scale();
+        }
+        Rc::make_mut(&amp;mut self.hedron).scale();
+    }
+
+    fn iter_extensions(&amp;self, behind: Rc&lt;TetraTree&gt;) -&gt; EndpointIter {
+        Box::new(self.subtrees.iter().enumerate().flat_map(move |(i, next)| {
+            let mut behind = behind.as_ref().clone();
+            behind.rotate_left(3-i);
+
+            let mut this = self.clone();
+            this.rotate_left(i);
+
+            let hedron = Rc::make_mut(&amp;mut this.hedron);
+            hedron.reverse();
+
+            this.subtrees.swap(1, 2);
+            this.subtrees[0] = Some(Rc::new(behind));
+
+            for (j, subtree) in this.subtrees.iter_mut().enumerate().skip(1)
+              .filter_map(|(j, s)| s.as_mut().map(|s| (j, s))) {
+                let subtree = Rc::make_mut(subtree);
+                subtree.scale();
+                subtree.rotate_left(j);
+            }
+
+            if let Some(next) = next {
+                hedron.scale();
+                next.iter_extensions(Rc::new(this))
+            } else {
+                let mut mirrored = hedron.mirror(3);
+                mirrored.swap(0, 3);
+                hedron.scale();
+
+                if this.collides(&amp;mirrored) {
+                    Box::new(iter::empty()) as EndpointIter
+                } else {
+                    Box::new(iter::once(Endpoint {
+                        tree: Rc::new(this),
+                        hedron: Rc::new(mirrored),
+                    }))
+                }
+            }
+        }))
+    }
+
+    fn iter_tetrahedra&lt;'a&gt;(&amp;'a self)
+      -&gt; Box&lt;dyn Iterator&lt;Item = &amp;Tetrahedron&gt; + 'a&gt; {
+        Box::new(iter::once(self.hedron.as_ref()).chain(
+          self.subtrees.iter()
+            .filter_map(Option::as_deref)
+            .flat_map(TetraTree::iter_tetrahedra)
+        ))
+    }
+
+    fn len(&amp;self) -&gt; usize {
+        1usize + self.subtrees.iter()
+              .filter_map(Option::as_deref).map(TetraTree::len).sum::&lt;usize&gt;()
+    }
+
+    fn hash_helper&lt;'a&gt;(&amp;'a self, behind: usize)
+      -&gt; Box&lt;dyn Iterator&lt;Item = usize&gt; + 'a&gt; {
+        let sub: Vec&lt;_&gt; = self.subtrees.iter().filter_map(Option::as_deref)
+          .map(|a| (a, a.len())).collect();
+        let sum = sub.iter()
+          .map(|&amp;(_, len)| len).sum::&lt;usize&gt;() + behind + 1;
+        Box::new(iter::once(behind).chain(
+            sub.into_iter().flat_map(move |(sub, len)|
+                        iter::once(len).chain(sub.hash_helper(sum - len)))
+        ))
+    }
+}
+
+impl PartialEq for TetraTree {
+    fn eq(&amp;self, rhs: &amp;TetraTree) -&gt; bool {
+        self.subtrees == rhs.subtrees
+    }
+}
+
+impl Eq for TetraTree {}
+
+fn main() {
+    let verbose = std::env::args().skip(1).any(|arg| arg == "-v");
+    let begin = Instant::now();
+
+    println!("1: 1 [{}ms]", begin.elapsed().as_millis());
+    if verbose {
+        println!("{}\n--", Tetrahedron::default());
+    }
+
+    let mut polytets = HashSet::new();
+    polytets.insert(Endpoint::default());
+
+    for i in 2.. {
+        println!("{}: {} [{}ms]", i, polytets.len(), begin.elapsed().as_millis());
+
+        if verbose {
+            for polytet in &amp;polytets {
+                for hedron in polytet.iter_tetrahedra() {
+                    println!("{}", hedron);
+                }
+                println!("--");
+            }
+        }
+
+        polytets = polytets.iter()
+          .flat_map(Endpoint::iter_extensions)
+          .collect();
+    }
+}
+
+</code></pre>
+<p><a href="https://tio.run/##vVrrb9vIEf8s/xUbF3XIWKYt6z4UlCwgTXJIgN4rcfvFFQxKWlnMUSSPSzr2Wfrb05nZN0VFvmvRAFbIfcxrZ34zs1LViPrr16NGcBbHol7EcVGKOH56vVj02adm1mc/NNl25C6o5nH8ce4NrRKxgk3v4b8@w09e@XvmRZbxeZ0WORDHBZ947S1Ia155A8t1DRQFz5Z99n1RrZMaVvTZ21SUWfLoU6/TNY/jD7mokxzIHtWPJWdviqJasCuWDi7/BmN/uVnwKr3nwZuifOyzN1mR8z77OanqNMne/dZn@PeWz5q7cHok6qqZ1@xffD4MbojQiA2nIZBJ12VG4@zpqLfM2aKoAylkUYPWMc2F7Gyi@MOqHs5HFxGqGITR72kZ0FozFEbrpAw2QdJns3DDEvYK/o9Esw7Co972aKu4KtXZsqhcCcBQwYkUYRmzk3VTW3uRIGTJj1w0WU3ifKmA7YsA1h8HT9s@k3/hcZ9JQW8upuZxYB8vp5404BZjlGJC8hhlyfQ/NXUJYlyRmGA0FHPdZMpQKOE9nzum0tr0kFTK0lyqAYuiCxrvvUrZqyuSZASvW/iDSVcc8FfPMHvlSBaLAIl3H5onSZD2WR6iOM4J3sJmOEWeN2teJTUPQiVhzk6vmDrYm3Sq5cStrqAQU88TVDSz4ICQOM1OWXA2AJehVfqIrLdLP2859jWvq2TFF1WRBzfEk31n3fstXyboLCims1J7vJwNSJTWdM8jjGaRIXQ26DP5Nw37/jCjP2@YqdUdw8whMt0bHbtC/zdB4upk4@WZMWMeh764uyIiRKYLLrSc6tRPnJUk6awoMhIx4zXFEi2EcBDgPzdD8ARHDuf10n8dTslFkQggDbuyioBHGQr2@dJ5HpqtFEnJmsP@C/RbEzcnIFA7dLrCxuEPn2cY8yM9Ds8wjjK7o/WqKpq7Fczg/Bnuozni/Bk4N8TXh9hdxkSrUfQbotBLlzgiCT9JvSCmB2xrN5SwI5CiNmGE6K/kCSUJlOLkniBMY8Hn00EUTRVXqZhWa2TH@OIOrXiPhN1hZIhzLV5yBQpcRiK9yzFZsBew1HndbHA2mQl4ntCUfFaS9OZFXqd5w@Xr9shyTXOwmpAJG/mXaCM4/wYfUJqR4W@8r8PSUZJlkNfQHYp7yGyaMXlOisnZ7L4J0tNB@Nchepk3eImDI2djgda7RMBDWwEZPRngoCf5mZQc1sijojeQhE3YhVLaWqPidVPlDADSGMR8StuAtinaGMDXkTGdSlcckZvgH6yTMXHFvoOlZZKn8xfB8btf/vn6H@z63fXH1@/fvf34mn34kUUm6sPjUFJYJpngR8Ty/Jz9kFZVUaX5HYPhgol5knHBZo9sKLMqTWvISGPWiPR33gnNJlwp2iSkXqiyxomeZ8Yt6PgZbZFioJj4PXUN4fCcQ82lIWaOGSkgpjgckUqBdGkauJAmxdOUgWZG7Z4vUDCBWw0tmaqoQbzbjC/rILXUpCExnRKbE536Q5PlMdi7UrxK6xaEXikU2hqaLs8TW1Tk5hhs9XcTRcOpJ2QeWtlQHYdAoghAPdhBSmpPxaKVhN@j27f1Uxv0rM5AVHO8yxdlAeHyATQev0wmoOXfi4fx4jFnOJTURTWGBzxavXQCBwwr3WqaCgtVTtv6Qm@gAqfiPGYf52NyyGt4m0D2lo5px@U7zOgE6ZIABelcuBpTOZLc3FXD83Pl@lfAAvoPcjraFalcikd5fo6T6@RXTmd@YveF0soX2sf2rzPGJZ8DE8Zxzr8Erq9HIF9xSyos0kr1QXgavV40XyVpLlejpaKWooRByBxpGgtq0IIaETeJmN38SHWe/Zz25RIppnzZEssQP63rdMrWad7xS2iw6nQ@IfZGU9wLjVgzn3MhikoEn4o1lxT6bFOvUrGxuR4th0NwLvifiwYdNqYlqGHohc7gm@v1wUD9Anm3ayMJiGvREtswqoFIMAwdm9AhPNQ8F2SOZ7gbSqkhjg4yEbcVX8LhOyrShAt4O87qeGgnhfNzNem7pxp0fNGMuezMmbnR1TMhKufI3uQwNkg7IwjXbPf4drRMM4JS7Gy1O7f8AJhhcaEmtdYqpUm9erCmpSqmHrOHDGorZ1itEzrGAKVuxiGfOjWfZ@4W85EJtz2Y4NhSuZFvybYtdyLWDVna76kSdkWwF8Lgrl5gW1aouxvmW@nb3fhiXXuPpAeRpc3e9YkwbMdSrTE@wVQTnLxMZJY66jGMqn2Jx21@VPLxsQeeGZMAVORziTrt8NljAytSYBFx29ECtzKR1/96p69f4nhZFevAkT2OzS6Pzfewzst/XQyJmPXCmLU7Qk8IWVtjCHEssP2gutgHDN/Cg7YPH046bd/Q8kj/3IYHHci1Ed4WdpkF7xzH72N13TjRNfCKXlWP/z70S9@6WS7pImV8O/HAGnfdrnhWQrU7CCN1XSlxlHZFZSNWjgtlPIeztNOQ@LzlSDCQsuCoVcfcOHbpxH9rd/96gd/6kxytSgG6rfwRsLbcYKcn05G@kCJscaXYYb89WNN5buD4wE8lQv7YK/Am2Fc8p8rziO6UeeOXD4gVD6osnvFVmi9atWRHlfIw8U49VaCiD1zL3tHbEJx4qQu7jKKsoXmFT5uRaU4Afm/otgOfwlCGEqQn5EzgvkwrAUd3ZWSIcoBe9@4D0qpoKqwc1sU9Z8RPCRjGLFBtANrA13qzV22ruLQXkJYPnfVEr6cm3TJpeJbqHNeq2dodHGAFllwdzdfB8syvmxUhczaU8wd9dumy0bN4SXUlLazRQ2oRamK6ndWmxA7PZ9B9lxuJX1PgSwl0xxWQHhheoCHlTukGG8kKHEBneU91LYNnpc9KL3Xrota0Y9qUZFiryqxO20z@U@6jHE0lOuNsyyypSXa1jNKyVxH94fpzXwHaWYG20oqTV1Q1qU6tO2s4CWFvmfmcdjzd7aGNF7Qdt8tr3ZJ3d4Pi3b691crsv751LW1264WbDUFRF17RhO@aEoLjWB6YWUH5QO3e6FDY4RUeviJRW801SVcQdYsDcyooukPC1CCyXj1gfLv6W33acxOFX0keSg02mCxQI5iHrabmWaD7Tcw9BLl7ERc3erce@9F3T8geHcLhPwbD/wsU/tMgLL9ZmKm@vNP9Rh72Or5oBzsw21wGmzRPfgBM8H/FvV1j96iXfaj39l8OxHd1rHtLegW/Pb2gjctd1T5JL69fDGyZGl3nsNb9Dl@X9SOUvCwRXhTJLOaK3N5JjVm7TW7fOaD2fr@7r32g/tK9mlcD/49285md5p/Ebii/HfQ2eGMgTP5KwlGO2larOvYk9qaKch6JP5CPp98S6YBQUUsQYEW/UIjjMRGfBFYMp5fyrG9xWabjA4ch6TqnoAK63b@1MfugbSVgJAAYSZ8lqpNr9Xzu15Iz11Jy80lw20dzAxB1WAJkVlnglA1Ge/xHIaX1mB5x0lVOR8IR@GscYipx0f5zyJI46r4D6Ll9rfwyBReE1nG629J2W2b70moldFFzTZC@U9Lo88DuE1ab947202EDM/h1FspNCCS//61mhaBbVfyVD8/v4SirO2EThCxxYGzD4AM5Hp/dH@MJ4v4Zv0sxFaofBsERFF8kApYVGDrLXwTHg5gN2M3Tdi2mx325I@JZUgq@wI4ackwKCClkrw@oqWVCdS2Vp@2/87MzILDnzkdVLBrMyyJ7hCjG7K5@CyXdA9fpOXAFwas6sJdKLrkj@1OZyyjakSYGg1qtoFIxVMnbDykqu1hXVWKniNCX20aFJ9NvqdIDZtXk7j2bRn9X1mNdLJuOyF8BdtV5V@Vex3zWWk6ImsCxtmtlXbXQDXl0Tvk7OPsruLcIGvh7sipJa/Za0PtY4RF9iXYNbgenBxg1kr8uUkhjUw4GyCd4iGO5dqSDAOiAv@BWgAmiPPFYoEnV3cp1myForqaQz/gak7IkodlMniuPDVz/cgPwMYnkXoUUX/8D" rel="nofollow noreferrer" title="Rust – Try It Online">Try it online!</a> The footer contains some compatability implementations because TIO's Rust is a little old. (This has already been <a href="https://chat.stackexchange.com/transcript/message/54872387#54872387">reported</a> and added to the <a href="https://gist.github.com/cairdcoinheringaahing/46f79623ea7b5cfe67286d0a5e96d307" rel="nofollow noreferrer">list</a>.)</p>
+<p>Output:</p>
+<pre class="lang-rust prettyprint-override"><code>1: 1 [0ms]
+2: 1 [0ms]
+3: 1 [2ms]
+4: 4 [8ms]
+5: 10 [35ms]
+6: 39 [139ms]
+7: 164 [738ms]
+8: 767 [4328ms]
+9: 3656 [31298ms]
+10: 18186 [287871ms]
+11: 91532 [3154716ms]
+</code></pre>
+<p>As you can see, it also reports how long it took. (These are cumulated times.) You can use the <code>-v</code> option to list all tetrahedra for each polytet.</p>
+<p>I don't really have a good way of verifying the results beyond A276272(5). I hope it works, but I'm not sure.</p>
+<p>The idea is that we store the polytet as a tree of tetrahedra that also encodes orientation. But for collision detection we need actual tetrahedra. We start with the tetrahedron with vertices (-1, -1, -1), (-1, 1, 1), (1, -1, 1), (1, 1, -1) and scale all tetrahedra by 3 for every term. This avoids the need for fractions.</p>
+<p>Can probably be made faster, but I don't know how.</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/214203/">214203</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+

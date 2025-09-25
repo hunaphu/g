@@ -26,44 +26,37 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>018</td><td>Jelly</td><td>250922T200906Z</td><td><a href="https://codegolf.stackexchange.com/questions/283804/check-if-a-number-is-a-power-with-its-program-value-being-a-power/283807#283807">Jonathan</a></td></tr>
-<tr d-ix="1"><td>056</td><td>Google Sheets</td><td>250922T150758Z</td><td><a href="https://codegolf.stackexchange.com/questions/283804/check-if-a-number-is-a-power-with-its-program-value-being-a-power/283805#283805">doubleun</a></td></tr>
+<tr d-ix="0"><td>029</td><td>Pyth</td><td>250925T000130Z</td><td><a href="https://codegolf.stackexchange.com/questions/283804/check-if-a-number-is-a-power-with-its-program-value-being-a-power/283838#283838">dthusian</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 18 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
-<pre><code>ÆFṪ€g/Ịḷ“¡ƙ*¶|CɲAỵ
+<div id="pu0" class="pu"><h1>Pyth, 29 bytes</h1>
+<pre><code>iFhMrPQssm.5&quot; É.?ÜVgK.F&gt;¼¨$=¤
 </code></pre>
-<p>A full program that accepts an integer greater than one and prints <code>0</code> if it is a perfect power or <code>1</code> if not.</p>
-<p><strong><a href="https://tio.run/##AVgAp/9qZWxsef//w4ZG4bmq4oKsZy/hu4rhuLfigJzCocaZKsK2fEPJskHhu7X///8xMTU2NTUzMzY4MTY0OTA5NTQwODU3NjM5MDUyODExODkxODc5NjU3OTU2" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></strong></p>
-<p>Or see the <strong><a href="https://tio.run/##FYwxikJBEESvYqoU2DM9PXYHCiLsHUQMRRAvIBiIgYI3EHYDU9loYd0VMwXBY/x/kbE/nXRV8d5itlyuSnnsPqrrud5@z7vV7VD9/9Wbz/vpeezcL@vR62dY3X7rzVfBY7/wpdUftDy2x6VMEhSGkBEFsYcQFSElZI@BiMCh@aTJWYQzjBJrpJ4QqVJKRhTA8NkBOJ7d4FVkhpmrWVybXNXwAlM/qElM2SgKs2UlDRSnbw" rel="nofollow noreferrer" title="Jelly – Try It Online">test-suite</a></strong> (the extra <code>”</code> closes the unused string of cruft so we can call repeatedly and has no effect on the operation).</p>
-<p>The byte-code of the program is:</p>
-<pre><code>0D 46 CE 0C 67 2F B0 DA FE 00 A1 2A 7F 7C 43 A3 41 E4
+<p>Outputs a number &gt;1 for true, 1 for false.</p>
+<p><a href="https://tio.run/##DcuxDcJADAXQVRCiPvlsn/1dQLo0CAkaViAUSIjQMAI7UKZgCKrLYEfqp3d/PYfWrv1weBxP43hLZb2a36mbP@fLPvW7@qvfzbZOrTEETJENJI7QEBXAyOGci7oBkMxErELGrhLg7LlQLGsRLwb9Aw" rel="nofollow noreferrer" title="Pyth – Try It Online">Try it online!</a> - The given input is the program value.</p>
+<h2>Explanation</h2>
+<p>This answer cheeses the challenge by using the length of an arbitrary string inside a computation. The string's contents can be varied to search for valid program values. I'm guessing the intent was to disallow putting arbitrary characters inside of a comment, but the challenge seems impossible without some cheese.</p>
+<p>Start with the following Pyth program: <code>iFhMrPQ8</code></p>
+<pre><code>     PQ  - Prime factors of the input, e.g. 36 =&gt; [2, 2, 3, 3]
+    r  8 - Run-length encoding, e.g. =&gt; [[2, 2], [2, 3]]
+  hM     - Take the first element of each element, e.g. =&gt; [2, 2]
+iF       - Reduce with GCD
 </code></pre>
-<p>which has decimal representation:</p>
-<p><span class="math-container">$$1156553368164909540857639052811891879657956$$</span>
-<span class="math-container">$$= (2 \cdot 3 \cdot 114221 \cdot 1866721 \cdot 840632579)^{2}$$</span></p>
-<h4>How?</h4>
-<pre><code>ÆFṪ€g/Ịḷ“¡ƙ*¶|CɲAỵ - Main Link: N
-ÆF                 - prime factors of {N} e.g. 360 -&gt; [[2, 3], [3, 2], [5, 1]]
-                                              (360 = 2 × 2 × 2 × 3 × 3 × 5)
-  Ṫ€               - tail of each (get just the exponents in the prime factorisation)
-     /             - reduce by:
-    g              -   greatest-common-divisor
-                     -&gt; &gt;1 if N is a perfect power else 1
-      Ị            - insignificant?
-                     -&gt; 0 if N is a perfect power else 1
-        “¡ƙ*¶|CɲAỵ - string &quot;¡ƙ*¶|CɲAỵ&quot; (making a program that is a perfect power)
-       ḷ           - left argument
-                   - implicit print
+<p>Notice that 8 is used as an &quot;opcode&quot; input to the <code>r</code> instruction - passing values other than 8 results in a different operation. This is important for the irreducibility requirement.</p>
+<p>Replace 8 with the following snippet:</p>
+<pre><code>     &quot;xxxxxxxxxxxxxxxx - 16 arbitrary characters in a string
+  m.5                  - Map each element to 0.5
+ s                     - Sum elements
+s                      - Convert to int
 </code></pre>
-</div>
-<div id="pu1" class="pu"><h1>Google Sheets, 56 bytes (non-competing)</h1>
-<pre class="lang-none prettyprint-override"><code>=let(b,sort(A1^(1/sequence(A1,1,2))),filter(b,b=int(b)))
+<p>This is to satisfy the irreducibility requirement: if any part of the string is removed, the length no longer evaluates to 8. If any part of the length-computing code is removed, it also no longer evaluates to 8. It is unlikely that some subset of this string is valid Pyth code evaluating to 8 (i.e. if the string delimiter &quot; is removed).</p>
+<p>Then I just used a script to exhaustively check for perfect square program values. I also checked if I could reduce the size of the string literal (for example, by replacing .5 with .6), but no valid programs were found.</p>
+<p>The program value is</p>
+<pre><code>2838209168037894934388607872154768883120024306274398217150909131275684
 </code></pre>
-<p>Returns the integer roots of <span class="math-container">\$i\$</span> as an array, or an error value if none can be found.</p>
-<p>I can mutate the bytecode by changing letter case, renaming the base <code>b</code>, and by changing the order of certain operations. Problem is that the bytecode <span class="math-container">\$c\$</span> of the formula is 112 hex digits:</p>
-<pre class="lang-none prettyprint-override"><code>0x3D6C657428622C736F72742841315E28312F73657175656E63652841312C312C322929292C66696C74657228622C623D696E742862292929
+<p>which is the square of</p>
+<pre><code>53274845546823455191401464656463322
 </code></pre>
-<p>...which makes the search space quite large. I don't know a practical way to find a mutation that satisfies <span class="math-container">\$a^b=c\$</span> with this large a value of <span class="math-container">\$c\$</span>.</p>
+<p>As a bonus, the program is fast enough for it to evaluate its program value in a reasonable time.</p>
 </div>
 
 <table id="st">
