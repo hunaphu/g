@@ -26,8 +26,8 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>168</td><td>JavaScript ES6</td><td>250926T053125Z</td><td><a href="https://codegolf.stackexchange.com/questions/283848/verify-a-chinese-id-number/283859#283859">Arnauld</a></td></tr>
-<tr d-ix="1"><td>464</td><td>Wolfram Language Mathematica</td><td>250927T105700Z</td><td><a href="https://codegolf.stackexchange.com/questions/283848/verify-a-chinese-id-number/283881#283881">138 Aspe</a></td></tr>
+<tr d-ix="0"><td>nan</td><td>Wolfram Language Mathematica</td><td>250927T105700Z</td><td><a href="https://codegolf.stackexchange.com/questions/283848/verify-a-chinese-id-number/283881#283881">138 Aspe</a></td></tr>
+<tr d-ix="1"><td>168</td><td>JavaScript ES6</td><td>250926T053125Z</td><td><a href="https://codegolf.stackexchange.com/questions/283848/verify-a-chinese-id-number/283859#283859">Arnauld</a></td></tr>
 <tr d-ix="2"><td>108</td><td>Python</td><td>250926T115538Z</td><td><a href="https://codegolf.stackexchange.com/questions/283848/verify-a-chinese-id-number/283863#283863">Albert.L</a></td></tr>
 <tr d-ix="3"><td>079</td><td>Ruby n rdate</td><td>250926T080812Z</td><td><a href="https://codegolf.stackexchange.com/questions/283848/verify-a-chinese-id-number/283862#283862">Dingus</a></td></tr>
 <tr d-ix="4"><td>nan</td><td>Python</td><td>250925T120444Z</td><td><a href="https://codegolf.stackexchange.com/questions/283848/verify-a-chinese-id-number/283849#283849">ojdo</a></td></tr>
@@ -36,57 +36,11 @@
 <tr d-ix="7"><td>068</td><td>05AB1E</td><td>250925T152027Z</td><td><a href="https://codegolf.stackexchange.com/questions/283848/verify-a-chinese-id-number/283851#283851">Kevin Cr</a></td></tr>
 <tr d-ix="8"><td>167</td><td>Excel ms365</td><td>250925T140051Z</td><td><a href="https://codegolf.stackexchange.com/questions/283848/verify-a-chinese-id-number/283850#283850">JvdV</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>JavaScript (ES6), 168 bytes</h1>
-<p>Returns a Boolean value.</p>
-
-<pre class="lang-javascript prettyprint-override"><code>S=&gt;S.replace(/^.{6}(....)(..)(..)...(\d|X)$|/,(_,y,m,d,c)=&gt;(new Date(y+=`-${m}-`+d).toJSON(g=s=&gt;s&lt;17?g(s+1,t=S[s]*2+t*13%11):1/c?c:10)+g).match(y)&amp;&amp;g(t=0)==(34-t)%11)&gt;g
-</code></pre>
-<p><a href="https://tio.run/##hdBdT9swFAbge37FEWLMJoljxy3FaC5a4QaksYtOUyX2gee4SbbERrELi4Df3qUCpE5dhyVb78WrR8fnp7pVXrfVTUisy81yLpdTOZ6S1tzUShuUfiP3h4@I9Aej59tn9CV/mOG9hzRG3@MubuI81liOkTV3cKaCQV0kr5O9@@YxuY5yTIK7mH68RIX0cuzfsdFJgXzE4iCnV/7rQRaFA8bfMIaPWapP9DGjOCowaVTQJerw/n6BgqRYSsQHScCr5rhYame9qw2pXYHmaJcxyuiQCUHpKlE@2sUYIE3hs6qrfGdLfSBYxvt6NvurTuBTaUCXRv/yiwYYhcrD81Zy@NHBjOy8NoB4Ec/t7ZN5@uL1mIDK@mBUDm4Oo62YYHyFDYYb2AdnQwmMQ@6Mt28DmN@VD9vHEvSQ/1u6WFgDztYdlMoDp5Crzv8PWq0s40/SOsREvzLVKh1M69f/x442uYy/n/SPGLKjyeS0TxtzXTqb2EVj2kqvuWT5Bw" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
-<h3>Commented</h3>
-<p><strong>Regular expression</strong></p>
-<pre class="lang-javascript prettyprint-override"><code>// a regular expression that matches either the relevant parts of an ID
-// that is sufficiently well-formed, or the empty string
-const REGEX = /^.{6}(....)(..)(..)...(\d|X)$|/
-</code></pre>
-<p><strong>Helper function</strong></p>
-<pre class="lang-javascript prettyprint-override"><code>g = s =&gt;          // g is a recursive function taking a counter s
-s &lt; 17 ?          // if s is less than 17:
-  g(              //   do a recursive call:
-    s + 1,        //     increment s
-    t =           //     update t:
-      S[s] * 2 +  //       multiply the s-th character by 2
-      t * 13 % 11 //       add t * 13, reduced modulo 11
-  )               //   end of recursive call
-:                 // else:
-  1 / c ?         //   if c is numeric:
-    c             //     return c
-  :               //   else (c is 'X'):
-    10            //     return 10
-</code></pre>
-<p><strong>Main function</strong></p>
-<pre class="lang-javascript prettyprint-override"><code>S =&gt;                    // S = input string
-S.replace(              // replace in S
-  REGEX,                // if S has the correct length and ends with either
-                        // a digit or 'X': capture the date parts and the
-                        // checksum; otherwise: match the empty string
-  (_, y, m, d, c) =&gt;    // y = year, m = month, d = day, c = checksum
-  (                     // (they may be all undefined)
-    new Date(           // create a date from ...
-      y += `-${m}-` + d // ... (y, m, d) arranged in YYYY-MM-DD format
-    ).toJSON()          // and convert it to ISO 8601 format
-    + g                 // coerce to a string (in case it's null)
-  ).match(y) &amp;&amp;         // does it match the original YYYY-MM-DD string?
-  g(t = 0) ==           // invoke g with t = s = 0
-  (34 - t) % 11         // is the checksum correct?
-) &gt; g                   // is the final result 'true'? (greater than 's')
-                        // it may also be 'false' or 'null&lt;some_garbage&gt;'
-</code></pre>
-</div>
-<div id="pu1" class="pu"><h1><a href="https://www.wolfram.com/wolframscript/" rel="nofollow noreferrer">Wolfram Language (Mathematica)</a>, 464 bytes</h1>
-<p>464 bytes, it can be golfed more.</p>
+<div id="pu0" class="pu"><h1><a href="https://www.wolfram.com/wolframscript/" rel="nofollow noreferrer">Wolfram Language (Mathematica)</a>, <del>464</del> 216 bytes</h1>
+<p>Saved 248 bytes thanks to @Matt</p>
 <hr />
-<p>Golfed version. <a href="https://tio.run/##lVZtT9tIEP6eXzH4pB6gBcUJbyYyApIiUZU7XtIe0mKdNvYG@@qsU@8aEYX8djrrdzuAehIKifeZZ2aemdnxjCmfz5gKXPb6OqXyX@fYvoq8JOR0OSELMiMeeSKMCOKScEUup/ROxYF4/MrFo/JP5YZtHpFbrpJYnF6wUHJnMLEzyJj94FSS5SEx91bOYGGPo8/P85hLGUTitIaZkKVJNGT2EWSfHCDE@whySI4Q8mTfJAFXp0Ofuz/oiCn@9@Q/7qrTZZrOajCOE07yYDGhjadWAqyZgHmYwbKHV0y5/g1lZBQ8Bmros5i5ise7u06LRdgXcTRLURLhZt8ZuFpaau70BDFNZxA2/ezgo3/8wPVpaNvGvUHcE4s0nIYtpw5piIFmLqkl57xubsOYSwUuk1zC9lZH4a9h@sOGZQdgaZhm1@zum5bV7epv3f6hQcD4zsLAM1akAdmzzF4fIb37ErILY5@Dq5WWyQzMLgQSYj4Pmcs9mCzgfrfNUjqyNMuleMp4hgUHElgQCKk48yCawuEagWX2NcHefoPgKhLKB7MPXsSl@FMBfw6kWndvdQ/669ZfEsEhEuECfCah3wWPLeRbxlqCXr9lbVqoQV4UWQ/ePKo4ev2zc/yw9s2j8/MhfmtQ/BWJHZHMeBy4NS607qwGnQ4W8iIRrsIyg4ogTvBfo7C3iRgXtaUOHNuQT7H2HXjjSJ8S8Lh042CueQgKNMex4N4tl0mIh@gyYWHxS/PfKaYSmSaAf9fYiooa6EpgT2LFAsElh8sRpDmwLDo0k8eGMygNsha@5XPO0NrGrI@6TnqOf6NIR/hejCts06JlByku/UA1RhzlmWEAZRbYdjpwmCAWtRd1Hq2QNmxmjORZbJhmrOQNbaiTz4DT9IvJ17PNeevKIeuUFtm0rNMmh2CaFW/OpA4156j0Rga8b9qx2q36GNdnd3e6hS7OLr@2w0yVzxWRhYd6Ob5EgciUh1yEa@bdBo@@olUgBPYcdAAvYJAca0zpg4Feq3IZD4YDOycVZBxlhLQeb8qzWdYKGUpYM1EN3II/KrpaUdInjkOqVJdFd5CyT@QKT1AOJxubYTSbYyDwhNOkK7bJfyYBVpCjPjhJUYw3qmAhXC@UH4ktrdX3rL48b/DLUc6B2zELuT1fGownpLwI04lp7UoqHdiw8UYgkC0Kmt/S@STkJGVT5lsBcKtBukAzyo10udH2cqPLTqZ9tQ9ojaeMEDctIBmq/Jv4fQIH/weP0eISdhCNIUO6jSBP9J3E13ZrM39cvwTWl@3bXOUmSutDTdiB3nZtD79BjYsZP8yCYbMJwaWsRw/XMXz6VNGfgLUFLy81gzdjR@t27I7m6XwgZWaWei3cbRXN/PmZzeYhh0SyR65bNb@SbQQXZ9/SM3yi74T8fK2jcYjXF78eZFuPZj55U/rW24FT0U5rNNXLwQc0tTeId2iqt4PficZKaQqeB6F1KNbTWRimLz@y0KK5IgevvwA" rel="nofollow noreferrer">Try it online!</a></p>
-<pre class="lang-mathematica prettyprint-override"><code>f[s_]:=Module[{b,y,m,d,v,a,n,c,l},If[StringLength@s!=18,Return@False];b=StringTake[s,{7,14}];y=ToExpression@StringTake[b,{1,4}];m=ToExpression@StringTake[b,{5,6}];d=ToExpression@StringTake[b,{7,8}];v=Quiet@Check[DateObject@{y,m,d};True,False];If[!v,Return@False];a=StringTake[s,17];If[!StringMatchQ[a,DigitCharacter..],Return@False];n=FromDigits[a,13];c=Mod[1-2n,11];l=StringTake[s,-1];Which[l==&quot;X&quot;,c&gt;9,StringMatchQ[l,DigitCharacter],ToExpression@l==c,True,False]]
+<p>Golfed version. <a href="https://tio.run/##lZZ7T9tIEMD/z6eYOhJHkEOzMTS4yIhXkajgDkKuQlqs0xJvEl@ddepdV6CQz87Nrt8JVD0pSuzszG/eHs@ZmvE5U@GYvU681xMR0DuVhGJ6zdR4dkvb9pBP04glX54WCZcyjAW1HoIlGay2H4KX@47l@3bb80bsO6ej@JwpfnyRxHNz0bYdfwv/rXQ/Hmd0I962l8uBTXore0mITfr617HJ3mqFzOs4oKTbN6xwGipJr2OpEEkc3ybE97wrpu/X@WczlrCx4ok8bn/cve8ekZ7vb71u78CISwVjJrmEnU5L4d2ZufFg2QJYWoT0SG@fuG6vp696zsCywfrGojCwVnZDZM8lfQdF@velyC6MZhzGMz7@LtM5kB6EEhK@iNiYB/D4DPe765TSkKspl@JnxjkrGAhwIRRScRZAPIHBBsAljgbs7TcA17FQMyAOBDGX4g8F/CmUatO82/vkbGp/TQWHWETPMGMSnB4E7Fm@paxT0HfWtImLOSgqUHeeHFSMvnNyil/uPjk4PT3Dqwbiz1h0RTrnSTiusVC7tTpstbCQF6kYKyw2qBiSFH8ahR2mYlTUlvrw2cN8BGnEqbYdBqNYn9oQcDlOwoXm2JigBUcrwZDLNMJDNJmyqLjT/DvFVCpNAPi5wR5W1EJTApsZKxYKLjlcnoOJgWXeoZr8bPmHpULW@0O@4Ay1PYz6AJvzMGOex9rD93xcYZsWLXto5MwXZuOcY3rm6EAZBbaddhweURZzL@ocnSGt2IwY4ZlvGGai5C1tZCefAb9pF4OvR5tz65lD6oQW0axpmyaHcJIVb8GkdjVnVPlGwuWErvvqrdXHujm5u9MtdHFyebXupsl8nhFZWKiX42sciizzkCfhhgXDcDpTtHLEhj0fDcALWHYua03og4VWq3JZD5YP3aNKZBRnQFr313C2y1ohoRRrBqoFO9CucLWimH/wKVmFuiy6wy77RK7wBNPhZ2NzFs8X6Aj8xGnSFdvmP9IQK8gxPzhJcYKPWcEiuHlWs1h0dK6@ZfXleYNfnucMKv/JXF6fLy2MJ3b5IDQTgzXMxK@4mKoZlT588PCJYMOQqzQR9IJFkpeTkEPKpjTLAkuAywJwOxgxRH64TUOuqOkkqvfNX4//YvrospXlvraxapzSwyXBoupNA78pv2/Dp/8jj94eoDxKo8swSlIsTR7oO4HroBrbtxk/GaCiWYblktvdfY9VbiJTH0qgC/2d2jZ9A603K@BqzQnbTZEu8fXoWfcWbG1V@CNwO/DyUlN403fUXvfd15zWL1KZqRmrhblO0cxfnth8EXFIJZty3ar5I9lD4eLsb3OG/@hnQn6@0dE4xJuLXw@yp0czn7wJfevtwK@wkxqmejn4Bab2BvEOpno7@B1vXIMpOA9C56FYTydRZF5@ZJGL5oo8fP0P" rel="nofollow noreferrer">Try it online!</a></p>
+<pre class="lang-mathematica prettyprint-override"><code>And[StringMatchQ[#,RegularExpression[&quot;\d{17}(\d|X)&quot;]],#==Take[ToDate@FromDate@#,3]&amp;[ToExpression/@StringTake[#,{{7,10},{11,12},{13,14}}]],Mod[1-2FromDigits[Most@#,13],11]==Last@#&amp;[ToExpression/@Characters@#/.X-&gt;10]]&amp;
 </code></pre>
 <p>Ungolfed version. <a href="https://tio.run/##nVf/T9tGFP89f8WrJ3WADMoRaEhRKtFQJqqWUcg2JNeaDvuIvTp25jszEPC3s3d3Pvv8JR0dAuPY733e93efLKmI2JKKOKDPzxtbMIvilHEGZ/goS2kCp8fwO03ikIoshziFz7UCbG0OBuVLViqeHntxeCnyOF38qf/58HYKn7OwSJg3AHjAP4DrOBfRMaqhjAv3jOJ1maUiciGk9/IimEJ2QcnfxDkXZDyLaM5diMOzYnnNUCegSVAkKBzOIhZ848WyVKCBKGhiHko9F9jdigWWKBooGEo/uXjBXxU@voL4RoYdUY4qCJTcAzmAADHwA8u5jBvg9MbTAX5i6UJEVdg@vJqivAsXTBR56p3QhDPfP6xsfLgTEkjnQEUKqyyX6YaNVcZjecdhvE32Wvl24Z8oDiIoOONAtq8pZyGKhOwOzW5qr@zEwhS0S3P6jVX@ufAwdoHsPVkunWNaWacMcJNnS9tNrgC0ISmMBubZh7tVzjhHpz3LWrPAD8QFNKgsKvyXa@678KbUlC69WA9jPHiy024aFTCfdlAqmqrf0MCXImbCU12k2kHfAkjsX6//whbyHtqp0smUP/O8YG55r0qv7n28Gl@wcV5Z/b2uTX5hQrc9kLHdfDc4h0HZwVX/y@ZRgdiDsq7@ZGyZqTq@zxbNGdAkgTBexKLu@1caCVsziL54zdk8lqIzA7Gz46@PcJaltywXIDLsYsEWLMfWlg0mOxvICDaW0oJ8kuUIK9cRTRZ4L6Jl2e9mFWCsJ9ityjpvuURGtlGzMaokvoUNAtuwC1uQKqxNLGwIhGgL3RUDap95Smmr3kWEtKonG03vIatgJjOwkVDMd/W5jKe7t9ZVcZv0NXdlSKH9IfeFt2YhwnQKzpWjmxUxriBncrBYiqWucG7lkgQy1IC96XgHEw2iLo3e6FvDzQ7xK/sXbIHAuSwCy@OgFQr0r@/2QugaLCdzjfa07wipg6mnGR08TW/ViugpZumiGXh/gFYHqDJnssZULmwUEfhppj5M1Tn44BAyJMN9MpkMh/JuOBo7Ljiqmo46lmqRvQnZHaHI7lUlsgPzyCo5FinmsogJDfBkuL6Hq502SmVoIlHKiHagqiUCTHAauWA0hOwGxh2ACRlJgL39BsBntdVxZsOM8fRngfmOueianwzfjLraH4uUQZbiQSsP3dFQrlTepyxTsDtqaZOJvbMs58lBjbE7OnqPl8k@OXj/foZ3DYizLN2u@85gofbgSRfypEgDtWVxWeUF/msU9qJI56a2XpvwxOE8k2/xoGA8yOOVxKnZyAXjRYIvdeeaTxL/UlBRcMNOznGshOegqVRuREPUkKjc6uFX3qEaf@uontcKehwv2IpR1J5i1AfDagkfZ3o59Pv4hG1qWvawngnMxjHD9CzRgSoKbDvpOGhSgp5YOO0B1jFWew3DzAX/4jWyU86A37SLwdvRlrh25hC1j5Hq6Fpo1dGnirmiXLpeYtb5R0Q88tq@T1v1cs6PLi9lS50cnX5qu60qUWaIGwt2eT5mcWpohn5yTsOLeBEJr3YEKRQepg48gmMIhtON9avjSIJsyul8dXzYflerzDNtwLP9V7gbVS0RoRJrBi4FN@GnGs4qmiY6vrU9H0z3uFUf8SfNhMr9OMuWK8mFkQdwRYDZ30WMFcYzSE5adeyf34soS9UZ2Qm5xPD4mi8coeGEZlGqiWrTd/593h72UWre5NKSGWnyqHmjTRj1abKGuoZtnlx@iflv@ZIdv1i@ZMXyS49/qE83KANdE3iH7jXjRy75cs4X9BEoi7b1QCN3azCrpghyoJLFwOvXNTwSkk14fLQUen1H7Q4bkTiD76RSqymrxtymaeYPd3S5ShiSWLpQ3yvKlT1FYfPuN/UOn8gdUb7vG@IuMZCDPJWjWU5eV6uPTfgvM1OTix8wYzES/wejmfyfaCbKjLHzNZV5NcfhEX5LkRuPm9w2j@TD5@d/AQ" rel="nofollow noreferrer">Try it online!</a></p>
 <pre class="lang-mathematica prettyprint-override"><code>(* Chinese National ID Validator in Mathematica *)
@@ -226,6 +180,52 @@ Print[&quot;ValidateChineseID[\&quot;110105199001010039\&quot;] = &quot;,
 
 Print[&quot;\n=== Running All Tests ===&quot;];
 RunTestCases[];
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>JavaScript (ES6), 168 bytes</h1>
+<p>Returns a Boolean value.</p>
+
+<pre class="lang-javascript prettyprint-override"><code>S=&gt;S.replace(/^.{6}(....)(..)(..)...(\d|X)$|/,(_,y,m,d,c)=&gt;(new Date(y+=`-${m}-`+d).toJSON(g=s=&gt;s&lt;17?g(s+1,t=S[s]*2+t*13%11):1/c?c:10)+g).match(y)&amp;&amp;g(t=0)==(34-t)%11)&gt;g
+</code></pre>
+<p><a href="https://tio.run/##hdBdT9swFAbge37FEWLMJoljxy3FaC5a4QaksYtOUyX2gee4SbbERrELi4Df3qUCpE5dhyVb78WrR8fnp7pVXrfVTUisy81yLpdTOZ6S1tzUShuUfiP3h4@I9Aej59tn9CV/mOG9hzRG3@MubuI81liOkTV3cKaCQV0kr5O9@@YxuY5yTIK7mH68RIX0cuzfsdFJgXzE4iCnV/7rQRaFA8bfMIaPWapP9DGjOCowaVTQJerw/n6BgqRYSsQHScCr5rhYame9qw2pXYHmaJcxyuiQCUHpKlE@2sUYIE3hs6qrfGdLfSBYxvt6NvurTuBTaUCXRv/yiwYYhcrD81Zy@NHBjOy8NoB4Ec/t7ZN5@uL1mIDK@mBUDm4Oo62YYHyFDYYb2AdnQwmMQ@6Mt28DmN@VD9vHEvSQ/1u6WFgDztYdlMoDp5Crzv8PWq0s40/SOsREvzLVKh1M69f/x442uYy/n/SPGLKjyeS0TxtzXTqb2EVj2kqvuWT5Bw" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<h3>Commented</h3>
+<p><strong>Regular expression</strong></p>
+<pre class="lang-javascript prettyprint-override"><code>// a regular expression that matches either the relevant parts of an ID
+// that is sufficiently well-formed, or the empty string
+const REGEX = /^.{6}(....)(..)(..)...(\d|X)$|/
+</code></pre>
+<p><strong>Helper function</strong></p>
+<pre class="lang-javascript prettyprint-override"><code>g = s =&gt;          // g is a recursive function taking a counter s
+s &lt; 17 ?          // if s is less than 17:
+  g(              //   do a recursive call:
+    s + 1,        //     increment s
+    t =           //     update t:
+      S[s] * 2 +  //       multiply the s-th character by 2
+      t * 13 % 11 //       add t * 13, reduced modulo 11
+  )               //   end of recursive call
+:                 // else:
+  1 / c ?         //   if c is numeric:
+    c             //     return c
+  :               //   else (c is 'X'):
+    10            //     return 10
+</code></pre>
+<p><strong>Main function</strong></p>
+<pre class="lang-javascript prettyprint-override"><code>S =&gt;                    // S = input string
+S.replace(              // replace in S
+  REGEX,                // if S has the correct length and ends with either
+                        // a digit or 'X': capture the date parts and the
+                        // checksum; otherwise: match the empty string
+  (_, y, m, d, c) =&gt;    // y = year, m = month, d = day, c = checksum
+  (                     // (they may be all undefined)
+    new Date(           // create a date from ...
+      y += `-${m}-` + d // ... (y, m, d) arranged in YYYY-MM-DD format
+    ).toJSON()          // and convert it to ISO 8601 format
+    + g                 // coerce to a string (in case it's null)
+  ).match(y) &amp;&amp;         // does it match the original YYYY-MM-DD string?
+  g(t = 0) ==           // invoke g with t = s = 0
+  (34 - t) % 11         // is the checksum correct?
+) &gt; g                   // is the final result 'true'? (greater than 's')
+                        // it may also be 'false' or 'null&lt;some_garbage&gt;'
 </code></pre>
 </div>
 <div id="pu2" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 108 bytes</h1>
