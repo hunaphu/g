@@ -43,11 +43,28 @@
 </code></pre>
 <p><a href="https://tio.run/##hdBdT9swFAbge37FEWLMJoljxy3FaC5a4QaksYtOUyX2gee4SbbERrELi4Df3qUCpE5dhyVb78WrR8fnp7pVXrfVTUisy81yLpdTOZ6S1tzUShuUfiP3h4@I9Aej59tn9CV/mOG9hzRG3@MubuI81liOkTV3cKaCQV0kr5O9@@YxuY5yTIK7mH68RIX0cuzfsdFJgXzE4iCnV/7rQRaFA8bfMIaPWapP9DGjOCowaVTQJerw/n6BgqRYSsQHScCr5rhYame9qw2pXYHmaJcxyuiQCUHpKlE@2sUYIE3hs6qrfGdLfSBYxvt6NvurTuBTaUCXRv/yiwYYhcrD81Zy@NHBjOy8NoB4Ec/t7ZN5@uL1mIDK@mBUDm4Oo62YYHyFDYYb2AdnQwmMQ@6Mt28DmN@VD9vHEvSQ/1u6WFgDztYdlMoDp5Crzv8PWq0s40/SOsREvzLVKh1M69f/x442uYy/n/SPGLKjyeS0TxtzXTqb2EVj2kqvuWT5Bw" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
 <h3>Commented</h3>
+<p><strong>Regular expression</strong></p>
 <pre class="lang-javascript prettyprint-override"><code>// a regular expression that matches either the relevant parts of an ID
 // that is sufficiently well-formed, or the empty string
 const REGEX = /^.{6}(....)(..)(..)...(\d|X)$|/
-
-S =&gt;                    // S = input string
+</code></pre>
+<p><strong>Helper function</strong></p>
+<pre class="lang-javascript prettyprint-override"><code>g = s =&gt;          // g is a recursive function taking a counter s
+s &lt; 17 ?          // if s is less than 17:
+  g(              //   do a recursive call:
+    s + 1,        //     increment s
+    t =           //     update t:
+      S[s] * 2 +  //       multiply the s-th character by 2
+      t * 13 % 11 //       add t * 13, reduced modulo 11
+  )               //   end of recursive call
+:                 // else:
+  1 / c ?         //   if c is numeric:
+    c             //     return c
+  :               //   else (c is 'X'):
+    10            //     return 10
+</code></pre>
+<p><strong>Main function</strong></p>
+<pre class="lang-javascript prettyprint-override"><code>S =&gt;                    // S = input string
 S.replace(              // replace in S
   REGEX,                // if S has the correct length and ends with either
                         // a digit or 'X': capture the date parts and the
@@ -56,21 +73,8 @@ S.replace(              // replace in S
   (                     // (they may be all undefined)
     new Date(           // create a date from ...
       y += `-${m}-` + d // ... (y, m, d) arranged in YYYY-MM-DD format
-    ).toJSON(           // and convert it to ISO 8601 format
-      g = s =&gt;          // g is a recursive function taking a counter s:
-      s &lt; 17 ?          //   if s is less than 17:
-        g(              //     do a recursive call:
-          s + 1,        //       increment s
-          t =           //       update t:
-            S[s] * 2 +  //         multiply the s-th character by 2
-            t * 13 % 11 //         add t * 13, reduced modulo 11
-        )               //     end of recursive call
-      :                 //   else:
-        1 / c ?         //     if c is numeric:
-          c             //       return c
-        :               //     else (c is 'X'):
-          10            //       return 10
-    ) + g               // coerce to a string (in case it's null)
+    ).toJSON()          // and convert it to ISO 8601 format
+    + g                 // coerce to a string (in case it's null)
   ).match(y) &amp;&amp;         // does it match the original YYYY-MM-DD string?
   g(t = 0) ==           // invoke g with t = s = 0
   (34 - t) % 11         // is the checksum correct?
