@@ -26,11 +26,43 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>264</td><td>Google Sheets</td><td>250928T120439Z</td><td><a href="https://codegolf.stackexchange.com/questions/283903/interpret-g-code/283907#283907">doubleun</a></td></tr>
-<tr d-ix="1"><td>100</td><td>JavaScript ES6</td><td>250928T094653Z</td><td><a href="https://codegolf.stackexchange.com/questions/283903/interpret-g-code/283904#283904">Arnauld</a></td></tr>
+<tr d-ix="0"><td>090</td><td>JavaScript ES6</td><td>250928T094653Z</td><td><a href="https://codegolf.stackexchange.com/questions/283903/interpret-g-code/283904#283904">Arnauld</a></td></tr>
+<tr d-ix="1"><td>264</td><td>Google Sheets</td><td>250928T120439Z</td><td><a href="https://codegolf.stackexchange.com/questions/283903/interpret-g-code/283907#283907">doubleun</a></td></tr>
 <tr d-ix="2"><td>099</td><td>Retina 0.8.2</td><td>250928T101841Z</td><td><a href="https://codegolf.stackexchange.com/questions/283903/interpret-g-code/283905#283905">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>Google Sheets, 264 bytes</h1>
+<div id="pu0" class="pu"><h1>JavaScript (ES6), 90 bytes</h1>
+<p>Expects a string and returns an object <code>{X,Y,Z}</code>.</p>
+
+<pre class="lang-javascript prettyprint-override"><code>s=&gt;s.replace(/;.*|G9(.)|.(-?\d+)/g,([c],M=m,v)=&gt;c&gt;s?C[c]=+v+C[c]*m:m=M,C={X:0,Y:0,Z:0})&amp;&amp;C
+</code></pre>
+<p><a href="https://tio.run/##hZDbbuIwEIbv8xSjXiAbHGOH9ETkVIimLFIhFURdyO5eRCGwWSWExlmkqu2z00GUtqit6oOs8fj/5vf8i9aRjst0VZnLYpZs5mqjlat5mayyKE5I0@H1x9454fSRE/Pi96xBmwtGfsV/2EDlbE2VG7v6oosXqrFubM963s7VgHXVw6Qt2BR32BZPtFbrbsrk7n9aJuRoro8o1ohmV2mWjO@XMRGUV8W4KtPlglCuV1lakabi9SblebQiGpQLmmM@J5TyeZpVSflyi2FRelH8dxc/GABxsdRFlvCsWJA50ZQ6xhPdKBxG71wYPSFgYsHUcmDg33oQ@DAOOqMAbvz@MMC0hIkUMMV9JYUwtkIXiBQMl6CGcUjaPcVYOuANA28EI@@6E/SRPPAvvRceljukSSatz2gIg1AeGoXQ2usshvNNJb9R7V7sDYStAw8tZrPjDw620lfy9F1h@8vPY2nxZsZEgtmC0LT32jN2yk4@areGbAf7f@m3sWk3152uBz/7wQ9nZwQZ9vFrw7BbrGXTZw" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<h3>Commented</h3>
+<pre class="lang-javascript prettyprint-override"><code>s =&gt;                     // s = input string
+s.replace(               // replace in s:
+  /;.*|G9(.)|.(-?\d+)/g, //   match either a comment, a G9x command, or a
+                         //   character followed by an integer value (which
+                         //   may start with a '-')
+  (                      //
+    [c],                 //   c = leading character
+    M = m,               //   M = mode from G9x, or the current value of m
+                         //       (as per the challenge rules, the first
+                         //       command is always G9x; so we'll never try
+                         //       to use m when it's still undefined)
+    v                    //   v = value (or undefined)
+  ) =&gt;                   //
+  c &gt; s ?                //   if c is greater than 'G':
+    C[c] =               //     update C[c] to:
+      +v + C[c] * m      //       (int)v + C[c] * (int)m
+  :                      //   else:
+    m = M,               //     update the mode m to M
+  C = {                  //   start with an object C where ...
+    X: 0, Y: 0, Z: 0     //   ... X, Y and Z are set to 0
+  }                      //
+)                        // end of replace()
+&amp;&amp; C                     // return C
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>Google Sheets, 264 bytes</h1>
 <pre class="lang-none prettyprint-override"><code>=sort(choosecols(reduce({0,0,0,0},iferror(split(regexreplace(A:A,&quot;^G|;.*&quot;,),&quot; &quot;)),lambda(a,c,let(g,lambda(i,choosecols(a,i)),f,lambda(s,i,ifna(g(1)*g(i)+regexextract(c&amp;&quot;&quot;,s&amp;&quot;(-?\d+)&quot;),g(i))),if(n(c)&gt;1,{c=91,g({2,3,4})},{g(1),f(&quot;X&quot;,2),f(&quot;Y&quot;,3),f(&quot;Z&quot;,4)})))),2,3,4))
 </code></pre>
 <p><img src="https://i.sstatic.net/8KLduyTK.png" alt="screenshot" /></p>
@@ -48,40 +80,6 @@
   )))),
   2, 3, 4
 ))
-</code></pre>
-</div>
-<div id="pu1" class="pu"><h1>JavaScript (ES6), 100 bytes</h1>
-<p>Expects an array of strings and returns an object <code>{X,Y,Z}</code>.</p>
-
-<pre class="lang-javascript prettyprint-override"><code>a=&gt;a.map(s=&gt;s.replace(/;.*|G9(.)|.(-?\d+)/g,([c],M=m,v)=&gt;c&gt;a?C[c]=+v+C[c]*m:m=M),C={X:0,Y:0,Z:0})&amp;&amp;C
-</code></pre>
-<p><a href="https://tio.run/##hZBvb9owEMbf51OceFHZ4Bg7pN1K5FSIpgypNBVEG2TdCysElil/WJIhTW0/Oz0UaIe6aXEs6@78/O7x/dBbXUVlsqnNvFjGu5XaaeVqnukNqZRb8TLepDqKSdfh7afRJeH0iRPz6mHZod01I1@jb2yiMralyo1cfTXEhOpsO/uznfUzNaFsqB7nfcEWuMO@eKZnZ8NdGf/8lZQxaa2qFsUmenmTpPHsdx4RQXldzOoyydeE8mqTJjXpKt7u0sYVKBcqjvWMUMpXSVrH5SGLYVF6OvrexI8GQFTkVQ0aFGoaVushb1HnUCrSmKfFmqyIpph8pjuFnzG6FMZICJhbsLAcmPifPQh8mAWDaQD3/vguwLKEuRSwwH0jhTD2QheIFAx/QQ3jlNRcxVg64N0F3hSm3u0gGCN54l97Bx62O6VJJq2/0RAGoTw1CqF11FkM15tK/kfV3DgaCHsnHnrMZufvHOylr@TFH43tfz4eW4s3MyYSzB6Epn3UfmQf2MV77d6Q7eD8r/0@Du3@djD04Ms4@OQ0RpBhn78ODKfFejZ9AQ" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
-<h3>Commented</h3>
-<pre class="lang-javascript prettyprint-override"><code>a =&gt;                       // a[] = input array
-a.map(s =&gt;                 // for each string s in a[]:
-  s.replace(               //   replace in s:
-    /;.*|G9(.)|.(-?\d+)/g, //     match either a comment, a G9x command, or a
-                           //     character followed by an integer value (which
-                           //     may start with a '-')
-    (                      //
-      [c],                 //     c = leading character
-      M = m,               //     M = mode from G9x, or the current value of m
-                           //         (as per the challenge rules, the first
-                           //         command is always G9x; so we'll never try
-                           //         to use m when it's still undefined)
-      v                    //     v = value (or undefined)
-    ) =&gt;                   //
-    c &gt; a ?                //     if c is greater than 'G':
-      C[c] =               //       update C[c] to ...
-      +v + C[c] * m        //       ... (int)v + C[c] * (int)m
-    :                      //     else:
-      m = M                //       update the mode m to M
-  ),                       //   end of replace()
-  C = {                    //   start with an object C where ...
-    X: 0, Y: 0, Z: 0       //   ... X, Y and Z are set to 0
-  }                        //
-)                          // end of map()
-&amp;&amp; C                       // return C
 </code></pre>
 </div>
 <div id="pu2" class="pu"><h1><a href="https://github.com/m-ender/retina/wiki/The-Language/a950ad7d925ec9316e3e2fb2cf5d49fd15d23e3d" rel="nofollow noreferrer">Retina 0.8.2</a>, 99 bytes</h1>
