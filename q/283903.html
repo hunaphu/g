@@ -26,13 +26,45 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>047</td><td>Charcoal</td><td>250928T203830Z</td><td><a href="https://codegolf.stackexchange.com/questions/283903/interpret-g-code/283913#283913">Neil</a></td></tr>
-<tr d-ix="1"><td>260</td><td>Google Sheets</td><td>250928T120439Z</td><td><a href="https://codegolf.stackexchange.com/questions/283903/interpret-g-code/283907#283907">doubleun</a></td></tr>
+<tr d-ix="0"><td>260</td><td>Google Sheets</td><td>250928T120439Z</td><td><a href="https://codegolf.stackexchange.com/questions/283903/interpret-g-code/283907#283907">doubleun</a></td></tr>
+<tr d-ix="1"><td>047</td><td>Charcoal</td><td>250928T203830Z</td><td><a href="https://codegolf.stackexchange.com/questions/283903/interpret-g-code/283913#283913">Neil</a></td></tr>
 <tr d-ix="2"><td>213</td><td>Python3</td><td>250928T175340Z</td><td><a href="https://codegolf.stackexchange.com/questions/283903/interpret-g-code/283911#283911">Ajax1234</a></td></tr>
 <tr d-ix="3"><td>090</td><td>JavaScript ES6</td><td>250928T094653Z</td><td><a href="https://codegolf.stackexchange.com/questions/283903/interpret-g-code/283904#283904">Arnauld</a></td></tr>
 <tr d-ix="4"><td>099</td><td>Retina 0.8.2</td><td>250928T101841Z</td><td><a href="https://codegolf.stackexchange.com/questions/283903/interpret-g-code/283905#283905">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 47 bytes</h1>
+<div id="pu0" class="pu"><h1>Google Sheets, 260 bytes</h1>
+<pre class="lang-none prettyprint-override"><code>=sort(choosecols(reduce(W1:Z1,iferror(split(regexreplace(A:A,&quot;^G|;.*&quot;,),&quot; &quot;)),lambda(a,c,let(g,lambda(i,choosecols(a,i)),f,lambda(s,i,ifna(g(1)*g(i)+regexextract(c&amp;&quot;&quot;,s&amp;&quot;(-?\d+)&quot;),g(i))),if(n(c)&gt;1,{c=91,g({2,3,4})},{g(1),f(&quot;X&quot;,2),f(&quot;Y&quot;,3),f(&quot;Z&quot;,4)})))),2,3,4))
+</code></pre>
+<p><img src="https://i.sstatic.net/8KLduyTK.png" alt="screenshot" /></p>
+<p>Prettified:</p>
+<pre class="lang-none prettyprint-override"><code>=sort(choosecols(
+  reduce({ 0, 0, 0, 0 }, iferror(split(regexreplace(A:A, &quot;^G|;.*&quot;,), &quot; &quot;)), lambda(a, c, let(
+    g, lambda(i, choosecols(a, i)),
+    f, lambda(s, i, ifna(
+      g(1) * g(i) + regexextract(c &amp; &quot;&quot;, s &amp; &quot;(-?\d+)&quot;),
+      g(i)
+    )),
+    if(n(c) &gt; 1,
+      { c = 91, g({ 2, 3, 4 }) },
+      { g(1), f(&quot;X&quot;, 2), f(&quot;Y&quot;, 3), f(&quot;Z&quot;, 4) }
+  )))),
+  2, 3, 4
+))
+</code></pre>
+<p>Explained:</p>
+<ul>
+<li>the <code>reduce()</code> accumulator is an array <code>[isRelativeMode, x, y, z]</code></li>
+<li><code>split()</code> separates tokens into a subarray and casts strings like <code>G90</code>, <code>G91</code>, <code>G00</code> and <code>G01</code> to numbers; strings like <code>X10</code> and <code>Y-3</code> are left as is</li>
+<li><code>g(index)</code> grabs a value from the accumulator</li>
+<li><code>f(xyz, index)</code> extracts a x, y or z coordinate, and adds previous coordinate when in relative mode, i.e., <code>g(1) === 1</code></li>
+<li>extraction will error out when a G-code doesn't have a particular coordinate, defaulting to the current value at <code>index</code> in the accumulator</li>
+<li><code>if(n(c) &gt; 1</code> finds whether the current token is a mode toggler</li>
+<li>when the token is a mode toggler, put a Boolean in <code>isRelativeMode</code> and maintain coordinates; the Boolean is coerced to 0 or 1 in <code>g(1) * g(i)</code></li>
+<li>when the token isn't a mode toggler, maintain <code>isRelativeMode</code> and get new coordinates when they're present, maintaining coordinates that aren't present</li>
+<li>finally, drop <code>isRelativeMode</code> and output the rest of the accumulator</li>
+</ul>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 47 bytes</h1>
 <pre><code>Ｆ³⊞υ⁰Ｗ↧ＳＦ⪪§⪪ι;⁰ ≡⌈κgＦ№κ9≔Ｉ⌊κθ§≔υ℅⌈κ⁺×θ§υ℅⌈κΣκＩυ
 </code></pre>
 <p><a href="https://ato.pxeger.com/run?1=fZC_TsMwEMbFmqc4eTqLREooA2mmqkNViYpIYaBFDCZ_rTpOG9ukEuJJWDqA4JXgaXBIKjExWLo7f7_vPvv1M61YmzZMHI_vRhfe1ffZedG0gBMKsVEVGhd8GjldxUUOeN10eZsyleNS7oxOdMtliZRS-IWSneAaZ3ops_wwdtwFEhHa29gKCAXVcZ1WgCt24LWpcWvxZ6d3BVKS6WA1b4zUuLVISOz9TCleSpwzpXHF5YlzYW_DZXnBjNDTUXXab6PftBmXTPxd5UIsjMJbXucK9y78r-71yVhGzosT2wfrIYaxkzf1mKrx5z7uifckyMMXLkLfWfg-3AU-rO3ZBLYPg2HmXcDam8DGu3QG7gc" rel="nofollow noreferrer">Attempt This Online!</a> Link is to verbose version of code. Takes input as a list of newline-terminated strings. Explanation:</p>
@@ -57,26 +89,6 @@
 <pre><code>Ｉυ
 </code></pre>
 <p>Output the final axes.</p>
-</div>
-<div id="pu1" class="pu"><h1>Google Sheets, 260 bytes</h1>
-<pre class="lang-none prettyprint-override"><code>=sort(choosecols(reduce(W1:Z1,iferror(split(regexreplace(A:A,&quot;^G|;.*&quot;,),&quot; &quot;)),lambda(a,c,let(g,lambda(i,choosecols(a,i)),f,lambda(s,i,ifna(g(1)*g(i)+regexextract(c&amp;&quot;&quot;,s&amp;&quot;(-?\d+)&quot;),g(i))),if(n(c)&gt;1,{c=91,g({2,3,4})},{g(1),f(&quot;X&quot;,2),f(&quot;Y&quot;,3),f(&quot;Z&quot;,4)})))),2,3,4))
-</code></pre>
-<p><img src="https://i.sstatic.net/8KLduyTK.png" alt="screenshot" /></p>
-<p>Prettified:</p>
-<pre class="lang-none prettyprint-override"><code>=sort(choosecols(
-  reduce({ 0, 0, 0, 0 }, iferror(split(regexreplace(A:A, &quot;^G|;.*&quot;,), &quot; &quot;)), lambda(a, c, let(
-    g, lambda(i, choosecols(a, i)),
-    f, lambda(s, i, ifna(
-      g(1) * g(i) + regexextract(c &amp; &quot;&quot;, s &amp; &quot;(-?\d+)&quot;),
-      g(i)
-    )),
-    if(n(c) &gt; 1,
-      { c = 91, g({ 2, 3, 4 }) },
-      { g(1), f(&quot;X&quot;, 2), f(&quot;Y&quot;, 3), f(&quot;Z&quot;, 4) }
-  )))),
-  2, 3, 4
-))
-</code></pre>
 </div>
 <div id="pu2" class="pu"><h1>Python3, 213 bytes</h1>
 <pre class="lang-py prettyprint-override"><code>import re
