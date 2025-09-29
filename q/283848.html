@@ -26,9 +26,9 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>nan</td><td>Python</td><td>250925T120444Z</td><td><a href="https://codegolf.stackexchange.com/questions/283848/verify-a-chinese-id-number/283849#283849">ojdo</a></td></tr>
-<tr d-ix="1"><td>112</td><td>Python</td><td>250929T030617Z</td><td><a href="https://codegolf.stackexchange.com/questions/283848/verify-a-chinese-id-number/283917#283917">Lucenapo</a></td></tr>
-<tr d-ix="2"><td>167</td><td>JavaScript ES6</td><td>250926T053125Z</td><td><a href="https://codegolf.stackexchange.com/questions/283848/verify-a-chinese-id-number/283859#283859">Arnauld</a></td></tr>
+<tr d-ix="0"><td>160</td><td>JavaScript ES6</td><td>250926T053125Z</td><td><a href="https://codegolf.stackexchange.com/questions/283848/verify-a-chinese-id-number/283859#283859">Arnauld</a></td></tr>
+<tr d-ix="1"><td>nan</td><td>Python</td><td>250925T120444Z</td><td><a href="https://codegolf.stackexchange.com/questions/283848/verify-a-chinese-id-number/283849#283849">ojdo</a></td></tr>
+<tr d-ix="2"><td>112</td><td>Python</td><td>250929T030617Z</td><td><a href="https://codegolf.stackexchange.com/questions/283848/verify-a-chinese-id-number/283917#283917">Lucenapo</a></td></tr>
 <tr d-ix="3"><td>nan</td><td>Wolfram Language Mathematica</td><td>250927T105700Z</td><td><a href="https://codegolf.stackexchange.com/questions/283848/verify-a-chinese-id-number/283881#283881">138 Aspe</a></td></tr>
 <tr d-ix="4"><td>108</td><td>Python</td><td>250926T115538Z</td><td><a href="https://codegolf.stackexchange.com/questions/283848/verify-a-chinese-id-number/283863#283863">Albert.L</a></td></tr>
 <tr d-ix="5"><td>079</td><td>Ruby n rdate</td><td>250926T080812Z</td><td><a href="https://codegolf.stackexchange.com/questions/283848/verify-a-chinese-id-number/283862#283862">Dingus</a></td></tr>
@@ -37,7 +37,51 @@
 <tr d-ix="8"><td>068</td><td>05AB1E</td><td>250925T152027Z</td><td><a href="https://codegolf.stackexchange.com/questions/283848/verify-a-chinese-id-number/283851#283851">Kevin Cr</a></td></tr>
 <tr d-ix="9"><td>167</td><td>Excel ms365</td><td>250925T140051Z</td><td><a href="https://codegolf.stackexchange.com/questions/283848/verify-a-chinese-id-number/283850#283850">JvdV</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, <del>178</del> <del>177</del> <del>173</del> <del>169</del> 153 bytes</h1>
+<div id="pu0" class="pu"><h1>JavaScript (ES6), 160 bytes</h1>
+<p><em>-8 thanks to <a href="https://codegolf.stackexchange.com/users/76323/l4m2">@l4m2</a></em></p>
+<p>Returns a Boolean value.</p>
+
+<pre class="lang-javascript prettyprint-override"><code>S=&gt;!~S.replace(/^.{6}(....)(..)(..)...(\d|X)$/,(_,y,m,d,c)=&gt;(new Date(y+=`-${m}-`+d).toJSON(g=s=&gt;s&lt;17?g(s+1,t=S[s]*2+t*2):12-c||2)+g).match(y)&amp;&amp;(g(t=0)-t)%11-1)
+</code></pre>
+<p><a href="https://tio.run/##hdDdb9MwEADw9/0VxzSGvXzUdtq1RqRoHS9MYjx0QpX4mrHdJJDYU@wOonX86yVhmyiKup101j2cf7q77@JaOFkXVz4yVunNMt3M0@mz3/O41lelkBoNvsQ3x7cobgOj@2xr9EmtF/hgEKKvYRNWoQolTqfI6J/wRniNmiC9jA5uqtvoMlA49vZs/v4cZalLp@4VHb/OkAto6NP5R/f5iAX@iOGXlEVyvWY4yHBcCS9z1ODDQ5QhnxIcefyc0ojijbTG2VLHpc3QEu1TSigZUc4J6SqSjPcxBhgM4IMoC7W3o33IKUvadrb4rz2Gi1yDzLX84VYVUAKFg/tbKPjWwCLee2oA/iC@Ndd35umD12IcCuO8FgrsEsY7MU6TDhtOetg7a3wONAFltTMvPOhfhfO7x@LkuFt0yHrS2cposKZsIBcOEgJKNO4xqDsZS4ajTtqGKG9PJmohva7d9n500udYcjJrHz6ik9nstK16c51bE5lVpetCbrk9ifz92It/0uYP" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
+<h3>Commented</h3>
+<p><strong>Regular expression</strong></p>
+<pre class="lang-javascript prettyprint-override"><code>// a regular expression that matches either the relevant parts of an ID
+// that is sufficiently well-formed, or nothing at all
+const REGEX = /^.{6}(....)(..)(..)...(\d|X)$/
+</code></pre>
+<p><strong>Helper function</strong></p>
+<pre class="lang-javascript prettyprint-override"><code>g = s =&gt;         // g is a recursive function taking a counter s
+s &lt; 17 ?         // if s is less than 17:
+  g(             //   do a recursive call:
+    s + 1,       //     increment s
+    t =          //     update t:
+      S[s] * 2 + //       multiply the s-th character by 2
+      t * 2      //       add t * 2
+  )              //   end of recursive call
+:                // else:
+  12 - c         //   return 12 - c
+  || 2           //   or 2 if undefined (when c = 'X')
+</code></pre>
+<p><strong>Main function</strong></p>
+<pre class="lang-javascript prettyprint-override"><code>S =&gt;                    // S = input string
+!~S.replace(            // replace in S
+  REGEX,                // if S has the correct length and ends with either
+                        // a digit or 'X': capture the date parts and the
+                        // checksum; otherwise: match the empty string
+  (_, y, m, d, c) =&gt;    // y = year, m = month, d = day, c = checksum
+  (                     // (they may be all undefined)
+    new Date(           // create a date from ...
+      y += `-${m}-` + d // ... (y, m, d) arranged in YYYY-MM-DD format
+    ).toJSON()          // and convert it to ISO 8601 format
+    + g                 // coerce to a string (in case it's null)
+  ).match(y) &amp;&amp; (       // does it match the original YYYY-MM-DD string?
+    g(t = 0) - t        // invoke g with t = s = 0, then subtract t
+  ) % 11 - 1            // reduce modulo 11 and decrement
+)                       // we get '-1' if and only if everything is correct
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, <del>178</del> <del>177</del> <del>173</del> <del>169</del> 153 bytes</h1>
 <p>Returns <code>True</code> for Valid, but one of <code>False</code>,<code>0</code> for Invalid. Heavy lifting is done by the standard library. Checksum copy &amp; pasted directly from the challenge text. Point of proudness: reads <em>relatively</em> clean for a codegolf submission.</p>
 <pre class="lang-python prettyprint-override"><code>from datetime import*
 def f(s):
@@ -56,59 +100,12 @@ def f(s):
 <li>153 (-16) <code>A if B else C</code> to <code>[C,A][B]</code>, <code>*(len(s)==18)</code> saves a <code>len(s)!=18:return False</code> @movatica</li>
 </ul>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 112 bytes</h1>
+<div id="pu2" class="pu"><h1><a href="https://www.python.org" rel="nofollow noreferrer">Python</a>, 112 bytes</h1>
 <pre class="lang-python prettyprint-override"><code>def f(s):date.fromisoformat(s[6:14]);1/('1X864209753'[int(s[:17],13)%11]*len(s)==s[17]*18)
 from datetime import*
 </code></pre>
 <p><a href="https://ato.pxeger.com/run?1=ZZHRSsMwFIbxti9hGEibUWdO025NpRdOfIfBHKV0KQbaNDRHcM_izW70nfRpTFaGg-Xi5D9fTv4kJ5_f5oBvgz4ev96xvc9_zF62pI0sLfY1ykU7Dr2yQzuMfY2R3S4LSHf0ER6iEDb5Mk2YWGU83CrtVwtY7WLg9A5gN--kdjZlabeOziGngTcj3hZVL4nqzTDifDr39-YWG0tKMpvNABiwDIRgzCvGV8EZpQIS7lCyCa6qxD8SwD1KswvElvwKebOEe5bwp7ULIoN8vX52yt0jcK8m2BClXbQLazqFUfiqQ1oExA0cD0UbYUNPmfxopEHycprUoEltiSzM6DuDTSxjuaiqpqutrSqndN3LqoqtNOXJcvLo7MUWmOCU06lP53_6Aw" rel="nofollow noreferrer">Attempt This Online!</a></p>
 <p>Basically a golfed form of <a href="https://codegolf.stackexchange.com/a/283849">https://codegolf.stackexchange.com/a/283849</a>.</p>
-</div>
-<div id="pu2" class="pu"><h1>JavaScript (ES6), 167 bytes</h1>
-<p><em>-1 thanks to <a href="https://codegolf.stackexchange.com/users/76323/l4m2">@l4m2</a></em></p>
-<p>Returns a Boolean value.</p>
-
-<pre class="lang-javascript prettyprint-override"><code>S=&gt;S.replace(/^.{6}(....)(..)(..)...(\d|X)$|/,(_,y,m,d,c)=&gt;(new Date(y+=`-${m}-`+d).toJSON(g=s=&gt;s&lt;17?g(s+1,t=S[s]*2+t*2%11):1/c?c:10)+g).match(y)&amp;&amp;g(t=0)==(34-t)%11)&gt;g
-</code></pre>
-<p><a href="https://tio.run/##hdDfT9swEAfwd/6KE2LMJoljJymt0Vy0wgtIYw9FU6X9wnPcJFtio9iFRcDf3iUCpE5VN0tn3cNXH93dT3knnWqrWx8Zm@v1UqznYjonrb6tpdIo/kYejp8Q6R9GL9X36Ev@uMAHj3GIvodd2IR5qLCYIqPv4Vx6jbpA3EQHD81TdBPkmHh7Of94hQrhxNS9Y@PTArmAhV7MP7uvR0ngj5I3jOETFqtTdcIoDgpMGulViTp8eFggLygWAqVZ5PGQnBZrZY2ztSa1LdAS7TNGGR0xzikdOpqO9zEGiGP4JOsq39sRzzhL0j6eLP6KE7guNahSq19u1QCjUDl4OUoOPzpYkL3/DcBfxQtz92yevXo9xqEyzmuZg13CeCfGWTpg2WQL@2CNL4GlkFvtzFsP@nfl/O6xOD0eFs2SLelyZTRYU3dQSgcphVx27l/QcLIkzUaDtAkx3p9MtlJ53brN/dhkm0vS97P@4yM2mc3O@m5rritrIrNqdFupDZes/wA" rel="nofollow noreferrer" title="JavaScript (Node.js) – Try It Online">Try it online!</a></p>
-<h3>Commented</h3>
-<p><strong>Regular expression</strong></p>
-<pre class="lang-javascript prettyprint-override"><code>// a regular expression that matches either the relevant parts of an ID
-// that is sufficiently well-formed, or the empty string
-const REGEX = /^.{6}(....)(..)(..)...(\d|X)$|/
-</code></pre>
-<p><strong>Helper function</strong></p>
-<pre class="lang-javascript prettyprint-override"><code>g = s =&gt;         // g is a recursive function taking a counter s
-s &lt; 17 ?         // if s is less than 17:
-  g(             //   do a recursive call:
-    s + 1,       //     increment s
-    t =          //     update t:
-      S[s] * 2 + //       multiply the s-th character by 2
-      t * 2 % 11 //       add t * 2, reduced modulo 11
-  )              //   end of recursive call
-:                // else:
-  1 / c ?        //   if c is numeric:
-    c            //     return c
-  :              //   else (c is 'X'):
-    10           //     return 10
-</code></pre>
-<p><strong>Main function</strong></p>
-<pre class="lang-javascript prettyprint-override"><code>S =&gt;                    // S = input string
-S.replace(              // replace in S
-  REGEX,                // if S has the correct length and ends with either
-                        // a digit or 'X': capture the date parts and the
-                        // checksum; otherwise: match the empty string
-  (_, y, m, d, c) =&gt;    // y = year, m = month, d = day, c = checksum
-  (                     // (they may be all undefined)
-    new Date(           // create a date from ...
-      y += `-${m}-` + d // ... (y, m, d) arranged in YYYY-MM-DD format
-    ).toJSON()          // and convert it to ISO 8601 format
-    + g                 // coerce to a string (in case it's null)
-  ).match(y) &amp;&amp;         // does it match the original YYYY-MM-DD string?
-  g(t = 0) ==           // invoke g with t = s = 0
-  (34 - t) % 11         // is the checksum correct?
-) &gt; g                   // is the final result 'true'? (greater than 's')
-                        // it may also be 'false' or 'null&lt;some_garbage&gt;'
-</code></pre>
 </div>
 <div id="pu3" class="pu"><h1><a href="https://www.wolfram.com/wolframscript/" rel="nofollow noreferrer">Wolfram Language (Mathematica)</a>, <del>464</del> 216 bytes</h1>
 <p>Saved 248 bytes thanks to @Matt</p>
