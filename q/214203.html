@@ -26,9 +26,447 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>011</td><td>Rust</td><td>201108T231337Z</td><td><a href="https://codegolf.stackexchange.com/questions/214203/gluing-tetrahedra-together/214928#214928">wastl</a></td></tr>
+<tr d-ix="0"><td>1213</td><td>C++ GCC</td><td>251003T124500Z</td><td><a href="https://codegolf.stackexchange.com/questions/214203/gluing-tetrahedra-together/283991#283991">Deadcode</a></td></tr>
+<tr d-ix="1"><td>011</td><td>Rust</td><td>201108T231337Z</td><td><a href="https://codegolf.stackexchange.com/questions/214203/gluing-tetrahedra-together/214928#214928">wastl</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.rust-lang.org/" rel="nofollow noreferrer">Rust</a>, 11 (hopefully correct) terms</h1>
+<div id="pu0" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C++ (GCC)</a>, 12 or maybe 13 terms</h1>
+<pre class="lang-cpp prettyprint-override"><code>#include &lt;stdio.h&gt;
+#include &lt;iostream&gt;
+#include &lt;string.h&gt;
+#include &lt;cstdint&gt;
+#include &lt;cinttypes&gt;
+#include &lt;array&gt;
+#include &lt;algorithm&gt;
+#include &lt;vector&gt;
+#include &lt;list&gt;
+#include &lt;functional&gt;
+#include &lt;unordered_set&gt;
+#include &lt;chrono&gt;
+
+//#define DEBUG_PRINT
+
+typedef __int128 Coord;
+typedef std::array&lt;Coord, 3&gt; Coord3;
+typedef std::array&lt;Coord3, 4&gt; Tetrahedron;
+class Tet
+{
+    void initFaces()
+    {
+        faceAttached[0] = false; // t[0],t[1],t[2]
+        faceAttached[1] = false; // t[0],t[1],t[3]
+        faceAttached[2] = false; // t[0],t[2],t[3]
+        faceAttached[3] = false; // t[1],t[2],t[3]
+    }
+public:
+    Tetrahedron t;
+    bool faceAttached[4];
+    Tet(                    ) : t( ) {initFaces();}
+    Tet(const Tetrahedron &amp;t) : t(t) {initFaces();}
+};
+typedef std::vector&lt;Tet&gt; Polytet;
+
+// vertex indices of faces with identical chirality
+static int tetrahedronFaces[4][4] =
+{
+    {0, 1, 2, 3},
+    {0, 3, 1, 2},
+    {0, 2, 3, 1},
+    {1, 3, 2, 0},
+};
+
+Coord3 operator-(const Coord3 &amp;a)
+{
+    Coord3 c;
+    c[0] = -a[0];
+    c[1] = -a[1];
+    c[2] = -a[2];
+    return c;
+}
+Coord3 operator+(const Coord3 &amp;a, const Coord3 &amp;b)
+{
+    Coord3 c;
+    c[0] = a[0] + b[0];
+    c[1] = a[1] + b[1];
+    c[2] = a[2] + b[2];
+    return c;
+}
+Coord3 operator-(const Coord3 &amp;a, const Coord3 &amp;b)
+{
+    Coord3 c;
+    c[0] = a[0] - b[0];
+    c[1] = a[1] - b[1];
+    c[2] = a[2] - b[2];
+    return c;
+}
+Coord3 operator*(const Coord3 &amp;a, const Coord b)
+{
+    Coord3 c;
+    c[0] = a[0] * b;
+    c[1] = a[1] * b;
+    c[2] = a[2] * b;
+    return c;
+}
+Coord3 cross(const Coord3 a, const Coord3 b)
+{
+    Coord3 c;
+    c[0] = a[1]*b[2] - a[2]*b[1];
+    c[1] = a[2]*b[0] - a[0]*b[2];
+    c[2] = a[0]*b[1] - a[1]*b[0];
+    return c;
+}
+Coord dot(const Coord3 &amp;a, const Coord3 &amp;b)
+{
+    return a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
+}
+bool volumesOverlap(const Tetrahedron &amp;a, const Tetrahedron &amp;b)
+{
+    // Take advantage of the fact that the two tetrahedrons are regular and congruent, and
+    // just check if any edge of tetrahedron "a" intersects with any face of tetrahedron "b".
+    // Don't count it if only the endpoint of an edge intersects.
+    static int edges[6][2] =
+    {
+        {0, 1},
+        {1, 2},
+        {2, 0},
+        {0, 3},
+        {1, 3},
+        {2, 3},
+    };
+    for (int edgeNum=0; edgeNum&lt;6; edgeNum++)
+    {
+        Coord3 p0 = a[edges[edgeNum][0]];
+        Coord3 p1 = a[edges[edgeNum][1]];
+        for (int faceNum=0; faceNum&lt;4; faceNum++)
+        {
+            Tetrahedron normalizedTetrahedron; // first 3 points are the face, and the 4th point is for calculating the normal
+            for (int i=0; i&lt;4; i++)
+                normalizedTetrahedron[i] = b[tetrahedronFaces[faceNum][i]];
+            Coord3 center = {{0, 0, 0}}; // multiplied by 3 compared to original coordinates
+            // Get center of face by averaging its vertices' coordinates; the
+            // division by 3 is implied by omitting the multiplication by 3.
+            for (int p=0; p&lt;3; p++)
+                for (int d=0; d&lt;3; d++)
+                    center[d] += normalizedTetrahedron[p][d];
+            Coord3 normal;
+            for (int d=0; d&lt;3; d++)
+                normal[d] = normalizedTetrahedron[3][d] * 3 - center[d];
+            Coord intersectNumerator   = dot(normal, normalizedTetrahedron[0] - p0);
+            Coord intersectDenominator = dot(normal,                       p1 - p0);
+            if (intersectDenominator == 0)
+                continue; // edge is parallel to face, which we don't count as an overlap
+            if (intersectDenominator &lt; 0)
+            {
+                intersectNumerator   = -intersectNumerator;
+                intersectDenominator = -intersectDenominator;
+            }
+            if (intersectNumerator &lt;= 0 || intersectNumerator &gt;= intersectDenominator)
+                continue;
+            // These coordinates are all multiplied by intersectDenominator
+            Coord3 intersectionPoint = p0 * intersectDenominator + (p1 - p0) * intersectNumerator;
+            Coord3 triangle[3];
+            for (int i=0; i&lt;3; i++)
+                triangle[i] = normalizedTetrahedron[i] * intersectDenominator;
+            // Check if the intersection point is inside the triangle
+            Coord3 d = intersectionPoint - triangle[0];
+            Coord3 edge1 = triangle[1] - triangle[0];
+            Coord3 edge2 = triangle[2] - triangle[0];
+            Coord uNumerator = d[1]*edge2[0] - d[0]*edge2[1];
+            Coord vNumerator = d[0]*edge1[1] - d[1]*edge1[0];
+            Coord uvDenominator = edge1[1]*edge2[0] - edge1[0]*edge2[1];
+            if (uvDenominator == 0)
+                continue;
+            if (uvDenominator &lt; 0)
+            {
+                uNumerator = -uNumerator;
+                vNumerator = -vNumerator;
+                uvDenominator = -uvDenominator;
+            }
+            if (uNumerator &lt;= 0 || vNumerator &lt;= 0)
+                continue;
+            if (uNumerator + vNumerator &lt; uvDenominator)
+                return true;
+        }
+    }
+    return false;
+}
+
+class NormalizedPolytet : public std::vector&lt;Tetrahedron&gt;
+{
+public:
+    NormalizedPolytet(const Polytet &amp;polytet)
+    {
+        reserve(polytet.size());
+        for (auto tet=polytet.cbegin(); tet!=polytet.cend(); ++tet)
+        {
+            Tetrahedron &amp;t = emplace_back(tet-&gt;t);
+            std::sort(t.begin(), t.end());
+        }
+        std::sort(this-&gt;begin(), this-&gt;end());
+    }
+};
+
+bool operator&lt;(const Polytet &amp;_a, const Polytet &amp;_b)
+// implicitly assume a.size()==b.size()
+{
+    NormalizedPolytet a(_a), b(_b);
+    for (auto ta=a.cbegin(), tb=b.cbegin(); ta!=a.cend(); ++ta,++tb)
+    {
+        auto result = *ta &lt;=&gt; *tb;
+        if (result != 0)
+            return result &lt; 0;
+    }
+    return false;
+}
+bool operator&gt;(const Polytet &amp;a, const Polytet &amp;b)
+{
+    return !(a &lt; b);
+}
+bool operator==(const Polytet &amp;_a, const Polytet &amp;_b)
+// implicitly assume a.size()==b.size()
+{
+    NormalizedPolytet a(_a), b(_b);
+    for (auto ta=a.cbegin(), tb=b.cbegin(); ta!=a.cend(); ++ta,++tb)
+    {
+        auto result = *ta &lt;=&gt; *tb;
+        if (result != 0)
+            return false;
+    }
+    return true;
+}
+
+namespace std
+{
+    template&lt;&gt;
+    struct hash&lt;Polytet&gt;
+    {
+        std::size_t operator()(const Polytet &amp;_polytet) const noexcept
+        {
+            NormalizedPolytet polytet(_polytet);
+            std::size_t seed = polytet.size();
+            for (auto t=polytet.cbegin(); t!=polytet.cend(); ++t)
+            {
+                for (auto c=t-&gt;cbegin(); c!=t-&gt;cend(); ++c)
+                {
+                    for (auto i=c-&gt;cbegin(); i!=c-&gt;cend(); ++i)
+                    {
+                        seed ^= std::hash&lt;uint64_t&gt;{}((uint64_t)(*i      )) + 0x9e3779b9 + (seed &lt;&lt; 6) + (seed &gt;&gt; 2);
+                        seed ^= std::hash&lt;uint64_t&gt;{}((uint64_t)(*i &gt;&gt; 64)) + 0x9e3779b9 + (seed &lt;&lt; 6) + (seed &gt;&gt; 2);
+                    }
+                }
+            }
+            return seed;
+        }
+    };
+};
+
+int main(int argc, char *argv[])
+{
+    auto startTime = std::chrono::steady_clock::now();
+
+    static const Tetrahedron start =
+    {{
+        {{-1,-1,-1}},
+        {{-1, 1, 1}},
+        {{ 1,-1, 1}},
+        {{ 1, 1,-1}}
+    }};
+    Polytet startPolytet;
+    startPolytet.emplace_back(start);
+
+    Coord power3 = 1;
+    auto *polytets = new std::unordered_set&lt;Polytet&gt;;
+    polytets-&gt;insert(startPolytet);
+    for (int tetCount=1;;)
+    {
+        auto currentTime = std::chrono::steady_clock::now();
+        std::cout &lt;&lt; tetCount &lt;&lt; ": " &lt;&lt; polytets-&gt;size() &lt;&lt; " [" &lt;&lt; std::chrono::duration_cast&lt;std::chrono::milliseconds&gt;(currentTime - startTime).count() &lt;&lt; " ms]" &lt;&lt; std::endl;
+        ++tetCount;
+#ifdef DEBUG_PRINT
+        if (tetCount &gt; 10)
+            break;
+#endif
+        power3 *= 3;
+        auto *newPolytets = new std::unordered_set&lt;Polytet&gt;;
+        for (auto basePolytet=polytets-&gt;cbegin(); basePolytet!=polytets-&gt;cend(); ++basePolytet)
+        {
+            for (auto tetToAttachTo=basePolytet-&gt;cbegin(); tetToAttachTo!=basePolytet-&gt;cend(); ++tetToAttachTo)
+            {
+                for (int faceNum=0; faceNum&lt;4; faceNum++)
+                {
+                    if (!tetToAttachTo-&gt;faceAttached[faceNum])
+                    {
+                        Polytet newPolytet;
+                        newPolytet.reserve(tetCount);
+                        Tet *tetCopyToAttachTo; // take note of this just for speed
+                        for (auto tetToCopy=basePolytet-&gt;cbegin(); tetToCopy!=basePolytet-&gt;cend(); ++tetToCopy)
+                        {
+                            Tet &amp;t = newPolytet.emplace_back();
+                            for (int p=0; p&lt;4; p++)
+                            for (int d=0; d&lt;3; d++)
+                                t.t[p][d] = tetToCopy-&gt;t[p][d] * 3;
+                            memcpy(t.faceAttached, tetToCopy-&gt;faceAttached, sizeof(t.faceAttached));
+                            if (tetToCopy == tetToAttachTo)
+                            {
+                                t.faceAttached[faceNum] = true;
+                                tetCopyToAttachTo = &amp;t;
+                            }
+                        }
+                        Coord3 newVertex = {{0, 0, 0}};
+                        // Get center of face by averaging its vertices' coordinates; the
+                        // division by 3 is implied by omitting the multiplication by 3.
+                        for (int p=0; p&lt;4; p++)
+                        {
+                            if (p == 3 - faceNum)
+                                continue;
+                            for (int d=0; d&lt;3; d++)
+                                newVertex[d] += tetToAttachTo-&gt;t[p][d];
+                        }
+                        for (int d=0; d&lt;3; d++)
+                            newVertex[d] += newVertex[d] - tetToAttachTo-&gt;t[3 - faceNum][d] * 3;
+                        // Add new tetrahedron
+                        Tet &amp;t = newPolytet.emplace_back();
+                        for (int p=0; p&lt;3; p++)
+                        {
+                            int p0 = p;
+                            if (!(faceNum &amp; 1))
+                                p0 ^=      (p  &lt;  2           ? 1 : 0); // swap first two vertices to preserve chirality
+                            int p1  = p0 + (p0 &gt;= 3 - faceNum ? 1 : 0); // skip the opposite vertex
+                            for (int d=0; d&lt;3; d++)
+                                t.t[p][d] = tetToAttachTo-&gt;t[p1][d] * 3;
+                        }
+                        t.t[3] = newVertex;
+                        t.faceAttached[0] = true;
+                        t.faceAttached[1] = false;
+                        t.faceAttached[2] = false;
+                        t.faceAttached[3] = false;
+                        // Check for overlap between this newly attached tetrahedron and the existing ones
+                        for (auto tetCheckIntersection=newPolytet.cbegin(); tetCheckIntersection!=newPolytet.cend(); ++tetCheckIntersection)
+                        {
+                            if (&amp;*tetCheckIntersection == tetCopyToAttachTo)
+                                continue; // skip this check for speed (it'll always be false anyway)
+                            if (volumesOverlap(t.t, tetCheckIntersection-&gt;t))
+                                goto discardThisNewPolytet;
+                        }
+                        // Canonicalize the rotation of this new polytet, so that it can be compared against others
+                        bool haveRunningLeast = false;
+                        Polytet runningLeastPolytet;
+                        for (auto tetToRotateNormalize=newPolytet.cbegin(); tetToRotateNormalize!=newPolytet.cend(); ++tetToRotateNormalize)
+                        {
+                            // only rotate-normalize to tetrahedrons with 1 attached face; every polytet is guaranteed to have some
+                            int faceToRotateNormalize;
+                            {
+                                int attachCount = 0;
+                                for (int i=0; i&lt;4; i++)
+                                    if (tetToRotateNormalize-&gt;faceAttached[i])
+                                    {
+                                        faceToRotateNormalize = i;
+                                        if (++attachCount &gt; 1)
+                                            break;
+                                    }
+                                if (attachCount &gt; 1)
+                                    continue;
+                            }
+                            Tetrahedron n;
+                            for (int i=0; i&lt;4; i++)
+                                n[i] = tetToRotateNormalize-&gt;t[tetrahedronFaces[faceToRotateNormalize][i]];
+                            for (int faceRotation=0; faceRotation&lt;3; faceRotation++)
+                            {
+                                // Solve for an affine transformation that rotates and translates the polytet so that "tetToRotateNormalize" goes into the same position as the first face of the "start" tetrahedron
+                                Coord xx_numerator = power3*(  ( n[2][1] - n[3][1])*(n[0][2] - n[1][2])  - (n[0][1] - n[1][1])*(n[2][2] - n[3][2]) ); Coord xx_denominator = (-(n[1][0]*n[2][1]*n[0][2]) + n[1][0]*n[3][1]*n[0][2] + n[0][0]*n[2][1]*n[1][2] - n[0][0]*n[3][1]*n[1][2] + n[1][0]*n[0][1]*n[2][2] - n[0][0]*n[1][1]*n[2][2] + n[0][0]*n[3][1]*n[2][2] - n[1][0]*n[3][1]*n[2][2] + n[3][0]*(-(n[1][1]*n[0][2]) + n[2][1]*n[0][2] + n[0][1]*n[1][2] - n[2][1]*n[1][2] - n[0][1]*n[2][2] + n[1][1]*n[2][2]) + (-(n[1][0]*n[0][1]) + n[0][0]*n[1][1] - n[0][0]*n[2][1] + n[1][0]*n[2][1])*n[3][2] + n[2][0]*(-(n[3][1]*n[0][2]) - n[0][1]*n[1][2] + n[3][1]*n[1][2] + n[1][1]*(n[0][2] - n[3][2]) + n[0][1]*n[3][2]));
+                                Coord xy_numerator = power3*((-((n[2][0] - n[3][0])*(n[0][2] - n[1][2])) + (n[0][0] - n[1][0])*(n[2][2] - n[3][2]))); Coord xy_denominator = (-(n[1][0]*n[2][1]*n[0][2]) + n[1][0]*n[3][1]*n[0][2] + n[0][0]*n[2][1]*n[1][2] - n[0][0]*n[3][1]*n[1][2] + n[1][0]*n[0][1]*n[2][2] - n[0][0]*n[1][1]*n[2][2] + n[0][0]*n[3][1]*n[2][2] - n[1][0]*n[3][1]*n[2][2] + n[3][0]*(-(n[1][1]*n[0][2]) + n[2][1]*n[0][2] + n[0][1]*n[1][2] - n[2][1]*n[1][2] - n[0][1]*n[2][2] + n[1][1]*n[2][2]) + (-(n[1][0]*n[0][1]) + n[0][0]*n[1][1] - n[0][0]*n[2][1] + n[1][0]*n[2][1])*n[3][2] + n[2][0]*(-(n[3][1]*n[0][2]) - n[0][1]*n[1][2] + n[3][1]*n[1][2] + n[1][1]*(n[0][2] - n[3][2]) + n[0][1]*n[3][2]));
+                                Coord xz_numerator = power3*(  ( n[2][0] - n[3][0])*(n[0][1] - n[1][1])  - (n[0][0] - n[1][0])*(n[2][1] - n[3][1]) ); Coord xz_denominator = (-(n[1][0]*n[2][1]*n[0][2]) + n[1][0]*n[3][1]*n[0][2] + n[0][0]*n[2][1]*n[1][2] - n[0][0]*n[3][1]*n[1][2] + n[1][0]*n[0][1]*n[2][2] - n[0][0]*n[1][1]*n[2][2] + n[0][0]*n[3][1]*n[2][2] - n[1][0]*n[3][1]*n[2][2] + n[3][0]*(-(n[1][1]*n[0][2]) + n[2][1]*n[0][2] + n[0][1]*n[1][2] - n[2][1]*n[1][2] - n[0][1]*n[2][2] + n[1][1]*n[2][2]) + (-(n[1][0]*n[0][1]) + n[0][0]*n[1][1] - n[0][0]*n[2][1] + n[1][0]*n[2][1])*n[3][2] + n[2][0]*(-(n[3][1]*n[0][2]) - n[0][1]*n[1][2] + n[3][1]*n[1][2] + n[1][1]*(n[0][2] - n[3][2]) + n[0][1]*n[3][2]));
+                                Coord yx_numerator = power3*( -((n[1][1] - n[3][1])*(n[0][2] - n[2][2])) + (n[0][1] - n[2][1])*(n[1][2] - n[3][2]) ); Coord yx_denominator = (-(n[1][0]*n[2][1]*n[0][2]) + n[1][0]*n[3][1]*n[0][2] + n[0][0]*n[2][1]*n[1][2] - n[0][0]*n[3][1]*n[1][2] + n[1][0]*n[0][1]*n[2][2] - n[0][0]*n[1][1]*n[2][2] + n[0][0]*n[3][1]*n[2][2] - n[1][0]*n[3][1]*n[2][2] + n[3][0]*(-(n[1][1]*n[0][2]) + n[2][1]*n[0][2] + n[0][1]*n[1][2] - n[2][1]*n[1][2] - n[0][1]*n[2][2] + n[1][1]*n[2][2]) + (-(n[1][0]*n[0][1]) + n[0][0]*n[1][1] - n[0][0]*n[2][1] + n[1][0]*n[2][1])*n[3][2] + n[2][0]*(-(n[3][1]*n[0][2]) - n[0][1]*n[1][2] + n[3][1]*n[1][2] + n[1][1]*(n[0][2] - n[3][2]) + n[0][1]*n[3][2]));
+                                Coord yy_numerator = power3*(  ( n[1][0] - n[3][0])*(n[0][2] - n[2][2])  - (n[0][0] - n[2][0])*(n[1][2] - n[3][2]) ); Coord yy_denominator = (-(n[1][0]*n[2][1]*n[0][2]) + n[1][0]*n[3][1]*n[0][2] + n[0][0]*n[2][1]*n[1][2] - n[0][0]*n[3][1]*n[1][2] + n[1][0]*n[0][1]*n[2][2] - n[0][0]*n[1][1]*n[2][2] + n[0][0]*n[3][1]*n[2][2] - n[1][0]*n[3][1]*n[2][2] + n[3][0]*(-(n[1][1]*n[0][2]) + n[2][1]*n[0][2] + n[0][1]*n[1][2] - n[2][1]*n[1][2] - n[0][1]*n[2][2] + n[1][1]*n[2][2]) + (-(n[1][0]*n[0][1]) + n[0][0]*n[1][1] - n[0][0]*n[2][1] + n[1][0]*n[2][1])*n[3][2] + n[2][0]*(-(n[3][1]*n[0][2]) - n[0][1]*n[1][2] + n[3][1]*n[1][2] + n[1][1]*(n[0][2] - n[3][2]) + n[0][1]*n[3][2]));
+                                Coord yz_numerator = power3*( -((n[1][0] - n[3][0])*(n[0][1] - n[2][1])) + (n[0][0] - n[2][0])*(n[1][1] - n[3][1]) ); Coord yz_denominator = (-(n[1][0]*n[2][1]*n[0][2]) + n[1][0]*n[3][1]*n[0][2] + n[0][0]*n[2][1]*n[1][2] - n[0][0]*n[3][1]*n[1][2] + n[1][0]*n[0][1]*n[2][2] - n[0][0]*n[1][1]*n[2][2] + n[0][0]*n[3][1]*n[2][2] - n[1][0]*n[3][1]*n[2][2] + n[3][0]*(-(n[1][1]*n[0][2]) + n[2][1]*n[0][2] + n[0][1]*n[1][2] - n[2][1]*n[1][2] - n[0][1]*n[2][2] + n[1][1]*n[2][2]) + (-(n[1][0]*n[0][1]) + n[0][0]*n[1][1] - n[0][0]*n[2][1] + n[1][0]*n[2][1])*n[3][2] + n[2][0]*(-(n[3][1]*n[0][2]) - n[0][1]*n[1][2] + n[3][1]*n[1][2] + n[1][1]*(n[0][2] - n[3][2]) + n[0][1]*n[3][2]));
+                                Coord zx_numerator = power3*( -((n[0][1] - n[3][1])*(n[1][2] - n[2][2])) + (n[1][1] - n[2][1])*(n[0][2] - n[3][2]) ); Coord zx_denominator = (-(n[1][0]*n[2][1]*n[0][2]) + n[1][0]*n[3][1]*n[0][2] + n[0][0]*n[2][1]*n[1][2] - n[0][0]*n[3][1]*n[1][2] + n[1][0]*n[0][1]*n[2][2] - n[0][0]*n[1][1]*n[2][2] + n[0][0]*n[3][1]*n[2][2] - n[1][0]*n[3][1]*n[2][2] + n[3][0]*(-(n[1][1]*n[0][2]) + n[2][1]*n[0][2] + n[0][1]*n[1][2] - n[2][1]*n[1][2] - n[0][1]*n[2][2] + n[1][1]*n[2][2]) + (-(n[1][0]*n[0][1]) + n[0][0]*n[1][1] - n[0][0]*n[2][1] + n[1][0]*n[2][1])*n[3][2] + n[2][0]*(-(n[3][1]*n[0][2]) - n[0][1]*n[1][2] + n[3][1]*n[1][2] + n[1][1]*(n[0][2] - n[3][2]) + n[0][1]*n[3][2]));
+                                Coord zy_numerator = power3*(  ( n[0][0] - n[3][0])*(n[1][2] - n[2][2])  - (n[1][0] - n[2][0])*(n[0][2] - n[3][2]) ); Coord zy_denominator = (-(n[1][0]*n[2][1]*n[0][2]) + n[1][0]*n[3][1]*n[0][2] + n[0][0]*n[2][1]*n[1][2] - n[0][0]*n[3][1]*n[1][2] + n[1][0]*n[0][1]*n[2][2] - n[0][0]*n[1][1]*n[2][2] + n[0][0]*n[3][1]*n[2][2] - n[1][0]*n[3][1]*n[2][2] + n[3][0]*(-(n[1][1]*n[0][2]) + n[2][1]*n[0][2] + n[0][1]*n[1][2] - n[2][1]*n[1][2] - n[0][1]*n[2][2] + n[1][1]*n[2][2]) + (-(n[1][0]*n[0][1]) + n[0][0]*n[1][1] - n[0][0]*n[2][1] + n[1][0]*n[2][1])*n[3][2] + n[2][0]*(-(n[3][1]*n[0][2]) - n[0][1]*n[1][2] + n[3][1]*n[1][2] + n[1][1]*(n[0][2] - n[3][2]) + n[0][1]*n[3][2]));
+                                Coord zz_numerator = power3*(  ( n[0][0] - n[3][0])*(n[1][1] - n[2][1])  - (n[1][0] - n[2][0])*(n[0][1] - n[3][1]) ); Coord zz_denominator = ( n[1][0]*n[2][1]*n[0][2] - n[1][0]*n[3][1]*n[0][2] - n[0][0]*n[2][1]*n[1][2] + n[0][0]*n[3][1]*n[1][2] - n[1][0]*n[0][1]*n[2][2] + n[0][0]*n[1][1]*n[2][2] - n[0][0]*n[3][1]*n[2][2] + n[1][0]*n[3][1]*n[2][2] + n[3][0]*(n[1][1]*n[0][2] - n[2][1]*n[0][2] - n[0][1]*n[1][2] + n[2][1]*n[1][2] + n[0][1]*n[2][2] - n[1][1]*n[2][2]) + n[1][0]*n[0][1]*n[3][2] - n[0][0]*n[1][1]*n[3][2] + n[0][0]*n[2][1]*n[3][2] - n[1][0]*n[2][1]*n[3][2] + n[2][0]*(n[3][1]*n[0][2] + n[0][1]*n[1][2] - n[3][1]*n[1][2] - n[0][1]*n[3][2] + n[1][1]*(-n[0][2] + n[3][2])));
+                                Coord x0 = ( n[1][0]*n[2][1]*n[0][2] - n[1][0]*n[3][1]*n[0][2] - n[0][0]*n[2][1]*n[1][2] + n[0][0]*n[3][1]*n[1][2] - n[1][0]*n[0][1]*n[2][2] + n[0][0]*n[1][1]*n[2][2] + n[0][0]*n[3][1]*n[2][2] - n[1][0]*n[3][1]*n[2][2] + n[3][0]*(n[2][1]*(n[0][2] - n[1][2]) + n[1][1]*(n[0][2] + n[2][2]) - n[0][1]*(n[1][2] + n[2][2])) + n[1][0]*(n[0][1] + n[2][1])*n[3][2] - n[0][0]*(n[1][1] + n[2][1])*n[3][2] + n[2][0]*(n[3][1]*(-n[0][2] + n[1][2]) - n[1][1]*(n[0][2] + n[3][2]) + n[0][1]*(n[1][2] + n[3][2])));
+                                Coord y0 = ( n[1][0]*n[2][1]*n[0][2] + n[1][0]*n[3][1]*n[0][2] - n[0][0]*n[2][1]*n[1][2] - n[0][0]*n[3][1]*n[1][2] - n[3][0]*((n[1][1] + n[2][1])*n[0][2] + (-n[0][1] + n[2][1])*n[1][2]) - n[1][0]*n[0][1]*n[2][2] + n[0][0]*n[1][1]*n[2][2] + n[3][0]*(n[0][1] + n[1][1])*n[2][2] - n[0][0]*n[3][1]*n[2][2] - n[1][0]*n[3][1]*n[2][2] + (-(n[1][0]*n[0][1]) + n[0][0]*n[1][1] + (n[0][0] + n[1][0])*n[2][1])*n[3][2] + n[2][0]*(n[3][1]*(n[0][2] + n[1][2]) + n[0][1]*(n[1][2] - n[3][2]) - n[1][1]*(n[0][2] + n[3][2])));
+                                Coord z0 = (-n[1][0]*n[2][1]*n[0][2] - n[1][0]*n[3][1]*n[0][2] + n[0][0]*n[2][1]*n[1][2] + n[0][0]*n[3][1]*n[1][2] - n[3][0]*n[2][1]*(n[0][2] + n[1][2]) + n[1][0]*n[0][1]*n[2][2] - n[0][0]*n[1][1]*n[2][2] - n[0][0]*n[3][1]*n[2][2] - n[1][0]*n[3][1]*n[2][2] + n[3][0]*n[1][1]*(n[0][2] + n[2][2]) + n[3][0]*n[0][1]*(-n[1][2] + n[2][2]) + n[1][0]*(n[0][1] + n[2][1])*n[3][2] + n[0][0]*(-n[1][1] + n[2][1])*n[3][2] + n[2][0]*(n[3][1]*(n[0][2] + n[1][2]) + n[1][1]*(n[0][2] - n[3][2]) - n[0][1]*(n[1][2] + n[3][2])));
+                                // Apply the affine transformation to the polytet
+                                Polytet newRotatedPolytet;
+                                newRotatedPolytet.reserve(tetCount);
+                                for (auto tetToRotate=newPolytet.cbegin(); tetToRotate!=newPolytet.cend(); ++tetToRotate)
+                                {
+                                    Tet &amp;nt = newRotatedPolytet.emplace_back();
+                                    for (int vertexNum=0; vertexNum&lt;4; vertexNum++)
+                                    {
+                                        nt.t[vertexNum][0] = x0*power3/zz_denominator + (tetToRotate-&gt;t[vertexNum][0]*xx_numerator*2*power3/xx_denominator + tetToRotate-&gt;t[vertexNum][1]*xy_numerator*2*power3/xy_denominator + tetToRotate-&gt;t[vertexNum][2]*xz_numerator*2*power3/xz_denominator)/power3;
+                                        nt.t[vertexNum][1] = y0*power3/zz_denominator + (tetToRotate-&gt;t[vertexNum][0]*yx_numerator*2*power3/yx_denominator + tetToRotate-&gt;t[vertexNum][1]*yy_numerator*2*power3/yy_denominator + tetToRotate-&gt;t[vertexNum][2]*yz_numerator*2*power3/yz_denominator)/power3;
+                                        nt.t[vertexNum][2] = z0*power3/zz_denominator + (tetToRotate-&gt;t[vertexNum][0]*zx_numerator*2*power3/zx_denominator + tetToRotate-&gt;t[vertexNum][1]*zy_numerator*2*power3/zy_denominator + tetToRotate-&gt;t[vertexNum][2]*zz_numerator*2*power3/zz_denominator)/power3;
+                                    }
+                                    memcpy(nt.faceAttached, tetToRotate-&gt;faceAttached, sizeof(nt.faceAttached));
+                                }
+                                // Update the running "least" rotation
+                                if (!haveRunningLeast ||
+                                    runningLeastPolytet &gt; newRotatedPolytet)
+                                {
+                                    haveRunningLeast = true;
+                                    runningLeastPolytet = newRotatedPolytet;
+                                }
+                                // Switch to the next rotation of this face
+                                Coord3 tmpFace = n[2];
+                                n[2] = n[1];
+                                n[1] = n[0];
+                                n[0] = tmpFace;
+                            }
+                        }
+                        newPolytets-&gt;insert(runningLeastPolytet);
+                    }
+                discardThisNewPolytet:;
+                }
+            }
+        }
+#ifdef DEBUG_PRINT
+        for (auto thisPolytet=newPolytets-&gt;cbegin(); thisPolytet!=newPolytets-&gt;cend(); ++thisPolytet)
+        {
+            bool first = true;
+            for (auto thisTet=thisPolytet-&gt;cbegin(); thisTet!=thisPolytet-&gt;cend(); ++thisTet)
+            {
+                printf(first ? "\n{" : ",\n");
+                first = false;
+                printf("{{%" PRId64 ", %" PRId64 ", %" PRId64 "}, {%" PRId64 ", %" PRId64 ", %" PRId64 "}, {%" PRId64 ", %" PRId64 ", %" PRId64 "}, {%" PRId64 ", %" PRId64 ", %" PRId64 "}}",
+                    (int64_t)thisTet-&gt;t[0][0], (int64_t)thisTet-&gt;t[0][1], (int64_t)thisTet-&gt;t[0][2],
+                    (int64_t)thisTet-&gt;t[1][0], (int64_t)thisTet-&gt;t[1][1], (int64_t)thisTet-&gt;t[1][2],
+                    (int64_t)thisTet-&gt;t[2][0], (int64_t)thisTet-&gt;t[2][1], (int64_t)thisTet-&gt;t[2][2],
+                    (int64_t)thisTet-&gt;t[3][0], (int64_t)thisTet-&gt;t[3][1], (int64_t)thisTet-&gt;t[3][2]);
+            }
+            printf("}\n");
+        }
+#endif
+        delete polytets;
+        polytets = newPolytets;
+    }
+    delete polytets;
+&#9;return 0;
+}
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=7V3NciM5cj5bTwFxwj38VbPIjt4dUeTGesa7sREbsx2zWl-0slwsQlJtU1WMKlBqSsMn8WUvPvrmp_HTOBN_BaCAYrFHYfugip5uFpBIJDI_JBJAkvPv_5ls1tsS_7u5S5L_uuqMSraaJ4PBZNwZdkZ_mnSu__4fW3Y7-vV__9v9N2mWrLcrSi6AKM3P7hcnVVGal6yg8YNZBiVpdmfTJdg2Y1YRvLPdhpZmYVwU8c4qWN_lRcrurR4eacLywixZp6XF_HabJSzNs3htlm6zvFjRgq5uSmrLcl_kWb44OXn__psVvU0zSn7453_6y-9vPv30hx8vT05QTignNzcgdDT5Nfk-B04zXQ6jOz_nsl_wmiGZLgTNNEw0HZIPC3JJWRHf0xUIMDtJ1nFZYtHJywmB5zFPVyTNUva7OKFlt8cLRRU-t1D6W8biBNpfja_JHErWJZ2R9-8Jg4Ihu4rwr8m1v0kUbjINNJl4m0yamkzdJpHbZH-y2S7XaXLO3wyNEDbjRcs8X9tMP1zPFHGXeJ4eOSdQ0yMvhvpme90mybOSWV29Y6INq7XZOzYU8LuAxgvyKV_vGAUxATrkkRaMfgGDrVJoS_JbLnNJngDAJF3RjKVJvCbJfVrE65TtTkoWQxE0YIRVovCeYYTwh8wlEl7GQxINyQSQtR_qkqkoNEomolCVRPwVCsdQAuM4Ecgj-YYWMQxiJBUhi9_FPdmfLEiElhOBrlEM_6qSSJZEumQiSyaypKBsW2TIY-_2O3D7HRK7YNkoCMpBBmTpioPS8HJHKJSJl7cQraaSrxBtFBBtFBBt1E60fqNopIVgfbKsS2UUViLpQo88SZGXpS2Lq6VDskTX_aUYOfbWN9USKRn6S6FLlLxfKUhLORbtOEUkqAMik1XOWptVtpb8OdAk_0h8nihp9ifcMT3m6-0DLf8E038db3yuRXdmleoewXVcxp8piVePccbiO4qug91TdB_gGe5jxt_YU266iZLEBQVp77bruCBxtsI-7ootuJkhvirWf9tCx-A0k88kvYWKHaEr2YUhTSfuoB-iRQneTbospEUPVqNdds4U9x_y7Ftgn2_Bh6UMe8iz9Y7LS7PVJkfflmO3oteqC8HB8IBYX159vObmdVY67v6kU1OObWK-Sxdn0k8d-qlDr973AjS3eUG6So4ftw_z8Ux9vPioPw4G7iIs8bMZc0yKQUjia0CPhKRJGfkoI5NSy4Lal7LIjxcf9Ecliy0PPibMIOZ5gNXmma7MUANNd5sWgAwQCI0k0CRBRzmA-NsHwIGwYlpyuWAFSwBxDGI8TiD4W91r8VMUPEWRU1NY9XhFu0pxdi-vaguiHPU1EBiqMhSbUAQXNH5B8-Of_Z4P9GG7ZulmnVLwkTsYcJI_bGC0MMCcQHR5l2a4KiMT-MRoaTGH9r-nTDGXazryiWG-x3eohhS0h2s_rvrfmoxmqCGX2yp9TEuITYUsoNX0QcuWP6RMa1aJncRMkZ_59bxBPW8upvCXT8-aboV0K6Rb-ejwEeO8WoGrmwcMtLmGaq8FBP3ML-SBzkVb7DjU7xT7hYVpCh5fi-mRo3IyABexckLVnC8CgvMw0ANfbjbjXiPTH2gGZso4W5up_4H57mEKjrLrZzkn47p2wLUDLrYihBaetCQA4ni9pmvEsZi1T_dpck-eKIhVueW4RPebi-WpnRAXrgwvNYkCSh7Vy2fhtrYuR75yu_U-LH8lxwWokPz8s0_ExdzbeYPC3el7eU9Lak5y7jjBDo6b8XXjmzOaDub4J-5o57iY9P1KGpCuwpNJEtC17AI25HF2t6YwgwJzUzrqacBRawZpeHam1wGZaxr8XsUi6OTM4VcLTZqVsF8SUY_s2zewFZl79Deq5B37_RROIFyFNR2PItu0mpitJodbkW2FPXAWGEdyNsLV4K5dvkfe1o92a0kdCXk1tyjU96M9v1RbUwTVPiAGzjCHTbN_OtC6hWOxNDbaNrgRSzujxwZKVxMjq-CQi9nWXcujXXSUQqqmA4uPLWWdpdyYsMLkuj-p_pYE4qwFdifyPOlHPV_laQU5J-LAxT3PUJN5ARsT80imxkFuchS_dxvxwY2NC3CVxSPtyuqzElh0ez0n0I23jG9s5oosWVKIq7q9GZaeVsWwocDCwUB3ZXeHj32kg6CH6ArWxptlnHzuQsPRgjlLMVdCmResy85kz0PCznhvPVfTToP7tBwtqkb81WzIT4_ENlHt4i9c5d3o7WFVBHtD8JQ8MkxSBhsqMCQghcRSh_P5Un6Se8i6kePuTQwyLbvAzNjiCG3H81irGeReAjtD6_EpVlfqjofw19K1LucEJoZlD_TcZzFMhQX8u6x0hniXFKe1aSLhKuvBM8wasGypcOGqsK5Bdzt_2gXxCGrC4TWfv9nDsodUec0Uwu-AV8niB1pucBcEE0EOl_FpxujFQm7ri23CyH1c3l_I8S8cacUkAgXdMG2Lbq9mC-VZpEWynH5J6IYFZn9d67J9VzPyzX0hRUkpBhS2s_IETMJiPm_l9VWH1ruKZzIH71SxS075u-aU1JeEOjebYzpPTI7pKX_XHFP_HtDPlasLVfSvc6E2bt0tRFwfP9ywxcu-21UvvW4_FQ16PVjkxl--o9Nf_eq75XcYv3IeFxfkY0-_LRZk0quv2l_TK7D6-OEX97qvldole9_EQaa1hXnGFwAMSx9iMAJ-iIu7BDzMfVyQPnx-vLpWToPbrGRxwS5TcC5yxOJ2CmDKaLza3STrPPl8fp7lT4hO8xStfsbIeanTNOM47WUUDfmfvXkohqV4oeCUEk7rKSWCgxioPEZT8473rG9HpJC65MxalXmNGosIXTf5Ey2moIFoVmmmL2dXiZsQ-iS0Y13qaWcjWin60QI2FBTWa1MG0wnLG5jvcb88j2Yzr2tNtkVBs_am0fDllPmWIf5UL_i5c046-G8lpvA5vI5c8Tqrm9W24GdBN0lcsgur6iFdr1PYBuXZqoTl0RB1VCGqd8ZPBFQPD-V11Qc4BePkhsdYXFB78dDiL0jkLB_LgsafK2ppwf6cTGe2Hvtgu09HWlJbinNYxiWV9fNKeZWfM-pPTQLt-AyCUCBphaaXubh5vMznRlOzS4vo1KEyA9eKqtXCcNQpcJiXst-pJcFoYV2qqhPWY1cFNecru4Z9eUVzpnYHClMNKwD4NAhkkG6zq8QX98l4c5LlTF6apKW48EDllRvwyEGejoGRdaNxkaDZsEjh112z_tQI-X7FUJDlJBu0o0djnAV_CJwFe9u0OBc2H3bGxCEwHoaogcO-Shb2zRnvex7oQ7LZwW7LRN_QZGVXoFfMbx363gGFSG8lOOKpRcPcc59mUwkVeGcOPx1yN_3e9i6WoeW7hmmDTz0oOVyjDubp07-I5AT7diTY7nVvPRzOr3cDYj7HzoBmIyN8NggbvG2Q5j08M_ynPkFJj5x32oryesbx5cx3M2M-YZh8jUSuNNb7qC6cocjDbgJQ8tvViscGxkVg4_rwtd6z7S2aeg7gBhnhXfDmsHs67Up9kHck6h22P_CFXRB_AJvkgpCJUfsbEpFz2NPzVbF8ijfyghfTBtQ8xZuijVx3jTykgwOKiLiVwOuHMV6iGMZ0Ov6cbvjczTebvExhWRZZUf87C5E1GaLDMAvPCGTNM9c0rMNcnMVgfHgZcFoYiXhtm0yObzJt0URfz6BJ5JUhWVL2RGkmoivQBx5_SaZWXojKGaBf0pL78DxzLtPNx4q_eKd_MK5y5sZMtgKxGuWpRWpGZDXSX7IYvOv7OMrAwl7Lj1gnjCkDuk206nnoCnOCfbtek3j9FO9KMIOwHublQEFzLyiyk5gEkB56NYhH4odlvsvBVKu0TOJidQnS_tgi2g_PLwRanOUZZkRCeMdxU-RMLPQqkkf3L7dvEAXmIhUqhbAkzlAbOo8jvotTPPrIgUsRRhw_972HCOanbZYBPv9IYRt9eE6o7U1htDo4cmd38RMOjerjySC6a5RhdNdIvxbdYAqes8XVT0f6epcwJ9-MJ4VF1dxH7zIjFOC1U2bCaO5uGxcxwEsk2KC-wXYP4YgQH7XNrQ2qeRU9HKjzAzcusDi3mKtrhqanbQKTt0O173AG4uy108Au-_gRaqF96sML8sPjNWUfDEx1LSAwad0cH-cUqOkJOwdTnq-Spl0c3iyAlUTXMqA_Ei8y2c0PF-ZPgatRehLigvIhg5-kl1XHSeodoy7z_dAADiMTHMuf8zVMf-wfXHZ8y79aAYPKylsUnzt77tSF7ylFCIH1a_6Kq4LyLMr_d3zq6sDyRDFvBH0WNCrjB2wJASh2EQtOIh7WGa1Q0uFHo51Wewz1iAPqL19uMiP7QJx29rsQmYNVJ9ciQ4PnrEXXvX4Xc8tEvkgGBfCpR-CzKI50sSSdaNKpIAWXr3tdWYkM3VGXtxxf92W3fdkV3nNUVVOziteMnUaR7nTstIl0G8VtLGsmtTaRVTPwcJuYevDUDMSwoUaNzR3TxDcWZwzeUTm9WLLyayFTmZy-Zw0h0raylGepZiKsKE2n5FWjmdqjGdVkH5CA3qHEAtG00ofiIIoOHIsZCN55EQxydqXMqqOxH8FcZVIXlUG9CO5VCN69IfgNwa-E4OdmH-xDsOVsKx_sQ7Dlwg0f_PyG4DcEvw6Cd4EogvvgyIGg3fnE8cGRoXROGrlyagTv3qKINwS_FoL9UYTwwVFjFDFx4uCxLh4fRPBbFPGG4NdCcCCKUD64IYoQg6zFwRaCA1HE7i2KeEPwKyH4uSmKGDsQtB2rFUVEDrC9cmoEP79FEW8Ifi0EN0URY48PdhEso4jI44MbEPwWRbwh-LUQ3HQWEUCw5WybERyIIp5rUYSrvL45TD9-ayawtOXH7yiI35qJvciuo_Qgfh30WsAc14AZmYCpD6k-eWzw1kc3Dc7OaW3ck1ob1yY1PAeciqPyuhHGNYYS3iOTkz6FbXuyNv5_jqVf6AuVcL57GY-LGFTrTKXzrgMyGUep3vW81RjseVCkHYGHyoMO26pRJZJH4JpPswQ-FhG7ZkSEV8cwIsKr46iylF9BqlOpD7faVszRwJrWDRgp1odcWRP82q2IxmZSa7XXuBZqdHjA4TG_seA1QueIxY-DY3S8uwiHTs3uYmq1CY372ADr66xaSRP2GibVWM9k13209B6VaiST9u4jrKhARBRwd-0Bgom8m438RahAAkBu3vMf5Gh820QkAawOJmOpp9bkmO-gqMeb2XUwoetwHtfhdJF2uUA8FzqTydDOcI_5Rok1XkweEYm88otI-gWTXfRL2ySp9llNGSbiav7cK84hPOmLAPu9EwAPrNwrzKGxmvbNrI3-RDFxsioGJMwDJoJ5b27w2LXmMQEez14e1mB670Vx-_QtV1c8rXj3tbraeXW1O0pXO6-udkfpaufV1e6VdTVBXT1_ra6evbp6PkpXz15dPR-lq2evrp5_ga4OJ-nhI7_RlXm_0qWE9X6pKzvuW13tRIJF5y-bFXQq0opF3i7prDFzt6PTjFulH57W8oV__rmVSjzZwmRRd8mv5fU9ac3tvokWktWzfLySaf78lLLkXi37Gf3C6pnfiIl2weeUsIcNpkeixFeTA5mQ-GRismM804Y4EsTuTyz5icV3P4RAr_9tPuOL0_or7R7btf5RA282_3m9dejHD_Yn36S3-LvI5q9lq0ojTgL-6uva1hCMSKkiOXVoqlipogl9aVv8UDRP8_Th3xYJAqW5wdMV5xJFsestUS7dyVufqJsC4qbbrhDoN6Tz1-ylQ85JZ_jXrOMxkhI88H0Eya3z8vKPHQK6Xn38AKxI6GU_JP9nhPvO0AvBrvqpDqlAXMH4VmYYqorCVZPr9p1E4U6icCfRcZ1Mwp1Mwp1MjutkGu5kGu5EbNiafuhMoWtvYxOmOKA-vdUFK7qmTO_WSvMHH8yfdPhk1Yuuak3_Qf5yynh2shf_wwH5_x34u_z3fwA" rel="nofollow noreferrer" title="C++ (GCC) – Attempt This Online">Attempt This Online!</a></p>
+<p>This matches the output of wastl's program up to 12 terms, and does so much faster (62 times faster on my machine).</p>
+<p>Certain design elements were quite natural and are shared between both our programs – namely, the use of 128-bit integer coordinates, the coordinates of the starting tetrahedron, and multiplying all coordinates by 3 for each successive term. The remaining details are implemented from scratch though, without consulting wastl's program.</p>
+<p>The finding of standardized rotations of each polytet (for comparison purposes) is done by solving for the affine transformation that moves one of the faces of one of the tetrahedrons to the first face of the starting tetrahedron. For speed, this is limited only to the attached faces of those tetrahedrons that have only one attached face, taking advantage of the fact that it's guaranteed that all polytets will have some (because a polytet can never curve around and perfectly meet one of its own faces).</p>
+<p>Output:</p>
+<pre><code>1: 1 [0 ms]
+2: 1 [0 ms]
+3: 1 [0 ms]
+4: 4 [1 ms]
+5: 10 [3 ms]
+6: 39 [11 ms]
+7: 164 [59 ms]
+8: 767 [321 ms]
+9: 3656 [2553 ms]
+10: 18186 [16792 ms]
+11: 91532 [110263 ms]
+12: 468203 [704540 ms]
+13: 2417721
+14: 584897
+</code></pre>
+<p>Clearly, 128-bit integers are not sufficient to go beyond A276272(13), but this program seems to do at least better than wastl's at it, giving a plausible value (I haven't verified whether it's correct). But the fact that both programs agree up to A276272(12) strongly suggests that they're both correct up to that point, and that the OEIS entry can finally be updated.</p>
+<p>It uses about 20% more RAM than wastl's program, but that can probably be improved. There's still plenty of room for further speed-ups, such as adding multithreading. Given its current speed, it'd probably be quite feasible to make it use a variable-length integer library to go beyond 13 terms.</p>
+<p>The timings shown in the output are cumulative. The last two are omitted because my first run up to 13 terms didn't have timing printout implemented (I'll edit that in as soon as my second run finishes).</p>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.rust-lang.org/" rel="nofollow noreferrer">Rust</a>, 11 (hopefully correct) terms</h1>
 
 <pre class="lang-rust prettyprint-override"><code>
 use ::std::ops::{Add, Sub, Mul};
