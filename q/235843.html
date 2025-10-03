@@ -26,83 +26,96 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>056</td><td>APLNARS</td><td>251003T090658Z</td><td><a href="https://codegolf.stackexchange.com/questions/235843/khinchins-constant-bad-estimate/283990#283990">Rosario</a></td></tr>
+<tr d-ix="0"><td>045</td><td>APLNARS</td><td>251003T090658Z</td><td><a href="https://codegolf.stackexchange.com/questions/235843/khinchins-constant-bad-estimate/283990#283990">Rosario</a></td></tr>
 <tr d-ix="1"><td>057</td><td>Ruby</td><td>210930T084223Z</td><td><a href="https://codegolf.stackexchange.com/questions/235843/khinchins-constant-bad-estimate/235856#235856">G B</a></td></tr>
 <tr d-ix="2"><td>038</td><td>Mathematica</td><td>210930T063842Z</td><td><a href="https://codegolf.stackexchange.com/questions/235843/khinchins-constant-bad-estimate/235854#235854">Bhoris D</a></td></tr>
 <tr d-ix="3"><td>066</td><td>Factor + math.continuedfractions math.unicode</td><td>210930T030848Z</td><td><a href="https://codegolf.stackexchange.com/questions/235843/khinchins-constant-bad-estimate/235851#235851">chunes</a></td></tr>
 <tr d-ix="4"><td>014</td><td>Husk</td><td>210929T234021Z</td><td><a href="https://codegolf.stackexchange.com/questions/235843/khinchins-constant-bad-estimate/235847#235847">Dominic </a></td></tr>
 <tr d-ix="5"><td>047</td><td>JavaScript ES7</td><td>210929T220253Z</td><td><a href="https://codegolf.stackexchange.com/questions/235843/khinchins-constant-bad-estimate/235844#235844">Arnauld</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>APL(NARS), 56 chars</h1>
-<pre><code>{(≢k)√∣×/k←⍺{e←10*⍺⋄⍺{(⍺≤0)∨e≤∣⍵:⍬⋄(⌊⍵),(⍺-1)∇÷⍵-⌊⍵}⍵}⍵}
+<div id="pu0" class="pu"><h1>APL(NARS), 45 chars</h1>
+<pre><code>{(≢k)√∣×/k←⍺{(⍺≤0)∨∞≤∣⍵:⍬⋄(⌊⍵),(⍺-1)∇÷⍵-⌊⍵}⍵}
 </code></pre>
-<p>Here</p>
-<pre><code>{e←10*⍺⋄⍺{(⍺≤0)∨e≤∣⍵:⍬⋄(⌊⍵),(⍺-1)∇÷⍵-⌊⍵}
+<p>Input of the function one float number ⍵, and one positive integer ⍺ and as output
+one float.</p>
+<p>test:</p>
+<pre><code>  K←{(≢k)√∣×/k←⍺{(⍺≤0)∨∞≤∣⍵:⍬⋄(⌊⍵),(⍺-1)∇÷⍵-⌊⍵}⍵}
+  1 K ○1
+3
+  2 K ○1
+4.582575695
+  3 K ○1
+6.804092116
+  7 K ○1
+5.11798558
+  7 K -○1
+5.216552971
+  15 K *1
+1.815616335
+  15 K -*1
+1.91647393
+  p←1.61803398874989
+  20 K p
+1
+  20 K -p
+1.071773463
 </code></pre>
-<p>make the numeric expansion of ⍺ terms of the ⍵ number; note that here</p>
+<p>We fefined the functions:</p>
+<pre><code>cf←{(⍺≤0)∨∞≤∣⍵:⍬⋄(⌊⍵),(⍺-1)∇÷⍵-⌊⍵}
+I←{1=≢⍵:↑⍵⋄+∘÷/⍵}
+</code></pre>
+<p>cf is the ⍺ (positive integer) terms expansion of continue fraction of the float ⍵,
+the I function has as input one array of integers numbers (one continue fraction)
+and as output the number float that contiune fraction represent. Do you note that here</p>
 <pre><code>  1÷0
 ∞
   9999&gt;∞
 0
 </code></pre>
 <p>so the division of a number by zero is ∞, and ∞ it is one number that is &gt;= of
-all other numbers.One has to note expansion end not when it find 0, but when it find ∞.</p>
+all other numbers, and cf can terminate before reach the number term ⍺, for example</p>
+<pre><code>  10 cf 1.125
+1 8 
+  I 1 8
+1.125
+</code></pre>
+<p>because is found one ∞ as cf ⍵ argument. Note cf terminate when as argument ⍵, meets ∞
+not when meets 0.</p>
 <p>I for expansion ⍺ terms suppose that the initial number has at last ⍺ significative
 digits, because it seems to me that the ⍵-⌊⍵ means 1 digit lost, so repeated that
-operation ⍺ times it means ⍺ digits lost.</p>
-<p>I think there is a problem if ⍺ the term of expansion is &gt; of the precision (that means the digits okay
-in the right of the float point &quot;.&quot; ) possible for the input number ⍵ that it seems to me the number
-of terms has ⍺ has to be here so small that ⎕fpc&gt;=4×⍺+2+⌊10⍟1⌈⍵ , where &quot;4×⍺+2+⌊10⍟1⌈⍵&quot; are the max
-allowed significative stored digits in memory has to have the number ⍵ (so all the significative digits, in the left
-and in the right float point &quot;.&quot;). ⎕fpc would be the lenght in bits of the float number vtype.</p>
-<p>∅ is the error case, it is &quot;not a number&quot; (I see ∅ type, as number type)</p>
-<pre><code>  CC←{(≢k)√∣×/k←⍺{⎕fpc&lt;4×⍺+2+⌊10⍟1⌈∣⍵:∅⋄e←10*⍺⋄⍺{(⍺≤0)∨e≤∣⍵:⍬⋄(⌊⍵),(⍺-1)∇÷⍵-⌊⍵}⍵}⍵}
+operation ⍺ times it means ⍺ digits lost. So because here normal Apl float are 64 bits</p>
+<pre><code> (⍺d⍵)≤64
+</code></pre>
+<p>Where the function d is:</p>
+<pre><code>d←{3.322×⍺+1+⌊10⍟1⌈∣⍵}
+</code></pre>
+<p>that has one input one float point as ⍵, and as ⍺ the digits of precision of the number ⍵ in base 10.
+And as output the necessary digits in base 2 of that number ⍵ of precision ⍺ for store that number in memory (that
+is the lenght in bit of that number in memory). All example numbers of the question seems ok but the last 2</p>
+<pre><code>  20 d 1.61803398874989
+69.762
+</code></pre>
+<p>so the last 2 cases for me haven continue fraction expansions that has need at last 70 bits, 64 bits are not enought.</p>
+<p>But result even in that case seems ok using float 128 bit vtype we can check</p>
+<pre><code>  20 K 1.61803398874989v
+1 
+  20 K ¯1.61803398874989v
+1.071773463 
+</code></pre>
+<p>One pheraps better function would be KK function, has as input ⍺ the number of expansion and as input ⍵ one vtype float.
+As output return ∅ in the error case, it is &quot;not a number&quot; (I see ∅ type, as number type), or a float vtype number.
+⎕fpc is the float point bits lenght of vtype float.</p>
+<pre><code>  KK←{⎕fpc&lt;⍺d⍵:∅⋄⍺{(≢k)√∣×/k←⍺{(⍺≤0)∨∞≤∣⍵:⍬⋄(⌊⍵),(⍺-1)∇÷⍵-⌊⍵}⍵}⍵}
   ⎕fpc
 128
-  ⎕fpc÷4
-32
-  50⍕32 CC ○1v
+  ⎕fpc÷3.322
+38.53100542
+  50⍕39 KK ○1v
 ∅
-  50⍕31 CC ○1v
+  50⍕38 KK ○1v
 ∅
-  50⍕30 CC ○1v
-2.925869332883469218071314392528874968917
-</code></pre>
-<p>○1v is  π  as vtype, or float number of lenght ⎕fpc bits.</p>
-<p>would have digits ok until 4×⍺+2+⌊10⍟1⌈|⍵ that means 30 digits of just above number [○1v]</p>
-<pre><code> 30⍕30 CC ○1v
-2.925869332883469218071314392529
-</code></pre>
-<p>for examples 4×20+2+⌊10⍟1⌈3 = 88 bits would be ok fo have 20 digits significative digits
-but 64 bits float seems okay for 4 significative digits (assume the number of bit of normal float here
-APL nars is 64 bits)</p>
-<p>test:</p>
-<pre><code> C←{(≢k)√∣×/k←⍺{e←10*⍺⋄⍺{(⍺≤0)∨e≤∣⍵:⍬⋄(⌊⍵),(⍺-1)∇÷⍵-⌊⍵}⍵}⍵}
- 1 C ○1 
-3
- 2 C ○1 
-4.582575695
- 3 C ○1 
-6.804092116
- 7 C ○1 
-5.11798558
- 7 C -○1 
-5.216552971
- 15 C *1 
-1.815616335
- 15 C -*1 
-1.91647393
-  p←1.61803398874989
-  20 C p
-1
-  20 C -p
-1.071773463
-  20 C -p×1v
-1.071773463 
-  50⍕20v C ¯1.61803398874989v
-1.071773462536293164213006325023342022908
-  50⍕20 C ¯1.61803398874989
-1.0717734625362931__________________________________
+  50⍕37 KK ○1v
+3.165275511414812818221962911542966002409
 </code></pre>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a>, 57 bytes</h1>
