@@ -26,19 +26,92 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>057</td><td>Ruby</td><td>210930T084223Z</td><td><a href="https://codegolf.stackexchange.com/questions/235843/khinchins-constant-bad-estimate/235856#235856">G B</a></td></tr>
-<tr d-ix="1"><td>038</td><td>Mathematica</td><td>210930T063842Z</td><td><a href="https://codegolf.stackexchange.com/questions/235843/khinchins-constant-bad-estimate/235854#235854">Bhoris D</a></td></tr>
-<tr d-ix="2"><td>066</td><td>Factor + math.continuedfractions math.unicode</td><td>210930T030848Z</td><td><a href="https://codegolf.stackexchange.com/questions/235843/khinchins-constant-bad-estimate/235851#235851">chunes</a></td></tr>
-<tr d-ix="3"><td>014</td><td>Husk</td><td>210929T234021Z</td><td><a href="https://codegolf.stackexchange.com/questions/235843/khinchins-constant-bad-estimate/235847#235847">Dominic </a></td></tr>
-<tr d-ix="4"><td>047</td><td>JavaScript ES7</td><td>210929T220253Z</td><td><a href="https://codegolf.stackexchange.com/questions/235843/khinchins-constant-bad-estimate/235844#235844">Arnauld</a></td></tr>
+<tr d-ix="0"><td>056</td><td>APLNARS</td><td>251003T090658Z</td><td><a href="https://codegolf.stackexchange.com/questions/235843/khinchins-constant-bad-estimate/283990#283990">Rosario</a></td></tr>
+<tr d-ix="1"><td>057</td><td>Ruby</td><td>210930T084223Z</td><td><a href="https://codegolf.stackexchange.com/questions/235843/khinchins-constant-bad-estimate/235856#235856">G B</a></td></tr>
+<tr d-ix="2"><td>038</td><td>Mathematica</td><td>210930T063842Z</td><td><a href="https://codegolf.stackexchange.com/questions/235843/khinchins-constant-bad-estimate/235854#235854">Bhoris D</a></td></tr>
+<tr d-ix="3"><td>066</td><td>Factor + math.continuedfractions math.unicode</td><td>210930T030848Z</td><td><a href="https://codegolf.stackexchange.com/questions/235843/khinchins-constant-bad-estimate/235851#235851">chunes</a></td></tr>
+<tr d-ix="4"><td>014</td><td>Husk</td><td>210929T234021Z</td><td><a href="https://codegolf.stackexchange.com/questions/235843/khinchins-constant-bad-estimate/235847#235847">Dominic </a></td></tr>
+<tr d-ix="5"><td>047</td><td>JavaScript ES7</td><td>210929T220253Z</td><td><a href="https://codegolf.stackexchange.com/questions/235843/khinchins-constant-bad-estimate/235844#235844">Arnauld</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a>, 57 bytes</h1>
+<div id="pu0" class="pu"><h1>APL(NARS), 56 chars</h1>
+<pre><code>{(≢k)√∣×/k←⍺{e←10*⍺⋄⍺{(⍺≤0)∨e≤∣⍵:⍬⋄(⌊⍵),(⍺-1)∇÷⍵-⌊⍵}⍵}⍵}
+</code></pre>
+<p>Here</p>
+<pre><code>{e←10*⍺⋄⍺{(⍺≤0)∨e≤∣⍵:⍬⋄(⌊⍵),(⍺-1)∇÷⍵-⌊⍵}
+</code></pre>
+<p>make the numeric expansion of ⍺ terms of the ⍵ number; note that here</p>
+<pre><code>  1÷0
+∞
+  9999&gt;∞
+0
+</code></pre>
+<p>so the division of a number by zero is ∞, and ∞ it is one number that is &gt;= of
+all other numbers.</p>
+<p>I for expansion ⍺ terms suppose that the initial number has at last ⍺ significative
+digits, because it seems to me that the ⍵-⌊⍵ means 1 digit lost, so repeated that
+operation ⍺ times it means ⍺ digits lost.</p>
+<p>I think there is a problem if ⍺ the term of expansion is &gt; of the precision (that means the digits okay
+in the right of the float point &quot;.&quot; ) possible for the input number ⍵ that it seems to me the number
+of terms has ⍺ has to be here so small that ⎕fpc&gt;=4×⍺+2+⌊10⍟1⌈⍵ , where &quot;4×⍺+2+⌊10⍟1⌈⍵&quot; are the max
+allowed significative stored digits in memory has to have the number ⍵ (so all the significative digits, in the left
+and in the right float point &quot;.&quot;). ⎕fpc would be the lenght in bits of the float number vtype.</p>
+<p>∅ is the error case, it is &quot;not a number&quot; (I see ∅ type, as number type)</p>
+<pre><code>  CC←{(≢k)√∣×/k←⍺{⎕fpc&lt;4×⍺+2+⌊10⍟1⌈∣⍵:∅⋄e←10*⍺⋄⍺{(⍺≤0)∨e≤∣⍵:⍬⋄(⌊⍵),(⍺-1)∇÷⍵-⌊⍵}⍵}⍵}
+  ⎕fpc
+128
+  ⎕fpc÷4
+32
+  50⍕32 CC ○1v
+∅
+  50⍕31 CC ○1v
+∅
+  50⍕30 CC ○1v
+2.925869332883469218071314392528874968917
+</code></pre>
+<p>○1v is  π  as vtype, or float number of lenght ⎕fpc bits.</p>
+<p>would have digits ok until 4×⍺+2+⌊10⍟1⌈|⍵ that means 30 digits of just above number [○1v]</p>
+<pre><code> 30⍕30 CC ○1v
+2.925869332883469218071314392529
+</code></pre>
+<p>for examples 4×20+2+⌊10⍟1⌈3 = 88 bits would be ok fo have 20 digits significative digits
+but 64 bits float seems okay for 4 significative digits (assume the number of bit of normal float here
+APL nars is 64 bits)</p>
+<p>test:</p>
+<pre><code> C←{(≢k)√∣×/k←⍺{e←10*⍺⋄⍺{(⍺≤0)∨e≤∣⍵:⍬⋄(⌊⍵),(⍺-1)∇÷⍵-⌊⍵}⍵}⍵}
+ 1 C ○1 
+3
+ 2 C ○1 
+4.582575695
+ 3 C ○1 
+6.804092116
+ 7 C ○1 
+5.11798558
+ 7 C -○1 
+5.216552971
+ 15 C *1 
+1.815616335
+ 15 C -*1 
+1.91647393
+  p←1.61803398874989
+  20 C p
+1
+  20 C -p
+1.071773463
+  20 C -p×1v
+1.071773463 
+  50⍕20v C ¯1.61803398874989v
+1.071773462536293164213006325023342022908
+  50⍕20 C ¯1.61803398874989
+1.0717734625362931__________________________________
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a>, 57 bytes</h1>
 
 <pre class="lang-ruby prettyprint-override"><code>-&gt;n,l,r=1{n=n.abs;l.times{r*=n.to_i**(1.0/l);n=1/n%=1};r}
 </code></pre>
 <p><a href="https://tio.run/##bY3RCoIwGIXve4puArd@535DBGXdddkTyIgJWcJcMhcY02dfol0G5xz4vptj3/UnNCLEZwMarEBvhGGqHkrNXNvdB2/pItzr1lIaIeOJJqURmJiDwLm0c6gQUjhBDsiXrN3mt1yyTvV@Gqd@31QxMmUfMMp5t2K0CQK5XMVVuWdRXACzjaOMUs6yI5JkeeF/JKZchi8" rel="nofollow noreferrer" title="Ruby – Try It Online">Try it online!</a></p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://www.wolfram.com/mathematica/" rel="nofollow noreferrer">Mathematica</a>, <strike>42</strike> 38 bytes</h1>
+<div id="pu2" class="pu"><h1><a href="https://www.wolfram.com/mathematica/" rel="nofollow noreferrer">Mathematica</a>, <strike>42</strike> 38 bytes</h1>
 <pre><code>N@1##&amp;@@ContinuedFraction[#2,#]^(1/#)&amp;
 </code></pre>
 <p>Corrected formatting and size reduced by @theorist.</p>
@@ -48,7 +121,7 @@
 <p>You can save 2 bytes by removing N@ but this will give an exact expression and not numeric.</p>
 <p>The code also passes all the tests giving the exact value for each number except for -Pi for which it returns a complex number. However the magnitude of this complex number is exactly the same as that given in the expected value.</p>
 </div>
-<div id="pu2" class="pu"><h1><a href="https://factorcode.org/" rel="nofollow noreferrer">Factor</a> + <code>math.continued-fractions math.unicode</code>, 66 bytes</h1>
+<div id="pu3" class="pu"><h1><a href="https://factorcode.org/" rel="nofollow noreferrer">Factor</a> + <code>math.continued-fractions math.unicode</code>, 66 bytes</h1>
 <pre><code>[ 1vector over [ dup next-approx ] times 1 head* Π abs nth-root ]
 </code></pre>
 <p><a href="https://tio.run/##ZZBBS8NAEIXv@RXv4ElIMYoICl6ll17EU@lh3UzMYjK7zs6WSsh/6S/qX4pbUqnFuX3z3jx40xirXqa31@Xq5REmRm8jPkmYOmzpqEX0Rlt0TklMN9PCeo5qWM@ojhPVZSM50GUVkb4SsaWTpUl8EoKQ6ncQxzpLiZ31NeGpKIYCea4GVAgO4y/dXtDdBT38J6aP86a6B/1JukFoj/5inNao5orwWxKsUaeQb3damhDE77CBuj4XqNCSqa9x2MO8R7C2pXiv2EwDxvlpz70JWEw/" rel="nofollow noreferrer" title="Factor – Try It Online">Try it online!</a></p>
@@ -132,7 +205,7 @@
 </tbody>
 </table>
 </div></div>
-<div id="pu3" class="pu"><h1><a href="https://github.com/barbuz/Husk" rel="nofollow noreferrer">Husk</a>, 14 bytes</h1>
+<div id="pu4" class="pu"><h1><a href="https://github.com/barbuz/Husk" rel="nofollow noreferrer">Husk</a>, 14 bytes</h1>
 <pre><code>^\¹Π↑¡§,o\%1⌊²
 </code></pre>
 <p><a href="https://tio.run/##vY27CUJREESrMRPcz9z99PIwFgwMxBYMxMQONDI3M70FWISNrFuFw4GBw8DsTsd91XaZ78/9e77Nx3yuD8uKv9fLfFUVGwepZoQjIxEIIYywUKgN02B2F1JK9gwabhImrAPoFqchRmjJkSRAOvW8QQtNZnVsmP6Q6pcf" rel="nofollow noreferrer" title="Husk – Try It Online">Try it online!</a> for the last test case (or <a href="https://tio.run/##vcutDQJREEbRanAkzP/M18sGvQkCQWgBQTB0AAqPw74CKGIbGbYKrjnqzufToXs/jc/3sVzu4zle2@O04eV2He/uVjZ2SLh6IaGiZSFhqqWScJIqYyQHFNB0Ji8hpMFsHZWyOIxCKoQKWClSK3E1YU6KxI7pD3X@AA" rel="nofollow noreferrer">try it here</a> for n=7, number=pi).</p>
@@ -147,7 +220,7 @@
  \¹             # reciprocal of arg1
 </code></pre>
 </div>
-<div id="pu4" class="pu"><h1>JavaScript (ES7), 47 bytes</h1>
+<div id="pu5" class="pu"><h1>JavaScript (ES7), 47 bytes</h1>
 <p>Expects <code>(n)(real)</code>.</p>
 
 <pre class="lang-javascript prettyprint-override"><code>n=&gt;v=&gt;(g=n=&gt;n?~~v*g(n-1,v=1/(v%1)):1)(n)**(1/n)
