@@ -26,10 +26,10 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>1213</td><td>C++ GCC</td><td>251003T124500Z</td><td><a href="https://codegolf.stackexchange.com/questions/214203/gluing-tetrahedra-together/283991#283991">Deadcode</a></td></tr>
+<tr d-ix="0"><td>013</td><td>C++ GCC</td><td>251003T124500Z</td><td><a href="https://codegolf.stackexchange.com/questions/214203/gluing-tetrahedra-together/283991#283991">Deadcode</a></td></tr>
 <tr d-ix="1"><td>011</td><td>Rust</td><td>201108T231337Z</td><td><a href="https://codegolf.stackexchange.com/questions/214203/gluing-tetrahedra-together/214928#214928">wastl</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C++ (GCC)</a>, 12 or maybe 13 terms</h1>
+<div id="pu0" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C++ (GCC)</a>, 13+ terms</h1>
 <pre class="lang-cpp prettyprint-override"><code>#include &lt;stdio.h&gt;
 #include &lt;iostream&gt;
 #include &lt;string.h&gt;
@@ -43,7 +43,15 @@
 #include &lt;unordered_set&gt;
 #include &lt;chrono&gt;
 
+//#define USE_GMP
 //#define DEBUG_PRINT
+
+#ifdef USE_GMP
+#include &lt;gmp.h&gt;
+#   if GMP_NUMB_BITS != 64
+#   error This is hard-coded for 64-bit limbs
+#   endif
+#endif
 
 typedef __int128 Coord;
 typedef std::array&lt;Coord, 3&gt; Coord3;
@@ -259,6 +267,31 @@ namespace std
     };
 };
 
+#ifdef USE_GMP
+void mpz_set_int128(mpz_t &amp;dst, const __int128 &amp;src)
+{
+    __int128 abssrc = src &lt; 0 ? -src : src;
+    mpz_import(dst, 2, -1, 4, 0, 0, &amp;abssrc);
+    if (src &lt; 0)
+        mpz_neg(dst, dst);
+}
+void mpz_get_int128(__int128 &amp;dst, const mpz_t &amp;src)
+{
+    dst = 0;
+    size_t count;
+    uint64_t limbs[2];
+
+    mpz_export(limbs, &amp;count, -1, sizeof(uint64_t), 0, 0, src);
+
+    ((int64_t*)&amp;dst)[0] = limbs[0];
+    if (count &gt; 1)
+        ((int64_t*)&amp;dst)[1] = limbs[1];
+
+    if (mpz_sgn(src) &lt; 0)
+        dst = -dst;
+}
+#endif
+
 int main(int argc, char *argv[])
 {
     auto startTime = std::chrono::steady_clock::now();
@@ -273,19 +306,70 @@ int main(int argc, char *argv[])
     Polytet startPolytet;
     startPolytet.emplace_back(start);
 
-    Coord power3 = 1;
+#ifdef USE_GMP
+    mpz_t power3, power9_2;
+    mpz_init(power3  ); mpz_set_ui(power3  , 1);
+    mpz_init(power9_2); mpz_set_ui(power9_2, 2);
+    mpz_t
+        x , y , z ,
+        x0, y0, z0,
+        x1, y1, z1,
+        x2, y2, z2,
+        x3, y3, z3,
+        xx_numerator_mpz, xx_denominator_mpz,
+        xy_numerator_mpz, xy_denominator_mpz,
+        xz_numerator_mpz, xz_denominator_mpz,
+        yx_numerator_mpz, yx_denominator_mpz,
+        yy_numerator_mpz, yy_denominator_mpz,
+        yz_numerator_mpz, yz_denominator_mpz,
+        zx_numerator_mpz, zx_denominator_mpz,
+        zy_numerator_mpz, zy_denominator_mpz,
+        zz_numerator_mpz, zz_denominator_mpz;
+    mpz_inits(
+        x , y , z ,
+        x0, y0, z0,
+        x1, y1, z1,
+        x2, y2, z2,
+        x3, y3, z3,
+        xx_numerator_mpz, xx_denominator_mpz,
+        xy_numerator_mpz, xy_denominator_mpz,
+        xz_numerator_mpz, xz_denominator_mpz,
+        yx_numerator_mpz, yx_denominator_mpz,
+        yy_numerator_mpz, yy_denominator_mpz,
+        yz_numerator_mpz, yz_denominator_mpz,
+        zx_numerator_mpz, zx_denominator_mpz,
+        zy_numerator_mpz, zy_denominator_mpz,
+        zz_numerator_mpz, zz_denominator_mpz, NULL);
+#else
+    Coord power3   = 1;
+    Coord power9_2 = 2;
+#endif
     auto *polytets = new std::unordered_set&lt;Polytet&gt;;
     polytets-&gt;insert(startPolytet);
+    size_t prevPolytetCount = 0;
     for (int tetCount=1;;)
     {
         auto currentTime = std::chrono::steady_clock::now();
-        std::cout &lt;&lt; tetCount &lt;&lt; ": " &lt;&lt; polytets-&gt;size() &lt;&lt; " [" &lt;&lt; std::chrono::duration_cast&lt;std::chrono::milliseconds&gt;(currentTime - startTime).count() &lt;&lt; " ms]" &lt;&lt; std::endl;
+        size_t polytetCount = polytets-&gt;size();
+        std::cout &lt;&lt; tetCount &lt;&lt; ": " &lt;&lt; polytetCount &lt;&lt; " [" &lt;&lt; std::chrono::duration_cast&lt;std::chrono::milliseconds&gt;(currentTime - startTime).count() &lt;&lt; " ms]" &lt;&lt; std::endl;
+        if (prevPolytetCount &gt; polytetCount)
+        {
+            std::cerr &lt;&lt; "Quit due to apparent overflow" &lt;&lt; std::endl;
+            break;
+        }
+        prevPolytetCount = polytetCount;
         ++tetCount;
 #ifdef DEBUG_PRINT
-        if (tetCount &gt; 6)
+        if (tetCount > 6)
             break;
 #endif
-        power3 *= 3;
+#ifdef USE_GMP
+        mpz_mul_ui(power3  , power3  , 3);
+        mpz_mul_ui(power9_2, power9_2, 9);
+#else
+        power3   *= 3;
+        power9_2 *= 9;
+#endif
         auto *newPolytets = new std::unordered_set&lt;Polytet&gt;;
         for (auto basePolytet=polytets-&gt;cbegin(); basePolytet!=polytets-&gt;cend(); ++basePolytet)
         {
@@ -352,7 +436,7 @@ int main(int argc, char *argv[])
                         Polytet runningLeastPolytet;
                         for (auto tetToRotateNormalize=newPolytet.cbegin(); tetToRotateNormalize!=newPolytet.cend(); ++tetToRotateNormalize)
                         {
-                            // only rotate-normalize to tetrahedrons with 1 attached face; every polytet is guaranteed to have some
+                            // only rotate-normalize to tetrahedrons with exactly 1 attached face; every polytet is guaranteed to have some
                             int faceToRotateNormalize;
                             {
                                 int attachCount = 0;
@@ -372,18 +456,32 @@ int main(int argc, char *argv[])
                             for (int faceRotation=0; faceRotation&lt;3; faceRotation++)
                             {
                                 // Solve for an affine transformation that rotates and translates the polytet so that "tetToRotateNormalize" goes into the same position as the first face of the "start" tetrahedron
-                                Coord xx_numerator = power3*(  ( n[2][1] - n[3][1])*(n[0][2] - n[1][2])  - (n[0][1] - n[1][1])*(n[2][2] - n[3][2]) ); Coord xx_denominator = (-(n[1][0]*n[2][1]*n[0][2]) + n[1][0]*n[3][1]*n[0][2] + n[0][0]*n[2][1]*n[1][2] - n[0][0]*n[3][1]*n[1][2] + n[1][0]*n[0][1]*n[2][2] - n[0][0]*n[1][1]*n[2][2] + n[0][0]*n[3][1]*n[2][2] - n[1][0]*n[3][1]*n[2][2] + n[3][0]*(-(n[1][1]*n[0][2]) + n[2][1]*n[0][2] + n[0][1]*n[1][2] - n[2][1]*n[1][2] - n[0][1]*n[2][2] + n[1][1]*n[2][2]) + (-(n[1][0]*n[0][1]) + n[0][0]*n[1][1] - n[0][0]*n[2][1] + n[1][0]*n[2][1])*n[3][2] + n[2][0]*(-(n[3][1]*n[0][2]) - n[0][1]*n[1][2] + n[3][1]*n[1][2] + n[1][1]*(n[0][2] - n[3][2]) + n[0][1]*n[3][2]));
-                                Coord xy_numerator = power3*((-((n[2][0] - n[3][0])*(n[0][2] - n[1][2])) + (n[0][0] - n[1][0])*(n[2][2] - n[3][2]))); Coord xy_denominator = (-(n[1][0]*n[2][1]*n[0][2]) + n[1][0]*n[3][1]*n[0][2] + n[0][0]*n[2][1]*n[1][2] - n[0][0]*n[3][1]*n[1][2] + n[1][0]*n[0][1]*n[2][2] - n[0][0]*n[1][1]*n[2][2] + n[0][0]*n[3][1]*n[2][2] - n[1][0]*n[3][1]*n[2][2] + n[3][0]*(-(n[1][1]*n[0][2]) + n[2][1]*n[0][2] + n[0][1]*n[1][2] - n[2][1]*n[1][2] - n[0][1]*n[2][2] + n[1][1]*n[2][2]) + (-(n[1][0]*n[0][1]) + n[0][0]*n[1][1] - n[0][0]*n[2][1] + n[1][0]*n[2][1])*n[3][2] + n[2][0]*(-(n[3][1]*n[0][2]) - n[0][1]*n[1][2] + n[3][1]*n[1][2] + n[1][1]*(n[0][2] - n[3][2]) + n[0][1]*n[3][2]));
-                                Coord xz_numerator = power3*(  ( n[2][0] - n[3][0])*(n[0][1] - n[1][1])  - (n[0][0] - n[1][0])*(n[2][1] - n[3][1]) ); Coord xz_denominator = (-(n[1][0]*n[2][1]*n[0][2]) + n[1][0]*n[3][1]*n[0][2] + n[0][0]*n[2][1]*n[1][2] - n[0][0]*n[3][1]*n[1][2] + n[1][0]*n[0][1]*n[2][2] - n[0][0]*n[1][1]*n[2][2] + n[0][0]*n[3][1]*n[2][2] - n[1][0]*n[3][1]*n[2][2] + n[3][0]*(-(n[1][1]*n[0][2]) + n[2][1]*n[0][2] + n[0][1]*n[1][2] - n[2][1]*n[1][2] - n[0][1]*n[2][2] + n[1][1]*n[2][2]) + (-(n[1][0]*n[0][1]) + n[0][0]*n[1][1] - n[0][0]*n[2][1] + n[1][0]*n[2][1])*n[3][2] + n[2][0]*(-(n[3][1]*n[0][2]) - n[0][1]*n[1][2] + n[3][1]*n[1][2] + n[1][1]*(n[0][2] - n[3][2]) + n[0][1]*n[3][2]));
-                                Coord yx_numerator = power3*( -((n[1][1] - n[3][1])*(n[0][2] - n[2][2])) + (n[0][1] - n[2][1])*(n[1][2] - n[3][2]) ); Coord yx_denominator = (-(n[1][0]*n[2][1]*n[0][2]) + n[1][0]*n[3][1]*n[0][2] + n[0][0]*n[2][1]*n[1][2] - n[0][0]*n[3][1]*n[1][2] + n[1][0]*n[0][1]*n[2][2] - n[0][0]*n[1][1]*n[2][2] + n[0][0]*n[3][1]*n[2][2] - n[1][0]*n[3][1]*n[2][2] + n[3][0]*(-(n[1][1]*n[0][2]) + n[2][1]*n[0][2] + n[0][1]*n[1][2] - n[2][1]*n[1][2] - n[0][1]*n[2][2] + n[1][1]*n[2][2]) + (-(n[1][0]*n[0][1]) + n[0][0]*n[1][1] - n[0][0]*n[2][1] + n[1][0]*n[2][1])*n[3][2] + n[2][0]*(-(n[3][1]*n[0][2]) - n[0][1]*n[1][2] + n[3][1]*n[1][2] + n[1][1]*(n[0][2] - n[3][2]) + n[0][1]*n[3][2]));
-                                Coord yy_numerator = power3*(  ( n[1][0] - n[3][0])*(n[0][2] - n[2][2])  - (n[0][0] - n[2][0])*(n[1][2] - n[3][2]) ); Coord yy_denominator = (-(n[1][0]*n[2][1]*n[0][2]) + n[1][0]*n[3][1]*n[0][2] + n[0][0]*n[2][1]*n[1][2] - n[0][0]*n[3][1]*n[1][2] + n[1][0]*n[0][1]*n[2][2] - n[0][0]*n[1][1]*n[2][2] + n[0][0]*n[3][1]*n[2][2] - n[1][0]*n[3][1]*n[2][2] + n[3][0]*(-(n[1][1]*n[0][2]) + n[2][1]*n[0][2] + n[0][1]*n[1][2] - n[2][1]*n[1][2] - n[0][1]*n[2][2] + n[1][1]*n[2][2]) + (-(n[1][0]*n[0][1]) + n[0][0]*n[1][1] - n[0][0]*n[2][1] + n[1][0]*n[2][1])*n[3][2] + n[2][0]*(-(n[3][1]*n[0][2]) - n[0][1]*n[1][2] + n[3][1]*n[1][2] + n[1][1]*(n[0][2] - n[3][2]) + n[0][1]*n[3][2]));
-                                Coord yz_numerator = power3*( -((n[1][0] - n[3][0])*(n[0][1] - n[2][1])) + (n[0][0] - n[2][0])*(n[1][1] - n[3][1]) ); Coord yz_denominator = (-(n[1][0]*n[2][1]*n[0][2]) + n[1][0]*n[3][1]*n[0][2] + n[0][0]*n[2][1]*n[1][2] - n[0][0]*n[3][1]*n[1][2] + n[1][0]*n[0][1]*n[2][2] - n[0][0]*n[1][1]*n[2][2] + n[0][0]*n[3][1]*n[2][2] - n[1][0]*n[3][1]*n[2][2] + n[3][0]*(-(n[1][1]*n[0][2]) + n[2][1]*n[0][2] + n[0][1]*n[1][2] - n[2][1]*n[1][2] - n[0][1]*n[2][2] + n[1][1]*n[2][2]) + (-(n[1][0]*n[0][1]) + n[0][0]*n[1][1] - n[0][0]*n[2][1] + n[1][0]*n[2][1])*n[3][2] + n[2][0]*(-(n[3][1]*n[0][2]) - n[0][1]*n[1][2] + n[3][1]*n[1][2] + n[1][1]*(n[0][2] - n[3][2]) + n[0][1]*n[3][2]));
-                                Coord zx_numerator = power3*( -((n[0][1] - n[3][1])*(n[1][2] - n[2][2])) + (n[1][1] - n[2][1])*(n[0][2] - n[3][2]) ); Coord zx_denominator = (-(n[1][0]*n[2][1]*n[0][2]) + n[1][0]*n[3][1]*n[0][2] + n[0][0]*n[2][1]*n[1][2] - n[0][0]*n[3][1]*n[1][2] + n[1][0]*n[0][1]*n[2][2] - n[0][0]*n[1][1]*n[2][2] + n[0][0]*n[3][1]*n[2][2] - n[1][0]*n[3][1]*n[2][2] + n[3][0]*(-(n[1][1]*n[0][2]) + n[2][1]*n[0][2] + n[0][1]*n[1][2] - n[2][1]*n[1][2] - n[0][1]*n[2][2] + n[1][1]*n[2][2]) + (-(n[1][0]*n[0][1]) + n[0][0]*n[1][1] - n[0][0]*n[2][1] + n[1][0]*n[2][1])*n[3][2] + n[2][0]*(-(n[3][1]*n[0][2]) - n[0][1]*n[1][2] + n[3][1]*n[1][2] + n[1][1]*(n[0][2] - n[3][2]) + n[0][1]*n[3][2]));
-                                Coord zy_numerator = power3*(  ( n[0][0] - n[3][0])*(n[1][2] - n[2][2])  - (n[1][0] - n[2][0])*(n[0][2] - n[3][2]) ); Coord zy_denominator = (-(n[1][0]*n[2][1]*n[0][2]) + n[1][0]*n[3][1]*n[0][2] + n[0][0]*n[2][1]*n[1][2] - n[0][0]*n[3][1]*n[1][2] + n[1][0]*n[0][1]*n[2][2] - n[0][0]*n[1][1]*n[2][2] + n[0][0]*n[3][1]*n[2][2] - n[1][0]*n[3][1]*n[2][2] + n[3][0]*(-(n[1][1]*n[0][2]) + n[2][1]*n[0][2] + n[0][1]*n[1][2] - n[2][1]*n[1][2] - n[0][1]*n[2][2] + n[1][1]*n[2][2]) + (-(n[1][0]*n[0][1]) + n[0][0]*n[1][1] - n[0][0]*n[2][1] + n[1][0]*n[2][1])*n[3][2] + n[2][0]*(-(n[3][1]*n[0][2]) - n[0][1]*n[1][2] + n[3][1]*n[1][2] + n[1][1]*(n[0][2] - n[3][2]) + n[0][1]*n[3][2]));
-                                Coord zz_numerator = power3*(  ( n[0][0] - n[3][0])*(n[1][1] - n[2][1])  - (n[1][0] - n[2][0])*(n[0][1] - n[3][1]) ); Coord zz_denominator = ( n[1][0]*n[2][1]*n[0][2] - n[1][0]*n[3][1]*n[0][2] - n[0][0]*n[2][1]*n[1][2] + n[0][0]*n[3][1]*n[1][2] - n[1][0]*n[0][1]*n[2][2] + n[0][0]*n[1][1]*n[2][2] - n[0][0]*n[3][1]*n[2][2] + n[1][0]*n[3][1]*n[2][2] + n[3][0]*(n[1][1]*n[0][2] - n[2][1]*n[0][2] - n[0][1]*n[1][2] + n[2][1]*n[1][2] + n[0][1]*n[2][2] - n[1][1]*n[2][2]) + n[1][0]*n[0][1]*n[3][2] - n[0][0]*n[1][1]*n[3][2] + n[0][0]*n[2][1]*n[3][2] - n[1][0]*n[2][1]*n[3][2] + n[2][0]*(n[3][1]*n[0][2] + n[0][1]*n[1][2] - n[3][1]*n[1][2] - n[0][1]*n[3][2] + n[1][1]*(-n[0][2] + n[3][2])));
-                                Coord x0 = ( n[1][0]*n[2][1]*n[0][2] - n[1][0]*n[3][1]*n[0][2] - n[0][0]*n[2][1]*n[1][2] + n[0][0]*n[3][1]*n[1][2] - n[1][0]*n[0][1]*n[2][2] + n[0][0]*n[1][1]*n[2][2] + n[0][0]*n[3][1]*n[2][2] - n[1][0]*n[3][1]*n[2][2] + n[3][0]*(n[2][1]*(n[0][2] - n[1][2]) + n[1][1]*(n[0][2] + n[2][2]) - n[0][1]*(n[1][2] + n[2][2])) + n[1][0]*(n[0][1] + n[2][1])*n[3][2] - n[0][0]*(n[1][1] + n[2][1])*n[3][2] + n[2][0]*(n[3][1]*(-n[0][2] + n[1][2]) - n[1][1]*(n[0][2] + n[3][2]) + n[0][1]*(n[1][2] + n[3][2])));
-                                Coord y0 = ( n[1][0]*n[2][1]*n[0][2] + n[1][0]*n[3][1]*n[0][2] - n[0][0]*n[2][1]*n[1][2] - n[0][0]*n[3][1]*n[1][2] - n[3][0]*((n[1][1] + n[2][1])*n[0][2] + (-n[0][1] + n[2][1])*n[1][2]) - n[1][0]*n[0][1]*n[2][2] + n[0][0]*n[1][1]*n[2][2] + n[3][0]*(n[0][1] + n[1][1])*n[2][2] - n[0][0]*n[3][1]*n[2][2] - n[1][0]*n[3][1]*n[2][2] + (-(n[1][0]*n[0][1]) + n[0][0]*n[1][1] + (n[0][0] + n[1][0])*n[2][1])*n[3][2] + n[2][0]*(n[3][1]*(n[0][2] + n[1][2]) + n[0][1]*(n[1][2] - n[3][2]) - n[1][1]*(n[0][2] + n[3][2])));
-                                Coord z0 = (-n[1][0]*n[2][1]*n[0][2] - n[1][0]*n[3][1]*n[0][2] + n[0][0]*n[2][1]*n[1][2] + n[0][0]*n[3][1]*n[1][2] - n[3][0]*n[2][1]*(n[0][2] + n[1][2]) + n[1][0]*n[0][1]*n[2][2] - n[0][0]*n[1][1]*n[2][2] - n[0][0]*n[3][1]*n[2][2] - n[1][0]*n[3][1]*n[2][2] + n[3][0]*n[1][1]*(n[0][2] + n[2][2]) + n[3][0]*n[0][1]*(-n[1][2] + n[2][2]) + n[1][0]*(n[0][1] + n[2][1])*n[3][2] + n[0][0]*(-n[1][1] + n[2][1])*n[3][2] + n[2][0]*(n[3][1]*(n[0][2] + n[1][2]) + n[1][1]*(n[0][2] - n[3][2]) - n[0][1]*(n[1][2] + n[3][2])));
+                                Coord xx_numerator =   ( n[2][1] - n[3][1])*(n[0][2] - n[1][2])  - (n[0][1] - n[1][1])*(n[2][2] - n[3][2]) ; Coord xx_denominator = (-(n[1][0]*n[2][1]*n[0][2]) + n[1][0]*n[3][1]*n[0][2] + n[0][0]*n[2][1]*n[1][2] - n[0][0]*n[3][1]*n[1][2] + n[1][0]*n[0][1]*n[2][2] - n[0][0]*n[1][1]*n[2][2] + n[0][0]*n[3][1]*n[2][2] - n[1][0]*n[3][1]*n[2][2] + n[3][0]*(-(n[1][1]*n[0][2]) + n[2][1]*n[0][2] + n[0][1]*n[1][2] - n[2][1]*n[1][2] - n[0][1]*n[2][2] + n[1][1]*n[2][2]) + (-(n[1][0]*n[0][1]) + n[0][0]*n[1][1] - n[0][0]*n[2][1] + n[1][0]*n[2][1])*n[3][2] + n[2][0]*(-(n[3][1]*n[0][2]) - n[0][1]*n[1][2] + n[3][1]*n[1][2] + n[1][1]*(n[0][2] - n[3][2]) + n[0][1]*n[3][2]));
+                                Coord xy_numerator = (-((n[2][0] - n[3][0])*(n[0][2] - n[1][2])) + (n[0][0] - n[1][0])*(n[2][2] - n[3][2])); Coord xy_denominator = (-(n[1][0]*n[2][1]*n[0][2]) + n[1][0]*n[3][1]*n[0][2] + n[0][0]*n[2][1]*n[1][2] - n[0][0]*n[3][1]*n[1][2] + n[1][0]*n[0][1]*n[2][2] - n[0][0]*n[1][1]*n[2][2] + n[0][0]*n[3][1]*n[2][2] - n[1][0]*n[3][1]*n[2][2] + n[3][0]*(-(n[1][1]*n[0][2]) + n[2][1]*n[0][2] + n[0][1]*n[1][2] - n[2][1]*n[1][2] - n[0][1]*n[2][2] + n[1][1]*n[2][2]) + (-(n[1][0]*n[0][1]) + n[0][0]*n[1][1] - n[0][0]*n[2][1] + n[1][0]*n[2][1])*n[3][2] + n[2][0]*(-(n[3][1]*n[0][2]) - n[0][1]*n[1][2] + n[3][1]*n[1][2] + n[1][1]*(n[0][2] - n[3][2]) + n[0][1]*n[3][2]));
+                                Coord xz_numerator =   ( n[2][0] - n[3][0])*(n[0][1] - n[1][1])  - (n[0][0] - n[1][0])*(n[2][1] - n[3][1]) ; Coord xz_denominator = (-(n[1][0]*n[2][1]*n[0][2]) + n[1][0]*n[3][1]*n[0][2] + n[0][0]*n[2][1]*n[1][2] - n[0][0]*n[3][1]*n[1][2] + n[1][0]*n[0][1]*n[2][2] - n[0][0]*n[1][1]*n[2][2] + n[0][0]*n[3][1]*n[2][2] - n[1][0]*n[3][1]*n[2][2] + n[3][0]*(-(n[1][1]*n[0][2]) + n[2][1]*n[0][2] + n[0][1]*n[1][2] - n[2][1]*n[1][2] - n[0][1]*n[2][2] + n[1][1]*n[2][2]) + (-(n[1][0]*n[0][1]) + n[0][0]*n[1][1] - n[0][0]*n[2][1] + n[1][0]*n[2][1])*n[3][2] + n[2][0]*(-(n[3][1]*n[0][2]) - n[0][1]*n[1][2] + n[3][1]*n[1][2] + n[1][1]*(n[0][2] - n[3][2]) + n[0][1]*n[3][2]));
+                                Coord yx_numerator =  -((n[1][1] - n[3][1])*(n[0][2] - n[2][2])) + (n[0][1] - n[2][1])*(n[1][2] - n[3][2]) ; Coord yx_denominator = (-(n[1][0]*n[2][1]*n[0][2]) + n[1][0]*n[3][1]*n[0][2] + n[0][0]*n[2][1]*n[1][2] - n[0][0]*n[3][1]*n[1][2] + n[1][0]*n[0][1]*n[2][2] - n[0][0]*n[1][1]*n[2][2] + n[0][0]*n[3][1]*n[2][2] - n[1][0]*n[3][1]*n[2][2] + n[3][0]*(-(n[1][1]*n[0][2]) + n[2][1]*n[0][2] + n[0][1]*n[1][2] - n[2][1]*n[1][2] - n[0][1]*n[2][2] + n[1][1]*n[2][2]) + (-(n[1][0]*n[0][1]) + n[0][0]*n[1][1] - n[0][0]*n[2][1] + n[1][0]*n[2][1])*n[3][2] + n[2][0]*(-(n[3][1]*n[0][2]) - n[0][1]*n[1][2] + n[3][1]*n[1][2] + n[1][1]*(n[0][2] - n[3][2]) + n[0][1]*n[3][2]));
+                                Coord yy_numerator =   ( n[1][0] - n[3][0])*(n[0][2] - n[2][2])  - (n[0][0] - n[2][0])*(n[1][2] - n[3][2]) ; Coord yy_denominator = (-(n[1][0]*n[2][1]*n[0][2]) + n[1][0]*n[3][1]*n[0][2] + n[0][0]*n[2][1]*n[1][2] - n[0][0]*n[3][1]*n[1][2] + n[1][0]*n[0][1]*n[2][2] - n[0][0]*n[1][1]*n[2][2] + n[0][0]*n[3][1]*n[2][2] - n[1][0]*n[3][1]*n[2][2] + n[3][0]*(-(n[1][1]*n[0][2]) + n[2][1]*n[0][2] + n[0][1]*n[1][2] - n[2][1]*n[1][2] - n[0][1]*n[2][2] + n[1][1]*n[2][2]) + (-(n[1][0]*n[0][1]) + n[0][0]*n[1][1] - n[0][0]*n[2][1] + n[1][0]*n[2][1])*n[3][2] + n[2][0]*(-(n[3][1]*n[0][2]) - n[0][1]*n[1][2] + n[3][1]*n[1][2] + n[1][1]*(n[0][2] - n[3][2]) + n[0][1]*n[3][2]));
+                                Coord yz_numerator =  -((n[1][0] - n[3][0])*(n[0][1] - n[2][1])) + (n[0][0] - n[2][0])*(n[1][1] - n[3][1]) ; Coord yz_denominator = (-(n[1][0]*n[2][1]*n[0][2]) + n[1][0]*n[3][1]*n[0][2] + n[0][0]*n[2][1]*n[1][2] - n[0][0]*n[3][1]*n[1][2] + n[1][0]*n[0][1]*n[2][2] - n[0][0]*n[1][1]*n[2][2] + n[0][0]*n[3][1]*n[2][2] - n[1][0]*n[3][1]*n[2][2] + n[3][0]*(-(n[1][1]*n[0][2]) + n[2][1]*n[0][2] + n[0][1]*n[1][2] - n[2][1]*n[1][2] - n[0][1]*n[2][2] + n[1][1]*n[2][2]) + (-(n[1][0]*n[0][1]) + n[0][0]*n[1][1] - n[0][0]*n[2][1] + n[1][0]*n[2][1])*n[3][2] + n[2][0]*(-(n[3][1]*n[0][2]) - n[0][1]*n[1][2] + n[3][1]*n[1][2] + n[1][1]*(n[0][2] - n[3][2]) + n[0][1]*n[3][2]));
+                                Coord zx_numerator =  -((n[0][1] - n[3][1])*(n[1][2] - n[2][2])) + (n[1][1] - n[2][1])*(n[0][2] - n[3][2]) ; Coord zx_denominator = (-(n[1][0]*n[2][1]*n[0][2]) + n[1][0]*n[3][1]*n[0][2] + n[0][0]*n[2][1]*n[1][2] - n[0][0]*n[3][1]*n[1][2] + n[1][0]*n[0][1]*n[2][2] - n[0][0]*n[1][1]*n[2][2] + n[0][0]*n[3][1]*n[2][2] - n[1][0]*n[3][1]*n[2][2] + n[3][0]*(-(n[1][1]*n[0][2]) + n[2][1]*n[0][2] + n[0][1]*n[1][2] - n[2][1]*n[1][2] - n[0][1]*n[2][2] + n[1][1]*n[2][2]) + (-(n[1][0]*n[0][1]) + n[0][0]*n[1][1] - n[0][0]*n[2][1] + n[1][0]*n[2][1])*n[3][2] + n[2][0]*(-(n[3][1]*n[0][2]) - n[0][1]*n[1][2] + n[3][1]*n[1][2] + n[1][1]*(n[0][2] - n[3][2]) + n[0][1]*n[3][2]));
+                                Coord zy_numerator =   ( n[0][0] - n[3][0])*(n[1][2] - n[2][2])  - (n[1][0] - n[2][0])*(n[0][2] - n[3][2]) ; Coord zy_denominator = (-(n[1][0]*n[2][1]*n[0][2]) + n[1][0]*n[3][1]*n[0][2] + n[0][0]*n[2][1]*n[1][2] - n[0][0]*n[3][1]*n[1][2] + n[1][0]*n[0][1]*n[2][2] - n[0][0]*n[1][1]*n[2][2] + n[0][0]*n[3][1]*n[2][2] - n[1][0]*n[3][1]*n[2][2] + n[3][0]*(-(n[1][1]*n[0][2]) + n[2][1]*n[0][2] + n[0][1]*n[1][2] - n[2][1]*n[1][2] - n[0][1]*n[2][2] + n[1][1]*n[2][2]) + (-(n[1][0]*n[0][1]) + n[0][0]*n[1][1] - n[0][0]*n[2][1] + n[1][0]*n[2][1])*n[3][2] + n[2][0]*(-(n[3][1]*n[0][2]) - n[0][1]*n[1][2] + n[3][1]*n[1][2] + n[1][1]*(n[0][2] - n[3][2]) + n[0][1]*n[3][2]));
+                                Coord zz_numerator =   ( n[0][0] - n[3][0])*(n[1][1] - n[2][1])  - (n[1][0] - n[2][0])*(n[0][1] - n[3][1]) ; Coord zz_denominator = ( n[1][0]*n[2][1]*n[0][2] - n[1][0]*n[3][1]*n[0][2] - n[0][0]*n[2][1]*n[1][2] + n[0][0]*n[3][1]*n[1][2] - n[1][0]*n[0][1]*n[2][2] + n[0][0]*n[1][1]*n[2][2] - n[0][0]*n[3][1]*n[2][2] + n[1][0]*n[3][1]*n[2][2] + n[3][0]*(n[1][1]*n[0][2] - n[2][1]*n[0][2] - n[0][1]*n[1][2] + n[2][1]*n[1][2] + n[0][1]*n[2][2] - n[1][1]*n[2][2]) + n[1][0]*n[0][1]*n[3][2] - n[0][0]*n[1][1]*n[3][2] + n[0][0]*n[2][1]*n[3][2] - n[1][0]*n[2][1]*n[3][2] + n[2][0]*(n[3][1]*n[0][2] + n[0][1]*n[1][2] - n[3][1]*n[1][2] - n[0][1]*n[3][2] + n[1][1]*(-n[0][2] + n[3][2])));
+                                Coord x0_ = ( n[1][0]*n[2][1]*n[0][2] - n[1][0]*n[3][1]*n[0][2] - n[0][0]*n[2][1]*n[1][2] + n[0][0]*n[3][1]*n[1][2] - n[1][0]*n[0][1]*n[2][2] + n[0][0]*n[1][1]*n[2][2] + n[0][0]*n[3][1]*n[2][2] - n[1][0]*n[3][1]*n[2][2] + n[3][0]*(n[2][1]*(n[0][2] - n[1][2]) + n[1][1]*(n[0][2] + n[2][2]) - n[0][1]*(n[1][2] + n[2][2])) + n[1][0]*(n[0][1] + n[2][1])*n[3][2] - n[0][0]*(n[1][1] + n[2][1])*n[3][2] + n[2][0]*(n[3][1]*(-n[0][2] + n[1][2]) - n[1][1]*(n[0][2] + n[3][2]) + n[0][1]*(n[1][2] + n[3][2])));
+                                Coord y0_ = ( n[1][0]*n[2][1]*n[0][2] + n[1][0]*n[3][1]*n[0][2] - n[0][0]*n[2][1]*n[1][2] - n[0][0]*n[3][1]*n[1][2] - n[3][0]*((n[1][1] + n[2][1])*n[0][2] + (-n[0][1] + n[2][1])*n[1][2]) - n[1][0]*n[0][1]*n[2][2] + n[0][0]*n[1][1]*n[2][2] + n[3][0]*(n[0][1] + n[1][1])*n[2][2] - n[0][0]*n[3][1]*n[2][2] - n[1][0]*n[3][1]*n[2][2] + (-(n[1][0]*n[0][1]) + n[0][0]*n[1][1] + (n[0][0] + n[1][0])*n[2][1])*n[3][2] + n[2][0]*(n[3][1]*(n[0][2] + n[1][2]) + n[0][1]*(n[1][2] - n[3][2]) - n[1][1]*(n[0][2] + n[3][2])));
+                                Coord z0_ = (-n[1][0]*n[2][1]*n[0][2] - n[1][0]*n[3][1]*n[0][2] + n[0][0]*n[2][1]*n[1][2] + n[0][0]*n[3][1]*n[1][2] - n[3][0]*n[2][1]*(n[0][2] + n[1][2]) + n[1][0]*n[0][1]*n[2][2] - n[0][0]*n[1][1]*n[2][2] - n[0][0]*n[3][1]*n[2][2] - n[1][0]*n[3][1]*n[2][2] + n[3][0]*n[1][1]*(n[0][2] + n[2][2]) + n[3][0]*n[0][1]*(-n[1][2] + n[2][2]) + n[1][0]*(n[0][1] + n[2][1])*n[3][2] + n[0][0]*(-n[1][1] + n[2][1])*n[3][2] + n[2][0]*(n[3][1]*(n[0][2] + n[1][2]) + n[1][1]*(n[0][2] - n[3][2]) - n[0][1]*(n[1][2] + n[3][2])));
+#ifdef USE_GMP
+                                mpz_set_int128(xx_numerator_mpz, xx_numerator); mpz_set_int128(xx_denominator_mpz, xx_denominator);
+                                mpz_set_int128(xy_numerator_mpz, xy_numerator); mpz_set_int128(xy_denominator_mpz, xy_denominator);
+                                mpz_set_int128(xz_numerator_mpz, xz_numerator); mpz_set_int128(xz_denominator_mpz, xz_denominator);
+                                mpz_set_int128(yx_numerator_mpz, yx_numerator); mpz_set_int128(yx_denominator_mpz, yx_denominator);
+                                mpz_set_int128(yy_numerator_mpz, yy_numerator); mpz_set_int128(yy_denominator_mpz, yy_denominator);
+                                mpz_set_int128(yz_numerator_mpz, yz_numerator); mpz_set_int128(yz_denominator_mpz, yz_denominator);
+                                mpz_set_int128(zx_numerator_mpz, zx_numerator); mpz_set_int128(zx_denominator_mpz, zx_denominator);
+                                mpz_set_int128(zy_numerator_mpz, zy_numerator); mpz_set_int128(zy_denominator_mpz, zy_denominator);
+                                mpz_set_int128(zz_numerator_mpz, zz_numerator); mpz_set_int128(zz_denominator_mpz, zz_denominator);
+                                mpz_set_int128(x0, x0_);
+                                mpz_set_int128(y0, y0_);
+                                mpz_set_int128(z0, z0_);
+#endif
                                 // Apply the affine transformation to the polytet
                                 Polytet newRotatedPolytet;
                                 newRotatedPolytet.reserve(tetCount);
@@ -392,9 +490,34 @@ int main(int argc, char *argv[])
                                     Tet &amp;nt = newRotatedPolytet.emplace_back();
                                     for (int vertexNum=0; vertexNum&lt;4; vertexNum++)
                                     {
-                                        nt.t[vertexNum][0] = x0*power3/zz_denominator + (tetToRotate-&gt;t[vertexNum][0]*xx_numerator*2*power3/xx_denominator + tetToRotate-&gt;t[vertexNum][1]*xy_numerator*2*power3/xy_denominator + tetToRotate-&gt;t[vertexNum][2]*xz_numerator*2*power3/xz_denominator)/power3;
-                                        nt.t[vertexNum][1] = y0*power3/zz_denominator + (tetToRotate-&gt;t[vertexNum][0]*yx_numerator*2*power3/yx_denominator + tetToRotate-&gt;t[vertexNum][1]*yy_numerator*2*power3/yy_denominator + tetToRotate-&gt;t[vertexNum][2]*yz_numerator*2*power3/yz_denominator)/power3;
-                                        nt.t[vertexNum][2] = z0*power3/zz_denominator + (tetToRotate-&gt;t[vertexNum][0]*zx_numerator*2*power3/zx_denominator + tetToRotate-&gt;t[vertexNum][1]*zy_numerator*2*power3/zy_denominator + tetToRotate-&gt;t[vertexNum][2]*zz_numerator*2*power3/zz_denominator)/power3;
+#ifdef USE_GMP
+                                        mpz_set_int128(x1, tetToRotate-&gt;t[vertexNum][0]);
+                                        mpz_set_int128(y1, tetToRotate-&gt;t[vertexNum][1]);
+                                        mpz_set_int128(z1, tetToRotate-&gt;t[vertexNum][2]);
+
+                                        mpz_set(x, x0); mpz_mul(x, x, power3); mpz_div(x, x, zz_denominator_mpz);
+                                        mpz_set(y, y0); mpz_mul(y, y, power3); mpz_div(y, y, zz_denominator_mpz);
+                                        mpz_set(z, z0); mpz_mul(z, z, power3); mpz_div(z, z, zz_denominator_mpz);
+
+                                        mpz_set(x2, x1); mpz_mul(x2, x2, xx_numerator_mpz); mpz_mul(x2, x2, power9_2); mpz_div(x2, x2, xx_denominator_mpz);
+                                        mpz_set(x3, y1); mpz_mul(x3, x3, xy_numerator_mpz); mpz_mul(x3, x3, power9_2); mpz_div(x3, x3, xy_denominator_mpz); mpz_add(x2, x2, x3);
+                                        mpz_set(x3, z1); mpz_mul(x3, x3, xz_numerator_mpz); mpz_mul(x3, x3, power9_2); mpz_div(x3, x3, xz_denominator_mpz); mpz_add(x2, x2, x3); mpz_div(x2, x2, power3); mpz_add(x, x, x2);
+                                        mpz_set(y2, x1); mpz_mul(y2, y2, yx_numerator_mpz); mpz_mul(y2, y2, power9_2); mpz_div(y2, y2, yx_denominator_mpz);
+                                        mpz_set(y3, y1); mpz_mul(y3, y3, yy_numerator_mpz); mpz_mul(y3, y3, power9_2); mpz_div(y3, y3, yy_denominator_mpz); mpz_add(y2, y2, y3);
+                                        mpz_set(y3, z1); mpz_mul(y3, y3, yz_numerator_mpz); mpz_mul(y3, y3, power9_2); mpz_div(y3, y3, yz_denominator_mpz); mpz_add(y2, y2, y3); mpz_div(y2, y2, power3); mpz_add(y, y, y2);
+                                        mpz_set(z2, x1); mpz_mul(z2, z2, zx_numerator_mpz); mpz_mul(z2, z2, power9_2); mpz_div(z2, z2, zx_denominator_mpz);
+                                        mpz_set(z3, y1); mpz_mul(z3, z3, zy_numerator_mpz); mpz_mul(z3, z3, power9_2); mpz_div(z3, z3, zy_denominator_mpz); mpz_add(z2, z2, z3);
+                                        mpz_set(z3, z1); mpz_mul(z3, z3, zz_numerator_mpz); mpz_mul(z3, z3, power9_2); mpz_div(z3, z3, zz_denominator_mpz); mpz_add(z2, z2, z3); mpz_div(z2, z2, power3); mpz_add(z, z, z2);
+
+                                        mpz_get_int128(nt.t[vertexNum][0], x);
+                                        mpz_get_int128(nt.t[vertexNum][1], y);
+                                        mpz_get_int128(nt.t[vertexNum][2], z);
+
+#else
+                                        nt.t[vertexNum][0] = x0_*power3/zz_denominator + (tetToRotate-&gt;t[vertexNum][0]*xx_numerator*power9_2/xx_denominator + tetToRotate-&gt;t[vertexNum][1]*xy_numerator*power9_2/xy_denominator + tetToRotate-&gt;t[vertexNum][2]*xz_numerator*power9_2/xz_denominator)/power3;
+                                        nt.t[vertexNum][1] = y0_*power3/zz_denominator + (tetToRotate-&gt;t[vertexNum][0]*yx_numerator*power9_2/yx_denominator + tetToRotate-&gt;t[vertexNum][1]*yy_numerator*power9_2/yy_denominator + tetToRotate-&gt;t[vertexNum][2]*yz_numerator*power9_2/yz_denominator)/power3;
+                                        nt.t[vertexNum][2] = z0_*power3/zz_denominator + (tetToRotate-&gt;t[vertexNum][0]*zx_numerator*power9_2/zx_denominator + tetToRotate-&gt;t[vertexNum][1]*zy_numerator*power9_2/zy_denominator + tetToRotate-&gt;t[vertexNum][2]*zz_numerator*power9_2/zz_denominator)/power3;
+#endif
                                     }
                                     memcpy(nt.faceAttached, tetToRotate-&gt;faceAttached, sizeof(nt.faceAttached));
                                 }
@@ -439,10 +562,26 @@ int main(int argc, char *argv[])
         polytets = newPolytets;
     }
     delete polytets;
+#ifdef USE_GMP
+    mpz_clears(
+        x , y , z ,
+        x1, y1, z1,
+        x2, y2, z2,
+        x3, y3, z3,
+        xx_numerator_mpz, xx_denominator_mpz,
+        xy_numerator_mpz, xy_denominator_mpz,
+        xz_numerator_mpz, xz_denominator_mpz,
+        yx_numerator_mpz, yx_denominator_mpz,
+        yy_numerator_mpz, yy_denominator_mpz,
+        yz_numerator_mpz, yz_denominator_mpz,
+        zx_numerator_mpz, zx_denominator_mpz,
+        zy_numerator_mpz, zy_denominator_mpz,
+        zz_numerator_mpz, zz_denominator_mpz, NULL);
+#endif
 &#9;return 0;
 }
 </code></pre>
-<p><a href="https://ato.pxeger.com/run?1=7V3NciM5cj5bTwFxwj38VbPIjt4dUeTGesa7sREbsx2zWl-0slwsQlJtU1WMKlBqSsMn8WUvPvrmp_HTOBN_BaCAYrFHYfugip5uFpBIJDI_JBJAkvPv_5ls1tsS_7u5S5L_uuqMSraaJ4PBZNwZdkZ_mnSu__4fW3Y7-vV__9v9N2mWrLcrSi6AKM3P7hcnVVGal6yg8YNZBiVpdmfTJdg2Y1YRvLPdhpZmYVwU8c4qWN_lRcrurR4eacLywixZp6XF_HabJSzNs3htlm6zvFjRgq5uSmrLcl_kWb44OXn__psVvU0zSn7453_6y-9vPv30hx8vT05QTignNzcgdDT5Nfk-B04zXQ6jOz_nsl_wmiGZLgTNNEw0HZIPC3JJWRHf0xUIMDtJ1nFZYtHJywmB5zFPVyTNUva7OKFlt8cLRRU-t1D6W8biBNpfja_JHErWJZ2R9-8Jg4Ihu4rwr8m1v0kUbjINNJl4m0yamkzdJpHbZH-y2S7XaXLO3wyNEDbjRcs8X9tMP1zPFHGXeJ4eOSdQ0yMvhvpme90mybOSWV29Y6INq7XZOzYU8LuAxgvyKV_vGAUxATrkkRaMfgGDrVJoS_JbLnNJngDAJF3RjKVJvCbJfVrE65TtTkoWQxE0YIRVovCeYYTwh8wlEl7GQxINyQSQtR_qkqkoNEomolCVRPwVCsdQAuM4Ecgj-YYWMQxiJBUhi9_FPdmfLEiElhOBrlEM_6qSSJZEumQiSyaypKBsW2TIY-_2O3D7HRK7YNkoCMpBBmTpioPS8HJHKJSJl7cQraaSrxBtFBBtFBBt1E60fqNopIVgfbKsS2UUViLpQo88SZGXpS2Lq6VDskTX_aUYOfbWN9USKRn6S6FLlLxfKUhLORbtOEUkqAMik1XOWptVtpb8OdAk_0h8nihp9ifcMT3m6-0DLf8E038db3yuRXdmleoewXVcxp8piVePccbiO4qug91TdB_gGe5jxt_YU266iZLEBQVp77bruCBxtsI-7ootuJkhvirWf9tCx-A0k88kvYWKHaEr2YUhTSfuoB-iRQneTbospEUPVqNdds4U9x_y7Ftgn2_Bh6UMe8iz9Y7LS7PVJkfflmO3oteqC8HB8IBYX159vObmdVY67v6kU1OObWK-Sxdn0k8d-qlDr973AjS3eUG6So4ftw_z8Ux9vPioPw4G7iIs8bMZc0yKQUjia0CPhKRJGfkoI5NSy4Lal7LIjxcf9Ecliy0PPibMIOZ5gNXmma7MUANNd5sWgAwQCI0k0CRBRzmA-NsHwIGwYlpyuWAFSwBxDGI8TiD4W91r8VMUPEWRU1NY9XhFu0pxdi-vaguiHPU1EBiqMhSbUAQXNH5B8-Of_Z4P9GG7ZulmnVLwkTsYcJI_bGC0MMCcQHR5l2a4KiMT-MRoaTGH9r-nTDGXazryiWG-x3eohhS0h2s_rvrfmoxmqCGX2yp9TEuITYUsoNX0QcuWP6RMa1aJncRMkZ_59bxBPW8upvCXT8-aboV0K6Rb-ejwEeO8WoGrmwcMtLmGaq8FBP3ML-SBzkVb7DjU7xT7hYVpCh5fi-mRo3IyABexckLVnC8CgvMw0ANfbjbjXiPTH2gGZso4W5up_4H57mEKjrLrZzkn47p2wLUDLrYihBaetCQA4ni9pmvEsZi1T_dpck-eKIhVueW4RPebi-WpnRAXrgwvNYkCSh7Vy2fhtrYuR75yu_U-LH8lxwWokPz8s0_ExdzbeYPC3el7eU9Lak5y7jjBDo6b8XXjmzOaDub4J-5o57iY9P1KGpCuwpNJEtC17AI25HF2t6YwgwJzUzrqacBRawZpeHam1wGZaxr8XsUi6OTM4VcLTZqVsF8SUY_s2zewFZl79Deq5B37_RROIFyFNR2PItu0mpitJodbkW2FPXAWGEdyNsLV4K5dvkfe1o92a0kdCXk1tyjU96M9v1RbUwTVPiAGzjCHTbN_OtC6hWOxNDbaNrgRSzujxwZKVxMjq-CQi9nWXcujXXSUQqqmA4uPLWWdpdyYsMLkuj-p_pYE4qwFdifyPOlHPV_laQU5J-LAxT3PUJN5ARsT80imxkFuchS_dxvxwY2NC3CVxSPtyuqzElh0ez0n0I23jG9s5oosWVKIq7q9GZaeVsWwocDCwUB3ZXeHj32kg6CH6ArWxptlnHzuQsPRgjlLMVdCmResy85kz0PCznhvPVfTToP7tBwtqkb81WzIT4_ENlHt4i9c5d3o7WFVBHtD8JQ8MkxSBhsqMCQghcRSh_P5Un6Se8i6kePuTQwyLbvAzNjiCG3H81irGeReAjtD6_EpVlfqjofw19K1LucEJoZlD_TcZzFMhQX8u6x0hniXFKe1aSLhKuvBM8wasGypcOGqsK5Bdzt_2gXxCGrC4TWfv9nDsodUec0Uwu-AV8niB1pucBcEE0EOl_FpxujFQm7ri23CyH1c3l_I8S8cacUkAgXdMG2Lbq9mC-VZpEWynH5J6IYFZn9d67J9VzPyzX0hRUkpBhS2s_IETMJiPm_l9VWH1ruKZzIH71SxS075u-aU1JeEOjebYzpPTI7pKX_XHFP_HtDPlasLVfSvc6E2bt0tRFwfP9ywxcu-21UvvW4_FQ16PVjkxl--o9Nf_eq75XcYv3IeFxfkY0-_LRZk0quv2l_TK7D6-OEX97qvldole9_EQaa1hXnGFwAMSx9iMAJ-iIu7BDzMfVyQPnx-vLpWToPbrGRxwS5TcC5yxOJ2CmDKaLza3STrPPl8fp7lT4hO8xStfsbIeanTNOM47WUUDfmfvXkohqV4oeCUEk7rKSWCgxioPEZT8473rG9HpJC65MxalXmNGosIXTf5Ey2moIFoVmmmL2dXiZsQ-iS0Y13qaWcjWin60QI2FBTWa1MG0wnLG5jvcb88j2Yzr2tNtkVBs_am0fDllPmWIf5UL_i5c046-G8lpvA5vI5c8Tqrm9W24GdBN0lcsgur6iFdr1PYBuXZqoTl0RB1VCGqd8ZPBFQPD-V11Qc4BePkhsdYXFB78dDiL0jkLB_LgsafK2ppwf6cTGe2Hvtgu09HWlJbinNYxiWV9fNKeZWfM-pPTQLt-AyCUCBphaaXubh5vMznRlOzS4vo1KEyA9eKqtXCcNQpcJiXst-pJcFoYV2qqhPWY1cFNecru4Z9eUVzpnYHClMNKwD4NAhkkG6zq8QX98l4c5LlTF6apKW48EDllRvwyEGejoGRdaNxkaDZsEjh112z_tQI-X7FUJDlJBu0o0djnAV_CJwFe9u0OBc2H3bGxCEwHoaogcO-Shb2zRnvex7oQ7LZwW7LRN_QZGVXoFfMbx363gGFSG8lOOKpRcPcc59mUwkVeGcOPx1yN_3e9i6WoeW7hmmDTz0oOVyjDubp07-I5AT7diTY7nVvPRzOr3cDYj7HzoBmIyN8NggbvG2Q5j08M_ynPkFJj5x32oryesbx5cx3M2M-YZh8jUSuNNb7qC6cocjDbgJQ8tvViscGxkVg4_rwtd6z7S2aeg7gBhnhXfDmsHs67Up9kHck6h22P_CFXRB_AJvkgpCJUfsbEpFz2NPzVbF8ijfyghfTBtQ8xZuijVx3jTykgwOKiLiVwOuHMV6iGMZ0Ov6cbvjczTebvExhWRZZUf87C5E1GaLDMAvPCGTNM9c0rMNcnMVgfHgZcFoYiXhtm0yObzJt0URfz6BJ5JUhWVL2RGkmoivQBx5_SaZWXojKGaBf0pL78DxzLtPNx4q_eKd_MK5y5sZMtgKxGuWpRWpGZDXSX7IYvOv7OMrAwl7Lj1gnjCkDuk206nnoCnOCfbtek3j9FO9KMIOwHublQEFzLyiyk5gEkB56NYhH4odlvsvBVKu0TOJidQnS_tgi2g_PLwRanOUZZkRCeMdxU-RMLPQqkkf3L7dvEAXmIhUqhbAkzlAbOo8jvotTPPrIgUsRRhw_972HCOanbZYBPv9IYRt9eE6o7U1htDo4cmd38RMOjerjySC6a5RhdNdIvxbdYAqes8XVT0f6epcwJ9-MJ4VF1dxH7zIjFOC1U2bCaO5uGxcxwEsk2KC-wXYP4YgQH7XNrQ2qeRU9HKjzAzcusDi3mKtrhqanbQKTt0O173AG4uy108Au-_gRaqF96sML8sPjNWUfDEx1LSAwad0cH-cUqOkJOwdTnq-Spl0c3iyAlUTXMqA_Ei8y2c0PF-ZPgatRehLigvIhg5-kl1XHSeodoy7z_dAADiMTHMuf8zVMf-wfXHZ8y79aAYPKylsUnzt77tSF7ylFCIH1a_6Kq4LyLMr_d3zq6sDyRDFvBH0WNCrjB2wJASh2EQtOIh7WGa1Q0uFHo51Wewz1iAPqL19uMiP7QJx29rsQmYNVJ9ciQ4PnrEXXvX4Xc8tEvkgGBfCpR-CzKI50sSSdaNKpIAWXr3tdWYkM3VGXtxxf92W3fdkV3nNUVVOziteMnUaR7nTstIl0G8VtLGsmtTaRVTPwcJuYevDUDMSwoUaNzR3TxDcWZwzeUTm9WLLyayFTmZy-Zw0h0raylGepZiKsKE2n5FWjmdqjGdVkH5CA3qHEAtG00ofiIIoOHIsZCN55EQxydqXMqqOxH8FcZVIXlUG9CO5VCN69IfgNwa-E4OdmH-xDsOVsKx_sQ7Dlwg0f_PyG4DcEvw6Cd4EogvvgyIGg3fnE8cGRoXROGrlyagTv3qKINwS_FoL9UYTwwVFjFDFx4uCxLh4fRPBbFPGG4NdCcCCKUD64IYoQg6zFwRaCA1HE7i2KeEPwKyH4uSmKGDsQtB2rFUVEDrC9cmoEP79FEW8Ifi0EN0URY48PdhEso4jI44MbEPwWRbwh-LUQ3HQWEUCw5WybERyIIp5rUYSrvL45TD9-ayawtOXH7yiI35qJvciuo_Qgfh30WsAc14AZmYCpD6k-eWzw1kc3Dc7OaW3ck1ob1yY1PAeciqPyuhHGNYYS3iOTkz6FbXuyNv5_jqVf6AuVcL57GY-LGFTrTKXzrgMyGUep3vW81RjseVCkHYGHyoMO26pRJZJH4JpPswQ-FhG7ZkSEV8cwIsKr46iylF9BqlOpD7faVszRwJrWDRgp1odcWRP82q2IxmZSa7XXuBZqdHjA4TG_seA1QueIxY-DY3S8uwiHTs3uYmq1CY372ADr66xaSRP2GibVWM9k13209B6VaiST9u4jrKhARBRwd-0Bgom8m438RahAAkBu3vMf5Gh820QkAawOJmOpp9bkmO-gqMeb2XUwoetwHtfhdJF2uUA8FzqTydDOcI_5Rok1XkweEYm88otI-gWTXfRL2ySp9llNGSbiav7cK84hPOmLAPu9EwAPrNwrzKGxmvbNrI3-RDFxsioGJMwDJoJ5b27w2LXmMQEez14e1mB670Vx-_QtV1c8rXj3tbraeXW1O0pXO6-udkfpaufV1e6VdTVBXT1_ra6evbp6PkpXz15dPR-lq2evrp5_ga4OJ-nhI7_RlXm_0qWE9X6pKzvuW13tRIJF5y-bFXQq0opF3i7prDFzt6PTjFulH57W8oV__rmVSjzZwmRRd8mv5fU9ac3tvokWktWzfLySaf78lLLkXi37Gf3C6pnfiIl2weeUsIcNpkeixFeTA5mQ-GRismM804Y4EsTuTyz5icV3P4RAr_9tPuOL0_or7R7btf5RA282_3m9dejHD_Yn36S3-LvI5q9lq0ojTgL-6uva1hCMSKkiOXVoqlipogl9aVv8UDRP8_Th3xYJAqW5wdMV5xJFsestUS7dyVufqJsC4qbbrhDoN6Tz1-ylQ85JZ_jXrOMxkhI88H0Eya3z8vKPHQK6Xn38AKxI6GU_JP9nhPvO0AvBrvqpDqlAXMH4VmYYqorCVZPr9p1E4U6icCfRcZ1Mwp1Mwp1MjutkGu5kGu5EbNiafuhMoWtvYxOmOKA-vdUFK7qmTO_WSvMHH8yfdPhk1Yuuak3_Qf5yynh2shf_wwH5_x34u_z3fwA" rel="nofollow noreferrer" title="C++ (GCC) – Attempt This Online">Attempt This Online!</a></p>
+<p><a href="https://ato.pxeger.com/run?1=7V3NcuNIcj5bT1HihHtIilQToKJ3WxQ5sTOznpiI2d72jMaXXq0CBCAJbhJgAKAkUMMn8WUvvjjCNz-Nn8aZ9QPUL0iqFbbDFqIlAYmqzK-ysrKy_tD_8u_harEu8Of6Ngz_41NnWJTRNDw58UedQWf4Z79z9bd_XZc3w9__5-bfvkrScLGOYnIBiZLs9G521JCSrCjzOFjKNKAk6a2aLsS8aamQ4LmsVnEhE4M8DyqFsLjN8qS8UyTcx2GZ5TJlkRQK85t1GpZJlgYLmbpOszyK8zi6LmIVy12epdns6Ojt26-i-CZJY_LrL3-8_uFPHyXK93_89tcfrj_-_OOHyyPIewPkOlXD6na5okUnhCQ3BN5df_j1T99ef_vj5S_keErendFXcZ5nObm8SwoC_-6CPBqGWRRH5AbI786G86Qki2Q5L1jqNEpujr5if45QaSj7-ho06Pm_J99lUKxJTQdVn59TRV7QNwMynrE0Y3ei8YCczchlXObBXRyBNiZH4SIoCiQdPR0BCHKfJRFJ0qT8hyCMi26PEtkrvG6A-oeyDELI_2l0RaZAWRTxhLx9S0ogDMpPHv7yr-xZPHeWsSOLb83it2UZ61k8Pcv2aLWeL5LwnD5JGiHlhJLmWbZQmZ5dTUTiLrFcPXJO4E2PPEnqm2zrPGGWFqUi6k3J8pRGnq1Wh6wtXEDmGfmYLaoyBphgteQ-zsv4ESosSiAvyW4o5oI8QGsiSRSnZRIGCxLeJXmwSMrqqCgDIEGGkpQNFCoZSgj_yJRbwtNoQLwB8cGytoOaMmZEieIzoqB49BGII6BAOY6Y5ZFsFecBFGLIFcHJb4Iel8cJIdNyyKxrGMBfQfE4xaspPqf4nJLH5TpPkcdWl3uiyx0QlTBvBYI4yAmZ63AQDaVroBATpe8BzVDJM6ANHdCGDmjD_aD1W6GRPYD1ydxEJREbSDXRgifMs6JQseha2oXFu-rPWclRWl9Wiycw9OdMl4i83yioRjli-WgKj6V2QCZRVu5drTw3508NjfP32L0v0GyPqGO6zxbrZVz8GZr_IljZXEstTKHWEsF1XAafYxJE90FaBrcxuo7yLkb3AZ7hLijpU_mQyW6iIEEeA9rb9SLISZBGKOM2X4ObGeCjYP3PaxAMTjP8jN1jkFYkjrgICU0n6KAfivMCvBt3WZgWPZiRdt45Fdy_z9KvgX22Bh8GPShIyNJFRfFC57nK0LdlKJZJbUQwDpIHxPfFp3dXtHq1no66P-7UhGPz5Wfu4uT0Yy39WEsvnrfMaDAM6AocH9bL6Wgibi_e1bcnJ3onzO1nNaI2yQrBE1-B9XCTlFN6tpSenLLGgtrnWPjtxVl9K7CoePCSzQwCsCX0Nps4kkMNrLqbJAfLAEBYScyauNHF1IDo0xnYAatFiJoQF_RgIVhcCQEnTcD4K-Jr-AkCTxByIoMVlxXapwRb9_yT0SHyUl9BAklVkmLDGI0LMj9h9eO_7ZYWdLlelMlqkUCwN6-gwGG2XEFpoYAZgVD3NkmxV0YmcFfGhcIc8v8Ql4I579ORTwDtPbhFNSSgPez7sdf_WmY0QQ3p3KLkPikgUGZYMBxd1tiyZVLWmhWww6AUyU_tel6hnlcXY_hl03OdLsJ0EaaLbOnwYuX8FIGrmzoqaHUFr601wNJP7CB3CGd5UbBL7hjlQsc0Bo9fw7TgaJwMmAvrOeHVlHYCjPPAIYF2N6tRr5Xp93EK1ZRStipT-wXt3cIUHGXXznJKRqZ2wLWDXaxZCM08aUHAiIPFIl6gHbNW-3CXhHfkIQZYjVsOCnS_Geue9gNxoWN4MhA5lDw06RN3XlWXQxtdzb11429wXIAKyW-_2SDOplbhLQrXm-_lXVzEciOnjhPqQXMzNjG2NlOngzb-kTraKXYmfbuSTkhX2JOcxKFrLqLMkyC9XcTQghxtkzvqscNR1wwSd-tMrhyYDQ1-J2IRdHJy8ZuOJkkLGC-xqIfLthUsIlOL_oYN3pHdT2EDwl64TkejyH1y-XIuf3cusm5sD5wFxpGUDXM1OGrnz541972am6f2GN6am-eSfa-2L5FXhiDyO2BgC9PYtPunHbn3cCyKxobrFjeiaGd435JS18RQIexyMWvTtdyrpIMU0mQ9UfioKE2WfGBS5jLX7VHzmydgcy0wOuHzSR_q9spnK8g5YRMu-nyGaMwzGJjIUzIGBz7IEfzerNiNHhvn4Crz-7jLX58WwKLb62mBbrAu6cBmKpKF8xjiqm5vgtTjhgwDCiSenNSiVHF4qVM6aPQQXUHfeD0Pws9dyDiclVpXTJVQZHnZLU-55AEpT6m0nq5pLcNdUgxnTSb6KGeks0dsmChG8Re68q7r4WFDgrEheEoaGYZJCQMqqEiwFBJwHU6nc37Hx5BmJQfd6wAwzbvATBriMG0H06BWM-CeAztJ68Exvm7UHQzg11yvXcoJqhi6PdBzvwygKczg77zRGdo7T3FsNBNurvw9eIZJiy0rKpzpKjQ1qA_nj7sAj6AmNF7T6Wt9KPXBVW5UBfM74FXSYBkXKxwFQUPgxS1pMyvjixkf1ufrsCR3QXF3wcs_09CyRgQKui7ruuj2jLoQnoXXSJrFj2G8Kh2t39Q6z9-tGdnaPkNRxDEGFKqzsgRMrMZs3srqq3b1dw3PcAreqWEXHtPnmlNodgkmN5VjMg1ljskxfa45JvYxoJ0rVReq6K9TpjZau2uIuN6dXZezp223Kx563X7CMvR60MmNHt_H49_97v38PcavlMfFBXnXq59mM-L3zF77OVKB1buzL5a6NagqZWtrOMjU6JgntAPQ1q7ous5ytcFFMb6k1MVHMPioKIX3qVeb3hR5KPxKTQzmBZDBXvE3OE_yDRni7TkSGAxkCS4LOyrK1h-QoTcgZ2xyZABuk_LgOkDfwHk1ZoEs0viW5Ydf1H_W8G8b-A1YqQS8TBJ8eAmQuafn7Y6OUhlFVCVbiaOTrHVJ4kdaEvoGsNNcrEDIJ7tp7ECUj5WNMuh2-ct-DwH22Dw0kyKCZ1QAGzHPiNeowMjqNVk9ARDz0gq9TVGJPVWLrNRD-IPqE6uKOFZZBtAy8SbIb0NQ212Qkz7c33-6EiqjDbkog7y8TKDH4c2ArZ-C7yrjIKquw0UWfj4_T7OHrigyn1o1J54pLzHFKs2xPoEu6b-tPFOKVFxl0qiEprVQCePArJ_PrQpnTCXXS2YcZE05VUI1-qZnth1hDujaH-J8PGB_31_7ktGnSdllr8EFTeqmtk5qKuDs2TIAH0sGoA5qZ0Gl14V-BFYV_GxIo4hHML4KfjYjiQaqqeBn40k04FrBz8aXaFCiCn42Y4n2eJ2KccI1iB8gJWrGCpTWpK6M1FVL6o2ReuNOXRlIqhYklYGkakFSGUiqFiQbA8mmBcnGQLJpQbIxkGwMJKrxFN1Xg_h_bhAD8uHXn34CH_FVDAE0zcqmYYTLAdftTXQ6eBag-xPRK-Br6vH7PJQscMYtfmBeX9lOU0fWjKlIP5wlKQy7y67sW3tKj7vK43v-4jva4dVdcj0jKF5NvcnEOtAI13kep_v3SSKzgKCKb8DrYTfjnK1LjN7qHHDfOScd_KtwQjr5ROkKpGid01WU6zAoygvl1TJZLJIihn4yKmBgKRVr2HS7vVMaGXR7TMKyuGpkQMVJax4YCRj6nSkoXXMXDFac51TIP66TkkTrGGf3gxUuWOFS6n2c3yyyB5d0vOZ5HHy2zVtYql2G1WShMywaDcsllcfTBo9cqKWzxgvd5HK9UDvg5m4s1beelHa9zd17pYExu-fNqz8l44lKxtYF5PdK82qaGLSrjwe2srqRUA7zoIj5-2ljws2AS3p_LCeoR2BSApdVKHNklxnbAnWZTaWsskgl0bGWSp5Ba1LtNUI9aDnazUuY0rGCYDhTdneJpd5Dh6cizmzq1T2obNKcimnKun26c0EcTfo03apq4LONbbiFI81KvnsjKdjOC1ResYKhoZOnVsHIurVyMUF7xWIKu-7a9SdKSCdOJQUpgXmLdurSSIvSZ45FaWuePRao5as8LdlqNK7KiIIPZ4LYl_2B7VrGy3BVdctT2foGMiv1BR9oqul7OxTCHSfjiMsnLW1Pv9qriqnA2nLoMpW--mDNr9sy5HzT0mzwMmdHdr8ROwTih39iuyTVbRrOfC-7_ULj_HJbMeTr0BbQXsk0nkCzwW0PvHp3twz78pMT6YHtrq5Fvk9E8-WlbYuIfLnN5DmIdDTK89AEJylyt5sAK_lDFNHYQNqR1No_PNd77rudR1w77AYZ4aa01W73dNzl-iBviNfbXf_A969Tdgu2SS4I8aW33xCPnJNRj_aKxUOw4jvNcP-iaKcY1K54vyttiN5ZII-w7RG4D2KEuzmkytQEf05WtO1mq1VWJNAts-3Z_z0dkdIYvN1m5m4RyJpuoa_N2s1F6wxGu7sBLYd0ImDfLP7hWcZ7ZKn3iWCV8L1LZB6XD3GcsugK9IHrcJypskFVbF6MH5OC-vAs1Xb1yZcSf1GhP0p7SqZSS1YCMSPlsZJUjsiMpF_SGbzp2zjywELtyw_oJ6QmA7oNa9XT0BXaRPn1YkGCxUNQFVANrPZwgzAQ2qUgZG2HNJj0wKpBXJvfjfk2g6qKkiIM8gjP83zYI9p3ty80tCDNUjyaAeEdtZs8K1lHLyJ5dP98-AZRYMb2ZMPwPAxS1Ea9oTS4DRKcbs-AS-62OLoAfQcRzM_rNAX7_CkO6ArBjjYhhje5lGtnybXRxc9YtLheJ3Vat5HSbd1G0udaN1QF3TxO1R8P631mpNQ2vtPd6fFjEOJKvNf4APQyExKDmVWiujCqu10HeQBmxnb8ot6hDpfuyBAvMdw1Ctfem-4O2OliDwWsTb21XfvuqLYKFOMPrSDamDtxjLYPL2EN2qY-3LG3u7wy9pMTWV3K0tw-lzYb1na5nYSM51lo9ovH2wEou_r3DOwPtBe--95uLqV9T76R0rJD34kPGfzMva2YVhLPGH3Jz7sKsNsywcH8ki2g-aN8cN3BDT1mCoVKixuET50-de7MBxUslMD3C_qIvYPwLKIf6NjU1YFuKsaNrOi7IFMRLDEnBKIoImCcWFxcH7EBSofOOHf2GmuIi60myEtCBIPzLtSmf8W2itLN895Vr9_FTe5s42oKBLjrEbhnZK8m86R-nXTMkk4aYZGyobI77NKMo6s-l9rnknC_RfNqLL-ib0ZaJq-WOdLyeHUewW3E3_hGHk95c2Lh5stqsLw5YaWGN6Jsepl8W1m0MlhLpUlRsNLtKbIyafqeUgSvripFeYpqfFaJvOYEXlGasVqaoYH9hDj0DhTFhsaNPgQHRtoxKyYZbqUYLuDrcqxCwMhuuFRVXAdNRVoNtzdphL0a7qvhvozhbuwe12a4imttPK7NcBWH3XjczavhvhruyxhupYUK1ON6muWpQn3N43qSsmlST8c3aYS9Gu6r4b6M4VYWj-u1hgq-FuOOavJol-G-hgqvhvtShruxe9yWUIEVzohxFcO1hwrVa6jwargvZLgbW6gw0ixPdaNKqOBp9mzFN2mEvRruq-G-jOHaQoWRxePqhstDBc_icd2G-xoqvBruSxmubVbBYbiKa203XHuosDFCBV1nfbl0drM1NK8oyW62Q6fZGjVrNWjTOHearWa0ij2ODHv0ZDsxi2S2GdVmzdKNnY1ybJTbN_LodWKYscOXaCo3K2FkMORWPZQ5cRvef2psdP2_3Ji-0AcKcLb1FItrOGm6l0bpXc3KeNQkpNfttjbCnsWMakdgSWUxD7VavQaSBbDhyxTAh5pEtcMk3N2i2yTc3eKwqSq7hoRQrhD9taqZgy1rbNagJ1jvcmZt9rdfVygNGWut9lo7wdo8LNZhqX-pp2u1nQN6PWYdw8MdhjtoancYYyWPq-CHhlbPq9YGjdtvyKlGdVvWHcie_qNRDWeyvwNxK8oRCzkcXmMhjjNDrks7N289CllTpLO8TXrj4J5K28NodZ62A5ZtGMyjhtrK5DMw2I5ttmGwHGBUaYdjsB4GbcFgOSqqrRc8A4PtiGkbBktdVF9YF9aDq20YLHVRfWFdWI_DtmCwHJbVJmSegcF2yLYNg6UuNl9YF9aju20YLHWx-cK6wOPfEBI_w5DoufFnZNzQw-bXPePgo-vCcw6rFf9yr2NfVCZvf9rJUTqMx_ZGRTv3qorLyHLIET1xWTe-7tzvunub6-5ddPttkaRHRVJ-VkQr7iEH7pTy4p46ds6Bn9OsH3APYP2w797Rp0M7Z3HpDcAbyErGvYQ1Fhqd7r8lVG8hrZy9L-C8aeXsX4nvrBzAuvuIfoD7nOV6QZ_FQWhOjpJ7TjY90eGF6VboQCSJ-GyRyMgvIhH9pSwRny0SGdkq8XC1-qAwT9YrEvyB8Z0MSxLtqy9U_U3uL1cH_XyHgg0I9KdyY-NJbNia3AY2miiIoqYA42cC3lgBb74IsKWmrYCNalBMh6amzeOx7ZNhrsJVuqVU_IsreuhqSWIpnJT7BZqqbikV__KLHtJaktiwNbndiq8L8BxLqXRLqUW6LWUfwG2WIgM2qsGwFObWqudYyka3lA37Lo_xnRlLEkvhpNwv4GJ1S9mw7wMZX7WxJLFha3K7FV8X4DmWstEtpRbptpR9ALdZigzYqAbDUnh35B_a_UifwEvxqKYS1oAFHaisFnYesKtejp0P7Ghnq35NZddlFhICWBjb9JlG32orSifK2SMj7uvLHXRf1PRb7XjBSWuE15c7UolHtTcPH3hsrDzUcd9bVsb9q8CsQlBW9WxlVVZlVQcpq7IqqzpIWZVVWdULK8tHZW2erayNVVmbg5S1sSprc5CyNlZlbRzK2nO0jtfu02p48U-cpNZvnAjM1q-cpId95mQ_SG_fkl9XEQhl52zZQVbSWeBR1k597navc3jHxgHa337bSyWW47NkZg7CX2qcbznnu9-nWVxYLRMGL1Q1vzwkZXgnJnrS-LE0j0KjTey3qDMm5XKF5wQR8Sd_x5FAvFLW6HGZYJ_EHkus_-cH9sTsYwgM0Mt_3kb6klj9_T1L3e39uWHr8fZzM7frs8RbMXEj_xea4qU0Mwb8xffLlCJIc2NNkmMtTTM71qRxfcWM_ReO9Lyjzf5VSJcAR-Kpw7lEKOp7Bcql3njNhrrKISy66TJA35DOX9KnDjknncFf0o6lkgRwxwF9zq3z9PT3HQK6jt6dASvietgOyP9Ywm1nYDVB8ZHjHlcgdmQjFsM6XnnuVxBb7i3Ecwvx3EK8w4T4biG-W4h_mJCxW8jYLWTM5xJl7mqrFta1VW1zqwcLUbyIy3p-vpA_hSh_4_Cj8p6JMrI6ProcQked7_rW7et3bf-vfteWmtvf8c_djyZHW_ZfVvP_ufpv_O9_AQ" rel="nofollow noreferrer" title="C++ (GCC) – Attempt This Online">Attempt This Online!</a></p>
 <p>This matches the output of wastl's program up to 12 terms, and does so much faster (62 times faster on my machine).</p>
 <p>Certain design elements were quite natural and are shared between both our programs – namely, the use of 128-bit integer coordinates, the coordinates of the starting tetrahedron, and multiplying all coordinates by 3 for each successive term. The remaining details are implemented from scratch though, without consulting wastl's program.</p>
 <p>The finding of standardized rotations of each polytet (for comparison purposes) is done by solving for the affine transformation that moves one of the faces of one of the tetrahedrons to the first face of the starting tetrahedron. For speed, this is limited only to the attached faces of those tetrahedrons that have only one attached face, taking advantage of the fact that it's guaranteed that all polytets will have some (because a polytet can never curve around and perfectly meet one of its own faces).</p>
@@ -462,9 +601,26 @@ int main(int argc, char *argv[])
 13: 2417721 [4459145 ms]
 14: 584897 [4882079 ms]
 </code></pre>
-<p>Clearly, 128-bit integers are not sufficient to go beyond A276272(13), but this program seems to do at least better than wastl's at it, giving a plausible value (I haven't verified whether it's correct). But the fact that both programs agree up to A276272(12) strongly suggests that they're both correct up to that point, and that the OEIS entry can finally be updated.</p>
-<p>It uses about 20% more RAM than wastl's program, but that can probably be improved. There's still plenty of room for further speed-ups, such as adding multithreading. Given its current speed, it'd probably be quite feasible to make it use a variable-length integer library to go beyond 13 terms.</p>
-<p>The timings shown in the output are cumulative.</p>
+<p>(The timings shown are cumulative.)</p>
+<p>Clearly, 128-bit integers are not sufficient to go beyond A276272(13), but this program seems to do at least better than wastl's at it, giving a plausible value [though shown by <code>USE_GMP</code> to be incorrect]. In any case, the fact that both programs agree up to A276272(12) strongly suggests that they're both correct up to that point (and would be beyond that point by using larger integers), and that the OEIS entry can finally be updated.</p>
+<p>It uses about 20% more RAM than wastl's program, but that can probably be improved. There's still plenty of room for further speed-ups, such as adding multithreading. Disk storage and merge-sorting could be used to get past the RAM limit.</p>
+<p>[Edit] Output with GMP enabled:</p>
+<pre><code>1: 1 [0 ms]
+2: 1 [0 ms]
+3: 1 [1 ms]
+4: 4 [3 ms]
+5: 10 [14 ms]
+6: 39 [63 ms]
+7: 164 [320 ms]
+8: 767 [1812 ms]
+9: 3656 [11373 ms]
+10: 18186 [71473 ms]
+11: 91532 [459047 ms]
+12: 468203 [2896937 ms]
+13: 2420658 [18468569 ms]
+</code></pre>
+<p>With <code>USE_GMP</code> enabled, the GNU Multiple Precision Arithmetic Library is used for applying the affine transform (but not for solving for it, or any other calculations – so overflow will still eventually happen). This is more than 3 times slower, but extends the number of terms that can be correctly calculated, and should do so up to the point that RAM becomes the limiting factor instead.</p>
+<p>The timings shown above are already obsolete, as I've optimized the use of GMP a bit more since doing the above run (during which the slowdown factor was more than 4). I've restarted it, so that it will reach A276272(14) sooner (which is projected to use 42 GB of RAM). To go beyond that I'll need to implement use of disk storage, since I only have 64 GB of RAM.</p>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://www.rust-lang.org/" rel="nofollow noreferrer">Rust</a>, 11 (hopefully correct) terms</h1>
 
