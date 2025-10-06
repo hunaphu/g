@@ -26,10 +26,10 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>1213</td><td>C++ GCC</td><td>251003T124500Z</td><td><a href="https://codegolf.stackexchange.com/questions/214203/gluing-tetrahedra-together/283991#283991">Deadcode</a></td></tr>
+<tr d-ix="0"><td>013</td><td>C++ GCC</td><td>251003T124500Z</td><td><a href="https://codegolf.stackexchange.com/questions/214203/gluing-tetrahedra-together/283991#283991">Deadcode</a></td></tr>
 <tr d-ix="1"><td>011</td><td>Rust</td><td>201108T231337Z</td><td><a href="https://codegolf.stackexchange.com/questions/214203/gluing-tetrahedra-together/214928#214928">wastl</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C++ (GCC)</a>, 12 or 13 terms</h1>
+<div id="pu0" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C++ (GCC)</a>, 13 terms</h1>
 <pre class="lang-cpp prettyprint-override"><code>#include &lt;stdio.h&gt;
 #include &lt;iostream&gt;
 #include &lt;string.h&gt;
@@ -52,6 +52,8 @@
 #   error This is hard-coded for 64-bit limbs
 #   endif
 #endif
+
+auto startTime = std::chrono::steady_clock::now();
 
 typedef __int128 Coord;
 typedef std::array&lt;Coord, 3&gt; Coord3;
@@ -76,10 +78,20 @@ typedef std::vector&lt;Tet&gt; Polytet;
 // vertex indices of faces with identical chirality
 static int tetrahedronFaces[4][4] =
 {
-    {0, 1, 2, 3},
-    {0, 3, 1, 2},
-    {0, 2, 3, 1},
-    {1, 3, 2, 0},
+    {0, 2, 1, 3},
+    {0, 1, 3, 2},
+    {0, 3, 2, 1},
+    {1, 2, 3, 0},
+};
+
+static int tetrahedronEdges[6][2] =
+{
+    {0, 1},
+    {1, 2},
+    {2, 0},
+    {0, 3},
+    {1, 3},
+    {2, 3},
 };
 
 Coord3 operator-(const Coord3 &amp;a)
@@ -114,88 +126,295 @@ Coord3 operator*(const Coord3 &amp;a, const Coord b)
     c[2] = a[2] * b;
     return c;
 }
-Coord3 cross(const Coord3 a, const Coord3 b)
-{
-    Coord3 c;
-    c[0] = a[1]*b[2] - a[2]*b[1];
-    c[1] = a[2]*b[0] - a[0]*b[2];
-    c[2] = a[0]*b[1] - a[1]*b[0];
-    return c;
-}
+#ifndef USE_GMP
 Coord dot(const Coord3 &amp;a, const Coord3 &amp;b)
 {
     return a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
 }
-bool volumesOverlap(const Tetrahedron &amp;a, const Tetrahedron &amp;b)
+#endif
+
+#ifdef USE_GMP
+void mpz_set_int128(mpz_t &amp;dst, const __int128 &amp;src)
 {
-    // Take advantage of the fact that the two tetrahedrons are regular and congruent, and
-    // just check if any edge of tetrahedron "a" intersects with any face of tetrahedron "b".
-    // Don't count it if only the endpoint of an edge intersects.
-    static int edges[6][2] =
+    __int128 abssrc = src &lt; 0 ? -src : src;
+    mpz_import(dst, 2, -1, 4, 0, 0, &amp;abssrc);
+    if (src &lt; 0)
+        mpz_neg(dst, dst);
+}
+void mpz_get_int128(__int128 &amp;dst, const mpz_t &amp;src)
+{
+    dst = 0;
+    size_t count;
+    uint64_t limbs[2];
+
+    mpz_export(limbs, &amp;count, -1, sizeof(uint64_t), 0, 0, src);
+
+    ((int64_t*)&amp;dst)[0] = limbs[0];
+    if (count &gt; 1)
+        ((int64_t*)&amp;dst)[1] = limbs[1];
+
+    if (mpz_sgn(src) &lt; 0)
+        dst = -dst;
+}
+#endif
+
+class TetrahedronOverlap
+{
+#ifdef USE_GMP
+    mpz_t intersectNumerator, intersectDenominator, uNumerator, vNumerator, uvDenominator, uvNumeratorSum;
+    mpz_t center[3], normal[3], tmp[3], p0p1[3], intersectionPoint[3], delta[3], edge1[3], edge2[3];
+    mpz_t a[4][3];
+    mpz_t b[4][3];
+    mpz_t triangle[3][3];
+    void setTetrahedron(mpz_t dst[4][3], const Tetrahedron &amp;src)
     {
-        {0, 1},
-        {1, 2},
-        {2, 0},
-        {0, 3},
-        {1, 3},
-        {2, 3},
-    };
-    for (int edgeNum=0; edgeNum&lt;6; edgeNum++)
-    {
-        Coord3 p0 = a[edges[edgeNum][0]];
-        Coord3 p1 = a[edges[edgeNum][1]];
-        for (int faceNum=0; faceNum&lt;4; faceNum++)
-        {
-            Tetrahedron normalizedTetrahedron; // first 3 points are the face, and the 4th point is for calculating the normal
-            for (int i=0; i&lt;4; i++)
-                normalizedTetrahedron[i] = b[tetrahedronFaces[faceNum][i]];
-            Coord3 center = {{0, 0, 0}}; // multiplied by 3 compared to original coordinates
-            // Get center of face by averaging its vertices' coordinates; the
-            // division by 3 is implied by omitting the multiplication by 3.
-            for (int p=0; p&lt;3; p++)
-                for (int d=0; d&lt;3; d++)
-                    center[d] += normalizedTetrahedron[p][d];
-            Coord3 normal;
+        for (int p=0; p&lt;4; p++)
             for (int d=0; d&lt;3; d++)
-                normal[d] = normalizedTetrahedron[3][d] * 3 - center[d];
-            Coord intersectNumerator   = dot(normal, normalizedTetrahedron[0] - p0);
-            Coord intersectDenominator = dot(normal,                       p1 - p0);
-            if (intersectDenominator == 0)
-                continue; // edge is parallel to face, which we don't count as an overlap
-            if (intersectDenominator &lt; 0)
-            {
-                intersectNumerator   = -intersectNumerator;
-                intersectDenominator = -intersectDenominator;
-            }
-            if (intersectNumerator &lt;= 0 || intersectNumerator &gt;= intersectDenominator)
-                continue;
-            // These coordinates are all multiplied by intersectDenominator
-            Coord3 intersectionPoint = p0 * intersectDenominator + (p1 - p0) * intersectNumerator;
-            Coord3 triangle[3];
-            for (int i=0; i&lt;3; i++)
-                triangle[i] = normalizedTetrahedron[i] * intersectDenominator;
-            // Check if the intersection point is inside the triangle
-            Coord3 d = intersectionPoint - triangle[0];
-            Coord3 edge1 = triangle[1] - triangle[0];
-            Coord3 edge2 = triangle[2] - triangle[0];
-            Coord uNumerator = d[1]*edge2[0] - d[0]*edge2[1];
-            Coord vNumerator = d[0]*edge1[1] - d[1]*edge1[0];
-            Coord uvDenominator = edge1[1]*edge2[0] - edge1[0]*edge2[1];
-            if (uvDenominator == 0)
-                continue;
-            if (uvDenominator &lt; 0)
-            {
-                uNumerator = -uNumerator;
-                vNumerator = -vNumerator;
-                uvDenominator = -uvDenominator;
-            }
-            if (uNumerator &lt;= 0 || vNumerator &lt;= 0)
-                continue;
-            if (uNumerator + vNumerator &lt; uvDenominator)
-                return true;
-        }
+                mpz_set_int128(dst[p][d], src[p][d]);
     }
-    return false;
+    void dot(mpz_t &amp;result, const mpz_t a[3], const mpz_t b[3])
+    {
+        mpz_mul   (result, a[0], b[0]);
+        mpz_addmul(result, a[1], b[1]);
+        mpz_addmul(result, a[2], b[2]);
+    }
+public:
+    TetrahedronOverlap()
+    {
+        mpz_inits(intersectNumerator, intersectDenominator, uNumerator, vNumerator, uvDenominator, uvNumeratorSum, NULL);
+        for (int d=0; d&lt;3; d++)
+        {
+            mpz_init(center[d]);
+            mpz_init(normal[d]);
+            mpz_init(tmp[d]);
+            mpz_init(p0p1[d]);
+            mpz_init(intersectionPoint[d]);
+            mpz_init(delta[d]);
+            mpz_init(edge1[d]);
+            mpz_init(edge2[d]);
+        }
+        for (int p=0; p&lt;4; p++)
+        {
+            for (int d=0; d&lt;3; d++)
+            {
+                mpz_init(a[p][d]);
+                mpz_init(b[p][d]);
+            }
+        }
+        for (int p=0; p&lt;3; p++)
+            for (int d=0; d&lt;3; d++)
+                mpz_init(triangle[p][d]);
+    }
+    ~TetrahedronOverlap()
+    {
+        mpz_clears(intersectNumerator, intersectDenominator, uNumerator, vNumerator, uvDenominator, uvNumeratorSum, NULL);
+        for (int d=0; d&lt;3; d++)
+        {
+            mpz_clear(center[d]);
+            mpz_clear(normal[d]);
+            mpz_clear(tmp[d]);
+            mpz_clear(p0p1[d]);
+            mpz_clear(intersectionPoint[d]);
+            mpz_clear(delta[d]);
+            mpz_clear(edge1[d]);
+            mpz_clear(edge2[d]);
+        }
+        for (int p=0; p&lt;4; p++)
+        {
+            for (int d=0; d&lt;3; d++)
+            {
+                mpz_clear(a[p][d]);
+                mpz_clear(b[p][d]);
+            }
+        }
+        for (int p=0; p&lt;3; p++)
+            for (int d=0; d&lt;3; d++)
+                mpz_clear(triangle[p][d]);
+    }
+    void setA(const Tetrahedron &amp;x) {setTetrahedron(a, x);}
+    void setB(const Tetrahedron &amp;x) {setTetrahedron(b, x);}
+    bool operator()()
+    {
+        // Take advantage of the fact that the two tetrahedrons are regular and congruent, and
+        // just check if any edge of tetrahedron "a" intersects with any face of tetrahedron "b".
+        // Don't count it if only the endpoint of an edge intersects.
+        for (int edgeNum=0; edgeNum&lt;6; edgeNum++)
+        {
+            const mpz_t *p0 = a[tetrahedronEdges[edgeNum][0]];
+            const mpz_t *p1 = a[tetrahedronEdges[edgeNum][1]];
+            for (int faceNum=0; faceNum&lt;4; faceNum++)
+            {
+                mpz_t *normalizedTetrahedron[4][3]; // first 3 points are the face, and the 4th point is for calculating the normal
+                for (int i=0; i&lt;4; i++)
+                    for (int d=0; d&lt;3; d++)
+                        normalizedTetrahedron[i][d] = &amp;b[tetrahedronFaces[faceNum][i]][d];
+                // Center coordinates will be multiplied by 3 compared to original coordinates.
+                // Get center of face by averaging its vertices' coordinates; the
+                // division by 3 is implied by omitting the multiplication by 3.
+                for (int d=0; d&lt;3; d++)
+                    mpz_set(center[d], *(normalizedTetrahedron[0][d]));
+                for (int p=1; p&lt;3; p++)
+                    for (int d=0; d&lt;3; d++)
+                        mpz_add(center[d], center[d], *(normalizedTetrahedron[p][d]));
+                for (int d=0; d&lt;3; d++)
+                {
+                    mpz_neg(normal[d], center[d]);
+                    mpz_addmul_ui(normal[d], *(normalizedTetrahedron[3][d]), 3);
+                }
+                for (int d=0; d&lt;3; d++)
+                {
+                    mpz_sub(tmp [d], *(normalizedTetrahedron[0][d]), p0[d]);
+                    mpz_sub(p0p1[d],                         p1[d],  p0[d]);
+                }
+                dot(intersectNumerator  , normal, tmp);
+                dot(intersectDenominator, normal, p0p1);
+                int cmp = mpz_cmp_ui(intersectDenominator, 0);
+                if (cmp == 0)
+                    continue; // edge is parallel to face, which we don't count as an overlap
+                if (cmp &lt; 0)
+                {
+                    mpz_neg(intersectNumerator  , intersectNumerator  );
+                    mpz_neg(intersectDenominator, intersectDenominator);
+                }
+                if (mpz_cmp_ui(intersectNumerator, 0) &lt;= 0 || mpz_cmp(intersectNumerator, intersectDenominator) &gt;= 0)
+                    continue;
+                // These coordinates are all multiplied by intersectDenominator
+                for (int d=0; d&lt;3; d++)
+                {
+                    mpz_mul(intersectionPoint[d], p0[d], intersectDenominator);
+                    mpz_addmul(intersectionPoint[d], p0p1[d], intersectNumerator);
+                }
+                for (int i=0; i&lt;3; i++)
+                    for (int d=0; d&lt;3; d++)
+                        mpz_mul(triangle[i][d], *(normalizedTetrahedron[i][d]), intersectDenominator);
+                // Check if the intersection point is inside the triangle
+                for (int d=0; d&lt;3; d++)
+                {
+                    mpz_sub(delta[d], intersectionPoint[d], triangle[0][d]);
+                    mpz_sub(edge1[d], triangle[1][d]      , triangle[0][d]);
+                    mpz_sub(edge2[d], triangle[2][d]      , triangle[0][d]);
+                }
+                mpz_mul   (uNumerator, delta[1], edge2[0]);
+                mpz_submul(uNumerator, delta[0], edge2[1]);
+                mpz_mul   (vNumerator, delta[0], edge1[1]);
+                mpz_submul(vNumerator, delta[1], edge1[0]);
+                mpz_mul   (uvDenominator, edge1[1], edge2[0]);
+                mpz_submul(uvDenominator, edge1[0], edge2[1]);
+                cmp = mpz_cmp_ui(uvDenominator, 0);
+                if (cmp == 0)
+                    continue;
+                if (cmp &lt; 0)
+                {
+                    mpz_neg(uNumerator, uNumerator);
+                    mpz_neg(vNumerator, vNumerator);
+                    mpz_neg(uvDenominator, uvDenominator);
+                }
+                if (mpz_cmp_ui(uNumerator, 0) &lt;= 0 || mpz_cmp_ui(vNumerator, 0) &lt;= 0)
+                    continue;
+                mpz_add(uvNumeratorSum, uNumerator, vNumerator);
+                if (mpz_cmp(uvNumeratorSum, uvDenominator) &lt; 0)
+                    return true;
+            }
+        }
+        return false;
+    }
+#else
+    const Tetrahedron *a, *b;
+public:
+    void setA(const Tetrahedron &amp;x) {a = &amp;x;}
+    void setB(const Tetrahedron &amp;x) {b = &amp;x;}
+    bool operator()()
+    {
+        // Take advantage of the fact that the two tetrahedrons are regular and congruent, and
+        // just check if any edge of tetrahedron "a" intersects with any face of tetrahedron "b".
+        // Don't count it if only the endpoint of an edge intersects.
+        for (int edgeNum=0; edgeNum&lt;6; edgeNum++)
+        {
+            Coord3 p0 = (*a)[tetrahedronEdges[edgeNum][0]];
+            Coord3 p1 = (*a)[tetrahedronEdges[edgeNum][1]];
+            for (int faceNum=0; faceNum&lt;4; faceNum++)
+            {
+                Tetrahedron normalizedTetrahedron; // first 3 points are the face, and the 4th point is for calculating the normal
+                for (int i=0; i&lt;4; i++)
+                    normalizedTetrahedron[i] = (*b)[tetrahedronFaces[faceNum][i]];
+                Coord3 center = {{0, 0, 0}}; // multiplied by 3 compared to original coordinates
+                // Get center of face by averaging its vertices' coordinates; the
+                // division by 3 is implied by omitting the multiplication by 3.
+                for (int p=0; p&lt;3; p++)
+                    for (int d=0; d&lt;3; d++)
+                        center[d] += normalizedTetrahedron[p][d];
+                Coord3 normal;
+                for (int d=0; d&lt;3; d++)
+                    normal[d] = normalizedTetrahedron[3][d] * 3 - center[d];
+                Coord intersectNumerator   = dot(normal, normalizedTetrahedron[0] - p0);
+                Coord intersectDenominator = dot(normal,                       p1 - p0);
+                if (intersectDenominator == 0)
+                    continue; // edge is parallel to face, which we don't count as an overlap
+                if (intersectDenominator &lt; 0)
+                {
+                    intersectNumerator   = -intersectNumerator;
+                    intersectDenominator = -intersectDenominator;
+                }
+                if (intersectNumerator &lt;= 0 || intersectNumerator &gt;= intersectDenominator)
+                    continue;
+                // These coordinates are all multiplied by intersectDenominator
+                Coord3 intersectionPoint = p0 * intersectDenominator + (p1 - p0) * intersectNumerator;
+                Coord3 triangle[3];
+                for (int i=0; i&lt;3; i++)
+                    triangle[i] = normalizedTetrahedron[i] * intersectDenominator;
+                // Check if the intersection point is inside the triangle
+                Coord3 delta = intersectionPoint - triangle[0];
+                Coord3 edge1 = triangle[1]       - triangle[0];
+                Coord3 edge2 = triangle[2]       - triangle[0];
+                Coord uNumerator = delta[1]*edge2[0] - delta[0]*edge2[1];
+                Coord vNumerator = delta[0]*edge1[1] - delta[1]*edge1[0];
+                Coord uvDenominator = edge1[1]*edge2[0] - edge1[0]*edge2[1];
+                if (uvDenominator == 0)
+                    continue;
+                if (uvDenominator &lt; 0)
+                {
+                    uNumerator = -uNumerator;
+                    vNumerator = -vNumerator;
+                    uvDenominator = -uvDenominator;
+                }
+                if (uNumerator &lt;= 0 || vNumerator &lt;= 0)
+                    continue;
+                if (uNumerator + vNumerator &lt; uvDenominator)
+                    return true;
+            }
+        }
+        return false;
+    }
+#endif
+};
+
+void attachNewTet(Tet &amp;t, const Tet &amp;tetToAttachTo, const int faceNum)
+{
+    Coord3 &amp;newVertex = t.t[3];
+    newVertex = {{0, 0, 0}};
+    // Get center of face by averaging its vertices' coordinates; the
+    // division by 3 is implied by omitting the multiplication by 3.
+    for (int p=0; p&lt;4; p++)
+    {
+        if (p == 3 - faceNum)
+            continue;
+        for (int d=0; d&lt;3; d++)
+            newVertex[d] += tetToAttachTo.t[p][d];
+    }
+    // Finalize the new vertex
+    for (int d=0; d&lt;3; d++)
+        newVertex[d] += newVertex[d] - tetToAttachTo.t[3 - faceNum][d] * 3;
+    // Copy the other vertices
+    for (int p=0; p&lt;3; p++)
+    {
+        int p1 = tetrahedronFaces[faceNum][p];
+        for (int d=0; d&lt;3; d++)
+            t.t[p][d] = tetToAttachTo.t[p1][d] * 3;
+    }
+    t.faceAttached[0] = true;
+    t.faceAttached[1] = false;
+    t.faceAttached[2] = false;
+    t.faceAttached[3] = false;
 }
 
 class NormalizedPolytet : public std::vector&lt;Tetrahedron&gt;
@@ -242,6 +461,26 @@ bool operator==(const Polytet &amp;_a, const Polytet &amp;_b)
     return true;
 }
 
+void verifyTetrahedron(const Tet &amp;t, Coord power9_2)
+{
+    Coord targetDistSquared = power9_2 * 4;
+    for (int edgeNum=0; edgeNum&lt;6; edgeNum++)
+    {
+        Coord3 p0 = t.t[tetrahedronEdges[edgeNum][0]];
+        Coord3 p1 = t.t[tetrahedronEdges[edgeNum][1]];
+        Coord3 diff = p1 - p0;
+        Coord distSquared = 0;
+        for (int d=0; d&lt;3; d++)
+            distSquared += diff[d] * diff[d];
+        if (distSquared != targetDistSquared)
+        {
+            auto currentTime = std::chrono::steady_clock::now();
+            std::cerr &lt;&lt; "Quitting due to detected overflow" &lt;&lt; " [" &lt;&lt; std::chrono::duration_cast&lt;std::chrono::milliseconds&gt;(currentTime - startTime).count() &lt;&lt; " ms]" &lt;&lt; std::endl;
+            exit(-1);
+        }
+    }
+}
+
 namespace std
 {
     template&lt;&gt;
@@ -267,35 +506,8 @@ namespace std
     };
 };
 
-#ifdef USE_GMP
-void mpz_set_int128(mpz_t &amp;dst, const __int128 &amp;src)
-{
-    __int128 abssrc = src &lt; 0 ? -src : src;
-    mpz_import(dst, 2, -1, 4, 0, 0, &amp;abssrc);
-    if (src &lt; 0)
-        mpz_neg(dst, dst);
-}
-void mpz_get_int128(__int128 &amp;dst, const mpz_t &amp;src)
-{
-    dst = 0;
-    size_t count;
-    uint64_t limbs[2];
-
-    mpz_export(limbs, &amp;count, -1, sizeof(uint64_t), 0, 0, src);
-
-    ((int64_t*)&amp;dst)[0] = limbs[0];
-    if (count &gt; 1)
-        ((int64_t*)&amp;dst)[1] = limbs[1];
-
-    if (mpz_sgn(src) &lt; 0)
-        dst = -dst;
-}
-#endif
-
 int main(int argc, char *argv[])
 {
-    auto startTime = std::chrono::steady_clock::now();
-
     static const Tetrahedron start =
     {{
         {{-1,-1,-1}},
@@ -307,9 +519,9 @@ int main(int argc, char *argv[])
     startPolytet.emplace_back(start);
 
 #ifdef USE_GMP
-    mpz_t power3, power9_2;
-    mpz_init(power3  ); mpz_set_ui(power3  , 1);
-    mpz_init(power9_2); mpz_set_ui(power9_2, 2);
+    mpz_t mpz_power3, mpz_power9_2;
+    mpz_init(mpz_power3  ); mpz_set_ui(mpz_power3  , 1);
+    mpz_init(mpz_power9_2); mpz_set_ui(mpz_power9_2, 2);
     mpz_t
         x , y , z ,
         x0, y0, z0,
@@ -340,10 +552,11 @@ int main(int argc, char *argv[])
         zx_numerator_mpz, zx_denominator_mpz,
         zy_numerator_mpz, zy_denominator_mpz,
         zz_numerator_mpz, zz_denominator_mpz, NULL);
-#else
+   &#32;
+#endif
+    TetrahedronOverlap overlap;
     Coord power3   = 1;
     Coord power9_2 = 2;
-#endif
     auto *polytets = new std::unordered_set&lt;Polytet&gt;;
     polytets-&gt;insert(startPolytet);
     size_t prevPolytetCount = 0;
@@ -360,16 +573,15 @@ int main(int argc, char *argv[])
         prevPolytetCount = polytetCount;
         ++tetCount;
 #ifdef DEBUG_PRINT
-        if (tetCount > 6)
+        if (tetCount &gt; 6)
             break;
 #endif
 #ifdef USE_GMP
-        mpz_mul_ui(power3  , power3  , 3);
-        mpz_mul_ui(power9_2, power9_2, 9);
-#else
+        mpz_mul_ui(mpz_power3  , mpz_power3  , 3);
+        mpz_mul_ui(mpz_power9_2, mpz_power9_2, 9);
+#endif
         power3   *= 3;
         power9_2 *= 9;
-#endif
         auto *newPolytets = new std::unordered_set&lt;Polytet&gt;;
         for (auto basePolytet=polytets-&gt;cbegin(); basePolytet!=polytets-&gt;cend(); ++basePolytet)
         {
@@ -395,40 +607,16 @@ int main(int argc, char *argv[])
                                 tetCopyToAttachTo = &amp;t;
                             }
                         }
-                        Coord3 newVertex = {{0, 0, 0}};
-                        // Get center of face by averaging its vertices' coordinates; the
-                        // division by 3 is implied by omitting the multiplication by 3.
-                        for (int p=0; p&lt;4; p++)
-                        {
-                            if (p == 3 - faceNum)
-                                continue;
-                            for (int d=0; d&lt;3; d++)
-                                newVertex[d] += tetToAttachTo-&gt;t[p][d];
-                        }
-                        for (int d=0; d&lt;3; d++)
-                            newVertex[d] += newVertex[d] - tetToAttachTo-&gt;t[3 - faceNum][d] * 3;
-                        // Add new tetrahedron
                         Tet &amp;t = newPolytet.emplace_back();
-                        for (int p=0; p&lt;3; p++)
-                        {
-                            int p0 = p;
-                            if (!(faceNum &amp; 1))
-                                p0 ^=      (p  &lt;  2           ? 1 : 0); // swap first two vertices to preserve chirality
-                            int p1  = p0 + (p0 &gt;= 3 - faceNum ? 1 : 0); // skip the opposite vertex
-                            for (int d=0; d&lt;3; d++)
-                                t.t[p][d] = tetToAttachTo-&gt;t[p1][d] * 3;
-                        }
-                        t.t[3] = newVertex;
-                        t.faceAttached[0] = true;
-                        t.faceAttached[1] = false;
-                        t.faceAttached[2] = false;
-                        t.faceAttached[3] = false;
+                        attachNewTet(t, *tetToAttachTo, faceNum);
                         // Check for overlap between this newly attached tetrahedron and the existing ones
+                        overlap.setA(t.t);
                         for (auto tetCheckIntersection=newPolytet.cbegin(); tetCheckIntersection!=newPolytet.cend(); ++tetCheckIntersection)
                         {
-                            if (&amp;*tetCheckIntersection == tetCopyToAttachTo)
+                            if (&amp;*tetCheckIntersection == tetCopyToAttachTo || &amp;*tetCheckIntersection == &amp;t)
                                 continue; // skip this check for speed (it'll always be false anyway)
-                            if (volumesOverlap(t.t, tetCheckIntersection-&gt;t))
+                            overlap.setB(tetCheckIntersection-&gt;t);
+                            if (overlap())
                                 goto discardThisNewPolytet;
                         }
                         // Canonicalize the rotation of this new polytet, so that it can be compared against others
@@ -495,19 +683,19 @@ int main(int argc, char *argv[])
                                         mpz_set_int128(y1, tetToRotate-&gt;t[vertexNum][1]);
                                         mpz_set_int128(z1, tetToRotate-&gt;t[vertexNum][2]);
 
-                                        mpz_set(x, x0); mpz_mul(x, x, power3); mpz_div(x, x, zz_denominator_mpz);
-                                        mpz_set(y, y0); mpz_mul(y, y, power3); mpz_div(y, y, zz_denominator_mpz);
-                                        mpz_set(z, z0); mpz_mul(z, z, power3); mpz_div(z, z, zz_denominator_mpz);
+                                        mpz_set(x, x0); mpz_mul(x, x, mpz_power3); mpz_div(x, x, zz_denominator_mpz);
+                                        mpz_set(y, y0); mpz_mul(y, y, mpz_power3); mpz_div(y, y, zz_denominator_mpz);
+                                        mpz_set(z, z0); mpz_mul(z, z, mpz_power3); mpz_div(z, z, zz_denominator_mpz);
 
-                                        mpz_set(x2, x1); mpz_mul(x2, x2, xx_numerator_mpz); mpz_mul(x2, x2, power9_2); mpz_div(x2, x2, xx_denominator_mpz);
-                                        mpz_set(x3, y1); mpz_mul(x3, x3, xy_numerator_mpz); mpz_mul(x3, x3, power9_2); mpz_div(x3, x3, xy_denominator_mpz); mpz_add(x2, x2, x3);
-                                        mpz_set(x3, z1); mpz_mul(x3, x3, xz_numerator_mpz); mpz_mul(x3, x3, power9_2); mpz_div(x3, x3, xz_denominator_mpz); mpz_add(x2, x2, x3); mpz_div(x2, x2, power3); mpz_add(x, x, x2);
-                                        mpz_set(y2, x1); mpz_mul(y2, y2, yx_numerator_mpz); mpz_mul(y2, y2, power9_2); mpz_div(y2, y2, yx_denominator_mpz);
-                                        mpz_set(y3, y1); mpz_mul(y3, y3, yy_numerator_mpz); mpz_mul(y3, y3, power9_2); mpz_div(y3, y3, yy_denominator_mpz); mpz_add(y2, y2, y3);
-                                        mpz_set(y3, z1); mpz_mul(y3, y3, yz_numerator_mpz); mpz_mul(y3, y3, power9_2); mpz_div(y3, y3, yz_denominator_mpz); mpz_add(y2, y2, y3); mpz_div(y2, y2, power3); mpz_add(y, y, y2);
-                                        mpz_set(z2, x1); mpz_mul(z2, z2, zx_numerator_mpz); mpz_mul(z2, z2, power9_2); mpz_div(z2, z2, zx_denominator_mpz);
-                                        mpz_set(z3, y1); mpz_mul(z3, z3, zy_numerator_mpz); mpz_mul(z3, z3, power9_2); mpz_div(z3, z3, zy_denominator_mpz); mpz_add(z2, z2, z3);
-                                        mpz_set(z3, z1); mpz_mul(z3, z3, zz_numerator_mpz); mpz_mul(z3, z3, power9_2); mpz_div(z3, z3, zz_denominator_mpz); mpz_add(z2, z2, z3); mpz_div(z2, z2, power3); mpz_add(z, z, z2);
+                                        mpz_set(x2, x1); mpz_mul(x2, x2, xx_numerator_mpz); mpz_mul(x2, x2, mpz_power9_2); mpz_div(x2, x2, xx_denominator_mpz);
+                                        mpz_set(x3, y1); mpz_mul(x3, x3, xy_numerator_mpz); mpz_mul(x3, x3, mpz_power9_2); mpz_div(x3, x3, xy_denominator_mpz); mpz_add(x2, x2, x3);
+                                        mpz_set(x3, z1); mpz_mul(x3, x3, xz_numerator_mpz); mpz_mul(x3, x3, mpz_power9_2); mpz_div(x3, x3, xz_denominator_mpz); mpz_add(x2, x2, x3); mpz_div(x2, x2, mpz_power3); mpz_add(x, x, x2);
+                                        mpz_set(y2, x1); mpz_mul(y2, y2, yx_numerator_mpz); mpz_mul(y2, y2, mpz_power9_2); mpz_div(y2, y2, yx_denominator_mpz);
+                                        mpz_set(y3, y1); mpz_mul(y3, y3, yy_numerator_mpz); mpz_mul(y3, y3, mpz_power9_2); mpz_div(y3, y3, yy_denominator_mpz); mpz_add(y2, y2, y3);
+                                        mpz_set(y3, z1); mpz_mul(y3, y3, yz_numerator_mpz); mpz_mul(y3, y3, mpz_power9_2); mpz_div(y3, y3, yz_denominator_mpz); mpz_add(y2, y2, y3); mpz_div(y2, y2, mpz_power3); mpz_add(y, y, y2);
+                                        mpz_set(z2, x1); mpz_mul(z2, z2, zx_numerator_mpz); mpz_mul(z2, z2, mpz_power9_2); mpz_div(z2, z2, zx_denominator_mpz);
+                                        mpz_set(z3, y1); mpz_mul(z3, z3, zy_numerator_mpz); mpz_mul(z3, z3, mpz_power9_2); mpz_div(z3, z3, zy_denominator_mpz); mpz_add(z2, z2, z3);
+                                        mpz_set(z3, z1); mpz_mul(z3, z3, zz_numerator_mpz); mpz_mul(z3, z3, mpz_power9_2); mpz_div(z3, z3, zz_denominator_mpz); mpz_add(z2, z2, z3); mpz_div(z2, z2, mpz_power3); mpz_add(z, z, z2);
 
                                         mpz_get_int128(nt.t[vertexNum][0], x);
                                         mpz_get_int128(nt.t[vertexNum][1], y);
@@ -519,6 +707,7 @@ int main(int argc, char *argv[])
                                         nt.t[vertexNum][2] = z0_*power3/zz_denominator + (tetToRotate-&gt;t[vertexNum][0]*zx_numerator*power9_2/zx_denominator + tetToRotate-&gt;t[vertexNum][1]*zy_numerator*power9_2/zy_denominator + tetToRotate-&gt;t[vertexNum][2]*zz_numerator*power9_2/zz_denominator)/power3;
 #endif
                                     }
+                                    verifyTetrahedron(nt, power9_2);
                                     memcpy(nt.faceAttached, tetToRotate-&gt;faceAttached, sizeof(nt.faceAttached));
                                 }
                                 // Update the running "least" rotation
@@ -565,6 +754,7 @@ int main(int argc, char *argv[])
 #ifdef USE_GMP
     mpz_clears(
         x , y , z ,
+        x0, y0, z0,
         x1, y1, z1,
         x2, y2, z2,
         x3, y3, z3,
@@ -581,47 +771,56 @@ int main(int argc, char *argv[])
 &#9;return 0;
 }
 </code></pre>
-<p><a href="https://ato.pxeger.com/run?1=7V3NcuNIcj5bT1HihHtIilQToKJ3WxQ5sTOznpiI2d72jMaXXq0CBCAJbhJgAKAkUMMn8WUvvjjCNz-Nn8aZ9QPUL0iqFbbDFqIlAYmqzK-ysrKy_tD_8u_harEu8Of6Ngz_41NnWJTRNDw58UedQWf4Z79z9bd_XZc3w9__5-bfvkrScLGOYnIBiZLs9G521JCSrCjzOFjKNKAk6a2aLsS8aamQ4LmsVnEhE4M8DyqFsLjN8qS8UyTcx2GZ5TJlkRQK85t1GpZJlgYLmbpOszyK8zi6LmIVy12epdns6Ojt26-i-CZJY_LrL3-8_uFPHyXK93_89tcfrj_-_OOHyyPIewPkOlXD6na5okUnhCQ3BN5df_j1T99ef_vj5S_keErendFXcZ5nObm8SwoC_-6CPBqGWRRH5AbI786G86Qki2Q5L1jqNEpujr5if45QaSj7-ho06Pm_J99lUKxJTQdVn59TRV7QNwMynrE0Y3ei8YCczchlXObBXRyBNiZH4SIoCiQdPR0BCHKfJRFJ0qT8hyCMi26PEtkrvG6A-oeyDELI_2l0RaZAWRTxhLx9S0ogDMpPHv7yr-xZPHeWsSOLb83it2UZ61k8Pcv2aLWeL5LwnD5JGiHlhJLmWbZQmZ5dTUTiLrFcPXJO4E2PPEnqm2zrPGGWFqUi6k3J8pRGnq1Wh6wtXEDmGfmYLaoyBphgteQ-zsv4ESosSiAvyW4o5oI8QGsiSRSnZRIGCxLeJXmwSMrqqCgDIEGGkpQNFCoZSgj_yJRbwtNoQLwB8cGytoOaMmZEieIzoqB49BGII6BAOY6Y5ZFsFecBFGLIFcHJb4Iel8cJIdNyyKxrGMBfQfE4xaspPqf4nJLH5TpPkcdWl3uiyx0QlTBvBYI4yAmZ63AQDaVroBATpe8BzVDJM6ANHdCGDmjD_aD1W6GRPYD1ydxEJREbSDXRgifMs6JQseha2oXFu-rPWclRWl9Wiycw9OdMl4i83yioRjli-WgKj6V2QCZRVu5drTw3508NjfP32L0v0GyPqGO6zxbrZVz8GZr_IljZXEstTKHWEsF1XAafYxJE90FaBrcxuo7yLkb3AZ7hLijpU_mQyW6iIEEeA9rb9SLISZBGKOM2X4ObGeCjYP3PaxAMTjP8jN1jkFYkjrgICU0n6KAfivMCvBt3WZgWPZiRdt45Fdy_z9KvgX22Bh8GPShIyNJFRfFC57nK0LdlKJZJbUQwDpIHxPfFp3dXtHq1no66P-7UhGPz5Wfu4uT0Yy39WEsvnrfMaDAM6AocH9bL6Wgibi_e1bcnJ3onzO1nNaI2yQrBE1-B9XCTlFN6tpSenLLGgtrnWPjtxVl9K7CoePCSzQwCsCX0Nps4kkMNrLqbJAfLAEBYScyauNHF1IDo0xnYAatFiJoQF_RgIVhcCQEnTcD4K-Jr-AkCTxByIoMVlxXapwRb9_yT0SHyUl9BAklVkmLDGI0LMj9h9eO_7ZYWdLlelMlqkUCwN6-gwGG2XEFpoYAZgVD3NkmxV0YmcFfGhcIc8v8Ql4I579ORTwDtPbhFNSSgPez7sdf_WmY0QQ3p3KLkPikgUGZYMBxd1tiyZVLWmhWww6AUyU_tel6hnlcXY_hl03OdLsJ0EaaLbOnwYuX8FIGrmzoqaHUFr601wNJP7CB3CGd5UbBL7hjlQsc0Bo9fw7TgaJwMmAvrOeHVlHYCjPPAIYF2N6tRr5Xp93EK1ZRStipT-wXt3cIUHGXXznJKRqZ2wLWDXaxZCM08aUHAiIPFIl6gHbNW-3CXhHfkIQZYjVsOCnS_Geue9gNxoWN4MhA5lDw06RN3XlWXQxtdzb11429wXIAKyW-_2SDOplbhLQrXm-_lXVzEciOnjhPqQXMzNjG2NlOngzb-kTraKXYmfbuSTkhX2JOcxKFrLqLMkyC9XcTQghxtkzvqscNR1wwSd-tMrhyYDQ1-J2IRdHJy8ZuOJkkLGC-xqIfLthUsIlOL_oYN3pHdT2EDwl64TkejyH1y-XIuf3cusm5sD5wFxpGUDXM1OGrnz541972am6f2GN6am-eSfa-2L5FXhiDyO2BgC9PYtPunHbn3cCyKxobrFjeiaGd435JS18RQIexyMWvTtdyrpIMU0mQ9UfioKE2WfGBS5jLX7VHzmydgcy0wOuHzSR_q9spnK8g5YRMu-nyGaMwzGJjIUzIGBz7IEfzerNiNHhvn4Crz-7jLX58WwKLb62mBbrAu6cBmKpKF8xjiqm5vgtTjhgwDCiSenNSiVHF4qVM6aPQQXUHfeD0Pws9dyDiclVpXTJVQZHnZLU-55AEpT6m0nq5pLcNdUgxnTSb6KGeks0dsmChG8Re68q7r4WFDgrEheEoaGYZJCQMqqEiwFBJwHU6nc37Hx5BmJQfd6wAwzbvATBriMG0H06BWM-CeAztJ68Exvm7UHQzg11yvXcoJqhi6PdBzvwygKczg77zRGdo7T3FsNBNurvw9eIZJiy0rKpzpKjQ1qA_nj7sAj6AmNF7T6Wt9KPXBVW5UBfM74FXSYBkXKxwFQUPgxS1pMyvjixkf1ufrsCR3QXF3wcs_09CyRgQKui7ruuj2jLoQnoXXSJrFj2G8Kh2t39Q6z9-tGdnaPkNRxDEGFKqzsgRMrMZs3srqq3b1dw3PcAreqWEXHtPnmlNodgkmN5VjMg1ljskxfa45JvYxoJ0rVReq6K9TpjZau2uIuN6dXZezp223Kx563X7CMvR60MmNHt_H49_97v38PcavlMfFBXnXq59mM-L3zF77OVKB1buzL5a6NagqZWtrOMjU6JgntAPQ1q7ous5ytcFFMb6k1MVHMPioKIX3qVeb3hR5KPxKTQzmBZDBXvE3OE_yDRni7TkSGAxkCS4LOyrK1h-QoTcgZ2xyZABuk_LgOkDfwHk1ZoEs0viW5Ydf1H_W8G8b-A1YqQS8TBJ8eAmQuafn7Y6OUhlFVCVbiaOTrHVJ4kdaEvoGsNNcrEDIJ7tp7ECUj5WNMuh2-ct-DwH22Dw0kyKCZ1QAGzHPiNeowMjqNVk9ARDz0gq9TVGJPVWLrNRD-IPqE6uKOFZZBtAy8SbIb0NQ212Qkz7c33-6EiqjDbkog7y8TKDH4c2ArZ-C7yrjIKquw0UWfj4_T7OHrigyn1o1J54pLzHFKs2xPoEu6b-tPFOKVFxl0qiEprVQCePArJ_PrQpnTCXXS2YcZE05VUI1-qZnth1hDujaH-J8PGB_31_7ktGnSdllr8EFTeqmtk5qKuDs2TIAH0sGoA5qZ0Gl14V-BFYV_GxIo4hHML4KfjYjiQaqqeBn40k04FrBz8aXaFCiCn42Y4n2eJ2KccI1iB8gJWrGCpTWpK6M1FVL6o2ReuNOXRlIqhYklYGkakFSGUiqFiQbA8mmBcnGQLJpQbIxkGwMJKrxFN1Xg_h_bhAD8uHXn34CH_FVDAE0zcqmYYTLAdftTXQ6eBag-xPRK-Br6vH7PJQscMYtfmBeX9lOU0fWjKlIP5wlKQy7y67sW3tKj7vK43v-4jva4dVdcj0jKF5NvcnEOtAI13kep_v3SSKzgKCKb8DrYTfjnK1LjN7qHHDfOScd_KtwQjr5ROkKpGid01WU6zAoygvl1TJZLJIihn4yKmBgKRVr2HS7vVMaGXR7TMKyuGpkQMVJax4YCRj6nSkoXXMXDFac51TIP66TkkTrGGf3gxUuWOFS6n2c3yyyB5d0vOZ5HHy2zVtYql2G1WShMywaDcsllcfTBo9cqKWzxgvd5HK9UDvg5m4s1beelHa9zd17pYExu-fNqz8l44lKxtYF5PdK82qaGLSrjwe2srqRUA7zoIj5-2ljws2AS3p_LCeoR2BSApdVKHNklxnbAnWZTaWsskgl0bGWSp5Ba1LtNUI9aDnazUuY0rGCYDhTdneJpd5Dh6cizmzq1T2obNKcimnKun26c0EcTfo03apq4LONbbiFI81KvnsjKdjOC1ResYKhoZOnVsHIurVyMUF7xWIKu-7a9SdKSCdOJQUpgXmLdurSSIvSZ45FaWuePRao5as8LdlqNK7KiIIPZ4LYl_2B7VrGy3BVdctT2foGMiv1BR9oqul7OxTCHSfjiMsnLW1Pv9qriqnA2nLoMpW--mDNr9sy5HzT0mzwMmdHdr8ROwTih39iuyTVbRrOfC-7_ULj_HJbMeTr0BbQXsk0nkCzwW0PvHp3twz78pMT6YHtrq5Fvk9E8-WlbYuIfLnN5DmIdDTK89AEJylyt5sAK_lDFNHYQNqR1No_PNd77rudR1w77AYZ4aa01W73dNzl-iBviNfbXf_A969Tdgu2SS4I8aW33xCPnJNRj_aKxUOw4jvNcP-iaKcY1K54vyttiN5ZII-w7RG4D2KEuzmkytQEf05WtO1mq1VWJNAts-3Z_z0dkdIYvN1m5m4RyJpuoa_N2s1F6wxGu7sBLYd0ImDfLP7hWcZ7ZKn3iWCV8L1LZB6XD3GcsugK9IHrcJypskFVbF6MH5OC-vAs1Xb1yZcSf1GhP0p7SqZSS1YCMSPlsZJUjsiMpF_SGbzp2zjywELtyw_oJ6QmA7oNa9XT0BXaRPn1YkGCxUNQFVANrPZwgzAQ2qUgZG2HNJj0wKpBXJvfjfk2g6qKkiIM8gjP83zYI9p3ty80tCDNUjyaAeEdtZs8K1lHLyJ5dP98-AZRYMb2ZMPwPAxS1Ea9oTS4DRKcbs-AS-62OLoAfQcRzM_rNAX7_CkO6ArBjjYhhje5lGtnybXRxc9YtLheJ3Vat5HSbd1G0udaN1QF3TxO1R8P631mpNQ2vtPd6fFjEOJKvNf4APQyExKDmVWiujCqu10HeQBmxnb8ot6hDpfuyBAvMdw1Ctfem-4O2OliDwWsTb21XfvuqLYKFOMPrSDamDtxjLYPL2EN2qY-3LG3u7wy9pMTWV3K0tw-lzYb1na5nYSM51lo9ovH2wEou_r3DOwPtBe--95uLqV9T76R0rJD34kPGfzMva2YVhLPGH3Jz7sKsNsywcH8ki2g-aN8cN3BDT1mCoVKixuET50-de7MBxUslMD3C_qIvYPwLKIf6NjU1YFuKsaNrOi7IFMRLDEnBKIoImCcWFxcH7EBSofOOHf2GmuIi60myEtCBIPzLtSmf8W2itLN895Vr9_FTe5s42oKBLjrEbhnZK8m86R-nXTMkk4aYZGyobI77NKMo6s-l9rnknC_RfNqLL-ib0ZaJq-WOdLyeHUewW3E3_hGHk95c2Lh5stqsLw5YaWGN6Jsepl8W1m0MlhLpUlRsNLtKbIyafqeUgSvripFeYpqfFaJvOYEXlGasVqaoYH9hDj0DhTFhsaNPgQHRtoxKyYZbqUYLuDrcqxCwMhuuFRVXAdNRVoNtzdphL0a7qvhvozhbuwe12a4imttPK7NcBWH3XjczavhvhruyxhupYUK1ON6muWpQn3N43qSsmlST8c3aYS9Gu6r4b6M4VYWj-u1hgq-FuOOavJol-G-hgqvhvtShruxe9yWUIEVzohxFcO1hwrVa6jwargvZLgbW6gw0ixPdaNKqOBp9mzFN2mEvRruq-G-jOHaQoWRxePqhstDBc_icd2G-xoqvBruSxmubVbBYbiKa203XHuosDFCBV1nfbl0drM1NK8oyW62Q6fZGjVrNWjTOHearWa0ij2ODHv0ZDsxi2S2GdVmzdKNnY1ybJTbN_LodWKYscOXaCo3K2FkMORWPZQ5cRvef2psdP2_3Ji-0AcKcLb1FItrOGm6l0bpXc3KeNQkpNfttjbCnsWMakdgSWUxD7VavQaSBbDhyxTAh5pEtcMk3N2i2yTc3eKwqSq7hoRQrhD9taqZgy1rbNagJ1jvcmZt9rdfVygNGWut9lo7wdo8LNZhqX-pp2u1nQN6PWYdw8MdhjtoancYYyWPq-CHhlbPq9YGjdtvyKlGdVvWHcie_qNRDWeyvwNxK8oRCzkcXmMhjjNDrks7N289CllTpLO8TXrj4J5K28NodZ62A5ZtGMyjhtrK5DMw2I5ttmGwHGBUaYdjsB4GbcFgOSqqrRc8A4PtiGkbBktdVF9YF9aDq20YLHVRfWFdWI_DtmCwHJbVJmSegcF2yLYNg6UuNl9YF9aju20YLHWx-cK6wOPfEBI_w5DoufFnZNzQw-bXPePgo-vCcw6rFf9yr2NfVCZvf9rJUTqMx_ZGRTv3qorLyHLIET1xWTe-7tzvunub6-5ddPttkaRHRVJ-VkQr7iEH7pTy4p46ds6Bn9OsH3APYP2w797Rp0M7Z3HpDcAbyErGvYQ1Fhqd7r8lVG8hrZy9L-C8aeXsX4nvrBzAuvuIfoD7nOV6QZ_FQWhOjpJ7TjY90eGF6VboQCSJ-GyRyMgvIhH9pSwRny0SGdkq8XC1-qAwT9YrEvyB8Z0MSxLtqy9U_U3uL1cH_XyHgg0I9KdyY-NJbNia3AY2miiIoqYA42cC3lgBb74IsKWmrYCNalBMh6amzeOx7ZNhrsJVuqVU_IsreuhqSWIpnJT7BZqqbikV__KLHtJaktiwNbndiq8L8BxLqXRLqUW6LWUfwG2WIgM2qsGwFObWqudYyka3lA37Lo_xnRlLEkvhpNwv4GJ1S9mw7wMZX7WxJLFha3K7FV8X4DmWstEtpRbptpR9ALdZigzYqAbDUnh35B_a_UifwEvxqKYS1oAFHaisFnYesKtejp0P7Ghnq35NZddlFhICWBjb9JlG32orSifK2SMj7uvLHXRf1PRb7XjBSWuE15c7UolHtTcPH3hsrDzUcd9bVsb9q8CsQlBW9WxlVVZlVQcpq7IqqzpIWZVVWdULK8tHZW2erayNVVmbg5S1sSprc5CyNlZlbRzK2nO0jtfu02p48U-cpNZvnAjM1q-cpId95mQ_SG_fkl9XEQhl52zZQVbSWeBR1k597navc3jHxgHa337bSyWW47NkZg7CX2qcbznnu9-nWVxYLRMGL1Q1vzwkZXgnJnrS-LE0j0KjTey3qDMm5XKF5wQR8Sd_x5FAvFLW6HGZYJ_EHkus_-cH9sTsYwgM0Mt_3kb6klj9_T1L3e39uWHr8fZzM7frs8RbMXEj_xea4qU0Mwb8xffLlCJIc2NNkmMtTTM71qRxfcWM_ReO9Lyjzf5VSJcAR-Kpw7lEKOp7Bcql3njNhrrKISy66TJA35DOX9KnDjknncFf0o6lkgRwxwF9zq3z9PT3HQK6jt6dASvietgOyP9Ywm1nYDVB8ZHjHlcgdmQjFsM6XnnuVxBb7i3Ecwvx3EK8w4T4biG-W4h_mJCxW8jYLWTM5xJl7mqrFta1VW1zqwcLUbyIy3p-vpA_hSh_4_Cj8p6JMrI6ProcQked7_rW7et3bf-vfteWmtvf8c_djyZHW_ZfVvP_ufpv_O9_AQ" rel="nofollow noreferrer" title="C++ (GCC) – Attempt This Online">Attempt This Online!</a></p>
-<p>This matches the output of wastl's program up to 12 terms, and does so much faster (62 times faster on my machine).</p>
+<p><a href="https://ato.pxeger.com/run?1=7T3LcuNIcmfrK0qasIakSIkgFb3ToqiN6ZnZiYmY7W1Pq33plRUgCElwkwANgJJANf0djvBlL3v0zV_jr3FmPYB6gqCkdu-GhdCDqMrKysrKVyWqwP_8r2AxW2b4e3kdBP_9ca-X5dNxcHAw6O9193p_Guxd_OWvy_yq993__MfxN1EczJbTkJwCUJQc3pztVEVRkuVp6M_lMiiJ4msVLsC2ca4UwX1eLMJMLvTT1C-Ugtl1kkb5jdLDbRjkSSqXzKJMQX61jIM8SmJ_Jpcu4ySdhmk4vcxClZabNImTs52do6NvpuFVFIfkw_ufLn_-4zup5Mef3nz4-fLdb7-8Pd-BtldQXEJVqK7nCzp0Qkh0RaDu8u2HP765fPPL-XuyOyavjmlVmKZJSs5voozAz42fTntBMg2n5AqKXx33JlFOZtF8kjHoeBpd7XzD_u34yzwhWe6n-Xk0D8kYPk9PTtgQTk6yPPSnxWUwS4JPJydxctdqj3Z2kNFI7-UlcN0bfEd-SIAVo7KcoqDMP6U1XTI8YzBDN9CwS47PyHmYp_5NOIXuRzvBzM8yLNp52AHCyW0STUkUR_kf_CDMWm1ayKrwuoLS7_PcD6D9x_4FjOXKn2XhiBwdkRwKuvlHD_8MLuxNPHeToaPJwNpkUNdkqDfx9CbrncVyMouCE3oncYTkI1o0SZKZivT4YiSAW8RytckJgZo2eZDYN1qXbYIkznKlq_2ctcmNNmttDpn-nELjM_IumRV5CGSCpJPbMM3De5iwaQRtSXJFac7IHWggiaZhnEeBPyPBTZT6sygvdkAMoQga5CSvSKE9wwjhh4y5JDz0u2TQJR5I1rpbluAtlEslQwYmSjx6C4V9KIFxOHr8aXoNPb66oNMr9ajgEZ8HDFvZowQzlGCGvEcm6yRZhKkPbOtx1vPifb_N--MFAZvXgMlzz4f_osTjJV5ZMuAlA16ShvkyjRHHWu_3QO-3S9SCSS0hSAc5IBOdHKSGlmtEIU20vAFpBkseQVrPQVrPQVqvGWmdWtJIA8I6ZGJSJRVWJJWFMj3gKGLZU7B-p0nemGccGxLTmbBZRBo6EzZz2HWH8WJd-gjNPVEzPF-s0O9xD9DC25zsT7Nc9Fw6h_0sDUTvZaE_yaAY3Q38PSV98nvSw48nWMDGjSij-SJJ8xZFC0rUA6U6Bn2jP_sMR5tBg3tscVzt0vAiiji8Zu3hTxtHVZJ_XZFfESuNgI9JIh8qgeQ-6zGLViHUB8ky5nZ5CUheHV9yZ0uZWI4kvKcjoTVAO23FBoR4kquWaNwW42NjowhaLV7ZaSOBbSZQrBch5sgAipWcEa9igdHUq5p6gkBsSyf0OkYmtlUuslH34J8sFKVzFlbzT2DvZ_4CWKXJi2BBjnY2TDPwF2-Xc6ZR3arsxzBO5lHMSpcSxK30eXmrglV175fzkdRVECJecKldAnHa3J_Rj_l8Qf8v-guPfih7h_DuXQJ3tHQaznKffgrBFXjlpwF8kjvx0S2pRROzCCJYP76ehVBc1lAhBP2R-Md1CNjMUAgxVLwyFUbqU6roAoI8nGSyGPdHZHF6DH8ODqrpU2CmCDM9HcIfHUYQLGk10rK4-Di9oNLIPnJ9W1fDQPPDdSUNs-VMUyBfGovg0fBCHwXWzJczlFiBBG1Ulxpy3qeA86dTAJXgPArnbYQbULhBNQZHoMVF2YgwqUmCYChrfWFJ7pK3H379VRrOpgl8UKZS0NniWjCVOaMAcN1wA6DGuGupHrmrTe1ywzKdc9czTayvH6j168Y68rC1tjxYdYdS4iuKYgWZWEHWDSgfPlG72aQKi2Rq9L83VINgFvrp34MeUEJrFYFB1GkCg3CqAqt26wKrb6gMDLhGGxhAjTpUAF9dHxgp9QrBYL6eRvDJdauE8NXf25bJ97A-1vw4BN_3YnEt2r5p2HYitaXLfLH0aLUNNYQl9rn_KST-9NaPc_86xCV2fhPiMhuijhs_p3f5XSIvbjPipyEsA66XMz8lfjxF13ydLkOMR-FWRv-vSyA5uAmDTxgi-nFBoyDajTSOPX-v0nm-vEdYXO0bsJO9Q7mHH5P4Wx5DkyjHXpJ4VlC6Ic5coJogCj9mPVfdHJrygBBgPHDG-cfTV-VHt3TLkUln0afrLyMZwLFcQDByMapp7m1o7unNS-qRW5x6_hG1kn9spm1AALNisKKYSlLFQ1Lk91WUArVDQjnLRIFLTEhnn94dwwQy1kcZJTDwZwGISx7F1xSA9WLQUI4lwlFESH9k0zoFdoOGiss-sAiVFVi-P_loZIw46y4ACKFM4wPs-IG6BZhDWCWjB6LZqdmMTEICkWMeLWZRCOv6AjgWJPMFsAs4lJAkja4BfCY3PLTh_zkUKxGR_kJkPvhV_xqZCaEkTZNhguxbGdsI-WzDOI1uoww8CCMKM77zkkjwonk5R4L-wM8FuEniNrPA1waVK-2STss-LX1qQy32XrLdnst2P1ZCeMQv09eA1MVGUjd0b6qiIAYzD2VUIRFj6UyiH-btchnJDV2kDynpXTK0IFx_gfFkywnGQKTB1OMKu36kiIxHTF0bDL1EtQuZOUpci5oxKSEiC0BTABZMSjslIBXtkFhLQ-RoAEwZs1hivsDJs2Pq25pj1gabj-WMi3yBfwGdXrKnBcwJZgQskT-bhTM0Rsx2391EwQ25C2EklUf1M_ScCU_MuPo-tXVdL9Z2FttKa0RAQaRwylbaaPpFIkufB2m90W-TU2A2-fxZzFjjRUybnG2eJpvRPr8Js1DxMuh4YQY1L2Pr9AsoMiZFbKsRrrWN-S_w8TyLCyXXYpPL29ktHlQMnzGoEMwog__oota4Rdy4NeQPBhgieEaXLDOoCrCiOIumLAwTdHwh4y0Wlba0J5aWbOg7lmsyMrEAlZp5NBqj1yOQDVRkg62QmXIjJRTl1APjgVcmdPuuZSmQhaJhtu2XbT1XW97vrbOt527L-zXbemVbJ81ivGpKRXTYeMi25htGbbhADckTfd9z-i55Rpd1tkhudGvNXm1oZKS2nujOlrVuDCFuTYhtOSvCaD0RZ8_fOaZVeFYDicIC--zhxZ9S5qlOoS0hxIHZngqet_kmhJsdPlIt79LxwcJPRkryf2OOx8dV5n3TrM5Ehn7J4_yf5HH4o26awWl1_PY2SRzR1tvc9otlcGQhsoYff1sJHFeERDk4adfnY0yrIbZMsGTJmDw8sKfg_fWajnvbdMzfdTamJrNtwDYMdcvsAzkYO-ZuYU-T8ZlhbR6fJ8GrTGoQFw00p0E6wMxeRbKDJut6EzDjWl6s2l1JCkC_sMUkGmLJW2mI7RcYEAdi9Ip2tF9p5W8lZotwysH8nlluD5IcPO7ZypvGShaaRJBkqYLFvHUh95XX91zfjCUaMAd8W8fOuAPSErIng9TMAe9G2pxSo9sN1t7SGtqp3dGFg_4vuXbmA6WLKDK28LUnLy-djKLLIGgvrXY5QPP2A7n9YJv2UviNhogvCDtiQQc4xAKzI1ZpLky3JibeymNbJBXsXh1Nt6ruChwyWQJHDVmouRqqR64IVSxbGDOFu73lBtOlcLB3uwFa51JPKWhq2pamSbtVix7FsArFgYJPW6l9qUUa3UqI26Lpisqn29nfhne4JR1-yX4ubYKDuzA_T9ie9_NE1EiRt7b9dj8O7_6Z7UEHtTvMSxMnl8txJq18njjxWWLDul0alRzjPNIkCsZMJSfqZaBJ0FZyiQeNCvcPczlcXIsx_wHDcLD6bJER3vEzADtN-tT7U-57RvfSaEXMWE7gD8mCrT0T-JOWc2Vl6tDOVASg5t65jFlcbMfPXPCMWHjpqWNgDM0PzSMtlbZptdLpFVv1oL5aOpWysxabe9-WTpyf6yAnhCVN9JMfgkVnoIFyWsXAwBMmAt_-gn3Q2Z9CPJXehi1efYh7pFvyU1rKcHp2CarHAiyYhKCgrfYIS3erYrAzWHhwUHaldoeXevgFvRmoK7DocuIHn1rQsHeWa3E9ZUKG27rzQ95zFxhLe7Nuu5Ia3ERZ76xqRG_lhvSczY6SOjrVmXdZbvOviiZtPHpDTU0Q5TMwW1kGZp34nIfj8YR_4sbSnGS_dekDTZMWIBtVOsO47Y_9ks1A9wTQSVz3d7G6YrffhT8TfXYpJrYrF_jcgbDsdHwG_ycVz9CocYhdw7dxX8LrT8WGfMZn1dGsVRae6Sw0OaiflNhtAXlk0jZwjccv86HMh-LbpXJmstbcyYMxjq4Kec-b7OG7PLRcJHdh-vpyoLh0GE96HeY_Rln-_t-WNPszLiHBeB5L3GmcSKzYICcQ0Vg3zB_KucP6Zp6lGQRAVzgKtnjTqqFWHmp_O4cjNwZ_ij0xJ8M_qbMrQ8MUG6x22U0qPMEyTSFganyEVEbAoMMUos5TsvdPSx4ZTZch5jimYQ5eBmjCXMbVLLnbo2DkI_2v9DRdpjSCugz8LD9VqubRbBbBoi-JpxnYAInaXnX4tX1IcyetNuthnl1UfYAKabmv8D7KWz3PsPNrlPTYn4fZAgNHaM1FOKcOJQ9Pz3bYsNNlkJMbP7s55Zp-pgkkcxfsmJH0_EA3McKHctsTJ-F9EC5yx3yZ9oW3b5WIbF6OUZGFXOdkt2xJhzPbZPPLVq-8KTVe4QzG4IcrdMEuvS8xBU0XfBXGaBzIGKNdel9ijOxrHztWyi5k0b9wJaCzK052nT2sW9Uxr1YnYg3abVh79e9fh8Pf_e715DWmcigOEL1X7fLu7IwMHI8bt-0VUL06fnKv5jJVLVHvuCtApIbCjGiog8Zs7sMk4AcwPgH40hs_JR34fPvxQjgCfmLXfO5G1ZiMmQpV0_Pw0PO69GfNT-OWpXheWCslFNZSShgGRjBfKQr9oT2XJ585kWXJoRJH0ho81uc8I4d_qU8bdqvP4N9GJQw9wlGB4R6r8uDWMlJqgO62qyF6V3tDqOmW806pKplxDygL-F2RikH3sHwu4HfVl8qAZQX8rjypDLAW8LsaSGUwygJ-V0Op7P4yFpmIS-i-iyXTKhtByyrowoAuaqBXBvTKDV0YlBQ1lBQGJUUNJYVBSVFDycqgZFVDycqgZFVDycqgZGVQogpR1noRiP_nAqGczBKZPPxsnh8Tj6FGUiQvDBQEE55RjtH8mHCLR510hwcNGaF5IebmlBewlDEUayXge2dRnIWw4JZNMqeaxzSLNLzlFT_QZ2dloF0G2aJq7I1G1sXTY-NfQYLafUW8HmAxzMkyRz9dtsBw9YTQYFXB9PUDZZqb1Pl7plDpWleYywKxJPAX-OQfN5TISwJHmD5JQ_-TLRdjmXaZrKoJzRppZTguaTyetiDmnVp8PF58p57pq9U7eVu_rQn10urda2giqSJTBK5onbFILpbFdNU8Jq9HqjB3QMPebalvpbpQDBM_C3n9uBLmKsiW6ndlgDLqlgBqDyWKDGCVTB1LTeUuFaBdDUrOD1ZQjVYlW2_8seMSQrWrUNA7U5K0IvW87ZJEBKrVvLoXEhXMoUjClprqboXJmw6FWxQV-ewFR7i1LU5yvqstythuNGRetoDlgBOnNsGIunZyEaB-YhHCvUPGzT8xQpoWlhikRPY13ClHs-EtDc42Dff4iMt40oAD752Jwo5sCGzXPJwHi6KlPiLoyqjUCv4GExXedqZKvrgJZRjx8VWN7ulX_VQxFlg1R3mAUttel2Xc0FmjNniZK-LNNU8RK-Vxad6lCig_HxXPAt0Yyk0WKGk8SiOTML8Lw5jpKpCFOWvOR2ULqNhsGN5HGc3YJbFl2524OPZDuscWBLSGKkXxKX2_SHs2xhKnFAtgQO4qoLIpMEAfaxVQiPc7NoxcojUh-vyZuMH3882qrewJyz5FCzZNQTmL1KaC1ci_nc2IP7vziwxPs9LcPO7mhYL6XqSJetOykWo-B7NxJRHvjtg8pusE87xRFvjpFF9i-LaBm3JrFMq0HycxvltOPIlOk5w9WxcuCGMaHneA-UrYJmuIMAM_Rm6Vm0v9az_CRBN9juwWbvpc6Ma_DX9bxjGowq-hT9-ZJD0RsV3CL6dSq40j19zibzi0sEzqOrXDgHRrhwH6WO2AqaC7wCn7w165J4zk2k52utU8vPcDfEDmVeYGLdiIhCBKhZgu3EhxvfRTHySS7f5FvsMczs2dX_Il4jRjcPWivNnT0HQlJVhbPdZd22y0NjoUjlMbiBYsRo4wcfsRlkTb2Ic76jaPV6b94EBml_KysiaXtqCru9xGQqbnUdS4t1U1J0DZ8N8wetxSXviGfLu45PY9-gakY8e-lT5E8Bu3tmI9JO4xfpXvNw1gs2SCgXmfzED9sX8w3f4VfbcuDCrOrpB8avSpcWc2KGNRC9bP6C16B2FZhB_Ys7FrD9xUiBtO0XZBo8yfY8ssol34DBM7nFGel4GSPZo02ZPN3cZRsUyYnPSEKSSkBbM5uGBbNOlGee-i3WnRE_cDVubhpzZuKGXFXlnMQQcl6JCBjqrOpsomxVavRRv2Lzq81w7vCR8OVVVDuYrW9LVGXtlnX2vjlW0Etj6vGRhtPKXmwIJtILPBUnPARg01Ymz6mAa2sWhjsI5K60WhlT5Lk5lJ4dvKELxyqhTmKawZsEnkMyfoFaMZqqPpGbQfEAffoUSRoWHFD4GBFW2I-STBLRTBBfpanFbRQd8uuJRVnAfVRFoFtz2qOnsR3BfBfR7BXdktrk1wFdNaWVyb4CoGu7K4qxfBfRHc5xHcQgsVqMX1NMlTOx1oFteTmE1BPZ2-UdXZi-C-CO7zCG5hsbhebagw0GLcflnc3yS4L6HCi-A-l-Cu7Ba3JlRggzNiXEVw7aFC8RIqvAjuMwnuyhYq9DXJU82oEip4mjxb6RtVnb0I7ovgPo_g2kKFvsXi6oLLQwXPYnHdgvsSKrwI7nMJri2r4BBcxbTWC649VFgZoYLOs448OrvYGpxXmGQX255TbI2ZtQq0KZwbxVYTWkUe-4Y8erKcmEMydUaVWXN0Q6dSDo1xD4w2-pwYYuywJRrLzUnoGwi5VPdkTFyGm6fG-pd_48L0RBsoiLM9T7GYhoPKvVRMb2lSxqMm0Xupt6UQti1iVBoCC5RFPNRp9SqSLAQbtkwheFuRKDaIhNstukXC7RZ71VTZOSQ65QzRq1XObC1ZQ3MGPYF6kzGrk79mrlBaMpZcbdc6wVI8LNJhmX_J09XKzhZej0lHb3uD4Q6a6g3GUGnjGvi2odXjprWixm03ZKh-qcu6AWloPyrWcCTNDYibUY5YyGHwKglxbHt3Xdp3jlkP-5Ql0om1Ct44mqKWNRBaHaftCFEdDeZhGu3J5CNosB1MqqPBckRHLdueButxpxoaLIehtOcFj6DBdoiqjgbLXBRPnAvr0aw6GixzUTxxLqwHvmposBwH0xIyj6DBdoysjgbLXKyeOBfWw2l1NFjmYvXEucADjhASP0KQ6MnIRzRc0eOUl-b5Htd1dES-Xyz4K3gd-6ISefvTRozSKRK2N2q6ca-quIwm25wtEZd14-vG_a6bt7lu3kXXbIsk3cof87382nC3OSmijBf31LF3aPEDRuUN7gEsb5ruHbV-N2uTS1cAryszGfcSlrTQ6LT5llBdQ2oxW9893xDzqhYz_VLQbVG37tEOcJuDr87He_kcH6-aRre8yrRG2w-oVaARkXrFe0evrOpZekW7KfeK945eWZW11-1ZPADGeTKPsWDQNU6FW0As7zqgU1FheDpb6IF1hT4ooL-Fmz4O4qKvwmDQV76fvxyE7eufmhC9shK9ejLRllm3Em1MhyFKtAVVm_u6d5-4BlnoklPw9w3oYa0FxDFICcMzqLEuOQV_94Ee8lpAXPRVGNyTUA7iMZJT6JJTdumWnKZE10mOTLQxHVbJYaaveIzkrHTJWbG3VBhvXbCAOAYpYXgGU6xLzoq9McN4z4MFxEVfhcE9CeUgHiM5K11yyi7dktOU6DrJkYk2psMqOdx9DbZ1V9dVsBHjGVwlJKJf7Ppc6PDLfIrnQ4ffi06dc_W1KU0uc5AQ_MK6qMM4eqQ9jTpQzi0ZMWNHdugdMdtH2tGEg9rosCM7XQlH0RjHAHCsrDjUNeMRG2PzKTCnEJhVPJpZhZVZxVbMKqzMKrZiVmFlVvHMzBogs1aPZtbKyqzVVsxaWZm12opZKyuzVg5mNVzp47X5pBte5qs38buCKrvaCAl_OUBsfTuAGLj1_QDxdi8IaDauoyPyYTGFTtlBX3aSluzN8CztXnnwt9FBwF3jBO_nz41YYjm_S87MLMBzJRosB42bvdTARaslY_FMU_P-LsqDG5FpisP73DyLjTLR7KnSEL-8FQ8qIsWgTw0ST8xy4HOKJsAeA7Z944EJzF7HzQh6_hdDSO_gKd9hZZm7xi9ntJ6vPzFbu17iuBaZox9_evPh58t3v_3y9ryslFJzgF-8-UcZgpScq0B2NZgqPVfBuN7_Q8_cswOXNvlXSQKbN5Zw6uScIylqvULKua68pqIuUoitrlqMoN-TvT_HD3vkhOx1_xzv2b5dmhPueEMAx7b38PCPewR4PX11DKiI62bdJV8NcL3XtYpgS7xylDMQvWGfBcKOKs9dBQFq4048dyeeuxNvu04G7k4G7k4G23UydHcydHcy5MlMGbuq1UK61qpsrvWIYxrOwrx8QJDJbw-T3w72TqlnXRlNHe87DcBRpy-vk3x5naR4nSQXwX_gLwzuj3bWf13mV73v_sL_8f__Cw" rel="nofollow noreferrer" title="C++ (GCC) – Attempt This Online">Attempt This Online!</a></p>
+<p>This matches the output of wastl's program up to 12 terms, and does so much faster (<s>62</s> 65 times faster on my machine).</p>
 <p>Certain design elements were quite natural and are shared between both our programs – namely, the use of 128-bit integer coordinates, the coordinates of the starting tetrahedron, and multiplying all coordinates by 3 for each successive term. The remaining details are implemented from scratch though, without consulting wastl's program.</p>
 <p>The finding of standardized rotations of each polytet (for comparison purposes) is done by solving for the affine transformation that moves one of the faces of one of the tetrahedrons to the first face of the starting tetrahedron. For speed, this is limited only to the attached faces of those tetrahedrons that have only one attached face, taking advantage of the fact that it's guaranteed that all polytets will have some (because a polytet can never curve around and perfectly meet one of its own faces).</p>
+<p>Edits:</p>
+<ul>
+<li>Added optional <code>USE_GMP</code> (GNU Multiple Precision Arithmetic Library)
+<ul>
+<li>for applying the affine transform (but not solving for it)</li>
+<li>for checking for tetrahedron overlaps/collisions (this further slows down the GMP version by about 14%)</li>
+</ul>
+</li>
+<li>Improved non-GMP version speed by 4%</li>
+<li>Added verification of transformed tetrahedron edge lengths. Combined with <code>USE_GMP</code> enabled on the overlap checking code, this detects the exact moment an overflow occurs and avoids reporting any incorrect polytet counts.</li>
+</ul>
 <p>Output:</p>
 <pre><code>1: 1 [0 ms]
 2: 1 [0 ms]
 3: 1 [0 ms]
-4: 4 [1 ms]
-5: 10 [3 ms]
-6: 39 [11 ms]
-7: 164 [59 ms]
-8: 767 [321 ms]
-9: 3656 [2553 ms]
-10: 18186 [16792 ms]
-11: 91532 [110263 ms]
-12: 468203 [704540 ms]
-13: 2417721 [4459145 ms]
-14: 584897 [4882079 ms]
+4: 4 [0 ms]
+5: 10 [2 ms]
+6: 39 [10 ms]
+7: 164 [53 ms]
+8: 767 [296 ms]
+9: 3656 [2350 ms]
+10: 18186 [15845 ms]
+11: 91532 [106165 ms]
+12: 468203 [683449 ms]
+13: 2417721 [4291118 ms]
+14: 663520 [4734026 ms]
 </code></pre>
 <p>(The timings shown are cumulative.)</p>
-<p>Clearly, 128-bit integers are not sufficient to go beyond <span class="math-container">\$A276272(13)\$</span>, but this program seems to do at least better than wastl's at it, giving a plausible value [though shown by <code>USE_GMP</code> to be incorrect]. In any case, the fact that both programs agree up to <span class="math-container">\$A276272(12)\$</span> strongly suggests that they're both correct up to that point (and would be beyond that point by using larger integers), and that the OEIS entry can finally be updated.</p>
+<p>The 128-bit math is clearly overflowing beyond <span class="math-container">\$A276272(13)\$</span> [and as the <code>USE_GMP</code> version shows, that value itself is also incorrect, due to overflows occuring in the overlap checking code]. In any case, the fact that this agrees with wastl's program up to <span class="math-container">\$A276272(12)\$</span> strongly suggests that they're both correct up to that point (and would be beyond it by using larger integers), and that the OEIS entry can finally be updated.</p>
 <p>It uses about 20% more RAM than wastl's program, but that can probably be improved. There's still plenty of room for further speed-ups, such as adding multithreading. Storing polytets in compressed form could extend the point at which RAM imposes a limit; disk storage and merge-sorting could be used to do away with that limit.</p>
-<p>[Edit] Output with GMP enabled:</p>
+<p>Output with GMP enabled:</p>
 <pre><code>1: 1 [0 ms]
 2: 1 [0 ms]
 3: 1 [1 ms]
 4: 4 [2 ms]
-5: 10 [11 ms]
-6: 39 [45 ms]
-7: 164 [239 ms]
-8: 767 [1407 ms]
-9: 3656 [8445 ms]
-10: 18186 [50906 ms]
-11: 91532 [333495 ms]
-12: 468203 [2076014 ms]
-13: 2420658 [12920109 ms]
-14: 591926 [13750582 ms]
+5: 10 [12 ms]
+6: 39 [52 ms]
+7: 164 [267 ms]
+8: 767 [1557 ms]
+9: 3656 [9288 ms]
+10: 18186 [58670 ms]
+11: 91532 [378708 ms]
+12: 468203 [2364038 ms]
+13: 2420660 [14893023 ms]
 </code></pre>
-<p>With <code>USE_GMP</code> enabled, the GNU Multiple Precision Arithmetic Library is used for applying the affine transform (but not for solving for it, or any other calculations – so overflow will still eventually happen). This is more than 3 times slower, but I thought it would extend the number of terms that can be correctly calculated.</p>
-<p>However, it still reaches an overflow condition before <span class="math-container">\$A276272(14)\$</span>, making that result incorrect. Apparently, GMP needs to be used for more than just applying the transform. For now, it's unclear whether the <span class="math-container">\$A276272(13)\$</span> result here is correct, but I expect it is.</p>
+<p>With <code>USE_GMP</code> enabled, the GNU Multiple Precision Arithmetic Library is used for applying the affine transform (but not solving for it) and checking for tetrahedron overlaps – but not for any other calculations, so overflow will still eventually happen. This is about 3½ times slower, and allows <span class="math-container">\$A276272(13)\$</span> to be correctly calculated, but still isn't enough to reach <span class="math-container">\$A276272(14)\$</span>.</p>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://www.rust-lang.org/" rel="nofollow noreferrer">Rust</a>, 11 (hopefully correct) terms</h1>
 
