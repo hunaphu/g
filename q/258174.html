@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::258174</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>nan</td><td>Found a sedbased solution that beats expr significantly. Obviously not a bash builtin</td><td>230606T140405Z</td><td><a href="https://codegolf.stackexchange.com/questions/258174/shortest-way-to-convert-the-result-of-a-test-to-a-string-output-e-g-true-or-fa/261596#261596">ShadowRa</a></td></tr>
+<tr d-ix="1"><td>nan</td><td>I found one way to improve on this using the expr command not bash itself</td><td>230223T205204Z</td><td><a href="https://codegolf.stackexchange.com/questions/258174/shortest-way-to-convert-the-result-of-a-test-to-a-string-output-e-g-true-or-fa/258183#258183">ShadowRa</a></td></tr>
+<tr d-ix="2"><td>nan</td><td></td><td>230224T120911Z</td><td><a href="https://codegolf.stackexchange.com/questions/258174/shortest-way-to-convert-the-result-of-a-test-to-a-string-output-e-g-true-or-fa/258200#258200">dv_man</a></td></tr>
+<tr d-ix="3"><td>041</td><td>Here's an option that abuses the filesystem for</td><td>230224T082035Z</td><td><a href="https://codegolf.stackexchange.com/questions/258174/shortest-way-to-convert-the-result-of-a-test-to-a-string-output-e-g-true-or-fa/258196#258196">pxeger</a></td></tr>
+<tr d-ix="4"><td>nan</td><td>Here's a slightly shorter method in pure Bash. It doesn't beat the expr based method</td><td>230223T232252Z</td><td><a href="https://codegolf.stackexchange.com/questions/258174/shortest-way-to-convert-the-result-of-a-test-to-a-string-output-e-g-true-or-fa/258187#258187">Sisyphus</a></td></tr>
+</table>
+<div id="pu0" class="pu"><p>Found a <code>sed</code>-based solution that beats <code>expr</code> significantly. Obviously not a <code>bash</code> built-in, but it's using solely portable <code>sed</code> features AFAICT so it should be near universally available:</p>
+<pre class="lang-bash prettyprint-override"><code># 36 bytes
+sed &quot;/$1/ctrue
+cfalse&quot;&lt;&lt;&lt;FIXEDSTRING
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=m70kKbE4Y8GCpaUlaboWN1WKU1MUlPRVDPWTS4pKU7mS0xJzilOVbGxs3DwjXF2CQ4I8_dwhaqFaVkQrgWSUYqF8AA" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<p><code>/$1/ctrue</code> selects &quot;lines&quot; (there's only one line) which match the regex from <code>$1</code>, and <code>ctrue</code> short-circuits for that line, emitting <code>true</code> and discarding the line. If it wasn't short-circuited, <code>cfalse</code> with no selector handles everything else by echoing <code>false</code> and discarding the line.</p>
+<p>Shaves four characters off the <code>expr</code> solution: Ignoring length of the fixed string, which appears once in each, it's 25 characters, vs. 29 for <code>expr</code>. It also has similar flexibility (it's not just <code>true</code> or <code>false</code>, you can use <em>mostly</em> arbitrary string outputs).</p>
+</div>
+<div id="pu1" class="pu"><p>I found one way to improve on this using <a href="https://www.man7.org/linux/man-pages/man1/expr.1.html" rel="nofollow noreferrer">the <code>expr</code> command</a>; not <code>bash</code> itself, but at least a GNU coreutil so it exists pretty universally (and more importantly, on the Code Golf test bed):</p>
+<pre><code># 40 bytes    
+expr true \&amp; FIXEDSTRING : .*$1 \| false
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=m70kKbE4Y8GCpaUlaboWNzVSKwqKFEqKSlMVYtQU3DwjXF2CQ4I8_dwVrBT0tFQMFWJqFNISc4pTIeqh2lZEK4FUKsVC-QA" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<p><code>FIXEDSTRING : .*$1</code> is a regex pattern match; it's implicitly anchored with a leading <code>^</code>, thus the need for the <code>.*</code> in front of <code>$1</code> (probably would need to be <code>.\*$1</code> if there was a possibility of a file with a name matching the pattern). <code>true \&amp;</code> will evaluate to the string <code>true</code> if the pattern match succeeds, and <code>0</code> otherwise, which, when paired with <code>\| false</code>, will replace all cases where it evaluated to <code>0</code> with the string <code>false</code>. Shaves off seven characters from my original approach (and six characters relative to the slightly shorter version I updated the question with, using <code>=~</code> to avoid a pair of <code>*</code>s).</p>
+<p>If anyone can come close to that with pure <code>bash</code>, or beat it using near-universally available tools like <code>expr</code>, let me know; I'll happily accept such an answer.</p>
+</div>
+<div id="pu2" class="pu"><p>This one is the <strong>same size</strong> as the <code>expr</code> method while still being <strong>pure Bash</strong>. It takes advantage of <code>$_</code> and the fact that <code>true</code>/<code>false</code> are builtins that simply returns the status you would expect.</p>
+<pre class="lang-bash prettyprint-override"><code>FIXEDSTRING
+${_/*$1*}true||false
+echo $_
+</code></pre>
+<h5>Explanation:</h5>
+<ul>
+<li><p>&quot;FIXEDSTRING&quot; gets stored into <code>$_</code> by attempting to execute it with no args.</p>
+</li>
+<li><p>If $1 is a substring of &quot;FIXEDSTRING&quot;, then it will be removed in the pattern replacement and allows Bash to execute the <code>true</code> builtin.</p>
+</li>
+<li><p>Otherwise, the pattern replacement will result in no change to &quot;FIXEDSTRING&quot; if it's not a substring, thus executing <code>FIXEDSTRINGtrue</code>, which is not a valid command and fails through to executing <code>false</code>. Thus putting either &quot;true&quot; or &quot;false&quot; into <code>$_</code> based on the pattern replacement result.</p>
+</li>
+<li><p><code>$_</code> is then echoed out.</p>
+</li>
+</ul>
+</div>
+<div id="pu3" class="pu"><p>Here's an option that abuses the filesystem for 41 bytes:</p>
+<pre class="lang-bash prettyprint-override"><code>echo true&gt;FIXEDSTRING
+dd&lt;*$1*||echo false
+</code></pre>
+<p><a href="https://ato.pxeger.com/run?1=m70kKbE4Y8GCpaUlaboWNzVTkzPyFUqKSlPt3DwjXF2CQ4I8_dy5UlJstFQMtWpqwNJpiTnFqRANUH0ropVAqpVioXwA" rel="nofollow noreferrer">Attempt This Online!</a></p>
+<p>This requires that your fixed string is not empty, <code>.</code>, <code>..</code>, nor contains <code>/</code>.</p>
+</div>
+<div id="pu4" class="pu"><p>Here's a slightly shorter method in pure Bash. It doesn't beat the <code>expr</code> based method, but it doesn't use any utils.</p>
+<pre class="lang-bash prettyprint-override"><code>false
+[[ FIXEDSTRING =~ $1 ]]&amp;&amp;true
+echo $_
+</code></pre>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/258174/">258174</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
