@@ -26,8 +26,8 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>420</td><td>C</td><td>140323T153753Z</td><td><a href="https://codegolf.stackexchange.com/questions/17907/convert-a-repeated-decimal-to-a-fraction/24762#24762">celtschk</a></td></tr>
-<tr d-ix="1"><td>100</td><td>APLNARS</td><td>251007T084954Z</td><td><a href="https://codegolf.stackexchange.com/questions/17907/convert-a-repeated-decimal-to-a-fraction/284020#284020">Rosario</a></td></tr>
+<tr d-ix="0"><td>090</td><td>APLNARS</td><td>251007T084954Z</td><td><a href="https://codegolf.stackexchange.com/questions/17907/convert-a-repeated-decimal-to-a-fraction/284020#284020">Rosario</a></td></tr>
+<tr d-ix="1"><td>420</td><td>C</td><td>140323T153753Z</td><td><a href="https://codegolf.stackexchange.com/questions/17907/convert-a-repeated-decimal-to-a-fraction/24762#24762">celtschk</a></td></tr>
 <tr d-ix="2"><td>057</td><td>Ruby nl</td><td>251007T205746Z</td><td><a href="https://codegolf.stackexchange.com/questions/17907/convert-a-repeated-decimal-to-a-fraction/284023#284023">Value In</a></td></tr>
 <tr d-ix="3"><td>175</td><td>JavaScript ECMASCript 6</td><td>140318T094859Z</td><td><a href="https://codegolf.stackexchange.com/questions/17907/convert-a-repeated-decimal-to-a-fraction/24451#24451">Eliseo D</a></td></tr>
 <tr d-ix="4"><td>068</td><td>Dyalog APL</td><td>140316T175248Z</td><td><a href="https://codegolf.stackexchange.com/questions/17907/convert-a-repeated-decimal-to-a-fraction/24331#24331">Thomas B</a></td></tr>
@@ -50,7 +50,67 @@
 <tr d-ix="21"><td>nan</td><td></td><td>140314T181146Z</td><td><a href="https://codegolf.stackexchange.com/questions/17907/convert-a-repeated-decimal-to-a-fraction/24199#24199">Oberon</a></td></tr>
 <tr d-ix="22"><td>081</td><td>GTB</td><td>140314T153612Z</td><td><a href="https://codegolf.stackexchange.com/questions/17907/convert-a-repeated-decimal-to-a-fraction/24181#24181">Timtech</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>C (420 characters as written; less after removing unnecessary whitespace)</h1>
+<div id="pu0" class="pu"><h1>APL(NARS), 90 chars</h1>
+<pre><code>{(a b c)←{⍎'0',⍵,'x'}¨k←'.'∼⍨¨w⊂⍨1++\'.'=w←'.',⍵⋄(m n)←≢¨1↓k⋄a+(c÷k-⍨10*m+n+n=0)+b÷k←10*m}
+</code></pre>
+<p>The function above has input in one string 'a.b.c' with a,b,c string of numbers and output one rational.</p>
+<pre><code>'.'∼⍨¨w⊂⍨1++\'.'=w←'.',⍵
+</code></pre>
+<p>above code is used for convert the input string 'a.b.c' in one array of array of strings that has the void string
+if the a b or c are void in correspondence of them.</p>
+<p>It is based on the formula I found in one book</p>
+<pre><code> a.b_1b_2..b_m(c_1c_2..c_n)=a+(b_1b_2..b_m/10^m)+(c_1c_2..c_n/(10^(n+m)-10^m))
+</code></pre>
+<p>where (c_1c_2..c_n) is the period.</p>
+<p>Test:</p>
+<pre><code>  h←{(a b c)←{⍎'0',⍵,'x'}¨k←'.'∼⍨¨w⊂⍨1++\'.'=w←'.',⍵⋄(m n)←≢¨1↓k⋄a+(c÷k-⍨10*m+n+n=0)+b÷k←10*m}
+  h '0..3'
+1r3 
+  h '0.0.3'
+1r30 
+  h '0.00.3'
+1r300 
+  h '0.6875.'
+11r16 
+  h '1.8.'
+9r5 
+  h '2..'
+2 
+  h '5..09'
+56r11 
+  h '2..142857'
+15r7 
+  h '0.01041.6'
+1r96 
+  h '0.000000.1'
+1r9000000 
+  h '0.0.9'
+1r10 
+  h '0.24.9'
+1r4 
+  h '..'
+0 
+  h '.1.'
+1r10 
+  h '..1'
+1r9 
+  1÷9
+0.1111111111
+  h '.2.1' 
+19r90 
+  10⍕19r90
+0.2111111111
+  g  '321.12345678901234567890.78946541654784615548946413154'
+22300240054792524005479714906316266937060053554481r69444444444444444444444444443750000000000000000 
+  ⎕fpc←1024
+  1000⍕22300240054792524005479714906316266937060053554481r69444444444444444444444444443750000000000000000  
+321.1234567890123456789078946541654784615548946413154789465416547846155489464131547894654165478461554894
+  641315478946541654784615548946413154789465416547846155489464131547894654165478461554894641315478946
+  541654784615548946413154789465416547846155489464131547894654165478461554894641315478946541654784615
+  548946411__
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>C (420 characters as written; less after removing unnecessary whitespace)</h1>
 <p>Note that this assumes 64-bit <code>long</code> (e.g. 64 bit Linux); it will fail for the test case <code>0.2.283950617</code> on systems using 32-bit <code>long</code>. This can be fixed at the cost of some characters by changing the type to <code>long long</code> and changing the <code>printf</code> format string accordingly.</p>
 
 <pre class="lang-c prettyprint-override"><code>#include &lt;stdio.h&gt;
@@ -82,66 +142,6 @@ int main(int c, char** v)
     *d = i, i = *n%i, *n = *d;
   printf(&quot;%ld/%ld\n&quot;, d[2]/ *n, n[1]/ *n);
 }
-</code></pre>
-</div>
-<div id="pu1" class="pu"><h1>APL(NARS), 100 chars</h1>
-<pre><code>{(a b c)←{⍎'0',⍵,'x'}¨⍵⋄(m n)←≢¨1↓⍵⋄a+{n=0:0⋄c÷(10x*m)-⍨10x*m+n}+b÷10x*m}∘{'.'∼⍨¨w⊂⍨1++\'.'=w←'.',⍵}
-</code></pre>
-<p>The function above has input in one string 'a.b.c' with a,b,c strings of numbers and output one rational.</p>
-<pre><code>{'.'∼⍨¨w⊂⍨1++\'.'=w←'.',⍵}
-</code></pre>
-<p>this above function is used for convert the input string 'a.b.c' in one array of array of strings that has the void string
-if the a b or c are void.</p>
-<p>It is based on the formula find in one book</p>
-<pre><code> a.b_1b_2..b_m(c_1c_2..c_n)=a+(b_1b_2..b_m/10^m)+(c_1c_2..c_n/(10^(n+m)-10^m))
-</code></pre>
-<p>where (c_1c_2..c_n) is the period.</p>
-<p>Test:</p>
-<pre><code>  g←{(a b c)←{⍎'0',⍵,'x'}¨⍵⋄(m n)←≢¨1↓⍵⋄a+{n=0:0⋄c÷(10x*m)-⍨10x*m+n}+b÷10x*m}∘{'.'∼⍨¨w⊂⍨1++\'.'=w←'.',⍵}
-  g   '0..3'
-1r3 
-  g '0.0.3'
-1r30 
-  g '0.00.3'
-1r300 
-  g '0.6875.'
-11r16 
-  g '1.8.'
-9r5 
-  g '2..'
-2 
-  g '5..09'
-56r11 
-  g '2..142857'
-15r7 
-  g '0.01041.6'
-1r96 
-  g '0.000000.1'
-1r9000000 
-  g '0.0.9'
-1r10 
-  g '..1'
-1r9 
-  1÷9
-0.1111111111
-  g '0.24.9'
-1r4 
-  g '..'
-0 
-  g '.1.'
-1r10 
-  g '.2.1' 
-19r90 
-  19÷90
-0.2111111111
-  g  '321.12345678901234567890.789465416547846155489464131548484'
-5352057613150205761315131577569419288968301760482830099r16666666666666666666666666666666650000000000000000000 
-  ⎕fpc←1024
-  1000⍕g  '321.12345678901234567890.789465416547846155489464131548484'
-321.1234567890123456789078946541654784615548946413154848478946541654784615548946413154848478946541654784
-  615548946413154848478946541654784615548946413154848478946541654784615548946413154848478946541654784
-  615548946413154848478946541654784615548946413154848478946541654784615548946413154848478946541654784
-  615548945__
 </code></pre>
 </div>
 <div id="pu2" class="pu"><h1><a href="https://www.ruby-lang.org/" rel="nofollow noreferrer">Ruby</a> <code>-nl</code>, 57 bytes</h1>
