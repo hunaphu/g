@@ -26,7 +26,7 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>019</td><td>x8616 machine code</td><td>251009T201633Z</td><td><a href="https://codegolf.stackexchange.com/questions/369/ipv4-integer-conversion-function/284059#284059">640KB</a></td></tr>
+<tr d-ix="0"><td>020</td><td>x8616 machine code</td><td>251009T201633Z</td><td><a href="https://codegolf.stackexchange.com/questions/369/ipv4-integer-conversion-function/284059#284059">640KB</a></td></tr>
 <tr d-ix="1"><td>047</td><td>Python 3.11+ no eval/builtin libraries</td><td>231106T230348Z</td><td><a href="https://codegolf.stackexchange.com/questions/369/ipv4-integer-conversion-function/266548#266548">ShadowRa</a></td></tr>
 <tr d-ix="2"><td>010</td><td>K ngn/k</td><td>231106T221352Z</td><td><a href="https://codegolf.stackexchange.com/questions/369/ipv4-integer-conversion-function/266547#266547">coltim</a></td></tr>
 <tr d-ix="3"><td>027</td><td>Bash</td><td>231106T215946Z</td><td><a href="https://codegolf.stackexchange.com/questions/369/ipv4-integer-conversion-function/266546#266546">ShadowRa</a></td></tr>
@@ -80,25 +80,27 @@
 <tr d-ix="51"><td>021</td><td>Golfscript</td><td>110202T104030Z</td><td><a href="https://codegolf.stackexchange.com/questions/369/ipv4-integer-conversion-function/372#372">gnibbler</a></td></tr>
 <tr d-ix="52"><td>046</td><td>Ruby</td><td>110202T103128Z</td><td><a href="https://codegolf.stackexchange.com/questions/369/ipv4-integer-conversion-function/371#371">gnibbler</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>x86-16 machine code, 19 bytes</h1>
-<pre><code>00000000: 32e4 ac2c 3072 06d5 0a8a e0e2 f58a c4aa  2..,0r..........
-00000010: e2ee c3                                  ...
+<div id="pu0" class="pu"><h1>x86-16 machine code, 20 bytes</h1>
+<pre><code>00000000: 4132 e4ac 2c30 7206 d50a 8ae0 e2f5 8ac4  A2..,0r.........
+00000010: aae2 eec3                                ....
 </code></pre>
 <p>Callable real mode function, custom calling convention: <code>DS:[SI]</code> = Input string, <code>CX</code> = Input string length, <code>ES:[DI]</code> = caller provided DWORD output buffer (big endian).</p>
-<pre><code>0000            IPBIN: 
-0000  32 E4         XOR AH, AH          ; clear running octet sum 
-0002            CHAR_LOOP:              ; convert octet string to byte 
-0002  AC            LODSB               ; AL = next char 
-0003  2C 30         SUB AL, '0'         ; convert to ASCII 
-0005  72 06         JB NEXT_CHAR        ; check for end of octet (non-digit) 
-0007  D5 0A         AAD                 ; AL = AL + ( AH * 10 ) 
-0009  8A E0         MOV AH, AL          ; save to running sum 
-000B  E2 F5         LOOP CHAR_LOOP      ; loop until non-digit or end of input
-000D            NEXT_CHAR: 
-000D  8A C4         MOV AL, AH          ; AL = last converted octet
-000F  AA            STOSB               ; write to caller output buffer
-0010  E2 EE         LOOP IPBIN 
-0012  C3            RET 
+<pre><code>0000            IPBIN:
+0000  41            INC CX              ; set length + 1 for end condition 
+0001            NEXT_OCTET: 
+0001  32 E4         XOR AH, AH          ; clear running octet sum 
+0003            CHAR_LOOP:              ; convert octet string to byte 
+0003  AC            LODSB               ; AL = next char 
+0004  2C 30         SUB AL, '0'         ; convert to ASCII 
+0006  72 06         JB NEXT_CHAR        ; check for end of octet (non-digit) 
+0008  D5 0A         AAD                 ; AL = AL + ( AH * 10 ) 
+000A  8A E0         MOV AH, AL          ; save to running sum 
+000C  E2 F5         LOOP CHAR_LOOP      ; loop until non-digit or end of input
+000E            NEXT_CHAR: 
+000E  8A C4         MOV AL, AH          ; AL = last converted octet 
+0010  AA            STOSB               ; write to caller output buffer
+0011  E2 EE         LOOP NEXT_OCTET 
+0013  C3            RET                 ; return to caller
 </code></pre>
 <p>Example output from test program:</p>
 <p><a href="https://i.sstatic.net/yrmGcGa0.png" rel="nofollow noreferrer"><img src="https://i.sstatic.net/yrmGcGa0.png" alt="enter image description here" /></a></p>
