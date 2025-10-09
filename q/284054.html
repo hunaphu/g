@@ -26,10 +26,75 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>135</td><td>Charcoal</td><td>251009T194030Z</td><td><a href="https://codegolf.stackexchange.com/questions/284054/a-forgotten-sequence/284056#284056">Neil</a></td></tr>
-<tr d-ix="1"><td>062</td><td>R</td><td>251009T192343Z</td><td><a href="https://codegolf.stackexchange.com/questions/284054/a-forgotten-sequence/284055#284055">Giuseppe</a></td></tr>
+<tr d-ix="0"><td>013</td><td>Jelly</td><td>251009T200139Z</td><td><a href="https://codegolf.stackexchange.com/questions/284054/a-forgotten-sequence/284057#284057">Jonathan</a></td></tr>
+<tr d-ix="1"><td>047</td><td>APLNARS</td><td>251009T200421Z</td><td><a href="https://codegolf.stackexchange.com/questions/284054/a-forgotten-sequence/284058#284058">Rosario</a></td></tr>
+<tr d-ix="2"><td>135</td><td>Charcoal</td><td>251009T194030Z</td><td><a href="https://codegolf.stackexchange.com/questions/284054/a-forgotten-sequence/284056#284056">Neil</a></td></tr>
+<tr d-ix="3"><td>062</td><td>R</td><td>251009T192343Z</td><td><a href="https://codegolf.stackexchange.com/questions/284054/a-forgotten-sequence/284055#284055">Giuseppe</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 135 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 13 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
+<pre><code>2,3×þ`‘jƊ¡QṢḣ
+</code></pre>
+<p>A monadic Link that accepts a positive integer, <code>N</code>, and yields a list of the first <code>N</code> values in the sequence</p>
+<p><a href="https://tio.run/##ASIA3f9qZWxsef//Miwzw5fDvmDigJhqxorCoVHhuaLhuKP///8z" rel="nofollow noreferrer" title="Jelly – Try It Online">Don't try it online!</a> - anything above <code>N=3</code> will time out :D</p>
+<hr />
+<h2>Faster version, 15 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h2>
+<pre><code>2,3×þ`‘FḟƲṂṭƊ¡ḣ
+</code></pre>
+<p><strong><a href="https://tio.run/##ASoA1f9qZWxsef//Miwzw5fDvmDigJhG4bifxrLhuYLhua3GisKh4bij////NDI" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></strong></p>
+<h4>How?</h4>
+<p>13:</p>
+<pre><code>2,3×þ`‘jƊ¡QṢḣ - Link: N
+2,3           - [2,3] (N.B. 3Ḋ wouldn't chain correctly without another byte anyway)
+         ¡    - repeat {N} times:
+        Ɗ     -   last three links as a monad - f(CurrentList):
+   ×þ`        -     multiplication table of {CurrentList} with itself
+      ‘       -     increment all values
+       j      -     join with {CurrentList} (making a flat list with duplicates)
+          Q   - deduplicate
+           Ṣ  - sort
+            ḣ - head to 1-index {N}
+</code></pre>
+<p>15:</p>
+<pre><code>2,3×þ`‘FḟƲṂṭƊ¡ḣ - Link: N
+2,3             - [2,3] (N.B. 3Ḋ wouldn't chain correctly without another byte anyway)
+             ¡  - repeat {N} times:
+            Ɗ   -   last three links as a monad - f(CurrentList):
+         Ʋ      -     last four links as a monad - f(CurrentList):
+   ×þ`          -     multiplication table of {CurrentList} with itself
+      ‘         -     increment all values
+       F        -     flatten
+        ḟ       -     discard those in {CurrentList}
+          Ṃ     -   minimum
+           ṭ    -   tack to {CurrentList}
+              ḣ - head to 1-index {N}
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>APL(NARS), 47 chars</h1>
+<pre><code>{⍵=1:,2⋄⍵=2:2,3⋄⍵{⍺≤≢⍵:⍵⋄⍺∇⍵,⌊/⍵∼⍨1+,⍵∘.×⍵}2,3}
+</code></pre>
+<p>This function has as input one positive integers 'w', as output a list
+of integers of lenght 'w'.</p>
+<p>Test:</p>
+<pre><code>  f←{⍵=1:,2⋄⍵=2:2,3⋄⍵{⍺≤≢⍵:⍵⋄⍺∇⍵,⌊/⍵∼⍨1+,⍵∘.×⍵}2,3}
+  f 1
+2 
+  f 2
+2 3 
+  f 3
+2 3 5 
+  f 4
+2 3 5 7 
+  f 10
+2 3 5 7 10 11 15 16 21 22 
+  f 100
+2 3 5 7 10 11 15 16 21 22 23 26 31 33 34 36 43 45 46 47 49 50 51 53 56 63 64 67 69 70 71 73 
+  76 78 79 81 87 91 93 94 95 99 100 101 103 106 107 109 111 113 116 122 127 129 130 131 
+  135 136 139 141 142 143 147 148 151 153 154 155 156 157 159 160 161 162 163 166 169 
+  171 175 177 181 183 187 189 190 191 193 199 201 202 203 207 208 211 213 214 215 216 
+  218 219 
+</code></pre>
+</div>
+<div id="pu2" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 135 bytes</h1>
 <pre><code>ＦＮ⊞υ⎇‹ι²⁺²ι⌊⁻⊕ΣＥυ×κυυＩυ
 </code></pre>
 <p><a href="https://ato.pxeger.com/run?1=LY6xCsIwFEV3vyJ0eoEUtJPQ0amgUtBNHNKY0mCTlrw8wS_wI1yKKPpL_o1Re5dzOcPlXl-qkV51sh2GB4U6nb8vdecZFK6nsCZbaQ-cs5KwARJsq72T_gxLjQhGsIwLVraEkAlmYl8ZZyxZiIyycMprq13QB9h8rex_I8ZqhKNgxGNG5JPSGxdgITFANPkdK4XjqecuSU9tsr_Npn_xAQ" rel="nofollow noreferrer">Attempt This Online!</a> Link is to verbose version of code. Outputs the first <code>n</code> terms. Explanation:</p>
@@ -43,7 +108,7 @@
 </code></pre>
 <p>Output the terms.</p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://www.r-project.org" rel="nofollow noreferrer">R</a>, 62 bytes</h1>
+<div id="pu3" class="pu"><h1><a href="https://www.r-project.org" rel="nofollow noreferrer">R</a>, 62 bytes</h1>
 <pre class="lang-r prettyprint-override"><code>\(n){g=2:3
 for(i in 1:n)g=c(g,min((x=g%o%g+1)[!x%in%g]))
 g[n]}
