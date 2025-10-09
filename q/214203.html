@@ -29,7 +29,7 @@
 <tr d-ix="0"><td>013</td><td>C++ GCC</td><td>251003T124500Z</td><td><a href="https://codegolf.stackexchange.com/questions/214203/gluing-tetrahedra-together/283991#283991">Deadcode</a></td></tr>
 <tr d-ix="1"><td>011</td><td>Rust</td><td>201108T231337Z</td><td><a href="https://codegolf.stackexchange.com/questions/214203/gluing-tetrahedra-together/214928#214928">wastl</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C++ (GCC)</a>, <s>12</s> 13 terms</h1>
+<div id="pu0" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C++ (GCC)</a>, <s>12</s> 13+ terms</h1>
 <pre class="lang-cpp prettyprint-override"><code>#include &lt;stdio.h&gt;
 #include &lt;iostream&gt;
 #include &lt;string.h&gt;
@@ -54,6 +54,13 @@
 #endif
 
 auto startTime = std::chrono::steady_clock::now();
+
+void quitOverflow()
+{
+    auto currentTime = std::chrono::steady_clock::now();
+    std::cerr &lt;&lt; "Quitting due to detected overflow" &lt;&lt; " [" &lt;&lt; std::chrono::duration_cast&lt;std::chrono::milliseconds&gt;(currentTime - startTime).count() &lt;&lt; " ms]" &lt;&lt; std::endl;
+    exit(-1);
+}
 
 typedef __int128 Coord;
 typedef std::array&lt;Coord, 3&gt; Coord3;
@@ -137,7 +144,7 @@ Coord dot(const Coord3 &amp;a, const Coord3 &amp;b)
 void mpz_set_int128(mpz_t &amp;dst, const __int128 &amp;src)
 {
     __int128 abssrc = src &lt; 0 ? -src : src;
-    mpz_import(dst, 2, -1, 4, 0, 0, &amp;abssrc);
+    mpz_import(dst, 2, -1, 8, 0, 0, &amp;abssrc);
     if (src &lt; 0)
         mpz_neg(dst, dst);
 }
@@ -149,11 +156,21 @@ void mpz_get_int128(__int128 &amp;dst, const mpz_t &amp;src)
 
     mpz_export(limbs, &amp;count, -1, sizeof(uint64_t), 0, 0, src);
 
-    ((int64_t*)&amp;dst)[0] = limbs[0];
-    if (count &gt; 1)
-        ((int64_t*)&amp;dst)[1] = limbs[1];
+    if (count &gt; 2)
+        quitOverflow();
 
-    if (mpz_sgn(src) &lt; 0)
+    bool isNegative = mpz_sgn(src) &lt; 0;
+
+    ((uint64_t*)&amp;dst)[0] = limbs[0];
+    if (count &gt; 1)
+    {
+        if (limbs[1] &gt; INT64_MAX)
+            if (!isNegative || limbs[1] &gt; (uint64_t)INT64_MIN || limbs[0] != 0)
+                quitOverflow();
+        ((uint64_t*)&amp;dst)[1] = limbs[1];
+    }
+
+    if (isNegative)
         dst = -dst;
 }
 #endif
@@ -461,6 +478,25 @@ bool operator==(const Polytet &amp;_a, const Polytet &amp;_b)
     return true;
 }
 
+#ifdef USE_GMP
+void verifyTetrahedron(mpz_t t[4][3], const mpz_t mpz_power9_8, mpz_t edge[3])
+{
+    for (int edgeNum=0; edgeNum&lt;6; edgeNum++)
+    {
+        auto p0 = t[tetrahedronEdges[edgeNum][0]];
+        auto p1 = t[tetrahedronEdges[edgeNum][1]];
+        for (int d=0; d&lt;3; d++)
+        {
+            mpz_sub(edge[d], p1[d], p0[d]);
+            mpz_mul(edge[d], edge[d], edge[d]);
+        }
+        for (int d=1; d&lt;3; d++)
+            mpz_add(edge[0], edge[0], edge[d]);
+        if (mpz_cmp(edge[0], mpz_power9_8) != 0)
+            quitOverflow();
+    }
+}
+#else
 void verifyTetrahedron(const Tet &amp;t, Coord power9_2)
 {
     Coord targetDistSquared = power9_2 * 4;
@@ -473,13 +509,10 @@ void verifyTetrahedron(const Tet &amp;t, Coord power9_2)
         for (int d=0; d&lt;3; d++)
             distSquared += diff[d] * diff[d];
         if (distSquared != targetDistSquared)
-        {
-            auto currentTime = std::chrono::steady_clock::now();
-            std::cerr &lt;&lt; "Quitting due to detected overflow" &lt;&lt; " [" &lt;&lt; std::chrono::duration_cast&lt;std::chrono::milliseconds&gt;(currentTime - startTime).count() &lt;&lt; " ms]" &lt;&lt; std::endl;
-            exit(-1);
-        }
+            quitOverflow();
     }
 }
+#endif
 
 namespace std
 {
@@ -519,9 +552,10 @@ int main(int argc, char *argv[])
     startPolytet.emplace_back(start);
 
 #ifdef USE_GMP
-    mpz_t mpz_power3, mpz_power9_2;
+    mpz_t mpz_power3, mpz_power9_2, mpz_power9_8;
     mpz_init(mpz_power3  ); mpz_set_ui(mpz_power3  , 1);
     mpz_init(mpz_power9_2); mpz_set_ui(mpz_power9_2, 2);
+    mpz_init(mpz_power9_8); mpz_set_ui(mpz_power9_8, 8);
     mpz_t
         x , y , z ,
         x0, y0, z0,
@@ -537,6 +571,8 @@ int main(int argc, char *argv[])
         zx_numerator_mpz, zx_denominator_mpz,
         zy_numerator_mpz, zy_denominator_mpz,
         zz_numerator_mpz, zz_denominator_mpz;
+    mpz_t nt_mpz[4][3];
+    mpz_t edge[3]; // scratch for verifyTetrahedron()
     mpz_inits(
         x , y , z ,
         x0, y0, z0,
@@ -552,7 +588,11 @@ int main(int argc, char *argv[])
         zx_numerator_mpz, zx_denominator_mpz,
         zy_numerator_mpz, zy_denominator_mpz,
         zz_numerator_mpz, zz_denominator_mpz, NULL);
-   &#32;
+    for (int p=0; p&lt;4; p++)
+        for (int d=0; d&lt;3; d++)
+            mpz_init(nt_mpz[p][d]);
+    for (int d=0; d&lt;3; d++)
+        mpz_init(edge[d]);
 #endif
     TetrahedronOverlap overlap;
     Coord power3   = 1;
@@ -579,6 +619,7 @@ int main(int argc, char *argv[])
 #ifdef USE_GMP
         mpz_mul_ui(mpz_power3  , mpz_power3  , 3);
         mpz_mul_ui(mpz_power9_2, mpz_power9_2, 9);
+        mpz_mul_ui(mpz_power9_8, mpz_power9_8, 9);
 #endif
         power3   *= 3;
         power9_2 *= 9;
@@ -701,13 +742,20 @@ int main(int argc, char *argv[])
                                         mpz_get_int128(nt.t[vertexNum][1], y);
                                         mpz_get_int128(nt.t[vertexNum][2], z);
 
+                                        mpz_set(nt_mpz[vertexNum][0], x);
+                                        mpz_set(nt_mpz[vertexNum][1], y);
+                                        mpz_set(nt_mpz[vertexNum][2], z);
 #else
                                         nt.t[vertexNum][0] = x0_*power3/zz_denominator + (tetToRotate-&gt;t[vertexNum][0]*xx_numerator*power9_2/xx_denominator + tetToRotate-&gt;t[vertexNum][1]*xy_numerator*power9_2/xy_denominator + tetToRotate-&gt;t[vertexNum][2]*xz_numerator*power9_2/xz_denominator)/power3;
                                         nt.t[vertexNum][1] = y0_*power3/zz_denominator + (tetToRotate-&gt;t[vertexNum][0]*yx_numerator*power9_2/yx_denominator + tetToRotate-&gt;t[vertexNum][1]*yy_numerator*power9_2/yy_denominator + tetToRotate-&gt;t[vertexNum][2]*yz_numerator*power9_2/yz_denominator)/power3;
                                         nt.t[vertexNum][2] = z0_*power3/zz_denominator + (tetToRotate-&gt;t[vertexNum][0]*zx_numerator*power9_2/zx_denominator + tetToRotate-&gt;t[vertexNum][1]*zy_numerator*power9_2/zy_denominator + tetToRotate-&gt;t[vertexNum][2]*zz_numerator*power9_2/zz_denominator)/power3;
 #endif
                                     }
+#ifdef USE_GMP
+                                    verifyTetrahedron(nt_mpz, mpz_power9_8, edge);
+#else
                                     verifyTetrahedron(nt, power9_2);
+#endif
                                     memcpy(nt.faceAttached, tetToRotate-&gt;faceAttached, sizeof(nt.faceAttached));
                                 }
                                 // Update the running "least" rotation
@@ -753,6 +801,7 @@ int main(int argc, char *argv[])
     delete polytets;
 #ifdef USE_GMP
     mpz_clears(
+        mpz_power3, mpz_power9_2, mpz_power9_8,
         x , y , z ,
         x0, y0, z0,
         x1, y1, z1,
@@ -767,11 +816,17 @@ int main(int argc, char *argv[])
         zx_numerator_mpz, zx_denominator_mpz,
         zy_numerator_mpz, zy_denominator_mpz,
         zz_numerator_mpz, zz_denominator_mpz, NULL);
+    for (int p=0; p&lt;4; p++)
+        for (int d=0; d&lt;3; d++)
+            mpz_clear(nt_mpz[p][d]);
+    for (int d=0; d&lt;3; d++)
+        mpz_clear(edge[d]);
 #endif
 &#9;return 0;
 }
+
 </code></pre>
-<p><a href="https://ato.pxeger.com/run?1=7T3LcuNIcmfrK0qasIakSIkgFb3ToqiN6ZnZiYmY7W1Pq33plRUgCElwkwANgJJANf0djvBlL3v0zV_jr3FmPYB6gqCkdu-GhdCDqMrKysrKVyWqwP_8r2AxW2b4e3kdBP_9ca-X5dNxcHAw6O9193p_Guxd_OWvy_yq993__MfxN1EczJbTkJwCUJQc3pztVEVRkuVp6M_lMiiJ4msVLsC2ca4UwX1eLMJMLvTT1C-Ugtl1kkb5jdLDbRjkSSqXzKJMQX61jIM8SmJ_Jpcu4ySdhmk4vcxClZabNImTs52do6NvpuFVFIfkw_ufLn_-4zup5Mef3nz4-fLdb7-8Pd-BtldQXEJVqK7nCzp0Qkh0RaDu8u2HP765fPPL-XuyOyavjmlVmKZJSs5voozAz42fTntBMg2n5AqKXx33JlFOZtF8kjHoeBpd7XzD_u34yzwhWe6n-Xk0D8kYPk9PTtgQTk6yPPSnxWUwS4JPJydxctdqj3Z2kNFI7-UlcN0bfEd-SIAVo7KcoqDMP6U1XTI8YzBDN9CwS47PyHmYp_5NOIXuRzvBzM8yLNp52AHCyW0STUkUR_kf_CDMWm1ayKrwuoLS7_PcD6D9x_4FjOXKn2XhiBwdkRwKuvlHD_8MLuxNPHeToaPJwNpkUNdkqDfx9CbrncVyMouCE3oncYTkI1o0SZKZivT4YiSAW8RytckJgZo2eZDYN1qXbYIkznKlq_2ctcmNNmttDpn-nELjM_IumRV5CGSCpJPbMM3De5iwaQRtSXJFac7IHWggiaZhnEeBPyPBTZT6sygvdkAMoQga5CSvSKE9wwjhh4y5JDz0u2TQJR5I1rpbluAtlEslQwYmSjx6C4V9KIFxOHr8aXoNPb66oNMr9ajgEZ8HDFvZowQzlGCGvEcm6yRZhKkPbOtx1vPifb_N--MFAZvXgMlzz4f_osTjJV5ZMuAlA16ShvkyjRHHWu_3QO-3S9SCSS0hSAc5IBOdHKSGlmtEIU20vAFpBkseQVrPQVrPQVqvGWmdWtJIA8I6ZGJSJRVWJJWFMj3gKGLZU7B-p0nemGccGxLTmbBZRBo6EzZz2HWH8WJd-gjNPVEzPF-s0O9xD9DC25zsT7Nc9Fw6h_0sDUTvZaE_yaAY3Q38PSV98nvSw48nWMDGjSij-SJJ8xZFC0rUA6U6Bn2jP_sMR5tBg3tscVzt0vAiiji8Zu3hTxtHVZJ_XZFfESuNgI9JIh8qgeQ-6zGLViHUB8ky5nZ5CUheHV9yZ0uZWI4kvKcjoTVAO23FBoR4kquWaNwW42NjowhaLV7ZaSOBbSZQrBch5sgAipWcEa9igdHUq5p6gkBsSyf0OkYmtlUuslH34J8sFKVzFlbzT2DvZ_4CWKXJi2BBjnY2TDPwF2-Xc6ZR3arsxzBO5lHMSpcSxK30eXmrglV175fzkdRVECJecKldAnHa3J_Rj_l8Qf8v-guPfih7h_DuXQJ3tHQaznKffgrBFXjlpwF8kjvx0S2pRROzCCJYP76ehVBc1lAhBP2R-Md1CNjMUAgxVLwyFUbqU6roAoI8nGSyGPdHZHF6DH8ODqrpU2CmCDM9HcIfHUYQLGk10rK4-Di9oNLIPnJ9W1fDQPPDdSUNs-VMUyBfGovg0fBCHwXWzJczlFiBBG1Ulxpy3qeA86dTAJXgPArnbYQbULhBNQZHoMVF2YgwqUmCYChrfWFJ7pK3H379VRrOpgl8UKZS0NniWjCVOaMAcN1wA6DGuGupHrmrTe1ywzKdc9czTayvH6j168Y68rC1tjxYdYdS4iuKYgWZWEHWDSgfPlG72aQKi2Rq9L83VINgFvrp34MeUEJrFYFB1GkCg3CqAqt26wKrb6gMDLhGGxhAjTpUAF9dHxgp9QrBYL6eRvDJdauE8NXf25bJ97A-1vw4BN_3YnEt2r5p2HYitaXLfLH0aLUNNYQl9rn_KST-9NaPc_86xCV2fhPiMhuijhs_p3f5XSIvbjPipyEsA66XMz8lfjxF13ydLkOMR-FWRv-vSyA5uAmDTxgi-nFBoyDajTSOPX-v0nm-vEdYXO0bsJO9Q7mHH5P4Wx5DkyjHXpJ4VlC6Ic5coJogCj9mPVfdHJrygBBgPHDG-cfTV-VHt3TLkUln0afrLyMZwLFcQDByMapp7m1o7unNS-qRW5x6_hG1kn9spm1AALNisKKYSlLFQ1Lk91WUArVDQjnLRIFLTEhnn94dwwQy1kcZJTDwZwGISx7F1xSA9WLQUI4lwlFESH9k0zoFdoOGiss-sAiVFVi-P_loZIw46y4ACKFM4wPs-IG6BZhDWCWjB6LZqdmMTEICkWMeLWZRCOv6AjgWJPMFsAs4lJAkja4BfCY3PLTh_zkUKxGR_kJkPvhV_xqZCaEkTZNhguxbGdsI-WzDOI1uoww8CCMKM77zkkjwonk5R4L-wM8FuEniNrPA1waVK-2STss-LX1qQy32XrLdnst2P1ZCeMQv09eA1MVGUjd0b6qiIAYzD2VUIRFj6UyiH-btchnJDV2kDynpXTK0IFx_gfFkywnGQKTB1OMKu36kiIxHTF0bDL1EtQuZOUpci5oxKSEiC0BTABZMSjslIBXtkFhLQ-RoAEwZs1hivsDJs2Pq25pj1gabj-WMi3yBfwGdXrKnBcwJZgQskT-bhTM0Rsx2391EwQ25C2EklUf1M_ScCU_MuPo-tXVdL9Z2FttKa0RAQaRwylbaaPpFIkufB2m90W-TU2A2-fxZzFjjRUybnG2eJpvRPr8Js1DxMuh4YQY1L2Pr9AsoMiZFbKsRrrWN-S_w8TyLCyXXYpPL29ktHlQMnzGoEMwog__oota4Rdy4NeQPBhgieEaXLDOoCrCiOIumLAwTdHwh4y0Wlba0J5aWbOg7lmsyMrEAlZp5NBqj1yOQDVRkg62QmXIjJRTl1APjgVcmdPuuZSmQhaJhtu2XbT1XW97vrbOt527L-zXbemVbJ81ivGpKRXTYeMi25htGbbhADckTfd9z-i55Rpd1tkhudGvNXm1oZKS2nujOlrVuDCFuTYhtOSvCaD0RZ8_fOaZVeFYDicIC--zhxZ9S5qlOoS0hxIHZngqet_kmhJsdPlIt79LxwcJPRkryf2OOx8dV5n3TrM5Ehn7J4_yf5HH4o26awWl1_PY2SRzR1tvc9otlcGQhsoYff1sJHFeERDk4adfnY0yrIbZMsGTJmDw8sKfg_fWajnvbdMzfdTamJrNtwDYMdcvsAzkYO-ZuYU-T8ZlhbR6fJ8GrTGoQFw00p0E6wMxeRbKDJut6EzDjWl6s2l1JCkC_sMUkGmLJW2mI7RcYEAdi9Ip2tF9p5W8lZotwysH8nlluD5IcPO7ZypvGShaaRJBkqYLFvHUh95XX91zfjCUaMAd8W8fOuAPSErIng9TMAe9G2pxSo9sN1t7SGtqp3dGFg_4vuXbmA6WLKDK28LUnLy-djKLLIGgvrXY5QPP2A7n9YJv2UviNhogvCDtiQQc4xAKzI1ZpLky3JibeymNbJBXsXh1Nt6ruChwyWQJHDVmouRqqR64IVSxbGDOFu73lBtOlcLB3uwFa51JPKWhq2pamSbtVix7FsArFgYJPW6l9qUUa3UqI26Lpisqn29nfhne4JR1-yX4ubYKDuzA_T9ie9_NE1EiRt7b9dj8O7_6Z7UEHtTvMSxMnl8txJq18njjxWWLDul0alRzjPNIkCsZMJSfqZaBJ0FZyiQeNCvcPczlcXIsx_wHDcLD6bJER3vEzADtN-tT7U-57RvfSaEXMWE7gD8mCrT0T-JOWc2Vl6tDOVASg5t65jFlcbMfPXPCMWHjpqWNgDM0PzSMtlbZptdLpFVv1oL5aOpWysxabe9-WTpyf6yAnhCVN9JMfgkVnoIFyWsXAwBMmAt_-gn3Q2Z9CPJXehi1efYh7pFvyU1rKcHp2CarHAiyYhKCgrfYIS3erYrAzWHhwUHaldoeXevgFvRmoK7DocuIHn1rQsHeWa3E9ZUKG27rzQ95zFxhLe7Nuu5Ia3ERZ76xqRG_lhvSczY6SOjrVmXdZbvOviiZtPHpDTU0Q5TMwW1kGZp34nIfj8YR_4sbSnGS_dekDTZMWIBtVOsO47Y_9ks1A9wTQSVz3d7G6YrffhT8TfXYpJrYrF_jcgbDsdHwG_ycVz9CocYhdw7dxX8LrT8WGfMZn1dGsVRae6Sw0OaiflNhtAXlk0jZwjccv86HMh-LbpXJmstbcyYMxjq4Kec-b7OG7PLRcJHdh-vpyoLh0GE96HeY_Rln-_t-WNPszLiHBeB5L3GmcSKzYICcQ0Vg3zB_KucP6Zp6lGQRAVzgKtnjTqqFWHmp_O4cjNwZ_ij0xJ8M_qbMrQ8MUG6x22U0qPMEyTSFganyEVEbAoMMUos5TsvdPSx4ZTZch5jimYQ5eBmjCXMbVLLnbo2DkI_2v9DRdpjSCugz8LD9VqubRbBbBoi-JpxnYAInaXnX4tX1IcyetNuthnl1UfYAKabmv8D7KWz3PsPNrlPTYn4fZAgNHaM1FOKcOJQ9Pz3bYsNNlkJMbP7s55Zp-pgkkcxfsmJH0_EA3McKHctsTJ-F9EC5yx3yZ9oW3b5WIbF6OUZGFXOdkt2xJhzPbZPPLVq-8KTVe4QzG4IcrdMEuvS8xBU0XfBXGaBzIGKNdel9ijOxrHztWyi5k0b9wJaCzK052nT2sW9Uxr1YnYg3abVh79e9fh8Pf_e715DWmcigOEL1X7fLu7IwMHI8bt-0VUL06fnKv5jJVLVHvuCtApIbCjGiog8Zs7sMk4AcwPgH40hs_JR34fPvxQjgCfmLXfO5G1ZiMmQpV0_Pw0PO69GfNT-OWpXheWCslFNZSShgGRjBfKQr9oT2XJ585kWXJoRJH0ho81uc8I4d_qU8bdqvP4N9GJQw9wlGB4R6r8uDWMlJqgO62qyF6V3tDqOmW806pKplxDygL-F2RikH3sHwu4HfVl8qAZQX8rjypDLAW8LsaSGUwygJ-V0Op7P4yFpmIS-i-iyXTKhtByyrowoAuaqBXBvTKDV0YlBQ1lBQGJUUNJYVBSVFDycqgZFVDycqgZFVDycqgZGVQogpR1noRiP_nAqGczBKZPPxsnh8Tj6FGUiQvDBQEE55RjtH8mHCLR510hwcNGaF5IebmlBewlDEUayXge2dRnIWw4JZNMqeaxzSLNLzlFT_QZ2dloF0G2aJq7I1G1sXTY-NfQYLafUW8HmAxzMkyRz9dtsBw9YTQYFXB9PUDZZqb1Pl7plDpWleYywKxJPAX-OQfN5TISwJHmD5JQ_-TLRdjmXaZrKoJzRppZTguaTyetiDmnVp8PF58p57pq9U7eVu_rQn10urda2giqSJTBK5onbFILpbFdNU8Jq9HqjB3QMPebalvpbpQDBM_C3n9uBLmKsiW6ndlgDLqlgBqDyWKDGCVTB1LTeUuFaBdDUrOD1ZQjVYlW2_8seMSQrWrUNA7U5K0IvW87ZJEBKrVvLoXEhXMoUjClprqboXJmw6FWxQV-ewFR7i1LU5yvqstythuNGRetoDlgBOnNsGIunZyEaB-YhHCvUPGzT8xQpoWlhikRPY13ClHs-EtDc42Dff4iMt40oAD752Jwo5sCGzXPJwHi6KlPiLoyqjUCv4GExXedqZKvrgJZRjx8VWN7ulX_VQxFlg1R3mAUttel2Xc0FmjNniZK-LNNU8RK-Vxad6lCig_HxXPAt0Yyk0WKGk8SiOTML8Lw5jpKpCFOWvOR2ULqNhsGN5HGc3YJbFl2524OPZDuscWBLSGKkXxKX2_SHs2xhKnFAtgQO4qoLIpMEAfaxVQiPc7NoxcojUh-vyZuMH3882qrewJyz5FCzZNQTmL1KaC1ci_nc2IP7vziwxPs9LcPO7mhYL6XqSJetOykWo-B7NxJRHvjtg8pusE87xRFvjpFF9i-LaBm3JrFMq0HycxvltOPIlOk5w9WxcuCGMaHneA-UrYJmuIMAM_Rm6Vm0v9az_CRBN9juwWbvpc6Ma_DX9bxjGowq-hT9-ZJD0RsV3CL6dSq40j19zibzi0sEzqOrXDgHRrhwH6WO2AqaC7wCn7w165J4zk2k52utU8vPcDfEDmVeYGLdiIhCBKhZgu3EhxvfRTHySS7f5FvsMczs2dX_Il4jRjcPWivNnT0HQlJVhbPdZd22y0NjoUjlMbiBYsRo4wcfsRlkTb2Ic76jaPV6b94EBml_KysiaXtqCru9xGQqbnUdS4t1U1J0DZ8N8wetxSXviGfLu45PY9-gakY8e-lT5E8Bu3tmI9JO4xfpXvNw1gs2SCgXmfzED9sX8w3f4VfbcuDCrOrpB8avSpcWc2KGNRC9bP6C16B2FZhB_Ys7FrD9xUiBtO0XZBo8yfY8ssol34DBM7nFGel4GSPZo02ZPN3cZRsUyYnPSEKSSkBbM5uGBbNOlGee-i3WnRE_cDVubhpzZuKGXFXlnMQQcl6JCBjqrOpsomxVavRRv2Lzq81w7vCR8OVVVDuYrW9LVGXtlnX2vjlW0Etj6vGRhtPKXmwIJtILPBUnPARg01Ymz6mAa2sWhjsI5K60WhlT5Lk5lJ4dvKELxyqhTmKawZsEnkMyfoFaMZqqPpGbQfEAffoUSRoWHFD4GBFW2I-STBLRTBBfpanFbRQd8uuJRVnAfVRFoFtz2qOnsR3BfBfR7BXdktrk1wFdNaWVyb4CoGu7K4qxfBfRHc5xHcQgsVqMX1NMlTOx1oFteTmE1BPZ2-UdXZi-C-CO7zCG5hsbhebagw0GLcflnc3yS4L6HCi-A-l-Cu7Ba3JlRggzNiXEVw7aFC8RIqvAjuMwnuyhYq9DXJU82oEip4mjxb6RtVnb0I7ovgPo_g2kKFvsXi6oLLQwXPYnHdgvsSKrwI7nMJri2r4BBcxbTWC649VFgZoYLOs448OrvYGpxXmGQX255TbI2ZtQq0KZwbxVYTWkUe-4Y8erKcmEMydUaVWXN0Q6dSDo1xD4w2-pwYYuywJRrLzUnoGwi5VPdkTFyGm6fG-pd_48L0RBsoiLM9T7GYhoPKvVRMb2lSxqMm0Xupt6UQti1iVBoCC5RFPNRp9SqSLAQbtkwheFuRKDaIhNstukXC7RZ71VTZOSQ65QzRq1XObC1ZQ3MGPYF6kzGrk79mrlBaMpZcbdc6wVI8LNJhmX_J09XKzhZej0lHb3uD4Q6a6g3GUGnjGvi2odXjprWixm03ZKh-qcu6AWloPyrWcCTNDYibUY5YyGHwKglxbHt3Xdp3jlkP-5Ql0om1Ct44mqKWNRBaHaftCFEdDeZhGu3J5CNosB1MqqPBckRHLdueButxpxoaLIehtOcFj6DBdoiqjgbLXBRPnAvr0aw6GixzUTxxLqwHvmposBwH0xIyj6DBdoysjgbLXKyeOBfWw2l1NFjmYvXEucADjhASP0KQ6MnIRzRc0eOUl-b5Htd1dES-Xyz4K3gd-6ISefvTRozSKRK2N2q6ca-quIwm25wtEZd14-vG_a6bt7lu3kXXbIsk3cof87382nC3OSmijBf31LF3aPEDRuUN7gEsb5ruHbV-N2uTS1cAryszGfcSlrTQ6LT5llBdQ2oxW9893xDzqhYz_VLQbVG37tEOcJuDr87He_kcH6-aRre8yrRG2w-oVaARkXrFe0evrOpZekW7KfeK945eWZW11-1ZPADGeTKPsWDQNU6FW0As7zqgU1FheDpb6IF1hT4ooL-Fmz4O4qKvwmDQV76fvxyE7eufmhC9shK9ejLRllm3Em1MhyFKtAVVm_u6d5-4BlnoklPw9w3oYa0FxDFICcMzqLEuOQV_94Ee8lpAXPRVGNyTUA7iMZJT6JJTdumWnKZE10mOTLQxHVbJYaaveIzkrHTJWbG3VBhvXbCAOAYpYXgGU6xLzoq9McN4z4MFxEVfhcE9CeUgHiM5K11yyi7dktOU6DrJkYk2psMqOdx9DbZ1V9dVsBHjGVwlJKJf7Ppc6PDLfIrnQ4ffi06dc_W1KU0uc5AQ_MK6qMM4eqQ9jTpQzi0ZMWNHdugdMdtH2tGEg9rosCM7XQlH0RjHAHCsrDjUNeMRG2PzKTCnEJhVPJpZhZVZxVbMKqzMKrZiVmFlVvHMzBogs1aPZtbKyqzVVsxaWZm12opZKyuzVg5mNVzp47X5pBte5qs38buCKrvaCAl_OUBsfTuAGLj1_QDxdi8IaDauoyPyYTGFTtlBX3aSluzN8CztXnnwt9FBwF3jBO_nz41YYjm_S87MLMBzJRosB42bvdTARaslY_FMU_P-LsqDG5FpisP73DyLjTLR7KnSEL-8FQ8qIsWgTw0ST8xy4HOKJsAeA7Z944EJzF7HzQh6_hdDSO_gKd9hZZm7xi9ntJ6vPzFbu17iuBaZox9_evPh58t3v_3y9ryslFJzgF-8-UcZgpScq0B2NZgqPVfBuN7_Q8_cswOXNvlXSQKbN5Zw6uScIylqvULKua68pqIuUoitrlqMoN-TvT_HD3vkhOx1_xzv2b5dmhPueEMAx7b38PCPewR4PX11DKiI62bdJV8NcL3XtYpgS7xylDMQvWGfBcKOKs9dBQFq4048dyeeuxNvu04G7k4G7k4G23UydHcydHcy5MlMGbuq1UK61qpsrvWIYxrOwrx8QJDJbw-T3w72TqlnXRlNHe87DcBRpy-vk3x5naR4nSQXwX_gLwzuj3bWf13mV73v_sL_8f__Cw" rel="nofollow noreferrer" title="C++ (GCC) – Attempt This Online">Attempt This Online!</a></p>
+<p><a href="https://ato.pxeger.com/run?1=7T1dc9tIcs_RrxhpK16SIiWCdPlsSdTVendva6v2fM7aTqXKp6hAEJJwpgAeAEoiZeaPpCp1L_eYt_yZ5Neke74wnyBIyfFdRShbIme6e3q6e3p6GjOjf__PaDadF_j__DKK_uvjXq8oJ6Nof3_Q3-vu9f4w2Dv7y1_n5UXv5f_8x39_k6TRdD6JyQkAJdnB1elOVZRkRZnH4bVaBiVJeqnDRYiblloRfC8Xs7hQC8M8DxdawfQyy5PySmvhJo7KLFdLpkmhEb-Yp1GZZGk4VUvnaZZP4jyenBexzstVnqXZ6c7O4eE3k_giSWPy4d2P5z_9_q1S8sOPrz_8dP7215_fvN8B3AsollAVqcvrGe06ISS5IFB3_ubD71-fv_75_TuyOyIvntOqOM-znLy_SgoC_67CfNKLskk8IRdQ_OJ5b5yUZJpcjwsGnU6Si51v2K-dcF5mpCjDvHyfXMdkBJ8nR0esC0dHRRmHk8V5NM2iT0dHaXbbah_v7NxkyYT8eZ6Uf7iJ84splu7c7wBpQqlF8zyP0-b0EJFBQUfIyQnZ-yegXYLayWQeE6A4iUtQEnQo4w3uUTDykf7WWpjM8xB1dR6FRXmiVV0nU9BsHGXppDhtqVz2Kgm0D6JsnpatNmvhujir2gCRTRm78V1StnoBML_a2UG7Q_Wdn4MRBoOX5PsMLONYllNcaosntKZLhqcMZugHGnbJ81PyPi7z8CqeQAeOd6JpWBRYxIVN1ZCkSfm7MIoL0AEWsip8LqD0u7IMI8D_2D8DVVyE0yI-JoeHpISCbvkxwB-DMzdK4EcZelAGTpRBHcrQRAlMlNXObD6eJtER_aZIhJRMGeMsm-pEn58dC-AWcTxtckSgpk3uFfEdryQOmEhRak09KxlOaeGsDB0yd3ICyKfkbTZdlDGwCQOfgOmW8R0obJIALskuKM8FuQWHRJIJ2GIShVMSXSV5OE3KxQ7YJBQBQknKihXaMvQQ_pERt4T7fpcMuiQAy1p1ZQl-hXKlZMjARElAv0JhH0qgH54Wf5xcQosvzqh6lRY1OuLzgFGTLSowQwVmyFtktk6yWQzDNst7XPS8-FkoHAsviJheI2bPvRB-i5KAlwSyZMBLBrwkj8t5niKNldnuvtlul-gF41pGkA-yT8YmO8gNLTeYQp5oeQPWLJFswVrPw1rPw1qvGWudWtZIA8Y6ZGxzpRRWLMlClR-YN1N14mTtTrKyscw4NWSmM2ZaRB46Y6Y5bLrDZLGSU6YxW1M3fD1bYhjAZ4AWfi3Js0lRipbl5PCsyCPRuiwMxwUU42wJP09In_yW9PDjERawfiPJ5HqW5WWLkoVB1INB9RLGG_33jNHg8ylECy1Oqy0dL5JI40uGDz_o9CXZv6zYr5hVesD7pLAPlcByn8_gyTKGejp7spI5EHnx_JzHHlSIsifxHe0JrQHeKRbrENLJLloCuS36x_omO0cxyCkZVN3TIxIOSyeHpHgTX4Jru8GAhKrqMkXxtFE-HLAlm-y0sdttZqaMdzF41JYDc8LFSgYOtnNKILIDar__7l8qDgXUrsLQ589EQar6zdF_flNBAEMQ9PV1eq6ei3K7T0HVJzHwV5VQK7aqNpiSe_BLHQMyFhGTBDY_DWdgGcbwEBovcVqJc4i_yjfza-ZAulXZD3GaXScpK50rEDfK5_mNDlbVvZtfHytNRTHShQiiSyBKvw6n9GN5PaO_Z_1ZQD_I1iFgfJvBN1o6iadlSD_FMPMF8tMAPqmNhDgL60VjuwjWL2F6OY2hWNbQMQfuQpEfdxkgZkZCjDotCKFjTzc6DPFbOGHPRv1jMjt5Dj_293UTkTAThJmcDOGHCSMYVpwY8jI7-zg5o4OPfWwLm5HdQG_LXUMeF_Op4S9CpS9CRsMzsxdYcz2foskKIuiSu3TeUgwa4cLJBEAVuIDCBWvhBhRuUPXBE1dyU7YCauqBIfYrWl_YkrvkzYdfflG6s06B95oqBZ8tPgomqmQ0AD42_AA4Yvy1dBz5q-3R5YdlY85fz0Ziff1Ar181HiP3G4-We-fYoZyE2kBxgoydIKsGnA8fOLqZUoVHskf0vzUcBtE0DvO_h3FAGa0dCAyibiQwCO9QYNX-scDqGw4GBlwzGhhAzXCoAL76eGCs1A8IBvP1RgRXrn9IiLn6O1dW4K5N7o15HNYadyKXIHBfN8QdK7g0cBUrrVbbGoaHh-R9-Ckm4eQmTMvwMsaMQnkVY1YBoo6rsKTfyttMXcsXJMxjWPVczqdhTsJ0glPzZT6PMfyGryr5P82B5egqjj5hcBimCxoF0WaUfuyFe9WY59kMhMXkhgU73jtQW_ghS7_lSwaSlNhKlk4XlG-IM2c4TJBEmLKWq2YObHtACHAeqHH-8eSF_Oi3bjUy6cz6dLlp5T44lTMIRs6Oa9CDNeiBiS65R2lx7vlHHJX8Y7PRBgwwLwYLqIliVTwkRXlfJDlwOyRUsswUuMXEVPv023NQIBN9UlAGo3AagbnQhCwCsFYsHmRfEuxFgvwnrlGnwa4ZoeJxdyzBwQoifzb-aCXIuOjOAAihbOcD4vieTgugwyyf4AxEk3HTKRnHBCLHMplNk3hCxguQWJRdz0BcE8xGZ3lyCeBTFfHARf-nWKxERLYPiYUwr4aXKEwIJWlWEPOB36rUjlHOLoqT5CYpYAZhTGG-_1oyCbNoKXUk-I9oMpyC2yxuogW-Nqim0i7ptNxq6VMf6vD3iu8OfL57WwvhEb_KXwNWZ2tZXdO8PRQFM5hokVGFwoyjMYV_0Nv5PFERfawPKetdMnQQXH2B_hTzMcZApIHqcYVd31MkxiOmrguGPqLaR8zuJa5F7ZiUEJEFoCkAByUNTwtIBR4y60BEiUYgFJZVgk-oPDelvgsd00mI7szq4APzC4zpOXs5wibBgoAnCqfTeIrOiPnu26skuiK3MfSkmlHDAmfOjCdmfG2fuJquN2u3iF2lNSagEdIk5SptpH7skksPynqj3yYnIGzMqXHIxouYNjldryaX035_FRexNsvgxAsaNGYZV6NfYCBjUsS1GuGjtrH8BT2eZ_GR5KPYlvJmfosHFcNHDCqEMGTwn5zVOreEO7eG8sEAQwTPOCWrAqoCrCQtkgkLwwQfX8h5i0WlK-2JpVIMfc9yTSUmFqAKWkCjMfpsQWygExtsRMy2GyWhqKYemAwCmdDt-5alwBaaho3bl7iBD5e3e-PFDfy4vF0bN5C4Xp5Ff_WUimiwcZdd6Gt6bU2BBpEHzn2POXepGp3X-SIV6caZvVqDZKW2HjidzWunMYS4sSE2lawIo81EnDt_51GrmFktIpoI3NrDh7-ULXOTQ1dCiAOzLSQ8b_NNDF92eE-NvEsnBA8_PtaS_2tzPCGuMu-aZnXGKvRTHuf_JI_D3-zTDE6rE7Y3SeII3GA97hfL4KhG5Aw__rYSOL4IiUpw3K7Px9heQ-wQYcmSEbm_Zy_9-6sV7fem6Zi_62xMTWbbgm0Y6srsA9kfeXQ3c6fJuGYYzvZ5EnxkUoP4eKA5DdIBYfYqlj08OdebQBnX8mLV7ktSAPmZKyYxCCuzlUHY_YAD8RCmmyucZL_Syt_JzAbhlEf4PbvcHSR5ZNxzlTeNlRw8iSDJUQWLeedC7iuv7_l4s5ZoIByY2zpuwe2TlrA9FaRGB7wZZXNKzdhusPZW1tDe0Z2cefj_kmtn3lG6iCIjh1x76vLSKyi6DAJ8ZbXLAZrjD1T8wSb4SviNjogvCDtiQQc0xAKzI1ZpPko3NiWOFbAdoRr1oI6nG33sChoqW4JGDVs4cg1SW64IdSobODNNur35GtelSbB3swbalFJPK2jq2ua2S7vRi7YSWEViX6NnrNS-1CKNbiVciQMlId29_ya-xR348J88K5VNcPAtLt9nbIv_-0zUKJG3sdv4WRrf_jPbcg_D7qCULk4tV-NMWvk4ceKjxIZ1uzT0Tac0iYIxk5REvQ00CdqklHjQqEn_oFTDxZXo8-8wDAevzxYZ8S0_8rDTpE2zPe17z2pe6a2IGaUCv89mbO2ZwY9c6sop1KFbqAhA3b13GTM720yepZAZccgy0PvABFoe2Cd4qtFm1CqHdVzVg_pq5RAOHmhim3vfyEmcH2MhR4QlTcyDLkJEpzAC1bSKRYEnTAS9ZzP2wRR_DvFUfhO3ePUBbglvqW9pqcDpWTOoHgmwaBzDAG21j7F0tyoGP4OF-_uyKb05fPSzPjibwXAFEZ2Pw-hTCxB7p6UR11MhFLiLvTzgLXdBsLQ157YrBeEqKXqnFRL9qiLSY0U7WuroxBTeuTzVUBWN23jSiLqaKCmn4LaKAtw6CbkMR6Mx_8Sdpa3ksHUeAk_jFhA7rsYMk3Y4CqWYge8xkFOkHu5idSXusAs_xqZ2KSW2Kxfk3IGw7GR0Cr_HlczQqXEIe8M7n0t4_Yk4f8DkrE80K12Ep6YIbQmaB0N2W8AeGbctWqPRkz40fWhzu1LOXNbKfWwGfHNysbC3wRub4Fkh_pxlt3H-6vxll5dhXEn3k9_r7r1RFtGQAc0dlk0ThwwlWIOi5Qs3374q3o6xd6lB9ZbWsfETX95IWPND_T7QCe7Hcc9b4oUApSNeA1UfNMpq7l-CqVprO8zHdXZltSNy-B4rUcPCLl-P8EYGWhwIgyC_jMsfkqJ89-c5TRmOJCTMuM-PH2Q3atYZZ_iGtqMmnOvRAgcaRM0X2Au24jeqoVbtar-59eGjIkMQhi2xyIR_0nWtQoNiLVE3VTQ7UpSG13Exw3AbJkquw5JOw2V8ckq_FuBMopJchcXVCfePp4ZG2CTLzqIpb11MxywiD-5g0iy-i-JZ6RmKtlfm-C1JyBUbMC6KmBudGsw4XiIwj-6KZpyxzLoXChXNaATRS0Uu2qXfJaWo6TK5opiMIpVisku_S4qJe8XopkrFhSL6V35XANWuOLd2er-qDrG1W52EIbTbsGLt372Kh7_5zavxK0yAURonJ-RFW347xeOB7mX5pq0CqRfPH9yqvbjXS_RvfAJFoqb3hugQA0QczdchKAE_wOiLYMK8CnPSgc83H-WsyI91228r6a0HZMSGUKWe-_te0KX_VvzItizFQ-VGKaGwjlLCKDCG-fpajB_asjwez5mUJQda9E1r8Dyn92ShnGOG2nwz0GefY4lBj8FUSLhPTR5-mydaDfSi7UPEycaNSNse1CC-9CJCaPNSQaxc0h3wsoD_S1LJ-a4PZfB_2VfKQPIL-L8MlDJgZwH_lwOlDIS1gP_LoVJ2d56KNNA5NN_FkkmVCqJlFfTCgl7UQC8t6KUfemFxsqjhZGFxsqjhZGFxsqjhZGlxsqzhZGlxsqzhZGlxsrQ4UWyBpCWW2IdMeRhM3xUVEZCLrqi7tiOntmaSRevJvP6fm5d2yG7dybAmMWR1upQZq3qkah2-dp6TofHwEGvtw4niHeexEvELzw0xV2CVY9Q_IgNWTmOZDo-tCkKTjiwa0O52kqEmwxLwvdMkLeK8bKkzl7jOiIV-szy-4RXf0xezMiCXghBVsAI7dq5Kt7lNSWVBb75i3oxDGeVsXmI4IzHwEqQjQq9A0ih93euX8KGJb1O-pxqXvpW1fdmUuGgqnOG2EtytpF405Wgdn3Eeh59c62qH2lW2KhSakjTKsF9KfwJjucwbdYRCYvzwIyR6EKN_U8-MuFDM0Am-vVqL8rJrZGhe6aOXjR0-NjsjkeyWxXRBPiKvjBRLBwbl2w2HKD7VamUcFjGvH1X2Xy1flPpdFUCuZxSA2kOyIiNdJfdHCqrapAa0a0Cp-eoKqtF6b-ONaG5awg53NQ56p9pLA_EqZNPFnlgCVHr1L9EqmAPxUkAObj8W5oU6FG62qNhn94vhVss0K_kuy6RguyNReMUMFlpemoaCkXStchGgXrEI4d-x5Zef6CF9TaEISFsz1UhH9mbNrSFenIZ7zsRjvfnCjvdORWFHdQSu5zq-jmaLlv7KqquS0iv4BUI6vOuMn_pwr8so4uvUmrFnPvWqYiJwjhzthV4tvmnLuMG4ZtjgY-ca1tc8xKy01_dllw5A9X29eDftpyA3_aCl8cCOjOPyNo5TNlaBLXyHwuWobUkWm1_ju6Sg79az1LENVDyc-gHd8w0GWsOVNvApfz8re4hGiqQ0D2BB7mqgqiuwQLf1CmjEzzouityiDSP6_Jn4wZ-V64e2tkex-JTMmJoiqUXqU8FrlN9OpySc3oaLAk9X03dFuLscCupbURT1uuVi1X4v65JKJu4yWd-nywwvHE2KKMwneKXqmwbTlH9EoU2HaZbi1Y5iZ0SelWyvh5iCMKbhcQe4r4xt-oegNApTlJbc7Bxehgmm8Oi-Br9x0_eUV-FN_Os8TWEo_BKH9A4v5Q2d6xHzcq5gre25MS3-il2LZbrcOzosSP_osEC3HR2gCnoqgYo_7sk9iqQ0TlbQow_xXRjhC9ugcjfowY5JDKa0EOrCjT2X8zAPwSLZbnSUO-jw2t6JqD4iTrM6V2_K62camgimDBsLzrpnk43_VoNi4jQ6YgSLiSdM3LyHkmmX-HCH5_r-qrzv76vikrf6NX2MNWDd43cSKj9bcePf5tecAfW9QNowetzQXvgBEbe5lO4zIxak5wSJkz8k8Cv3tmI9JL5j_Kp-X9eB9ZYJDuZdNoXhj-2D6w4v6E3f0Km0uED2qdOnzp35oIJFLVg_pV9xdhCeRcwDey5x7cE0FeMGaPRdgFSE14hZJLSJkFFih4Xk-S0o2aN5lj3V3a3tFUueqZlbUCEhLdDm4IxtGaYHN4KzdqdFb4AYsLIAP7VxgzMrDmQxBx1I0CEDPa4am2ibZlu9FkXsn3V4qx3eEr52q6qGahWt6RtIgWyzb-AEEkdQ6_OagYUTaDX7DmoDVQyOmn3Wa6gRfTP7NHD1xeiDs1dGKxqv9C2lKkwK39a6EEhVacLTRDNgSuSaE_yK3gz13vQs3veJR-5QotnQsJKHoMCK1sR8iuEuNMMF_lqcV9FA3224VFRcBpUinYbbPq4aezLcJ8N9HMNduj2uy3A111p5XJfhag678rjLJ8N9MtzHMdyFESpQjxsYlqc3OjA8bqAIm4IGJn_HVWNPhvtkuI9juAuHxw1qQ4WBEeP2ZXF_neE-hQpPhvtYhrt0e9yaUIF1zopxNcN1hwqLp1DhyXAfyXCXrlChb1ie7ka1UCEw7NnJ33HV2JPhPhnu4xiuK1ToOzyuabg8VAgcHtdvuE-hwpPhPpbhurIKHsPVXGu94bpDhaUVKpgy66i9c5utJXlNSG6z7XnN1tKs06Bt41xrtobRavbYt-wxUO3E7pI9ZnSbtXs39A7KodXvgYVj6sQyY48vMURuK6FvEeRW3VMpcRtunhrrn_-NG9MDfaBgzvU-xeEa9qvppRJ6y7AyHjWJ1uW4lUbYdpiRdAQOKId56GoNKpYcDFu-TGN4U5NYrDEJ_7ToNwn_tNirVOWWkGiUC8Ss1iWzsWUNbQ0GgvQ6Z1Znf82mQmXJKKXarp0EpXk4rMOhf2Wmq7WdDWY9Zh29zR2GP2iqdxhDDcfX8U1Dq-3UWnHj9xsqVF-OZdOBNPQflWg4keYOxC8oTyzkcXiVhXh2yvsecSgvYX8Dz3liSZYoh_gqeOt8jV7WwGhNmq5zUHU82CeCjDeTW_DgOl1Vx4PjnJFetjkPzjNbNTw4TnQZ7wu24MF1EqyOB4cuFg_UhfN8WR0PDl0sHqgL56m1Gh4cZ9qMhMwWPLjOwtXx4NDF8oG6cJ6wq-PBoYvlA3WBpzQhJN7CkOjxzi0Ql_RM6Ll9vsf3HB6S72YzfiW0Z19Upm5_WktROUXC9kZN1u5VFY-FssnZEvE4N76u3e-6fpvr-l10zbZI0q38Kd_Lb3R3k5MiWn9xTx27040fMJJfcA-g_NJ076jzbwU3ecwBEHRVIeNeQskLjU6bbwk1R0gtZeffQmhIeVlLmf6R2k1Jt-7QD3Cfg7cB4Xf16B-vmiQ3vMr2Rpt3qLVAJ6K0it89rbKqR2kV_abaKn73tMqqnK1uLuIBCC5QZYwFg651tN0B4rg3gqqiovBwsdBT9xp_UED_L_z8cRAffxUFiz95PZTshOvPkTVheulkevlgph1adzJtqcMyJYpBh81d3a0yvk4uTMtZ8EsTzLDWAeLppELhEYaxaTkLfoGDGfI6QHz8VRT8SpCd2MZyFqblyCb9ltOU6TrLUZm21OG0HOb6FttYztK0nCW7asO6OsIB4umkQuERXLFpOUt27Yd1WYUDxMdfRcGvBNmJbSxnaVqObNJvOU2ZrrMclWlLHU7L4dPXYNPp6rIKNlI8g6uFRPQPDT8WOfzjUovHIzcAcltNzvzCkQd21E1pmz66KYnuVX-kqMljqxBCe1j1dZi9HBrv2va1U1lWRNxRw5WOsOVD4-DFfm3s21FDCoXGojGNAdBYOmnoK-JD1sfmwrcNFIS12FpYC6ewFhsJa-EU1mIjYS2cwlo8srAGKKzl1sJaOoW13EhYS6ewlhsJa-kU1tIjrIZ5DHxW26xa7Yu4mGMw70zBe4828g0uwt3qLtSNesZvWkidVy0IOTsvW0g3u20Bn_XHIQ8PyYfZBBplp6bZsWSyN8WDyXvyFHWjU5W71nHoz58bicRxGJqc2imVx8raOE5tN7shwserI_3zSKp5d5vgLXM8bZfGd6V9sB1totkruiH-ZWY89Ykcw_BtkMVjjgpf-jQBDhiw68-Z2MDsrn3G0OPfsqFcaCTvEHPorvEdos7LCo5sbN9do9Kh_fDj6w8_nb_99ec372WlkucE-uIaJa0LSqazAtk1YKpcZwXju0yJXmDATq-67F9nCVzfSKFpsvMeWdHrNVbem4PXHqizHALVixZj6Ldk74_p_R45InvdP6Z7rj8dzxn3XLfAqe3d3__jHgFZT148B1LE92XVJV8NcLXXdZpgS9yMywWIk2-fBdueqsBfBeFw40YCfyOBv5Fgs0YG_kYG_kYGmzUy9Dcy9Dcy5Jlhlbo-qoV1rXTbXJlhwCSexqV821KoV7GpV6291epZUxaq51reCCbqXLlgtFrc1l3Sq1zo-XQh6dOFpI91ISk1xm1vJGXI1pWk_8Av6O7jn7f467y86L38C__Ff_8v" rel="nofollow noreferrer" title="C++ (GCC) – Attempt This Online">Attempt This Online!</a></p>
 <p>This matches the output of wastl's program up to 12 terms, and does so much faster (<s>62</s> 65 times faster on my machine).</p>
 <p>Certain design elements were quite natural and are shared between both our programs – namely, the use of 128-bit integer coordinates, the coordinates of the starting tetrahedron, and multiplying all coordinates by 3 for each successive term. The remaining details are implemented from scratch though, without consulting wastl's program.</p>
 <p>The finding of standardized rotations of each polytet (for comparison purposes) is done by solving for the affine transformation that moves one of the faces of one of the tetrahedrons to the first face of the starting tetrahedron. For speed, this is limited only to the attached faces of those tetrahedrons that have only one attached face, taking advantage of the fact that it's guaranteed that all polytets will have some (because a polytet can never curve around and perfectly meet one of its own faces).</p>
@@ -781,6 +836,7 @@ int main(int argc, char *argv[])
 <ul>
 <li>for applying the affine transform (but not solving for it)</li>
 <li>for checking for tetrahedron overlaps/collisions (this further slows down the GMP version by about 14%)</li>
+<li>fixed a bug in importing 128-bit integers; this gave it an incorrect result for <span class="math-container">\$A276272(13)\$</span> and made it incorrectly detect an overflow immediately after reaching it, preventing it from going towards <span class="math-container">\$A276272(14)\$</span> even for a moment</li>
 </ul>
 </li>
 <li>Improved non-GMP version speed by 4%</li>
@@ -811,16 +867,16 @@ int main(int argc, char *argv[])
 3: 1 [1 ms]
 4: 4 [2 ms]
 5: 10 [12 ms]
-6: 39 [52 ms]
-7: 164 [267 ms]
-8: 767 [1557 ms]
-9: 3656 [9288 ms]
-10: 18186 [58670 ms]
-11: 91532 [378708 ms]
-12: 468203 [2364038 ms]
-13: 2420660 [14893023 ms]
+6: 39 [53 ms]
+7: 164 [269 ms]
+8: 767 [1607 ms]
+9: 3656 [9653 ms]
+10: 18186 [61997 ms]
+11: 91532 [389137 ms]
+12: 468203 [2459990 ms]
+13: 2417722 [15555313 ms]
 </code></pre>
-<p>With <code>USE_GMP</code> enabled, the GNU Multiple Precision Arithmetic Library is used for applying the affine transform (but not solving for it) and checking for tetrahedron overlaps – but not for any other calculations, so overflow will still eventually happen. This is about 3½ times slower, and allows <span class="math-container">\$A276272(13)\$</span> to be correctly calculated, but still isn't enough to reach <span class="math-container">\$A276272(14)\$</span>.</p>
+<p>With <code>USE_GMP</code> enabled, the GNU Multiple Precision Arithmetic Library is used for applying the affine transform (but not solving for it) and checking for tetrahedron overlaps – but not for any other calculations, so overflow will still eventually happen. This is about 3½ times slower, and allows <span class="math-container">\$A276272(13)\$</span> to be correctly calculated. It may even be enough to reach <span class="math-container">\$A276272(14)\$</span>, though that's projected to use 42 GB RAM (getting close to my machine's 64 GB), so I won't be able to run it beyond that.</p>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://www.rust-lang.org/" rel="nofollow noreferrer">Rust</a>, 11 (hopefully correct) terms</h1>
 
