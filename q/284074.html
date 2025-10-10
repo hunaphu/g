@@ -26,9 +26,46 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>113</td><td>JavaScript ES7</td><td>251010T152740Z</td><td><a href="https://codegolf.stackexchange.com/questions/284074/parse-rpip7-musical-notation/284077#284077">Arnauld</a></td></tr>
+<tr d-ix="0"><td>057</td><td>Jelly</td><td>251010T204744Z</td><td><a href="https://codegolf.stackexchange.com/questions/284074/parse-rpip7-musical-notation/284081#284081">Jonathan</a></td></tr>
+<tr d-ix="1"><td>113</td><td>JavaScript ES7</td><td>251010T152740Z</td><td><a href="https://codegolf.stackexchange.com/questions/284074/parse-rpip7-musical-notation/284077#284077">Arnauld</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>JavaScript (ES7), 113 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 57 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
+<pre><code>⁽'ḍBṚÄṾ€;“½⁸VYɼ⁼'»;Œs¤i÷12µ2*×110Ḟ⁸aĖ
+‘1¦€0¦;Ç}¥⁼”-$}?ƒḟ`
+</code></pre>
+<p>A moadic Link that accepts a list of <code>1234567drmfsltDRMFSLT -</code> characters and yields a list of <code>[length, frequency]</code> pairs.</p>
+<p><strong><a href="https://tio.run/##y0rNyan8//9R4171hzt6nR7unHW45eHOfY@a1lg/aphzaO@jxh1hkSf3PGrco35ot/XRScWHlmQe3m5odGirkdbh6YaGBg93zAOqSTwyjetRwwzDQ8uAOg0OLbM@3F57aClQ16OGuboqtfbHJj3cMT/h////SsXFObrFui66Jbq6ChB2EJAHYgfr@oLFc4A8NzcQGyyjBAA" rel="nofollow noreferrer" title="Jelly – Try It Online">Try it online!</a></strong></p>
+<h4>How?</h4>
+<pre><code>⁽'ḍBṚÄṾ€;“...»;Œs¤i÷12µ2*×110Ḟ⁸aĖ - Link 1: character, C (never '-')
+⁽'ḍBṚ                             - 21928 in binary, reversed -&gt; [0,0,1,0,1,0,1,1,0,1,0,1,0,1]
+     Ä                            - cumulative sums -&gt; [0,0,1,1,2,2,3,4,4,5,5,6,6,7]
+      Ṿ€                          - unevaluate each -&gt; &quot;00112234455667&quot;
+                 ¤                - nilad followed by link(s) as a nilad:
+         “...»                    -   dictionary-string = &quot;durum&quot;+&quot;fo&quot;+&quot;salet&quot;
+                                                        = &quot;durumfosalet&quot;
+               Œs                 - swap-case           = &quot;DURUMFOSALET&quot;
+              ;                   - concatenate         = &quot;durumfosaletDURUMFOSALET&quot;
+        ;                         - concatenate = &quot;00112234455667durumfosaletDURUMFOSALET&quot;
+                  i               - first 1-index of {C} or 0 if not found (if C is a space)
+                   ÷12            - divide that by twelve
+                      µ           - start a new monadic chain - f(E=that)
+                       2*         - two exponentiate {E}
+                         ×110Ḟ    - multiply that by 110 and floor
+                                    -&gt; frequency or 110 if C is a space
+                              ⁸a  - E logical AND {that} -&gt; frequency (0 for a space)
+                                Ė - enumerate -&gt; [1, frequency]
+
+‘1¦€0¦;Ç}¥⁼”-$}?ƒḟ` - Main Link: list of characters, Score
+                 ḟ` - {Score} filter discard itself -&gt; []
+                ƒ   - starting with Result = [], reduce {Score} by:
+               ?    -   if...
+          ⁼”-$}     -   ...condition: {Next} is equal to '-'?
+   €0¦              -   ...then: to the rightmost element of {Result}:
+‘1¦                 -              increment the first element (the length value)
+      ;Ç}¥          -   ...else: concatenate the result of Link 1 given {Next}
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>JavaScript (ES7), 113 bytes</h1>
 
 <pre class="lang-javascript prettyprint-override"><code>s=&gt;s.match(/.-*/g).map(s=&gt;[(n=&quot; 1.2.34.5.6.7d.r.mf.s.l.tD.R.MF.S.L.T&quot;.search(s[0])/12)&amp;&amp;2**n*123.471|0,s.length])
 </code></pre>
