@@ -29,7 +29,7 @@
 <tr d-ix="0"><td>015</td><td>C++ GCC</td><td>251003T124500Z</td><td><a href="https://codegolf.stackexchange.com/questions/214203/gluing-tetrahedra-together/283991#283991">Deadcode</a></td></tr>
 <tr d-ix="1"><td>011</td><td>Rust</td><td>201108T231337Z</td><td><a href="https://codegolf.stackexchange.com/questions/214203/gluing-tetrahedra-together/214928#214928">wastl</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C++ (GCC)</a>, <s>12</s> <s>13</s> 15+ terms</h1>
+<div id="pu0" class="pu"><h1><a href="https://gcc.gnu.org/" rel="nofollow noreferrer">C++ (GCC)</a>, <s>12</s> <s>14</s> 15+ terms</h1>
 <pre class="lang-cpp prettyprint-override"><code>#include &lt;stdio.h&gt;
 #include &lt;iostream&gt;
 #include &lt;string.h&gt;
@@ -661,23 +661,6 @@ int main(int argc, char *argv[])
 <p>As such, it's conceptually similar to the previous version – both take advantage of the fact that all polytets have some tetrahedrons that are attached on only one face, because due to a tetrahedron's dihedral angle being irrational, a polytet can never curve around and attach to one of its own faces.</p>
 <p>So, the computationally expensive affine transformation is replaced with a tree re-rooting. This operation now being very fast, it can do a new optimization: Delaying the tetrahedron overlap/collision checking until after deduplication, so that a provisionally new polytet won't be checked for overlaps just to find that it's a duplicate.</p>
 <p>The timings shown in the output are cumulative.</p>
-<p>Output in basic 128-bit integer mode:</p>
-<pre><code>1: 1 [0 ms]
-2: 1 [0 ms]
-3: 1 [0 ms]
-4: 4 [0 ms]
-5: 10 [0 ms]
-6: 39 [0 ms]
-7: 164 [2 ms]
-8: 767 [12 ms]
-9: 3656 [77 ms]
-10: 18186 [447 ms]
-11: 91532 [2672 ms]
-12: 468203 [16470 ms]
-13: 2417697 [101231 ms]
-14: 349124 [549295 ms]
-</code></pre>
-<p>The 128-bit math is clearly overflowing starting at <span class="math-container">\$A276272(13)\$</span>.</p>
 <p>Output in <code>USE_GMP</code> (GNU Multiple Precision Arithmetic Library) mode:</p>
 <pre><code>1: 1 [0 ms]
 2: 1 [0 ms]
@@ -695,11 +678,44 @@ int main(int argc, char *argv[])
 14: 12595984 [2817342 ms]
 15: 66068726 [16595584 ms]
 </code></pre>
-<p>In this <code>USE_GMP</code> version, it is no longer possible for calculations with Cartesian coordinates to overflow. As such, it could in theory keep going up to <span class="math-container">\$A276272(63)\$</span> given enough time and RAM, at which point it would no longer be able to serialize polytet trees at 1 byte per tetrahedron.</p>
+<p>In this <code>USE_GMP</code> version, it is no longer possible for the calculations with Cartesian coordinates to overflow. As such, it could in theory keep going up to <span class="math-container">\$A276272(63)\$</span> given enough time and RAM, at which point it would no longer be able to serialize polytet trees at 1 byte per tetrahedron.</p>
 <p>There's still plenty of room for further speed-ups, such as adding multithreading, and applying various more specific optimizations. Disk storage and merge-sorting could be used to do away with the RAM limit, allowing time to become the only limit.</p>
+<p>Output in basic 128-bit integer mode, which overflows starting at <span class="math-container">\$A276272(13)\$</span>:</p>
+<pre><code>1: 1 [0 ms]
+2: 1 [0 ms]
+3: 1 [0 ms]
+4: 4 [0 ms]
+5: 10 [0 ms]
+6: 39 [0 ms]
+7: 164 [2 ms]
+8: 767 [12 ms]
+9: 3656 [77 ms]
+10: 18186 [447 ms]
+11: 91532 [2672 ms]
+12: 468203 [16470 ms]
+13: 2417697 [101231 ms]
+14: 349124 [549295 ms]
+</code></pre>
 <h2>Output from the affine transform version</h2>
 <p>The version uses about 20% more RAM than wastl's program.</p>
-<p>In basic 128-bit integer mode:</p>
+<p>In <code>USE_GMP</code> mode:</p>
+<pre><code>1: 1 [0 ms]
+2: 1 [0 ms]
+3: 1 [1 ms]
+4: 4 [2 ms]
+5: 10 [12 ms]
+6: 39 [50 ms]
+7: 164 [270 ms]
+8: 767 [1556 ms]
+9: 3656 [9505 ms]
+10: 18186 [59459 ms]
+11: 91532 [384340 ms]
+12: 468203 [2399032 ms]
+13: 2417722 [15053858 ms]
+14: 12595984 [101318974 ms]
+</code></pre>
+<p>This version did not use GMP to solve for the affine transform, only to apply it after solving for it. Nor did it use GMP for storing the coordinates of vertices. As such, overflow would eventually happen. It still reaches <span class="math-container">\$A276272(14)\$</span> correctly though, at which point it used 42.3 GB RAM (getting close to my machine's 64 GB), so I can't run it beyond that point (nor would I want to, given how much faster the new tree version is).</p>
+<p>In basic 128-bit integer mode, which overflows starting at <span class="math-container">\$A276272(13)\$</span>:</p>
 <pre><code>1: 1 [0 ms]
 2: 1 [0 ms]
 3: 1 [0 ms]
@@ -715,23 +731,6 @@ int main(int argc, char *argv[])
 13: 2417721 [4291118 ms]
 14: 663520 [4734026 ms]
 </code></pre>
-<p>The 128-bit math is clearly overflowing beyond <span class="math-container">\$A276272(13)\$</span>, and as the version below shows, that value itself is also slightly incorrect.</p>
-<p>In <code>USE_GMP</code> mode:</p>
-<pre><code>1: 1 [0 ms]
-2: 1 [0 ms]
-3: 1 [1 ms]
-4: 4 [2 ms]
-5: 10 [12 ms]
-6: 39 [53 ms]
-7: 164 [269 ms]
-8: 767 [1607 ms]
-9: 3656 [9653 ms]
-10: 18186 [61997 ms]
-11: 91532 [389137 ms]
-12: 468203 [2459990 ms]
-13: 2417722 [15555313 ms]
-</code></pre>
-<p>It may even be enough to reach <span class="math-container">\$A276272(14)\$</span>, though that's projected to use 42 GB RAM (getting close to my machine's 64 GB), so I won't be able to run it beyond that.</p>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://www.rust-lang.org/" rel="nofollow noreferrer">Rust</a>, 11 (hopefully correct) terms</h1>
 
