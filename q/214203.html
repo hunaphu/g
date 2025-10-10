@@ -54,13 +54,6 @@
 
 auto startTime = std::chrono::steady_clock::now();
 
-void quitOverflow()
-{
-    auto currentTime = std::chrono::steady_clock::now();
-    std::cerr &lt;&lt; "Quitting due to detected overflow" &lt;&lt; " [" &lt;&lt; std::chrono::duration_cast&lt;std::chrono::milliseconds&gt;(currentTime - startTime).count() &lt;&lt; " ms]" &lt;&lt; std::endl;
-    exit(-1);
-}
-
 typedef uint8_t TetIndex;
 typedef uint8_t TetIndexFace; // lowest 2 bits are used for a face index
 typedef __int128 Coord;
@@ -120,14 +113,7 @@ static int tetrahedronEdges[6][2] =
     {2, 3},
 };
 
-Coord3 operator-(const Coord3 &amp;a)
-{
-    Coord3 c;
-    c[0] = -a[0];
-    c[1] = -a[1];
-    c[2] = -a[2];
-    return c;
-}
+#ifndef USE_GMP
 Coord3 operator+(const Coord3 &amp;a, const Coord3 &amp;b)
 {
     Coord3 c;
@@ -152,7 +138,6 @@ Coord3 operator*(const Coord3 &amp;a, const Coord b)
     c[2] = a[2] * b;
     return c;
 }
-#ifndef USE_GMP
 Coord dot(const Coord3 &amp;a, const Coord3 &amp;b)
 {
     return a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
@@ -166,31 +151,6 @@ void mpz_set_int128(mpz_t &amp;dst, const __int128 &amp;src)
     mpz_import(dst, 2, -1, 8, 0, 0, &amp;abssrc);
     if (src &lt; 0)
         mpz_neg(dst, dst);
-}
-void mpz_get_int128(__int128 &amp;dst, const mpz_t &amp;src)
-{
-    dst = 0;
-    size_t count;
-    uint64_t limbs[2];
-
-    mpz_export(limbs, &amp;count, -1, sizeof(uint64_t), 0, 0, src);
-
-    if (count &gt; 2)
-        quitOverflow();
-
-    bool isNegative = mpz_sgn(src) &lt; 0;
-
-    ((uint64_t*)&amp;dst)[0] = limbs[0];
-    if (count &gt; 1)
-    {
-        if (limbs[1] &gt; INT64_MAX)
-            if (!isNegative || limbs[1] &gt; (uint64_t)INT64_MIN || limbs[0] != 0)
-                quitOverflow();
-        ((uint64_t*)&amp;dst)[1] = limbs[1];
-    }
-
-    if (isNegative)
-        dst = -dst;
 }
 #endif
 
@@ -453,50 +413,6 @@ void attachNewTet(Tet &amp;t, Tet &amp;tetToAttachTo, const int faceNum)
     tetToAttachTo.faceAttached[faceNum] = &amp;t;
 }
 
-class NormalizedPolytet : public std::vector&lt;Tetrahedron&gt;
-{
-public:
-    NormalizedPolytet(const Polytet &amp;polytet)
-    {
-        reserve(polytet.size());
-        for (auto tet=polytet.cbegin(); tet!=polytet.cend(); ++tet)
-        {
-            Tetrahedron &amp;t = emplace_back(tet-&gt;t);
-            std::sort(t.begin(), t.end());
-        }
-        std::sort(this-&gt;begin(), this-&gt;end());
-    }
-};
-
-bool operator&lt;(const Polytet &amp;_a, const Polytet &amp;_b)
-// implicitly assume a.size()==b.size()
-{
-    NormalizedPolytet a(_a), b(_b);
-    for (auto ta=a.cbegin(), tb=b.cbegin(); ta!=a.cend(); ++ta,++tb)
-    {
-        auto result = *ta &lt;=&gt; *tb;
-        if (result != 0)
-            return result &lt; 0;
-    }
-    return false;
-}
-bool operator&gt;(const Polytet &amp;a, const Polytet &amp;b)
-{
-    return !(a &lt; b);
-}
-bool operator==(const Polytet &amp;_a, const Polytet &amp;_b)
-// implicitly assume a.size()==b.size()
-{
-    NormalizedPolytet a(_a), b(_b);
-    for (auto ta=a.cbegin(), tb=b.cbegin(); ta!=a.cend(); ++ta,++tb)
-    {
-        auto result = *ta &lt;=&gt; *tb;
-        if (result != 0)
-            return false;
-    }
-    return true;
-}
-
 // First two tetrahedrons are implied. Each element is a subsequent tetrahedron, with the value indicating where
 // it's attached. The lower 2 bits indicate which face (can only have 3 different values, because at least 1 face
 // will always already be attached). The remaining bits indicate which tetrahedron (which can never be zero,
@@ -543,27 +459,6 @@ public:
 namespace std
 {
     template&lt;&gt;
-    struct hash&lt;Polytet&gt;
-    {
-        std::size_t operator()(const Polytet &amp;_polytet) const noexcept
-        {
-            NormalizedPolytet polytet(_polytet);
-            std::size_t seed = polytet.size();
-            for (auto t=polytet.cbegin(); t!=polytet.cend(); ++t)
-            {
-                for (auto c=t-&gt;cbegin(); c!=t-&gt;cend(); ++c)
-                {
-                    for (auto i=c-&gt;cbegin(); i!=c-&gt;cend(); ++i)
-                    {
-                        seed ^= std::hash&lt;uint64_t&gt;{}((uint64_t)(*i      )) + 0x9e3779b9 + (seed &lt;&lt; 6) + (seed &gt;&gt; 2);
-                        seed ^= std::hash&lt;uint64_t&gt;{}((uint64_t)(*i &gt;&gt; 64)) + 0x9e3779b9 + (seed &lt;&lt; 6) + (seed &gt;&gt; 2);
-                    }
-                }
-            }
-            return seed;
-        }
-    };
-    template&lt;&gt;
     struct hash&lt;CompressedPolytet&gt;
     {
         std::size_t operator()(const CompressedPolytet &amp;polytet) const noexcept
@@ -607,7 +502,7 @@ int main(int argc, char *argv[])
         prevPolytetCount = polytetCount;
         if (++tetCount &lt;= 2)
             continue;
-        /*if (tetCount &gt; 12)
+        /*if (tetCount &gt; 6)
             break;*/
 
         Polytet polytet;
@@ -724,7 +619,7 @@ int main(int argc, char *argv[])
 &#9;return 0;
 }
 </code></pre>
-<p><a href="https://ato.pxeger.com/run?1=7T1dc-M2ks_nXwE7dY4kSx59TM0mluWtJJukpiqZnUs8V1fl0rkgEpY4Q5FaErTH8ej-yL3syz3e2_2N-wP3a64bXwRIkJI9mZvbqmV5bBLsbjQa6EZ3A-D8-38Gm7jI8d_1Mgj-6-pokPNwFpycjIdH_aPBn8dH87_-R8FvBl_9T_jfX0RJEBchI-cAFKWnq4uDsihKc54xurbLoCRKli5cgLgJd4rgmd9vWG4X0iyj905BvEyziK-cGm5ZwNPMLomj3CF-UyQBj9KExnZpkaRZyDIWXufM5WWVpUl6cXDw7NkXIbuJEkbe_Pr99Y8_vz4AqBsoMs8l0nK9EY0khEQ3BN5dv3rz87fX3768_JUczsiL5-IVy7I0I5erKCfws6JZOAjSkIXkBopfPB8sIk7iaL3IJXQSRjcHX8g_B7TgKck5zfhltGZkBvfh2Zlk9uws54yG99dBnAbvzs6S9K7TnR4c3KZRSP5SRPzPtyy7ibH04OEASBNBLSiyjCX700NECQUNIefn5OifgDaHDiZhwQhQDBmH7oAGparCIwFGrsRfp4awyCj2ynVAc37uvFpHMfQhC9IkzC86NpeDUgLd0yAtEt7pyhrW-bysA0QWS3bZ-4h3BiNgfntwgCMMu6-A0fbVNSeXjL9MQvZ-2vjmBxqwKXn2jEBTWM7JmEAX5YRmjBS56jdKbgCKRAhvCF1fA6XR-CvyXQrDrKxAsCcG9rl40yeTCwkzaQaa9MnzC-QpoysWgoymB0FM8xyLVH-Kno6SiCPHOXQzFspXeCGH33BOA8C_Gs6ht1-9-ekn0TIOz31-NcJf47kfY9SIMWnAGPswxm0YkwrGqIqxPdgUizgKzsSTJQ3Cp7qI9Byaz-fmjehO2UmigtFgQaEHp2Q4KxKQZbRMWKiBO8RzdckZgTdd8mDJebo1ODBcc-7wdcwlDvfiiC6TNQvmOobL44S9l7fVfgTb0hFtILMZGXYPbP5UOTHIJydTJbitHjCv0_ieg5jOiJSlHGrShJ5foh18qEpZsmSITkveM5ar12ABOnn0GwPNuYmyHNoLEhZmTttekq_SIg5JknKyYCSgcQzqA83hK0Y2iqsVzZMvOblnCMMSKN8UMeWqX0oplAMI1K8jTBmfLdgySkC4hB_OQP_x7uSEuyLigwstpeHUvOn0OLDavRKsz081xKiEMK2H4rElVJgiCBg6LkdWBL1L0hsxrHNyBxMViUKwXBG0lgSrKKNxxO8PwIJBESBwwsvBIsYGDFj4ITOl1A_DPhn1yRiMxLZvSiay0CoZy0JdMhKPUDiEEuTSX-P34RJqfDEXumrXaNExtShqhge7LgtmomqUZoukGwZGPs0GSjlU8THV05AqCKRMA2maBhT-6pKRKhmZkrEqGauSjPEiS5DGtlrvSbXePnELFq2MIB_khCyq7CA3orzCFPIkyvdgrSaSJ7A2aGBt0MDaYD_Weq2skT0Y65FFnSursGTJFNr8gJeV2G6WrDdM-d4yU9SQmd5C9iLy0FvInsOqe1IWW-NgVXw7YeLWm9_QPVSTeQcfOTkOc65rNvP8cZ4FunZTSBc5FKNvBb_PyZD8kQzw9gwLZLuRZLTepBnvCLKgRANQqq9A38TPsaShvC-0_4pWadmQRMKWEh9-CWfHsL8s2S-ZtVqg2mSxDy9LA6nMuvC1ZAn6SC-eXytPVQjRtIS9Fy0Rb4B3gSUbhHTSm45G7ur2ybaZxgkMckHGZfNc_1XBLtI0Bh_6FVuCabtF91V01TJB8XRRPgqwY6rsdbHZXTlMJe9aeeyaR745V4LD2LkgL19dArWfv_mXyuwLUIcWQx8-EAupbLdCf_mqhACGDmuzua_lurzeplHZJq3421KoJVtlHbKTB_DH1gHjVupJAquP6QZGRkU9dI9znFZYBt46f1WspQHpl2V_Ykm6jhJZWlgQt9Z9ceuCle9-LdZTq6qAIV1wCPvgSGRrGotbvt6Iv5vhZiRuTO3geLxO4UmUhizmVNwxmPlG5m4Md3YlFGdht2hRL4K4libLmEGxeSN0DsyFJT9lMkDMkoTWOsdNFLrnDjrh2eCEvZkNp2Rz_hx-nZy4Q8TAhAgTnk_gVxVGM2wZMeRlM78K50L55G1XjxnTDLS2yjSAn1fEFXtBrbZoGU3m1Vbgm3UR45DVRNAk98W8ZQ1ohKNhCKAW3EjAjXbCjQXcuGxDQ5ighnItNhIWGLzzvPOJR3JfhDdWc3Z14IPTlZrPjtKC0JaMA6B0oxkANab5rdCj5td17WqGlTrX_F5qYvv7sft-u7eOPDxaWx68uiM4oY6ieEEWXpDtHpxPPlK7Zadqi1TX6H_bUw2CmNHsb0EPBKOtiiAh2jRBQjSqgnzdrAvy_Z7KIIFbtEECtKhDCfDZ9UGy0q4QEubzaYTq3GaV0HP1N768zfsueajM4xBrvHcyN_D-2z1xFxaucFx1pNXp1tQQEyf0HSM0vKUJp0uGGQVMktzQALyOFeXiid-ldiwvU5IZWxYxzQhNQpyal1nB0P2GR5v82wJYDlYseIfOIU3uhRckqrHacUSPSp1X2QyEFbnOKuzi6NSu4U8ppnGkQx1xrCVN4nvBN_iZG1QTJEETWXNZzWl9PCAEGA_scXV7_sLcNo9u2zPpbYYi3KzlPhSVOTgj82kL-mgH-qiKbrhHaSnu1S1qpbrdT9uAAWnFIIAKrVGlXFKUt0hckQkRkpVDQY0YJnpfPD2HDpSix7QcMBjQOMD0GqbvEUDWUuPBtCXCVkTIf-TTOgd2h4bqy9-wCJUVRH68uKolyJTo5gCEUHXjA-L4TkwL0IdpFuIMJJJxcYx5R_AcebSJIxaSxT1ILEjXGxBXiGsXaRYtATy2EU999H9kOhLR2T4kRmFepUsUJq4QYFYQ84Ff2tSmKGcfxTC6jXLMkgqmcHVobZiEWZSbPtL8B2LpRIDXWXxML6jYoJxK-6TX8XfLUNhQj723bPeoyXY_dYQoj9_mbw9WNztZ3VF9XRU1M5hoMV6FxYynMot_6LfrIrIRm1ifCNb7ZOIhuP0E7cmLBfpAZI-uxwi7vaVITHlMfR-MuPTrJmL1VmIsWvdJCdFZAJEC8FBy8ByHVOMhsx5ElGgAQpFZJbjDzvNTGvrQMZ2E6N6sDl4wv4BOF3JtUU6COQFLhMsiMRojabvvVlGwIncMWlLOqDTHmTNViZmmus99VbcPa7-IfaUtQ8Ah5EjKV7pX92OTfP1gxRvDLjkHYWNOTUHuHcR0ycXubvIZ7csVy5kzy-DECz1YmWV8lX4CRcakiC8aUVq7t_w1PZVnaSKptLgu5cfZLeVUTH5Hp0ILwzj_0bzVuEXKuO0pH3QwtPOMU7ItoNLBipI8CqUbpvn4RMZbB5W-tCeWGjEMG8I1m5gOQC20kfDGxPUEYmOX2PhRxOrjxkoo2qkHKYORSegOm8JSYAuHRh13aHBHTbiq3ttG3FEzrqq3jjsyuI086_a6KRVd4d5N9qHvaHVtCqwQ-ci57_ecu-weLdpskY10681e7UCqpbY-cjorWqcxhLitQzxWstqNribi_Pm7hm7VM2uNiCMCf-_hpRZleVbl0JcQUsA3NM6Zztt8weDhQLW0knfpUbDwi6mT_N-Z46EYZb7fN6uzsKH_nsf5P8njqJV9kcHp9Gj3MUkcjTvajfvJMjj2IPK6H_-_EjhNHpKQ4KLbno-pWw29Q0QmS2bk4UEu-g-3W9Hux6Zj_qazMS2Z7Rrsnq6uyT6Qk1lD3238aTLVMxLn6XkSvExSgzTxIHIapAfCHJQsN_DkjTeBMsbyOmpvSlIA-Y3PJ6kQtmarCmH_BQakgbDcjukj-5kify8zj3CnGoQ_qJf7naQGGQ985fv6Sh6etJPkeQXBvDeQ-8zxvdK3WogGwoG5recX3Anp6LFng7T0garG2pzSott7xN5WDN2o3dG8gf9PGTurhoogisw8ch3Y4WWjoEQYBPhWtKsA9scf2_jjx-Bb7jcaIhUQ9nRABzR0gNnTUVoTpds6JYU1kjtCHeqjNp5uXd3VNGy2NI0WtlBzK6SeGBG6VB5hzBzpDoodpsuR4OB2B3RVSgOnYF_TVtRN2q1b9CSBlSROHHqVSO1TBWliK-FWHz-i4jDGK3aHZyTwiMYxhDLyL-OXqTyrcZnqzWSWz13ZZ3ycsLt_lpvtQeFOuRnDdrntYYqXH-MhSmeubVuFu0tUZD3QyTENaO-0fbws0zjl5TlCO-W2f7fVDf4B_WYw0zIqYHfqjMLBPnU69c2cx2cTMPRjtGwVHqwml9ygrU83MlpM4VdmZOyV6sQvVQQQBrox8NjMHydQHDmjk41aY66Jc1SVJz9tODzleztqfTtufSsOQLlKoeAcHh0cLQWBKc64yR28r8xMvevEj5Zq9eRPjYLKimh6x-rQTrXH8FBQdss66vUp7vvu2Eux1pkdxmcaLCiP7zB-WBaXJ3kYb8oRuEeucMqCeA0Ec72gwbsOIA4ueMV5F0LIcas6P1U196E_RG3evVUWwirKBxclkni0EeXJICc_dF4V3rU5ulAWLbp4nEjEmkHE43s8Gwa2m1Alw9lsoe6UXax3Mu1cU-Bp0QFi01LNpLTpjBoxA98LIGdJnR7i61LctA-_FtXeFZTk1luQcw98r_PZBfxdlDJDQ6gg6rva1YSh3p_rQwZSzu5ssnVFeFEVYV2C1dMfhx1gjyy6NVqz2d_7w-kPZwK3yqUXsBXn3H4QOSpvvlLlR07J92CVCIvZmklPnpK8WOTsL5i_tNH6Mg-JU8MtjQsmT8_JTNYdTBVMSJ5_mSvvAWlDOCZO4Wb6EK7CYSpWFvN6J8AAGZOUK5jfYS4GV-SG4fFhWVEOncECWkBgRzmJGYUmjQQq1ih2CdH4jt5DxXGGJ6Bx05DmoSuZyNiaRgmy6mPDzqd2ZBHylDCY_ZDYbyxL-1iZ5kOkgtNE5AF0Tdao654qk_5dut5AP-a7Tbo5uVy16dIf22xwVFXtuO2T6arEkqJyHn6mm6vncpFRyOuXlIusV1dP9tYByBJjLsZHYFgfpAXfFNy4AlM9Wrx4wnXQaUCNopLWJZcVlXDendrna_WkUp6u9XgO11bCV9-jH3HtSfm60xBiZygVFv4gYTFrqvHAFXfERv6RTKY1_BuDiD5VKQ98cmlXQi5x_MhtutdRqDv9_lhCnKXWwxEfZmQP6i4NC31wsW9H4LUp8pWcvOGyB3S34zIhj-oOyKgrvgIw7oKUtcArNGui1twhXfc8MF6guTGYE6cJTpNtdHF-y1WdupxtBH0y2-bHdPbYHFuvjSxMkzSxWg6Wmq9cGTlXmtZcMN7sWg89w0XjVptgsT-a-xx2R2C1_IOFPtkDvZpxsNDHe6CPm9GHe6BXs2rPeqh-RndBeXctC4mj2GJ13Wl4PZ6vysVpaCu4lMN6U4nie89cHZWzgZkEbJ3vW-T6puNr7rH0dxO6ZvkGdQlmI-UQceGIc3Z-IR5zcCcCccp_da6mn4uK8ZZutjxyai2uVl0zHXsony1J2fuAbXiDYa77ZQq_Ywj5ogPJRc5gOp4RN5zxrBWqrxB44hlvNLNrgJQ0gxmYnpJccCieDaVg32xYSTGaBTbF6FA8G4qRPzHkpyrEhSL6V_UBGdG7-njqxcO2PKva7fQiidBFOz18_zWb_OEPXy--xjy3oAEm_EXXPF3gKWB_9u2xtQKpF88_utZ6Ds8tcZ-UC41Eaxoz3aUeNWfvUYpSdxWPH6cxT1aAyKMAkU8BPIPM36GTsezQXvTU7mvvCLRdaI3RpxcOIM2WAQSDK5qBMcyWt1dzHd-pz2jY6QbxNSIyk51TyvDhYfB1X_xs1ccxTCnBH7eUCFhPKZEUJKtbdaC9fpRPrwgqANERPSXyXObwpFCdT155xpgUj8bEb6XkMAF0aoCY6kCXn4Yh5lr4PZHBBy5Qos8upALhjv6uS2fNaCIzrTi8a0GkHAtqvEFVt6qe78Sqp3F4bKhFTFfSUdYH_Y0HrxFno-nUGy8_5bNXNoMuc6W4qqohKUPEg2PUYODXqs6I-FaVQ-nzficLL5HCrkr_wuGyKfapfxVMfxEMHAwq4m_ni2Ce2vFaQMz9zpd-8wwKmy23DSJZqIQ6s78kgVc93EEUq7mjCoLiyZRVfIiSjjZyOgNqZCZ05aX4xgfFfVwgFZbkRcbkkifLcr3Kv6LJslzrlAH5EG9L--vkNkUnWyPOWWvxYmCmaShPl7hK0QMr8frJNqPSflSEsvme1C9-e0tRmJUKVM4Z1vtDG8DMHxZAWzwOr8FKXKZvEp2DKL_gVOdK5SJs8JlVkc2gB_SwAmt49cDuEx_oeMJcM9LzkCLH1URCtfF66aCJAM6ZdQr1JbpyFF5VSXtCEd9YvKr3x8kJ7g93VwL9EbzrXimtrfaujGelLg_0t1ya5ezare_x84yH5MeUS_vsoY9gfcLeb-RnDo8c0w4Vthg3vMrPEbotq-VecLFTpl0s0ZlamjYrenp8OK2XliwPRvXXe21q_Kih0ba5cmJvrkTDmb-LNiTGRK1cuVVpU5kddnO1OnbdMyJSQ2jX2lrL9rvGZXi8HAWQ3bnnSNcXLqHSJE3wA3J6OdfkgcR24igXllo7WlFi5VpRzOs-yVOZYoYpGRPRC1busqRLcHpBsGJ5tr65Ei-xboK59F-KBF24n0TKfGavGFSvevSRWbiv9bTpxRVpR6SvAxbv3hK8qruYjCvQvJmpOYKt5gObo85qQrwZsrk23dDjHIQS33_jZFl1u6MW0niZ9r_F9r9FvXnbtlXUNAC_IFat1x34b1uGvH0tU_wiLagnfukRqAg_Bz_wSImsoVzPgBa1ksSW7-DKlx2zr_Z8bvVSSdPdWd0aV7tl05bprV7WpxnNsLqki5iZT0G2YbePMQExEdthxuVnHVuhxwLa-qhjK_RIQE_Kz0S2Qtc-Ztl0bdtFtmbrYHNf5rv7Vck5nWi-PGeAfOfCTdWNb4y-aQP8K2di64r9jFpoP7cpZHvf2cFE-Y3VqIV1vOqmF2aHX2T2_3U1XvFdNfBaNAPuR1tWzk-klmW2c8t9R2TdhplBX2Bi3mxCXG8Vs6GcWciRWMo9MpRaSYi1stqc9uHDziEsHLsYuiJIlxndrHBevlazaWcvk1kTDSHl_hPfSxFE7FYuvDyzbEnb91JuWmm3Z7stjMc5qG8e3JNfGXg-ZsA2K6z_jTVdne2b5cULx4yIEa9kUoyFLzkD7-qO5i9Vgdou99pEqyrw7ngaCnGhhflYd8Vso0ajpJJ_4NjxO_xosnYKK9OvSVnq40QwjHOx4SJNWN48wjDNBxghu2GZpA1GIIoJveGigMGrsDCHYER2I8e9F5TEqTgexqN1ff-2vhT3p-KUnnSST6vLMfbl7B4TQnhpbf32byergTXsL6vBPdV442A57vko4uJgJXL68IG0wEqR7PY5nGMlImQSfRWYYZJvMD3egbCp3OOyYNKPxwOBUNBei9VT33Z8_NZ32fnkkurPz32s3XFVLaM569iquYMVvCrZRt_1WPPiL90jyHQ2hjZTrGQKyiCpdZPqLvDR48DHdXCLr5DFjJtvuue1_GDumklruv89v3kqMqNyczTpzXSGbHvwD2o1CMKDrfxfTdR_bvJX9fd_AQ" rel="nofollow noreferrer" title="C++ (GCC) – Attempt This Online">Attempt This Online!</a></p>
+<p><a href="https://ato.pxeger.com/run?1=7Txdb-RGcs_Rr-iVEXlmNKOdj8WerdHoYPtsYwHbt7G1AQJhIvSQrRnuckiGbOrDWuWP3MsBhzzmLb8mvyZV_cVusskZ7XrjHBDCXnGaVdXV1VXVVcVu_uU_gywuC_z_ah0E_3V5OCp4uAiOj6fjw-Hh6M_Tw-Vf_6Pk16Mv_vtf_vZZlARxGTJyBkBRerI5P6iaorTgOaNbuw1aomTtwgWIm3CnCX7z-4wVdiPNc3rvNMTrNI_4xunhhgU8ze2WOCoc4tdlEvAoTWhst5ZJmocsZ-FVwVxeNnmapOcHB8-ffxay6yhh5M0v3159_-PrA4C6hibzu0JabzMxSEJIdE3g2dVPb378-urrVxe_kGcL8vKFeMTyPM3JxSYqCPy3oXk4CtKQheQaml--GK0iTuJouyokdBJG1wefyT8HtOQpKTjN-UW0ZWQB9-HpqWT29LTgjIb3V0GcBu9OT5P0ttefHxygSJHfEsT7xRUnF4y_SkJ2N2998h0N2Jw8f07i9JYVnEwJ8FQQmjNSFopRSq4BikQIbwhdXQGlyfQL8k0Kcq06EFyKmTwTT4Zkdi5hZu1AsyF5cY485XTDQhjh_CCIaVFg08HDAciG3KRRCCxEHDkuen3RKB_hhRx-xTkNAP9yvARx_fTmhx_EyDj8HvLLCf4zXfoxJq0YsxaMqQ9j2oUxq2FM6hiPB1m5iqPgVPyypEH4XDeRgUPzxdI8EdMpJ0l0MBmtKMzgnIwXZQKyjNYJCzVwj3iuPjkl8KRPHiw5zx8NTpAmBXf4OuISh3txxJTJngVzPcPlUcLu5G19HsGYemIMZLEg4_6BzZ9qJwb5-HiuBPeoFeZ1Gt9zENMpkbKUqiZ9xtkFGv5DXcqSJUN0XvGes0I9Bp_WK6JfGVjOdZQXMF6QsLBr7WxIsUnLOCRJysmKkYDGMZgPDIdvGMkUVxtaJJ9zcs8QhiXQnpUx5WpeKilUCgTm1xOegC9WbB0lIFzCny3AR-Dd8TF3RcRH51pK47l50htwYLV_KVhfnmiISQVhRg_NU0uo4BPJDcu51KwIZpek10KtC3ILnplEIUt4BKMlwSbKaRzx-wNwWtAECJzwSlmEboDCwn9koYz6YTwkkyGZgpN4HJqWmWy0WqayUbdMxE9oHEMLcunv8dtwDT2-XApbtXu06JheFDXDg92XBTNTPcLCkNgrg3RjJM1YTkHVjpWxqOYjOiRuw6qvGFINgRR6IH0XxT_HZAV_dPtEtk9k-8S0T2X7VLZPVXvOeJknSPWxztroN2Bt1MLaqIW10X6sDTpZI3swNiCrJldWY8WSaWzwQ8KU7y0jhY2dD1Zy1rDPwUrOFHY1kGN_NCt7LagQrmab_YpxiVpUe_iTk6Ow4Lpns94eFXmgezeNdFVAMwYJ8O8ZGZM_khHenmKDHCeSjLZZmvOeIAvKPALl_gL0Xvx3JGn0JTT6YUWr8jBIImFriQ__9O1RmQVbm9-fwXHENANWawPWpDgaLMsLcM4_lVupAsOq7U8sSbdRIltLC-LGui9vXLDq2S_ldm51FTCkC0vtEFx0vqWxuOXbTPzNxtlE3JjewaW_TuGXaA1ZzKm4Y-BTJuZuCnd2JxT9m9u0ajZBiEyTdcyg2TwRSgAKYMlPKQHIWZLQmuAswEIZ3MVDrBnoCrPFeE6ysxfwz_Gxu04YmBBhwrMZ_FOH0Qxbaom8ZMvLEHiBjuVtXy8XZhhoP0qBYQUtY6PDWkjVWLSMZsv6KPDJtozhrqeJoJENhefpzx04GoYAasFNBNxkJ9xUwE2rMbQEYEqVG1GnsCmIe4reJ9bkoQgcreHsmsAHZyo1nz1lBaEtGQdA2UY7AFpM-1NhR-2Pm9bVDittrv25tMTu51P3-ePeNvLwZGt58NqO4IQ6huIFWXlBHvfgfPaR1i0nVXukpkX_-55mEMSM5n8PdiAY7TQECdFlCRKi1RTk43ZbkM_3NAYJ3GENEqDDHCqA390eJCvdBiFhfj-LUJPbbhJ6rf7KlxHfQSpcW8cherxzcmJ4_vWeuCsLd5WmsYmVe_2GGWJKSt8xQsMbmnC6ZpirYfoJ-RpEHRvKxS9-m9pZkiz25GwNmWhOaBLi0rzOSzCQIf60yb8tgeVgw4J3GCDS5F5EQaIbaxyH9LCyeZUnIqyoItVhV4cndg9_SjFBDtIS5iri2EuaxPeCb4gzMzQTJEET2XPVzUlTHxACnAfOuLo9e2lu27XbjkwG2VgkDI2sUlFZQjCynHegT3agT-rohnuUluJe3aJVqtv9rA0YkF4s-pWFllapkBTlLUoCZEaEZKUqKI1hYvbFrxcwgVL0WPAABiHfD7BwESVrASB7afBgxhLhKCLkP_JZnQO7w0L15R9YhMYKIj9aXTZKD0p0SwBCqKbzAXF8I5YFmENI83AFEmWOOMaKDkSOPMriiEEieg8SC9JtBuICCaUkzaM1gMc24omP_vdMZyK6joLEKKyrdI3CxNor1luw0vK5TW2OcvZRDKObqMD6k2AKC81bwySsotzMkeY_oFyDN1l8yiyo3KBaSodk0PNPy1j4UI-_t3z3pM13f6iGqIjf5m8PVrOdrO7ovmmKmhlMnU1UYTHj6cziH-btqoxsxDbWZ4L1IZl5CD5-gvEU5QpjILLH1GOG3T1SJKYipqEPRlz6cRux5igxF23GpIToKoAoAXgoOXhOQKrxkFkPIko0AKEsZCyxzXDy_JTGPvRr0hPojeq3vmB9AZsu5VsbuQgWBDwRFpxjdEbSd99uomBDbhmMpFpRaYErZ6oKM219n_m67lZrv4h9rR0q4BByJOVr3Wv6cUi-ebDyjXGfnIGwyfv3esb2TmL65Hz3NPmc9sWGFcxZZXDhhRmsrTK-Tj-BIWNRxJeNKKvdW_6anqqztJFUVtyU8tP8lgoqZr9hUKGFYYL_aNnp3CLl3PaUDwYYOnjGJdkWUBVgRUkRhTIM03x8Iuetk0pf2RNbjRjGLemaTUwnoBbaRERj4voAYlOX2PRJxJp6YxUU7dKDlMHEFHTHbWkpsIWq0cQdG9xJG67q96YVd9KOq_pt4k4MbivPerxuSUV3uPeQfeg7Rt1YAmtEPnLt-y3XLntGyy5fZCPdeKtXO5Aapa2PXM7KzmUMIW6aEE-VrA6j64U4f_2uZVr1ytog4ojAP3t4qddsPK9z6CsIKeBrGhdM120-Y_DjQI20VncZUPDwq7lT_N9Z46GYZd7tW9VZ2dD_X8f5X6njqHe1ooLTG9D-U4o4GneyG_eTVXBsJfKGH_-3CjhtEZKQ4KrfXY9peg39jl8WSxbk4UG-ph4_PopxP7Uc83ddjemobDdg9wx1TfWBHC9a5i7zl8nUzEicD6-T4GWKGqSNB1HTIAMQ5qhiuYUnb74JlDGX11l7W5ECyGe-mKRG2FqtaoT9FziQFsJyo5uP7O-U-XuZeUI41SL8UbPdHyS1yHjka983VvLwpIMkzyNI5r2J3O-c3yt7a6RoIBxY2wZ-wR2TntY9G6RjDlQ31uaUDtveI_e2cuhW646WLfx_ytxZDVQkUWThkevITi9bBSXSIMC3sl0FsD_-1MafPgXfCr_REamEcKATOqChE8yBztLaKN00KSmsidzT51CfdPF049qupmGzpWl0sIWWWyP1gRmhS-UJzsyR7qjc4bocCY5udkDXpTRyGvZ1bWXTpd24TR8ksIrEsUOvlql9qiRNbCXE_bVy77jY5v4Tu8Xd57j5_QhSGfmX8YtU7oK_SPVmMivmru0UPUrY7T_LbcxgcCfc6LDdbkeY4uHHRIgymOvaVlEpHgpeVD0wyDED6J60faIsMzgV5TlCO-F2fPeoB_wdxs3gpmVWwG7V7u-Dffp0-ls4P5_PwNFP0bPVeLCGXHGDvj7NZLaYwj-5kbFXqjO_VBFAOOjWxCNbPk2gqDmT40y9Y26Ic1KXJz9pOZbiezrpfDrtfCqOlrhGoeAcHh0cLQWBiRt5D8T0YzbprSyoTOaEfAv4hMVsy-SaS0lRrgr2b1hpsNGGsmKAk3hD45LJEwQy57yFSWXYYcQ_L5SdI20InMRJpFwfRFI4TEW1wgJ7AYayWE7YgCWC1YDTuAZ60L3oqBiSFQtoCSEY5SRmFIY0EajYo3ifT-Nbeg8dxzkeo8LX-5qHvmQiZ1saJciqjw278tGTTchTwkBPkdivLE-H2JnmQxRt0kRE7LonKdEg4vF9_0Rtn_4GsticFQULdx1kMae36idapOfMMjwiookcqQMotvfUXYnivzLzH2l2-UK-DhDy-jnlIj_ta7O0DoFUGEuhH4FhfZSWPCu5Mdq51hYvnjBynbBrFFVeqrisGbfz7MQ-Y6RGelKdMPLY-JVVmtH3aPFXnuKMGyAgdo5SYeF3EhbrGxoPFk1HbOQfyWzewL82iOj9KnngL5d2LTjCheKZO3SvSTeXZ_-qL86TaXXEHwuyB3WXhoU-Ot93IvDKymJztaLBux5ctkL3ey4T8rjSiEz6fXJ2RqZ9kLIWeI1mQ9SaO6TrnonCCyw3BnfiDMEZso2-xHOdruk05Wwj6NNpNj9msqfm6F5DszChaWO1UpbGqlbTnEtNaykYb18Exx510bj1IVjsT5a-pdURWCNTsNBne6DXcwMLfboH-rQdfbwHej3_fT5A8zO2C8a7q4ArjqOJ92DOwJuRd10uzkA7waUctlkt3h48d21UrgZmEbBtfmiRG5qJb2wSlqcBE7plRYa2BKuRCrE5g2UMNO_sXPwsIPwPxEnHzVljNTuvuXGxpqlzldYLEX3Wqr4W6mWsrwL-JGV3Act4i6-2qRcMFtyFPoh5gq29mvOozlpGCw0XmEOX0bOq0Zy-jJqmIzr6V3VaW0gBj1zPplf8_OGxN4jQe43vvmSzP_zhy9WXWKcRGODYXvbNr_NzcHMudypfwseNuZmLyUF1w6BFrHA0XweQF21oDrOdr28ulzolUmcl7bcL4pQ5WcjJqWT48DD6cij-e1QnIE0rwf_cViJgPa1EUpCsIqN40zxVoIuTCkBMxECJvJDphBSqc5Dfo2NSPBoTD8QWoOG9BmCv3xeVVBqGBHSY3xMZXWGtFIMSIRWI5_Th3d6W0UQmfajejShZ6oLSN-jqRvXzjSjAGo9uQ61iupGRwFgN24QoGnExmc_rqY2QTVDmGPLu_XEAo6CKQZe5Slx105CUIaRDHTUYcH94Sg7xr0MJ28mlaHdYCstcOJarAKLxM-fRFgLyqGBg0mFx3rOHNaq-f9A_EXXsXl_2sC2WVR9gjtZ7CJFN16V_7nDZFtxJtliei07-qYSJDiFvAWGDB6UiwUAlvYYMpa13vFaQVLyrG6nQyaZS2Gy5Yzg-roS6AHewoyCAKNZwJzUExZNp0y5V9V_R0U4Oz77nN8zQlLbyShwgpfhKGaTCkqLMmay-srzQLxw2NFlXZVeZcYzxtvK_Ys0ImIz_xCRbGueUfbwYfeh-LDe6ukYxAC_x-oN9Rm38aAjV8N0sQvSGH1hQFBaVAVVrhvX8mQ1g1g8LoCvhgMfgJS7SN4lOsqpj-k2uVLJlgy-sjmwGPaDParCGVw_sPgGQDpjMtSADDylyVM-U6oPXVYw2ArhmNik0q4WVFl7WSXtiLZ8uXjbn4_gYt6q5RUl_iuJWc5XV1mdXBuzSljHx2SFn1299ix-deUa-T7n0zx76CDYk7C6DBQ_CjUPHtUOHHc4NL3YX8d6ovvv58cD5KSSfCMG5Ije9tO2b8Mw45OmN1orl0aT5eK_9FR-lGl37PGb2Pg90nMW7KCMxVqJkEVnVhWT5yy1G6eC80WHLe1epQrvKfB07AVrfCODlGICczj01XV9YzaVJmuBXQnRl2SS6YmdTVAhPrQOtKLGKSSjm7ZAUqayhwZKMlbYVqzZ80DUEvSBYUSlu7vPAS-y4wmLhz2WCIdwPoia4sN8-1K9m9pFbuK_1sunFFXUVpK8TFu9rLrzqL1RNKND-XtWvBXjVCx7-LjWkXfFrh2zvTQ_0qAChxPdfOWUkPe6ogzReZvxvcfxv0W7edu1aMQPAz1PU-3UV_22HytvXOsXvbIF54ud8gIqIc_ArPpTIHqqCLYyokySOfAdXvvTfvroLVvVLVYV2l60aXO2WTVcpq35Z398xanVBVzEz3_vpwu7WMQExE2_mptW3ezqhpwLa-nJPJ_REQM-qbwF1Qje-WNR2PXaLbMu2QXZfFfSGdck5kzgUaVt6XcH7jqiZrlufGHvTDvgXzsRbNPs3WqH9u8sgu-fOTiaqD2lFHazj1XS9sDr8LMubr-v5iu9qgDeyGQg_6gWW3UQaZTS7eDZ0RNZvWRn0BS7mTRbiCyWxGsqVhRyKd1WHhlInCfEyoLGmvX-_U4VFYBfDVATpOqfZBtflK7Wa9vZymQ3REHKicoqh96FIInYbF16eVbai7XsoaPe7_dluD-MJDpr7GPbkVyaeT1HYdoP1P7GWq1M_ZT8e6ozIES9lUYyFrziD6OqWFq9Ug3pz_9pkqyrx7nkGCnmhhfnUcMXs6EKnpIp_ENjxW_wyng4Ka8uvKVnqnc2gxoV4o5wmrGjXMCzzAUbIrlkuaYMTiGJCr7loYPAoLM1-XFHdKPDlMiVxKnaq82jb3EqmL8X9iTgwIIPkE97hX6zP-oFDQiG8snahearPPjBfQdoH96HOG5XlaOCjiG8_apnT-_ekA1aKZHfM4exwFSmTmKvAqEmRYXm8B2lT9RJ_xWQcj2cToKG7F2umvu75-B2dd02clkuqv4TzsX7HNbWcFqxnm-YOVvCqVRt911Pdi791jyTT2aPSTrFWKaiSpM79MrvAJ08DnzbBLb5CFjNuPtxZNOqDhesmreX-t_z8mqiMyn1aZLDQFbLHg39Qb4MgPXiU32pWn2z-q_r7Pw" rel="nofollow noreferrer" title="C++ (GCC) – Attempt This Online">Attempt This Online!</a></p>
 <p>This matches the output of wastl's program up to 12 terms, and does so much faster (<s>62</s> <s>65</s> 2600 times faster on my machine).</p>
 <p>Certain design elements were quite natural and are shared between both our programs – namely, the use of 128-bit integer coordinates, the coordinates of the starting tetrahedron, and multiplying all coordinates by 3 for each successive term. The remaining details are implemented from scratch though, without consulting wastl's program.</p>
 <p>The fact that both versions of my program agree with wastl's up to <span class="math-container">\$A276272(12)\$</span> strongly suggests that they're all correct up to that point (and beyond it by using larger integers), and that the OEIS entry can finally be updated.</p>
