@@ -656,7 +656,7 @@ int main(int argc, char *argv[])
 <p>The fact that both versions of my program agree with wastl's up to <span class="math-container">\$A276272(12)\$</span> strongly suggests that they're all correct up to that point (and beyond it by using larger integers), and that the OEIS entry can finally be updated.</p>
 <p>My previous version used affine transformations to rotate each polytet for comparison and deduplication. I wanted to keep that version up, rather than relegating it to the edit history, but the 65536 character limit prevented that.</p>
 <p>This new version does its rotations entirely while remaining in tree representation, using Cartesian coordinates only to check for overlaps between tetrahedrons.</p>
-<p>Compared to the previous affine transform version, it's 32 times faster when both are in <code>USE_GMP</code> mode. In basic 128-bit integer mode, it's 41 times faster. In both modes, it uses about 32 times less RAM than the affine transform version (about 27 times less RAM than wastl's program).</p>
+<p>Compared to the previous affine transform version, it's about 40 times faster and uses 32 times less RAM (27 times less RAM than wastl's program).</p>
 <p>It does deduplication by serializing the tree representation with every possible choice of singly-attached tetrahedron as its root node, doing 3 rotations of each, and choosing the serialization that is lexicographically least for hash-table comparison against polytets that were previously identified as unique using the same method.</p>
 <p>As such, it's conceptually similar to the previous version – both take advantage of the fact that all polytets have some tetrahedrons that are attached on only one face, because due to a tetrahedron's dihedral angle being irrational, a polytet can never curve around and attach to one of its own faces.</p>
 <p>So, the computationally expensive affine transformation is replaced with a tree re-rooting. This operation now being very fast, it can do a new optimization: Delaying the tetrahedron overlap/collision checking until after deduplication, so that a provisionally new polytet won't be checked for overlaps just to find that it's a duplicate.</p>
@@ -668,15 +668,15 @@ int main(int argc, char *argv[])
 4: 4 [0 ms]
 5: 10 [0 ms]
 6: 39 [2 ms]
-7: 164 [12 ms]
-8: 767 [72 ms]
-9: 3656 [399 ms]
-10: 18186 [2288 ms]
-11: 91532 [13316 ms]
-12: 468203 [78887 ms]
-13: 2417722 [467574 ms]
-14: 12595984 [2817342 ms]
-15: 66068726 [16595584 ms]
+7: 164 [13 ms]
+8: 767 [75 ms]
+9: 3656 [400 ms]
+10: 18186 [2347 ms]
+11: 91532 [13428 ms]
+12: 468203 [78222 ms]
+13: 2417722 [459991 ms]
+14: 12595984 [2762236 ms]
+15: 66068726 [16173756 ms]
 </code></pre>
 <p>In this <code>USE_GMP</code> version, it is no longer possible for the calculations with Cartesian coordinates to overflow. As such, it could in theory keep going up to <span class="math-container">\$A276272(63)\$</span> given enough time and RAM, at which point it would no longer be able to serialize polytet trees at 1 byte per tetrahedron.</p>
 <p>There's still plenty of room for further speed-ups, such as adding multithreading, and applying various more specific optimizations. Disk storage and merge-sorting could be used to do away with the RAM limit, allowing time to become the only limit.</p>
@@ -697,7 +697,7 @@ int main(int argc, char *argv[])
 14: 349124 [549295 ms]
 </code></pre>
 <h2>Output from the affine transform version</h2>
-<p>The version uses about 20% more RAM than wastl's program.</p>
+<p>This version used about 20% more RAM than wastl's program.</p>
 <p>In <code>USE_GMP</code> mode:</p>
 <pre><code>1: 1 [0 ms]
 2: 1 [0 ms]
