@@ -26,41 +26,39 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>180</td><td>JavaScript V8</td><td>251011T110513Z</td><td><a href="https://codegolf.stackexchange.com/questions/284076/dna-reading-frame/284087#284087">Arnauld</a></td></tr>
+<tr d-ix="0"><td>173</td><td>JavaScript V8</td><td>251011T110513Z</td><td><a href="https://codegolf.stackexchange.com/questions/284076/dna-reading-frame/284087#284087">Arnauld</a></td></tr>
 <tr d-ix="1"><td>148</td><td>Retina</td><td>251011T125836Z</td><td><a href="https://codegolf.stackexchange.com/questions/284076/dna-reading-frame/284089#284089">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://v8.dev/" rel="nofollow noreferrer">JavaScript (V8)</a>, 180 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://v8.dev/" rel="nofollow noreferrer">JavaScript (V8)</a>, 173 bytes</h1>
 <p>This assumes that all possible sequences are valid, whether they overlap or not, and with <code>ATG</code> possibly appearing in the middle.</p>
-<p>Expects an array of characters and prints each match on a single space-separated line.</p>
+<p>Expects a string and prints each match on a single space-separated line.</p>
 
-<pre class="lang-javascript prettyprint-override"><code>a=&gt;[1,-1].map(r=&gt;a.map((c,i,b)=&gt;b.slice(i).join``.replace(/^ATG(...)*?T(AA|AG|GA)/,s=&gt;print(j=~r?i+1:b.length-i,j+~-s.length*r,r*i%3+r,s),a=[&quot;TCG.A&quot;[c.charCodeAt()%5],...a]),a=[]))
+<pre class="lang-javascript prettyprint-override"><code>s=&gt;[1,-1].map(r=&gt;[...S=s].map((c,i)=&gt;S.slice(i).replace(/^ATG(...)*?T(AA|AG|GA)/,s=&gt;print(j=~r?i+1:S.length-i,j+~-s.length*r,r*i%3+r,s),s=&quot;TCG.A&quot;[c.charCodeAt()%5]+s),s=&quot;&quot;))
 </code></pre>
-<p><a href="https://tio.run/##TU/RaoMwFH3vVwShNNGYImMwWmIJMsLe8yaOxsy2EaeSuL6s66@7q@3Kwr1wzrnn3CS1PmtvnO2H@PwyHvioeZonNE4K9ql77HiqZ4ANtbQkPC2Zb6ypsCWs7my73zNX9Y0GZf0ulMSMMRLuFBbiIuRFCrKmnqe9s@2Aa351Oxslm5I1VXscTrGldXSN/Z2GjrrQLp8iRz2hmueByiQTQW6YOWmXdR@VGDBZPhcUrtHF7CkIGbf5AqFAKHhAJqGUAAQtMhCAgKZgCAOZCaUyFdA5AK6bewqCRYrbAMzg@8P3c8/MK6aGEPRDhZrooliwQ@detTlhj3iKvpHpWt81FWu6I169tf3XsEErFCFPtuiAc/iKLwD@twH9IdvxFw" rel="nofollow noreferrer" title="JavaScript (V8) – Try It Online">Try it online!</a></p>
+<p><a href="https://tio.run/##TY1Ra4MwFIXf/RVBKE00psgYjIqWICPs2byJBcm0RpxK4vqyrn/dXasbC/eGe@75TtKW19Iqo8cpuL7MdTzbOMlDGoQF@yhHbEAxxrLYrhorqkmcZMx2WlVYE2aqsSthPJy5FBhY4p0k5vzGxU1wcqDw4Gh0P@E2vpuT9sNjxrqqv0xNoGnr3wO7Sc9Q4@ndk2@oJRBzZSoYd3PFVFOadHiv@ITJ7rnwV9slZI5yByGXS/g7FVCSwwTNU1iAgJ0EEwyRcilT6dJHAKiVXoKACL4aAAP3O29nyzyeWBpC0H9bqEU6hcPqwbyWqsEWxQn6Qmro7dBVrBsueP/Wj5/TEe2RjyyJUI2X@z8B8ptE8w8" rel="nofollow noreferrer" title="JavaScript (V8) – Try It Online">Try it online!</a></p>
 <h3>Commented</h3>
-<pre class="lang-javascript prettyprint-override"><code>a =&gt;                            // a[] = input array
+<pre class="lang-javascript prettyprint-override"><code>s =&gt;                            // s = input string
 [1, -1].map(r =&gt;                // for r = 1 and r = -1:
-  a.map((c, i, b) =&gt;            //   for each character c at index i in a[],
-                                //   with a[] aliased as b[]:
-    b.slice(i)                  //     take the slice of b[] starting at i
-    .join``                     //     join it
+  [...S = s]                    //   S = copy of s
+  .map((c, i) =&gt;                //   for each character c at index i in S:
+    S.slice(i)                  //     take the slice of S starting at i
     .replace(                   //     look for:
       /^ATG(...)*?T(AA|AG|GA)/, //       a valid ORF
       s =&gt;                      //       loaded in s
       print(                    //       if found, print:
         j = ~r ? i + 1          //         j = starting position = i + 1 if r = 1
-               : b.length - i,  //             or b.length - i if r = -1
+               : S.length - i,  //             or S.length - i if r = -1
         j + ~-s.length * r,     //         ending position = j + (s.length - 1) * r
-        r * i % 3 + r,          //         frame = (r * i) % 3 + r
+        r * i % 3 + r,          //         frame: (i % 3) * r
         s                       //         the matched sequence s
       ),                        //       end of print()
-      a = [                     //       build the reverse sequence in a[]
+      s =                       //       build the reverse sequence in s
         &quot;TCG.A&quot;[                //       by prepending the complement nucleobase
-          c.charCodeAt() % 5    //       using its ASCII code modulo 5:
-        ],                      //         A = 65 -&gt; 0 -&gt; T, C = 67 -&gt; 2 -&gt; G,
-        ...a                    //         G = 71 -&gt; 1 -&gt; C, T = 84 -&gt; 4 -&gt; A
-      ]                         //
+          c.charCodeAt() % 5    //       using its character code modulo 5:
+        ] + s                   //         A = 65 -&gt; 0 -&gt; T, C = 67 -&gt; 2 -&gt; G,
+                                //         G = 71 -&gt; 1 -&gt; C, T = 84 -&gt; 4 -&gt; A
     ),                          //     end of replace()
-    a = []                      //     start with a[] = []
+    s = &quot;&quot;                      //     start with s = &quot;&quot;
   )                             //   end of inner map()
 )                               // end of outer map()
 </code></pre>
