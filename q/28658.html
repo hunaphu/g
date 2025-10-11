@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::28658</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>187</td><td>JavaScript ES6</td><td>140529T212042Z</td><td><a href="https://codegolf.stackexchange.com/questions/28658/world-ipv6-day-2014/28770#28770">core1024</a></td></tr>
+<tr d-ix="1"><td>nan</td><td></td><td>140528T171053Z</td><td><a href="https://codegolf.stackexchange.com/questions/28658/world-ipv6-day-2014/28711#28711">edc65</a></td></tr>
+<tr d-ix="2"><td>276</td><td>sed</td><td>140602T232105Z</td><td><a href="https://codegolf.stackexchange.com/questions/28658/world-ipv6-day-2014/30040#30040">kernigh</a></td></tr>
+<tr d-ix="3"><td>nan</td><td></td><td>140528T072225Z</td><td><a href="https://codegolf.stackexchange.com/questions/28658/world-ipv6-day-2014/28689#28689">mniip</a></td></tr>
+<tr d-ix="4"><td>387</td><td>Python 3</td><td>140528T011300Z</td><td><a href="https://codegolf.stackexchange.com/questions/28658/world-ipv6-day-2014/28663#28663">Nick T</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h2>JavaScript (ES6) - <strike>198</strike>, <strike>183</strike>, <strike>180</strike>, <strike>188</strike>, 187 bytes</h2>
+
+<pre><code>f=s=&gt;/^(:[\da-f]{1,4}){8}$/i.test(':'+(s=s[r='replace'](d='::',':0'.repeat((n=8-s.split(/:+/).length%9)||1)+':')[r](/^:0|0:$/g,n?'0:0':0)))&amp;&amp;[s,s[r](/(\b0(:0)*)(?!.*\1:0)/,d)[r](/::+/,d)]
+</code></pre>
+
+<p>And, a bit longer, interactive version with some pop-ups (203 bytes):</p>
+
+<pre><code>/^(:[\da-f]{1,4}){8}$/i.test(':'+(s=(s=prompt())[r='replace'](d='::',':0'.repeat((n=8-s.split(/:+/).length%9)||1)+':')[r](/^:0|0:$/g,n?'0:0':0)))&amp;&amp;alert(s+'\n'+s[r](/(\b0(:0)*)(?!.*\1:0)/,d)[r](/::+/,d))
+</code></pre>
+
+<p><strong>Ungolfed:</strong></p>
+
+<pre><code>function ipv6(str) {
+    "use strict";
+    var zeros = 8 - str.split(/:+/).length % 9
+
+        ,longIP = str
+            .replace('::', ':0'.repeat(zeros || 1) + ':')
+            .replace(/^:0|0:$/g, zeros ? '0:0' : '0')
+
+        ,shortIP = longIP
+            .replace(/(\b0(:0)*)(?!.*\1:0)/,':')
+            .replace(/::+/,'::');
+
+    return /^(:[\da-f]{1,4}){8}$/i.test(':'+longIP) &amp;&amp; [longIP, shortIP];
+}
+</code></pre>
+
+<p><strong>Explanation:</strong></p>
+
+<p>To calculate the long version of the IPv6 address:</p>
+
+<p><code>8 - str.split(/:+/).length % 9</code> - calculate how many zeros we need to insert. They are 8 - the number of the hex values. Here % 9 is a guard so it will never be a negative number.</p>
+
+<p><code>replace('::', ':0'.repeat(zeros || 1) + ':')</code> - replace the "::" with colon separated zeros. If there are no zeros to add it still adds one so the address won't be valid in the end</p>
+
+<p><code>replace(/^:0|0:$/g, zeros ? '0:0' : '0')</code> - this deals with the special case when the address starts or ends with "::" as the <code>split</code> function adds 1 to the number of hex values (::1 -> ["", "1"])</p>
+
+<p>That's it! Now let's calculate the short form:</p>
+
+<p><code>replace(/(\b0(:0)*)(?!.*\1:0)/,':')</code> - replace longest row of zeros with colon(s) (It doesn't matter how many).</p>
+
+<p><code>replace(/::+/,'::')</code> - remove the extra colons if any</p>
+
+<p><code>return /^(:[\da-f]{1,4}){8}$/i.test(':'+longIP) &amp;&amp; [longIP, shortIP];</code> - test if the long version is valid IPv6 and return both versions or <code>false</code> if the test fails.</p>
+
+<p><strong>Tests in Firefox:</strong></p>
+
+<pre><code>&gt;&gt;&gt; f('1080:0:0:0:8:800:200C:417A')
+["1080:0:0:0:8:800:200C:417A", "1080::8:800:200C:417A"]
+&gt;&gt;&gt; f('FF01::101')
+["FF01:0:0:0:0:0:0:101", "FF01::101"]
+&gt;&gt;&gt; f('0:0:0:0:0:0:0:1')
+["0:0:0:0:0:0:0:1", "::1"]
+&gt;&gt;&gt; f('::')
+["0:0:0:0:0:0:0:0", "::"]
+&gt;&gt;&gt; f('1:0:0:2:0:0:0:3')
+["1:0:0:2:0:0:0:3", "1:0:0:2::3"]
+&gt;&gt;&gt; f('1:0:0:8:8:0:0:3')
+["1:0:0:8:8:0:0:3", "1::8:8:0:0:3"]
+&gt;&gt;&gt; f('1:2:3:4:5:6:7:8')
+["1:2:3:4:5:6:7:8", "1:2:3:4:5:6:7:8"]
+&gt;&gt;&gt; f('ABCD:1234')
+false
+&gt;&gt;&gt; f('ABCDE::1234')
+false
+&gt;&gt;&gt; f('1:2:3:4:5:6:7:8:9')
+false
+&gt;&gt;&gt; f(':::1')
+false
+&gt;&gt;&gt; f('1:2:3:4::a:b:c:d')
+false
+&gt;&gt;&gt; f('codegolf puzzle')
+false
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>Javascript (E6) 246 <s>305 284 292 319</s></h1>
+
+<p><strong>Heavily revised</strong>
+Special case for :: specifically handled, compress phase avoids the for loop (but not very shorter indeed)
+<s>I'm sure that the final compress phase can be made shorter. Not now anyway</s></p>
+
+<pre><code>F=i=&gt;(c=':',d=c+c,z=':0'.repeat(9-i.split(c,9).length)+c,i=i==d?0+z+0:i[R='replace'](/^::/,0+z)[R](/::$/,z+0)[R](d,z&gt;c?z:d),/^(:[\da-f]{1,4}){8}:$/i.test(k=c+i+c)&amp;&amp;[i,k[R]((k.match(/:(0:)+/g)||[]).sort().pop(),d)[R](/^:([^:])|([^:]):$/g,'$1$2')])
+</code></pre>
+
+<p>Thanks to <a href="https://codegolf.stackexchange.com/users/20160/nderscore">nderscore</a> </p>
+
+<p><strong>As a program</strong></p>
+
+<p>Input and output using js popup, basically: <code>p=prompt,p(F(p()))</code>
+Rewriting with popup and without the function definition, the char count should be under 260</p>
+
+<p><strong>Ungolfed</strong> 
+and commented a bit</p>
+
+<pre><code>F = i =&gt; (
+  c = ':',
+  d = c+c,
+  z = ':0'.repeat(9-i.split(c,9).length) + c, 
+  i = i == d ? 0+z+0 /* special case '::' */
+    : i.replace(/^::/,0+z) /* special case '::...' */
+       .replace(/::$/,z+0) /* special case '...::' */
+       .replace(d, z &gt; c ? z : d), /* here, if z==c, not valid: too much colons */
+  /^(:[\da-f]{1,4}){8}:$/i.test(k = c+i+c) /* Check if valid */
+  &amp;&amp; [
+   i, 
+   k.replace((k.match(/:(0:)+/g)||[]).sort().pop(),d) /* find longest 0: sequence and replace it */
+    .replace(/^:([^:])|([^:]):$/g,'$1$2') /* cut leading and trailing colons */
+  ]
+)
+</code></pre>
+
+<p><strong>Test</strong>
+In console</p>
+
+<pre><code>i=['1080:0:0:0:8:800:200C:417A'
+, '::1:2:3:4:5:6:7', '1:2:3:4:5:6:7::'
+, '1:2:3:4::5:6:7:8'
+, ':1:2:3:4:5:6:7', '1:2:3:4:5:6:7:'
+, 'FF01::101', '0:0:0:0:0:0:0:1'
+, '::', '1::', '::1', ':::1', '1:::'
+, '1:0:0:2:0:0:0:3', '1:0:0:0:2:0:0:3', '1::8:0:0:0:3'
+, '1:2:3:4:5:6:7:8'
+, 'ABCD:1234', 'ABCDE::1234', ':::', '::::::::::'
+, '1:2:3:4:5:6:7:8:9', '::::1', 'codegolf puzzle'];
+i.map(x=&gt;x+' =&gt; '+F(x)).join('\n')
+</code></pre>
+
+<p><strong>Test output</strong></p>
+
+<pre><code>"1080:0:0:0:8:800:200C:417A =&gt; 1080:0:0:0:8:800:200C:417A,1080::8:800:200C:417A
+::1:2:3:4:5:6:7 =&gt; 0:1:2:3:4:5:6:7,::1:2:3:4:5:6:7
+1:2:3:4:5:6:7:: =&gt; 1:2:3:4:5:6:7:0,1:2:3:4:5:6:7::
+1:2:3:4::5:6:7:8 =&gt; false
+:1:2:3:4:5:6:7 =&gt; false
+1:2:3:4:5:6:7: =&gt; false
+FF01::101 =&gt; FF01:0:0:0:0:0:0:101,FF01::101
+0:0:0:0:0:0:0:1 =&gt; 0:0:0:0:0:0:0:1,::1
+:: =&gt; 0:0:0:0:0:0:0:0,::
+1:: =&gt; 1:0:0:0:0:0:0:0,1::
+::1 =&gt; 0:0:0:0:0:0:0:1,::1
+:::1 =&gt; false
+1::: =&gt; false
+1:0:0:2:0:0:0:3 =&gt; 1:0:0:2:0:0:0:3,1:0:0:2::3
+1:0:0:0:2:0:0:3 =&gt; 1:0:0:0:2:0:0:3,1::2:0:0:3
+1::8:0:0:0:3 =&gt; 1:0:0:8:0:0:0:3,1:0:0:8::3
+1:2:3:4:5:6:7:8 =&gt; 1:2:3:4:5:6:7:8,1:2:3:4:5:6:7:8
+ABCD:1234 =&gt; false
+ABCDE::1234 =&gt; false
+::: =&gt; false
+:::::::::: =&gt; false
+1:2:3:4:5:6:7:8:9 =&gt; false
+::::1 =&gt; false
+codegolf puzzle =&gt; false"   
+</code></pre>
+</div>
+<div id="pu2" class="pu"><h1>sed, 276</h1>
+
+<p>I have 275 bytes in ipshorten.sed, plus 1 byte for the <code>-r</code> switch in <code>sed -rf</code> to use extended regular expressions. I used OpenBSD <a href="http://www.openbsd.org/cgi-bin/man.cgi?query=sed&amp;sektion=1&amp;manpath=OpenBSD%20Current&amp;arch=i386&amp;format=html" rel="nofollow">sed(1)</a>.</p>
+
+<p><strong>Usage:</strong> <code>echo ::2:3:4:a:b:c:d | sed -rf ipshorten.sed</code></p>
+
+<pre><code>s/^/:/
+/^(:[0-9A-Fa-f]{0,4})*$/!d
+s/:0*([^:])/:\1/g
+s/://
+s/::/:=/
+s/(.:=)(.)/\10:\2/
+s/^:=/0&amp;/
+s/=$/&amp;0/
+:E
+/(.*:){7}/!{/=/!d
+s//=0:/
+bE
+}
+s/=//
+/^:|::|:$|(.*:){8}/d
+p
+s/.*/:&amp;:/
+s/:((0:)+)/:&lt;\1&gt;/g
+:C
+s/0:&gt;/&gt;0:/g
+/&lt;0/{s/&lt;&gt;//g
+bC
+}
+s/&lt;&gt;(0:)+/:/
+s/&lt;&gt;//g
+/^::/!s/://
+/::$/!s/:$//
+</code></pre>
+
+<p>I use 22 regular expressions, as sed can't compare numbers or make arrays. For each line of input, sed runs the commands and prints the line. During testing, I put several lines of alleged IP addresses in a file, and fed this file to sed. A reference to extended regular expressions is in <a href="http://www.openbsd.org/cgi-bin/man.cgi?query=re_format&amp;sektion=7&amp;manpath=OpenBSD%20Current&amp;arch=i386&amp;format=html" rel="nofollow">re_format(7)</a>.</p>
+
+<ol>
+<li><code>s/^/:/</code> adds an extra colon to the beginning of the line. I use this extra colon to golf the next two commands.</li>
+<li><code>/^(:[0-9A-Fa-f]{0,4})*$/!d</code> checks if the whole line matches zero or more groups of colons followed by zero to four hexadecimal digits. <code>!</code> negates the check, so <code>d</code> deletes lines with too big hexadecimal numbers or with invalid characters. When <code>d</code> deletes a line, sed runs no more commands on this line.</li>
+<li><code>s/:0*([^:])/:\1/g</code> deletes leading 0s from each number. It would change <code>:0000:0000:</code> to <code>:0:0:</code>. I must do this because my contraction loop only works with single-digit 0s.</li>
+<li><code>s/://</code> deletes the extra colon. It deletes only the first colon.</li>
+<li><code>s/::/:=/</code> changes the first <code>::</code> to <code>:=</code>. This is so later commands can match <code>=</code> rather than <code>::</code>, and so <code>=</code> does not count as a colon. If there is no <code>::</code>, this substitution safely does nothing.
+<ul>
+<li>Now <code>::</code> must make at least one 0, but there are three different cases for placing this 0.</li>
+</ul></li>
+<li><code>s/(.:=)(.)/\10:\2/</code> is the first case. If <code>::</code> was between two other characters, then <code>:=</code> becomes <code>:=0:</code>. This is the only case that adds a colon.</li>
+<li><code>s/^:=/0&amp;/</code> is the second case. If <code>::</code> was at beginning of line, then put 0 there.</li>
+<li><code>s/=$/&amp;0/</code> is the third case, for <code>::</code> at end of line.</li>
+<li><code>:E</code> is the label for the expansion loop.</li>
+<li><code>/(.*:){7}/!{/=/!d</code> begins a conditional block if the line has fewer than 7 colons. <code>/=/!d</code> deletes lines that had no <code>::</code> and not enough colons.</li>
+<li><code>s//=0:/</code> adds one colon. Empty <code>//</code> repeats the last regular expression, so this is really <code>s/=/=0:/</code>.</li>
+<li><code>bE</code> branches to <code>:E</code> to continue the loop.</li>
+<li><code>}</code> closes the block. Now the line has at least seven colons.</li>
+<li><code>s/=//</code> deletes <code>=</code>.</li>
+<li><code>/^:|::|:$|(.*:){8}/d</code> is a final check after expansion. It deletes lines with a leading colon, an extra <code>::</code> that was not expanded, a trailing colon, or eight or more colons.</li>
+<li><code>p</code> prints the line, which is an IP address in long form.</li>
+<li><code>s/.*/:&amp;:/</code> wraps the address in extra colons.
+<ul>
+<li>The next task is to find the longest group of 0s, like <code>:0:0:0:</code>, and contract it into <code>::</code>.</li>
+</ul></li>
+<li><code>s/:((0:)+)/:&lt;\1&gt;/g</code> eats each group of 0s, so <code>:0:0:0:</code> would become <code>:&lt;0:0:0:&gt;</code>.</li>
+<li><code>:C</code> is the label for the contraction loop.</li>
+<li><code>s/0:&gt;/&gt;0:/g</code> moves one 0 from each mouth, so <code>:&lt;0:0:0:&gt;</code> would become <code>:&lt;0:0:&gt;0:</code>.</li>
+<li><code>/&lt;0/{s/&lt;&gt;//g</code> opens a conditional block if any mouth is not empty. <code>s/&lt;&gt;//g</code> deletes all empty mouths, because those groups are too short.</li>
+<li><code>bC</code> continues the contraction loop. </li>
+<li><code>}</code> closes the block. Now any mouth is empty and marks the longest group of 0s.</li>
+<li><code>s/&lt;&gt;(0:)+/:/</code> contracts the longest group, so <code>:&lt;&gt;0:0:0:</code> would become <code>::</code>. In a tie, it picks the empty mouth on the left.</li>
+<li><code>s/&lt;&gt;//g</code> deletes any other empty mouths.</li>
+<li><code>/^::/!s/://</code> deletes the first extra colon unless it is part of <code>::</code>.</li>
+<li><code>/::$/!s/:$//</code> does so for the last extra colon. Then sed prints the IP address in short form.</li>
+</ol>
+</div>
+<div id="pu3" class="pu"><h1>Perl - 204 <s>176 190 191 197</s></h1>
+
+<p>(202 chars + 2 for <code>-p</code> flag)</p>
+
+<pre><code>$_=uc;(9-split/:/)||/^:|:$/||last;s/^::/0::/;s/::$/::0/;s|::|':0'x(9-split/:/).':'|e;/::|^:|:$|\w{5}|[^A-F0-:].*\n/||(8-split/:/)and last;s/\b0*(?!\b)//g;print;s/\b((0:)*0)\b(?!.*\1:0\b)/::/;s/::::?/::/
+</code></pre>
+
+<h3>Example:</h3>
+
+<pre class="lang-sh prettyprint-override"><code>$ perl -p ipv6.pl &lt;&lt;&lt; 1:0:2:0::3
+1:0:2:0:0:0:0:3
+1:0:2::3
+$ perl -p ipv6.pl &lt;&lt;&lt; somethinginvalid
+$ perl -p ipv6.pl &lt;&lt;&lt; 1:2:0:4:0:6::8
+1:2:0:4:0:6:0:8
+1:2::4:0:6:0:8
+</code></pre>
+
+<h3>Explanation:</h3>
+
+<pre><code># -p reads a line from stdin and stores in $_
+#
+# Convert to uppercase
+$_ = uc;
+
+# Detect the annoying case @kernigh pointed out
+(9 - split /:/) || /^:|:$/ || last;
+
+# Fix :: hanging on the beginning or the end of the string
+s/^::/0::/;
+s/::$/::0/;
+
+# Replace :: with the appropriate number of 0 groups
+s|::|':0' x (9 - split /:/) . ':'|e;
+
+# Silently exit if found an extra ::, a hanging :, a 5-char group, an invalid
+# character, or there's not 8 groups
+/::|^:|:$|\w{5}|[^A-F0-:].*\n/ || (8 - split /:/) and last;
+
+# Remove leading zeros from groups
+s/\b0*(?!\b)//g;
+
+# Output the ungolfed form
+print;
+
+# Find the longest sequence of 0 groups (a sequence not followed by something
+# and a longer sequence) and replace with ::
+# This doesn't replace the colons around the sequence because those are optional
+# thus we are left with 4 or 3 colons in a row
+s/\b((0:)*0)\b(?!.*\1:0\b)/::/;
+
+# Fix the colons after previous transformation
+s/::::?/::/
+
+# -p then prints the golfed form of the address
+</code></pre>
+</div>
+<div id="pu4" class="pu"><h2>Python 3: 387 characters</h2>
+<p>Even works with improperly shortened input.</p>
+<pre><code>$ echo '1::2:0:0:0:3' | python3 ipv6.py 
+1:0:0:2:0:0:0:3
+1:0:0:2::3
+</code></pre>
+<p>The double replace of <code>':::'</code> with <code>'::'</code> feels really bad but not sure how to cleanly deal with the longest string of 0's when it abuts one or both ends.</p>
+<pre><code>c=':'
+p=print
+try:
+ B=[int(x,16)if x else''for x in input().split(c)];L=len(B)
+ if any(B)-1:B=[''];L=1
+ if L!=8:s=B.index('');B[s:s+1]=[0]*(9-L)
+ for b in B:assert-1&lt;b&lt;2**16
+ H=[format(x,'X')for x in B];o=c.join(H);p(o);n=''.join(str(h=='0')[0]for h in H)
+ for i in range(8,0,-1):
+  s=n.find('T'*i)
+  if s&gt;=0:H[s:s+i]=[c*2];p(c.join(H).replace(c*3,c*2).replace(c*3,c*2));q
+ p(o)
+except:0
+</code></pre>
+<p>Replace the final <code>pass</code> with <code>raise</code> to see how it's <strike>crashing</strike> protecting against malformed input.</p>
+<pre><code>$ cat ipv6-test.sh 
+echo '1080:0:0:0:8:800:200C:417A' | python3 ipv6.py
+echo '1:2:3:4:5:6:7:8' | python3 ipv6.py
+echo 'FF01::101' | python3 ipv6.py
+echo '0:0:0:0:0:0:0:1' | python3 ipv6.py
+echo '0:0:0:0:1:0:0:0' | python3 ipv6.py
+echo '1:0:0:0:0:0:0:0' | python3 ipv6.py
+echo '::' | python3 ipv6.py
+echo '1:0:0:2:0:0:0:3' | python3 ipv6.py
+echo '1::2:0:0:0:3' | python3 ipv6.py
+echo '1:0:0:8:8:0:0:3' | python3 ipv6.py
+echo 'ABCD:1234' | python3 ipv6.py
+echo 'ABCDE::1234' | python3 ipv6.py
+echo '1:2:3:4:5:6:7:8:9' | python3 ipv6.py
+echo ':::1' | python3 ipv6.py
+echo 'codegolf puzzle' | python3 ipv6.py
+$ ./ipv6-test.sh 
+1080:0:0:0:8:800:200C:417A
+1080::8:800:200C:417A
+
+1:2:3:4:5:6:7:8
+1:2:3:4:5:6:7:8
+
+FF01:0:0:0:0:0:0:101
+FF01::101
+
+0:0:0:0:0:0:0:1
+::1
+
+0:0:0:0:1:0:0:0
+::1:0:0:0
+
+1:0:0:0:0:0:0:0
+1::
+
+
+0:0:0:0:0:0:0:0
+::
+
+1:0:0:2:0:0:0:3
+1:0:0:2::3
+
+1:0:0:2:0:0:0:3
+1:0:0:2::3
+
+1:0:0:8:8:0:0:3
+1::8:8:0:0:3
+</code></pre>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/28658/">28658</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
