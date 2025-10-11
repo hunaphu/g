@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::89503</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>232</td><td>Python 3</td><td>160811T144926Z</td><td><a href="https://codegolf.stackexchange.com/questions/89503/fix-my-ipv4-addresss-missing-periods/89524#89524">Copper</a></td></tr>
+<tr d-ix="1"><td>091</td><td>Perl 5</td><td>160812T050819Z</td><td><a href="https://codegolf.stackexchange.com/questions/89503/fix-my-ipv4-addresss-missing-periods/89593#89593">n̴̖̋h̷͉̃</a></td></tr>
+<tr d-ix="2"><td>260</td><td>Python 3</td><td>160811T163817Z</td><td><a href="https://codegolf.stackexchange.com/questions/89503/fix-my-ipv4-addresss-missing-periods/89537#89537">YOU</a></td></tr>
+<tr d-ix="3"><td>110</td><td>Brachylog</td><td>160811T170315Z</td><td><a href="https://codegolf.stackexchange.com/questions/89503/fix-my-ipv4-addresss-missing-periods/89540#89540">Leaky Nu</a></td></tr>
+<tr d-ix="4"><td>024</td><td>Pyth</td><td>160811T185301Z</td><td><a href="https://codegolf.stackexchange.com/questions/89503/fix-my-ipv4-addresss-missing-periods/89553#89553">Anders K</a></td></tr>
+<tr d-ix="5"><td>135</td><td>JavaScript ES6</td><td>160811T152603Z</td><td><a href="https://codegolf.stackexchange.com/questions/89503/fix-my-ipv4-addresss-missing-periods/89526#89526">Neil</a></td></tr>
+<tr d-ix="6"><td>121</td><td>C gcc/linux</td><td>160811T160005Z</td><td><a href="https://codegolf.stackexchange.com/questions/89503/fix-my-ipv4-addresss-missing-periods/89532#89532">orlp</a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>Python 3, 232 bytes</h1>
+
+<pre class="lang-py prettyprint-override"><code>import re,itertools as t,ipaddress as k
+R=range
+i=input()
+for d in R(5):
+ for p in t.combinations(R(len(i)),d):
+  n=i;o=0
+  for a in p:n=n[:a+o]+'.'+n[a+o:];o+=1
+  try:k.ip_address(n);print(n*(not re.search(r'\D?0\d',n)))
+  except:0
+</code></pre>
+
+<p>Pretty simple: We place periods everywhere and print if the IP address with the periods placed is valid. We check the validity of the IP adresses by (ab)using <code>ipaddress.ip_address</code>, which raises an exception if the input is not a valid IP address. The challenge defines some additional rules that <code>ip_address</code> doesn't handle (namely, that there can be no leading zeroes), so we check for those too with a regular expression, then print.</p>
+
+<p>Outputs each solution on a new line, mixed with an arbitrary number of blank lines.</p>
+
+<p>Example run:</p>
+
+<pre><code>$ echo 012345 | python fixip.py
+0.1.23.45
+0.1.234.5
+0.12.3.45
+0.12.34.5
+0.123.4.5
+
+
+
+
+
+$ echo 000123 | python fixip.py
+0.0.0.123
+
+
+
+
+
+
+
+
+_
+</code></pre>
+
+<p>Here's my older, 248-byte Python 2 solution. The second and third indent levels are <code>\t</code> (raw tab) and <code>\t</code> <code></code> (raw tab plus space) respectively. This plays <em>really</em> badly with Markdown, so the tabs have been replaced by two spaces.</p>
+
+<pre class="lang-py prettyprint-override"><code>import socket,re,itertools as t
+R=range
+i=input()
+for d in R(5):
+ for p in t.combinations(R(len(i)),d):
+  n=i;o=0
+  for a in p:n=n[:a+o]+'.'+n[a+o:];o+=1
+  try:
+   socket.inet_aton(n)
+   if n.count('.')==3and not re.search(r'\D?0\d',n):print n
+  except:0
+</code></pre>
+
+<p>Requires the input surrounded with quotes (e.g. <code>"123.456.789"</code>). Outputs each generated IP address on a new line.</p>
+
+<p><em>Saved 9 bytes thanks to @grawity!</em></p>
+</div>
+<div id="pu1" class="pu"><h1>Perl 5, 91 bytes</h1>
+
+<pre><code>&lt;&gt;=~/^(([1-9]?|1\d|2[0-4])\d|25[0-5])\.?((?1))\.?((?1))\.?((?1))$(?{print"$1.$3.$4.$5 "})^/
+</code></pre>
+
+<p>The program expects a single line of a single input and outputs space-delimited list of candidates.</p>
+
+<h3>Explanation</h3>
+
+<p>The program exploits the backtracking feature of regex to loop over all possibilities of forming a valid IPv4 address from the input string.</p>
+
+<pre><code>^(([1-9]?|1\d|2[0-4])\d|25[0-5])\.?((?1))\.?((?1))\.?((?1))$
+</code></pre>
+
+<p>The IPv4 regex with optional <code>.</code>, nothing of note here.</p>
+
+<pre><code>(?{print"$1.$3.$4.$5 "})
+</code></pre>
+
+<p>A code evaluation expression which prints out the content of the capturing groups.</p>
+
+<pre><code>^
+</code></pre>
+
+<p>Make the match fails and force backtracking.</p>
+
+<h3>Example run</h3>
+
+<pre><code>$ echo "012345" | perl G89503.pl
+0.12.34.5 0.12.3.45 0.1.23.45 0.1.234.5 0.123.4.5
+</code></pre>
+</div>
+<div id="pu2" class="pu"><h1>Python 3, <s>262</s> 260 bytes</h1>
+<pre><code>p,l,L,T=set(),-1,len,tuple
+while l&lt;L(p):l=L(p);p|={T(z[:i]+(y[:j],y[j:])+z[i+1:])for z in set(p)or[T(input().split(&quot;.&quot;))]for i,y in enumerate(z)for j in range(1,L(y))}
+print(['.'.join(x)for x in p if L(x)==4and all(y=='0'or y[0]!='0'and int(y)&lt;256for y in x)])
+</code></pre>
+<p>No libraries used, but late and longer, may be I am missing some obvious golfing techniques.</p>
+<p>Results anyway.</p>
+<pre><code>for x in 192.168.1234 192.1681234 1921681.234 1921681234 192.168.1204 192.168.123 192.168.256 120345 012345 000123; do
+echo $x | python3 ipv4.py
+done;
+
+['192.168.123.4', '192.168.1.234', '192.168.12.34']
+['192.16.81.234', '192.168.1.234', '192.168.123.4', '192.168.12.34']
+['19.216.81.234', '192.168.1.234', '192.16.81.234']
+['19.216.81.234', '192.168.123.4', '192.168.12.34', '192.16.81.234', '192.168.1.234']
+['192.168.1.204', '192.168.120.4']
+['192.16.8.123', '19.2.168.123', '1.92.168.123', '192.168.1.23', '192.168.12.3', '192.1.68.123']
+['192.168.25.6', '192.168.2.56']
+['1.20.3.45', '1.203.4.5', '12.0.34.5', '120.3.4.5', '1.20.34.5', '12.0.3.45']
+['0.1.23.45', '0.12.3.45', '0.12.34.5', '0.123.4.5', '0.1.234.5']
+['0.0.0.123']
+</code></pre>
+</div>
+<div id="pu3" class="pu"><h1><a href="https://github.com/JCumin/Brachylog" rel="nofollow">Brachylog</a>, 110 bytes</h1>
+
+<pre><code>:ef:{".",@N.|.}ac:3f:{@n:"."rz:cacb.}a.
+,4yeN,?:N:6i.@nMl4,M:{:7&amp;&lt;256}a
+~c[A:B]h:@N:Bc.
+:ef:{,"0":"9"y:.m?}ac.
+</code></pre>
+
+<p><a href="http://brachylog.tryitonline.net/#code=OmVmOnsiLiIsQE4ufC59YWM6M2Y6e0BuOiIuInJ6OmNhY2IufWEuCiw0eWVOLD86Tjo1aS5Abk1sNCxNOns6NiY8MjU2fWEKfmNbQTpCXWg6QE46QmMuCjplZjp7LCIwIjoiOSJ5Oi5tP31hYy4&amp;input=IjAxMjMuNDUi&amp;args=Wg&amp;debug=on" rel="nofollow">Try it online!</a></p>
+</div>
+<div id="pu4" class="pu"><h1>Pyth, 24 bytes</h1>
+
+<pre><code>f&amp;q4lJcT\.!-J`M256jL\../
+</code></pre>
+
+<p><a href="https://pyth.herokuapp.com/?code=f%26q4lJcT%5C.%21-J%60M256jL%5C..%2F&amp;test_suite=1&amp;test_suite_input=%22192.168.1234%22%0A%22192.1681234%22%0A%221921681.234%22%0A%221921681234%22%0A%22192.168.1204%22%0A%22192.168.123%22%0A%22192.168.256%22%0A%22120345%22%0A%22012345%22%0A%22000123%22&amp;debug=0">Try it online</a></p>
+
+<h3>How it works</h3>
+
+<pre><code>                      ./Q   all partitions of input
+                  jL\.      join each on .
+f                           filter for results T such that:
+      cT\.                    split T on .
+     J                        assign to J
+    l                         length
+  q4                          equals 4
+ &amp;                            … and:
+           -J`M256              J minus the list of representations of [0, …, 255]
+          !                     is false (empty)
+</code></pre>
+
+<h1>Pyth, 17 bytes, very slow</h1>
+
+<pre><code>@FjLL\.,^U256 4./
+</code></pre>
+
+<p><strong>Warning.  Do not run.</strong>  Requires approximately 553 GiB of RAM.</p>
+
+<h3>How it works</h3>
+
+<pre><code>       ,             two-element list of:
+        ^U256 4        all four-element lists of [0, …, 255]
+               ./Q     all partitions of input
+  jLL\.              join each element of both on .
+@F                   fold intersection
+</code></pre>
+</div>
+<div id="pu5" class="pu"><h2>JavaScript (ES6), <s>147</s> <s>141</s> 135 bytes</h2>
+
+<p><div class="snippet" data-lang="js" data-hide="false" data-console="true" data-babel="false">
+<div class="snippet-code">
+<pre class="snippet-code-js lang-js prettyprint-override"><code>f=(s,n=0)=&gt;(a=s.split`.`)[3]?a.every(s=&gt;s==`0`|s[0]&gt;0&amp;s&lt;256)?s+' ':'':[...s].map((_,i)=&gt;i&gt;n?f(s.slice(0,i)+`.`+s.slice(i),i):``).join``</code></pre>
+<pre class="snippet-code-html lang-html prettyprint-override"><code>&lt;input placeholder=Input oninput=o.textContent=f(this.value)&gt;&lt;div id=o style=font-family:monospace;width:1em&gt;Output</code></pre>
+</div>
+</div>
+</p>
+
+<p>Edit: saved 6 bytes thanks to @apsillers. Saved another 6 bytes by copying @YOU's validity test.</p>
+</div>
+<div id="pu6" class="pu"><h1>C (gcc/linux), <strike>125</strike> 121 bytes</h1>
+
+<pre><code>i;f(char*a){do{char*y=a,s[99],*x=inet_ntop(2,&amp;i,s,99);for(;*x&amp;&amp;!(*x^*y&amp;&amp;*x^46);++x)y+=*x==*y;*x|*y||puts(s);}while(++i);}
+</code></pre>
+
+<p>Loops over <strong>all</strong> possible IPv4 addresses, and does a custom comparison that skips over extra dots in the generated ip address (but not in the main comparison address) to decide whether to print or not. <strong>Very slow, but should finish within 1 hour on a reasonable PC</strong>.</p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/89503/">89503</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
