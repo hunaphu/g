@@ -54,7 +54,32 @@ w;
 end;
 </code></pre>
 <p>Inputs string, outputs Vector of [freq,beats]. Golfed version condenses the for loop and if statement into a seq with expression form for if.</p>
-<p>Extended version to follow...</p>
+<p>Extended to process &quot;(&quot; and &quot;)&quot;. 224 bytes.</p>
+<p>ungolfed;</p>
+<pre><code>proc(s)
+S:=seq:        # abbreviate seq as S
+# next line sets up a table mapping a character to its frequency using @Arnauld's formula
+g:=table([S(&quot;1.2.34.5.6.7d.r.mf.s.l.tD.R.MF.S.L.T &quot;)]=~[S(floor(110*2^(n/12)),n=3..38),0]);
+w,j,v:=&lt;[]&gt;,0,1;   # initialize output Vector w and its size j and default speed v
+for i in s do
+if i=&quot;-&quot; then
+  w[j]+=[0,v]  # if &quot;-&quot; then add v to beats of previous note
+elif i=&quot;(&quot; then
+  v/=2
+elif i=&quot;)&quot; then
+  v*=2
+else
+ j++;
+ w(j):=[g[i],v]
+fi
+od;
+w;
+end;
+</code></pre>
+<p>golfed:</p>
+<pre><code>proc(s)S:=seq:g:=table([S(&quot;1.2.34.5.6.7d.r.mf.s.l.tD.R.MF.S.L.T &quot;)]=~[S(floor(110*2^(n/12)),n=3..38),0]);w,j,v:=&lt;[]&gt;,0,1;S(`if`(i=&quot;-&quot;,(w[j]+=[0,v]),`if`(i=&quot;(&quot;,(v/=2),`if`(i=&quot;)&quot;,(v*=2),[(j++),(w(j):=[g[i],v])]))),i=s);w;end;
+</code></pre>
+<p>Note: the beats are output as fractions: 1/2, 3/2 etc. Add one byte to output as floats (initialize v as 1. not 1).</p>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://esolangs.org/wiki/WhatLang" rel="nofollow noreferrer">WhatLang</a>, 103 bytes</h1>
 <pre><code>[( |.-*)g]match@(len@\0,\_:' ?{&quot;1234567drmfsltDRMFSLT&quot;\in@\_12*7/2+flr@12*2\pow@110*flr@\2&gt;!!}_0\2&gt;)#.
