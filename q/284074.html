@@ -33,7 +33,8 @@
 <tr d-ix="4"><td>106</td><td>JavaScript ES7</td><td>251010T152740Z</td><td><a href="https://codegolf.stackexchange.com/questions/284074/parse-rpip7-musical-notation/284077#284077">Arnauld</a></td></tr>
 <tr d-ix="5"><td>066</td><td>Charcoal</td><td>251010T230514Z</td><td><a href="https://codegolf.stackexchange.com/questions/284074/parse-rpip7-musical-notation/284084#284084">Neil</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://www.maplesoft.com/" rel="nofollow noreferrer">Maple</a>, 181 bytes</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.maplesoft.com/" rel="nofollow noreferrer">Maple</a>, 181 bytes, 282* bytes</h1>
+<p>Without extensions:</p>
 <pre><code>proc(s)S:=seq:g:=table([S(&quot;1.2.34.5.6.7d.r.mf.s.l.tD.R.MF.S.L.T &quot;)]=~[S(floor(110*2^(n/12)),n=3..38),0]);w,j:=&lt;[]&gt;,0;S(`if`(i=&quot;-&quot;,(w[j]+=[0,1]),[(j++),(w(j):=[g[i],1])]),i=s);w end;
 </code></pre>
 <p>Ugolfed:</p>
@@ -54,7 +55,7 @@ w;
 end;
 </code></pre>
 <p>Inputs string, outputs Vector of [freq,beats]. Golfed version condenses the for loop and if statement into a seq with expression form for if.</p>
-<p>Extended to process &quot;(&quot; and &quot;)&quot;. 224 bytes.</p>
+<p>Extended version, 282 bytes.</p>
 <p>ungolfed;</p>
 <pre><code>proc(s)
 S:=seq:        # abbreviate seq as S
@@ -65,9 +66,14 @@ for i in s do
 if i=&quot;-&quot; then
   w[j]+=[0,v]  # if &quot;-&quot; then add v to beats of previous note
 elif i=&quot;(&quot; then
-  v/=2
+  v/=2         # double speed
 elif i=&quot;)&quot; then
-  v*=2
+  v*=2         # halve speed
+elif i=&quot;{&quot; then
+  k:=j         # record current position
+elif i=&quot;}&quot; then
+  w,=S(w[k+1..]); # repeat
+  j+=j-k       # update position
 else
  j++;
  w(j):=[g[i],v]
@@ -77,7 +83,7 @@ w;
 end;
 </code></pre>
 <p>golfed:</p>
-<pre><code>proc(s)S:=seq:g:=table([S(&quot;1.2.34.5.6.7d.r.mf.s.l.tD.R.MF.S.L.T &quot;)]=~[S(floor(110*2^(n/12)),n=3..38),0]);w,j,v:=&lt;[]&gt;,0,1;S(`if`(i=&quot;-&quot;,(w[j]+=[0,v]),`if`(i=&quot;(&quot;,(v/=2),`if`(i=&quot;)&quot;,(v*=2),[(j++),(w(j):=[g[i],v])]))),i=s);w;end;
+<pre><code>proc(s)S:=seq:g:=table([S(&quot;1.2.34.5.6.7d.r.mf.s.l.tD.R.MF.S.L.T &quot;)]=~[S(floor(110*2^(n/12)),n=3..38),0]);w,j,v:=&lt;[]&gt;,0,1;S(`if`(i=&quot;-&quot;,(w[j]+=[0,v]),`if`(i=&quot;(&quot;,(v/=2),`if`(i=&quot;)&quot;,(v*=2),`if`(i=&quot;{&quot;,(k:=j),`if`(i=&quot;}&quot;,[(w,=S(w[k+1..])),(j+=j-k)],[(j++),(w(j):=[g[i],v])]))))),i=s);w;end;
 </code></pre>
 <p>Note: the beats are output as fractions: 1/2, 3/2 etc. Add one byte to output as floats (initialize v as 1. not 1).</p>
 </div>
