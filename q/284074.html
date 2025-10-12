@@ -26,77 +26,52 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>158</td><td>APLNARS</td><td>251011T125424Z</td><td><a href="https://codegolf.stackexchange.com/questions/284074/parse-rpip7-musical-notation/284088#284088">Rosario</a></td></tr>
+<tr d-ix="0"><td>166</td><td>APLNARS</td><td>251011T125424Z</td><td><a href="https://codegolf.stackexchange.com/questions/284074/parse-rpip7-musical-notation/284088#284088">Rosario</a></td></tr>
 <tr d-ix="1"><td>066</td><td>Charcoal</td><td>251010T230514Z</td><td><a href="https://codegolf.stackexchange.com/questions/284074/parse-rpip7-musical-notation/284084#284084">Neil</a></td></tr>
 <tr d-ix="2"><td>181</td><td>Maple</td><td>251011T193940Z</td><td><a href="https://codegolf.stackexchange.com/questions/284074/parse-rpip7-musical-notation/284093#284093">dharr</a></td></tr>
 <tr d-ix="3"><td>103</td><td>WhatLang</td><td>251011T155622Z</td><td><a href="https://codegolf.stackexchange.com/questions/284074/parse-rpip7-musical-notation/284090#284090">YufangIG</a></td></tr>
 <tr d-ix="4"><td>056</td><td>Jelly</td><td>251010T204744Z</td><td><a href="https://codegolf.stackexchange.com/questions/284074/parse-rpip7-musical-notation/284081#284081">Jonathan</a></td></tr>
 <tr d-ix="5"><td>106</td><td>JavaScript ES7</td><td>251010T152740Z</td><td><a href="https://codegolf.stackexchange.com/questions/284074/parse-rpip7-musical-notation/284077#284077">Arnauld</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>APL(NARS), 158 chars</h1>
+<div id="pu0" class="pu"><h1>APL(NARS), 166 chars</h1>
 <pre><code>r←d w;i;l;c;m;n
 i←1⋄r←⍬⋄→0×⍳i&gt;l←≢w
 m←n←0⋄→4×⍳' '=c←i⊃w
-m←{⌊110×2*6÷⍨⍵-.5×+/⍵&gt;13,16}¯1+'1234567drmfsltDRMFSLT'⍳c
+m←{⌊.5+110×2*12÷⍨⍵+3}¯1+'1 2 34 5 6 7d r mf s l tD R MF S L T'⍳c
 n+←1⋄→5×⍳l&lt;i+←1⋄→4×⍳'-'=c←i⊃w
 r,←⊂m n⋄→2×⍳l≥i
 </code></pre>
-<p>//  +/16 19 20 57 30 16=158</p>
-<p>It was need a adjustament from the note 'D' and one from the note 'F'.</p>
-<p>There are 2 loop, one for get the note and one for get '-'.
-This is the ungolfed one</p>
-<pre><code>r←d w;i;l;c;m;n
-1:i←1⋄r←⍬⋄→0×⍳i&gt;l←≢w
-2:    m←n←0⋄→4×⍳' '=c←i⊃w
-3:    m←{⌊110×2*6÷⍨⍵-.5×+/⍵&gt;13,16}¯1+'1234567drmfsltDRMFSLT'⍳c
-4:        n+←1⋄→5×⍳l&lt;i+←1⋄→4×⍳'-'=c←i⊃w
-5:    r,←⊂m n⋄→2×⍳l≥i
+<p>// +/16 19 20 65 30 16=166</p>
+<p>The formula for calculate the notes from Do3 it seems to be</p>
+<pre><code>  h←{⌊.5+110×2*12÷⍨⍵+3}
+  h¨0..12
+131 139 147 156 165 175 185 196 208 220 233 247 262 
+Do  Do# Re  Re# MI  Fa  Fa# Sol Sol#La  La# Si  Do
 </code></pre>
+<p>That would continue to calculate the frequence in herz in both diretion</p>
+<pre><code>  Do1  Do2  Do3 Do4  Do5
+..-24..-12..0.. 12.. 24..
+</code></pre>
+<p>How you can see here the notes are 12 not 7.</p>
+<p>But the question want find only the subset of these notes
+the ones Do  Re  MI  Fa  Sol La Si  Do, 7 notes...</p>
+<p>The problem has an easy solution, it is enoght use the formula h above
+and build the string of search with spaces where are the lost notes as</p>
+<pre><code>'1 2 34 5 6 7d r mf s l tD R MF S L T'
+</code></pre>
+<p>These are all corrispondences of notes</p>
+<pre><code>  ↑¨d '1234567drmfsltDRMFSLT'
+131 147 165 175 196 220 247 262 294 330 349 392 440 494 523 587 659 698 784 880 988 
+</code></pre>
+<p>1 is 131, 2 is 147 ... T is 988</p>
 <p>test:</p>
-<pre><code>  d ''
-┌0─┐
-│ 0│
-└~─┘
-  d 'ssl-s-D-t-- ssl-s-R-D-- ssS-M-D-t-l-- FFM-D-R-D--'
-┌28────────────────────────────────────────────────────────────────────────────────────────
-│┌2─────┐ ┌2─────┐ ┌2─────┐ ┌2─────┐ ┌2─────┐ ┌2─────┐ ┌2───┐ ┌2─────┐ ┌2─────┐ ┌2─────┐ ┌2
-││ 391 1│ │ 391 1│ │ 440 2│ │ 391 2│ │ 523 2│ │ 493 3│ │ 0 1│ │ 391 1│ │ 391 1│ │ 440 2│ │ 
-│└~─────┘ └~─────┘ └~─────┘ └~─────┘ └~─────┘ └~─────┘ └~───┘ └~─────┘ └~─────┘ └~─────┘ └~
-└∊─────────────────────────────────────────────────────────────────────────────────────────
-  ─────────────────────────────────────────────────────────────────────────────────────
-  ─────┐ ┌2─────┐ ┌2─────┐ ┌2───┐ ┌2─────┐ ┌2─────┐ ┌2─────┐ ┌2─────┐ ┌2─────┐ ┌2─────┐
-  391 2│ │ 587 2│ │ 523 3│ │ 0 1│ │ 391 1│ │ 391 1│ │ 783 2│ │ 659 2│ │ 523 2│ │ 493 2│
-  ─────┘ └~─────┘ └~─────┘ └~───┘ └~─────┘ └~─────┘ └~─────┘ └~─────┘ └~─────┘ └~─────┘
-  ─────────────────────────────────────────────────────────────────────────────────────
-  ──────────────────────────────────────────────────────────────────────┐
-   ┌2─────┐ ┌2───┐ ┌2─────┐ ┌2─────┐ ┌2─────┐ ┌2─────┐ ┌2─────┐ ┌2─────┐│
-   │ 440 3│ │ 0 1│ │ 698 1│ │ 698 1│ │ 659 2│ │ 523 2│ │ 587 2│ │ 523 3││
-   └~─────┘ └~───┘ └~─────┘ └~─────┘ └~─────┘ └~─────┘ └~─────┘ └~─────┘2
-  ──────────────────────────────────────────────────────────────────────┘
+<pre><code>  d 'ssl-s-D-t-- ssl-s-R-D-- ssS-M-D-t-l-- FFM-D-R-D--'
+ 392 1  392 1  440 2  392 2  523 2  494 3  0 1  392 1  392 1  440 2  392 2  587 2  523 3  0
+   1  392 1  392 1  784 2  659 2  523 2  494 2  440 3  0 1  698 1  698 1  659 2  523 2 
+   587 2  523 3 
 </code></pre>
-<p>so it seems the formaly correct answer is the array below</p>
-<pre><code>  h6←{⌊110×2*6÷⍨⍵-.5×(⍵&gt;13)+⍵&gt;16}
-  h6¨0..21
-110 123 138 155 174 195 220 246 277 311 349 391 440 493 523 587 659 698 783 880 987 1108 
-</code></pre>
-<p>So <em>if</em> above array is right than this formula would be wrong:</p>
-<pre><code>  h3←{⌊110×2*(⌊2+7÷⍨12×⍵)×÷12}
-  h3¨0..21
-123 130 146 164 174 195 220 246 261 293 329 349 391 440 493 523 587 659 698 783 880 987 
-</code></pre>
-<p>And this without agiustament is wrong too</p>
-<pre><code>  h←{⌊110×2*⍵÷12}
-  h¨0..21
-110 116 123 130 138 146 155 164 174 184 195 207 220 233 246 261 277 293 311 329 349 369 
-</code></pre>
-<p>that will be</p>
-<pre><code>  h←{⌊110×2*⍵÷6}
-  h¨0..21
-110 123 138 155 174 195 220 246 277 311 349 391 440 493 554 622 698 783 880 987 1108 1244
-                                                        +++++++++++++++++++++++++++++++++
-110 123 138 155 174 195 220 246 277 311 349 391 440 493 523 587 659 698 783 880 987 1108          
-</code></pre>
-<p>are possible errors because I'm not one expert on this and because all we make errors.</p>
+<p>the note here indicates from &quot;s&quot; has a round value of 392Hz not 391Hz at last seen the table in the wikipedia
+page on the notes.</p>
 </div>
 <div id="pu1" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 66 bytes</h1>
 <pre><code>≔drmfsltηＦＳ≡ι-⊞υＥ⊟υ⁺κλ ⊞υＥ²κ⊞υ⟦⌊×¹¹⁰Ｘ²∕⁺²÷×¹²∨Σι⁺⁸⌕⁺η↥ηι⁷¦¹²¦¹⟧⭆¹υ
