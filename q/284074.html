@@ -26,14 +26,69 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>166</td><td>APLNARS</td><td>251011T125424Z</td><td><a href="https://codegolf.stackexchange.com/questions/284074/parse-rpip7-musical-notation/284088#284088">Rosario</a></td></tr>
-<tr d-ix="1"><td>066</td><td>Charcoal</td><td>251010T230514Z</td><td><a href="https://codegolf.stackexchange.com/questions/284074/parse-rpip7-musical-notation/284084#284084">Neil</a></td></tr>
-<tr d-ix="2"><td>181</td><td>Maple</td><td>251011T193940Z</td><td><a href="https://codegolf.stackexchange.com/questions/284074/parse-rpip7-musical-notation/284093#284093">dharr</a></td></tr>
+<tr d-ix="0"><td>280</td><td>Maple</td><td>251011T193940Z</td><td><a href="https://codegolf.stackexchange.com/questions/284074/parse-rpip7-musical-notation/284093#284093">dharr</a></td></tr>
+<tr d-ix="1"><td>166</td><td>APLNARS</td><td>251011T125424Z</td><td><a href="https://codegolf.stackexchange.com/questions/284074/parse-rpip7-musical-notation/284088#284088">Rosario</a></td></tr>
+<tr d-ix="2"><td>066</td><td>Charcoal</td><td>251010T230514Z</td><td><a href="https://codegolf.stackexchange.com/questions/284074/parse-rpip7-musical-notation/284084#284084">Neil</a></td></tr>
 <tr d-ix="3"><td>103</td><td>WhatLang</td><td>251011T155622Z</td><td><a href="https://codegolf.stackexchange.com/questions/284074/parse-rpip7-musical-notation/284090#284090">YufangIG</a></td></tr>
 <tr d-ix="4"><td>056</td><td>Jelly</td><td>251010T204744Z</td><td><a href="https://codegolf.stackexchange.com/questions/284074/parse-rpip7-musical-notation/284081#284081">Jonathan</a></td></tr>
 <tr d-ix="5"><td>106</td><td>JavaScript ES7</td><td>251010T152740Z</td><td><a href="https://codegolf.stackexchange.com/questions/284074/parse-rpip7-musical-notation/284077#284077">Arnauld</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1>APL(NARS), 166 chars</h1>
+<div id="pu0" class="pu"><h1><a href="https://www.maplesoft.com/" rel="nofollow noreferrer">Maple</a>, <s> 181 </s> 179 bytes, <s> 282* </s> 280* bytes</h1>
+<p>-2 bytes by using @Neil's formula.</p>
+<p>Without extensions:</p>
+<pre><code>proc(s)S:=seq:g:=table([S(&quot;1234567drmfsltDRMFSLT &quot;)]=~[S(floor(110*2^(iquo(12*n+14,7)/12)),n=1..21),0]);w,j:=&lt;[]&gt;,0;S(`if`(i=&quot;-&quot;,(w[j]+=[0,1]),[(j++),(w(j):=[g[i],1])]),i=s);w end;
+</code></pre>
+<p>Ugolfed:</p>
+<pre><code>proc(s)
+S:=seq:        # abbreviate seq as S
+# next line sets up a table mapping a character to its frequency using @Neil's formula
+g:=table([S(&quot;1234567drmfsltDRMFSLT &quot;)]=~[S(floor(110*2^(iquo(12*n+14,7)/12)),n=1..21),0]);
+w,j:=&lt;[]&gt;,0;   # initialize output Vector w and its size j
+for i in s do
+if i=&quot;-&quot; then
+  w[j]+=[0,1]  # if &quot;-&quot; then add 1 to beats of previous note
+else
+ j++;
+ w(j):=[g[i],1]
+fi
+od;
+w;
+end;
+</code></pre>
+<p>Inputs string, outputs Vector of [freq,beats]. Golfed version condenses the for loop and if statement into a seq with expression form for if.</p>
+<p>Extended version, 282 bytes.</p>
+<p>ungolfed;</p>
+<pre><code>proc(s)
+S:=seq:        # abbreviate seq as S
+# next line sets up a table mapping a character to its frequency using @Neil's formula
+g:=table([S(&quot;1234567drmfsltDRMFSLT &quot;)]=~[S(floor(110*2^(iquo(12*n+14,7)/12)),n=1..21),0]);
+w,j,v:=&lt;[]&gt;,0,1;   # initialize output Vector w and its size j and default speed v
+for i in s do
+if i=&quot;-&quot; then
+  w[j]+=[0,v]  # if &quot;-&quot; then add v to beats of previous note
+elif i=&quot;(&quot; then
+  v/=2         # double speed
+elif i=&quot;)&quot; then
+  v*=2         # halve speed
+elif i=&quot;{&quot; then
+  k:=j         # record current position
+elif i=&quot;}&quot; then
+  w,=S(w[k+1..]); # repeat
+  j+=j-k       # update position
+else
+ j++;
+ w(j):=[g[i],v]
+fi
+od;
+w;
+end;
+</code></pre>
+<p>golfed:</p>
+<pre><code>proc(s)S:=seq:g:=table([S(&quot;1234567drmfsltDRMFSLT &quot;)]=~[S(floor(110*2^(iquo(12*n+14,7)/12)),n=1..21),0]);w,j,v:=&lt;[]&gt;,0,1;S(`if`(i=&quot;-&quot;,(w[j]+=[0,v]),`if`(i=&quot;(&quot;,(v/=2),`if`(i=&quot;)&quot;,(v*=2),`if`(i=&quot;{&quot;,(k:=j),`if`(i=&quot;}&quot;,[(w,=S(w[k+1..])),(j+=j-k)],[(j++),(w(j):=[g[i],v])]))))),i=s);w;end;
+</code></pre>
+<p>Note: the beats are output as fractions: 1/2, 3/2 etc. Add one byte to output as floats (initialize v as 1. not 1).</p>
+</div>
+<div id="pu1" class="pu"><h1>APL(NARS), 166 chars</h1>
 <pre><code>r←d w;i;l;c;m;n
 i←1⋄r←⍬⋄→0×⍳i&gt;l←≢w
 m←n←0⋄→4×⍳' '=c←i⊃w
@@ -74,7 +129,7 @@ and build the string of search with spaces where are the lost notes as</p>
 page on the notes.</p>
 <p><a href="https://it.wikipedia.org/wiki/Nota_(musica)" rel="nofollow noreferrer">https://it.wikipedia.org/wiki/Nota_(musica)</a></p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 66 bytes</h1>
+<div id="pu2" class="pu"><h1><a href="https://github.com/somebody1234/Charcoal" rel="nofollow noreferrer">Charcoal</a>, 66 bytes</h1>
 <pre><code>≔drmfsltηＦＳ≡ι-⊞υＥ⊟υ⁺κλ ⊞υＥ²κ⊞υ⟦⌊×¹¹⁰Ｘ²∕⁺²÷×¹²∨Σι⁺⁸⌕⁺η↥ηι⁷¦¹²¦¹⟧⭆¹υ
 </code></pre>
 <p><a href="https://tio.run/##XY9PS8QwEMXv/RRDTxPIgN2LoidhKexhsVg9iYfSptuwaVPyZ/cgfvY63VQEAyGTN28ev2mHxrW2Mcvy7L0@TZh3buy9CbmEQTxlvXWAh2mOoQ5OTycUAvxVh3YA1AK@srbxCnLKH6GKfsAo4djMWNkZo5BQmejxLMEIwWHJC/@8Ownntdupvokm/DU/SmOtwzc9Ko9Fccdx9qrcOrDXF90pvMXz9zCFTdnMrL04rOPIkBvFg4RST12aGSS8z7NyKxEOgj2aCfm551vsbmXxyVDfWcVrB0zbr7iFhMi4y@LJGyJPtCcKRLDWm/J6E5NSEx1/PdzlU1KZlGTLFrqYHw" rel="nofollow noreferrer" title="Charcoal – Try It Online">Try it online!</a> Link is to verbose version of code. Explanation: By assigning the values <code>8</code>..<code>21</code> to the letters <code>d</code>..<code>T</code> respectively, the following formula gives the exact frequency of the note:</p>
@@ -117,60 +172,6 @@ page on the notes.</p>
   90 NEXT i
  100 PLAY p$
 </code></pre>
-</div>
-<div id="pu2" class="pu"><h1><a href="https://www.maplesoft.com/" rel="nofollow noreferrer">Maple</a>, 181 bytes, 282* bytes</h1>
-<p>Without extensions:</p>
-<pre><code>proc(s)S:=seq:g:=table([S(&quot;1.2.34.5.6.7d.r.mf.s.l.tD.R.MF.S.L.T &quot;)]=~[S(floor(110*2^(n/12)),n=3..38),0]);w,j:=&lt;[]&gt;,0;S(`if`(i=&quot;-&quot;,(w[j]+=[0,1]),[(j++),(w(j):=[g[i],1])]),i=s);w end;
-</code></pre>
-<p>Ugolfed:</p>
-<pre><code>proc(s)
-S:=seq:        # abbreviate seq as S
-# next line sets up a table mapping a character to its frequency using @Arnauld's formula
-g:=table([S(&quot;1.2.34.5.6.7d.r.mf.s.l.tD.R.MF.S.L.T &quot;)]=~[S(floor(110*2^(n/12)),n=3..38),0]);
-w,j:=&lt;[]&gt;,0;   # initialize output Vector w and its size j
-for i in s do
-if i=&quot;-&quot; then
-  w[j]+=[0,1]  # if &quot;-&quot; then add 1 to beats of previous note
-else
- j++;
- w(j):=[g[i],1]
-fi
-od;
-w;
-end;
-</code></pre>
-<p>Inputs string, outputs Vector of [freq,beats]. Golfed version condenses the for loop and if statement into a seq with expression form for if.</p>
-<p>Extended version, 282 bytes.</p>
-<p>ungolfed;</p>
-<pre><code>proc(s)
-S:=seq:        # abbreviate seq as S
-# next line sets up a table mapping a character to its frequency using @Arnauld's formula
-g:=table([S(&quot;1.2.34.5.6.7d.r.mf.s.l.tD.R.MF.S.L.T &quot;)]=~[S(floor(110*2^(n/12)),n=3..38),0]);
-w,j,v:=&lt;[]&gt;,0,1;   # initialize output Vector w and its size j and default speed v
-for i in s do
-if i=&quot;-&quot; then
-  w[j]+=[0,v]  # if &quot;-&quot; then add v to beats of previous note
-elif i=&quot;(&quot; then
-  v/=2         # double speed
-elif i=&quot;)&quot; then
-  v*=2         # halve speed
-elif i=&quot;{&quot; then
-  k:=j         # record current position
-elif i=&quot;}&quot; then
-  w,=S(w[k+1..]); # repeat
-  j+=j-k       # update position
-else
- j++;
- w(j):=[g[i],v]
-fi
-od;
-w;
-end;
-</code></pre>
-<p>golfed:</p>
-<pre><code>proc(s)S:=seq:g:=table([S(&quot;1.2.34.5.6.7d.r.mf.s.l.tD.R.MF.S.L.T &quot;)]=~[S(floor(110*2^(n/12)),n=3..38),0]);w,j,v:=&lt;[]&gt;,0,1;S(`if`(i=&quot;-&quot;,(w[j]+=[0,v]),`if`(i=&quot;(&quot;,(v/=2),`if`(i=&quot;)&quot;,(v*=2),`if`(i=&quot;{&quot;,(k:=j),`if`(i=&quot;}&quot;,[(w,=S(w[k+1..])),(j+=j-k)],[(j++),(w(j):=[g[i],v])]))))),i=s);w;end;
-</code></pre>
-<p>Note: the beats are output as fractions: 1/2, 3/2 etc. Add one byte to output as floats (initialize v as 1. not 1).</p>
 </div>
 <div id="pu3" class="pu"><h1><a href="https://esolangs.org/wiki/WhatLang" rel="nofollow noreferrer">WhatLang</a>, 103 bytes</h1>
 <pre><code>[( |.-*)g]match@(len@\0,\_:' ?{&quot;1234567drmfsltDRMFSLT&quot;\in@\_12*7/2+flr@12*2\pow@110*flr@\2&gt;!!}_0\2&gt;)#.
