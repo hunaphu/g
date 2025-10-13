@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6EBTM9J4LK"></script>
+<script src="../g.js"></script>
+    <title>cg::52494</title>
+    <link rel="stylesheet" href="../c.css">
+</head>
+<body>
+    <br><br>
+    <div id = "content">
+    <div id="container">
+    <div id="mf">
+        <a href="#" class="nonewtab" d-g="g">g</a> | 
+        <a href="#" class="nonewtab" d-g="x">x</a> | 
+        <a href="#" class="nonewtab" d-g="w">w</a> | 
+        <a href="#" class="nonewtab" d-g="">all</a>
+    </div>
+    <input type="text" id="mi" placeholder="/">
+    </div>
+
+<table id="mt">
+  <tr class="header">
+    <th class="tbytes">Bytes</th>
+    <th class="tlang">Lang</th>
+    <th class="ttime">Time</th>
+    <th class="tlink">Link</th>
+  </tr>
+<tr d-ix="0"><td>072</td><td>CJam</td><td>150703T213550Z</td><td><a href="https://codegolf.stackexchange.com/questions/52494/print-an-ascii-spiral-in-olog-n-memory/52590#52590">Reto Kor</a></td></tr>
+<tr d-ix="1"><td>346</td><td>Common Lisp</td><td>150702T160155Z</td><td><a href="https://codegolf.stackexchange.com/questions/52494/print-an-ascii-spiral-in-olog-n-memory/52543#52543">coredump</a></td></tr>
+<tr d-ix="2"><td>118</td><td>C</td><td>150703T190228Z</td><td><a href="https://codegolf.stackexchange.com/questions/52494/print-an-ascii-spiral-in-olog-n-memory/52584#52584">Reto Kor</a></td></tr>
+<tr d-ix="3"><td>151</td><td>Haskell</td><td>150702T223925Z</td><td><a href="https://codegolf.stackexchange.com/questions/52494/print-an-ascii-spiral-in-olog-n-memory/52566#52566">nimi</a></td></tr>
+<tr d-ix="4"><td>121</td><td>C</td><td>150702T142742Z</td><td><a href="https://codegolf.stackexchange.com/questions/52494/print-an-ascii-spiral-in-olog-n-memory/52540#52540">Level Ri</a></td></tr>
+<tr d-ix="5"><td>926</td><td>C++</td><td>150702T064217Z</td><td><a href="https://codegolf.stackexchange.com/questions/52494/print-an-ascii-spiral-in-olog-n-memory/52526#52526">sudo rm </a></td></tr>
+</table>
+<div id="pu0" class="pu"><h1>CJam, 72 bytes</h1>
+
+<pre><code>li_2/:M;)__*{1$mdM-\M-_2$)=2$0&lt;*@_*@_0&gt;-_*e&gt;mQ_M&gt;2*@@+M+2%+'#S+N+N+=o}/;
+</code></pre>
+
+<p>This is fairly direct conversion of my C solution to CJam. Not as short as you would normally expect from a CJam solution, but this one really suffers from the memory restriction. The common benefits of building up results on the stack that gets dumped automatically at the end, and using fancy list/string operations, all go out the window. This generates and outputs the solution one character at a time. The stack only contains a few integers at runtime, and is empty at the end.</p>
+
+<p>Even though it's not a great display of using a golfing language, it's still considerably shorter than the C code just because the notation is more compact.</p>
+
+<p>Explanation:</p>
+
+<pre><code>li    Get input n.
+_2/   Calculate n/2.
+:M;   Store it in variable M
+)__*  Calculate (n+1)*(n+1), which is the total number of output characters.
+      Also keep a copy of n+1 on the stack.
+{     Start loop over output character positions.
+  1$md  Calculate divmod of position with n+1. This gives y and x of position.
+  M-    Subtract M from x.
+  \M-   Subtract M from y.
+  _     Copy y.
+  2$)   Calculate x+1.
+  =     Check if y == x+1
+  2$0&lt;  Check if x &lt; 0.
+  *     Multiply the two check results. This is the result of the flip
+        condition for the top-left diagonal to turn the rectangles into a spiral.
+  @_*   Calculate x*x.
+  @_    Get y to top of stack, and copy it.
+  0&gt;-   Subtract 1 from y if it is in the bottom half.
+  _*    Calculate y*y.
+  e&gt;    Take maximum of x*x and y*y...
+  mQ    ... and calculate the square root. This is the absolute value of the
+        larger of the two.
+  _M&gt;   Check if the value is greater M, which means that this is the
+        position of a line end.
+  2*    Multiply by 2 so that we can add another condition to it later.
+  @     Get result of diagonal flip condition to the stack top.
+  @     Get max(x,y) to the top.
+  +M+   Add the two, and add M to the whole thing. This value being even/odd
+        determines if the output is a # or a space.
+  2%    Check if value is odd.
+  +     Add to line end condition to get a single ternary condition result.
+  '#S+N+N+
+        Build string "# \n\n".
+  =     Use the condition result to pick the output character out of the string.
+  o     Output the character.
+}/    End loop over output characters.
+;     Pop n+1 value off stack, to leave it empty.
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1>Common Lisp - 346</h1>
+
+<pre class="lang-lisp prettyprint-override"><code>(lambda(n &amp;aux(d 0))(tagbody $ #6=(#7=dotimes(i n)#4=(princ"*"))#2=(#7#(i d)#5=(princ" ")#4#)#3=(terpri)#1=(#7#(i d)#4##5#)(when(&gt; n 0)(#7#(i(1- n))#5#)#4#)#2##3#(when(&gt; n 3)#1##4##4#(incf d)(decf n 4)(go $))(go /)@(decf d)(incf n 4)(when(&gt; n 3)#2##5##4##3#)/ #1#(when(&gt; n 0)#4#)(when(&gt; n 1)(#7#(i(- n 2))#5#)#4#)#2##3##1##6#(when(&gt; d 0)(go @))))
+</code></pre>
+
+<p>Iterative solution with constant memory usage. The above makes heavy uses of <code>#n=</code> and <code>#n#</code> reader variables. Even though there are more direct approaches, here I started with a recursive function and modified it to simulate recursion with <code>goto</code> statements: this is probably unreadable.</p>
+
+<p><a href="http://pastebin.com/raw.php?i=mYtCzruY" rel="nofollow">Output for all input values from 0 to 59</a>.</p>
+
+<h3>Original recursive version, with debugging informations</h3>
+
+<p>(note: <code>terpri</code> means <code>newline</code>)</p>
+
+<pre class="lang-lisp prettyprint-override"><code>(defun spiral (n &amp;optional (d 0) )
+  (flet ((prefix ()
+           (format t "~4d~4d | " n d)
+           (dotimes (i d)
+             (princ "a ")))
+         (postfix ()
+           (dotimes (i d)
+             (princ " b"))))
+    (when (= d 0) (prefix))
+    (dotimes (i n) (princ "c"))
+    (postfix)
+    (terpri)
+
+    (prefix)
+    (when (&gt; n 0)
+      (dotimes (i (1- n)) (princ " "))
+      (princ "d"))
+    (postfix)
+    (terpri)
+
+    (when (&gt; n 3)
+      (prefix)
+      (princ "**")
+      (spiral (- n 4) (1+ d))
+      (postfix)
+      (princ " f")
+      (terpri))
+
+    (prefix)
+    (when (&gt; n 0)
+      (princ "g"))
+
+    (when (&gt; n 1)
+      (dotimes (i (- n 2)) (princ " "))
+      (princ "h"))
+    (postfix)
+    (terpri)
+
+    (prefix)
+    (dotimes (i n) (princ "i"))
+    ))
+</code></pre>
+
+<p>For example:</p>
+
+<pre><code>(spiral 8)
+
+   8   0 | cccccccc
+   8   0 |        d
+   8   0 | **cccc b
+   4   1 | a    d b
+   4   1 | a ** b b
+   0   2 | a a  b b
+   0   2 | a a  b b
+   0   2 | a a  b f
+   4   1 | a g  h b
+   4   1 | a iiii f
+   8   0 | g      h
+   8   0 | iiiiiiii
+</code></pre>
+
+<p>See also <a href="http://pastebin.com/raw.php?i=appixiaq" rel="nofollow">this paste with all results from 0 to 59</a> (not the same as above, this one is more verbose).</p>
+
+<h3>Iterative version, with debugging informations</h3>
+
+<pre class="lang-lisp prettyprint-override"><code>(defun spiral (n &amp;aux (d 0) )
+  (flet ((prefix ()
+           (format t "~4d~4d | " n d)
+           (dotimes (i d)
+             (princ "a ")))
+         (postfix ()
+           (dotimes (i d)
+             (princ " b"))))
+    (tagbody
+     step-in
+       (when (= d 0) (prefix))
+       (dotimes (i n) (princ "c"))
+       (postfix)
+       (terpri)
+
+       (prefix)
+       (when (&gt; n 0)
+         (dotimes (i (1- n)) (princ " "))
+         (princ "d"))
+       (postfix)
+       (terpri)
+
+       (when (&gt; n 3)
+         (prefix)
+         (princ "**")
+
+         (incf d)
+         (decf n 4)
+         (go step-in))
+
+       (go skip)
+
+     step-out
+       (decf d)
+       (incf n 4)
+       (when (&gt; n 3)
+         (postfix)
+         (princ " f")
+         (terpri))
+
+     skip
+       (prefix)
+       (when (&gt; n 0)
+         (princ "g"))
+
+       (when (&gt; n 1)
+         (dotimes (i (- n 2)) (princ " "))
+         (princ "h"))
+       (postfix)
+       (terpri)
+
+       (prefix)
+       (dotimes (i n) (princ "i"))
+       (when(&gt; d 0)(go step-out)))))
+</code></pre>
+</div>
+<div id="pu2" class="pu"><h1>C, 118 bytes</h1>
+
+<pre><code>m,p,x,y,d;f(n){for(m=n++/2;p&lt;n*n;x=p%n-m,y=p++/n-m,d=y==x+1&amp;x&lt;0,y-=y&gt;0,d+=x*x&gt;y*y?x:y,putchar(x&gt;m?10:(d+m)%2?32:42));}
+</code></pre>
+
+<p>Code before final golfing:</p>
+
+<pre><code>#include &lt;stdio.h&gt;
+
+int m, p, x, y, d;
+
+int f(int n) {
+    for (m = n++ / 2; p &lt; n * n; ) {
+        x = p % n - m;
+        y = p++ / n - m;
+        d = y == x + 1 &amp;&amp; x &lt; 0;
+        y -= y &gt; 0;
+        d += x * x &gt; y * y ? x : y;
+        if (x &gt; m) {
+            putchar(10);
+        } else if ((d + m) % 2) {
+            putchar(32);
+        } else {
+            putchar(42);
+        }
+    }
+
+    return 0;
+}
+</code></pre>
+
+<p>The key observation is that the pattern is <em>almost</em> a series of concentric squares. With a couple of slight wrinkles:</p>
+
+<ul>
+<li>The y-size is one larger than the x-size. This is corrected by subtracting 1 from y for the lower half, which essentially repeats the middle row.</li>
+<li>To turn the rectangles into a spiral, the pixels along the <code>y = x + 1</code> diagonal need to be inverted up to the middle of the shape.</li>
+</ul>
+
+<p>For the rest, the code is simply looping over all positions, calculating the Chebyshev distance from the center for each position, and emitting one of the two characters depending on the distance being even or odd. And emitting a newline for the last position of each line.</p>
+
+<p>Since there are only a few scalar variables, and characters are emitted one by one, memory usage is obviously constant.</p>
+</div>
+<div id="pu3" class="pu"><h1>Haskell, 151 bytes</h1>
+
+<pre><code>(#)=mod
+f n=[[if y&lt;= -(abs$x+1)||y&gt;abs x then r$y#2/=n#2 else r$x#2==n#2|x&lt;-[-n..n]]|y&lt;-[-n-1..n+1],y/=0]
+r b|b='*'|1&lt;2=' '
+p=putStr.unlines.f.(`div`2)
+</code></pre>
+
+<p>Usage example:</p>
+
+<pre><code>*Main&gt; p 9
+*********
+        *
+******* *
+*     * *
+* *** * *
+* * * * *
+* *   * *
+* ***** *
+*       *
+*********
+
+*Main&gt; p 11
+***********
+          *
+********* *
+*       * *
+* ***** * *
+* *   * * *
+* * * * * *
+* * *** * *
+* *     * *
+* ******* *
+*         *
+***********
+</code></pre>
+
+<p>Thanks to Haskell's laziness this runs within constant memory. It uses the obvious approach, i.e. looping over <code>y</code> and <code>x</code> and choosing between <code>*</code> and <code></code>, depending on </p>
+
+<ul>
+<li>if the current position is above or below a diagonal</li>
+<li><code>x</code> resp. <code>y</code> is even or odd</li>
+<li><code>n/2</code> is even or odd</li>
+</ul>
+</div>
+<div id="pu4" class="pu"><h1>C, <s>125</s> 121 bytes</h1>
+<p><strong>Golfed version</strong> This has no variable <code>k</code>. The variable <code>k</code> is used in the ungolfed version just to aid readability. Also <code>for</code> loop conditionals are rearranged and one set of unnecessary <code>{}</code> removed. Another set of <code>{}</code> can be removed by migrating <code>puts(&quot;&quot;)</code> inside the brackets of the <code>j</code> loop in the initialization position, but this would mean a newline at the beginning of the output, so I haven't done it.</p>
+<pre><code>f(n){int i,j;n/=2;for(i=-n-2;i++-n-1;){if(i){for(j=-n-1;j++-n;)putchar(32+10*(n+(j*j&lt;i*i?i:j+(i!=j|i&gt;0))&amp;1));puts(&quot;&quot;);}}}
+</code></pre>
+<p>Prints an <code>n</code> wide by <code>n+1</code> high spiral like the example.</p>
+<p><strong>Explanation</strong></p>
+<p>Basically I halve the value of <code>n</code> (rounding down) and run two loops: an outer one <code>i</code> from <code>-n/2-1</code> to <code>n/2+1</code> to print the rows (<code>i=0</code> is suppressed so we get <code>n+1</code> rows) and an inner one <code>j</code> from (<code>-n/2</code> to <code>n/2</code> to print the characters.) We use <code>expression &amp; 1</code> to print stripes, and the condition <code>j*j&lt;i*i</code> to decide whether to print vertical or horizontal stripes (vertical at the sides where absolute magnitude of <code>i</code> is larger, and horizontal at the top and bottom.) An adjustment <code>+n</code> is required to help with the correct termination depending on whether <code>n/2</code> is odd or even.</p>
+<p><code>k</code> is normally 1, and provides an adjustment for the fact that the absolute values of <code>i</code> range from 1 to <code>n/2+1</code> while the absolute values of <code>j</code> range from 0 to <code>n/2</code>. If <code>k</code> was always 1 we would get concentric rectangles, but it is inverted to 0 when <code>i==j&amp;i&lt;=0</code> so that a diagonal row of cells is inverted, producing the spiral.</p>
+<p><strong>ungolfed in test program</strong></p>
+<pre><code>f(n){
+  int i,j,k;
+  n/=2;
+  for(i=-n-1;i&lt;=n+1;i++){
+    if(i){
+       for(j=-n;j&lt;=n;j++){
+           k=i!=j|i&gt;0;
+           putchar(32+10*(n+(j*j&lt;i*i?i:k+j)&amp;1));
+         }
+       puts(&quot;&quot;);
+     }
+  }
+} 
+
+int m;
+main(){
+  scanf(&quot;%d&quot;,&amp;m);
+  f(m);
+}
+</code></pre>
+<p><strong>Output</strong></p>
+<pre><code>11
+***********
+          *
+********* *
+*       * *
+* ***** * *
+* *   * * *
+* * * * * *
+* * *** * *
+* *     * *
+* ******* *
+*         *
+***********
+
+9
+*********
+        *
+******* *
+*     * *
+* *** * *
+* * * * *
+* *   * *
+* ***** *
+*       *
+*********
+
+3
+***
+  *
+* *
+***
+
+1
+*
+*
+</code></pre>
+</div>
+<div id="pu5" class="pu"><h1>C++, 926 bytes</h1>
+<pre><code>#include&lt;iostream&gt;
+#include&lt;string&gt;
+#include&lt;math.h&gt;
+#define S string
+using namespace std;S N(S x,int y){S z=&quot;&quot;;for(int q=0;q&lt;y;q++){z+=x;}return z;}int main(){int n=0,t=0,g=0,fi=1;cin&gt;&gt;n;int t1[]={0,0,n,0};int t2[]={0,n-2,n-2,1};for(int k=0;k&lt;n+1;k++){if((k&gt;(n-2)/2)&amp;&amp;(k&lt;(n+5)/2)){if(g==0){S d,e;if(!((n+1)%4)){cout&lt;&lt;N(&quot;* &quot;,t2[0])&lt;&lt;&quot;  *&quot;&lt;&lt;N(&quot; *&quot;,t2[0])&lt;&lt;endl&lt;&lt;N(&quot;* &quot;,(n+1)/2)&lt;&lt;endl&lt;&lt;N(&quot;* &quot;,t2[0])&lt;&lt;&quot;***&quot;&lt;&lt;N(&quot; *&quot;,t2[0])&lt;&lt;endl;t2[2]=n-8-(n-11);t1[2]=n-4-(n-11);t1[0]--;t2[3]--;t1[3]-=2;}else{cout&lt;&lt;N(&quot;* &quot;,t1[0])&lt;&lt;&quot;***&quot;&lt;&lt;N(&quot; *&quot;,t2[0])&lt;&lt;endl&lt;&lt;N(&quot;* &quot;,(n+1)/2)&lt;&lt;endl&lt;&lt;N(&quot;* &quot;,t1[0])&lt;&lt;&quot;*  &quot;&lt;&lt;N(&quot; *&quot;,t2[0])&lt;&lt;endl;t2[0]--;t1[2]+=2;t2[2]+=6;t1[3]--;t2[1]-=2;t2[3]-=2;}fi=0;}g=5;}else{t=1-t;int*tR;tR=t?t1:t2;cout&lt;&lt;N(&quot;* &quot;,tR[0])&lt;&lt;N(t?&quot;*&quot;:&quot; &quot;,tR[2])&lt;&lt;N(&quot; *&quot;,tR[3])&lt;&lt;endl;if(fi){if(t){t1[0]+=k==0?0:1;t1[2]-=k==0?2:4;t1[3]++;}else{t2[0]++;t2[2]-=4;t2[3]++;}}else{if(t){t1[0]--;t1[2]+=4;t1[3]--;}else{t2[0]--;t2[2]+=4;t2[3]--;}}}}return 0;}
+</code></pre>
+<p>This is not elegant, but it doesn't take up much memory for large n.  Furthermore, there are (almost certainly) about 20 characters that can be further golfed, but I can't stand to look at it anymore.</p>
+<h3>Short Explanation:</h3>
+<p>This splits the lines in the spirals into two types: the ones with ****** in the middle, and the ones with \s\s\s\s\s in the middle.  Then it is clear that each line is composed of several &quot;* &quot;s, the middle, and some &quot; *&quot;.  Figuring out exactly how many of each thing is simple if you look at the pattern for long enough. The tricky thing was printing the center of the spiral which I basically hard coded using a conditional.  This ended up being useful because the *** and \s\s\s lines switch being odd/even there.</p>
+<h3>Tests:</h3>
+<p><strong>Input:</strong> <code>55</code> (I think the big ones look coolest)</p>
+<p><strong>Output:</strong></p>
+<pre>
+*******************************************************
+                                                      *
+***************************************************** *
+*                                                   * *
+* ************************************************* * *
+* *                                               * * *
+* * ********************************************* * * *
+* * *                                           * * * *
+* * * ***************************************** * * * *
+* * * *                                       * * * * *
+* * * * ************************************* * * * * *
+* * * * *                                   * * * * * *
+* * * * * ********************************* * * * * * *
+* * * * * *                               * * * * * * *
+* * * * * * ***************************** * * * * * * *
+* * * * * * *                           * * * * * * * *
+* * * * * * * ************************* * * * * * * * *
+* * * * * * * *                       * * * * * * * * *
+* * * * * * * * ********************* * * * * * * * * *
+* * * * * * * * *                   * * * * * * * * * *
+* * * * * * * * * ***************** * * * * * * * * * *
+* * * * * * * * * *               * * * * * * * * * * *
+* * * * * * * * * * ************* * * * * * * * * * * *
+* * * * * * * * * * *           * * * * * * * * * * * *
+* * * * * * * * * * * ********* * * * * * * * * * * * *
+* * * * * * * * * * * *       * * * * * * * * * * * * *
+* * * * * * * * * * * * ***** * * * * * * * * * * * * *
+* * * * * * * * * * * * *   * * * * * * * * * * * * * *
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * {-- my program adds a space here btw
+* * * * * * * * * * * * * *** * * * * * * * * * * * * *
+* * * * * * * * * * * * *     * * * * * * * * * * * * *
+* * * * * * * * * * * * ******* * * * * * * * * * * * *
+* * * * * * * * * * * *         * * * * * * * * * * * *
+* * * * * * * * * * * *********** * * * * * * * * * * *
+* * * * * * * * * * *             * * * * * * * * * * *
+* * * * * * * * * * *************** * * * * * * * * * *
+* * * * * * * * * *                 * * * * * * * * * *
+* * * * * * * * * ******************* * * * * * * * * *
+* * * * * * * * *                     * * * * * * * * *
+* * * * * * * * *********************** * * * * * * * *
+* * * * * * * *                         * * * * * * * *
+* * * * * * * *************************** * * * * * * *
+* * * * * * *                             * * * * * * *
+* * * * * * ******************************* * * * * * *
+* * * * * *                                 * * * * * *
+* * * * * *********************************** * * * * *
+* * * * *                                     * * * * *
+* * * * *************************************** * * * *
+* * * *                                         * * * *
+* * * ******************************************* * * *
+* * *                                             * * *
+* * *********************************************** * *
+* *                                                 * *
+* *************************************************** *
+*                                                     *
+*******************************************************
+</pre>
+<p><strong>Input:</strong> <code>3</code></p>
+<p><strong>Output:</strong></p>
+<pre>
+***
+  *
+* * 
+***
+</pre>
+<p>Note: I am not a computer scientist/CS student, and I don't know how to prove that this uses O(log n) memory.  I can only work out what to do based on the links in the question.  I would be grateful if someone could confirm/deny if this answer is valid.  My logic for this answer's validity is that it never stores any variable of size based on n except the input itself.  Instead, a for loop that runs n times computes integer values based on n.  There are the same number of those values regardless of the input.</p>
+<p>Note2: This doesn't work for n=1 because of my method of dealing with the middle.  This would be easy to fix with conditionals, so if anyone is within a few characters of my answer, I'll fix it ;)</p>
+<p><a href="http://ideone.com/jRF9Ie" rel="nofollow noreferrer">Play with it on ideone.</a></p>
+</div>
+
+<table id="st">
+<!-- Popups content will be added here -->
+</table>
+
+<table id="at">
+<!-- Popups content will be added here -->
+</table>
+
+</div>
+
+
+
+
+
+  <div class="footer">
+      <b><a class="nonewtab" href="../">GOLFSCORE/</a><a href="https://codegolf.stackexchange.com/questions/52494/">52494</a></b>
+  </div>
+<div class="footer-space">&nbsp;</div>
+
+
+
+<script src="../c.js"> </script>
+</body>
+</html>
+
+
+
+
