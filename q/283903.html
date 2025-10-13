@@ -26,12 +26,12 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>202</td><td>Swift 6.1</td><td>251004T224613Z</td><td><a href="https://codegolf.stackexchange.com/questions/283903/interpret-g-code/284002#284002">macOSist</a></td></tr>
-<tr d-ix="1"><td>095</td><td>Bash sed + dc</td><td>250930T225418Z</td><td><a href="https://codegolf.stackexchange.com/questions/283903/interpret-g-code/283956#283956">Jan Blum</a></td></tr>
-<tr d-ix="2"><td>147</td><td>Python 3</td><td>251004T195219Z</td><td><a href="https://codegolf.stackexchange.com/questions/283903/interpret-g-code/284000#284000">Jonathan</a></td></tr>
-<tr d-ix="3"><td>038</td><td>Jelly</td><td>251003T184413Z</td><td><a href="https://codegolf.stackexchange.com/questions/283903/interpret-g-code/283995#283995">Jonathan</a></td></tr>
-<tr d-ix="4"><td>166</td><td>SNOBOL4 CSNOBOL4</td><td>251002T174927Z</td><td><a href="https://codegolf.stackexchange.com/questions/283903/interpret-g-code/283989#283989">Giuseppe</a></td></tr>
-<tr d-ix="5"><td>225</td><td>Google Sheets</td><td>250928T120439Z</td><td><a href="https://codegolf.stackexchange.com/questions/283903/interpret-g-code/283907#283907">doubleun</a></td></tr>
+<tr d-ix="0"><td>216</td><td>Google Sheets</td><td>250928T120439Z</td><td><a href="https://codegolf.stackexchange.com/questions/283903/interpret-g-code/283907#283907">doubleun</a></td></tr>
+<tr d-ix="1"><td>202</td><td>Swift 6.1</td><td>251004T224613Z</td><td><a href="https://codegolf.stackexchange.com/questions/283903/interpret-g-code/284002#284002">macOSist</a></td></tr>
+<tr d-ix="2"><td>095</td><td>Bash sed + dc</td><td>250930T225418Z</td><td><a href="https://codegolf.stackexchange.com/questions/283903/interpret-g-code/283956#283956">Jan Blum</a></td></tr>
+<tr d-ix="3"><td>147</td><td>Python 3</td><td>251004T195219Z</td><td><a href="https://codegolf.stackexchange.com/questions/283903/interpret-g-code/284000#284000">Jonathan</a></td></tr>
+<tr d-ix="4"><td>038</td><td>Jelly</td><td>251003T184413Z</td><td><a href="https://codegolf.stackexchange.com/questions/283903/interpret-g-code/283995#283995">Jonathan</a></td></tr>
+<tr d-ix="5"><td>166</td><td>SNOBOL4 CSNOBOL4</td><td>251002T174927Z</td><td><a href="https://codegolf.stackexchange.com/questions/283903/interpret-g-code/283989#283989">Giuseppe</a></td></tr>
 <tr d-ix="6"><td>127</td><td>R</td><td>251001T190730Z</td><td><a href="https://codegolf.stackexchange.com/questions/283903/interpret-g-code/283978#283978">Giuseppe</a></td></tr>
 <tr d-ix="7"><td>138</td><td>Retina 0.8.2</td><td>250928T101841Z</td><td><a href="https://codegolf.stackexchange.com/questions/283903/interpret-g-code/283905#283905">Neil</a></td></tr>
 <tr d-ix="8"><td>046</td><td>05AB1E</td><td>250929T084510Z</td><td><a href="https://codegolf.stackexchange.com/questions/283903/interpret-g-code/283921#283921">Kevin Cr</a></td></tr>
@@ -40,14 +40,48 @@
 <tr d-ix="11"><td>047</td><td>Charcoal</td><td>250928T203830Z</td><td><a href="https://codegolf.stackexchange.com/questions/283903/interpret-g-code/283913#283913">Neil</a></td></tr>
 <tr d-ix="12"><td>213</td><td>Python3</td><td>250928T175340Z</td><td><a href="https://codegolf.stackexchange.com/questions/283903/interpret-g-code/283911#283911">Ajax1234</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://swift.org" rel="nofollow noreferrer">Swift 6.1</a>, <s>224</s> 202 bytes</h1>
+<div id="pu0" class="pu"><h1>Google Sheets, 216 bytes</h1>
+<pre class="lang-none prettyprint-override"><code>=sort(choosecols(reduce(W1:Z1,split(regexreplace(A:A,&quot;G|;.*&quot;,),&quot; &quot;),lambda(a,c,let(m,index(a,1),f,lambda(i,iferror(m*index(a,i)+mid(c,2,9*find(char(86+i),c)),index(a,i))),{if(n(c)&gt;1,c=91,m),f(2),f(3),f(4)}))),2,3,4))
+</code></pre>
+<p><img src="https://i.sstatic.net/8KLduyTK.png" alt="screenshot" /></p>
+<p>Prettified:</p>
+<pre class="lang-none prettyprint-override"><code>=sort(choosecols(
+  reduce({0,0,0,0}, split(regexreplace(A:A, &quot;G|;.*&quot;,), &quot; &quot;), lambda(a, c, let(
+    m, index(a, 1),
+    f, lambda(i, iferror(
+      m * index(a, i) + mid(c, 2, 9 * find(char(86 + i), c)),
+      index(a, i)
+    )),
+    {
+      if(n(c) &gt; 1, c = 91, m),
+      f(2), f(3), f(4) 
+    }
+  ))),
+  2, 3, 4
+))
+</code></pre>
+<p>Explained:</p>
+<ul>
+<li><code>sort()</code> is used as an array processing enabler only</li>
+<li><code>reduce()</code> accumulates the result in an array <code>[m, x, y, z]</code></li>
+<li>the mode <code>m</code> is <code>0</code> for absolute and <code>1</code> for relative</li>
+<li><code>split()</code> separates tokens into a subarray and casts strings like <code>G90</code>, <code>G91</code>, <code>G00</code> and <code>G01</code> to numbers; strings like <code>X10</code> and <code>Y-3</code> are left as is</li>
+<li>in each row, each token is processed separately</li>
+<li><code>f(dimension)</code> extracts an x, y or z coordinate, and adds previous coordinate when in relative mode</li>
+<li>extraction will error out when a token doesn't represent a particular coordinate (<code>char(86 + 2)</code> === <code>X</code>), defaulting to the current value at index <code>dimension</code> in the accumulator</li>
+<li>in the <code>{}</code> array expression, <code>if()</code> sets or maintains the mode in the accumulator, and the three <code>f()</code> calls get new coordinates when they're present, maintaining coordinates that aren't present</li>
+<li><code>c = 91</code> puts a Boolean in <code>m</code>, but that gets coerced to <code>0</code> or <code>1</code> in <code>f()</code></li>
+<li>finally, <code>choosecols()</code> drops <code>m</code> and outputs the rest of the accumulator</li>
+</ul>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://swift.org" rel="nofollow noreferrer">Swift 6.1</a>, <s>224</s> 202 bytes</h1>
 <pre class="lang-swift prettyprint-override"><code>{var r=0&lt;1,w=[0,0,0]
 ($0+&quot;&quot;).split{$0&lt;&quot; &quot;}.map{d in&quot;G8&quot;&lt;d ?r=d&gt;&quot;G90&quot;:(w=zip(w,&quot;XYZ&quot;).map{x,y in(r ?x:0)+Int(d.prefix{$0 != &quot;;&quot;}.split{$0&lt;&quot;!&quot;}.last{$0.first==y}?.dropFirst() ?? &quot;\(r ?0:x)&quot;)!})}
 return w}
 </code></pre>
 <p><a href="https://swiftfiddle.com/wdtgqjzw7bbnlbqzcl5irkf7ay" rel="nofollow noreferrer">Try it on SwiftFiddle!</a> Type is <code>(String) -&gt; [Int]</code>.</p>
 </div>
-<div id="pu1" class="pu"><h1><a href="https://www.gnu.org/software/bash/" rel="nofollow noreferrer">Bash</a> (<a href="https://www.gnu.org/software/sed/" rel="nofollow noreferrer">sed</a> + <a href="https://www.gnu.org/software/bc/manual/dc-1.05/dc.html" rel="nofollow noreferrer">dc</a>), <s>104</s> 95 bytes</h1>
+<div id="pu2" class="pu"><h1><a href="https://www.gnu.org/software/bash/" rel="nofollow noreferrer">Bash</a> (<a href="https://www.gnu.org/software/sed/" rel="nofollow noreferrer">sed</a> + <a href="https://www.gnu.org/software/bc/manual/dc-1.05/dc.html" rel="nofollow noreferrer">dc</a>), <s>104</s> 95 bytes</h1>
 
 <pre class="lang-bash prettyprint-override"><code>sed -r '1i0sX0sY0sZ0sF
 s/;.*//
@@ -66,7 +100,7 @@ $alZlYlXf'|dc
 </ul>
 <p>G commands other than <code>G90</code>/<code>G91</code> are rewritten into F for brevity (to be finally ignored along with these). Initialize <code>F</code>,<code>X</code>,<code>Y</code>,<code>Z</code> in the beginning, and dump <code>X</code>,<code>Y</code>,<code>Z</code> in the end – that's it.</p>
 </div>
-<div id="pu2" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a>, 147 bytes</h1>
+<div id="pu3" class="pu"><h1><a href="https://docs.python.org/3/" rel="nofollow noreferrer">Python 3</a>, 147 bytes</h1>
 
 <pre class="lang-python prettyprint-override"><code>def f(c):
  a=[0]*8;m=0
@@ -93,7 +127,7 @@ a[i]=              #     update a at index i to:
 return a[:3]       # finally return the first three values of a
 </code></pre>
 </div>
-<div id="pu3" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 38 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
+<div id="pu4" class="pu"><h1><a href="https://github.com/DennisMitchell/jelly" rel="nofollow noreferrer">Jelly</a>, 38 <a href="https://github.com/DennisMitchell/jelly/wiki/Code-page" rel="nofollow noreferrer">bytes</a></h1>
 <pre><code>×®+V}ʋḢO%8‘Ʋ}¦
 ṣ”;ḢḲçƒFO&amp;/©ṛʋḊ?ð@ƒ0x3¤
 </code></pre>
@@ -132,7 +166,7 @@ return a[:3]       # finally return the first three values of a
             ṛ           -      right argument -&gt; Location (unadjusted)
 </code></pre>
 </div>
-<div id="pu4" class="pu"><h1><a href="http://www.snobol4.org/csnobol4/" rel="nofollow noreferrer">SNOBOL4 (CSNOBOL4)</a>, <s>178</s> 166 bytes</h1>
+<div id="pu5" class="pu"><h1><a href="http://www.snobol4.org/csnobol4/" rel="nofollow noreferrer">SNOBOL4 (CSNOBOL4)</a>, <s>178</s> 166 bytes</h1>
 <pre><code> X =Y =Z =0
 I I =INPUT :F(O)
  I ';' REM =
@@ -144,38 +178,6 @@ END
 </code></pre>
 <p><a href="https://tio.run/##JY07D8IwDIT3/IobkJzwUgIsLcpQ1LSqBG3Vh9RkZEZ0YOW/B7cMtnX32efPe37Or0uMmGA9bIDVokIFW9XtOCAtZKMEa7oSOveAXUWZEO6ulkbhiBJpLyslHJOs9pImH2gBObLuxrOFJBC@6Nqml1op2CWYT7DJYbm2HLLjvVQ6JRo047A8txNoT/BrD8LVeYxlYkSpNSYDbxBYJHo1/AnhcBJ/blbOzhmF0foH" rel="nofollow noreferrer" title="SNOBOL4 (CSNOBOL4) – Try It Online">Try it online!</a></p>
 <p>Indirect reference <code>$</code> removes the need for <code>EVAL</code>.</p>
-</div>
-<div id="pu5" class="pu"><h1>Google Sheets, 225 bytes</h1>
-<pre class="lang-none prettyprint-override"><code>=sort(choosecols(reduce(W1:Z1,iferror(split(regexreplace(A:A,&quot;G|;.*&quot;,),&quot; &quot;)),lambda(a,c,let(m,index(a,1),f,lambda(i,iferror(m*index(a,i)+mid(c,2,9*find(char(86+i),c)),index(a,i))),{if(n(c)&gt;1,c=91,m),f(2),f(3),f(4)}))),2,3,4))
-</code></pre>
-<p><img src="https://i.sstatic.net/8KLduyTK.png" alt="screenshot" /></p>
-<p>Prettified:</p>
-<pre class="lang-none prettyprint-override"><code>=sort(choosecols(
-  reduce({ 0, 0, 0, 0 }, iferror(split(regexreplace(A:A, &quot;G|;.*&quot;,), &quot; &quot;)), lambda(a, c, let(
-    m, index(a, 1),
-    f, lambda(i, iferror(
-      m * index(a, i) + mid(c, 2, 9 * find(char(86+i), c)),
-      index(a, i)
-    )),
-    {
-      if(n(c) &gt; 1, c = 91, m),
-      f(2), f(3), f(4) 
-    }
-  ))),
-  2, 3, 4
-))
-</code></pre>
-<p>Explained:</p>
-<ul>
-<li><code>sort()</code> is used as an array processing enabler only</li>
-<li><code>reduce()</code> accumulates the result in an array <code>[m, x, y, z]</code> where <code>m</code> is <code>0</code> for absolute and <code>1</code> for relative mode</li>
-<li><code>split()</code> separates tokens into a subarray and casts strings like <code>G90</code>, <code>G91</code>, <code>G00</code> and <code>G01</code> to numbers; strings like <code>X10</code> and <code>Y-3</code> are left as is</li>
-<li><code>f(index)</code> extracts an x, y or z coordinate, and adds previous coordinate when in relative mode</li>
-<li>extraction will error out when a token doesn't represent a particular coordinate (<code>char(86+2)</code> === <code>X</code>), defaulting to the current value at <code>index</code> in the accumulator</li>
-<li>in the <code>{}</code> array expression, <code>if()</code> sets or maintains the mode in the accumulator, and the three <code>f()</code> calls get new coordinates when they're present, maintaining coordinates that aren't present</li>
-<li><code>c = 91</code> puts a Boolean in <code>m</code>, but that gets coerced to <code>0</code> or <code>1</code> in <code>f()</code></li>
-<li>finally, <code>choosecols()</code> drops <code>m</code> and outputs the rest of the accumulator</li>
-</ul>
 </div>
 <div id="pu6" class="pu"><h1><a href="https://www.r-project.org" rel="nofollow noreferrer">R</a>, <s>136</s> 127 bytes</h1>
 <pre class="lang-r prettyprint-override"><code>\(s){X=Y=Z=0
