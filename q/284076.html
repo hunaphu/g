@@ -33,13 +33,13 @@
 <div id="pu0" class="pu"><h1><a href="https://v8.dev/" rel="nofollow noreferrer">JavaScript (V8)</a>, 166 bytes</h1>
 <p>Expects a string and prints each match on a single space-separated line, using the field order described in the challenge.</p>
 
-<pre class="lang-javascript prettyprint-override"><code>s=&gt;[1,k=-1].map(r=&gt;++k|[...S=s].map((c,i)=&gt;S.slice(i).replace(/^ATG(...)*?T(AA|AG|GA)/,s=&gt;print(k,k+~-s.length*r,r*i%3+r,s),k+=r,s=&quot;TCG.A&quot;[c.charCodeAt()%5]+s),s=&quot;&quot;))
+<pre class="lang-javascript prettyprint-override"><code>s=&gt;[1,k=-1].map(r=&gt;[...S=s].map((c,i)=&gt;S.slice(i).replace(/^ATG(...)*?T(AA|AG|GA)/,s=&gt;print(k,k+~-s.length*r,r*i%3+r,s),k+=r,s=&quot;TCG.A&quot;[c.charCodeAt()%5]+s),k++,s=&quot;&quot;))
 </code></pre>
-<p><a href="https://tio.run/##TU1fa4MwEH/3U4RAaaIxpYzBmMQRwgh7bt7EgWRanU4lcX2Z21d3Z9uNhrvkfv8u78Wp8NY14xSfHpZKLF6k2Z61It7n/KMYiRNpFLVzxjk/CH/hiGUNFemB@66xJWkod@XYFTDuXqXRBLw0fDJEylnqWUu6Y7B2dE0/kZa10U/seVf2x6kOHXNhs7mLHPMUFAGvwEZpLnFmua0Lp4a3Uk6Ebu7zCDwgY0qXJAsQwtLAd0pDGQkTtFRAAADOgAiCVtIYZTA7B8B1ca9BsGh5EcAMvr/5eq6Z84q1IQT9z0LdQrVChYM84NXgngtbE49Eir6QHXo/dCXvhiPZvvTj5/SItihCniaoIut96wD4TZPlFw" rel="nofollow noreferrer" title="JavaScript (V8) – Try It Online">Try it online!</a></p>
+<p><a href="https://tio.run/##TY1Ra4MwEMff/RQhUJpoTCljMCZxhDDCnps36UAyrU6nkri@rNtXd6d2o@Euuf/d7395z8@5t64exvj8MJVi8iLN9qwR8f7IP/KBONCc84PwqyaW1VSkB@7b2hakptwVQ5tDuXuVRhNgafhkiJQXqS9a0h2DlYOru5E0rIl@Ys/bojuNVeiYC@vNXeSYpzAR8ApslOYSZ5bbKneqfyvkSOjm/hgtTDQjmNIpyQKEsDTwpdIQRkIFKRU0QEDPwBAGWkljlMFsMQC10rMREC3XAcDA/dXXc/UsK@YEE@R/F@JWqlkqHBwDXvbuObcV8Uik6AvZvvN9W/C2P5HtSzd8jo9oiyLkaYJKMt@3BMhvmky/" rel="nofollow noreferrer" title="JavaScript (V8) – Try It Online">Try it online!</a></p>
 <h3>Commented</h3>
-<p><em>NB: Now obsolete. To be updated.</em></p>
 <pre class="lang-javascript prettyprint-override"><code>s =&gt;                            // s = input string
-[1, -1].map(r =&gt;                // for r = 1 and r = -1:
+[1, k = -1]                     // k = ORF starting position, initialized to -1
+.map(r =&gt;                       // for r = 1 and r = -1:
   [...S = s]                    //   S = copy of s
   .map((c, i) =&gt;                //   for each character c at index i in S:
     S.slice(i)                  //     take the substring of S starting at i
@@ -47,18 +47,19 @@
       /^ATG(...)*?T(AA|AG|GA)/, //       a valid ORF at the start of this substring
       s =&gt;                      //       if found, store it in s and
       print(                    //       print:
-        j = ~r ? i + 1          //         starting position j = i + 1 if r = 1
-               : S.length - i,  //         or S.length - i if r = -1
-        j + ~-s.length * r,     //         ending position = j + (s.length - 1) * r
-        r * i % 3 + r,          //         frame = (r * i) % 3 + r
+        k,                      //         starting position k
+        k + ~-s.length * r,     //         ending position: k + (s.length - 1) * r
+        r * i % 3 + r,          //         frame: (r * i) % 3 + r
         s                       //         matched sequence s
       ),                        //       end of print()
+      k += r,                   //       update the starting position
       s =                       //       build the reverse sequence in s
-        &quot;TCG.A&quot;[                //       by prepending the complement nucleobase
+        &quot;TCG.A&quot;[                //       by prepending the complement base
           c.charCodeAt() % 5    //       using the ASCII code of c modulo 5:
         ] + s                   //         A: 65 -&gt; 0 -&gt; T, C: 67 -&gt; 2 -&gt; G,
                                 //         G: 71 -&gt; 1 -&gt; C, T: 84 -&gt; 4 -&gt; A
     ),                          //     end of replace()
+    k++,                        //     increment k
     s = &quot;&quot;                      //     start with s = &quot;&quot; (for the reverse seq.)
   )                             //   end of inner map()
 )                               // end of outer map()
