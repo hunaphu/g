@@ -26,15 +26,76 @@
     <th class="ttime">Time</th>
     <th class="tlink">Link</th>
   </tr>
-<tr d-ix="0"><td>047</td><td>05AB1E</td><td>251013T081954Z</td><td><a href="https://codegolf.stackexchange.com/questions/284074/parse-rpip7-musical-notation/284096#284096">Kevin Cr</a></td></tr>
-<tr d-ix="1"><td>160</td><td>APLNARS</td><td>251011T125424Z</td><td><a href="https://codegolf.stackexchange.com/questions/284074/parse-rpip7-musical-notation/284088#284088">Rosario</a></td></tr>
+<tr d-ix="0"><td>146</td><td>APLNARS</td><td>251011T125424Z</td><td><a href="https://codegolf.stackexchange.com/questions/284074/parse-rpip7-musical-notation/284088#284088">Rosario</a></td></tr>
+<tr d-ix="1"><td>047</td><td>05AB1E</td><td>251013T081954Z</td><td><a href="https://codegolf.stackexchange.com/questions/284074/parse-rpip7-musical-notation/284096#284096">Kevin Cr</a></td></tr>
 <tr d-ix="2"><td>280</td><td>Maple</td><td>251011T193940Z</td><td><a href="https://codegolf.stackexchange.com/questions/284074/parse-rpip7-musical-notation/284093#284093">dharr</a></td></tr>
 <tr d-ix="3"><td>066</td><td>Charcoal</td><td>251010T230514Z</td><td><a href="https://codegolf.stackexchange.com/questions/284074/parse-rpip7-musical-notation/284084#284084">Neil</a></td></tr>
 <tr d-ix="4"><td>103</td><td>WhatLang</td><td>251011T155622Z</td><td><a href="https://codegolf.stackexchange.com/questions/284074/parse-rpip7-musical-notation/284090#284090">YufangIG</a></td></tr>
 <tr d-ix="5"><td>056</td><td>Jelly</td><td>251010T204744Z</td><td><a href="https://codegolf.stackexchange.com/questions/284074/parse-rpip7-musical-notation/284081#284081">Jonathan</a></td></tr>
 <tr d-ix="6"><td>106</td><td>JavaScript ES7</td><td>251010T152740Z</td><td><a href="https://codegolf.stackexchange.com/questions/284074/parse-rpip7-musical-notation/284077#284077">Arnauld</a></td></tr>
 </table>
-<div id="pu0" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, 47 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
+<div id="pu0" class="pu"><h1>APL(NARS), 146 chars</h1>
+<pre><code>r←d w;i;l;m;n
+i←1⋄r←⍬⋄l←≢w
+n←0⋄m←⌊.5+110×2*12÷⍨2+{⍵=2:-∞⋄⍵}'1 2 34 5 6 7d r mf s l tD R MF S L T'⍳i⊃w
+n+←1⋄→4×⍳l&lt;i+←1⋄→3×⍳'-'=i⊃w
+r,←⊂m n⋄→2×⍳l≥i
+</code></pre>
+<p>//  +/14 13 75 28 16=146</p>
+<p>The ungolfed version, with line number labels and indentation 4chars for loops</p>
+<pre><code>   r←d w;i;l;m;n
+1: i←1⋄r←⍬⋄l←≢w
+2:     n←0⋄m←⌊.5+110×2*12÷⍨2+{⍵=2:-∞⋄⍵}'1 2 34 5 6 7d r mf s l tD R MF S L T'⍳i⊃w
+3:         n+←1⋄→4×⍳l&lt;i+←1⋄→3×⍳'-'=i⊃w
+4:     r,←⊂m n⋄→2×⍳l≥i
+</code></pre>
+<p>The input has to be a not void string with chars in '1234567drmfsltDRMFSLT -' the output is a
+array that has as elements one array of one float and one integer.</p>
+<p>The formula for calculate the frequences in Hz of notes from Do3 it seems to be</p>
+<pre><code>  h←{⌊.5+110×2*12÷⍨⍵+3}
+  h¨0..12
+131 139 147 156 165 175 185 196 208 220 233 247 262 
+Do  Do# Re  Re# MI  Fa  Fa# Sol Sol#La  La# Si  Do
+ 0    1  2    3  4   5    6   7    8 9  10  11  12   
+</code></pre>
+<p>Where 0 is the Do3, 1 is Do#3, 2 is Re3 ecc</p>
+<p>h would continue to calculate the frequence in herz in both diretion</p>
+<pre><code>  Do1  Do2  Do3 Do4  Do5
+..-24..-12..0.. 12.. 24..
+</code></pre>
+<p>The note La4 has the number 12+9=21 440Hz</p>
+<pre><code>  h 21
+440
+</code></pre>
+<p>How you can see here the notes are 12 not 7, but the question want find only the subset of these notes
+the ones Do  Re  MI  Fa  Sol La Si  Do, only, 7 notes...</p>
+<p>The problem has an easy solution, it is enoght use the formula h above
+and build the string of search with spaces where are the lost notes as</p>
+<pre><code>'1 2 34 5 6 7d r mf s l tD R MF S L T'
+</code></pre>
+<p>These are all corrispondences of notes</p>
+<pre><code>  ↑¨d '1234567drmfsltDRMFSLT'
+131 147 165 175 196 220 247 262 294 330 349 392 440 494 523 587 659 698 784 880 988 
+</code></pre>
+<p>at '1' there is 131 Hz Do3, at '2' there is 147Hz is Re,..., at 'T' there is 988Hz is Si5</p>
+<pre><code>  h 11+12×2 
+988
+</code></pre>
+<p>Test:</p>
+<pre><code>  d 'ssl-s-D-t-- ssl-s-R-D-- ssS-M-D-t-l-- FFM-D-R-D--'
+392 1  392 1  440 2  392 2  523 2  494 3  0 1  392 1  392 1  440 2  392 2  587 2  523 3 
+   0 1  392 1  392 1  784 2  659 2  523 2  494 2  440 3  0 1  698 1  698 1  659 2  52
+  3 2  587 2  523 3 
+  
+</code></pre>
+<p>the note here indicates from &quot;s&quot; has a round value of 392Hz not 391Hz at last seen the table in the wikipedia
+page on the notes, so above could be ok too.</p>
+<p>The function d can make to work with all the 12 notes if the name of missed notes are add example:</p>
+<pre><code>'1a2b34c5e6g7dhrimfnsolptDqRuMFvSwLyT'
+'1 2 34 5 6 7d r mf s l tD R MF S L T'
+</code></pre>
+</div>
+<div id="pu1" class="pu"><h1><a href="https://github.com/Adriandmen/05AB1E/wiki/Commands" rel="nofollow noreferrer">05AB1E</a>, 47 <a href="https://github.com/Adriandmen/05AB1E/wiki/Codepage" rel="nofollow noreferrer">bytes</a></h1>
 <pre><code>v7LJ.•/[&amp;8•Du««ykDdiÌ12*Ì7÷12/o6b*ïX‚ë(ÝyðÊi+])
 </code></pre>
 <p><a href="https://ato.pxeger.com/run?1=m73MwDQxyTB1wYKlpSVpuhY37cvMfbz0HjUs0o9WswBSLqWHVh9aXZntkpJ5uMfQSOtwj_nh7YZG-vlmSVqH10c8aph1eLXG4bmVhzcc7srUjtVcUpyUXAw1bMFNw-LiHN1iXRfdEl1dBQg7CMgDsYN1fcHiOUCemxuIDZaB6AQA" rel="nofollow noreferrer">Attempt it online</a> or <a href="https://ato.pxeger.com/run?1=m73MwDQxyTB1wZ6aMiXPvILSEisFBSX7SlsuJf_SEjBXyV5paWlJmq7FTfsycx8vvUcNi_Sj1SyAlEvpodWHVldmu6RkHu4xNNI63GN-eLuhkX6-WZLW4fURjxpmHV6tcXhu5eENh7sytWM1lxQnJRcvV9IL0zm0zR5i5oKbScXFObrFui66Jbq6ChB2EJAHYgfr-oLFc4A8NzcQGyzDlZICVJdTrJuWlptbVJSiW1wMZsFpdHmIVQA" rel="nofollow noreferrer">verify all test cases</a>. (Minor note, uses ATO instead of TIO, since there used to be an 05AB1E bug with <code>o</code> and TIO is too outdated and therefore still has that bug.)</p>
@@ -100,62 +161,7 @@
          ¾X‚           #    Push pair [0,X]
             yðÊi+])    #    Same as above
 </code></pre>
-</div>
-<div id="pu1" class="pu"><h1>APL(NARS), 160 chars</h1>
-<pre><code>r←d w;i;l;c;m;n
-i←1⋄r←⍬⋄→0×⍳i&gt;l←≢w
-m←n←0⋄→4×⍳' '=c←i⊃w
-m←⌊.5+110×2*12÷⍨2+'1 2 34 5 6 7d r mf s l tD R MF S L T'⍳c
-n+←1⋄→5×⍳l&lt;i+←1⋄→4×⍳'-'=c←i⊃w
-r,←⊂m n⋄→2×⍳l≥i
-</code></pre>
-<p>// +/16 19 20 59 30 16=160</p>
-<p>The ungolfed version, with line number labels and indentation 4chars for loops</p>
-<pre><code>   r←d w;i;l;c;m;n
-1: i←1⋄r←⍬⋄→0×⍳i&gt;l←≢w
-2:     m←n←0⋄→4×⍳' '=c←i⊃w  ⍝ if it find the char space than m=0 and goes to count '-'
-3:     m←⌊.5+110×2*12÷⍨2+'1 2 34 5 6 7d r mf s l tD R MF S L T'⍳c
-4:         n+←1⋄→5×⍳l&lt;i+←1⋄→4×⍳'-'=c←i⊃w
-5:     r,←⊂m n⋄→2×⍳l≥i
-</code></pre>
-<p>The formula for calculate the frequences in Hz of notes from Do3 it seems to be</p>
-<pre><code>  h←{⌊.5+110×2*12÷⍨⍵+3}
-  h¨0..12
-131 139 147 156 165 175 185 196 208 220 233 247 262 
-Do  Do# Re  Re# MI  Fa  Fa# Sol Sol#La  La# Si  Do
- 0    1  2    3  4   5    6   7    8 9  10  11  12   
-</code></pre>
-<p>Where 0 is the Do3, 1 is Do#3, 2 is Re3 ecc</p>
-<p>h would continue to calculate the frequence in herz in both diretion</p>
-<pre><code>  Do1  Do2  Do3 Do4  Do5
-..-24..-12..0.. 12.. 24..
-</code></pre>
-<p>The note La4 has the number 12+9=21 440Hz</p>
-<pre><code>  h 21
-440
-</code></pre>
-<p>How you can see here the notes are 12 not 7, but the question want find only the subset of these notes
-the ones Do  Re  MI  Fa  Sol La Si  Do, only, 7 notes...</p>
-<p>The problem has an easy solution, it is enoght use the formula h above
-and build the string of search with spaces where are the lost notes as</p>
-<pre><code>'1 2 34 5 6 7d r mf s l tD R MF S L T'
-</code></pre>
-<p>These are all corrispondences of notes</p>
-<pre><code>  ↑¨d '1234567drmfsltDRMFSLT'
-131 147 165 175 196 220 247 262 294 330 349 392 440 494 523 587 659 698 784 880 988 
-</code></pre>
-<p>at '1' there is 131 Hz Do3, at '2' there is 147Hz is Re,..., at 'T' there is 988Hz is Si5</p>
-<pre><code>  h 11+12×2 
-988
-</code></pre>
-<p>Test:</p>
-<pre><code>  d 'ssl-s-D-t-- ssl-s-R-D-- ssS-M-D-t-l-- FFM-D-R-D--'
-392 1  392 1  440 2  392 2  523 2  494 3  0 1  392 1  392 1  440 2  392 2  587 2  523 3  0
-   1  392 1  392 1  784 2  659 2  523 2  494 2  440 3  0 1  698 1  698 1  659 2  523 2 
-   587 2  523 3 
-</code></pre>
-<p>the note here indicates from &quot;s&quot; has a round value of 392Hz not 391Hz at last seen the table in the wikipedia
-page on the notes, so above could be ok too.</p>
+<p><a href="https://codegolf.stackexchange.com/a/166851/52210">See this 05AB1E tip of mine (section <em>How to compress strings not part of the dictionary?</em>)</a> to understand why <code>.•/[&amp;8•</code> is <code>&quot;drmfslt&quot;</code>.</p>
 </div>
 <div id="pu2" class="pu"><h1><a href="https://www.maplesoft.com/" rel="nofollow noreferrer">Maple</a>, <s> 181 </s> 179 bytes, <s> 282* </s> 280* bytes</h1>
 <p>-2 bytes by using @Neil's formula.</p>
